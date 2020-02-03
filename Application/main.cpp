@@ -11,9 +11,9 @@ public:
 
 
 int main(void) {
-
+	std::string t = "Test";
 	BaseApp* app = new App();
-	app->initApp();
+	app->initApp(t, 600, 600);
 	app->runApp();
 	return 0;
 }
