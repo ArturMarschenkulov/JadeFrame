@@ -5,7 +5,7 @@
 
 class Window {
 public:
-	Window() : handle(nullptr) {}
+	Window();
 	void init(const std::string& title, float width, float height);
 //private:
 	GLFWwindow* handle;

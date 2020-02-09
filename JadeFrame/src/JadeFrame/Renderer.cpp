@@ -1,63 +1,111 @@
 #include "Renderer.h"
+#include "BaseApp.h"
 
-void Shader::init() {
-	const char* vertexShaderSource = R"(
-			#version 450 core
-			layout (location = 0) in vec3 aPos;
-			void main() {
-			   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-			}
-		)";
 
-	const char* fragmentShaderSource = R"(
-			#version 450 core
-			out vec4 FragColor;
-			void main() {
-			   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
-			}
-		)";
-	GLuint vertexShader   = this->compile(GL_VERTEX_SHADER, vertexShaderSource);
-	GLuint fragmentShader = this->compile(GL_FRAGMENT_SHADER, fragmentShaderSource);
-	this->link(vertexShader, fragmentShader);
+
+
+
+
+Renderer::Renderer() {}
+void Renderer::init(Shader* shader) {
+	currentShader = shader;
+
+	glCreateBuffers(1, &vertexData.VBO);
+	glCreateVertexArrays(1, &vertexData.VAO);
+	glCreateBuffers(1, &vertexData.IBO);
+
+
+	vertexData.vertices.reserve(9000);
+	vertexData.indices.reserve(9000);
 }
+void Renderer::drawRectangle(Vec2 pos, Vec2 size) {
+	Mesh rectMesh = MeshManager::makeRectangle(pos, size);
+	draw(rectMesh);
+}
+void Renderer::draw(Mesh& mesh) {
 
-GLuint Shader::compile(GLenum type, const std::string& codeSource) {
-	GLuint shaderID = glCreateShader(type);
-	const GLchar* shaderCode = codeSource.c_str();
-	glShaderSource(shaderID, 1, &shaderCode, nullptr);
-	glCompileShader(shaderID);
 
-	GLint isCompiled = GL_FALSE;
-	glGetShaderiv(shaderID, GL_COMPILE_STATUS, &isCompiled);
-	if(isCompiled == GL_FALSE) {
-		GLint maxLength = 512;
-		glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &maxLength);
-		GLchar infoLog[512];
-		glGetShaderInfoLog(shaderID, maxLength, &maxLength, &infoLog[0]);
-		glDeleteShader(shaderID);
-		return 0;
-	} else {
-
+	for(int i = 0; i < mesh.vertices.size(); i++) {
+		vertexData.vertices.push_back(mesh.vertices[i]);
+		vertexData.vertexCount++;
 	}
 
-	return shaderID;
+	for(int i = 0; i < mesh.indices.size(); i++) {
+		mesh.indices[i] += vertexData.indexOffset;
+		vertexData.indices.push_back(mesh.indices[i]);
+	}
+	vertexData.indexOffset += mesh.vertices.size();
+
+
+
+	{
+		//for(int i = 0; i < mesh.vertices.size(); i++) {
+		//	vertexData.vertices.push_back(mesh.vertices[i]);
+		//}
+		//for(int i = 0; i < mesh.indices.size(); i++) {
+		//	mesh.indices[i] += vertexData.indexOffset;
+		//	vertexData.indices.push_back(mesh.indices[i]);
+		//}
+		//vertexData.indexOffset += mesh.vertices.size();
+	}
 }
 
-void Shader::link(GLuint vertexShader, GLuint fragmentShader) {
+void Renderer::startDraw() {
+	glUseProgram(currentShader->shaderID);
+	glBindVertexArray(vertexData.VAO);
 
-	// link shaders
-	shaderID = glCreateProgram();
-	glAttachShader(shaderID, vertexShader);
-	glAttachShader(shaderID, fragmentShader);
-	glLinkProgram(shaderID);
-	// check for linking errors
-	GLint isLinekd = GL_FALSE;
-	glGetProgramiv(shaderID, GL_LINK_STATUS, &isLinekd);
-	if(!isLinekd) {
-		char infoLog[1024];
-		glGetProgramInfoLog(shaderID, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+	vertexData.vertexOffset = 0;
+	vertexData.indexOffset = 0;
+	vertexData.vertexCount = 0;
+
+	if(BaseApp::getAppInstance()->input.isKeyDown(KEY::K)) {
+		vertexData.vertices.resize(0);
+		vertexData.indices.resize(0);
 	}
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+}
+
+void Renderer::endDraw() {
+
+	glBindBuffer(GL_ARRAY_BUFFER, vertexData.VBO);
+	GLuint vertexBudderSizeInBytes = vertexData.vertices.size() * sizeof(Vertex);
+	glBufferData(GL_ARRAY_BUFFER, vertexBudderSizeInBytes, vertexData.vertices.data(), GL_STATIC_DRAW);
+
+
+	glBindVertexArray(vertexData.VAO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0); glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertexData.IBO);
+	GLuint indexBudderSizeInBytes = vertexData.indices.size() * sizeof(GLuint);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexBudderSizeInBytes, vertexData.indices.data(), GL_STATIC_DRAW);
+
+
+
+	GLsizei  x1 = vertexData.vertexCount;
+	GLsizei  x2 = vertexData.vertices.size();
+
+	glDrawElements(GL_TRIANGLES, 16, GL_UNSIGNED_INT, 0);
+
+	//glDrawElements(GL_TRIANGLES, vertexData.vertexCount, GL_UNSIGNED_INT, 0);
+	//glDrawElements(GL_TRIANGLES, vertexData.vertices.size(), GL_UNSIGNED_INT, 0);
+
+
+
+
+
+
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//glDeleteBuffers(1, &vertexData.VBO);
+	//vertexData.VBO = 0;
+
+	//glBindVertexArray(0);
+	//glDeleteVertexArrays(1, &vertexData.VAO);
+	//vertexData.VAO = 0;
+
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	//glDeleteBuffers(1, &vertexData.IBO);
+	//vertexData.IBO = 0;
+
+
 }

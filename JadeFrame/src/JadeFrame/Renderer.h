@@ -1,51 +1,104 @@
 #pragma once
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include "Shader.h"
+
+#include <vector>
 #include <iostream>
-class Shader {
-public:
-	Shader() {}
-	void init();
-	GLuint compile(GLenum type, const std::string& codeSource);
-	void link(GLuint vertexShader, GLuint fragmentShader);
-	GLuint shaderID = 0;
+#include "math/Vec3.h"
+#include "math/Vec2.h"
+#include "math/Mat4.h"
+
+
+struct Vertex {
+	struct Vec3 {
+		float x, y, z;
+	};
+	Vec3 position;
 };
-
-
-
-
-class Renderer {
+class DynamicBuffer {
 public:
+	std::vector<Vertex> vertices;
+	std::vector<GLuint> indices;
 
 	GLuint VBO = 0;
 	GLuint VAO = 0;
 	GLuint IBO = 0;
-	Renderer() {}
 
-	void drawRectangle() {
-		GLfloat vertices[] = {
-			 0.5f,  0.5f, 0.0f,  // top right
-			 0.5f, -0.5f, 0.0f,  // bottom right
-			-0.5f, -0.5f, 0.0f,  // bottom left
-			-0.5f,  0.5f, 0.0f   // top left 
+	GLuint vertexOffset;
+	GLuint indexOffset;
+
+	GLuint vertexCount;
+	GLuint indexCount;
+
+};
+
+
+class Mesh {
+public:
+	inline GLuint vertexBufferSize() const {
+		return this->vertices.size() * sizeof(Vertex);
+	};
+	inline GLuint indexBufferSize() const {
+		return this->indices.size() * sizeof(GLuint);
+	};
+	//public:
+
+	std::vector<Vertex> vertices;
+	std::vector<GLuint> indices;
+};
+
+
+class MeshManager {
+public:
+	static Mesh makeRectangle(Vec3 pos, Vec3 size) {
+		Mesh mesh;
+		mesh.vertices.reserve(4);
+		mesh.vertices = {
+			Vertex{ pos.x, pos.y, pos.z },
+			Vertex{ pos.x + size.x, pos.y, pos.z },
+			Vertex{ pos.x + size.x, pos.y + size.y, pos.z },
+			Vertex{ pos.x, pos.y + size.y, pos.z },
 		};
-		GLuint indices[] = {  // note that we start from 0!
-			0, 1, 3,  // first Triangle
-			1, 2, 3   // second Triangle
+		mesh.indices.reserve(6);
+		mesh.indices = {
+			0, 1, 3,
+			1, 2, 3
 		};
-
-
-		glGenBuffers(1, &VBO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-		glGenVertexArrays(1, &VAO);
-		glBindVertexArray(VAO);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0); glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		glGenBuffers(1, &IBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+		return mesh;
 	}
+
+	static Mesh makeTriangle(Vec3 pos1, Vec3 pos2, Vec3 pos3) {
+		Mesh mesh;
+		mesh.vertices.reserve(3);
+		mesh.vertices = {
+			{pos1.x, pos1.y, pos1.z},
+			{pos2.x, pos2.y, pos2.z},
+			{pos3.x, pos3.y, pos3.z}
+		};
+		mesh.indices.reserve(3);
+		mesh.indices = {
+			0, 1, 2
+		};
+		return mesh;
+	}
+};
+
+
+class Renderer {
+public:
+	Renderer();
+	void init(Shader* shader);
+
+
+	void drawRectangle(Vec2 pos, Vec2 size);
+	void draw(Mesh& mesh);
+
+	void startDraw();
+	void endDraw();
+
+	DynamicBuffer vertexData;
+
+	Shader* currentShader = nullptr;
 };
