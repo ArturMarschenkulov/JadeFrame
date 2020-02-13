@@ -161,5 +161,6 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="src\extern\glfw64\glfw3.lib" />
+    <Library Include="src\extern\glfw32\glfw3.lib" />
   </ItemGroup>
 </Project>

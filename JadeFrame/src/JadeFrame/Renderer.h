@@ -39,9 +39,10 @@ public:
 	Renderer();
 	void init(Shader* shader);
 
-	void startDraw();
-	void addToVertexData(Mesh& mesh);
-	void endDraw();
+	void start();
+	void addToBufferData(Mesh& mesh);
+	void end();
+	void updateBuffers();
 	void drawBuffers();
 
 private:
@@ -67,6 +68,7 @@ private:
 
 	//Time part
 public:
+	void handleTime();
 private:
 	double currentTime = 0.0;
 	double previousTime = 0.0;

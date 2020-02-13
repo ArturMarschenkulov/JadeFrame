@@ -39,16 +39,17 @@ void BaseApp::runApp() {
 			std::cout << attributes.name << " ";
 		} std::cout << std::endl;
 	}
-
+	std::cout << sizeof(GLuint) << std::endl;
 	while(!glfwWindowShouldClose(window.handle)) {
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		this->pollEvents();
+		window.displayFPS();
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		processInput(window.handle);
+
 		GUInewFrame();
-		renderer.startDraw();
+		renderer.start();
 
 		renderer.ortho(
 			0.0f, (float)window.width,
@@ -56,7 +57,7 @@ void BaseApp::runApp() {
 			-1.0f, 1.0f
 		);
 
-		static int amount = 5;
+		static int amount = 1;
 		ImGui::SliderInt("amount1", &amount, 1, 10);
 		ImGui::SliderInt("amount2", &amount, 1, 100);
 		ImGui::SliderInt("amount3", &amount, 1, 1000);
@@ -64,40 +65,44 @@ void BaseApp::runApp() {
 		ImGui::SliderInt("amount5", &amount, 1, 100000);
 
 
+		//for(int i = 0; i < amount; i++) {
+		//	for(int j = 0; j < amount; j++) {
+		//		Vec2 pos = { 0.0f, 0.0f };
+		//		Vec2 size = { window.width / amount, window.height / amount };
+		//		Vec2 pos2;
+		//		pos2.x = pos.x + size.x * i;
+		//		pos2.y = pos.y + size.y * j;
+		//		if((i + j) % 2) {
+		//			renderer.setColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+
+		//		} else {
+		//			renderer.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
+
+		//		}
+		//		renderer.drawTriangle({ pos2.x, pos2.y }, { pos2.x+size.x, pos2.y }, { pos2.x, pos2.y +size.y});
+		//	}
+		//}
+		renderer.setColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 		for(int i = 0; i < amount; i++) {
-			for(int j = 0; j < amount; j++) {
-				Vec2 pos = { 0.0f, 0.0f };
-				Vec2 size = { window.width / amount, window.height / amount };
-				Vec2 pos2;
-				pos2.x = pos.x + size.x * i;
-				pos2.y = pos.y + size.y * j;
-				if((i + j) % 2) {
-					renderer.setColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+			Vec2 pos = { 0.0f, 0.0f };
+			Vec2 size = { window.width / amount, window.height / amount };
+			Vec2 pos2;
 
-				} else {
-					renderer.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
+			renderer.drawRectangle(pos2 + size * i, size);
 
-				}
-				//renderer.drawRectangle(pos2, size);
-				renderer.drawTriangle({ pos2.x, pos2.y }, { pos2.x+size.x, pos2.y }, { pos2.x, pos2.y +size.y});
-			}
 		}
 
+		renderer.end();
 
-		//renderer.drawTriangle({ 20.0f, 20.0f }, { 40.0f, 20.0f }, { 20.0f, 40.0f });
-		//renderer.drawTriangle({ 40.0f, 40.0f }, { 40.0f, 20.0f }, { 20.0f, 40.0f });
-		//renderer.drawTriangle({ 60.0f, 20.0f }, { 40.0f, 20.0f }, { 20.0f, 40.0f });
-		//renderer.drawTriangle({ 20.0f, 20.0f }, { 40.0f, 20.0f }, { 20.0f, 40.0f });
-
-
-		renderer.endDraw();
-		window.displayFPS();
 		GUIrender();
 
 		glfwSwapBuffers(window.handle);
-
-		glfwPollEvents();
-
-
 	}
+}
+
+void BaseApp::pollEvents() {
+
+	processInput(window.handle);
+	renderer.handleTime();
+	glfwPollEvents();
 }

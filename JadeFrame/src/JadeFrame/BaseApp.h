@@ -16,9 +16,9 @@ public:
 
 	void initApp(const std::string& title, float width, float height);
 	void runApp();
+	void pollEvents();
 
 	static BaseApp* getAppInstance() {
-		
 		return instance;
 	}
 //private:
