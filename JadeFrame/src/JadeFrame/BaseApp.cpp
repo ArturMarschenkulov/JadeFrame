@@ -1,5 +1,6 @@
 #include "BaseApp.h"
 #include <iostream>
+#include "GUI.h"
 
 BaseApp* BaseApp::instance = nullptr;
 BaseApp::BaseApp() {}
@@ -15,6 +16,9 @@ void BaseApp::initApp(const std::string& title, float width, float height) {
 	renderer.init(&shader);
 
 	input.setWindowInstance(window.handle);
+
+	glfwSetMouseButtonCallback(window.handle, input.mouseButtonCallback);
+	glfwSetCursorEnterCallback(window.handle, input.cursorEnterCallback);
 	glfwSetKeyCallback(window.handle, input.keyCallback);
 }
 static void processInput(GLFWwindow* window) {
@@ -23,40 +27,75 @@ static void processInput(GLFWwindow* window) {
 	}
 }
 void BaseApp::runApp() {
+	GUIinit(window.handle);
 
+	{
+		std::cout << "Uniforms: ";
+		for(auto uniform : shader.m_uniforms) {
+			std::cout << uniform.name << " ";
+		} std::cout << std::endl;
+		std::cout << "Attribs : ";
+		for(auto attributes : shader.m_attributes) {
+			std::cout << attributes.name << " ";
+		} std::cout << std::endl;
+	}
 
-
-	Vec2 pos = { -0.5, +0.5 };
 	while(!glfwWindowShouldClose(window.handle)) {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		processInput(window.handle);
-
+		GUInewFrame();
 		renderer.startDraw();
 
-		//int num = 4;
-		//Vec2 pos = { -1.0f, +1.0f };
-		//for(int i = 0; i < num; i++) {
-		//	Vec2 size = { +2.0f/num, -2.0f/num };
-		//	renderer.drawRectangle(pos , size);
-		//	pos += size;
-		//}
+		renderer.ortho(
+			0.0f, (float)window.width,
+			(float)window.height, 0.0f,
+			-1.0f, 1.0f
+		);
 
-		if(input.isKeyDown(KEY::D)) pos.x += 0.1f;
-		if(input.isKeyDown(KEY::A)) pos.x -= 0.1f;
-		if(input.isKeyDown(KEY::W)) pos.y -= 0.1f;
-		if(input.isKeyDown(KEY::S)) pos.y += 0.1f;
+		static int amount = 5;
+		ImGui::SliderInt("amount1", &amount, 1, 10);
+		ImGui::SliderInt("amount2", &amount, 1, 100);
+		ImGui::SliderInt("amount3", &amount, 1, 1000);
+		ImGui::SliderInt("amount4", &amount, 1, 10000);
+		ImGui::SliderInt("amount5", &amount, 1, 100000);
 
-		if(input.isKeyDown(KEY::X)) {
-			renderer.drawRectangle(pos, { +0.5f, -0.5f });
+
+		for(int i = 0; i < amount; i++) {
+			for(int j = 0; j < amount; j++) {
+				Vec2 pos = { 0.0f, 0.0f };
+				Vec2 size = { window.width / amount, window.height / amount };
+				Vec2 pos2;
+				pos2.x = pos.x + size.x * i;
+				pos2.y = pos.y + size.y * j;
+				if((i + j) % 2) {
+					renderer.setColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+
+				} else {
+					renderer.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
+
+				}
+				//renderer.drawRectangle(pos2, size);
+				renderer.drawTriangle({ pos2.x, pos2.y }, { pos2.x+size.x, pos2.y }, { pos2.x, pos2.y +size.y});
+			}
 		}
 
 
+		//renderer.drawTriangle({ 20.0f, 20.0f }, { 40.0f, 20.0f }, { 20.0f, 40.0f });
+		//renderer.drawTriangle({ 40.0f, 40.0f }, { 40.0f, 20.0f }, { 20.0f, 40.0f });
+		//renderer.drawTriangle({ 60.0f, 20.0f }, { 40.0f, 20.0f }, { 20.0f, 40.0f });
+		//renderer.drawTriangle({ 20.0f, 20.0f }, { 40.0f, 20.0f }, { 20.0f, 40.0f });
+
 
 		renderer.endDraw();
+		window.displayFPS();
+		GUIrender();
 
 		glfwSwapBuffers(window.handle);
+
 		glfwPollEvents();
 
 

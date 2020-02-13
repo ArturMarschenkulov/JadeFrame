@@ -5,107 +5,122 @@
 
 
 
+constexpr int MAX_VERTICES_FOR_BATCH = 100000;
 
 Renderer::Renderer() {}
 void Renderer::init(Shader* shader) {
 	currentShader = shader;
 
-	glCreateBuffers(1, &vertexData.VBO);
-	glCreateVertexArrays(1, &vertexData.VAO);
-	glCreateBuffers(1, &vertexData.IBO);
+	glCreateBuffers(1, &bufferData.VBO);
+	glCreateVertexArrays(1, &bufferData.VAO);
+	glCreateBuffers(1, &bufferData.IBO);
 
 
-	vertexData.vertices.reserve(9000);
-	vertexData.indices.reserve(9000);
+
+	bufferData.vertices.resize(MAX_VERTICES_FOR_BATCH);
+	bufferData.indices.resize(MAX_VERTICES_FOR_BATCH);
+
+	glBufferData(GL_ARRAY_BUFFER, bufferData.vertices.size() * sizeof(Vertex), NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, bufferData.indices.size() * sizeof(GLuint), NULL, GL_DYNAMIC_DRAW);
+
+}
+void Renderer::setColor(const Color& color) {
+	currentColor = color;
 }
 void Renderer::drawRectangle(Vec2 pos, Vec2 size) {
 	Mesh rectMesh = MeshManager::makeRectangle(pos, size);
-	draw(rectMesh);
+	addToVertexData(rectMesh);
 }
-void Renderer::draw(Mesh& mesh) {
+void Renderer::drawTriangle(Vec3 pos1, Vec3 pos2, Vec3 pos3) {
+	Mesh triangleMesh = MeshManager::makeTriangle(pos1, pos2, pos3);
+	addToVertexData(triangleMesh);
+}
+void Renderer::addToVertexData(Mesh& mesh) {
 
 
-	for(int i = 0; i < mesh.vertices.size(); i++) {
-		vertexData.vertices.push_back(mesh.vertices[i]);
-		vertexData.vertexCount++;
+	for(unsigned int i = 0; i < mesh.vertices.size(); i++) {
+		mesh.vertices[i].color = currentColor;
+		bufferData.vertices[i + bufferData.vertexOffset] = mesh.vertices[i];
+		bufferData.vertexCount++;
 	}
+
+
 
 	for(int i = 0; i < mesh.indices.size(); i++) {
-		mesh.indices[i] += vertexData.indexOffset;
-		vertexData.indices.push_back(mesh.indices[i]);
+		bufferData.indices[i + bufferData.indexOffset] = mesh.indices[i] + bufferData.vertexOffset;
+		bufferData.indexCount++;
 	}
-	vertexData.indexOffset += mesh.vertices.size();
 
-
-
-	{
-		//for(int i = 0; i < mesh.vertices.size(); i++) {
-		//	vertexData.vertices.push_back(mesh.vertices[i]);
-		//}
-		//for(int i = 0; i < mesh.indices.size(); i++) {
-		//	mesh.indices[i] += vertexData.indexOffset;
-		//	vertexData.indices.push_back(mesh.indices[i]);
-		//}
-		//vertexData.indexOffset += mesh.vertices.size();
-	}
+	bufferData.vertexOffset += mesh.vertices.size();
+	bufferData.indexOffset += mesh.indices.size();
 }
 
 void Renderer::startDraw() {
-	glUseProgram(currentShader->shaderID);
-	glBindVertexArray(vertexData.VAO);
+	proj = Mat4();
+	view = Mat4();
+	model = Mat4();
 
-	vertexData.vertexOffset = 0;
-	vertexData.indexOffset = 0;
-	vertexData.vertexCount = 0;
+	currentShader->use();
+	//glBindVertexArray(bufferData.VAO);
 
-	if(BaseApp::getAppInstance()->input.isKeyDown(KEY::K)) {
-		vertexData.vertices.resize(0);
-		vertexData.indices.resize(0);
-	}
+
 }
+void Renderer::drawBuffers() {
+	Mat4 MVP = proj * view * model;
+	currentShader->setUniformMatrix4fv("MVP", MVP);
 
+
+	glBindBuffer(GL_ARRAY_BUFFER, bufferData.VBO);
+	GLuint vertexBufferSizeInBytes = bufferData.vertexCount * sizeof(Vertex);
+	glBufferData(GL_ARRAY_BUFFER, vertexBufferSizeInBytes, bufferData.vertices.data(), GL_DYNAMIC_DRAW);
+
+
+	glBindVertexArray(bufferData.VAO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(0 * sizeof(float)));
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufferData.IBO);
+	GLuint indexBufferSizeInBytes = bufferData.indexCount * sizeof(GLuint);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexBufferSizeInBytes, bufferData.indices.data(), GL_DYNAMIC_DRAW);
+
+
+
+	glDrawElements(GL_TRIANGLES, bufferData.indexCount, GL_UNSIGNED_INT, 0);
+
+
+
+	bufferData.vertexOffset = 0;
+	bufferData.indexOffset = 0;
+	bufferData.vertexCount = 0;
+	bufferData.indexCount = 0;
+}
 void Renderer::endDraw() {
 
-	glBindBuffer(GL_ARRAY_BUFFER, vertexData.VBO);
-	GLuint vertexBudderSizeInBytes = vertexData.vertices.size() * sizeof(Vertex);
-	glBufferData(GL_ARRAY_BUFFER, vertexBudderSizeInBytes, vertexData.vertices.data(), GL_STATIC_DRAW);
+	drawBuffers();
+
+	// Frame time control system
+	currentTime = glfwGetTime();
+	drawTime = currentTime - previousTime;
+	previousTime = currentTime;
+
+	frameTime = updateTime + drawTime;
+
+	// Wait for some milliseconds...
+	if(frameTime < targetTime) {
+		Sleep((unsigned int)((float)(targetTime - frameTime) * 1000.0f));
+		currentTime = glfwGetTime();
+		double extraTime = currentTime - previousTime;
+		previousTime = currentTime;
+		frameTime += extraTime;
+	}
+
+}
 
 
-	glBindVertexArray(vertexData.VAO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0); glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertexData.IBO);
-	GLuint indexBudderSizeInBytes = vertexData.indices.size() * sizeof(GLuint);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexBudderSizeInBytes, vertexData.indices.data(), GL_STATIC_DRAW);
-
-
-
-	GLsizei  x1 = vertexData.vertexCount;
-	GLsizei  x2 = vertexData.vertices.size();
-
-	glDrawElements(GL_TRIANGLES, 16, GL_UNSIGNED_INT, 0);
-
-	//glDrawElements(GL_TRIANGLES, vertexData.vertexCount, GL_UNSIGNED_INT, 0);
-	//glDrawElements(GL_TRIANGLES, vertexData.vertices.size(), GL_UNSIGNED_INT, 0);
-
-
-
-
-
-
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
-	//glDeleteBuffers(1, &vertexData.VBO);
-	//vertexData.VBO = 0;
-
-	//glBindVertexArray(0);
-	//glDeleteVertexArrays(1, &vertexData.VAO);
-	//vertexData.VAO = 0;
-
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	//glDeleteBuffers(1, &vertexData.IBO);
-	//vertexData.IBO = 0;
-
-
+void Renderer::ortho(float left, float right, float buttom, float top, float zNear, float zFar) {
+	proj = Mat4::ortho(left, right, buttom, top, zNear, zFar);
 }
