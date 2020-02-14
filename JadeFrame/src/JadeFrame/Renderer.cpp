@@ -4,11 +4,8 @@
 
 
 
-constexpr int MAX_BATCH_QUADS = 100000;
-constexpr int MAX_VERTICES_FOR_BATCH = 4 * MAX_BATCH_QUADS;
-constexpr int MAX_INDICES_FOR_BATCH = 6 * MAX_BATCH_QUADS;
 
-Color Renderer::currentColor = { 0.5f, 0.5f, 0.5f, 1.0f };
+
 Renderer::Renderer() {}
 void Renderer::init(Shader* shader) {
 
@@ -18,6 +15,19 @@ void Renderer::init(Shader* shader) {
 	bufferData.init();
 
 }
+
+void Renderer::start() {
+	camera = Camera();
+
+	currentShader->use();
+}
+void Renderer::end() {
+	camera.update();
+	bufferData.update();
+	bufferData.draw();
+	bufferData.resetCounters();
+}
+
 void Renderer::setColor(const Color& color) {
 	currentColor = color;
 }
@@ -29,34 +39,8 @@ void Renderer::drawTriangle(Vec3 pos1, Vec3 pos2, Vec3 pos3) {
 	Mesh mesh = MeshManager::makeTriangle(pos1, pos2, pos3);
 	bufferData.add(mesh);
 }
-void Renderer::start() {
-	camera = Camera();
 
-	currentShader->use();
-}
-void Renderer::end() {
-	camera.update();
-	bufferData.update();
-	bufferData.draw();
-}
 
-void TimeManager::handleTime() {
-	// Frame time control system
-	currentTime = glfwGetTime();
-	drawTime = currentTime - previousTime;
-	previousTime = currentTime;
-
-	frameTime = updateTime + drawTime;
-
-	// Wait for some milliseconds...
-	if(frameTime < targetTime) {
-		Sleep((unsigned int)((float)(targetTime - frameTime) * 1000.0f));
-		currentTime = glfwGetTime();
-		double extraTime = currentTime - previousTime;
-		previousTime = currentTime;
-		frameTime += extraTime;
-	}
-}
 
 void Renderer::BufferData::init() {
 
@@ -87,20 +71,21 @@ void Renderer::BufferData::init() {
 
 }
 void Renderer::BufferData::add(Mesh& mesh) {
-	if(vertexCount + mesh.vertices.size() > MAX_VERTICES_FOR_BATCH) {
+	if((vertexCount + mesh.vertices.size() > MAX_VERTICES_FOR_BATCH) ||
+		(indexCount + mesh.indices.size() > MAX_INDICES_FOR_BATCH)) {
 		update();
 		draw();
-	}
-	if(indexCount + mesh.indices.size() > MAX_INDICES_FOR_BATCH) {
-		update();
-		draw();
+		resetCounters();
 	}
 
+
 	for(unsigned int i = 0; i < mesh.vertices.size(); i++) {
-		//mesh.vertices[i].color = currentColor;
+		//mesh.vertices[i].color = BaseApp::getAppInstance()->renderer.currentColor;;
 		//bufferData.vertices[i + bufferData.vertexOffset] = mesh.vertices[i];
 		vertices[i + vertexOffset].position = mesh.vertices[i].position;
-		vertices[i + vertexOffset].color = currentColor;
+		vertices[i + vertexOffset].color = BaseApp::getAppInstance()->renderer.currentColor;;
+		
+		BaseApp::getAppInstance()->renderer.currentColor;
 		vertexCount++;
 	}
 
@@ -116,13 +101,17 @@ void Renderer::BufferData::add(Mesh& mesh) {
 
 }
 void Renderer::BufferData::update() {
+
 	glBindVertexArray(VAO);
+
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	GLuint vertexBufferSizeInBytes = vertexCount * sizeof(Vertex);
+	GLuint vertexBufferSizeInBytes2 = vertices.size() * sizeof(Vertex);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, vertexBufferSizeInBytes, vertices.data());
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 	GLuint indexBufferSizeInBytes = indexCount * sizeof(GLuint);
+	GLuint indexBufferSizeInBytes2 = indices.size() * sizeof(GLuint);
 	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indexBufferSizeInBytes, indices.data());
 
 	glBindVertexArray(0);
@@ -130,8 +119,9 @@ void Renderer::BufferData::update() {
 void Renderer::BufferData::draw() {
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
+}
 
+void Renderer::BufferData::resetCounters() {
 	vertexOffset = 0;
 	indexOffset = 0;
 	vertexCount = 0;
@@ -151,4 +141,24 @@ void Camera::update() {
 
 void Camera::ortho(float left, float right, float buttom, float top, float zNear, float zFar) {
 	proj = Mat4::ortho(left, right, buttom, top, zNear, zFar);
+}
+void Camera::perspective(float fovy, float aspect, float zNear, float zFar) {
+	proj = Mat4::perspective(fovy, aspect, zNear, zFar);
+}
+void TimeManager::handleTime() {
+	// Frame time control system
+	currentTime = glfwGetTime();
+	drawTime = currentTime - previousTime;
+	previousTime = currentTime;
+
+	frameTime = updateTime + drawTime;
+
+	// Wait for some milliseconds...
+	if(frameTime < targetTime) {
+		Sleep((unsigned int)((float)(targetTime - frameTime) * 1000.0f));
+		currentTime = glfwGetTime();
+		double extraTime = currentTime - previousTime;
+		previousTime = currentTime;
+		frameTime += extraTime;
+	}
 }

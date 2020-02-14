@@ -5,6 +5,7 @@
 #include "Shader.h"
 
 #include <vector>
+#include <array>
 #include <iostream>
 #include "math/Vec3.h"
 #include "math/Vec2.h"
@@ -16,6 +17,7 @@ public:
 	Camera();
 	void update();
 	void ortho(float left, float right, float buttom, float top, float zNear, float zFar);
+	void perspective(float fovy, float aspect, float zNear, float zFar);
 private:
 	Mat4 model;
 	Mat4 view;
@@ -34,6 +36,10 @@ private:
 	double targetTime = 0.0;
 };
 
+constexpr int MAX_BATCH_QUADS = 100000;
+constexpr int MAX_VERTICES_FOR_BATCH = 4 * MAX_BATCH_QUADS;
+constexpr int MAX_INDICES_FOR_BATCH = 6 * MAX_BATCH_QUADS;
+
 
 class Renderer {
 public:
@@ -42,10 +48,12 @@ public:
 	void start();
 	void end();
 
-private:
+//private:
 	struct BufferData {
 		std::vector<Vertex> vertices;
 		std::vector<GLuint> indices;
+		//std::array<Vertex, MAX_VERTICES_FOR_BATCH> vertices;
+		//std::array<GLuint, MAX_INDICES_FOR_BATCH> indices;
 
 		GLuint VBO = 0;
 		GLuint VAO = 0;
@@ -61,6 +69,7 @@ private:
 		void add(Mesh& mesh);
 		void update();
 		void draw();
+		void resetCounters();
 	};
 	BufferData bufferData;
 	Shader* currentShader = nullptr;
@@ -71,7 +80,7 @@ public:
 	void drawRectangle(Vec2 pos, Vec2 size);
 	void drawTriangle(Vec3 pos1, Vec3 pos2, Vec3 pos3);
 private:
-	static Color currentColor;
+	Color currentColor = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 public:
 	Camera camera;

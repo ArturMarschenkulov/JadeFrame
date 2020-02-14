@@ -1,4 +1,5 @@
 #include "Mesh.h"
+#include "BaseApp.h"
 
 Mesh MeshManager::makeRectangle(Vec3 pos, Vec3 size) {
 		Mesh mesh;
@@ -30,4 +31,14 @@ Mesh MeshManager::makeTriangle(Vec3 pos1, Vec3 pos2, Vec3 pos3) {
 		0, 1, 2
 	};
 	return mesh;
+}
+
+void Rect::draw() {
+	Mesh mesh = MeshManager::makeRectangle(position, size);
+	BaseApp::getAppInstance()->renderer.bufferData.add(mesh);
+}
+
+void Triangle::draw() {
+	Mesh mesh = MeshManager::makeTriangle(pos1, pos2, pos3);
+	BaseApp::getAppInstance()->renderer.bufferData.add(mesh);
 }
