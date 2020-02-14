@@ -26,6 +26,13 @@ static void processInput(GLFWwindow* window) {
 		glfwSetWindowShouldClose(window, true);
 	}
 }
+class CMesh {
+public:
+
+//private:
+
+
+};
 void BaseApp::runApp() {
 	GUIinit(window.handle);
 
@@ -51,7 +58,7 @@ void BaseApp::runApp() {
 		GUInewFrame();
 		renderer.start();
 
-		renderer.ortho(
+		renderer.camera.ortho(
 			0.0f, (float)window.width,
 			(float)window.height, 0.0f,
 			-1.0f, 1.0f
@@ -65,32 +72,32 @@ void BaseApp::runApp() {
 		ImGui::SliderInt("amount5", &amount, 1, 100000);
 
 
-		//for(int i = 0; i < amount; i++) {
-		//	for(int j = 0; j < amount; j++) {
-		//		Vec2 pos = { 0.0f, 0.0f };
-		//		Vec2 size = { window.width / amount, window.height / amount };
-		//		Vec2 pos2;
-		//		pos2.x = pos.x + size.x * i;
-		//		pos2.y = pos.y + size.y * j;
-		//		if((i + j) % 2) {
-		//			renderer.setColor({ 1.0f, 1.0f, 1.0f, 1.0f });
-
-		//		} else {
-		//			renderer.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
-
-		//		}
-		//		renderer.drawTriangle({ pos2.x, pos2.y }, { pos2.x+size.x, pos2.y }, { pos2.x, pos2.y +size.y});
-		//	}
-		//}
-		renderer.setColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 		for(int i = 0; i < amount; i++) {
-			Vec2 pos = { 0.0f, 0.0f };
-			Vec2 size = { window.width / amount, window.height / amount };
-			Vec2 pos2;
+			for(int j = 0; j < amount; j++) {
+				Vec2 pos = { 0.0f, 0.0f };
+				Vec2 size = { window.width / amount, window.height / amount };
+				Vec2 pos2;
+				pos2.x = pos.x + size.x * i;
+				pos2.y = pos.y + size.y * j;
+				if((i + j) % 2) {
+					renderer.setColor({ 1.0f, 1.0f, 1.0f, 1.0f });
 
-			renderer.drawRectangle(pos2 + size * i, size);
+				} else {
+					renderer.setColor({ 0.0f, 0.0f, 0.0f, 1.0f });
 
+				}
+				renderer.drawTriangle({ pos2.x, pos2.y }, { pos2.x+size.x, pos2.y }, { pos2.x, pos2.y +size.y});
+			}
 		}
+		//renderer.setColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+		//for(int i = 0; i < amount; i++) {
+		//	Vec2 pos = { 0.0f, 0.0f };
+		//	Vec2 size = { window.width / amount, window.height / amount };
+		//	Vec2 pos2;
+
+		//	renderer.drawRectangle(pos2 + size * i, size);
+
+		//}
 
 		renderer.end();
 
@@ -103,6 +110,6 @@ void BaseApp::runApp() {
 void BaseApp::pollEvents() {
 
 	processInput(window.handle);
-	renderer.handleTime();
+	renderer.timeManager.handleTime();
 	glfwPollEvents();
 }

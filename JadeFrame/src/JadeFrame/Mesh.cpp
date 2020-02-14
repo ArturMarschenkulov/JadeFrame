@@ -21,7 +21,6 @@ Mesh MeshManager::makeRectangle(Vec3 pos, Vec3 size) {
 Mesh MeshManager::makeTriangle(Vec3 pos1, Vec3 pos2, Vec3 pos3) {
 	Mesh mesh;
 	mesh.vertices.resize(3);
-
 	mesh.vertices[0].position = Vec3{ pos1.x, pos1.y, pos1.z };
 	mesh.vertices[1].position = Vec3{ pos2.x, pos2.y, pos2.z };
 	mesh.vertices[2].position = Vec3{ pos3.x, pos3.y, pos3.z };
