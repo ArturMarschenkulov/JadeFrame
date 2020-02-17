@@ -29,5 +29,5 @@ void Window::init(const std::string& title, float width, float height) {
 		std::cout << "Failed to initialize GLAD" << std::endl;
 	}
 
-	//glfwSwapInterval(1);
+	glfwSwapInterval(1);
 }

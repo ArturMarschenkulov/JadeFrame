@@ -107,6 +107,8 @@ public:
 		: m_windowInstance(nullptr) {}
 	~Input() {}
 
+	void handleInput();
+
 	void setWindowInstance(GLFWwindow* window) { m_windowInstance = window; }
 	GLFWwindow* getWindowInstance() const { return m_windowInstance; }
 

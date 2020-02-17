@@ -42,7 +42,7 @@ public:
 	GLuint compile(GLenum type, const std::string& codeSource);
 	void link();
 	void validate();
-	private:
+private:
 	GLuint m_ID = 0;
 	std::array<GLuint, 3> m_shaderTypes; // Vertex, Fragment, Geometrys
 
@@ -62,5 +62,4 @@ public:
 	void updateShaderVariables(int shaderType);
 	std::vector<Uniform> m_uniforms;
 	std::vector<VertexAttribute> m_attributes;
-
 };

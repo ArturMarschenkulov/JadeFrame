@@ -77,6 +77,7 @@ public:
 	//Drawing API
 public:
 	void setColor(const Color& color);
+	void setClearColor(const Color& color);
 	void drawRectangle(Vec2 pos, Vec2 size);
 	void drawTriangle(Vec3 pos1, Vec3 pos2, Vec3 pos3);
 private:

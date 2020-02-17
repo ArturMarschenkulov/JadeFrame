@@ -31,6 +31,9 @@ void Renderer::end() {
 void Renderer::setColor(const Color& color) {
 	currentColor = color;
 }
+void Renderer::setClearColor(const Color& color) {
+	glClearColor(color.r, color.g, color.b, color.a);
+}
 void Renderer::drawRectangle(Vec2 pos, Vec2 size) {
 	Mesh mesh = MeshManager::makeRectangle(pos, size);
 	bufferData.add(mesh);
@@ -82,9 +85,10 @@ void Renderer::BufferData::add(Mesh& mesh) {
 	for(unsigned int i = 0; i < mesh.vertices.size(); i++) {
 		//mesh.vertices[i].color = BaseApp::getAppInstance()->renderer.currentColor;;
 		//bufferData.vertices[i + bufferData.vertexOffset] = mesh.vertices[i];
+
 		vertices[i + vertexOffset].position = mesh.vertices[i].position;
 		vertices[i + vertexOffset].color = BaseApp::getAppInstance()->renderer.currentColor;;
-		
+
 		BaseApp::getAppInstance()->renderer.currentColor;
 		vertexCount++;
 	}

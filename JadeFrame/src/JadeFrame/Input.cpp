@@ -2,6 +2,22 @@
 #include "Window.h"
 #include "BaseApp.h"
 
+
+void Input::handleInput() {
+
+	double mouseX, mouseY;
+	glfwGetCursorPos(BaseApp::getAppInstance()->window.handle, &mouseX, &mouseY);
+	this->m_currentMousePosition.x = (float)mouseX;
+	this->m_currentMousePosition.y = (float)mouseY;
+
+	for(int i = 0; i < 512; i++) {
+		m_previousKeyState[i] = m_currentKeyState[i];
+	}
+	for(int i = 0; i < 3; i++) {
+		m_previousButtonState[i] = m_currentButtonState[i];
+	}
+}
+
 /*******************************/
 /* KEY INPUT */
 /*******************************/
@@ -17,71 +33,39 @@ void Input::keyCallback(GLFWwindow* window, int key, int scancode, int action, i
 }
 
 bool Input::isKeyDown(KEY key) const {
-
-	auto state = glfwGetKey(BaseApp::getAppInstance()->window.handle, static_cast<int>(key));
-	if(m_currentKeyState[(int)key] == INPUT_ACTION::PRESS ||
-	   m_currentKeyState[(int)key] == INPUT_ACTION::REPEAT) {
-		//std::cout << static_cast<int>(key) << " is1 " << (int)m_currentKeyState[static_cast<int>(key)] << std::endl;
-		return true;
+	bool isDown;
+	if(m_currentKeyState[(int)key] == INPUT_ACTION::PRESS) {
+		isDown = true;
 	} else {
-		//std::cout << static_cast<int>(key) << " is2 " << (int)m_currentKeyState[static_cast<int>(key)] << std::endl;
-		return false;
+		isDown = false;
 	}
+	return isDown;
 }
-
 bool Input::isKeyUp(KEY key) const {
+	bool isUp;
 	if(m_currentKeyState[(int)key] == INPUT_ACTION::RELEASE) {
-		//std::cout << key << " is up" << std::endl;
-		return true;
+		isUp = true;
 	} else {
-		return false;
+		isUp = false;
 	}
 }
 bool Input::isKeyPressed(KEY key) const {
-	static bool once = false;
-
-	if(m_currentKeyState[(int)key] == INPUT_ACTION::PRESS) {
-		if(once == false) {
-			once = true;
-			return true;
-		}
+	bool isPressed = false;
+	if((m_currentKeyState[(int)key] != m_previousKeyState[(int)key]) && (m_currentKeyState[(int)key] == INPUT_ACTION::PRESS)) {
+		isPressed = true;
+	} else {
+		isPressed = false;
 	}
-	if(once == true) {
-		if(m_currentKeyState[(int)key] == INPUT_ACTION::RELEASE) {
-			once = false;
-			return false;
-		}
-	}
-	return false;
+	return isPressed;
 }
 bool Input::isKeyReleased(KEY key) const {
-	static bool once = false;
-
-
-	static bool wasPressed = false;
-	if(wasPressed == false) {
-		if(m_currentKeyState[(int)key] == INPUT_ACTION::PRESS) {
-			wasPressed = true;
-		}
+	bool isReleased = false;
+	if((m_currentKeyState[(int)key] != m_previousKeyState[(int)key]) && (m_currentKeyState[(int)key] == INPUT_ACTION::RELEASE)) {
+		isReleased = true;
+	} else {
+		isReleased = false;
 	}
-
-	if(once == true) {
-		if(m_currentKeyState[(int)key] == INPUT_ACTION::PRESS) {
-			once = false;
-		}
-	}
-
-	if(m_currentKeyState[(int)key] == INPUT_ACTION::RELEASE) {
-		if(wasPressed == true) {
-			if(once == false) {
-				once = true;
-				wasPressed = false;
-				return true;
-
-			}
-		}
-	}
-	return false;
+	return isReleased;
 }
 /*******************************/
 /* MOUSE INPUT */
@@ -92,49 +76,39 @@ void Input::mouseButtonCallback(GLFWwindow* window, int button, int state, int m
 	m_currentButtonState[(int)button] = (INPUT_ACTION)state;
 }
 bool Input::isButtonDown(MOUSE button) const {
+	bool isDown;
 	if(m_currentButtonState[(int)button] == INPUT_ACTION::PRESS) {
-		m_previousButtonState[(int)button] = m_currentButtonState[(int)button];
-		return true;
+		isDown = true;
 	} else {
-		m_previousButtonState[(int)button] = m_currentButtonState[(int)button];
-		return false;
+		isDown = false;
 	}
+	return isDown;
 }
 bool Input::isButtonUp(MOUSE button) const {
+	bool isUp;
 	if(m_currentButtonState[(int)button] == INPUT_ACTION::RELEASE) {
-		//std::cout << button << " is up" << std::endl;
-		m_previousButtonState[(int)button] = m_currentButtonState[(int)button];
-		return true;
+		isUp = true;
 	} else {
-		m_previousButtonState[(int)button] = m_currentButtonState[(int)button];
-		return false;
+		isUp = false;
 	}
 }
 bool Input::isButtonPressed(MOUSE button) const {
-	if(m_previousButtonState[(int)button] == INPUT_ACTION::RELEASE) {
-		if(m_currentButtonState[(int)button] == INPUT_ACTION::PRESS) {
-			m_previousButtonState[(int)button] = m_currentButtonState[(int)button];
-			return true;
-		} else {
-			return false;
-		}
+	bool isPressed = false;
+	if((m_currentButtonState[(int)button] != m_currentButtonState[(int)button]) && (m_currentButtonState[(int)button] == INPUT_ACTION::PRESS)) {
+		isPressed = true;
 	} else {
-		m_previousButtonState[(int)button] = m_currentButtonState[(int)button];
-		return false;
+		isPressed = false;
 	}
+	return isPressed;
 }
 bool Input::isButtonReleased(MOUSE button) const {
-	if(m_currentButtonState[(int)button] == INPUT_ACTION::RELEASE) {
-		if(m_previousButtonState[(int)button] == INPUT_ACTION::PRESS) {
-			m_previousButtonState[(int)button] = m_currentButtonState[(int)button];
-			return true;
-		} else {
-			return false;
-		}
+	bool isReleased = false;
+	if((m_currentButtonState[(int)button] != m_currentButtonState[(int)button]) && (m_currentButtonState[(int)button] == INPUT_ACTION::RELEASE)) {
+		isReleased = true;
 	} else {
-		m_previousButtonState[(int)button] = m_currentButtonState[(int)button];
-		return false;
+		isReleased = false;
 	}
+	return isReleased;
 }
 /*******************************/
 /* MOUSE POSITION INPUT */
@@ -145,47 +119,27 @@ Vec2 Input::m_currentMousePosition = { 0 };
 void Input::cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
 	m_currentMousePosition = { (float)xpos, (float)ypos };
 }
-
 float Input::getMouseX(void) const {
-
-	double mouseX;
-	glfwGetCursorPos(BaseApp::getAppInstance()->window.handle, &mouseX, nullptr);
-	this->m_currentMousePosition.x = (float)mouseX;
 	return m_currentMousePosition.x;
-
-	//return m_currentMousePosition.x;
 }
 float Input::getMouseY(void) const {
-
-	double mouseY;
-	glfwGetCursorPos(BaseApp::getAppInstance()->window.handle, nullptr, &mouseY);
-	this->m_currentMousePosition.y = (float)mouseY;
 	return m_currentMousePosition.y;
-
-	//return m_currentMousePosition.y;
 }
 Vec2 Input::getMousePosition(void) const {
-	double mouseX, mouseY;
-	glfwGetCursorPos(BaseApp::getAppInstance()->window.handle, &mouseX, &mouseY);
-	this->m_currentMousePosition.x = (float)mouseX;
-	this->m_currentMousePosition.y = (float)mouseY;
 	return m_currentMousePosition;
-
-	//return m_currentMousePosition;
 }
 /*******************************/
 /* MOUSE ENTER INPUT */
 /*******************************/
 
 bool Input::m_isCursorInside = 0;
-
-bool Input::isMouseInside() const {
-	return m_isCursorInside;
-}
-
 void Input::cursorEnterCallback(GLFWwindow* window, int entered) {
 	switch(entered) {
 	case true: m_isCursorInside = true; break;
 	case false: m_isCursorInside = false; break;
 	}
+}
+
+bool Input::isMouseInside() const {
+	return m_isCursorInside;
 }
