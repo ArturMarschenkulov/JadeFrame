@@ -48,6 +48,7 @@ bool Input::isKeyUp(KEY key) const {
 	} else {
 		isUp = false;
 	}
+	return isUp;
 }
 bool Input::isKeyPressed(KEY key) const {
 	bool isPressed = false;
@@ -91,6 +92,7 @@ bool Input::isButtonUp(MOUSE button) const {
 	} else {
 		isUp = false;
 	}
+	return isUp;
 }
 bool Input::isButtonPressed(MOUSE button) const {
 	bool isPressed = false;

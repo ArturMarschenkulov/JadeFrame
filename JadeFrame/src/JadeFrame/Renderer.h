@@ -11,18 +11,22 @@
 #include "math/Vec2.h"
 #include "math/Mat4.h"
 #include "Mesh.h"
+#include <stack>
 
 class Camera {
 public:
 	Camera();
-	void update();
-	void ortho(float left, float right, float buttom, float top, float zNear, float zFar);
-	void perspective(float fovy, float aspect, float zNear, float zFar);
-private:
-	Mat4 model;
-	Mat4 view;
-	Mat4 proj;
-	Mat4* currentMatrix;
+	//void update();
+	//void ortho(float left, float right, float buttom, float top, float zNear, float zFar);
+	//void perspective(float fovy, float aspect, float zNear, float zFar);
+	//void translate(float x, float y, float z);
+	//void rotate(float angle, float x, float y, float z);
+	//void scale(float x, float y, float z);
+	////private:
+	//Mat4 model;
+	//Mat4 view;
+	//Mat4 proj;
+	//Mat4* currentMatrix;
 };
 class TimeManager {
 public:
@@ -82,6 +86,26 @@ public:
 	void drawTriangle(Vec3 pos1, Vec3 pos2, Vec3 pos3);
 private:
 	Color currentColor = { 0.5f, 0.5f, 0.5f, 1.0f };
+public:
+	void update();
+	void ortho(float left, float right, float buttom, float top, float zNear, float zFar);
+	void perspective(float fovy, float aspect, float zNear, float zFar);
+	void translate(float x, float y, float z);
+	void rotate(float angle, float x, float y, float z);
+	void scale(float x, float y, float z);
+//private:
+	Mat4 modelMatrix;
+	Mat4 viewMatrix;
+	Mat4 projectionMatrix;
+	Mat4* currentMatrix;
+	Mat4 transformMatrix;
+	bool useTransformMatrix;
+public:
+	void pushMatrix();
+	void popMatrix();
+private:
+	std::stack<Mat4> matrixStack;
+
 
 public:
 	Camera camera;

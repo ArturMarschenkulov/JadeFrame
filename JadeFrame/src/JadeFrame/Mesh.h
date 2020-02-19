@@ -40,6 +40,7 @@ public:
 	static Mesh makeRectangle(Vec3 position, Vec3 size);
 	static Mesh makeTriangle(Vec3 pos1, Vec3 pos2, Vec3 pos3);
 	static Mesh makeCircle(Vec3 position, float radius, int numSegments);
+
 };
 class RectangleMesh {
 public:

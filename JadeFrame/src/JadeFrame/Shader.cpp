@@ -187,7 +187,7 @@ void Shader::updateShaderVariables(int shaderType) {
 			m_attributes[i].location = glGetAttribLocation(m_ID, buffer);
 		}
 	} else {
-		std::cout << __FUNCDNAME__ << " shaderType is false" << std::endl;
+		std::cout << __FUNCTION__ << " shaderType is false" << std::endl;
 		__debugbreak();
 	}
 }

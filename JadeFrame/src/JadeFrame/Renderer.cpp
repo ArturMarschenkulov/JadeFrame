@@ -17,12 +17,22 @@ void Renderer::init(Shader* shader) {
 }
 
 void Renderer::start() {
-	camera = Camera();
+	projectionMatrix = Mat4();
+	viewMatrix = Mat4();
+	modelMatrix = Mat4();
+	currentMatrix = &viewMatrix;
+	auto window = BaseApp::getAppInstance()->window;
+
 
 	currentShader->use();
 }
+void Renderer::update() {
+	//Mat4 MVP = proj * view * model;
+	Mat4 MVP = modelMatrix * viewMatrix * projectionMatrix;
+	BaseApp::getAppInstance()->shader.setUniformMatrix4fv("MVP", MVP);
+}
 void Renderer::end() {
-	camera.update();
+	update();
 	bufferData.update();
 	bufferData.draw();
 	bufferData.resetCounters();
@@ -124,7 +134,6 @@ void Renderer::BufferData::draw() {
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
 }
-
 void Renderer::BufferData::resetCounters() {
 	vertexOffset = 0;
 	indexOffset = 0;
@@ -132,22 +141,47 @@ void Renderer::BufferData::resetCounters() {
 	indexCount = 0;
 }
 
+
+
+
+
+void Renderer::ortho(float left, float right, float buttom, float top, float zNear, float zFar) {
+	projectionMatrix = Mat4::ortho(left, right, buttom, top, zNear, zFar);
+}
+void Renderer::perspective(float fovy, float aspect, float zNear, float zFar) {
+	projectionMatrix = Mat4::perspective(fovy, aspect, zNear, zFar);
+}
+void Renderer::translate(float x, float y, float z) {
+	*currentMatrix = Mat4::translate(*currentMatrix, Vec3(x, y, z));
+}
+void Renderer::rotate(float angle, float x, float y, float z) {
+	*currentMatrix = Mat4::rotate(*currentMatrix, angle, Vec3(x, y, z));
+}
+void Renderer::scale(float x, float y, float z) {
+	*currentMatrix = Mat4::scale(*currentMatrix, Vec3(x, y, z));
+}
+void Renderer::pushMatrix() {
+
+	useTransformMatrix = true;
+	currentMatrix = &transformMatrix;
+
+	matrixStack.push(*currentMatrix);
+}
+void Renderer::popMatrix() {
+	if(!matrixStack.empty()) {
+		Mat4 mat = matrixStack.top();
+		*currentMatrix = mat;
+		matrixStack.pop();
+	}
+
+	if(matrixStack.empty()) {
+		currentMatrix = &viewMatrix;
+		useTransformMatrix = false;
+	}
+}
+
 Camera::Camera() {
-	proj = Mat4();
-	view = Mat4();
-	model = Mat4();
-}
 
-void Camera::update() {
-	Mat4 MVP = proj * view * model;
-	BaseApp::getAppInstance()->shader.setUniformMatrix4fv("MVP", MVP);
-}
-
-void Camera::ortho(float left, float right, float buttom, float top, float zNear, float zFar) {
-	proj = Mat4::ortho(left, right, buttom, top, zNear, zFar);
-}
-void Camera::perspective(float fovy, float aspect, float zNear, float zFar) {
-	proj = Mat4::perspective(fovy, aspect, zNear, zFar);
 }
 void TimeManager::handleTime() {
 	// Frame time control system

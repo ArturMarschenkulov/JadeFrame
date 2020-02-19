@@ -1,8 +1,8 @@
 #include "Mat4.h"
 
 Mat4::Mat4() {
-	for (int col = 0; col < 4; col++) {
-		for (int row = 0; row < 4; row++) {
+	for(int col = 0; col < 4; col++) {
+		for(int row = 0; row < 4; row++) {
 			el[col][row] = (col == row) ? float(1.0f) : float(0.0f);
 		}
 	}
@@ -12,8 +12,8 @@ Mat4::Mat4() {
 	//el[0][3] = 0.0f; el[1][3] = 0.0f; el[2][3] = 0.0f; el[3][3] = 1.0f;
 }
 Mat4::Mat4(float digo) {
-	for (int col = 0; col < 4; col++) {
-		for (int row = 0; row < 4; row++) {
+	for(int col = 0; col < 4; col++) {
+		for(int row = 0; row < 4; row++) {
 			el[col][row] = (col == row) ? float(digo) : float(0.0f);
 		}
 	}
@@ -40,9 +40,9 @@ const std::array<float, 4>& Mat4::operator[](const int index) const {
 
 Vec3 Mat4::operator*(const Vec3& vector) const {
 	Vec3 result;
-	result.x = el[0][0] * vector.x + el[1][0] * vector.y + el[2][0] * vector.z;
-	result.y = el[0][1] * vector.x + el[1][1] * vector.y + el[2][1] * vector.z;
-	result.z = el[0][2] * vector.x + el[1][2] * vector.y + el[2][2] * vector.z;
+	result.x = el[0][0] * vector.x + el[1][0] * vector.y + el[2][0] * vector.z + el[3][0] * 1;
+	result.y = el[0][1] * vector.x + el[1][1] * vector.y + el[2][1] * vector.z + el[3][1] * 1;
+	result.z = el[0][2] * vector.x + el[1][2] * vector.y + el[2][2] * vector.z + el[3][2] * 1;
 	return result;
 }
 
@@ -57,10 +57,10 @@ Vec4 Mat4::operator*(const Vec4& vector) const {
 
 Mat4 Mat4::operator*(const Mat4& other) const {
 	Mat4 result(0.0f);
-	for ( int row = 0; row < 4; ++row ) {
-		for ( int col = 0; col < 4; ++col ) {
+	for(int row = 0; row < 4; ++row) {
+		for(int col = 0; col < 4; ++col) {
 			float sum = 0.0f;
-			for ( unsigned int k = 0; k < 4; ++k ) {
+			for(unsigned int k = 0; k < 4; ++k) {
 				//result.el[col][row] += el[k][row] * other.el[col][k];
 				result.el[col][row] += el[col][k] * other.el[k][row];
 			}
@@ -71,12 +71,12 @@ Mat4 Mat4::operator*(const Mat4& other) const {
 
 Mat4 Mat4::ortho(float left, float right, float bottom, float top, float near, float far) {
 	Mat4 result(1.0f);
-	result.el[0][0] = 2.0f / ( right - left );
-	result.el[1][1] = 2.0f / ( top - bottom );
-	result.el[2][2] = -2.0f / ( far - near );
-	result.el[3][0] = -( right + left ) / ( right - left );
-	result.el[3][1] = -( top + bottom ) / ( top - bottom );
-	result.el[3][2] = -( far + near ) / ( far - near );
+	result.el[0][0] = 2.0f / (right - left);
+	result.el[1][1] = 2.0f / (top - bottom);
+	result.el[2][2] = -2.0f / (far - near);
+	result.el[3][0] = -(right + left) / (right - left);
+	result.el[3][1] = -(top + bottom) / (top - bottom);
+	result.el[3][2] = -(far + near) / (far - near);
 	return result;
 }
 
@@ -84,11 +84,11 @@ Mat4 Mat4::perspective(float fovy, float aspect, float near, float far) {
 	float const tanHalfFovy = tan(fovy / 2);
 
 	Mat4 result(0.0f);
-	result.el[0][0] = 1.0f / ( aspect * tanHalfFovy );
+	result.el[0][0] = 1.0f / (aspect * tanHalfFovy);
 	result.el[1][1] = 1.0f / tanHalfFovy;
-	result.el[2][2] = -( far + near ) / ( far - near );
+	result.el[2][2] = -(far + near) / (far - near);
 	result.el[2][3] = -1.0f;
-	result.el[3][2] = -( 2 * far * near ) / ( far - near );
+	result.el[3][2] = -(2 * far * near) / (far - near);
 	return result;
 }
 

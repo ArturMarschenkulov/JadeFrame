@@ -9,6 +9,12 @@ Mesh MeshManager::makeRectangle(Vec3 pos, Vec3 size) {
 	mesh.vertices[2].position = Vec3{ pos.x + size.x, pos.y + size.y, pos.z };
 	mesh.vertices[3].position = Vec3{ pos.x, pos.y + size.y, pos.z };
 
+	if(BaseApp::getAppInstance()->renderer.useTransformMatrix == true) {
+		Mat4 m = BaseApp::getAppInstance()->renderer.transformMatrix;
+		for(int i = 0; i < 4; i++) {
+			mesh.vertices[i].position = m * mesh.vertices[i].position;
+		}
+	}
 
 	mesh.indices.reserve(6);
 	mesh.indices = {
@@ -34,7 +40,7 @@ Mesh MeshManager::makeTriangle(Vec3 pos1, Vec3 pos2, Vec3 pos3) {
 }
 
 Mesh MeshManager::makeCircle(Vec3 position, float radius, int numSegments) {
-	
+
 	float theta = 2.0f * 3.1415926f / float(numSegments);//get the current angle 
 	float cos = cosf(theta);//calculate the x component 
 	float sin = sinf(theta);//calculate the y component 
@@ -65,6 +71,8 @@ Mesh MeshManager::makeCircle(Vec3 position, float radius, int numSegments) {
 
 	return mesh;
 }
+
+
 
 void RectangleMesh::draw() {
 	Mesh mesh = MeshManager::makeRectangle(position, size);
