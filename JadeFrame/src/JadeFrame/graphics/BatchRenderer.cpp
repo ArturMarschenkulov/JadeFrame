@@ -1,5 +1,5 @@
 #include "BatchRenderer.h"
-#include "BaseApp.h"
+#include "../BaseApp.h"
 
 constexpr int MAX_BATCH_QUADS = 100000;
 constexpr int MAX_VERTICES_FOR_BATCH = 4 * MAX_BATCH_QUADS;
@@ -29,7 +29,12 @@ void BatchRenderer::start() {
 	currentShader->use();
 }
 void BatchRenderer::handleMesh(Mesh& mesh) {
-
+	if(matrixStack.useTransformMatrix == true) {
+		Mat4 m = matrixStack.transformMatrix;
+		for(int i = 0; i < mesh.vertices.size(); i++) {
+			mesh.vertices[i].position = m * mesh.vertices[i].position;
+		}
+	}
 
 	bufferData.add(mesh);
 }
@@ -46,7 +51,7 @@ void BatchRenderer::end() {
 }
 
 void BatchRenderer::setColor(const Color& color) {
-	currentColor = color;
+	bufferData.currentColor = color;
 }
 void BatchRenderer::setClearColor(const Color& color) {
 	glClearColor(color.r, color.g, color.b, color.a);
@@ -92,21 +97,14 @@ void BatchRenderer::BufferData::add(Mesh& mesh) {
 		resetCounters();
 	}
 
-	if(BaseApp::getAppInstance()->renderer.matrixStack.useTransformMatrix == true) {
-		Mat4 m = BaseApp::getAppInstance()->renderer.matrixStack.transformMatrix;
-		for(int i = 0; i < mesh.vertices.size(); i++) {
-			mesh.vertices[i].position = m * mesh.vertices[i].position;
-		}
-	}
+
 
 	for(unsigned int i = 0; i < mesh.vertices.size(); i++) {
 		//mesh.vertices[i].color = BaseApp::getAppInstance()->renderer.currentColor;;
 		//bufferData.vertices[i + bufferData.vertexOffset] = mesh.vertices[i];
 
 		vertices[i + vertexOffset].position = mesh.vertices[i].position;
-		vertices[i + vertexOffset].color = BaseApp::getAppInstance()->renderer.currentColor;;
-
-		BaseApp::getAppInstance()->renderer.currentColor;
+		vertices[i + vertexOffset].color = currentColor;;
 		vertexCount++;
 	}
 

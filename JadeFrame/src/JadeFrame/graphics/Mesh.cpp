@@ -1,5 +1,5 @@
 #include "Mesh.h"
-#include "BaseApp.h"
+#include "../BaseApp.h"
 
 Mesh MeshManager::makeRectangle(Vec3 pos, Vec3 size) {
 	Mesh mesh;

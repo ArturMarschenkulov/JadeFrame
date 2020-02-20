@@ -5,11 +5,9 @@
 #include "BaseShader.h"
 
 #include <vector>
-#include <array>
-#include <iostream>
-#include "math/Vec3.h"
-#include "math/Vec2.h"
-#include "math/Mat4.h"
+#include "../math/Vec3.h"
+#include "../math/Vec2.h"
+#include "../math/Mat4.h"
 #include "Mesh.h"
 #include <stack>
 
@@ -37,15 +35,13 @@ public:
 	void handleMesh(Mesh& mesh);
 	void end();
 
-	//private:
+private:
 	BaseShader* currentShader = nullptr;
 
 	//Drawing API
 public:
 	void setColor(const Color& color);
 	void setClearColor(const Color& color);
-//private:
-	Color currentColor = { 0.5f, 0.5f, 0.5f, 1.0f };
 public:
 	void updateMatrices();
 	void ortho(float left, float right, float buttom, float top, float zNear, float zFar);
@@ -53,19 +49,15 @@ public:
 	void translate(float x, float y, float z);
 	void rotate(float angle, float x, float y, float z);
 	void scale(float x, float y, float z);
-	//private:
+private:
 	struct MatrixStack {
 		std::stack<Mat4> stack;
 		Mat4 modelMatrix;
 		Mat4 viewMatrix;
 		Mat4 projectionMatrix;
 		Mat4* currentMatrix;
-		Mat4 transformMatrix;
-		bool useTransformMatrix;
 	public:
 		void push() {
-			useTransformMatrix = true;
-			currentMatrix = &transformMatrix;
 			stack.push(*currentMatrix);
 		}
 		void pop() {
@@ -76,7 +68,6 @@ public:
 			}
 			if(stack.empty()) {
 				currentMatrix = &viewMatrix;
-				useTransformMatrix = false;
 			}
 		}
 	private:

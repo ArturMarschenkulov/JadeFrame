@@ -1,5 +1,5 @@
 #include "BaseRenderer.h"
-#include "BaseApp.h"
+#include "../BaseApp.h"
 
 constexpr int MAX_BATCH_QUADS = 100000;
 constexpr int MAX_VERTICES_FOR_BATCH = 4 * MAX_BATCH_QUADS;
@@ -95,7 +95,6 @@ void BaseRenderer::end() {
 
 void BaseRenderer::setColor(const Color& color) {
 	currentShader->setUniform4f("color", { color.r, color.g, color.b, color.a });
-	currentColor = color;
 }
 void BaseRenderer::setClearColor(const Color& color) {
 	glClearColor(color.r, color.g, color.b, color.a);

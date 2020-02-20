@@ -1,7 +1,7 @@
 #pragma once
 #include "Window.h"
-#include "BatchRenderer.h"
-#include "BaseRenderer.h"
+#include "graphics/BatchRenderer.h"
+#include "graphics/BaseRenderer.h"
 #include "Input.h"
 
 

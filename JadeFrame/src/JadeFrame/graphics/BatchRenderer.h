@@ -5,11 +5,9 @@
 #include "BatchShader.h"
 
 #include <vector>
-#include <array>
-#include <iostream>
-#include "math/Vec3.h"
-#include "math/Vec2.h"
-#include "math/Mat4.h"
+#include "../math/Vec3.h"
+#include "../math/Vec2.h"
+#include "../math/Mat4.h"
 #include "Mesh.h"
 #include <stack>
 
@@ -37,7 +35,7 @@ public:
 	void handleMesh(Mesh& mesh);
 	void end();
 
-	//private:
+private:
 	struct BufferData {
 		std::vector<Vertex> vertices;
 		std::vector<GLuint> indices;
@@ -52,6 +50,8 @@ public:
 		GLuint vertexCount = 0;
 		GLuint indexCount = 0;
 
+		Color currentColor = { 0.5f, 0.5f, 0.5f, 1.0f };
+
 		void init();
 		void add(Mesh& mesh);
 		void update();
@@ -65,8 +65,7 @@ public:
 public:
 	void setColor(const Color& color);
 	void setClearColor(const Color& color);
-	//private:
-	Color currentColor = { 0.5f, 0.5f, 0.5f, 1.0f };
+
 public:
 	void updateMatrices();
 	void ortho(float left, float right, float buttom, float top, float zNear, float zFar);
@@ -74,7 +73,10 @@ public:
 	void translate(float x, float y, float z);
 	void rotate(float angle, float x, float y, float z);
 	void scale(float x, float y, float z);
-	//private:
+
+	void pushMatrix() { matrixStack.push(); }
+	void popMatrix() { matrixStack.pop(); }
+private:
 	struct MatrixStack {
 		std::stack<Mat4> stack;
 		Mat4 modelMatrix;
@@ -100,12 +102,9 @@ public:
 				useTransformMatrix = false;
 			}
 		}
-	private:
-
 	};
 	MatrixStack matrixStack;
-	void pushMatrix() { matrixStack.push(); }
-	void popMatrix() { matrixStack.pop(); }
+
 
 public:
 	Camera camera;
