@@ -27,7 +27,6 @@ BatchShader::BatchShader()
 			out vec4 o_Col;
 			void main() {
 				o_Col = f_Col;
-				//o_Col = vec4(1.0f, 0.5f, 0.2f, 1.0f);
 			}
 		)";
 }

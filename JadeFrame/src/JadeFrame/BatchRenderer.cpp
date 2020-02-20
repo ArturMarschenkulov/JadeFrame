@@ -19,18 +19,23 @@ void BatchRenderer::init(BatchShader* shader) {
 }
 
 void BatchRenderer::start() {
-	projectionMatrix = Mat4();
-	viewMatrix = Mat4();
-	modelMatrix = Mat4();
-	currentMatrix = &viewMatrix;
+	matrixStack.projectionMatrix = Mat4();
+	matrixStack.viewMatrix = Mat4();
+	matrixStack.modelMatrix = Mat4();
+	matrixStack.currentMatrix = &matrixStack.viewMatrix;
 	auto window = BaseApp::getAppInstance()->window;
 
 
 	currentShader->use();
 }
+void BatchRenderer::handleMesh(Mesh& mesh) {
+
+
+	bufferData.add(mesh);
+}
 void BatchRenderer::updateMatrices() {
 	//Mat4 MVP = proj * view * model;
-	Mat4 MVP = modelMatrix * viewMatrix * projectionMatrix;
+	Mat4 MVP = matrixStack.modelMatrix * matrixStack.viewMatrix * matrixStack.projectionMatrix;
 	BaseApp::getAppInstance()->shader.setUniformMatrix4fv("MVP", MVP);
 }
 void BatchRenderer::end() {
@@ -78,6 +83,8 @@ void BatchRenderer::BufferData::init() {
 
 }
 void BatchRenderer::BufferData::add(Mesh& mesh) {
+
+
 	if((vertexCount + mesh.vertices.size() > MAX_VERTICES_FOR_BATCH) ||
 		(indexCount + mesh.indices.size() > MAX_INDICES_FOR_BATCH)) {
 		update();
@@ -85,6 +92,12 @@ void BatchRenderer::BufferData::add(Mesh& mesh) {
 		resetCounters();
 	}
 
+	if(BaseApp::getAppInstance()->renderer.matrixStack.useTransformMatrix == true) {
+		Mat4 m = BaseApp::getAppInstance()->renderer.matrixStack.transformMatrix;
+		for(int i = 0; i < mesh.vertices.size(); i++) {
+			mesh.vertices[i].position = m * mesh.vertices[i].position;
+		}
+	}
 
 	for(unsigned int i = 0; i < mesh.vertices.size(); i++) {
 		//mesh.vertices[i].color = BaseApp::getAppInstance()->renderer.currentColor;;
@@ -140,38 +153,20 @@ void BatchRenderer::BufferData::resetCounters() {
 
 
 void BatchRenderer::ortho(float left, float right, float buttom, float top, float zNear, float zFar) {
-	projectionMatrix = Mat4::ortho(left, right, buttom, top, zNear, zFar);
+	matrixStack.projectionMatrix = Mat4::ortho(left, right, buttom, top, zNear, zFar);
 }
 void BatchRenderer::perspective(float fovy, float aspect, float zNear, float zFar) {
-	projectionMatrix = Mat4::perspective(fovy, aspect, zNear, zFar);
+	matrixStack.projectionMatrix = Mat4::perspective(fovy, aspect, zNear, zFar);
 }
 void BatchRenderer::translate(float x, float y, float z) {
-	*currentMatrix = Mat4::translate(*currentMatrix, Vec3(x, y, z));
+	*matrixStack.currentMatrix = Mat4::translate(*matrixStack.currentMatrix, Vec3(x, y, z));
 }
 void BatchRenderer::rotate(float angle, float x, float y, float z) {
-	*currentMatrix = Mat4::rotate(*currentMatrix, angle, Vec3(x, y, z));
+	*matrixStack.currentMatrix = Mat4::rotate(*matrixStack.currentMatrix, angle, Vec3(x, y, z));
 }
 void BatchRenderer::scale(float x, float y, float z) {
-	*currentMatrix = Mat4::scale(*currentMatrix, Vec3(x, y, z));
-}
-void BatchRenderer::pushMatrix() {
-
-	useTransformMatrix = true;
-	currentMatrix = &transformMatrix;
-
-	matrixStack.push(*currentMatrix);
-}
-void BatchRenderer::popMatrix() {
-	if(!matrixStack.empty()) {
-		Mat4 mat = matrixStack.top();
-		*currentMatrix = mat;
-		matrixStack.pop();
-	}
-
-	if(matrixStack.empty()) {
-		currentMatrix = &viewMatrix;
-		useTransformMatrix = false;
-	}
+	//*currentMatrix = Mat4::scale(*currentMatrix, Vec3(x, y, z));
+	*matrixStack.currentMatrix = Mat4::scale(*matrixStack.currentMatrix, Vec3(x, y, z));
 }
 
 Camera::Camera() {

@@ -27,15 +27,6 @@ static void processInput(GLFWwindow* window) {
 	}
 }
 
-auto foo() {
-	struct Bar {
-		int a;
-	};
-	Bar a;
-	a.a = 1;
-	return a;
-}
-
 void BaseApp::runApp() {
 	GUIinit(window.handle);
 
@@ -57,7 +48,7 @@ void BaseApp::runApp() {
 		this->pollEvents();
 
 		GUInewFrame();
-		
+
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		renderer.start();
 
@@ -66,12 +57,11 @@ void BaseApp::runApp() {
 			(float)window.height, 0.0f,
 			-1.0f, 1.0f
 		);
+		if(0) {
+			renderer.setColor({ 0.0f, 1.0f, 1.0f, 1.0f });//TURQUOISE
+			RectangleMesh({ 50.0f, 50.0f }, { 500.0f, 500.0f }).sendToBuffer();
 
-
-		renderer.setColor({ 0.0f, 1.0f, 1.0f, 1.0f });//TURQUOISE
-		RectangleMesh({ 50.0f, 50.0f }, { 500.0f, 500.0f }).sendToBuffer();
-
-		renderer.pushMatrix();
+			renderer.pushMatrix();
 			static float tr0 = 70.0f;
 			static float tr1 = 10.0f;
 			ImGui::SliderFloat("tr0", &tr0, 0, 100);
@@ -83,21 +73,36 @@ void BaseApp::runApp() {
 			ImGui::SliderFloat("sc0", &sc0, 1, 5);
 			ImGui::SliderFloat("sc1", &sc1, 1, 5);
 
-			renderer.translate(100, 100, 0);
+			renderer.translate(150, 150, 0);
 			renderer.scale(sc0, sc1, 0);
-			renderer.translate(-100, -100, 0);
+			renderer.translate(-150, -150, 0);
 
 
 			renderer.setColor({ 1.0f, 0.0f, 0.0f, 1.0f });//RED
-			RectangleMesh({ 100.0f, 100.0f }, { 100.0f, 100.0f }).sendToBuffer();
-		renderer.popMatrix();
+
+			RectangleMesh({ 100.0f, 100.0f }, { 100.0f, 100.0f })
+				.sendToBuffer();
+			renderer.popMatrix();
 
 
-		renderer.setColor({ 0.0f, 0.0f, 1.0f, 1.0f });//BLUE
-		RectangleMesh({ 300.0f, 100.0f }, { 100.0f, 100.0f }).sendToBuffer();
+			renderer.setColor({ 0.0f, 0.0f, 1.0f, 1.0f });//BLUE
+			RectangleMesh({ 300.0f, 100.0f }, { 100.0f, 100.0f }).sendToBuffer();
+
+		}
 
 
-
+		static int amount = 1000;
+		ImGui::SliderInt("amount0", &amount, 1, 10);
+		ImGui::SliderInt("amount1", &amount, 1, 100);
+		ImGui::SliderInt("amount2", &amount, 1, 1000);
+		Vec2 size;
+		size.x = window.width / amount;
+		size.y = window.height / amount;
+		Vec2 pos = { 0 };
+		for(int i = 0; i < amount; i++) {
+			renderer.setColor({ 0.5, 0.5, 0.5, 1.0f });
+			RectangleMesh(pos + size * i, size).sendToBuffer();
+		}
 
 
 

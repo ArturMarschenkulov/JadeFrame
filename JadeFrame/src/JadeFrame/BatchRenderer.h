@@ -34,9 +34,10 @@ public:
 	BatchRenderer();
 	void init(BatchShader* shader);
 	void start();
+	void handleMesh(Mesh& mesh);
 	void end();
 
-//private:
+	//private:
 	struct BufferData {
 		std::vector<Vertex> vertices;
 		std::vector<GLuint> indices;
@@ -64,7 +65,7 @@ public:
 public:
 	void setColor(const Color& color);
 	void setClearColor(const Color& color);
-private:
+	//private:
 	Color currentColor = { 0.5f, 0.5f, 0.5f, 1.0f };
 public:
 	void updateMatrices();
@@ -73,19 +74,38 @@ public:
 	void translate(float x, float y, float z);
 	void rotate(float angle, float x, float y, float z);
 	void scale(float x, float y, float z);
-//private:
-	Mat4 modelMatrix;
-	Mat4 viewMatrix;
-	Mat4 projectionMatrix;
-	Mat4* currentMatrix;
-	Mat4 transformMatrix;
-	bool useTransformMatrix;
-public:
-	void pushMatrix();
-	void popMatrix();
-private:
-	std::stack<Mat4> matrixStack;
+	//private:
+	struct MatrixStack {
+		std::stack<Mat4> stack;
+		Mat4 modelMatrix;
+		Mat4 viewMatrix;
+		Mat4 projectionMatrix;
+		Mat4* currentMatrix;
+		Mat4 transformMatrix;
+		bool useTransformMatrix;
+	public:
+		void push() {
+			useTransformMatrix = true;
+			currentMatrix = &transformMatrix;
+			stack.push(*currentMatrix);
+		}
+		void pop() {
+			if(!stack.empty()) {
+				Mat4 mat = stack.top();
+				*currentMatrix = mat;
+				stack.pop();
+			}
+			if(stack.empty()) {
+				currentMatrix = &viewMatrix;
+				useTransformMatrix = false;
+			}
+		}
+	private:
 
+	};
+	MatrixStack matrixStack;
+	void pushMatrix() { matrixStack.push(); }
+	void popMatrix() { matrixStack.pop(); }
 
 public:
 	Camera camera;

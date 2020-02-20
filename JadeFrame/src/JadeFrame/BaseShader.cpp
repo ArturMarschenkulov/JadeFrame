@@ -10,12 +10,10 @@ BaseShader::BaseShader()
 			layout (location = 0) in vec3 v_Pos;
 			layout (location = 1) in vec4 v_Col;
 
-			out vec4 f_Col;
-
 			uniform mat4 MVP;
 
+
 			void main() {
-				f_Col = v_Col;
 				gl_Position = MVP * vec4(v_Pos.x, v_Pos.y, v_Pos.z, 1.0);
 			}
 		)";
@@ -23,10 +21,11 @@ BaseShader::BaseShader()
 	fragmentShaderSource =
 		R"(
 			#version 450 core
-			in vec4 f_Col;
+
 			out vec4 o_Col;
+			uniform vec4 color;
 			void main() {
-				o_Col = f_Col;
+				o_Col = color;
 				//o_Col = vec4(1.0f, 0.5f, 0.2f, 1.0f);
 			}
 		)";
@@ -68,7 +67,7 @@ GLuint BaseShader::compile(GLenum type, const std::string& codeSource) {
 		GLchar infoLog[512];
 		glGetShaderInfoLog(shaderID, maxLength, &maxLength, &infoLog[0]);
 		glDeleteShader(shaderID);
-		std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED" << infoLog << std::endl;
+		std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED" << std::endl <<infoLog << std::endl;
 		return 0;
 	} else {
 		std::cout << "SUCCE::SHADER::PROGRAM::COMPILATION_SUCCEEDED" << std::endl;
