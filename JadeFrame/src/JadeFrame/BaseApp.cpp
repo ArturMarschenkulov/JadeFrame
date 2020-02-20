@@ -27,7 +27,14 @@ static void processInput(GLFWwindow* window) {
 	}
 }
 
-
+auto foo() {
+	struct Bar {
+		int a;
+	};
+	Bar a;
+	a.a = 1;
+	return a;
+}
 
 void BaseApp::runApp() {
 	GUIinit(window.handle);
@@ -42,9 +49,6 @@ void BaseApp::runApp() {
 			std::cout << attributes.name << " ";
 		} std::cout << std::endl;
 	}
-
-
-
 	while(!glfwWindowShouldClose(window.handle)) {
 
 
@@ -53,6 +57,8 @@ void BaseApp::runApp() {
 		this->pollEvents();
 
 		GUInewFrame();
+		
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		renderer.start();
 
 		renderer.ortho(
@@ -63,7 +69,7 @@ void BaseApp::runApp() {
 
 
 		renderer.setColor({ 0.0f, 1.0f, 1.0f, 1.0f });//TURQUOISE
-		RectangleMesh({ 50.0f, 50.0f }, { 500.0f, 500.0f }).draw();
+		RectangleMesh({ 50.0f, 50.0f }, { 500.0f, 500.0f }).sendToBuffer();
 
 		renderer.pushMatrix();
 			static float tr0 = 70.0f;
@@ -83,12 +89,12 @@ void BaseApp::runApp() {
 
 
 			renderer.setColor({ 1.0f, 0.0f, 0.0f, 1.0f });//RED
-			RectangleMesh({ 100.0f, 100.0f }, { 100.0f, 100.0f }).draw();
+			RectangleMesh({ 100.0f, 100.0f }, { 100.0f, 100.0f }).sendToBuffer();
 		renderer.popMatrix();
 
 
 		renderer.setColor({ 0.0f, 0.0f, 1.0f, 1.0f });//BLUE
-		RectangleMesh({ 300.0f, 100.0f }, { 100.0f, 100.0f }).draw();
+		RectangleMesh({ 300.0f, 100.0f }, { 100.0f, 100.0f }).sendToBuffer();
 
 
 

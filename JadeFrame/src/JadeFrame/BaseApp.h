@@ -1,6 +1,6 @@
 #pragma once
 #include "Window.h"
-#include "Renderer.h"
+#include "BatchRenderer.h"
 #include "Input.h"
 
 
@@ -27,7 +27,7 @@ public:
 //private:
 	Window window;
 	Input input;
-	Shader shader;
-	Renderer renderer;
+	BatchShader shader;
+	BatchRenderer renderer;
 
 };

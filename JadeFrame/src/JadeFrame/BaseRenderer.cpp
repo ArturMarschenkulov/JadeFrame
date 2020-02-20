@@ -1,13 +1,15 @@
-#include "Renderer.h"
+#include "BaseRenderer.h"
 #include "BaseApp.h"
 
+constexpr int MAX_BATCH_QUADS = 100000;
+constexpr int MAX_VERTICES_FOR_BATCH = 4 * MAX_BATCH_QUADS;
+constexpr int MAX_INDICES_FOR_BATCH = 6 * MAX_BATCH_QUADS;
 
 
 
 
-
-Renderer::Renderer() {}
-void Renderer::init(Shader* shader) {
+BaseRenderer::BaseRenderer() {}
+void BaseRenderer::init(BaseShader* shader) {
 
 	currentShader = shader;
 	currentShader->use();
@@ -16,7 +18,7 @@ void Renderer::init(Shader* shader) {
 
 }
 
-void Renderer::start() {
+void BaseRenderer::start() {
 	projectionMatrix = Mat4();
 	viewMatrix = Mat4();
 	modelMatrix = Mat4();
@@ -26,36 +28,27 @@ void Renderer::start() {
 
 	currentShader->use();
 }
-void Renderer::update() {
-	//Mat4 MVP = proj * view * model;
+void BaseRenderer::updateMatrices() {
 	Mat4 MVP = modelMatrix * viewMatrix * projectionMatrix;
 	BaseApp::getAppInstance()->shader.setUniformMatrix4fv("MVP", MVP);
 }
-void Renderer::end() {
-	update();
+void BaseRenderer::end() {
+	updateMatrices();
 	bufferData.update();
 	bufferData.draw();
 	bufferData.resetCounters();
 }
 
-void Renderer::setColor(const Color& color) {
+void BaseRenderer::setColor(const Color& color) {
 	currentColor = color;
 }
-void Renderer::setClearColor(const Color& color) {
+void BaseRenderer::setClearColor(const Color& color) {
 	glClearColor(color.r, color.g, color.b, color.a);
 }
-void Renderer::drawRectangle(Vec2 pos, Vec2 size) {
-	Mesh mesh = MeshManager::makeRectangle(pos, size);
-	bufferData.add(mesh);
-}
-void Renderer::drawTriangle(Vec3 pos1, Vec3 pos2, Vec3 pos3) {
-	Mesh mesh = MeshManager::makeTriangle(pos1, pos2, pos3);
-	bufferData.add(mesh);
-}
 
 
 
-void Renderer::BufferData::init() {
+void BaseRenderer::BufferData::init() {
 
 	//CPU
 	vertices.resize(MAX_VERTICES_FOR_BATCH);
@@ -83,7 +76,7 @@ void Renderer::BufferData::init() {
 	glBindVertexArray(0);
 
 }
-void Renderer::BufferData::add(Mesh& mesh) {
+void BaseRenderer::BufferData::add(Mesh& mesh) {
 	if((vertexCount + mesh.vertices.size() > MAX_VERTICES_FOR_BATCH) ||
 		(indexCount + mesh.indices.size() > MAX_INDICES_FOR_BATCH)) {
 		update();
@@ -93,13 +86,8 @@ void Renderer::BufferData::add(Mesh& mesh) {
 
 
 	for(unsigned int i = 0; i < mesh.vertices.size(); i++) {
-		//mesh.vertices[i].color = BaseApp::getAppInstance()->renderer.currentColor;;
-		//bufferData.vertices[i + bufferData.vertexOffset] = mesh.vertices[i];
-
 		vertices[i + vertexOffset].position = mesh.vertices[i].position;
-		vertices[i + vertexOffset].color = BaseApp::getAppInstance()->renderer.currentColor;;
-
-		BaseApp::getAppInstance()->renderer.currentColor;
+		//vertices[i + vertexOffset].color = BaseApp::getAppInstance()->renderer.currentColor;;
 		vertexCount++;
 	}
 
@@ -114,7 +102,7 @@ void Renderer::BufferData::add(Mesh& mesh) {
 	indexOffset += mesh.indices.size();
 
 }
-void Renderer::BufferData::update() {
+void BaseRenderer::BufferData::update() {
 
 	glBindVertexArray(VAO);
 
@@ -130,11 +118,11 @@ void Renderer::BufferData::update() {
 
 	glBindVertexArray(0);
 }
-void Renderer::BufferData::draw() {
+void BaseRenderer::BufferData::draw() {
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
 }
-void Renderer::BufferData::resetCounters() {
+void BaseRenderer::BufferData::resetCounters() {
 	vertexOffset = 0;
 	indexOffset = 0;
 	vertexCount = 0;
@@ -145,29 +133,29 @@ void Renderer::BufferData::resetCounters() {
 
 
 
-void Renderer::ortho(float left, float right, float buttom, float top, float zNear, float zFar) {
+void BaseRenderer::ortho(float left, float right, float buttom, float top, float zNear, float zFar) {
 	projectionMatrix = Mat4::ortho(left, right, buttom, top, zNear, zFar);
 }
-void Renderer::perspective(float fovy, float aspect, float zNear, float zFar) {
+void BaseRenderer::perspective(float fovy, float aspect, float zNear, float zFar) {
 	projectionMatrix = Mat4::perspective(fovy, aspect, zNear, zFar);
 }
-void Renderer::translate(float x, float y, float z) {
+void BaseRenderer::translate(float x, float y, float z) {
 	*currentMatrix = Mat4::translate(*currentMatrix, Vec3(x, y, z));
 }
-void Renderer::rotate(float angle, float x, float y, float z) {
+void BaseRenderer::rotate(float angle, float x, float y, float z) {
 	*currentMatrix = Mat4::rotate(*currentMatrix, angle, Vec3(x, y, z));
 }
-void Renderer::scale(float x, float y, float z) {
+void BaseRenderer::scale(float x, float y, float z) {
 	*currentMatrix = Mat4::scale(*currentMatrix, Vec3(x, y, z));
 }
-void Renderer::pushMatrix() {
+void BaseRenderer::pushMatrix() {
 
 	useTransformMatrix = true;
 	currentMatrix = &transformMatrix;
 
 	matrixStack.push(*currentMatrix);
 }
-void Renderer::popMatrix() {
+void BaseRenderer::popMatrix() {
 	if(!matrixStack.empty()) {
 		Mat4 mat = matrixStack.top();
 		*currentMatrix = mat;
@@ -180,10 +168,10 @@ void Renderer::popMatrix() {
 	}
 }
 
-Camera::Camera() {
+Camera2::Camera2() {
 
 }
-void TimeManager::handleTime() {
+void TimeManager2::handleTime() {
 	// Frame time control system
 	currentTime = glfwGetTime();
 	drawTime = currentTime - previousTime;

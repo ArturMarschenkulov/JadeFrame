@@ -2,7 +2,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "Shader.h"
+#include "BatchShader.h"
 
 #include <vector>
 #include <array>
@@ -16,17 +16,6 @@
 class Camera {
 public:
 	Camera();
-	//void update();
-	//void ortho(float left, float right, float buttom, float top, float zNear, float zFar);
-	//void perspective(float fovy, float aspect, float zNear, float zFar);
-	//void translate(float x, float y, float z);
-	//void rotate(float angle, float x, float y, float z);
-	//void scale(float x, float y, float z);
-	////private:
-	//Mat4 model;
-	//Mat4 view;
-	//Mat4 proj;
-	//Mat4* currentMatrix;
 };
 class TimeManager {
 public:
@@ -40,15 +29,10 @@ private:
 	double targetTime = 0.0;
 };
 
-constexpr int MAX_BATCH_QUADS = 100000;
-constexpr int MAX_VERTICES_FOR_BATCH = 4 * MAX_BATCH_QUADS;
-constexpr int MAX_INDICES_FOR_BATCH = 6 * MAX_BATCH_QUADS;
-
-
-class Renderer {
+class BatchRenderer {
 public:
-	Renderer();
-	void init(Shader* shader);
+	BatchRenderer();
+	void init(BatchShader* shader);
 	void start();
 	void end();
 
@@ -56,8 +40,6 @@ public:
 	struct BufferData {
 		std::vector<Vertex> vertices;
 		std::vector<GLuint> indices;
-		//std::array<Vertex, MAX_VERTICES_FOR_BATCH> vertices;
-		//std::array<GLuint, MAX_INDICES_FOR_BATCH> indices;
 
 		GLuint VBO = 0;
 		GLuint VAO = 0;
@@ -76,18 +58,16 @@ public:
 		void resetCounters();
 	};
 	BufferData bufferData;
-	Shader* currentShader = nullptr;
+	BatchShader* currentShader = nullptr;
 
 	//Drawing API
 public:
 	void setColor(const Color& color);
 	void setClearColor(const Color& color);
-	void drawRectangle(Vec2 pos, Vec2 size);
-	void drawTriangle(Vec3 pos1, Vec3 pos2, Vec3 pos3);
 private:
 	Color currentColor = { 0.5f, 0.5f, 0.5f, 1.0f };
 public:
-	void update();
+	void updateMatrices();
 	void ortho(float left, float right, float buttom, float top, float zNear, float zFar);
 	void perspective(float fovy, float aspect, float zNear, float zFar);
 	void translate(float x, float y, float z);

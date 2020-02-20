@@ -75,13 +75,7 @@
     <ClInclude Include="src\JadeFrame\BaseApp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\Renderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\JadeFrame\Window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\JadeFrame\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\JadeFrame\Input.h">
@@ -91,6 +85,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\JadeFrame\Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\BatchRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\BatchShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\BaseRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\BaseShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -140,13 +146,7 @@
     <ClCompile Include="src\JadeFrame\Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\JadeFrame\BaseApp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\JadeFrame\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\JadeFrame\Input.cpp">
@@ -156,6 +156,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\JadeFrame\Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\BatchRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\BatchShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\BaseRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\BaseShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

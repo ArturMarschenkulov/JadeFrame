@@ -1,7 +1,7 @@
-#include "Shader.h"
+#include "BaseShader.h"
 
 
-Shader::Shader() 
+BaseShader::BaseShader()
 	: m_ID()
 	, m_shaderTypes() {
 	vertexShaderSource =
@@ -31,7 +31,7 @@ Shader::Shader()
 			}
 		)";
 }
-void Shader::init() {
+void BaseShader::init() {
 
 	this->compile(GL_VERTEX_SHADER, vertexShaderSource);
 	this->compile(GL_FRAGMENT_SHADER, fragmentShaderSource);
@@ -43,11 +43,11 @@ void Shader::init() {
 	glDetachShader(m_ID, m_shaderTypes[1]);
 }
 
-void Shader::use() {
+void BaseShader::use() {
 	glUseProgram(this->m_ID);
 }
 
-GLuint Shader::compile(GLenum type, const std::string& codeSource) {
+GLuint BaseShader::compile(GLenum type, const std::string& codeSource) {
 	GLuint shaderID = glCreateShader(type);
 	const GLchar* shaderCode = codeSource.c_str();
 	glShaderSource(shaderID, 1, &shaderCode, nullptr);
@@ -76,7 +76,7 @@ GLuint Shader::compile(GLenum type, const std::string& codeSource) {
 	return shaderID;
 }
 
-void Shader::link() {
+void BaseShader::link() {
 
 	m_ID = glCreateProgram();
 	glAttachShader(m_ID, m_shaderTypes[0]);
@@ -95,7 +95,7 @@ void Shader::link() {
 	}
 }
 
-void Shader::validate() {
+void BaseShader::validate() {
 	glValidateProgram(m_ID);
 
 	GLint isValidated = GL_FALSE;
@@ -110,9 +110,9 @@ void Shader::validate() {
 }
 
 
-GLint Shader::getUniformLocation(const std::string& name) const {
+GLint BaseShader::getUniformLocation(const std::string& name) const {
 	GLint location = glGetUniformLocation(m_ID, name.c_str());
-	if(location == -1){
+	if(location == -1) {
 		std::cout << "Location of " << name << " can not be found" << std::endl;
 		__debugbreak();
 	}
@@ -136,33 +136,28 @@ GLint Shader::getUniformLocation(const std::string& name) const {
 }
 
 
-void Shader::setUniform1i(const std::string& name, int value) {
+void BaseShader::setUniform1i(const std::string& name, int value) {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl;
 }
-
-void Shader::setUniform1f(const std::string& name, float value) {
+void BaseShader::setUniform1f(const std::string& name, float value) {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl;
 }
-
-void Shader::setUniform2f(const std::string& name, const Vec2& value) {
+void BaseShader::setUniform2f(const std::string& name, const Vec2& value) {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl;
 }
-
-void Shader::setUniform3f(const std::string& name, const Vec3& value) {
+void BaseShader::setUniform3f(const std::string& name, const Vec3& value) {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl;
 }
-
-void Shader::setUniform4f(const std::string& name, const Vec4& value) {
+void BaseShader::setUniform4f(const std::string& name, const Vec4& value) {
 	int loc = getUniformLocation(name);
 	glUniform4f(loc, value.x, value.y, value.z, value.w);
 }
-
-void Shader::setUniformMatrix4fv(const std::string& name, const Mat4& mat) const {
+void BaseShader::setUniformMatrix4fv(const std::string& name, const Mat4& mat) const {
 	GLint loc = getUniformLocation(name);
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &mat[0][0]);
 }
 
-void Shader::updateShaderVariables(int shaderType) {
+void BaseShader::updateShaderVariables(int shaderType) {
 	int num;
 	glGetProgramiv(m_ID, shaderType, &num);
 

@@ -32,6 +32,13 @@ Mesh MeshManager::makeTriangle(Vec3 pos1, Vec3 pos2, Vec3 pos3) {
 	mesh.vertices[1].position = Vec3{ pos2.x, pos2.y, pos2.z };
 	mesh.vertices[2].position = Vec3{ pos3.x, pos3.y, pos3.z };
 
+	if(BaseApp::getAppInstance()->renderer.useTransformMatrix == true) {
+		Mat4 m = BaseApp::getAppInstance()->renderer.transformMatrix;
+		for(int i = 0; i < 3; i++) {
+			mesh.vertices[i].position = m * mesh.vertices[i].position;
+		}
+	}
+
 	mesh.indices.reserve(3);
 	mesh.indices = {
 		0, 1, 2
@@ -59,6 +66,13 @@ Mesh MeshManager::makeCircle(Vec3 position, float radius, int numSegments) {
 		y = sin * t + cos * y;
 	}
 
+	if(BaseApp::getAppInstance()->renderer.useTransformMatrix == true) {
+		Mat4 m = BaseApp::getAppInstance()->renderer.transformMatrix;
+		for(int i = 0; i < numSegments + 1; i++) {
+			mesh.vertices[i].position = m * mesh.vertices[i].position;
+		}
+	}
+
 	GLuint numIndex = (numSegments * 3);
 	mesh.indices.resize(numIndex);
 
@@ -74,17 +88,23 @@ Mesh MeshManager::makeCircle(Vec3 position, float radius, int numSegments) {
 
 
 
-void RectangleMesh::draw() {
-	Mesh mesh = MeshManager::makeRectangle(position, size);
+RectangleMesh::RectangleMesh(Vec2 position, Vec2 size) {
+	mesh = MeshManager::makeRectangle(position, size);
+}
+void RectangleMesh::sendToBuffer() {
 	BaseApp::getAppInstance()->renderer.bufferData.add(mesh);
 }
 
-void TriangleMesh::draw() {
-	Mesh mesh = MeshManager::makeTriangle(pos1, pos2, pos3);
+TriangleMesh::TriangleMesh(Vec2 pos1, Vec2 pos2, Vec3 pos3) {
+	mesh = MeshManager::makeTriangle(pos1, pos2, pos3);
+}
+void TriangleMesh::sendToBuffer() {
 	BaseApp::getAppInstance()->renderer.bufferData.add(mesh);
 }
 
-void CircleMesh::draw() {
-	Mesh mesh = MeshManager::makeCircle(position, radius, numSegment);
+CircleMesh::CircleMesh(Vec2 position, float radius, int numSegments) {
+	mesh = MeshManager::makeCircle(position, radius, numSegments);
+}
+void CircleMesh::sendToBuffer() {
 	BaseApp::getAppInstance()->renderer.bufferData.add(mesh);
 }

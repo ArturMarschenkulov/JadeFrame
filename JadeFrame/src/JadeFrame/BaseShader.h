@@ -9,34 +9,10 @@
 #include "math/Vec4.h"
 #include "math/Mat4.h"
 
-enum class SHADER_TYPE {
-	BOOL,
-	INT,
-	FLOAT,
-	SAMPLER1D,
-	SAMPLER2D,
-	SAMPLER3D,
-	SAMPLERCUBE,
-	VEC2,
-	VEC3,
-	VEC4,
-	MAT2,
-	MAT3,
-	MAT4
-};
 
-struct ShaderType {
-	SHADER_TYPE  type;
-	std::string  name;
-	int          size;
-	GLuint location;
-};
-struct Uniform : ShaderType {};
-
-struct VertexAttribute : ShaderType {};
-class Shader {
+class BaseShader {
 public:
-	Shader();
+	BaseShader();
 	void init();
 	void use();
 	GLuint compile(GLenum type, const std::string& codeSource);
@@ -48,8 +24,31 @@ private:
 
 	const GLchar* vertexShaderSource;
 	const GLchar* fragmentShaderSource;
+private:
+	enum class SHADER_TYPE {
+		BOOL,
+		INT,
+		FLOAT,
+		SAMPLER1D,
+		SAMPLER2D,
+		SAMPLER3D,
+		SAMPLERCUBE,
+		VEC2,
+		VEC3,
+		VEC4,
+		MAT2,
+		MAT3,
+		MAT4
+	};
 
-
+	struct ShaderType {
+		SHADER_TYPE  type;
+		std::string  name;
+		int          size;
+		GLuint location;
+	};
+	struct Uniform : ShaderType {};
+	struct VertexAttribute : ShaderType {};
 public:
 	GLint getUniformLocation(const std::string& name) const;
 	//void setMat4(const std::string& name, const Mat4& mat) const;
