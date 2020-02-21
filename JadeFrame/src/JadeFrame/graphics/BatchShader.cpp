@@ -3,8 +3,8 @@
 
 BatchShader::BatchShader()
 	: m_ID()
-	, m_shaderTypes() {
-	vertexShaderSource =
+	, m_shader_types() {
+	vertex_shader_source =
 		R"(
 			#version 450 core
 			layout (location = 0) in vec3 v_Pos;
@@ -20,7 +20,7 @@ BatchShader::BatchShader()
 			}
 		)";
 
-	fragmentShaderSource =
+	fragment_shader_source =
 		R"(
 			#version 450 core
 			in vec4 f_Col;
@@ -32,14 +32,14 @@ BatchShader::BatchShader()
 }
 void BatchShader::init() {
 
-	this->compile(GL_VERTEX_SHADER, vertexShaderSource);
-	this->compile(GL_FRAGMENT_SHADER, fragmentShaderSource);
+	this->compile(GL_VERTEX_SHADER, vertex_shader_source);
+	this->compile(GL_FRAGMENT_SHADER, fragment_shader_source);
 	this->link();
 	this->validate();
-	this->updateShaderVariables(GL_ACTIVE_UNIFORMS);
-	this->updateShaderVariables(GL_ACTIVE_ATTRIBUTES);
-	glDetachShader(m_ID, m_shaderTypes[0]);
-	glDetachShader(m_ID, m_shaderTypes[1]);
+	this->update_shader_variables(GL_ACTIVE_UNIFORMS);
+	this->update_shader_variables(GL_ACTIVE_ATTRIBUTES);
+	glDetachShader(m_ID, m_shader_types[0]);
+	glDetachShader(m_ID, m_shader_types[1]);
 }
 
 void BatchShader::use() {
@@ -53,9 +53,9 @@ GLuint BatchShader::compile(GLenum type, const std::string& codeSource) {
 	glCompileShader(shaderID);
 
 	switch(type) {
-	case GL_VERTEX_SHADER:   m_shaderTypes[0] = shaderID; break;
-	case GL_FRAGMENT_SHADER: m_shaderTypes[1] = shaderID; break;
-	case GL_GEOMETRY_SHADER: m_shaderTypes[2] = shaderID; break;
+	case GL_VERTEX_SHADER:   m_shader_types[0] = shaderID; break;
+	case GL_FRAGMENT_SHADER: m_shader_types[1] = shaderID; break;
+	case GL_GEOMETRY_SHADER: m_shader_types[2] = shaderID; break;
 	default:; break;
 	}
 
@@ -78,8 +78,8 @@ GLuint BatchShader::compile(GLenum type, const std::string& codeSource) {
 void BatchShader::link() {
 
 	m_ID = glCreateProgram();
-	glAttachShader(m_ID, m_shaderTypes[0]);
-	glAttachShader(m_ID, m_shaderTypes[1]);
+	glAttachShader(m_ID, m_shader_types[0]);
+	glAttachShader(m_ID, m_shader_types[1]);
 
 
 	glLinkProgram(m_ID);
@@ -109,7 +109,7 @@ void BatchShader::validate() {
 }
 
 
-GLint BatchShader::getUniformLocation(const std::string& name) const {
+GLint BatchShader::get_uniform_location(const std::string& name) const {
 	GLint location = glGetUniformLocation(m_ID, name.c_str());
 	if(location == -1){
 		std::cout << "Location of " << name << " can not be found" << std::endl;
@@ -135,28 +135,28 @@ GLint BatchShader::getUniformLocation(const std::string& name) const {
 }
 
 
-void BatchShader::setUniform1i(const std::string& name, int value) {
+void BatchShader::set_uniform1i(const std::string& name, int value) {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl;
 }
-void BatchShader::setUniform1f(const std::string& name, float value) {
+void BatchShader::set_uniform1f(const std::string& name, float value) {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl;
 }
-void BatchShader::setUniform2f(const std::string& name, const Vec2& value) {
+void BatchShader::set_uniform2f(const std::string& name, const Vec2& value) {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl;
 }
-void BatchShader::setUniform3f(const std::string& name, const Vec3& value) {
+void BatchShader::set_uniform3f(const std::string& name, const Vec3& value) {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl;
 }
-void BatchShader::setUniform4f(const std::string& name, const Vec4& value) {
-	int loc = getUniformLocation(name);
+void BatchShader::set_uniform4f(const std::string& name, const Vec4& value) {
+	int loc = get_uniform_location(name);
 	glUniform4f(loc, value.x, value.y, value.z, value.w);
 }
-void BatchShader::setUniformMatrix4fv(const std::string& name, const Mat4& mat) const {
-	GLint loc = getUniformLocation(name);
+void BatchShader::set_uniform_matrix4fv(const std::string& name, const Mat4& mat) const {
+	GLint loc = get_uniform_location(name);
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &mat[0][0]);
 }
 
-void BatchShader::updateShaderVariables(int shaderType) {
+void BatchShader::update_shader_variables(int shaderType) {
 	int num;
 	glGetProgramiv(m_ID, shaderType, &num);
 

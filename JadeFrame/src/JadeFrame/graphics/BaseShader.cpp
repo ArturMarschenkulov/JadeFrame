@@ -3,8 +3,8 @@
 
 BaseShader::BaseShader()
 	: m_ID()
-	, m_shaderTypes() {
-	vertexShaderSource =
+	, m_shader_types() {
+	vertex_shader_source =
 		R"(
 			#version 450 core
 			layout (location = 0) in vec3 v_Pos;
@@ -18,7 +18,7 @@ BaseShader::BaseShader()
 			}
 		)";
 
-	fragmentShaderSource =
+	fragment_shader_source =
 		R"(
 			#version 450 core
 
@@ -32,14 +32,14 @@ BaseShader::BaseShader()
 }
 void BaseShader::init() {
 
-	this->compile(GL_VERTEX_SHADER, vertexShaderSource);
-	this->compile(GL_FRAGMENT_SHADER, fragmentShaderSource);
+	this->compile(GL_VERTEX_SHADER, vertex_shader_source);
+	this->compile(GL_FRAGMENT_SHADER, fragment_shader_source);
 	this->link();
 	this->validate();
 	this->updateShaderVariables(GL_ACTIVE_UNIFORMS);
 	this->updateShaderVariables(GL_ACTIVE_ATTRIBUTES);
-	glDetachShader(m_ID, m_shaderTypes[0]);
-	glDetachShader(m_ID, m_shaderTypes[1]);
+	glDetachShader(m_ID, m_shader_types[0]);
+	glDetachShader(m_ID, m_shader_types[1]);
 }
 
 void BaseShader::use() {
@@ -53,9 +53,9 @@ GLuint BaseShader::compile(GLenum type, const std::string& codeSource) {
 	glCompileShader(shaderID);
 
 	switch(type) {
-	case GL_VERTEX_SHADER:   m_shaderTypes[0] = shaderID; break;
-	case GL_FRAGMENT_SHADER: m_shaderTypes[1] = shaderID; break;
-	case GL_GEOMETRY_SHADER: m_shaderTypes[2] = shaderID; break;
+	case GL_VERTEX_SHADER:   m_shader_types[0] = shaderID; break;
+	case GL_FRAGMENT_SHADER: m_shader_types[1] = shaderID; break;
+	case GL_GEOMETRY_SHADER: m_shader_types[2] = shaderID; break;
 	default:; break;
 	}
 
@@ -78,8 +78,8 @@ GLuint BaseShader::compile(GLenum type, const std::string& codeSource) {
 void BaseShader::link() {
 
 	m_ID = glCreateProgram();
-	glAttachShader(m_ID, m_shaderTypes[0]);
-	glAttachShader(m_ID, m_shaderTypes[1]);
+	glAttachShader(m_ID, m_shader_types[0]);
+	glAttachShader(m_ID, m_shader_types[1]);
 
 
 	glLinkProgram(m_ID);
@@ -109,7 +109,7 @@ void BaseShader::validate() {
 }
 
 
-GLint BaseShader::getUniformLocation(const std::string& name) const {
+GLint BaseShader::get_uniform_location(const std::string& name) const {
 	GLint location = glGetUniformLocation(m_ID, name.c_str());
 	if(location == -1) {
 		std::cout << "Location of " << name << " can not be found" << std::endl;
@@ -148,11 +148,11 @@ void BaseShader::setUniform3f(const std::string& name, const Vec3& value) {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl;
 }
 void BaseShader::setUniform4f(const std::string& name, const Vec4& value) {
-	int loc = getUniformLocation(name);
+	int loc = get_uniform_location(name);
 	glUniform4f(loc, value.x, value.y, value.z, value.w);
 }
 void BaseShader::setUniformMatrix4fv(const std::string& name, const Mat4& mat) const {
-	GLint loc = getUniformLocation(name);
+	GLint loc = get_uniform_location(name);
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &mat[0][0]);
 }
 

@@ -3,7 +3,17 @@
 #include "graphics/BatchRenderer.h"
 #include "graphics/BaseRenderer.h"
 #include "Input.h"
-
+class TimeManager {
+public:
+	void handle_time();
+private:
+	double currentTime = 0.0;
+	double previousTime = 0.0;
+	double drawTime = 0.0;
+	double frameTime = 0.0;
+	double updateTime = 0.0;
+	double targetTime = 0.0;
+};
 
 class BaseApp {
 public:
@@ -15,9 +25,9 @@ public:
 	virtual void update() {}
 	virtual void draw() {}
 
-	void initApp(const std::string& title, float width, float height);
-	void runApp();
-	void pollEvents();
+	void init_app(const std::string& title, float width, float height);
+	void run_app();
+	void poll_events();
 
 	static BaseApp* getAppInstance() {
 		return instance;
@@ -30,5 +40,7 @@ public:
 	Input input;
 	BatchShader shader;
 	BatchRenderer renderer;
+
+	TimeManager time_manager;
 
 };

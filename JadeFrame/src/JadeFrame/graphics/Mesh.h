@@ -11,6 +11,10 @@
 class Color {
 public:
 	float r, g, b, a;
+
+	bool operator==(const Color& color) const {
+		return r == color.r && g == color.g && b == color.b && a == color.a;
+	}
 };
 
 struct Vertex {
@@ -30,27 +34,27 @@ public:
 
 class MeshManager {
 public:
-	static Mesh makeRectangle(Vec3 position, Vec3 size);
-	static Mesh makeTriangle(Vec3 pos1, Vec3 pos2, Vec3 pos3);
-	static Mesh makeCircle(Vec3 position, float radius, int numSegments);
+	static Mesh make_rectangle(Vec3 position, Vec3 size);
+	static Mesh make_triangle(Vec3 pos1, Vec3 pos2, Vec3 pos3);
+	static Mesh make_circle(Vec3 position, float radius, int numSegments);
 
 };
 class RectangleMesh {
 public:
 	RectangleMesh(Vec2 position, Vec2 size);
 
-	void sendToBuffer();
+	void send_to_buffer();
 	Mesh mesh;
 };
 class TriangleMesh {
 public:
 	TriangleMesh(Vec2 pos1, Vec2 pos2, Vec3 pos3);
-	void sendToBuffer();
+	void send_to_buffer();
 	Mesh mesh;
 };
 class CircleMesh {
 public:
 	CircleMesh(Vec2 position, float radius, int numSegments = 12);
-	void sendToBuffer();
+	void send_to_buffer();
 	Mesh mesh;
 };

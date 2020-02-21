@@ -29,16 +29,46 @@ public:
 	static Mat4 scale(Mat4 const& mat, const Vec3& scale);
 	static Mat4 scale(const Vec3& scale);
 
+	static Mat4 lookAt(const Vec3& camera, Vec3 object, Vec3 up) {
+		Mat4 result;
+		Vec3 f = (object - camera).normalize();
+		Vec3 s = f.cross(up.normalize());
+		Vec3 u = s.cross(f);
+
+		result[0][0] = s.x;
+		result[0][0] = s.x;
+		result[0][1] = s.y;
+		result[0][1] = s.y;
+		result[0][2] = s.z;
+		result[0][2] = s.z;
+
+		result[1][0] = u.x;
+		result[1][0] = u.x;
+		result[1][1] = u.y;
+		result[1][1] = u.y;
+		result[1][2] = u.z;
+		result[1][2] = u.z;
+
+		result[2][0] = -f.x;
+		result[2][0] = -f.x;
+		result[2][1] = -f.y;
+		result[2][1] = -f.y;
+		result[2][2] = -f.z;
+		result[2][2] = -f.z;
+
+		return result * Mat4::translate(Vec3(-camera.x, -camera.y, -camera.z));
+	};
+
 	Mat4& makeEchelon() {
 		int lead = 0;
 		int colCount = 4;
 		int rowCount = 4;
 		// go through every column
-		for (int col = 0; col < colCount; col++) {
-			for (int row = col + 1; row < rowCount; row++) {
-				if (el[col][row] != 0) {
+		for(int col = 0; col < colCount; col++) {
+			for(int row = col + 1; row < rowCount; row++) {
+				if(el[col][row] != 0) {
 					float factor = el[col][row] / el[col][col];
-					for (int col2 = 0; col2 < colCount; col2++) {
+					for(int col2 = 0; col2 < colCount; col2++) {
 						el[col2][row] -= factor * el[col2][col];
 					}
 				}
@@ -52,11 +82,11 @@ public:
 		int colCount = 4;
 		int rowCount = 4;
 		// go through every column
-		for (int col = 0; col < colCount; col++) {
-			for (int row = col + 1; row < rowCount; row++) {
-				if (m[col][row] != 0) {
+		for(int col = 0; col < colCount; col++) {
+			for(int row = col + 1; row < rowCount; row++) {
+				if(m[col][row] != 0) {
 					float factor = m[col][row] / m[col][col];
-					for (int col2 = 0; col2 < colCount; col2++) {
+					for(int col2 = 0; col2 < colCount; col2++) {
 						m[col2][row] -= factor * m[col2][col];
 					}
 				}
@@ -66,8 +96,8 @@ public:
 	}
 
 	void printM() {
-		for (int row = 0; row < 4; row++) {
-			for (int col = 0; col < 4; col++) {
+		for(int row = 0; row < 4; row++) {
+			for(int col = 0; col < 4; col++) {
 				std::cout << "\t" << el[col][row] << " ";
 			}
 			std::cout << std::endl;

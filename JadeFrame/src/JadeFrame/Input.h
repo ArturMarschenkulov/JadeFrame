@@ -104,66 +104,66 @@ class Input {
 	friend class MainLoop;
 public:
 	Input()
-		: m_windowInstance(nullptr) {}
+		: m_window_instance(nullptr) {}
 	~Input() {}
 
 	void handleInput();
 
-	void setWindowInstance(GLFWwindow* window) { m_windowInstance = window; }
-	GLFWwindow* getWindowInstance() const { return m_windowInstance; }
+	void setWindowInstance(GLFWwindow* window) { m_window_instance = window; }
+	GLFWwindow* getWindowInstance() const { return m_window_instance; }
 
 private:
-	GLFWwindow* m_windowInstance;
+	GLFWwindow* m_window_instance;
 
 	// Key Input
 public:
-	bool isKeyDown(KEY key) const;
-	bool isKeyUp(KEY key) const;
-	bool isKeyPressed(KEY key) const;
-	bool isKeyReleased(KEY key) const;
+	bool is_key_down(KEY key) const;
+	bool is_key_up(KEY key) const;
+	bool is_key_pressed(KEY key) const;
+	bool is_key_released(KEY key) const;
 
-	char getDownKey(void) const;
-	char getUpKey(void) const;
-	char getPressedKey(void) const;
-	char getReleasedKey(void) const;
+	char get_down_key(void) const;
+	char get_up_key(void) const;
+	char get_pressed_key(void) const;
+	char get_released_key(void) const;
 
 	//private:
-	static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-	static std::array<INPUT_ACTION, 512> m_currentKeyState;
-	static std::array<INPUT_ACTION, 512> m_previousKeyState;
+	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+	static std::array<INPUT_ACTION, 512> m_current_key_state;
+	static std::array<INPUT_ACTION, 512> m_previous_key_state;
 
 
 
 	// Mouse Input
 public:
-	bool isButtonDown(const MOUSE key) const;
-	bool isButtonUp(const MOUSE key) const;
-	bool isButtonPressed(const MOUSE key) const;
-	bool isButtonReleased(const MOUSE key) const;
+	bool is_button_down(const MOUSE key) const;
+	bool is_button_up(const MOUSE key) const;
+	bool is_button_pressed(const MOUSE key) const;
+	bool is_button_released(const MOUSE key) const;
 
-	char getDownButton() const;
-	char getUpButton() const;
-	char getPressedButton() const;
-	char getReleasedButton() const;
+	char get_down_button() const;
+	char get_up_button() const;
+	char get_pressed_button() const;
+	char get_released_button() const;
 
 	//private:
-	static void mouseButtonCallback(GLFWwindow* window, int button, int state, int mods);
-	static std::array<INPUT_ACTION, 3> m_currentButtonState;
-	static std::array<INPUT_ACTION, 3> m_previousButtonState;
+	static void mouse_button_callback(GLFWwindow* window, int button, int state, int mods);
+	static std::array<INPUT_ACTION, 3> m_current_button_state;
+	static std::array<INPUT_ACTION, 3> m_previous_button_state;
 
 	// Mouse Position
 public:
-	float getMouseX() const;
-	float getMouseY() const;
-	Vec2 getMousePosition() const;
+	float get_mouse_X() const;
+	float get_mouse_Y() const;
+	Vec2 get_mouse_position() const;
 	//private:
-	static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
-	static Vec2 m_currentMousePosition;
+	static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos);
+	static Vec2 m_current_mouse_position;
 
 	// Mouse Enter
 public:
-	bool isMouseInside() const;
+	bool is_mouse_inside() const;
 	//private:
-	static void cursorEnterCallback(GLFWwindow* window, int entered);
-	static bool m_isCursorInside;
+	static void cursor_enter_callback(GLFWwindow* window, int entered);
+	static bool m_is_cursor_inside;
 };

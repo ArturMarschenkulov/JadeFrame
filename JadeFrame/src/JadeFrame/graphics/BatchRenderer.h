@@ -10,21 +10,48 @@
 #include "../math/Mat4.h"
 #include "Mesh.h"
 #include <stack>
-
+enum class CAMERA_MODE {
+	PERSPECTIVE,
+	ORTHOGRAPIC
+};
 class Camera {
 public:
+
 	Camera();
-};
-class TimeManager {
-public:
-	void handleTime();
+	~Camera();
+
+	void setMode(CAMERA_MODE mode);
+
+	Mat4 getViewMatrix();
+
+	void setDefaultLocation();
+
+	void move();
+	void update();
+
 private:
-	double currentTime = 0.0;
-	double previousTime = 0.0;
-	double drawTime = 0.0;
-	double frameTime = 0.0;
-	double updateTime = 0.0;
-	double targetTime = 0.0;
+	Vec3 m_position;
+	Vec3 m_rotation;
+	Vec3 m_front;
+	Vec3 m_up;
+	Vec3 m_worldUp;
+	Vec3 m_right;
+
+	float m_speed;
+	float m_fovy;
+
+	float m_currentTime;
+	float m_previousTime;
+	float m_deltaTime;
+
+
+
+	// Euler Angles
+	float m_yaw;
+	float m_pitch;
+	float m_roll;
+
+
 };
 
 class BatchRenderer {
@@ -32,7 +59,7 @@ public:
 	BatchRenderer();
 	void init(BatchShader* shader);
 	void start();
-	void handleMesh(Mesh& mesh);
+	void handle_mesh(Mesh& mesh);
 	void end();
 
 private:
@@ -44,69 +71,67 @@ private:
 		GLuint VAO = 0;
 		GLuint IBO = 0;
 
-		GLuint vertexOffset = 0;
-		GLuint indexOffset = 0;
+		GLuint vertex_offset = 0;
+		GLuint index_offset = 0;
 
-		GLuint vertexCount = 0;
-		GLuint indexCount = 0;
+		GLuint vertex_count = 0;
+		GLuint index_count = 0;
 
-		Color currentColor = { 0.5f, 0.5f, 0.5f, 1.0f };
+		Color current_color = { 0.5f, 0.5f, 0.5f, 1.0f };
 
 		void init();
 		void add(Mesh& mesh);
 		void update();
 		void draw();
-		void resetCounters();
+		void reset_counters();
 	};
-	BufferData bufferData;
-	BatchShader* currentShader = nullptr;
+	BufferData buffer_data;
+	BatchShader* current_shader = nullptr;
 
-	//Drawing API
+	//Matrix operations
 public:
-	void setColor(const Color& color);
-	void setClearColor(const Color& color);
-
-public:
-	void updateMatrices();
+	//void updateMatrices();
+	void update_matrices();
 	void ortho(float left, float right, float buttom, float top, float zNear, float zFar);
 	void perspective(float fovy, float aspect, float zNear, float zFar);
 	void translate(float x, float y, float z);
 	void rotate(float angle, float x, float y, float z);
 	void scale(float x, float y, float z);
 
-	void pushMatrix() { matrixStack.push(); }
-	void popMatrix() { matrixStack.pop(); }
-private:
+	void push_matrix() { matrix_stack.push(); }
+	void pop_matrix() { matrix_stack.pop(); }
+	//sprivate:
 	struct MatrixStack {
 		std::stack<Mat4> stack;
-		Mat4 modelMatrix;
-		Mat4 viewMatrix;
-		Mat4 projectionMatrix;
-		Mat4* currentMatrix;
-		Mat4 transformMatrix;
-		bool useTransformMatrix;
+		Mat4 model_matrix;
+		Mat4 view_matrix;
+		Mat4 projection_matrix;
+		Mat4* current_matrix;
+		Mat4 transform_matrix;
+		bool use_transform_matrix;
 	public:
 		void push() {
-			useTransformMatrix = true;
-			currentMatrix = &transformMatrix;
-			stack.push(*currentMatrix);
+			use_transform_matrix = true;
+			current_matrix = &transform_matrix;
+			stack.push(*current_matrix);
 		}
 		void pop() {
 			if(!stack.empty()) {
 				Mat4 mat = stack.top();
-				*currentMatrix = mat;
+				*current_matrix = mat;
 				stack.pop();
 			}
 			if(stack.empty()) {
-				currentMatrix = &viewMatrix;
-				useTransformMatrix = false;
+				current_matrix = &view_matrix;
+				use_transform_matrix = false;
 			}
 		}
 	};
-	MatrixStack matrixStack;
+	MatrixStack matrix_stack;
 
-
+	//Drawing API
 public:
-	Camera camera;
-	TimeManager timeManager;
+	void set_color(const Color& color);
+	void set_clear_color(const Color& color);
+	int num_draw_calls;
 };

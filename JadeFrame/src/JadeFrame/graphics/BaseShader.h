@@ -19,10 +19,10 @@ public:
 	void validate();
 private:
 	GLuint m_ID = 0;
-	std::array<GLuint, 3> m_shaderTypes; // Vertex, Fragment, Geometrys
+	std::array<GLuint, 3> m_shader_types; // Vertex, Fragment, Geometrys
 
-	const GLchar* vertexShaderSource;
-	const GLchar* fragmentShaderSource;
+	const GLchar*   vertex_shader_source;
+	const GLchar* fragment_shader_source;
 private:
 	enum class SHADER_TYPE {
 		BOOL,
@@ -49,7 +49,7 @@ private:
 	struct Uniform : ShaderType {};
 	struct VertexAttribute : ShaderType {};
 public:
-	GLint getUniformLocation(const std::string& name) const;
+	GLint get_uniform_location(const std::string& name) const;
 	//void setMat4(const std::string& name, const Mat4& mat) const;
 	void setUniform1i(const std::string& name, const int value);
 	void setUniform1f(const std::string& name, const float value);

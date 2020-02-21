@@ -11,74 +11,57 @@
 #include "Mesh.h"
 #include <stack>
 
-class Camera2 {
-public:
-	Camera2();
-};
-class TimeManager2 {
-public:
-	void handleTime();
-private:
-	double currentTime = 0.0;
-	double previousTime = 0.0;
-	double drawTime = 0.0;
-	double frameTime = 0.0;
-	double updateTime = 0.0;
-	double targetTime = 0.0;
-};
-
 class BaseRenderer {
 public:
 	BaseRenderer();
 	void init(BaseShader* shader);
 	void start();
-	void handleMesh(Mesh& mesh);
+	void handle_mesh(Mesh& mesh);
 	void end();
 
 private:
-	BaseShader* currentShader = nullptr;
+	BaseShader* current_shader = nullptr;
 
-	//Drawing API
+	//Matrix operations
 public:
-	void setColor(const Color& color);
-	void setClearColor(const Color& color);
-public:
-	void updateMatrices();
+	void update_matrices();
 	void ortho(float left, float right, float buttom, float top, float zNear, float zFar);
 	void perspective(float fovy, float aspect, float zNear, float zFar);
 	void translate(float x, float y, float z);
 	void rotate(float angle, float x, float y, float z);
 	void scale(float x, float y, float z);
+
+	void push_matrix() { matrix_stack.push(); }
+	void pop_matrix() { matrix_stack.pop(); }
 private:
 	struct MatrixStack {
 		std::stack<Mat4> stack;
-		Mat4 modelMatrix;
-		Mat4 viewMatrix;
-		Mat4 projectionMatrix;
-		Mat4* currentMatrix;
+		Mat4 model_matrix;
+		Mat4 view_matrix;
+		Mat4 projection_matrix;
+		Mat4* current_matrix;
 	public:
 		void push() {
-			stack.push(*currentMatrix);
+			stack.push(*current_matrix);
 		}
 		void pop() {
 			if(!stack.empty()) {
 				Mat4 mat = stack.top();
-				*currentMatrix = mat;
+				*current_matrix = mat;
 				stack.pop();
 			}
 			if(stack.empty()) {
-				currentMatrix = &viewMatrix;
+				current_matrix = &view_matrix;
 			}
 		}
 	private:
 
 	};
-	MatrixStack matrixStack;
-	void pushMatrix() { matrixStack.push(); }
-	void popMatrix() { matrixStack.pop(); }
+	MatrixStack matrix_stack;
 
-
+	//Drawing API
 public:
-	Camera2 camera;
-	TimeManager2 timeManager;
+	void set_color(const Color& color);
+	void set_clear_color(const Color& color);
+	int num_draw_calls;
 };

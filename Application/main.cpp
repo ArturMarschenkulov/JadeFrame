@@ -13,7 +13,7 @@ public:
 int main(void) {
 	std::string t = "Test";
 	BaseApp* app = new App();
-	app->initApp(t, 600, 600);
-	app->runApp();
+	app->init_app(t, 1800, 800);
+	app->run_app();
 	return 0;
 }

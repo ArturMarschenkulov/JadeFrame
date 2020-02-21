@@ -10,21 +10,17 @@ constexpr int MAX_INDICES_FOR_BATCH = 6 * MAX_BATCH_QUADS;
 
 BaseRenderer::BaseRenderer() {}
 void BaseRenderer::init(BaseShader* shader) {
-
-	currentShader = shader;
-	currentShader->use();
-
-	//bufferData.init();
-
+	current_shader = shader;
+	current_shader->use();
 }
 
 void BaseRenderer::start() {
-	matrixStack.projectionMatrix = Mat4();
-	matrixStack.viewMatrix = Mat4();
-	matrixStack.modelMatrix = Mat4();
-	matrixStack.currentMatrix = &matrixStack.viewMatrix;
+	matrix_stack.projection_matrix = Mat4();
+	matrix_stack.view_matrix = Mat4();
+	matrix_stack.model_matrix = Mat4();
+	matrix_stack.current_matrix = &matrix_stack.view_matrix;
 
-	currentShader->use();
+	current_shader->use();
 }
 
 class sVBO {
@@ -81,60 +77,42 @@ public:
 		: VBO(mesh), VAO(mesh), IBO(mesh) {}
 	~VertexData() {}
 };
-void BaseRenderer::handleMesh(Mesh& mesh) {
+void BaseRenderer::handle_mesh(Mesh& mesh) {
 	VertexData vD(mesh);
 	glDrawElements(GL_TRIANGLES, mesh.indices.size() * sizeof(GLuint), GL_UNSIGNED_INT, (void*)0);
 }
-void BaseRenderer::updateMatrices() {
-	Mat4 MVP = matrixStack.modelMatrix * matrixStack.viewMatrix * matrixStack.projectionMatrix;
-	BaseApp::getAppInstance()->shader.setUniformMatrix4fv("MVP", MVP);
+void BaseRenderer::update_matrices() {
+	Mat4 MVP = matrix_stack.model_matrix * matrix_stack.view_matrix * matrix_stack.projection_matrix;
+	BaseApp::getAppInstance()->shader.set_uniform_matrix4fv("MVP", MVP);
 }
 void BaseRenderer::end() {
-	updateMatrices();
+	update_matrices();
 }
 
-void BaseRenderer::setColor(const Color& color) {
-	currentShader->setUniform4f("color", { color.r, color.g, color.b, color.a });
+void BaseRenderer::set_color(const Color& color) {
+	static Color cColor;
+	if(!(color == cColor)) {
+		current_shader->setUniform4f("color", { color.r, color.g, color.b, color.a });
+	}
 }
-void BaseRenderer::setClearColor(const Color& color) {
+void BaseRenderer::set_clear_color(const Color& color) {
 	glClearColor(color.r, color.g, color.b, color.a);
 }
 
 
 
 void BaseRenderer::ortho(float left, float right, float buttom, float top, float zNear, float zFar) {
-	matrixStack.projectionMatrix = Mat4::ortho(left, right, buttom, top, zNear, zFar);
+	matrix_stack.projection_matrix = Mat4::ortho(left, right, buttom, top, zNear, zFar);
 }
 void BaseRenderer::perspective(float fovy, float aspect, float zNear, float zFar) {
-	matrixStack.projectionMatrix = Mat4::perspective(fovy, aspect, zNear, zFar);
+	matrix_stack.projection_matrix = Mat4::perspective(fovy, aspect, zNear, zFar);
 }
 void BaseRenderer::translate(float x, float y, float z) {
-	*matrixStack.currentMatrix = Mat4::translate(*matrixStack.currentMatrix, Vec3(x, y, z));
+	*matrix_stack.current_matrix = Mat4::translate(*matrix_stack.current_matrix, Vec3(x, y, z));
 }
 void BaseRenderer::rotate(float angle, float x, float y, float z) {
-	*matrixStack.currentMatrix = Mat4::rotate(*matrixStack.currentMatrix, angle, Vec3(x, y, z));
+	*matrix_stack.current_matrix = Mat4::rotate(*matrix_stack.current_matrix, angle, Vec3(x, y, z));
 }
 void BaseRenderer::scale(float x, float y, float z) {
-	*matrixStack.currentMatrix = Mat4::scale(*matrixStack.currentMatrix, Vec3(x, y, z));
-}
-
-Camera2::Camera2() {
-
-}
-void TimeManager2::handleTime() {
-	// Frame time control system
-	currentTime = glfwGetTime();
-	drawTime = currentTime - previousTime;
-	previousTime = currentTime;
-
-	frameTime = updateTime + drawTime;
-
-	// Wait for some milliseconds...
-	if(frameTime < targetTime) {
-		Sleep((unsigned int)((float)(targetTime - frameTime) * 1000.0f));
-		currentTime = glfwGetTime();
-		double extraTime = currentTime - previousTime;
-		previousTime = currentTime;
-		frameTime += extraTime;
-	}
+	*matrix_stack.current_matrix = Mat4::scale(*matrix_stack.current_matrix, Vec3(x, y, z));
 }
