@@ -7,12 +7,12 @@ class TimeManager {
 public:
 	void handle_time();
 private:
-	double currentTime = 0.0;
-	double previousTime = 0.0;
-	double drawTime = 0.0;
-	double frameTime = 0.0;
-	double updateTime = 0.0;
-	double targetTime = 0.0;
+	double current_time = 0.0;
+	double previous_time = 0.0;
+	double draw_time = 0.0;
+	double frame_time = 0.0;
+	double update_time = 0.0;
+	double target_time = 0.0;
 };
 
 class BaseApp {

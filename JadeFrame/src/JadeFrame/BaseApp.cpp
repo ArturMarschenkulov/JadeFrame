@@ -70,7 +70,7 @@ void BaseApp::run_app() {
 			//	0.1f, 100.0f
 			//);
 			//Mat4 view = Mat4::lookAt({ 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f });
-			//renderer.matrixStack.viewMatrix = view;
+			//renderer.matrix_stack.view_matrix = view;
 
 
 			if(0) {
@@ -134,19 +134,19 @@ void BaseApp::run_app() {
 }
 void TimeManager::handle_time() {
 	// Frame time control system
-	currentTime = glfwGetTime();
-	drawTime = currentTime - previousTime;
-	previousTime = currentTime;
+	current_time = glfwGetTime();
+	draw_time = current_time - previous_time;
+	previous_time = current_time;
 
-	frameTime = updateTime + drawTime;
+	frame_time = update_time + draw_time;
 
 	// Wait for some milliseconds...
-	if(frameTime < targetTime) {
-		Sleep((unsigned int)((float)(targetTime - frameTime) * 1000.0f));
-		currentTime = glfwGetTime();
-		double extraTime = currentTime - previousTime;
-		previousTime = currentTime;
-		frameTime += extraTime;
+	if(frame_time < target_time) {
+		Sleep((unsigned int)((float)(target_time - frame_time) * 1000.0f));
+		current_time = glfwGetTime();
+		double extra_time = current_time - previous_time;
+		previous_time = current_time;
+		frame_time += extra_time;
 	}
 }
 

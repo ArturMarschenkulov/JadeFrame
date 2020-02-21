@@ -20,11 +20,11 @@ public:
 	Camera();
 	~Camera();
 
-	void setMode(CAMERA_MODE mode);
+	void set_mode(CAMERA_MODE mode);
 
-	Mat4 getViewMatrix();
+	Mat4 get_view_matrix();
 
-	void setDefaultLocation();
+	void set_default_location();
 
 	void move();
 	void update();
@@ -40,9 +40,9 @@ private:
 	float m_speed;
 	float m_fovy;
 
-	float m_currentTime;
-	float m_previousTime;
-	float m_deltaTime;
+	float m_current_time;
+	float m_previous_time;
+	float m_delta_time;
 
 
 
