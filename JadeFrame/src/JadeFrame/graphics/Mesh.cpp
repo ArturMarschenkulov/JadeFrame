@@ -71,34 +71,21 @@ Mesh MeshManager::make_circle(Vec3 position, float radius, int numSegments) {
 
 RectangleMesh::RectangleMesh(Vec2 position, Vec2 size) {
 	mesh = MeshManager::make_rectangle(position, size);
-	//if(BaseApp::getAppInstance()->renderer.matrixStack.useTransformMatrix == true) {
-	//	Mat4 m = BaseApp::getAppInstance()->renderer.matrixStack.transformMatrix;
-	//	for(int i = 0; i < 4; i++) {
-	//		mesh.vertices[i].position = m * mesh.vertices[i].position;
-	//	}
-	//}
 }
 void RectangleMesh::send_to_buffer() {
-
-	//if(BaseApp::getAppInstance()->renderer.matrixStack.useTransformMatrix == true) {
-	//	Mat4 m = BaseApp::getAppInstance()->renderer.matrixStack.transformMatrix;
-	//	for(int i = 0; i < 4; i++) {
-	//		mesh.vertices[i].position = m * mesh.vertices[i].position;
-	//	}
-	//}
-	BaseApp::getAppInstance()->renderer.handle_mesh(mesh);
+	BaseApp::get_app_instance()->renderer.handle_mesh(mesh);
 }
 
 TriangleMesh::TriangleMesh(Vec2 pos1, Vec2 pos2, Vec3 pos3) {
 	mesh = MeshManager::make_triangle(pos1, pos2, pos3);
 }
 void TriangleMesh::send_to_buffer() {
-	BaseApp::getAppInstance()->renderer.handle_mesh(mesh);
+	BaseApp::get_app_instance()->renderer.handle_mesh(mesh);
 }
 
 CircleMesh::CircleMesh(Vec2 position, float radius, int numSegments) {
 	mesh = MeshManager::make_circle(position, radius, numSegments);
 }
 void CircleMesh::send_to_buffer() {
-	BaseApp::getAppInstance()->renderer.handle_mesh(mesh);
+	BaseApp::get_app_instance()->renderer.handle_mesh(mesh);
 }

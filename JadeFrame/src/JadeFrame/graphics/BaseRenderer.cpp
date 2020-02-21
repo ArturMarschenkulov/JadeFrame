@@ -83,7 +83,7 @@ void BaseRenderer::handle_mesh(Mesh& mesh) {
 }
 void BaseRenderer::update_matrices() {
 	Mat4 MVP = matrix_stack.model_matrix * matrix_stack.view_matrix * matrix_stack.projection_matrix;
-	BaseApp::getAppInstance()->shader.set_uniform_matrix4fv("MVP", MVP);
+	BaseApp::get_app_instance()->shader.set_uniform_matrix4fv("MVP", MVP);
 }
 void BaseRenderer::end() {
 	update_matrices();

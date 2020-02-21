@@ -6,7 +6,7 @@
 void Input::handleInput() {
 
 	double mouseX, mouseY;
-	glfwGetCursorPos(BaseApp::getAppInstance()->window.handle, &mouseX, &mouseY);
+	glfwGetCursorPos(BaseApp::get_app_instance()->window.handle, &mouseX, &mouseY);
 	this->m_current_mouse_position.x = (float)mouseX;
 	this->m_current_mouse_position.y = (float)mouseY;
 

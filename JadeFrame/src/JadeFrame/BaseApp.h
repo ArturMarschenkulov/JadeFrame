@@ -29,7 +29,7 @@ public:
 	void run_app();
 	void poll_events();
 
-	static BaseApp* getAppInstance() {
+	static BaseApp* get_app_instance() {
 		return instance;
 	}
 //private:

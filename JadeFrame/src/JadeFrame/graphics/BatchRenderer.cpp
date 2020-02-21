@@ -25,8 +25,8 @@ void BatchRenderer::start() {
 	matrix_stack.view_matrix = Mat4();
 	matrix_stack.model_matrix = Mat4();
 	matrix_stack.current_matrix = &matrix_stack.view_matrix;
-	BaseApp::getAppInstance()->renderer.num_draw_calls = 0;
-	auto window = BaseApp::getAppInstance()->window;
+	BaseApp::get_app_instance()->renderer.num_draw_calls = 0;
+	auto window = BaseApp::get_app_instance()->window;
 
 
 	current_shader->use();
@@ -44,7 +44,7 @@ void BatchRenderer::handle_mesh(Mesh& mesh) {
 void BatchRenderer::update_matrices() {
 	//Mat4 MVP = proj * view * model;
 	Mat4 MVP = matrix_stack.model_matrix * matrix_stack.view_matrix * matrix_stack.projection_matrix;
-	BaseApp::getAppInstance()->shader.set_uniform_matrix4fv("MVP", MVP);
+	BaseApp::get_app_instance()->shader.set_uniform_matrix4fv("MVP", MVP);
 }
 void BatchRenderer::end() {
 	update_matrices();
@@ -71,8 +71,8 @@ void BatchRenderer::BufferData::init() {
 	//GPU
 	glCreateBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	GLuint vertexBufferSizeInBytes = vertices.size() * sizeof(Vertex);
-	glBufferData(GL_ARRAY_BUFFER, vertexBufferSizeInBytes, NULL, GL_DYNAMIC_DRAW);
+	GLuint vertex_buffer_size_in_bytes = vertices.size() * sizeof(Vertex);
+	glBufferData(GL_ARRAY_BUFFER, vertex_buffer_size_in_bytes, NULL, GL_DYNAMIC_DRAW);
 
 
 	glCreateVertexArrays(1, &VAO);
@@ -84,8 +84,8 @@ void BatchRenderer::BufferData::init() {
 
 	glCreateBuffers(1, &IBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-	GLuint indexBufferSizeInBytes = indices.size() * sizeof(GLuint);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexBufferSizeInBytes, NULL, GL_DYNAMIC_DRAW);
+	GLuint index_buffer_size_in_bytes = indices.size() * sizeof(GLuint);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer_size_in_bytes, NULL, GL_DYNAMIC_DRAW);
 
 	glBindVertexArray(0);
 
@@ -141,7 +141,7 @@ void BatchRenderer::BufferData::update() {
 void BatchRenderer::BufferData::draw() {
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
-	BaseApp::getAppInstance()->renderer.num_draw_calls++;
+	BaseApp::get_app_instance()->renderer.num_draw_calls++;
 
 }
 void BatchRenderer::BufferData::reset_counters() {
