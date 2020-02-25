@@ -81,11 +81,11 @@ Mat4 Mat4::ortho(float left, float right, float bottom, float top, float near, f
 }
 
 Mat4 Mat4::perspective(float fovy, float aspect, float near, float far) {
-	float const tanHalfFovy = tan(fovy / 2);
+	float const tan_half_fovy = tan(fovy / 2);
 
 	Mat4 result(0.0f);
-	result.el[0][0] = 1.0f / (aspect * tanHalfFovy);
-	result.el[1][1] = 1.0f / tanHalfFovy;
+	result.el[0][0] = 1.0f / (aspect * tan_half_fovy);
+	result.el[1][1] = 1.0f / tan_half_fovy;
 	result.el[2][2] = -(far + near) / (far - near);
 	result.el[2][3] = -1.0f;
 	result.el[3][2] = -(2 * far * near) / (far - near);

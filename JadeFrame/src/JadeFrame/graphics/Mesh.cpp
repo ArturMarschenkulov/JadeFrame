@@ -54,38 +54,63 @@ Mesh MeshManager::make_circle(Vec3 position, float radius, int numSegments) {
 		y = sin * t + cos * y;
 	}
 
-	GLuint numIndex = (numSegments * 3);
-	mesh.indices.resize(numIndex);
+	GLuint num_index = (numSegments * 3);
+	mesh.indices.resize(num_index);
 
 	for(int i = 0; i < numSegments; i++) {
 		mesh.indices[(3 * i + 0)] = 0;
 		mesh.indices[(3 * i + 1)] = 1 + i;
 		mesh.indices[(3 * i + 2)] = 2 + i;
 	}
-	mesh.indices[numIndex - 1] = mesh.indices[1];
+	mesh.indices[num_index - 1] = mesh.indices[1];
 
 	return mesh;
 }
 
+Mesh MeshManager::make_cube(Vec3 pos, Vec3 size) {
+	Mesh mesh;
+	mesh.vertices.resize(8);
+	mesh.vertices[0].position = { pos.x    , pos.y    , pos.z };
+	mesh.vertices[1].position = { pos.x    , pos.y + size.y, pos.z };
+	mesh.vertices[2].position = { pos.x + size.x, pos.y + size.y, pos.z };
+	mesh.vertices[3].position = { pos.x + size.x, pos.y    , pos.z };
+
+	mesh.vertices[4].position = { pos.x + size.x, pos.y    , pos.z - size.z };
+	mesh.vertices[5].position = { pos.x + size.x, pos.y + size.y, pos.z - size.z };
+	mesh.vertices[6].position = { pos.x    , pos.y + size.y, pos.z - size.z };
+	mesh.vertices[7].position = { pos.x    , pos.y    , pos.z - size.z };
+
+	mesh.indices.resize(36);
+	mesh.indices = {
+		// Front
+		0, 1, 3,
+		1, 2, 3,
+
+		// Right
+		3, 2, 4,
+		2, 5, 4,
+
+		// Back
+		4, 5, 7,
+		5, 6, 7,
+
+		// Top
+		7, 0, 4,
+		0, 3, 4,
+
+		// Left
+		7, 6, 0,
+		6, 1, 0,
+
+		// Buttom
+		1, 6, 2,
+		6, 5, 2
+	};
+	return mesh;
+}
 
 
-RectangleMesh::RectangleMesh(Vec2 position, Vec2 size) {
-	mesh = MeshManager::make_rectangle(position, size);
-}
-void RectangleMesh::send_to_buffer() {
-	BaseApp::get_app_instance()->renderer.handle_mesh(mesh);
-}
+void Mesh::send_to_buffer() {
+	BaseApp::get_app_instance()->m_renderer.handle_mesh(*this);
 
-TriangleMesh::TriangleMesh(Vec2 pos1, Vec2 pos2, Vec3 pos3) {
-	mesh = MeshManager::make_triangle(pos1, pos2, pos3);
-}
-void TriangleMesh::send_to_buffer() {
-	BaseApp::get_app_instance()->renderer.handle_mesh(mesh);
-}
-
-CircleMesh::CircleMesh(Vec2 position, float radius, int numSegments) {
-	mesh = MeshManager::make_circle(position, radius, numSegments);
-}
-void CircleMesh::send_to_buffer() {
-	BaseApp::get_app_instance()->renderer.handle_mesh(mesh);
 }

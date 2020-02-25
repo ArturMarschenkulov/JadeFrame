@@ -9,9 +9,9 @@
 #include "../math/Mat4.h"
 
 
-class BatchShader {
+class Shader {
 public:
-	BatchShader();
+	Shader();
 	void init();
 	void use();
 	GLuint compile(GLenum type, const std::string& codeSource);

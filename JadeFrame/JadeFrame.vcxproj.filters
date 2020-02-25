@@ -87,16 +87,16 @@
     <ClInclude Include="src\JadeFrame\graphics\BaseRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\BaseShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\JadeFrame\graphics\BatchRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\BatchShader.h">
+    <ClInclude Include="src\JadeFrame\graphics\Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\Mesh.h">
+    <ClInclude Include="src\JadeFrame\graphics\Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\graphics\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -158,16 +158,16 @@
     <ClCompile Include="src\JadeFrame\graphics\BaseRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\BaseShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\JadeFrame\graphics\BatchRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\BatchShader.cpp">
+    <ClCompile Include="src\JadeFrame\graphics\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\Mesh.cpp">
+    <ClCompile Include="src\JadeFrame\graphics\Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\graphics\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

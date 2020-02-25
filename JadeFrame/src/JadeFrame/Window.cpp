@@ -3,25 +3,24 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 }
 
-Window::Window() : handle(nullptr) {}
+Window::Window() : m_handle(nullptr) {}
 
 void Window::init(const std::string& title, float width, float height) {
-	this->width = width;
-	this->height = height;
-	this->title = title;
+	m_size = { width, height };
+	m_title = title;
 
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	handle = glfwCreateWindow(this->width, this->height, this->title.c_str(), NULL, NULL);
-	if(handle == nullptr) {
+	m_handle = glfwCreateWindow(m_size.x, m_size.y, m_title.c_str(), NULL, NULL);
+	if(m_handle == nullptr) {
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
 	}
-	glfwMakeContextCurrent(handle);
-	glfwSetFramebufferSizeCallback(handle, framebuffer_size_callback);
+	glfwMakeContextCurrent(m_handle);
+	glfwSetFramebufferSizeCallback(m_handle, framebuffer_size_callback);
 
 
 
@@ -30,4 +29,20 @@ void Window::init(const std::string& title, float width, float height) {
 	}
 
 	glfwSwapInterval(1);
+}
+
+GLFWwindow* Window::get_handle() {
+	return m_handle;
+}
+
+Vec2 Window::get_size() {
+	return m_size;
+}
+
+float Window::get_width() {
+	return m_size.x;
+}
+
+float Window::get_height() {
+	return m_size.y;
 }

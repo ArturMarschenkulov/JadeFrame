@@ -9,7 +9,7 @@ constexpr int MAX_INDICES_FOR_BATCH = 6 * MAX_BATCH_QUADS;
 
 
 BatchRenderer::BatchRenderer() {}
-void BatchRenderer::init(BatchShader* shader) {
+void BatchRenderer::init(Shader* shader) {
 	matrix_stack.projection_matrix = Mat4();
 	matrix_stack.view_matrix = Mat4();
 	matrix_stack.model_matrix = Mat4();
@@ -25,8 +25,7 @@ void BatchRenderer::start() {
 	matrix_stack.view_matrix = Mat4();
 	matrix_stack.model_matrix = Mat4();
 	matrix_stack.current_matrix = &matrix_stack.view_matrix;
-	BaseApp::get_app_instance()->renderer.num_draw_calls = 0;
-	auto window = BaseApp::get_app_instance()->window;
+	BaseApp::get_app_instance()->m_renderer.num_draw_calls = 0;
 
 
 	current_shader->use();
@@ -39,12 +38,11 @@ void BatchRenderer::handle_mesh(Mesh& mesh) {
 		}
 	}
 
-	buffer_data.add(mesh);
+	buffer_data.add_to_buffer(mesh);
 }
 void BatchRenderer::update_matrices() {
-	//Mat4 MVP = proj * view * model;
 	Mat4 MVP = matrix_stack.model_matrix * matrix_stack.view_matrix * matrix_stack.projection_matrix;
-	BaseApp::get_app_instance()->shader.set_uniform_matrix4fv("MVP", MVP);
+	BaseApp::get_app_instance()->m_shader.set_uniform_matrix4fv("MVP", MVP);
 }
 void BatchRenderer::end() {
 	update_matrices();
@@ -90,9 +88,7 @@ void BatchRenderer::BufferData::init() {
 	glBindVertexArray(0);
 
 }
-void BatchRenderer::BufferData::add(Mesh& mesh) {
-
-
+void BatchRenderer::BufferData::add_to_buffer(Mesh& mesh) {
 	if((vertex_count + mesh.vertices.size() > MAX_VERTICES_FOR_BATCH) ||
 		(index_count + mesh.indices.size() > MAX_INDICES_FOR_BATCH)) {
 		update();
@@ -100,18 +96,11 @@ void BatchRenderer::BufferData::add(Mesh& mesh) {
 		reset_counters();
 	}
 
-
-
 	for(unsigned int i = 0; i < mesh.vertices.size(); i++) {
-		//mesh.vertices[i].color = BaseApp::getAppInstance()->renderer.currentColor;;
-		//bufferData.vertices[i + bufferData.vertexOffset] = mesh.vertices[i];
-
 		vertices[i + vertex_offset].position = mesh.vertices[i].position;
 		vertices[i + vertex_offset].color = current_color;;
 		vertex_count++;
 	}
-
-
 
 	for(int i = 0; i < mesh.indices.size(); i++) {
 		indices[i + index_offset] = mesh.indices[i] + vertex_offset;
@@ -120,7 +109,6 @@ void BatchRenderer::BufferData::add(Mesh& mesh) {
 
 	vertex_offset += mesh.vertices.size();
 	index_offset += mesh.indices.size();
-
 }
 void BatchRenderer::BufferData::update() {
 
@@ -141,11 +129,10 @@ void BatchRenderer::BufferData::update() {
 void BatchRenderer::BufferData::draw() {
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
-	BaseApp::get_app_instance()->renderer.num_draw_calls++;
+	BaseApp::get_app_instance()->m_renderer.num_draw_calls++;
 
 }
 void BatchRenderer::BufferData::reset_counters() {
-
 	vertex_offset = 0;
 	index_offset = 0;
 	vertex_count = 0;
@@ -157,13 +144,13 @@ void BatchRenderer::BufferData::reset_counters() {
 
 
 void BatchRenderer::ortho(float left, float right, float buttom, float top, float zNear, float zFar) {
-	matrix_stack.projection_matrix = Mat4::ortho(left, right, buttom, top, zNear, zFar);
+	matrix_stack.projection_matrix = matrix_stack.projection_matrix * Mat4::ortho(left, right, buttom, top, zNear, zFar);
 }
 void BatchRenderer::perspective(float fovy, float aspect, float zNear, float zFar) {
-	matrix_stack.projection_matrix = Mat4::perspective(fovy, aspect, zNear, zFar);
+	matrix_stack.projection_matrix = matrix_stack.projection_matrix * Mat4::perspective(fovy, aspect, zNear, zFar);
 }
-void BatchRenderer::translate(float x, float y, float z) {
-	*matrix_stack.current_matrix = Mat4::translate(*matrix_stack.current_matrix, Vec3(x, y, z));
+void BatchRenderer::translate(Vec3 vec) {
+	*matrix_stack.current_matrix = Mat4::translate(*matrix_stack.current_matrix, vec);
 }
 void BatchRenderer::rotate(float angle, float x, float y, float z) {
 	*matrix_stack.current_matrix = Mat4::rotate(*matrix_stack.current_matrix, angle, Vec3(x, y, z));

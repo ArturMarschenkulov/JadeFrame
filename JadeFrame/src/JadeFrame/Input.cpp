@@ -3,12 +3,13 @@
 #include "BaseApp.h"
 
 
-void Input::handleInput() {
+void Input::handle_input() {
 
-	double mouseX, mouseY;
-	glfwGetCursorPos(BaseApp::get_app_instance()->window.handle, &mouseX, &mouseY);
-	this->m_current_mouse_position.x = (float)mouseX;
-	this->m_current_mouse_position.y = (float)mouseY;
+	double mouse_position_X;
+	double mouse_position_Y;
+	glfwGetCursorPos(BaseApp::get_app_instance()->get_window().get_handle(), &mouse_position_X, &mouse_position_Y);
+	this->m_current_mouse_position.x = mouse_position_X;
+	this->m_current_mouse_position.y = mouse_position_Y;
 
 	for(int i = 0; i < 512; i++) {
 		m_previous_key_state[i] = m_current_key_state[i];
@@ -21,96 +22,96 @@ void Input::handleInput() {
 /*******************************/
 /* KEY INPUT */
 /*******************************/
-std::array<INPUT_ACTION, 512> Input::m_current_key_state = {};
-std::array<INPUT_ACTION, 512> Input::m_previous_key_state = {};
+std::array<INPUT_STATE, 512> Input::m_current_key_state = {};
+std::array<INPUT_STATE, 512> Input::m_previous_key_state = {};
 
 void Input::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	m_current_key_state[key] = (INPUT_ACTION)action;
+	m_current_key_state[key] = (INPUT_STATE)action;
 
-	if(key == (int)KEY::ESCAPE && action == (int)INPUT_ACTION::PRESS) {
+	if(key == (int)KEY::ESCAPE && action == (int)INPUT_STATE::PRESS) {
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	}
 }
 
 bool Input::is_key_down(KEY key) const {
-	bool isDown;
-	if(m_current_key_state[(int)key] == INPUT_ACTION::PRESS) {
-		isDown = true;
+	bool is_down;
+	if(m_current_key_state[(int)key] == INPUT_STATE::PRESS || m_current_key_state[(int)key] == INPUT_STATE::REPEAT) {
+		is_down = true;
 	} else {
-		isDown = false;
+		is_down = false;
 	}
-	return isDown;
+	return is_down;
 }
 bool Input::is_key_up(KEY key) const {
-	bool isUp;
-	if(m_current_key_state[(int)key] == INPUT_ACTION::RELEASE) {
-		isUp = true;
+	bool is_up;
+	if(m_current_key_state[(int)key] == INPUT_STATE::RELEASE) {
+		is_up = true;
 	} else {
-		isUp = false;
+		is_up = false;
 	}
-	return isUp;
+	return is_up;
 }
 bool Input::is_key_pressed(KEY key) const {
-	bool isPressed = false;
-	if((m_current_key_state[(int)key] != m_previous_key_state[(int)key]) && (m_current_key_state[(int)key] == INPUT_ACTION::PRESS)) {
-		isPressed = true;
+	bool is_pressed = false;
+	if((m_current_key_state[(int)key] != m_previous_key_state[(int)key]) && (m_current_key_state[(int)key] == INPUT_STATE::PRESS)) {
+		is_pressed = true;
 	} else {
-		isPressed = false;
+		is_pressed = false;
 	}
-	return isPressed;
+	return is_pressed;
 }
 bool Input::is_key_released(KEY key) const {
-	bool isReleased = false;
-	if((m_current_key_state[(int)key] != m_previous_key_state[(int)key]) && (m_current_key_state[(int)key] == INPUT_ACTION::RELEASE)) {
-		isReleased = true;
+	bool is_released = false;
+	if((m_current_key_state[(int)key] != m_previous_key_state[(int)key]) && (m_current_key_state[(int)key] == INPUT_STATE::RELEASE)) {
+		is_released = true;
 	} else {
-		isReleased = false;
+		is_released = false;
 	}
-	return isReleased;
+	return is_released;
 }
 /*******************************/
 /* MOUSE INPUT */
 /*******************************/
-std::array<INPUT_ACTION, 3> Input::m_current_button_state = {};
-std::array<INPUT_ACTION, 3> Input::m_previous_button_state = {};
+std::array<INPUT_STATE, 3> Input::m_current_button_state = {};
+std::array<INPUT_STATE, 3> Input::m_previous_button_state = {};
 void Input::mouse_button_callback(GLFWwindow* window, int button, int state, int mods) {
-	m_current_button_state[(int)button] = (INPUT_ACTION)state;
+	m_current_button_state[(int)button] = (INPUT_STATE)state;
 }
 bool Input::is_button_down(MOUSE button) const {
-	bool isDown;
-	if(m_current_button_state[(int)button] == INPUT_ACTION::PRESS) {
-		isDown = true;
+	bool is_down;
+	if(m_current_button_state[(int)button] == INPUT_STATE::PRESS || m_current_button_state[(int)button] == INPUT_STATE::REPEAT) {
+		is_down = true;
 	} else {
-		isDown = false;
+		is_down = false;
 	}
-	return isDown;
+	return is_down;
 }
 bool Input::is_button_up(MOUSE button) const {
-	bool isUp;
-	if(m_current_button_state[(int)button] == INPUT_ACTION::RELEASE) {
-		isUp = true;
+	bool is_up;
+	if(m_current_button_state[(int)button] == INPUT_STATE::RELEASE) {
+		is_up = true;
 	} else {
-		isUp = false;
+		is_up = false;
 	}
-	return isUp;
+	return is_up;
 }
 bool Input::is_button_pressed(MOUSE button) const {
-	bool isPressed = false;
-	if((m_current_button_state[(int)button] != m_previous_button_state[(int)button]) && (m_current_button_state[(int)button] == INPUT_ACTION::PRESS)) {
-		isPressed = true;
+	bool is_pressed = false;
+	if((m_current_button_state[(int)button] != m_previous_button_state[(int)button]) && (m_current_button_state[(int)button] == INPUT_STATE::PRESS)) {
+		is_pressed = true;
 	} else {
-		isPressed = false;
+		is_pressed = false;
 	}
-	return isPressed;
+	return is_pressed;
 }
 bool Input::is_button_released(MOUSE button) const {
-	bool isReleased = false;
-	if((m_current_button_state[(int)button] != m_previous_button_state[(int)button]) && (m_current_button_state[(int)button] == INPUT_ACTION::RELEASE)) {
-		isReleased = true;
+	bool is_released = false;
+	if((m_current_button_state[(int)button] != m_previous_button_state[(int)button]) && (m_current_button_state[(int)button] == INPUT_STATE::RELEASE)) {
+		is_released = true;
 	} else {
-		isReleased = false;
+		is_released = false;
 	}
-	return isReleased;
+	return is_released;
 }
 /*******************************/
 /* MOUSE POSITION INPUT */

@@ -11,18 +11,34 @@ public:
 	Vec3(Vec2 vec);
 	Vec3(Vec4 vec);
 
-	Vec3& operator+(const Vec3& other) {
-		x += other.x;
-		y += other.y;
-		z += other.z;
-		return *this;
+	Vec3 operator+(const Vec3& other) const {
+		Vec3 result;
+		result.x = x + other.x;
+		result.y = y + other.y;
+		result.z = z + other.z;
+		return result;
 	}
 
-	Vec3& operator-(const Vec3& other) {
-		x -= other.x;
-		y -= other.y;
-		z -= other.z;
-		return *this;
+	Vec3 operator-(const Vec3& other) const {
+		Vec3 result;
+		result.x = x - other.x;
+		result.y = y - other.y;
+		result.z = z - other.z;
+		return result;
+	}
+	Vec3 operator*(const float& other) {
+		Vec3 result;
+		result.x = x * other;
+		result.y = y * other;
+		result.z = z * other;
+		return result;
+	}
+
+	bool operator==(const Vec3& other) {
+		return (x == other.x && y == other.y && z == other.z);
+	}
+	bool operator!=(const Vec3& other) {
+		return (x != other.x || y == other.y || z != other.z);
 	}
 
 	Vec3 cross(const Vec3& other) const {

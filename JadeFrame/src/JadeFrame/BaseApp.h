@@ -32,15 +32,21 @@ public:
 	static BaseApp* get_app_instance() {
 		return instance;
 	}
-//private:
+private:
 	static BaseApp* instance;
+public:
+	Window& get_window() { return m_window; };
+	Input& get_input() { return m_input; };
+	//BatchShader& get_shader() { return m_shader; };
+	//Renderer* get_renderer() { return m_renderer; };
+	Shader m_shader;
+	BatchRenderer m_renderer;
+private:
+	Window m_window;
+	Input m_input;
 
-//private:
-	Window window;
-	Input input;
-	BatchShader shader;
-	BatchRenderer renderer;
 
-	TimeManager time_manager;
+
+	TimeManager m_time_manager;
 
 };

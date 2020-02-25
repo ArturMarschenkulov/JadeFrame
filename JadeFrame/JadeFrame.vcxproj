@@ -186,8 +186,8 @@
     <ClInclude Include="src\extern\KHR\khrplatform.h" />
     <ClInclude Include="src\JadeFrame.h" />
     <ClInclude Include="src\JadeFrame\BaseApp.h" />
-    <ClInclude Include="src\JadeFrame\graphics\BaseShader.h" />
     <ClInclude Include="src\JadeFrame\Core.h" />
+    <ClInclude Include="src\JadeFrame\graphics\Camera.h" />
     <ClInclude Include="src\JadeFrame\GUI.h" />
     <ClInclude Include="src\JadeFrame\Input.h" />
     <ClInclude Include="src\JadeFrame\math\Mat4.h" />
@@ -198,7 +198,7 @@
     <ClInclude Include="src\JadeFrame\graphics\Mesh.h" />
     <ClInclude Include="src\JadeFrame\graphics\BatchRenderer.h" />
     <ClInclude Include="src\JadeFrame\graphics\BaseRenderer.h" />
-    <ClInclude Include="src\JadeFrame\graphics\BatchShader.h" />
+    <ClInclude Include="src\JadeFrame\graphics\Shader.h" />
     <ClInclude Include="src\JadeFrame\Window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -211,8 +211,8 @@
     <ClCompile Include="src\extern\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\JadeFrame.cpp" />
     <ClCompile Include="src\JadeFrame\BaseApp.cpp" />
-    <ClCompile Include="src\JadeFrame\graphics\BaseShader.cpp" />
     <ClCompile Include="src\JadeFrame\Core.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\Camera.cpp" />
     <ClCompile Include="src\JadeFrame\GUI.cpp" />
     <ClCompile Include="src\JadeFrame\Input.cpp" />
     <ClCompile Include="src\JadeFrame\math\Mat4.cpp" />
@@ -223,7 +223,7 @@
     <ClCompile Include="src\JadeFrame\graphics\Mesh.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\BatchRenderer.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\BaseRenderer.cpp" />
-    <ClCompile Include="src\JadeFrame\graphics\BatchShader.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\Shader.cpp" />
     <ClCompile Include="src\JadeFrame\Window.cpp" />
   </ItemGroup>
   <ItemGroup>

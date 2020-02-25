@@ -6,6 +6,7 @@
 
 #include "../math/Vec2.h"
 #include "../math/Vec3.h"
+#include "../math/Mat4.h"
 
 
 class Color {
@@ -30,6 +31,11 @@ public:
 	//private:
 	std::vector<Vertex> vertices;
 	std::vector<GLuint> indices;
+	int vertex_offset;
+	Vertex* vertex_buffer_ptr;
+	bool is_dirty;
+
+	void send_to_buffer();
 };
 
 class MeshManager {
@@ -38,23 +44,15 @@ public:
 	static Mesh make_triangle(Vec3 pos1, Vec3 pos2, Vec3 pos3);
 	static Mesh make_circle(Vec3 position, float radius, int numSegments);
 
+	static Mesh make_cube(Vec3 start, Vec3 end);
 };
-class RectangleMesh {
-public:
-	RectangleMesh(Vec2 position, Vec2 size);
 
-	void send_to_buffer();
-	Mesh mesh;
-};
-class TriangleMesh {
-public:
-	TriangleMesh(Vec2 pos1, Vec2 pos2, Vec3 pos3);
-	void send_to_buffer();
-	Mesh mesh;
-};
-class CircleMesh {
-public:
-	CircleMesh(Vec2 position, float radius, int numSegments = 12);
-	void send_to_buffer();
-	Mesh mesh;
+class MeshPrototype {
+	MeshPrototype();
+	std::vector<Vertex> vertices; // actual vertex data
+	std::vector<GLuint> indices; // actual index data
+	int vertex_offset; // at what offset this mesh starts
+	Vertex* vertex_buffer_ptr; // pointer to the vertex_buffer. Probably only needed if I have multiple buffers
+	bool is_dirty; // says whether this mesh has to be resent to the GPU
+
 };

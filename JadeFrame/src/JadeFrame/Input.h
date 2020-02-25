@@ -6,7 +6,7 @@
 #include "math/Vec2.h"
 
 
-enum class INPUT_ACTION {
+enum class INPUT_STATE {
 	PRESS = GLFW_PRESS,
 	RELEASE = GLFW_RELEASE,
 	REPEAT = GLFW_REPEAT,
@@ -107,7 +107,7 @@ public:
 		: m_window_instance(nullptr) {}
 	~Input() {}
 
-	void handleInput();
+	void handle_input();
 
 	void setWindowInstance(GLFWwindow* window) { m_window_instance = window; }
 	GLFWwindow* getWindowInstance() const { return m_window_instance; }
@@ -129,8 +129,8 @@ public:
 
 	//private:
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-	static std::array<INPUT_ACTION, 512> m_current_key_state;
-	static std::array<INPUT_ACTION, 512> m_previous_key_state;
+	static std::array<INPUT_STATE, 512> m_current_key_state;
+	static std::array<INPUT_STATE, 512> m_previous_key_state;
 
 
 
@@ -148,8 +148,8 @@ public:
 
 	//private:
 	static void mouse_button_callback(GLFWwindow* window, int button, int state, int mods);
-	static std::array<INPUT_ACTION, 3> m_current_button_state;
-	static std::array<INPUT_ACTION, 3> m_previous_button_state;
+	static std::array<INPUT_STATE, 3> m_current_button_state;
+	static std::array<INPUT_STATE, 3> m_previous_button_state;
 
 	// Mouse Position
 public:

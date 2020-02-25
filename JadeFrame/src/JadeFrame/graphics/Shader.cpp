@@ -1,11 +1,12 @@
-#include "BatchShader.h"
+#include "Shader.h"
 
-
-BatchShader::BatchShader()
+Shader::Shader()
 	: m_ID()
 	, m_shader_types() {
-	vertex_shader_source =
-		R"(
+
+	if(1) {
+		vertex_shader_source =
+			R"(
 			#version 450 core
 			layout (location = 0) in vec3 v_Pos;
 			layout (location = 1) in vec4 v_Col;
@@ -20,17 +21,50 @@ BatchShader::BatchShader()
 			}
 		)";
 
-	fragment_shader_source =
-		R"(
+		fragment_shader_source =
+			R"(
 			#version 450 core
+
 			in vec4 f_Col;
+
 			out vec4 o_Col;
+
 			void main() {
 				o_Col = f_Col;
 			}
 		)";
+	} else {
+
+		vertex_shader_source =
+			R"(
+				#version 450 core
+				layout (location = 0) in vec3 v_Pos;
+				layout (location = 1) in vec4 v_Col;
+
+				uniform mat4 MVP;
+
+				void main() {
+					gl_Position = MVP * vec4(v_Pos.x, v_Pos.y, v_Pos.z, 1.0);
+				}
+			)";
+
+		fragment_shader_source =
+			R"(
+				#version 450 core
+
+				out vec4 o_Col;
+
+				uniform vec4 color;
+
+				void main() {
+					o_Col = color;
+				}
+			)";
+	}
+
+
 }
-void BatchShader::init() {
+void Shader::init() {
 
 	this->compile(GL_VERTEX_SHADER, vertex_shader_source);
 	this->compile(GL_FRAGMENT_SHADER, fragment_shader_source);
@@ -42,40 +76,40 @@ void BatchShader::init() {
 	glDetachShader(m_ID, m_shader_types[1]);
 }
 
-void BatchShader::use() {
+void Shader::use() {
 	glUseProgram(this->m_ID);
 }
 
-GLuint BatchShader::compile(GLenum type, const std::string& codeSource) {
-	GLuint shaderID = glCreateShader(type);
-	const GLchar* shaderCode = codeSource.c_str();
-	glShaderSource(shaderID, 1, &shaderCode, nullptr);
-	glCompileShader(shaderID);
+GLuint Shader::compile(GLenum type, const std::string& codeSource) {
+	GLuint shader_ID = glCreateShader(type);
+	const GLchar* shader_code = codeSource.c_str();
+	glShaderSource(shader_ID, 1, &shader_code, nullptr);
+	glCompileShader(shader_ID);
 
 	switch(type) {
-	case GL_VERTEX_SHADER:   m_shader_types[0] = shaderID; break;
-	case GL_FRAGMENT_SHADER: m_shader_types[1] = shaderID; break;
-	case GL_GEOMETRY_SHADER: m_shader_types[2] = shaderID; break;
+	case GL_VERTEX_SHADER:   m_shader_types[0] = shader_ID; break;
+	case GL_FRAGMENT_SHADER: m_shader_types[1] = shader_ID; break;
+	case GL_GEOMETRY_SHADER: m_shader_types[2] = shader_ID; break;
 	default:; break;
 	}
 
-	GLint isCompiled = GL_FALSE;
-	glGetShaderiv(shaderID, GL_COMPILE_STATUS, &isCompiled);
-	if(isCompiled == GL_FALSE) {
-		GLint maxLength = 512;
-		glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &maxLength);
-		GLchar infoLog[512];
-		glGetShaderInfoLog(shaderID, maxLength, &maxLength, &infoLog[0]);
-		glDeleteShader(shaderID);
-		std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED" << infoLog << std::endl;
+	GLint is_compiled = GL_FALSE;
+	glGetShaderiv(shader_ID, GL_COMPILE_STATUS, &is_compiled);
+	if(is_compiled == GL_FALSE) {
+		GLint max_length = 512;
+		glGetShaderiv(shader_ID, GL_INFO_LOG_LENGTH, &max_length);
+		GLchar info_log[512];
+		glGetShaderInfoLog(shader_ID, max_length, &max_length, &info_log[0]);
+		glDeleteShader(shader_ID);
+		std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED" << info_log << std::endl;
 		return 0;
 	} else {
 		std::cout << "SUCCE::SHADER::PROGRAM::COMPILATION_SUCCEEDED" << std::endl;
 	}
-	return shaderID;
+	return shader_ID;
 }
 
-void BatchShader::link() {
+void Shader::link() {
 
 	m_ID = glCreateProgram();
 	glAttachShader(m_ID, m_shader_types[0]);
@@ -83,33 +117,33 @@ void BatchShader::link() {
 
 
 	glLinkProgram(m_ID);
-	GLint isLinekd = GL_FALSE;
-	glGetProgramiv(m_ID, GL_LINK_STATUS, &isLinekd);
-	if(isLinekd == GL_FALSE) {
-		char infoLog[1024];
-		glGetProgramInfoLog(m_ID, 512, nullptr, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+	GLint is_linked = GL_FALSE;
+	glGetProgramiv(m_ID, GL_LINK_STATUS, &is_linked);
+	if(is_linked == GL_FALSE) {
+		char info_log[1024];
+		glGetProgramInfoLog(m_ID, 512, nullptr, info_log);
+		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << info_log << std::endl;
 	} else {
 		std::cout << "SUCCE::SHADER::PROGRAM::LINKING_SUCCEEDED\n" << std::endl;
 	}
 }
 
-void BatchShader::validate() {
+void Shader::validate() {
 	glValidateProgram(m_ID);
 
-	GLint isValidated = GL_FALSE;
-	glGetProgramiv(m_ID, GL_VALIDATE_STATUS, (int*)&isValidated);
-	if(isValidated == GL_FALSE) {
-		char infoLog[1024];
-		glGetProgramInfoLog(m_ID, 512, nullptr, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::VALIDATION_FAILED\n" << infoLog << std::endl;
+	GLint is_validated = GL_FALSE;
+	glGetProgramiv(m_ID, GL_VALIDATE_STATUS, (int*)&is_validated);
+	if(is_validated == GL_FALSE) {
+		char info_log[1024];
+		glGetProgramInfoLog(m_ID, 512, nullptr, info_log);
+		std::cout << "ERROR::SHADER::PROGRAM::VALIDATION_FAILED\n" << info_log << std::endl;
 	} else {
 		std::cout << "SUCCE::SHADER::PROGRAM::VALIDATION_SUCCEEDED\n" << std::endl;
 	}
 }
 
 
-GLint BatchShader::get_uniform_location(const std::string& name) const {
+GLint Shader::get_uniform_location(const std::string& name) const {
 	GLint location = glGetUniformLocation(m_ID, name.c_str());
 	if(location == -1){
 		std::cout << "Location of " << name << " can not be found" << std::endl;
@@ -135,28 +169,28 @@ GLint BatchShader::get_uniform_location(const std::string& name) const {
 }
 
 
-void BatchShader::set_uniform1i(const std::string& name, int value) {
-	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl;
+void Shader::set_uniform1i(const std::string& name, int value) {
+	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl; __debugbreak();
 }
-void BatchShader::set_uniform1f(const std::string& name, float value) {
-	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl;
+void Shader::set_uniform1f(const std::string& name, float value) {
+	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl; __debugbreak();
 }
-void BatchShader::set_uniform2f(const std::string& name, const Vec2& value) {
-	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl;
+void Shader::set_uniform2f(const std::string& name, const Vec2& value) {
+	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl; __debugbreak();
 }
-void BatchShader::set_uniform3f(const std::string& name, const Vec3& value) {
-	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl;
+void Shader::set_uniform3f(const std::string& name, const Vec3& value) {
+	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl; __debugbreak();
 }
-void BatchShader::set_uniform4f(const std::string& name, const Vec4& value) {
+void Shader::set_uniform4f(const std::string& name, const Vec4& value) {
 	int loc = get_uniform_location(name);
 	glUniform4f(loc, value.x, value.y, value.z, value.w);
 }
-void BatchShader::set_uniform_matrix4fv(const std::string& name, const Mat4& mat) const {
+void Shader::set_uniform_matrix4fv(const std::string& name, const Mat4& mat) const {
 	GLint loc = get_uniform_location(name);
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &mat[0][0]);
 }
 
-void BatchShader::update_shader_variables(int shaderType) {
+void Shader::update_shader_variables(int shaderType) {
 	int num;
 	glGetProgramiv(m_ID, shaderType, &num);
 

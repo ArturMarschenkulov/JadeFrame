@@ -2,7 +2,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "BaseShader.h"
+#include "Shader.h"
 
 #include <vector>
 #include "../math/Vec3.h"
@@ -14,13 +14,13 @@
 class BaseRenderer {
 public:
 	BaseRenderer();
-	void init(BaseShader* shader);
+	void init(Shader* shader);
 	void start();
 	void handle_mesh(Mesh& mesh);
 	void end();
 
 private:
-	BaseShader* current_shader = nullptr;
+	Shader* current_shader = nullptr;
 
 	//Matrix operations
 public:
