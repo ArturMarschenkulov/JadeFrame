@@ -30,33 +30,50 @@ public:
 	static Mat4 scale(const Vec3& scale);
 
 	static Mat4 lookAt(const Vec3& camera, Vec3 object, Vec3 up) {
+
+#if 1
+		Vec3 forward = (object - camera).normalize();
+		Vec3 left = up.cross(forward).normalize();
+		Vec3 upp = forward.cross(left);
+
+		Mat4 matrix;
+		matrix[0][0] = left.x;
+		matrix[0][1] = left.y;
+		matrix[0][2] = left.z;
+
+		matrix[1][0] = -upp.x;
+		matrix[1][1] = -upp.y;
+		matrix[1][2] = -upp.z;
+
+		matrix[2][0] = -forward.x;
+		matrix[2][1] = -forward.y;
+		matrix[2][2] = -forward.z;
+
+		matrix[3][0] = (-left.x * camera.x - left.y * camera.y - left.z * camera.z);
+		matrix[3][1] = -(-upp.x * camera.x - upp.y * camera.y - up.z * camera.z);
+		matrix[3][2] = -(-forward.x * camera.x - forward.y * camera.y - forward.z * camera.z);
+		return matrix;
+#else 
 		Mat4 result;
 		Vec3 f = (object - camera).normalize();
 		Vec3 s = f.cross(up.normalize());
 		Vec3 u = s.cross(f);
 
 		result[0][0] = s.x;
-		result[0][0] = s.x;
 		result[0][1] = s.y;
-		result[0][1] = s.y;
-		result[0][2] = s.z;
 		result[0][2] = s.z;
 
 		result[1][0] = u.x;
-		result[1][0] = u.x;
 		result[1][1] = u.y;
-		result[1][1] = u.y;
-		result[1][2] = u.z;
 		result[1][2] = u.z;
 
 		result[2][0] = -f.x;
-		result[2][0] = -f.x;
 		result[2][1] = -f.y;
-		result[2][1] = -f.y;
-		result[2][2] = -f.z;
 		result[2][2] = -f.z;
 
 		return result * Mat4::translate(Vec3(-camera.x, -camera.y, -camera.z));
+#endif
+	
 	};
 
 	Mat4& makeEchelon() {

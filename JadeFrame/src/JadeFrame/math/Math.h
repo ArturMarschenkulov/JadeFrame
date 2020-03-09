@@ -6,5 +6,5 @@
 
 #define M_PI 3.14159265359f
 
-float toRadian(float degrees);
-float toDegree(float radians);
+auto to_radians(float degrees) -> float;
+auto to_degrees(float radians) -> float;

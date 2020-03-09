@@ -1,7 +1,20 @@
 #include "Mesh.h"
 #include "../BaseApp.h"
 
-Mesh MeshManager::make_rectangle(Vec3 pos, Vec3 size) {
+auto MeshManager::make_line(Vec3 pos1, Vec3 pos2) -> Mesh {
+	Mesh mesh;
+	mesh.vertices.resize(2);
+	mesh.vertices[0].position = pos1;
+	mesh.vertices[1].position = pos2;
+
+	mesh.indices.reserve(2);
+	mesh.indices = {
+		0, 1
+	};
+	return mesh;
+}
+
+auto MeshManager::make_rectangle(Vec3 pos, Vec3 size) -> Mesh {
 	Mesh mesh;
 	mesh.vertices.resize(4);
 	mesh.vertices[0].position = Vec3{ pos.x, pos.y, pos.z };
@@ -20,7 +33,7 @@ Mesh MeshManager::make_rectangle(Vec3 pos, Vec3 size) {
 
 }
 
-Mesh MeshManager::make_triangle(Vec3 pos1, Vec3 pos2, Vec3 pos3) {
+auto MeshManager::make_triangle(Vec3 pos1, Vec3 pos2, Vec3 pos3) -> Mesh {
 	Mesh mesh;
 	mesh.vertices.resize(3);
 	mesh.vertices[0].position = Vec3{ pos1.x, pos1.y, pos1.z };
@@ -34,7 +47,7 @@ Mesh MeshManager::make_triangle(Vec3 pos1, Vec3 pos2, Vec3 pos3) {
 	return mesh;
 }
 
-Mesh MeshManager::make_circle(Vec3 position, float radius, int numSegments) {
+auto MeshManager::make_circle(Vec3 position, float radius, int numSegments) -> Mesh {
 
 	float theta = 2.0f * 3.1415926f / float(numSegments);//get the current angle 
 	float cos = cosf(theta);//calculate the x component 
@@ -67,7 +80,7 @@ Mesh MeshManager::make_circle(Vec3 position, float radius, int numSegments) {
 	return mesh;
 }
 
-Mesh MeshManager::make_cube(Vec3 pos, Vec3 size) {
+auto MeshManager::make_cube(Vec3 pos, Vec3 size) -> Mesh {
 	Mesh mesh;
 	mesh.vertices.resize(8);
 	mesh.vertices[0].position = { pos.x    , pos.y    , pos.z };
@@ -110,7 +123,7 @@ Mesh MeshManager::make_cube(Vec3 pos, Vec3 size) {
 }
 
 
-void Mesh::send_to_buffer() {
+auto Mesh::send_to_buffer() -> void {
 	BaseApp::get_app_instance()->m_renderer.handle_mesh(*this);
 
 }

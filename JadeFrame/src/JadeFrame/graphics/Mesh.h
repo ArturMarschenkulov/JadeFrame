@@ -16,6 +16,9 @@ public:
 	bool operator==(const Color& color) const {
 		return r == color.r && g == color.g && b == color.b && a == color.a;
 	}
+	bool operator!=(const Color& color) const {
+		return r != color.r || g != color.g || b != color.b || a != color.a;
+	}
 };
 
 struct Vertex {
@@ -35,16 +38,19 @@ public:
 	Vertex* vertex_buffer_ptr;
 	bool is_dirty;
 
-	void send_to_buffer();
+	auto send_to_buffer() -> void;
 };
 
 class MeshManager {
 public:
-	static Mesh make_rectangle(Vec3 position, Vec3 size);
-	static Mesh make_triangle(Vec3 pos1, Vec3 pos2, Vec3 pos3);
-	static Mesh make_circle(Vec3 position, float radius, int numSegments);
+	//use PRIMITIVE_TYPE::LINE
+	static auto make_line(Vec3 pos1, Vec3 pos2) -> Mesh;
+			    
+	static auto make_rectangle(Vec3 position, Vec3 size) ->Mesh;
+	static auto make_triangle(Vec3 pos1, Vec3 pos2, Vec3 pos3) ->Mesh;
+	static auto make_circle(Vec3 position, float radius, int numSegments) ->Mesh;
 
-	static Mesh make_cube(Vec3 start, Vec3 end);
+	static auto make_cube(Vec3 start, Vec3 end) ->Mesh;
 };
 
 class MeshPrototype {

@@ -12,11 +12,11 @@
 class Shader {
 public:
 	Shader();
-	void init();
-	void use();
-	GLuint compile(GLenum type, const std::string& codeSource);
-	void link();
-	void validate();
+	auto init() -> void;
+	auto use() -> void;
+	auto compile(GLenum type, const std::string& codeSource) -> GLuint;
+	auto link() -> void;
+	auto validate() -> void;
 private:
 	GLuint m_ID = 0;
 	std::array<GLuint, 3> m_shader_types; // Vertex, Fragment, Geometrys
@@ -49,15 +49,14 @@ private:
 	struct Uniform : ShaderType {};
 	struct VertexAttribute : ShaderType {};
 public:
-	GLint get_uniform_location(const std::string& name) const;
-	//void setMat4(const std::string& name, const Mat4& mat) const;
-	void set_uniform1i(const std::string& name, const int value);
-	void set_uniform1f(const std::string& name, const float value);
-	void set_uniform2f(const std::string& name, const Vec2& value);
-	void set_uniform3f(const std::string& name, const Vec3& value);
-	void set_uniform4f(const std::string& name, const Vec4& value);
-	void set_uniform_matrix4fv(const std::string& name, const Mat4& mat) const;
-	void update_shader_variables(int shaderType);
+	auto get_uniform_location(const std::string& name) const -> GLint;
+	auto set_uniform1i(const std::string& name, const int value) const -> void;
+	auto set_uniform1f(const std::string& name, const float value) const -> void;
+	auto set_uniform2f(const std::string& name, const Vec2& value) const -> void;
+	auto set_uniform3f(const std::string& name, const Vec3& value) const -> void;
+	auto set_uniform4f(const std::string& name, const Vec4& value) const -> void;
+	auto set_uniform_matrix4fv(const std::string& name, const Mat4& mat) const -> void;
+	auto update_shader_variables(int shaderType) -> void;
 	std::vector<Uniform> m_uniforms;
 	std::vector<VertexAttribute> m_attributes;
 };

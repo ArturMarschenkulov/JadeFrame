@@ -17,6 +17,17 @@ Orthographical convention:
 
 	Probably, more client oriented code will have variables and functions with camel case.
 
+	Trailing return type should be the default way.
+		Pros:
+			- function name is better readable if the return type is long
+			- better searchability, since -> type will mostly be the return type
+			- better "eye flow"
+			- one can indentify functions much better
+		Cons:
+			- one has to type more
+			- functions with short names will be unneccsarily longer
+			- VS2019 doesn't show the trailing return type if the function is collapsed
+
 
 TODO:
 	

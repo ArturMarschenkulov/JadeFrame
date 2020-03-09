@@ -4,7 +4,7 @@ Shader::Shader()
 	: m_ID()
 	, m_shader_types() {
 
-	if(1) {
+	if (1) {
 		vertex_shader_source =
 			R"(
 			#version 450 core
@@ -33,7 +33,8 @@ Shader::Shader()
 				o_Col = f_Col;
 			}
 		)";
-	} else {
+	}
+	else {
 
 		vertex_shader_source =
 			R"(
@@ -64,7 +65,7 @@ Shader::Shader()
 
 
 }
-void Shader::init() {
+auto Shader::init() -> void {
 
 	this->compile(GL_VERTEX_SHADER, vertex_shader_source);
 	this->compile(GL_FRAGMENT_SHADER, fragment_shader_source);
@@ -76,17 +77,17 @@ void Shader::init() {
 	glDetachShader(m_ID, m_shader_types[1]);
 }
 
-void Shader::use() {
+auto Shader::use() -> void {
 	glUseProgram(this->m_ID);
 }
 
-GLuint Shader::compile(GLenum type, const std::string& codeSource) {
+auto Shader::compile(GLenum type, const std::string& codeSource) -> GLuint {
 	GLuint shader_ID = glCreateShader(type);
 	const GLchar* shader_code = codeSource.c_str();
 	glShaderSource(shader_ID, 1, &shader_code, nullptr);
 	glCompileShader(shader_ID);
 
-	switch(type) {
+	switch (type) {
 	case GL_VERTEX_SHADER:   m_shader_types[0] = shader_ID; break;
 	case GL_FRAGMENT_SHADER: m_shader_types[1] = shader_ID; break;
 	case GL_GEOMETRY_SHADER: m_shader_types[2] = shader_ID; break;
@@ -95,7 +96,7 @@ GLuint Shader::compile(GLenum type, const std::string& codeSource) {
 
 	GLint is_compiled = GL_FALSE;
 	glGetShaderiv(shader_ID, GL_COMPILE_STATUS, &is_compiled);
-	if(is_compiled == GL_FALSE) {
+	if (is_compiled == GL_FALSE) {
 		GLint max_length = 512;
 		glGetShaderiv(shader_ID, GL_INFO_LOG_LENGTH, &max_length);
 		GLchar info_log[512];
@@ -103,13 +104,14 @@ GLuint Shader::compile(GLenum type, const std::string& codeSource) {
 		glDeleteShader(shader_ID);
 		std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED" << info_log << std::endl;
 		return 0;
-	} else {
+	}
+	else {
 		std::cout << "SUCCE::SHADER::PROGRAM::COMPILATION_SUCCEEDED" << std::endl;
 	}
 	return shader_ID;
 }
 
-void Shader::link() {
+auto Shader::link() -> void {
 
 	m_ID = glCreateProgram();
 	glAttachShader(m_ID, m_shader_types[0]);
@@ -119,33 +121,35 @@ void Shader::link() {
 	glLinkProgram(m_ID);
 	GLint is_linked = GL_FALSE;
 	glGetProgramiv(m_ID, GL_LINK_STATUS, &is_linked);
-	if(is_linked == GL_FALSE) {
+	if (is_linked == GL_FALSE) {
 		char info_log[1024];
 		glGetProgramInfoLog(m_ID, 512, nullptr, info_log);
 		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << info_log << std::endl;
-	} else {
+	}
+	else {
 		std::cout << "SUCCE::SHADER::PROGRAM::LINKING_SUCCEEDED\n" << std::endl;
 	}
 }
 
-void Shader::validate() {
+auto Shader::validate() -> void {
 	glValidateProgram(m_ID);
 
 	GLint is_validated = GL_FALSE;
 	glGetProgramiv(m_ID, GL_VALIDATE_STATUS, (int*)&is_validated);
-	if(is_validated == GL_FALSE) {
+	if (is_validated == GL_FALSE) {
 		char info_log[1024];
 		glGetProgramInfoLog(m_ID, 512, nullptr, info_log);
 		std::cout << "ERROR::SHADER::PROGRAM::VALIDATION_FAILED\n" << info_log << std::endl;
-	} else {
+	}
+	else {
 		std::cout << "SUCCE::SHADER::PROGRAM::VALIDATION_SUCCEEDED\n" << std::endl;
 	}
 }
 
 
-GLint Shader::get_uniform_location(const std::string& name) const {
+auto Shader::get_uniform_location(const std::string& name) const -> GLint {
 	GLint location = glGetUniformLocation(m_ID, name.c_str());
-	if(location == -1){
+	if (location == -1) {
 		std::cout << "Location of " << name << " can not be found" << std::endl;
 		__debugbreak();
 	}
@@ -169,52 +173,54 @@ GLint Shader::get_uniform_location(const std::string& name) const {
 }
 
 
-void Shader::set_uniform1i(const std::string& name, int value) {
+auto Shader::set_uniform1i(const std::string& name, int value) const -> void {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl; __debugbreak();
 }
-void Shader::set_uniform1f(const std::string& name, float value) {
+auto Shader::set_uniform1f(const std::string& name, float value) const -> void {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl; __debugbreak();
 }
-void Shader::set_uniform2f(const std::string& name, const Vec2& value) {
+auto Shader::set_uniform2f(const std::string& name, const Vec2& value) const -> void {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl; __debugbreak();
 }
-void Shader::set_uniform3f(const std::string& name, const Vec3& value) {
+auto Shader::set_uniform3f(const std::string& name, const Vec3& value) const -> void {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl; __debugbreak();
 }
-void Shader::set_uniform4f(const std::string& name, const Vec4& value) {
+auto Shader::set_uniform4f(const std::string& name, const Vec4& value) const -> void {
 	int loc = get_uniform_location(name);
 	glUniform4f(loc, value.x, value.y, value.z, value.w);
 }
-void Shader::set_uniform_matrix4fv(const std::string& name, const Mat4& mat) const {
+auto Shader::set_uniform_matrix4fv(const std::string& name, const Mat4& mat) const -> void {
 	GLint loc = get_uniform_location(name);
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &mat[0][0]);
 }
 
-void Shader::update_shader_variables(int shaderType) {
+auto Shader::update_shader_variables(int shaderType) -> void {
 	int num;
 	glGetProgramiv(m_ID, shaderType, &num);
 
 	// iterate over all active uniforms
 	char buffer[128];
-	if(shaderType == GL_ACTIVE_UNIFORMS) {
+	if (shaderType == GL_ACTIVE_UNIFORMS) {
 		m_uniforms.resize(num);
-		for(unsigned int i = 0; i < num; ++i) {
+		for (unsigned int i = 0; i < num; ++i) {
 			GLenum glType;
 			glGetActiveUniform(m_ID, i, sizeof(buffer), 0, &m_uniforms[i].size, &glType, buffer);
 			m_uniforms[i].name = std::string(buffer);
 			m_uniforms[i].type = SHADER_TYPE::BOOL;
 			m_uniforms[i].location = glGetUniformLocation(m_ID, buffer);
 		}
-	} else if(shaderType == GL_ACTIVE_ATTRIBUTES) {
+	}
+	else if (shaderType == GL_ACTIVE_ATTRIBUTES) {
 		m_attributes.resize(num);
-		for(unsigned int i = 0; i < num; ++i) {
+		for (unsigned int i = 0; i < num; ++i) {
 			GLenum glType;
 			glGetActiveAttrib(m_ID, i, sizeof(buffer), 0, &m_attributes[i].size, &glType, buffer);
 			m_attributes[i].name = std::string(buffer);
 			m_attributes[i].type = SHADER_TYPE::BOOL;
 			m_attributes[i].location = glGetAttribLocation(m_ID, buffer);
 		}
-	} else {
+	}
+	else {
 		std::cout << __FUNCTION__ << " shaderType is false" << std::endl;
 		__debugbreak();
 	}

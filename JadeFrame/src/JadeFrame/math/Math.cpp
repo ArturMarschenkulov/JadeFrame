@@ -1,9 +1,9 @@
 #include "Math.h"
 
-float toRadian(float degrees) {
+auto to_radians(float degrees) -> float {
 	return degrees*( M_PI / 180.0f );
 
 }
-float toDegree(float radians) {
+auto to_degrees(float radians) -> float {
 	return radians*( 180.0f / M_PI );
 }

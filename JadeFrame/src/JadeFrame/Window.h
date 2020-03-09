@@ -7,13 +7,15 @@
 class Window {
 public:
 	Window();
-	void init(const std::string& title, float width, float height);
-	GLFWwindow* get_handle();
-	Vec2 get_size();
-	float get_width();
-	float get_height();
 
-	void display_FPS() {
+	auto init(const std::string& title, float width, float height) -> void;
+
+	auto get_handle() const -> GLFWwindow*;
+	auto get_size() const -> Vec2;
+	auto get_width() const -> float;
+	auto get_height() const -> float;
+
+	void display_FPS() const {
 		static int FPS = 0;       // This will store our fps
 		static float lastTime = 0.0f;       // This will hold the time from the last frame
 		float currentTime = GetTickCount64() * 0.001f;

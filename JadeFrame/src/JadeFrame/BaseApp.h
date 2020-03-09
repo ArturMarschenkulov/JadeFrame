@@ -5,7 +5,7 @@
 #include "Input.h"
 class TimeManager {
 public:
-	void handle_time();
+	auto handle_time() -> void;
 private:
 	double current_time = 0.0;
 	double previous_time = 0.0;
@@ -21,13 +21,13 @@ public:
 	BaseApp();
 	virtual ~BaseApp();
 
-	virtual void setup() {}
-	virtual void update() {}
-	virtual void draw() {}
+	virtual auto setup() -> void {}
+	virtual auto update() -> void {}
+	virtual auto draw() -> void {}
 
-	void init_app(const std::string& title, float width, float height);
-	void run_app();
-	void poll_events();
+	auto init_app(const std::string& title, float width, float height) -> void;
+	auto run_app() -> void;
+	auto poll_events() -> void;
 
 	static BaseApp* get_app_instance() {
 		return instance;
@@ -35,8 +35,8 @@ public:
 private:
 	static BaseApp* instance;
 public:
-	Window& get_window() { return m_window; };
-	Input& get_input() { return m_input; };
+	auto get_window() const -> Window { return m_window; };
+	auto get_input() const -> Input { return m_input; };
 	//BatchShader& get_shader() { return m_shader; };
 	//Renderer* get_renderer() { return m_renderer; };
 	Shader m_shader;

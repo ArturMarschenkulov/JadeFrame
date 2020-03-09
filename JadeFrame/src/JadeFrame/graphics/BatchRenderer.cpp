@@ -10,9 +10,8 @@ constexpr int MAX_INDICES_FOR_BATCH = 6 * MAX_BATCH_QUADS;
 
 BatchRenderer::BatchRenderer() {}
 void BatchRenderer::init(Shader* shader) {
-	matrix_stack.projection_matrix = Mat4();
-	matrix_stack.view_matrix = Mat4();
-	matrix_stack.model_matrix = Mat4();
+
+	matrix_stack.set_matrices_to_identity();
 	current_shader = shader;
 	current_shader->use();
 
@@ -20,16 +19,29 @@ void BatchRenderer::init(Shader* shader) {
 
 }
 
-void BatchRenderer::start() {
-	//matrixStack.projectionMatrix = Mat4();
-	matrix_stack.view_matrix = Mat4();
+void BatchRenderer::start(PRIMITIVE_TYPE type) {
+	//matrix_stack.view_matrix = Mat4();
 	matrix_stack.model_matrix = Mat4();
 	matrix_stack.current_matrix = &matrix_stack.view_matrix;
-	BaseApp::get_app_instance()->m_renderer.num_draw_calls = 0;
+
+	buffer_data.m_primitive_type = type;
 
 
 	current_shader->use();
 }
+void BatchRenderer::end() {
+
+	update_matrices_and_send_to_GPU();
+	buffer_data.update();
+	buffer_data.draw();
+	buffer_data.reset_counters();
+}
+void BatchRenderer::update_matrices_and_send_to_GPU() {
+	Mat4 MVP = /*matrix_stack.model_matrix * */matrix_stack.view_matrix * matrix_stack.projection_matrix;
+	BaseApp::get_app_instance()->m_shader.set_uniform_matrix4fv("MVP", MVP);
+}
+
+// TODO: more of a helper function. maybe I'll remove it.
 void BatchRenderer::handle_mesh(Mesh& mesh) {
 	if(matrix_stack.use_transform_matrix == true) {
 		Mat4 m = matrix_stack.transform_matrix;
@@ -40,22 +52,10 @@ void BatchRenderer::handle_mesh(Mesh& mesh) {
 
 	buffer_data.add_to_buffer(mesh);
 }
-void BatchRenderer::update_matrices() {
-	Mat4 MVP = matrix_stack.model_matrix * matrix_stack.view_matrix * matrix_stack.projection_matrix;
-	BaseApp::get_app_instance()->m_shader.set_uniform_matrix4fv("MVP", MVP);
-}
-void BatchRenderer::end() {
-	update_matrices();
-	buffer_data.update();
-	buffer_data.draw();
-	buffer_data.reset_counters();
-}
+
 
 void BatchRenderer::set_color(const Color& color) {
 	buffer_data.current_color = color;
-}
-void BatchRenderer::set_clear_color(const Color& color) {
-	glClearColor(color.r, color.g, color.b, color.a);
 }
 
 
@@ -116,21 +116,20 @@ void BatchRenderer::BufferData::update() {
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	GLuint vertex_buffer_size_in_bytes = vertex_count * sizeof(Vertex);
-	GLuint vertex_buffer_size_in_bytes2 = vertices.size() * sizeof(Vertex);
+	//GLuint vertex_buffer_size_in_bytes2 = vertices.size() * sizeof(Vertex);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, vertex_buffer_size_in_bytes, vertices.data());
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 	GLuint index_buffer_size_in_bytes = index_count * sizeof(GLuint);
-	GLuint index_buffer_size_in_bytes2 = indices.size() * sizeof(GLuint);
+	//GLuint index_buffer_size_in_bytes2 = indices.size() * sizeof(GLuint);
 	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, index_buffer_size_in_bytes, indices.data());
 
 	glBindVertexArray(0);
 }
 void BatchRenderer::BufferData::draw() {
-	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
-	BaseApp::get_app_instance()->m_renderer.num_draw_calls++;
 
+	glBindVertexArray(VAO);
+	glDrawElements((GLenum)m_primitive_type, index_count, GL_UNSIGNED_INT, 0);
 }
 void BatchRenderer::BufferData::reset_counters() {
 	vertex_offset = 0;

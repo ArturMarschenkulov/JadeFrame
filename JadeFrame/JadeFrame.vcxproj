@@ -179,11 +179,19 @@
     <ClInclude Include="src\extern\imgui\imgui.h" />
     <ClInclude Include="src\extern\imgui\imgui_impl_glfw.h" />
     <ClInclude Include="src\extern\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="src\extern\imgui\imgui_impl_win32.h" />
     <ClInclude Include="src\extern\imgui\imgui_internal.h" />
     <ClInclude Include="src\extern\imgui\imstb_rectpack.h" />
     <ClInclude Include="src\extern\imgui\imstb_textedit.h" />
     <ClInclude Include="src\extern\imgui\imstb_truetype.h" />
     <ClInclude Include="src\extern\KHR\khrplatform.h" />
+    <ClInclude Include="src\extern\stb\stb_image.h" />
+    <ClInclude Include="src\extern\stb\stb_image_resize.h" />
+    <ClInclude Include="src\extern\stb\stb_image_write.h" />
+    <ClInclude Include="src\extern\stb\stb_perlin.h" />
+    <ClInclude Include="src\extern\stb\stb_rect_pack.h" />
+    <ClInclude Include="src\extern\stb\stb_truetype.h" />
+    <ClInclude Include="src\extern\stb\stb_vorbis.h" />
     <ClInclude Include="src\JadeFrame.h" />
     <ClInclude Include="src\JadeFrame\BaseApp.h" />
     <ClInclude Include="src\JadeFrame\Core.h" />
@@ -208,6 +216,7 @@
     <ClCompile Include="src\extern\imgui\imgui_draw.cpp" />
     <ClCompile Include="src\extern\imgui\imgui_impl_glfw.cpp" />
     <ClCompile Include="src\extern\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="src\extern\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="src\extern\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\JadeFrame.cpp" />
     <ClCompile Include="src\JadeFrame\BaseApp.cpp" />
