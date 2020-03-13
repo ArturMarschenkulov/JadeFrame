@@ -25,7 +25,7 @@ public:
 	virtual auto update() -> void {}
 	virtual auto draw() -> void {}
 
-	auto init_app(const std::string& title, float width, float height) -> void;
+	auto init_app(const std::string& title, Vec2 size) -> void;
 	auto run_app() -> void;
 	auto poll_events() -> void;
 

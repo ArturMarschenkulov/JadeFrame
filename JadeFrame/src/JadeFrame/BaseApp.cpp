@@ -12,9 +12,9 @@ BaseApp::~BaseApp() {
 	glfwTerminate();
 }
 
-auto BaseApp::init_app(const std::string& title, float width, float height) -> void {
+auto BaseApp::init_app(const std::string& title, Vec2 size) -> void {
 	instance = this;
-	m_window.init(title, width, height);
+	m_window.init(title, size);
 	m_shader.init();
 	m_renderer.init(&m_shader);
 
@@ -207,9 +207,12 @@ auto BaseApp::run_app() -> void {
 				m_renderer.set_color({ 0.0f, 0.0, 0.0f, 1.0f }); MeshManager::make_cube(cubePos, { 1.0f, 1.0f, 1.0f }).send_to_buffer(); // RED X
 
 
-				m_renderer.set_color({ 1.0f, 0.0, 0.0f, 1.0f }); MeshManager::make_cube({ 5, 5, 5 }, { 1.0f, 1.0f, 1.0f }).send_to_buffer(); // RED X
+				m_renderer.set_color({ 1.0f, 0.0, 0.0f, 1.0f }); MeshManager::make_cube({ 5, 5, 5 }, { 1.0f, 1.0f, 100.0f }).send_to_buffer(); // RED X
+				m_renderer.set_color({ 1.0f, 1.0, 0.0f, 1.0f }); MeshManager::make_cube({ 5, -5, 5 }, { 1.0f, 1.0f, 100.0f }).send_to_buffer(); // RED X
+				m_renderer.set_color({ 1.0f, 0.0, 0.0f, 1.0f }); MeshManager::make_cube({ -5, 30, 5 }, { 1.0f, 1.0f, 100.0f }).send_to_buffer(); // RED X
+				m_renderer.set_color({ 1.0f, 1.0, 0.0f, 1.0f }); MeshManager::make_cube({ -5, -5, 5 }, { 1.0f, 1.0f, 100.0f }).send_to_buffer(); // RED X
 
-				m_renderer.set_color({ 1.0f, 1.0, 0.0f, 1.0f }); MeshManager::make_cube({ 5, -5, 5 }, { 1.0f, 1.0f, 1.0f }).send_to_buffer(); // RED X
+			
 			}
 			m_renderer.end();
 		}

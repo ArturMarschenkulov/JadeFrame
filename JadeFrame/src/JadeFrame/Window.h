@@ -8,7 +8,7 @@ class Window {
 public:
 	Window();
 
-	auto init(const std::string& title, float width, float height) -> void;
+	auto init(const std::string& title, Vec2 size) -> void;
 
 	auto get_handle() const -> GLFWwindow*;
 	auto get_size() const -> Vec2;

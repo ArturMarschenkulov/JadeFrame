@@ -89,91 +89,6 @@ auto convertCharArrayToLPCWSTR(const char* charArray) -> wchar_t* {
 	MultiByteToWideChar(CP_ACP, 0, charArray, -1, wString, 4096);
 	return wString;
 }
-class WindowsM {
-public:
-
-	static auto platform_init(const std::string& title, Vec2 windowSize) -> bool {
-		auto t_title = title;
-		WNDCLASS window_class = {};
-		window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-		window_class.lpfnWndProc = (WNDPROC)window_proc;
-		window_class.cbClsExtra = 0;
-		window_class.cbWndExtra = 0;
-		window_class.hInstance = /*hInstance;*/ GetModuleHandleW(NULL);
-		window_class.hIcon = LoadIcon(NULL, IDI_WINLOGO);
-		window_class.hCursor = LoadCursor(NULL, IDC_ARROW);
-		window_class.hbrBackground = NULL;
-		window_class.lpszMenuName = NULL;
-		window_class.lpszClassName = L"Sparky Win32 Window";
-
-		if (!RegisterClassW(&window_class)) {
-			// TODO: Handle error
-			std::cout << "Could not register Win32 class!" << std::endl;
-			return false;
-		}
-		std::cout << "Could register Win32 class!" << std::endl;
-
-		RECT size = { 0, 0, windowSize.x, windowSize.y };
-		AdjustWindowRectEx(&size, WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, false, WS_EX_APPWINDOW | WS_EX_WINDOWEDGE);
-
-		hWnd = CreateWindowExW(
-			WS_EX_APPWINDOW | WS_EX_WINDOWEDGE,
-			window_class.lpszClassName, 
-			convertCharArrayToLPCWSTR(t_title.c_str()),
-			WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-			GetSystemMetrics(SM_CXSCREEN) / 2 - windowSize.x / 2,
-			GetSystemMetrics(SM_CYSCREEN) / 2 - windowSize.y / 2,
-			// TODO: This requires some... attention
-			size.right + (-size.left), size.bottom + (-size.top), NULL, NULL, hInstance, NULL);
-
-		if (!hWnd) {
-			std::cout << "Could not create window!" << std::endl;
-			return false;
-		}
-
-		//RegisterWindowClass(hWnd, this);
-
-		hDc = GetDC(hWnd);
-		PIXELFORMATDESCRIPTOR pfd = get_pixel_format();
-		int32_t pixel_format = ChoosePixelFormat(hDc, &pfd);
-		if (pixel_format) {
-			if (!SetPixelFormat(hDc, pixel_format, &pfd)) {
-				std::cout << "Failed setting pixel format!" << std::endl;
-				return false;
-			}
-			std::cout << "Pixel format set!" << std::endl;
-		}
-		else {
-			std::cout << "Failed choosing pixel format!" << std::endl;
-			return false;
-		}
-		std::cout << "Pixel format chosen!" << std::endl;
-
-
-		hDc = GetDC(hWnd);
-		HGLRC hrc = wglCreateContext(hDc);
-		if (hrc) {
-			if (!wglMakeCurrent(hDc, hrc)) {
-				std::cout << "Failed setting OpenGL context!" << std::endl;
-				//SP_ASSERT(false);
-			}
-			std::cout << "OpenGL context set!" << std::endl;
-		}
-		else {
-			std::cout << "Failed creating OpenGL context!" << std::endl;
-			//SP_ASSERT(false);
-		}
-		std::cout << "OpenGL context created!" << std::endl;
-
-		ShowWindow(hWnd, SW_SHOW);
-		SetFocus(hWnd);
-		// resize
-
-		return true;
-	}
-};
-
-
 
 auto framebuffer_size_callback(GLFWwindow* window, int width, int height) -> void {
 	glViewport(0, 0, width, height);
@@ -187,8 +102,8 @@ struct GLContex {
 	GLint gl_minor_version;
 };
 
-auto Window::init(const std::string& title, float width, float height) -> void {
-	m_size = { width, height };
+auto Window::init(const std::string& title, Vec2 size) -> void {
+	m_size = size;
 	m_title = title;
 
 	glfwInit();
@@ -197,7 +112,6 @@ auto Window::init(const std::string& title, float width, float height) -> void {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	auto i = WindowsM::platform_init(title, { width, height });
 
 	m_handle = glfwCreateWindow(m_size.x, m_size.y, m_title.c_str(), NULL, NULL);
 	if (m_handle == nullptr) {

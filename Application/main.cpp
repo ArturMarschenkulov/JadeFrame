@@ -18,7 +18,7 @@ int main(void) {
 
 	std::string t = "Test";
 	App app;
-	app.init_app(t, 1800, 800);
+	app.init_app(t, { 1800, 800 });
 	app.run_app();
 	return 0;
 }
