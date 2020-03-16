@@ -1,6 +1,5 @@
 #pragma once
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include <vector>
 
 #include "../math/Vec2.h"
@@ -24,7 +23,7 @@ private:
 	const GLchar* vertex_shader_source;
 	const GLchar* fragment_shader_source;
 private:
-	enum class SHADER_TYPE {
+	enum class EShaderType {
 		BOOL,
 		INT,
 		FLOAT,
@@ -41,7 +40,7 @@ private:
 	};
 
 	struct ShaderType {
-		SHADER_TYPE  type;
+		EShaderType  type;
 		std::string  name;
 		int          size;
 		GLuint location;

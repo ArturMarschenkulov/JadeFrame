@@ -206,7 +206,7 @@ auto Shader::update_shader_variables(int shaderType) -> void {
 			GLenum glType;
 			glGetActiveUniform(m_ID, i, sizeof(buffer), 0, &m_uniforms[i].size, &glType, buffer);
 			m_uniforms[i].name = std::string(buffer);
-			m_uniforms[i].type = SHADER_TYPE::BOOL;
+			m_uniforms[i].type = EShaderType::BOOL;
 			m_uniforms[i].location = glGetUniformLocation(m_ID, buffer);
 		}
 	}
@@ -216,7 +216,7 @@ auto Shader::update_shader_variables(int shaderType) -> void {
 			GLenum glType;
 			glGetActiveAttrib(m_ID, i, sizeof(buffer), 0, &m_attributes[i].size, &glType, buffer);
 			m_attributes[i].name = std::string(buffer);
-			m_attributes[i].type = SHADER_TYPE::BOOL;
+			m_attributes[i].type = EShaderType::BOOL;
 			m_attributes[i].location = glGetAttribLocation(m_ID, buffer);
 		}
 	}

@@ -198,6 +198,7 @@
     <ClInclude Include="src\JadeFrame\graphics\Camera.h" />
     <ClInclude Include="src\JadeFrame\GUI.h" />
     <ClInclude Include="src\JadeFrame\Input.h" />
+    <ClInclude Include="src\JadeFrame\Input_backup.h" />
     <ClInclude Include="src\JadeFrame\math\Mat4.h" />
     <ClInclude Include="src\JadeFrame\math\Math.h" />
     <ClInclude Include="src\JadeFrame\math\Vec2.h" />
@@ -224,6 +225,7 @@
     <ClCompile Include="src\JadeFrame\graphics\Camera.cpp" />
     <ClCompile Include="src\JadeFrame\GUI.cpp" />
     <ClCompile Include="src\JadeFrame\Input.cpp" />
+    <ClCompile Include="src\JadeFrame\Input_backup.cpp" />
     <ClCompile Include="src\JadeFrame\math\Mat4.cpp" />
     <ClCompile Include="src\JadeFrame\math\Math.cpp" />
     <ClCompile Include="src\JadeFrame\math\Vec2.cpp" />

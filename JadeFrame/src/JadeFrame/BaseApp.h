@@ -3,17 +3,7 @@
 #include "graphics/BatchRenderer.h"
 #include "graphics/BaseRenderer.h"
 #include "Input.h"
-class TimeManager {
-public:
-	auto handle_time() -> void;
-private:
-	double current_time = 0.0;
-	double previous_time = 0.0;
-	double draw_time = 0.0;
-	double frame_time = 0.0;
-	double update_time = 0.0;
-	double target_time = 0.0;
-};
+
 
 class BaseApp {
 public:
@@ -36,17 +26,13 @@ private:
 	static BaseApp* instance;
 public:
 	auto get_window() const -> Window { return m_window; };
-	auto get_input() const -> Input { return m_input; };
+	//auto get_input() const -> Input { return m_input; };
 	//BatchShader& get_shader() { return m_shader; };
 	//Renderer* get_renderer() { return m_renderer; };
 	Shader m_shader;
 	BatchRenderer m_renderer;
-private:
+	//private:
 	Window m_window;
-	Input m_input;
-
-
-
-	TimeManager m_time_manager;
-
+	InputManager m_input_manager;
+	//Input m_input;
 };

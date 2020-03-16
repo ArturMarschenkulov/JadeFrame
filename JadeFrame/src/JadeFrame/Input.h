@@ -1,18 +1,15 @@
 #pragma once
 #include "../extern/glad/glad.h"
-#include "../extern/GLFW/glfw3.h"
-//#include "../extern/glm/glm.hpp"
 #include <array>
 #include "math/Vec2.h"
 
 
-enum class INPUT_STATE {
-	PRESS = GLFW_PRESS,
-	RELEASE = GLFW_RELEASE,
-	REPEAT = GLFW_REPEAT,
-	UNKNOWN = GLFW_KEY_UNKNOWN
+enum class EInputState {
+	PRESSED,
+	RELEASED
 };
-enum class KEY {
+
+enum class EKey {
 	SPACE = 32,
 	ESCAPE = 256,
 	ENTER = 257,
@@ -92,78 +89,21 @@ enum class KEY {
 	Y = 89,
 	Z = 90,
 };
-enum class MOUSE {
-	LEFT_BUTTON = 0,
-	RIGHT_BUTTON = 1,
-	MIDDLE_BUTTON = 2,
-};
-
-
-class Input {
+class InputManager {
 	friend class Window;
-	friend class MainLoop;
 public:
-	Input()
-		: m_window_instance(nullptr) {}
-	~Input() {}
-
 	auto handle_input() -> void;
+	static auto key_callback(int64_t lParam, uint64_t wParam, uint32_t message) -> void;
+	static std::array<bool, 512> m_current_key_state;
+	static std::array<bool, 512> m_previous_key_state;
 
-	auto setWindowInstance(GLFWwindow* window) -> void { m_window_instance = window; }
-	auto getWindowInstance() const -> GLFWwindow* { return m_window_instance; }
-
-private:
-	GLFWwindow* m_window_instance;
-
-	// Key Input
-public:
-	auto is_key_down(KEY key) const -> bool;
-	auto is_key_up(KEY key) const -> bool;
-	auto is_key_pressed(KEY key) const -> bool;
-	auto is_key_released(KEY key) const -> bool;
-
-	auto get_down_key(void) const -> char;
-	auto get_up_key(void) const -> char;
-	auto get_pressed_key(void) const -> char;
-	auto get_released_key(void) const -> char;
-
-	//private:
-	static auto key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) -> void;
-	static std::array<INPUT_STATE, 512> m_current_key_state;
-	static std::array<INPUT_STATE, 512> m_previous_key_state;
-
-
-
-	// Mouse Input
-public:
-	auto is_button_down(const MOUSE key) const -> bool;
-	auto is_button_up(const MOUSE key) const -> bool;
-	auto is_button_pressed(const MOUSE key) const -> bool;
-	auto is_button_released(const MOUSE key) const -> bool;
-
-	auto get_down_button() const -> char;
-	auto get_up_button() const -> char;
-	auto get_pressed_button() const -> char;
-	auto get_released_button() const -> char;
-
-	//private:
-	static auto mouse_button_callback(GLFWwindow* window, int button, int state, int mods) -> void;
-	static std::array<INPUT_STATE, 3> m_current_button_state;
-	static std::array<INPUT_STATE, 3> m_previous_button_state;
-
-	// Mouse Position
-public:
-	auto get_mouse_X() const -> float;
-	auto get_mouse_Y() const -> float;
-	auto get_mouse_position() const -> Vec2;
-	//private:
-	static auto cursor_pos_callback(GLFWwindow* window, double xpos, double ypos) -> void;
-	static Vec2 m_current_mouse_position;
-
-	// Mouse Enter
-public:
-	auto is_mouse_inside() const -> bool;
-	//private:
-	static auto cursor_enter_callback(GLFWwindow* window, int entered) -> void;
-	static bool m_is_cursor_inside;
+	auto is_key_down(EKey key) -> bool {
+		bool is_down;
+		if (m_current_key_state[(int)key] == true) {
+			is_down = true;
+		} else {
+			is_down = false;
+		}
+		return is_down;
+	}
 };

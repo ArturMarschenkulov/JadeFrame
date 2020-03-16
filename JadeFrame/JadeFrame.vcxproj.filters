@@ -78,9 +78,6 @@
     <ClInclude Include="src\JadeFrame\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\Input.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\JadeFrame\GUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -121,6 +118,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\extern\imgui\imgui_impl_win32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\Input_backup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\Input.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -173,9 +176,6 @@
     <ClCompile Include="src\JadeFrame\BaseApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\Input.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\JadeFrame\GUI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -195,6 +195,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\extern\imgui\imgui_impl_win32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\Input_backup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\Input.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
