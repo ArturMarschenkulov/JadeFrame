@@ -103,7 +103,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\glfw32;$(SolutionDir)JadeFrame\src\extern\glfw64</AdditionalLibraryDirectories>
@@ -123,7 +123,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\glfw32;$(SolutionDir)JadeFrame\src\extern\glfw64</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -145,7 +145,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\glfw32;$(SolutionDir)JadeFrame\src\extern\glfw64</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -167,17 +167,14 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\glfw32;$(SolutionDir)JadeFrame\src\extern\glfw64</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\extern\glad\glad.h" />
-    <ClInclude Include="src\extern\GLFW\glfw3.h" />
-    <ClInclude Include="src\extern\GLFW\glfw3native.h" />
     <ClInclude Include="src\extern\imgui\imconfig.h" />
     <ClInclude Include="src\extern\imgui\imgui.h" />
-    <ClInclude Include="src\extern\imgui\imgui_impl_glfw.h" />
     <ClInclude Include="src\extern\imgui\imgui_impl_opengl3.h" />
     <ClInclude Include="src\extern\imgui\imgui_impl_win32.h" />
     <ClInclude Include="src\extern\imgui\imgui_internal.h" />
@@ -215,7 +212,6 @@
     <ClCompile Include="src\extern\imgui\imgui.cpp" />
     <ClCompile Include="src\extern\imgui\imgui_demo.cpp" />
     <ClCompile Include="src\extern\imgui\imgui_draw.cpp" />
-    <ClCompile Include="src\extern\imgui\imgui_impl_glfw.cpp" />
     <ClCompile Include="src\extern\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="src\extern\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="src\extern\imgui\imgui_widgets.cpp" />
@@ -236,10 +232,6 @@
     <ClCompile Include="src\JadeFrame\graphics\BaseRenderer.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\Shader.cpp" />
     <ClCompile Include="src\JadeFrame\Window.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="src\extern\glfw32\glfw3.lib" />
-    <Library Include="src\extern\glfw64\glfw3.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

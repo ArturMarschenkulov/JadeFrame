@@ -202,7 +202,7 @@ auto Shader::update_shader_variables(int shaderType) -> void {
 	char buffer[128];
 	if (shaderType == GL_ACTIVE_UNIFORMS) {
 		m_uniforms.resize(num);
-		for (unsigned int i = 0; i < num; ++i) {
+		for (int i = 0; i < num; ++i) {
 			GLenum glType;
 			glGetActiveUniform(m_ID, i, sizeof(buffer), 0, &m_uniforms[i].size, &glType, buffer);
 			m_uniforms[i].name = std::string(buffer);
@@ -212,7 +212,7 @@ auto Shader::update_shader_variables(int shaderType) -> void {
 	}
 	else if (shaderType == GL_ACTIVE_ATTRIBUTES) {
 		m_attributes.resize(num);
-		for (unsigned int i = 0; i < num; ++i) {
+		for (int i = 0; i < num; ++i) {
 			GLenum glType;
 			glGetActiveAttrib(m_ID, i, sizeof(buffer), 0, &m_attributes[i].size, &glType, buffer);
 			m_attributes[i].name = std::string(buffer);

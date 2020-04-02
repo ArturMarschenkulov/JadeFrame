@@ -35,4 +35,5 @@ public:
 	Window m_window;
 	InputManager m_input_manager;
 	//Input m_input;
+	Camera cam;
 };

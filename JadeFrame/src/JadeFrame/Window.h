@@ -16,9 +16,7 @@ public:
 
 	auto display_FPS() const -> void;
 	//private:
-		//GLFWwindow* m_handle;
 	HWND m_window_handle;
-	HDC m_device_context;
 	Vec2 m_size;
 	std::string m_title;
 

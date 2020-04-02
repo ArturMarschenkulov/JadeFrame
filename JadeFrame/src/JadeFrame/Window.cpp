@@ -3,6 +3,8 @@
 #include "BaseApp.h"
 #include <iostream>
 #include <glad/glad.h>
+#include "Input.h"
+
 
 #define WGL_CONTEXT_MAJOR_VERSION_ARB           0x2091
 #define WGL_CONTEXT_MINOR_VERSION_ARB           0x2092
@@ -12,15 +14,16 @@
 
 #define WGL_CONTEXT_DEBUG_BIT_ARB               0x0001
 #define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB  0x0002
-
+#define WGL_SWAP_METHOD_ARB						0x2007
 #define WGL_CONTEXT_CORE_PROFILE_BIT_ARB        0x00000001
 #define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
-
+#define WGL_SWAP_EXCHANGE_ARB          0x2028
 #define WGL_DRAW_TO_WINDOW_ARB                  0x2001
 #define WGL_ACCELERATION_ARB                    0x2003
 #define WGL_SUPPORT_OPENGL_ARB                  0x2010
 #define WGL_DOUBLE_BUFFER_ARB                   0x2011
 #define WGL_PIXEL_TYPE_ARB                      0x2013
+#define WGL_COLOR_BITS_ARB						0x2014
 
 #define WGL_TYPE_RGBA_ARB                       0x202B
 #define WGL_FULL_ACCELERATION_ARB               0x2027
@@ -35,16 +38,26 @@
 #define WGL_STENCIL_BITS_ARB					0x2023
 #define WGL_SAMPLES_ARB							0x2042
 
+typedef BOOL WINAPI	PFNWGLCHOOSEPIXELFORMATARBPROC(HDC hdc, const int* piAttribIList, const FLOAT* pfAttribFList, UINT nMaxFormats, int* piFormats, UINT* nNumFormats);
+typedef HGLRC WINAPI PFNWGLCREATECONTEXTATTRIBSARBPROC(HDC hDC, HGLRC hShareContext, const int* attribList);
+typedef BOOL WINAPI PFNWGLSWAPINTERVALEXTPROC(int interval);
+
+static PFNWGLCHOOSEPIXELFORMATARBPROC* wglChoosePixelFormatARB;
+static PFNWGLCREATECONTEXTATTRIBSARBPROC* wglCreateContextAttribsARB;
+static PFNWGLSWAPINTERVALEXTPROC* wglSwapIntervalEXT;
 
 
+auto load_opengl_functions() -> void {
+	wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC*)wglGetProcAddress("wglChoosePixelFormatARB");
+	wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC*)wglGetProcAddress("wglCreateContextAttribsARB");
+	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC*)wglGetProcAddress("wglSwapIntervalEXT");
+}
 
-
-#include "Input.h"
-
-LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+auto CALLBACK WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT {
 
 	auto app = BaseApp::get_app_instance();
-	auto input_manager = app->m_input_manager;
+	auto& input_manager = app->m_input_manager;
+	auto& window = app->m_window;
 
 	switch (message) {
 		//case WM_SIZE:
@@ -65,26 +78,27 @@ LRESULT CALLBACK WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 		input_manager.key_callback(lParam, wParam, message);
 
 	}break;
-		//case WM_CLOSE: {
-		//	PostQuitMessage(0);
-		//}break;
+
+	case WM_CLOSE: {
+		std::cout << "WM_CLOSE" << std::endl;
+		PostQuitMessage(0);
+	}break;
+	case WM_DESTROY: {
+		std::cout << "WM_DESTROY" << std::endl;
+		//PostQuitMessage(0);
+	}break;
+	case WM_QUIT: {
+		std::cout << "WM_QUIT" << std::endl;
+		//PostQuitMessage(0);
+	}break;
+
 	default: {
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	} break;
 	}
 	return 0;       // message handled
 }
-typedef BOOL WINAPI wgl_choose_pixel_format_arb(HDC hdc,
-	const int* piAttribIList,
-	const FLOAT* pfAttribFList,
-	UINT nMaxFormats,
-	int* piFormats,
-	UINT* nNumFormats);
-static wgl_choose_pixel_format_arb* wglChoosePixelFormatARB;
-typedef HGLRC WINAPI wgl_create_context_attribs_arb(HDC hDC, HGLRC hShareContext,
-	const int* attribList);
 
-static wgl_create_context_attribs_arb* wglCreateContextAttribsARB;
 
 
 static auto win32_convert_char_array_to_LPCWSTR(const char* charArray) -> wchar_t* {
@@ -103,53 +117,79 @@ static auto win32_register_window_class(HINSTANCE instance) -> void {
 	window_class.hInstance = instance;
 	window_class.hCursor = 0;// LoadCursor(NULL, IDC_ARROW);
 	window_class.lpszClassName = L"Core";
-	RegisterClassEx(&window_class);
+	RegisterClassExW(&window_class);
 }
 
 static auto win32_create_fake_window(HINSTANCE instance) -> HWND {
-	HWND fake_window_handle = CreateWindow(
-		L"Core", L"Fake Window",      // window class, title
+	HWND fake_window_handle = CreateWindowExW(
+		0, L"Core", L"Fake Window",      // window class, title
 		WS_CLIPSIBLINGS | WS_CLIPCHILDREN, // style
 		0, 0,                       // position x, y
 		1, 1,                       // width, height
 		NULL, NULL,                 // parent window, menu
 		instance, NULL
-	);
+		);
 	return fake_window_handle;
 }
 static auto win32_set_fake_pixel_format(HDC fake_device_context) -> void {
 	PIXELFORMATDESCRIPTOR fake_pixel_format_descriptor;
 	ZeroMemory(&fake_pixel_format_descriptor, sizeof(fake_pixel_format_descriptor));
-	fake_pixel_format_descriptor.nSize = sizeof(fake_pixel_format_descriptor);
-	fake_pixel_format_descriptor.nVersion = 1;
-	fake_pixel_format_descriptor.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-	fake_pixel_format_descriptor.iPixelType = PFD_TYPE_RGBA;
-	fake_pixel_format_descriptor.cColorBits = 32;
-	fake_pixel_format_descriptor.cAlphaBits = 8;
-	fake_pixel_format_descriptor.cDepthBits = 24;
-
+	fake_pixel_format_descriptor.nSize				= sizeof(fake_pixel_format_descriptor);
+	fake_pixel_format_descriptor.nVersion			= 1;
+	fake_pixel_format_descriptor.dwFlags			= PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+	fake_pixel_format_descriptor.iPixelType			= PFD_TYPE_RGBA;
+	fake_pixel_format_descriptor.cColorBits			= 32;
+	fake_pixel_format_descriptor.cRedBits			= 0;
+	fake_pixel_format_descriptor.cRedShift			= 0;
+	fake_pixel_format_descriptor.cGreenBits			= 0;
+	fake_pixel_format_descriptor.cGreenShift		= 0;
+	fake_pixel_format_descriptor.cBlueBits			= 0;
+	fake_pixel_format_descriptor.cBlueShift			= 0;
+	fake_pixel_format_descriptor.cAlphaBits			= 8;
+	fake_pixel_format_descriptor.cAlphaShift		= 0;
+	fake_pixel_format_descriptor.cAccumBits			= 0;
+	fake_pixel_format_descriptor.cAccumRedBits		= 0;
+	fake_pixel_format_descriptor.cAccumGreenBits	= 0;
+	fake_pixel_format_descriptor.cAccumBlueBits		= 0;
+	fake_pixel_format_descriptor.cAccumAlphaBits	= 0;
+	fake_pixel_format_descriptor.cDepthBits			= 24;
+	fake_pixel_format_descriptor.cStencilBits		= 8;
+	fake_pixel_format_descriptor.cAuxBuffers		= 0;
+	fake_pixel_format_descriptor.iLayerType			= PFD_MAIN_PLANE;
+	fake_pixel_format_descriptor.bReserved			= 0;
+	fake_pixel_format_descriptor.dwLayerMask		= 0;
+	fake_pixel_format_descriptor.dwVisibleMask		= 0;
+	fake_pixel_format_descriptor.dwDamageMask		= 0;
 
 	int fake_pixel_format_descriptor_ID = ChoosePixelFormat(fake_device_context, &fake_pixel_format_descriptor);
-	if (fake_pixel_format_descriptor_ID == 0) {
-		std::cout << "ChoosePixelFormat() failed." << std::endl;
-		return;
-	} else std::cout << "ChoosePixelFormat() succeeded." << std::endl;
-	if (SetPixelFormat(fake_device_context, fake_pixel_format_descriptor_ID, &fake_pixel_format_descriptor) == false) {
-		std::cout << "SetPixelFormat() failed." << std::endl;
-		return;
-	} else std::cout << "SetPixelFormat() succeeded." << std::endl;
+	BOOL pixel_format_success = SetPixelFormat(fake_device_context, fake_pixel_format_descriptor_ID, &fake_pixel_format_descriptor);
+	
+	{
+		if (fake_pixel_format_descriptor_ID == 0) {
+			std::cout << "ChoosePixelFormat() failed." << std::endl;
+			return;
+		} //else std::cout << "ChoosePixelFormat() succeeded." << std::endl;
+		if (pixel_format_success == false) {
+			std::cout << "SetPixelFormat() failed." << std::endl;
+			return;
+		} //else std::cout << "SetPixelFormat() succeeded." << std::endl;
+	}
 }
 static auto win32_create_fake_render_context(HDC fake_device_context) -> HGLRC {
 	HGLRC fake_render_context = wglCreateContext(fake_device_context);
-	if (fake_render_context == 0) {
-		std::cout << "wglCreateContext() failed." << std::endl;
-		return NULL;
-	} else std::cout << "wglCreateContext() succeeded." << std::endl;
+	BOOL current_succes = wglMakeCurrent(fake_device_context, fake_render_context);
 
-	if (wglMakeCurrent(fake_device_context, fake_render_context) == false) {
-		std::cout << "wglMakeCurrent() failed." << std::endl;
-		return NULL;
-	} else std::cout << "wglMakeCurrent() succeeded." << std::endl;
+	{
+		if (fake_render_context == 0) {
+			std::cout << "wglCreateContext() failed." << std::endl;
+			return NULL;
+		} //else std::cout << "wglCreateContext() succeeded." << std::endl;
+
+		if (wglMakeCurrent(fake_device_context, fake_render_context) == false) {
+			std::cout << "wglMakeCurrent() failed." << std::endl;
+			return NULL;
+		} //else std::cout << "wglMakeCurrent() succeeded." << std::endl;
+	}
 	return fake_render_context;
 }
 static auto win32_destroy_fake_window(HWND fake_window_handle, HDC fake_device_context, HGLRC fake_render_context) -> void {
@@ -160,35 +200,51 @@ static auto win32_destroy_fake_window(HWND fake_window_handle, HDC fake_device_c
 }
 
 static auto win32_create_real_window(HINSTANCE instance) -> HWND {
-	HWND real_window_handle = CreateWindow(
-		L"Core", L"OpenGL Window",        // class name, window name
-		WS_OVERLAPPEDWINDOW /*| WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_CLIPSIBLINGS | WS_CLIPCHILDREN*/, // style
-		CW_USEDEFAULT, CW_USEDEFAULT,       // posx, posy
-		CW_USEDEFAULT, CW_USEDEFAULT,    // width, height
+	uint32_t window_ex_style = 0;
+	TCHAR app_window_class[] = L"Core";
+	TCHAR app_window_title[] = L"OpenGL Window";
+	uint32_t window_style = WS_OVERLAPPEDWINDOW;
+	int32_t window_x = CW_USEDEFAULT;
+	int32_t window_y = CW_USEDEFAULT;
+	int32_t window_width = CW_USEDEFAULT;
+	int32_t window_height = CW_USEDEFAULT;
+
+	HWND real_window_handle = CreateWindowExW(
+		window_ex_style,
+		app_window_class,
+		app_window_title,
+		window_style,
+		window_x, window_y,
+		window_width, window_height,
 		NULL, NULL,                     // parent window, menu
 		instance, NULL
-	);
+		);
 	return real_window_handle;
 }
 static auto win32_set_real_pixel_format(HDC real_device_context) -> void {
 	PIXELFORMATDESCRIPTOR real_pixel_format_descriptor;
 	const int pixel_attributes[] = {
-		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE, // 0
-		WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB, // 1
-		WGL_SUPPORT_OPENGL_ARB, GL_TRUE, // 2
-		WGL_DOUBLE_BUFFER_ARB, GL_TRUE, // 3
-		WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB, // 4
-		WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, GL_TRUE, // 5
+		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+		WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
+		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+		WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+		WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, GL_TRUE,
+		WGL_COLOR_BITS_ARB, 32,
+		WGL_DEPTH_BITS_ARB, 24,
+		WGL_STENCIL_BITS_ARB, 8,
+		WGL_SWAP_METHOD_ARB, WGL_SWAP_EXCHANGE_ARB,
 		0,
 	};
 
-	int real_pixel_format_descriptor_ID; UINT num_formats;
+	int real_pixel_format_descriptor_ID; 
+	UINT num_formats;
 	bool status = wglChoosePixelFormatARB(real_device_context, pixel_attributes, NULL, 1, &real_pixel_format_descriptor_ID, &num_formats);
 
 	if (status == false || num_formats == 0) {
 		std::cout << "wglChoosePixelFormatARB() failed." << std::endl;
 		return;
-	} else std::cout << "wglChoosePixelFormatARB() succeeded." << std::endl;
+	} //else std::cout << "wglChoosePixelFormatARB() succeeded." << std::endl;
 
 
 	DescribePixelFormat(real_device_context, real_pixel_format_descriptor_ID, sizeof(real_pixel_format_descriptor), &real_pixel_format_descriptor);
@@ -206,12 +262,12 @@ static auto win32_create_real_render_context(HDC real_device_context) -> HGLRC {
 	if (real_render_context == NULL) {
 		std::cout << "wglCreateContextAttribsARB() failed." << std::endl;
 		return NULL;
-	} else std::cout << "wglCreateContextAttribsARB() succeeded." << std::endl;
+	} //else std::cout << "wglCreateContextAttribsARB() succeeded." << std::endl;
 
 	if (!wglMakeCurrent(real_device_context, real_render_context)) {
 		std::cout << "wglMakeCurrent() failed." << std::endl;
 		return NULL;
-	} else std::cout << "wglMakeCurrent() succeeded." << std::endl;
+	} //else std::cout << "wglMakeCurrent() succeeded." << std::endl;
 	return real_render_context;
 }
 
@@ -222,16 +278,13 @@ static auto convertCharArrayToLPCWSTR(const char* charArray) -> wchar_t* {
 	return wString;
 }
 
-
-static auto win32_make_window(Vec2 size, const std::string& title) -> HWND {
-	 
-}
-Window::Window() : m_window_handle(nullptr) /*m_handle(nullptr)*/ {}
-
+Window::Window() : m_window_handle(nullptr) {}
 
 auto Window::init(const std::string& title, Vec2 size) -> void {
 	m_size = size;
 	m_title = title;
+
+	//equivalent to glfwInit()
 	HINSTANCE instance = GetModuleHandleW(NULL);
 	win32_register_window_class(instance);
 
@@ -240,13 +293,9 @@ auto Window::init(const std::string& title, Vec2 size) -> void {
 	win32_set_fake_pixel_format(fake_device_context);
 	HGLRC fake_render_context = win32_create_fake_render_context(fake_device_context);
 
-	if (gladLoadGL() != 1) {
-		std::cout << "gladLoadGL() failed." << std::endl;
-	}
+	load_opengl_functions();
 
-	wglChoosePixelFormatARB = (wgl_choose_pixel_format_arb*)wglGetProcAddress("wglChoosePixelFormatARB");
-	wglCreateContextAttribsARB = (wgl_create_context_attribs_arb*)wglGetProcAddress("wglCreateContextAttribsARB");
-
+	// equivalent to glfwCreateWindow()
 	HWND real_window_handle = win32_create_real_window(instance);
 	HDC real_device_context = GetDC(real_window_handle);
 	win32_set_real_pixel_format(real_device_context);
@@ -254,41 +303,21 @@ auto Window::init(const std::string& title, Vec2 size) -> void {
 	HGLRC real_render_context = win32_create_real_render_context(real_device_context);
 
 
+	if (gladLoadGL() != 1) {
+		std::cout << "gladLoadGL() failed." << std::endl;
+	}
+
+
 	auto version = win32_convert_char_array_to_LPCWSTR((const char*)glGetString(GL_VERSION));
 	SetWindowTextW(real_window_handle, version);
 	ShowWindow(real_window_handle, SW_SHOW);
 
 	m_window_handle = real_window_handle;
-	m_device_context = real_device_context;
 
-	//glfwInit();
-
-	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	std::cout << glGetString(GL_VERSION) << std::endl;
+	wglSwapIntervalEXT(1);
 
 
-	//m_handle = glfwCreateWindow(m_size.x, m_size.y, m_title.c_str(), NULL, NULL);
-	//if (m_handle == nullptr) {
-	//	std::cout << "Failed to create GLFW window" << std::endl;
-	//	glfwTerminate();
-	//}
-	//glfwMakeContextCurrent(m_handle);
-	//glfwSetFramebufferSizeCallback(m_handle, framebuffer_size_callback);
-
-
-
-	//if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-	//	std::cout << "Failed to initialize GLAD" << std::endl;
-	//}
-
-	//GLint gl_major_version;
-	//GLint gl_minor_version;
-	//glGetIntegerv(GL_MAJOR_VERSION, &gl_major_version);
-	//glGetIntegerv(GL_MINOR_VERSION, &gl_minor_version);
-	//std::cout << gl_major_version << ", " << gl_minor_version << std::endl;
-
-	//glfwSwapInterval(1);
 }
 
 //auto Window::get_handle() const -> GLFWwindow* {
@@ -317,8 +346,8 @@ auto Window::display_FPS() const -> void {
 			std::string title = m_title + " FPS: " + std::to_string(FPS);
 
 			SetWindowTextW(m_window_handle, win32_convert_char_array_to_LPCWSTR(title.c_str()));
-			//glfwSetWindowTitle(m_handle, title.c_str());
 		}
 		FPS = 0;
 	}
 }
+

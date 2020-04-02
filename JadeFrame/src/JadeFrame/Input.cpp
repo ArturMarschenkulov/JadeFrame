@@ -16,29 +16,58 @@ auto InputManager::key_callback(int64_t lParam, uint64_t wParam, uint32_t messag
 	auto bit31 = (lParam >> 31) & 1; // 0 == pressed, 1 == released
 
 
-	bool is_system_key = (bit29 == 1);
-	bool is_repeated = (bit30 == 1);
-	bool is_pressed = (bit31 == 0);
+	bool b_is_system_key = (bit29 == 1);
+	bool b_is_repeated = (bit30 == 1);
+	bool b_is_pressed = (bit31 == 0);
 
 
-	m_current_key_state[keycode] = is_pressed;
+	m_current_key_state[keycode] = b_is_pressed;
 
-	if (m_current_key_state[(int)EKey::ESCAPE] == is_pressed) {
-
+	if (m_current_key_state[(int)EKey::ESCAPE] == b_is_pressed)
+	{
+		
 		BaseApp::get_app_instance()->get_window().set_running(false);
+		std::cout << "s" << std::endl;
+		//PostQuitMessage(0);
 	}
+}
 
+auto InputManager::is_key_down(const EKey key) -> bool {
+	bool is_down;
+	if (m_current_key_state[(int)key] == true) {
+		is_down = true;
+	} else {
+		is_down = false;
+	}
+	return is_down;
+}
 
-	//auto is_pressed = (b31 == 0) && (b30 == 0);
-	//auto is_released = (b31 == 1) && (b30 == 1);
-	//if (is_released) {
-	//	std::cout << (char)keycode << " " << b29 << b30 << b31 << std::endl;
-	//}
-	//int key, scancode;
-	//const int action = (HIWORD(lParam) & KF_UP) ? GLFW_RELEASE : GLFW_PRESS;
-	//const int mods = getKeyMods();
-	//if (wParam == VK_ESCAPE) {
-	//	PostQuitMessage(0);
-	//}
+auto InputManager::is_key_up(const EKey key) const -> bool {
+	bool is_up;
+	if (m_current_key_state[(int)key] == false) {
+		is_up = true;
+	} else {
+		is_up = false;
+	}
+	return is_up;
+}
 
+auto InputManager::is_key_pressed(const EKey key) const -> bool {
+	bool is_pressed = false;
+	if ((m_current_key_state[(int)key] != m_previous_key_state[(int)key]) && (m_current_key_state[(int)key] == true)) {
+		is_pressed = true;
+	} else {
+		is_pressed = false;
+	}
+	return is_pressed;
+}
+
+auto InputManager::is_key_released(const EKey key) const -> bool {
+	bool is_released = false;
+	if ((m_current_key_state[(int)key] != m_previous_key_state[(int)key]) && (m_current_key_state[(int)key] == false)) {
+		is_released = true;
+	} else {
+		is_released = false;
+	}
+	return is_released;
 }

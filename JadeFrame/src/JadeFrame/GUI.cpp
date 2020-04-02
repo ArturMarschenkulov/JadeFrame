@@ -4,7 +4,8 @@ auto GUI_init(HWND window) -> void {
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	ImGui_ImplWin32_Init(window);
-	ImGui_ImplOpenGL3_Init();
+	const char* glsl_version = "#version 450";
+	ImGui_ImplOpenGL3_Init(glsl_version);
 }
 auto GUI_new_frame() -> void {
 	ImGui_ImplOpenGL3_NewFrame();

@@ -6,7 +6,7 @@
 /*
 List of various (open source) source codes which can be taken for inspiration
 
-	Blender, Godot, Unreal Engine, Ogre, SFML, Cell, MagnumEngine, Hazel/Spark, raylib, Urho3D, Handmade Hero, CrystalSpace3D
+	Blender, Godot, Unreal Engine, Ogre, SFML, Cell, MagnumEngine, Hazel/Spark, raylib, Urho3D, Handmade Hero, CrystalSpace3D, Juce
 
 
 Orthographical convention:

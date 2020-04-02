@@ -97,13 +97,8 @@ public:
 	static std::array<bool, 512> m_current_key_state;
 	static std::array<bool, 512> m_previous_key_state;
 
-	auto is_key_down(EKey key) -> bool {
-		bool is_down;
-		if (m_current_key_state[(int)key] == true) {
-			is_down = true;
-		} else {
-			is_down = false;
-		}
-		return is_down;
-	}
+	auto is_key_down(const EKey key) -> bool;
+	auto is_key_up(const EKey key) const -> bool;
+	auto is_key_pressed(const EKey key) const -> bool;
+	auto is_key_released(const EKey key) const -> bool;
 };

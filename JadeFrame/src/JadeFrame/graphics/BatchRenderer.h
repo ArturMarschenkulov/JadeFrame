@@ -41,8 +41,7 @@ struct GLCache {
 			depth_test = enable;
 			if (enable) {
 				glEnable(GL_DEPTH_TEST);
-			}
-			else {
+			} else {
 				glDisable(GL_DEPTH_TEST);
 			}
 		}
