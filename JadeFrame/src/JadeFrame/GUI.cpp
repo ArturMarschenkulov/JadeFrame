@@ -1,4 +1,6 @@
 #include "GUI.h"
+#include <imgui/imgui_impl_win32.h>
+#include <imgui/imgui_impl_opengl3.h>
 
 auto GUI_init(HWND window) -> void {
 	ImGui::CreateContext();

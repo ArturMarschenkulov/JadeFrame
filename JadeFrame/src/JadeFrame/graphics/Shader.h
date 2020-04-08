@@ -43,18 +43,18 @@ private:
 		EShaderType  type;
 		std::string  name;
 		int          size;
-		GLuint location;
+		/*GLuint*/ uint32_t location;
 	};
 	struct Uniform : ShaderType {};
 	struct VertexAttribute : ShaderType {};
 public:
 	auto get_uniform_location(const std::string& name) const -> GLint;
-	auto set_uniform1i(const std::string& name, const int value) const -> void;
-	auto set_uniform1f(const std::string& name, const float value) const -> void;
-	auto set_uniform2f(const std::string& name, const Vec2& value) const -> void;
-	auto set_uniform3f(const std::string& name, const Vec3& value) const -> void;
-	auto set_uniform4f(const std::string& name, const Vec4& value) const -> void;
-	auto set_uniform_matrix4fv(const std::string& name, const Mat4& mat) const -> void;
+	auto set_uniform(const std::string& name, const int value) const -> void;
+	auto set_uniform(const std::string& name, const float value) const -> void;
+	auto set_uniform(const std::string& name, const Vec2& value) const -> void;
+	auto set_uniform(const std::string& name, const Vec3& value) const -> void;
+	auto set_uniform(const std::string& name, const Vec4& value) const -> void;
+	auto set_uniform_matrix(const std::string& name, const Mat4& mat) const -> void;
 	auto update_shader_variables(int shaderType) -> void;
 	std::vector<Uniform> m_uniforms;
 	std::vector<VertexAttribute> m_attributes;

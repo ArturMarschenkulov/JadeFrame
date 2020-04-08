@@ -124,6 +124,6 @@ auto MeshManager::make_cube(Vec3 pos, Vec3 size) -> Mesh {
 
 
 auto Mesh::send_to_buffer() -> void {
-	BaseApp::get_app_instance()->m_renderer.handle_mesh(*this);
+	BaseApp::get_app_instance()->m_renderer->handle_mesh(*this);
 
 }

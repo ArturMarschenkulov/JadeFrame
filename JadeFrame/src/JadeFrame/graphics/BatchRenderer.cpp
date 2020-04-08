@@ -38,7 +38,7 @@ void BatchRenderer::end() {
 }
 void BatchRenderer::update_matrices_and_send_to_GPU() {
 	Mat4 MVP = /*matrix_stack.model_matrix * */matrix_stack.view_matrix * matrix_stack.projection_matrix;
-	BaseApp::get_app_instance()->m_shader.set_uniform_matrix4fv("MVP", MVP);
+	BaseApp::get_app_instance()->m_shader->set_uniform_matrix("MVP", MVP);
 }
 
 // TODO: more of a helper function. maybe I'll remove it.
@@ -67,25 +67,19 @@ void BatchRenderer::BufferData::init() {
 	indices.resize(MAX_INDICES_FOR_BATCH);
 
 	//GPU
-	glCreateBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	GLuint vertex_buffer_size_in_bytes = vertices.size() * sizeof(Vertex);
-	glBufferData(GL_ARRAY_BUFFER, vertex_buffer_size_in_bytes, NULL, GL_DYNAMIC_DRAW);
+	vertex_buffer.bind();
+	vertex_buffer.reserve_in_GPU(vertex_buffer_size_in_bytes);
 
+	vertex_array.bind();
+	vertex_array.set_layout();
 
-	glCreateVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
-	glEnableVertexAttribArray(1);
-
-	glCreateBuffers(1, &IBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 	GLuint index_buffer_size_in_bytes = indices.size() * sizeof(GLuint);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer_size_in_bytes, NULL, GL_DYNAMIC_DRAW);
+	index_buffer.bind();
+	index_buffer.reserve_in_GPU(index_buffer_size_in_bytes);
 
-	glBindVertexArray(0);
+	vertex_array.unbind();
+	//glBindVertexArray(0);
 
 }
 void BatchRenderer::BufferData::add_to_buffer(Mesh& mesh) {
@@ -96,7 +90,7 @@ void BatchRenderer::BufferData::add_to_buffer(Mesh& mesh) {
 		reset_counters();
 	}
 
-	for(unsigned int i = 0; i < mesh.vertices.size(); i++) {
+	for(GLuint i = 0; i < mesh.vertices.size(); i++) {
 		vertices[i + vertex_offset].position = mesh.vertices[i].position;
 		vertices[i + vertex_offset].color = current_color;;
 		vertex_count++;
@@ -112,23 +106,21 @@ void BatchRenderer::BufferData::add_to_buffer(Mesh& mesh) {
 }
 void BatchRenderer::BufferData::update() {
 
-	glBindVertexArray(VAO);
+	vertex_array.bind();
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	GLuint vertex_buffer_size_in_bytes = vertex_count * sizeof(Vertex);
-	//GLuint vertex_buffer_size_in_bytes2 = vertices.size() * sizeof(Vertex);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, vertex_buffer_size_in_bytes, vertices.data());
+	vertex_buffer.bind();
+	vertex_buffer.update(vertex_buffer_size_in_bytes, vertices.data());
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+
 	GLuint index_buffer_size_in_bytes = index_count * sizeof(GLuint);
-	//GLuint index_buffer_size_in_bytes2 = indices.size() * sizeof(GLuint);
-	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, index_buffer_size_in_bytes, indices.data());
+	index_buffer.bind();
+	index_buffer.update(index_buffer_size_in_bytes, indices.data());
 
-	glBindVertexArray(0);
+	vertex_array.unbind();
 }
 void BatchRenderer::BufferData::draw() {
-
-	glBindVertexArray(VAO);
+	vertex_array.bind();
 	glDrawElements((GLenum)m_primitive_type, index_count, GL_UNSIGNED_INT, 0);
 }
 void BatchRenderer::BufferData::reset_counters() {
@@ -136,24 +128,4 @@ void BatchRenderer::BufferData::reset_counters() {
 	index_offset = 0;
 	vertex_count = 0;
 	index_count = 0;
-}
-
-
-
-
-
-void BatchRenderer::ortho(float left, float right, float buttom, float top, float zNear, float zFar) {
-	matrix_stack.projection_matrix = matrix_stack.projection_matrix * Mat4::ortho(left, right, buttom, top, zNear, zFar);
-}
-void BatchRenderer::perspective(float fovy, float aspect, float zNear, float zFar) {
-	matrix_stack.projection_matrix = matrix_stack.projection_matrix * Mat4::perspective(fovy, aspect, zNear, zFar);
-}
-void BatchRenderer::translate(Vec3 vec) {
-	*matrix_stack.current_matrix = Mat4::translate(*matrix_stack.current_matrix, vec);
-}
-void BatchRenderer::rotate(float angle, float x, float y, float z) {
-	*matrix_stack.current_matrix = Mat4::rotate(*matrix_stack.current_matrix, angle, Vec3(x, y, z));
-}
-void BatchRenderer::scale(float x, float y, float z) {
-	*matrix_stack.current_matrix = Mat4::scale(*matrix_stack.current_matrix, Vec3(x, y, z));
 }

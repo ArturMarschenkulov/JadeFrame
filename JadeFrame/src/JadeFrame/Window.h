@@ -1,8 +1,10 @@
 #pragma once
-#include <glad/glad.h>
-#include <iostream>
 #include <string>
 #include "math/Vec2.h"
+
+struct HWND__;
+typedef HWND__* HWND;
+
 class Window {
 public:
 	Window();
@@ -10,7 +12,7 @@ public:
 	auto init(const std::string& title, Vec2 size) -> void;
 
 	//auto get_handle() const -> GLFWwindow*;
-	auto get_size() const->Vec2;
+	auto get_size() const -> Vec2;
 	auto get_width() const -> float;
 	auto get_height() const -> float;
 

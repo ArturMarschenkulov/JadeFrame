@@ -173,23 +173,23 @@ auto Shader::get_uniform_location(const std::string& name) const -> GLint {
 }
 
 
-auto Shader::set_uniform1i(const std::string& name, int value) const -> void {
+auto Shader::set_uniform(const std::string& name, int value) const -> void {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl; __debugbreak();
 }
-auto Shader::set_uniform1f(const std::string& name, float value) const -> void {
+auto Shader::set_uniform(const std::string& name, float value) const -> void {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl; __debugbreak();
 }
-auto Shader::set_uniform2f(const std::string& name, const Vec2& value) const -> void {
+auto Shader::set_uniform(const std::string& name, const Vec2& value) const -> void {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl; __debugbreak();
 }
-auto Shader::set_uniform3f(const std::string& name, const Vec3& value) const -> void {
+auto Shader::set_uniform(const std::string& name, const Vec3& value) const -> void {
 	std::cout << __FUNCTION__ << " not implemented yet!" << std::endl; __debugbreak();
 }
-auto Shader::set_uniform4f(const std::string& name, const Vec4& value) const -> void {
+auto Shader::set_uniform(const std::string& name, const Vec4& value) const -> void {
 	int loc = get_uniform_location(name);
 	glUniform4f(loc, value.x, value.y, value.z, value.w);
 }
-auto Shader::set_uniform_matrix4fv(const std::string& name, const Mat4& mat) const -> void {
+auto Shader::set_uniform_matrix(const std::string& name, const Mat4& mat) const -> void {
 	GLint loc = get_uniform_location(name);
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &mat[0][0]);
 }

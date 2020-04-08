@@ -203,7 +203,6 @@
     <ClInclude Include="src\JadeFrame\math\Vec4.h" />
     <ClInclude Include="src\JadeFrame\graphics\Mesh.h" />
     <ClInclude Include="src\JadeFrame\graphics\BatchRenderer.h" />
-    <ClInclude Include="src\JadeFrame\graphics\BaseRenderer.h" />
     <ClInclude Include="src\JadeFrame\graphics\Shader.h" />
     <ClInclude Include="src\JadeFrame\Window.h" />
   </ItemGroup>
@@ -229,7 +228,6 @@
     <ClCompile Include="src\JadeFrame\math\Vec4.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\Mesh.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\BatchRenderer.cpp" />
-    <ClCompile Include="src\JadeFrame\graphics\BaseRenderer.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\Shader.cpp" />
     <ClCompile Include="src\JadeFrame\Window.cpp" />
   </ItemGroup>

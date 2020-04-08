@@ -1,8 +1,9 @@
 #pragma once
 #include <imgui/imgui.h>
-#include <imgui/imgui_impl_win32.h>
-#include <imgui/imgui_impl_opengl3.h>
-#include <Windows.h>
+
+
+struct HWND__;
+typedef HWND__* HWND;
 
 auto GUI_init(HWND window) -> void;
 auto GUI_new_frame() -> void;

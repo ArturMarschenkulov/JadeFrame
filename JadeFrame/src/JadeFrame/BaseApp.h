@@ -29,8 +29,8 @@ public:
 	//auto get_input() const -> Input { return m_input; };
 	//BatchShader& get_shader() { return m_shader; };
 	//Renderer* get_renderer() { return m_renderer; };
-	Shader m_shader;
-	BatchRenderer m_renderer;
+	std::unique_ptr<Shader> m_shader;
+	std::unique_ptr<BatchRenderer> m_renderer;
 	//private:
 	Window m_window;
 	InputManager m_input_manager;

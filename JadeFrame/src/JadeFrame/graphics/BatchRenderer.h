@@ -47,6 +47,78 @@ struct GLCache {
 		}
 	}
 };
+
+class VertexBuffer {
+public:
+	VertexBuffer() {
+		glCreateBuffers(1, &m_ID);
+	}
+	~VertexBuffer() {
+		glDeleteBuffers(1, &m_ID);
+	}
+
+	auto bind() -> void {
+		glBindBuffer(GL_ARRAY_BUFFER, m_ID);
+	}
+	auto reserve_in_GPU(GLuint size_in_bytes) {
+		// if NULL is passed in as data, it only reserves size_in_bytes bytes.
+		glBufferData(GL_ARRAY_BUFFER, size_in_bytes, NULL, GL_DYNAMIC_DRAW);
+	}
+	auto send_to_GPU(GLuint size_in_bytes, Vertex* data) {
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, size_in_bytes, data, GL_DYNAMIC_DRAW);
+	}
+	auto update(GLuint size_in_bytes, Vertex* data) -> void {
+		glBufferSubData(GL_ARRAY_BUFFER, 0, size_in_bytes, data);
+	}
+	GLuint m_ID = 0;
+};
+
+class VertexArray {
+public:
+	VertexArray() {
+		glCreateVertexArrays(1, &m_ID);
+	}
+	~VertexArray() {
+		glDeleteVertexArrays(1, &m_ID);
+	}
+	auto bind() -> void {
+		glBindVertexArray(m_ID);
+	}
+	auto unbind() -> void {
+		glBindVertexArray(0);
+	}
+	auto set_layout() -> void {
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+		glEnableVertexAttribArray(1);
+	}
+	GLuint m_ID = 0;
+};
+
+class IndexBuffer {
+public:
+	IndexBuffer() {
+		glCreateBuffers(1, &m_ID);
+	}
+	~IndexBuffer() {
+		glDeleteBuffers(1, &m_ID);
+	}
+	auto bind() -> void {
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ID);
+	}
+	auto reserve_in_GPU(GLuint size_in_bytes) {
+		// if NULL is passed in as data, it only reserves size_in_bytes bytes.
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, size_in_bytes, NULL, GL_DYNAMIC_DRAW);
+	}
+	auto send_to_GPU(GLuint size_in_bytes, GLuint* data) {
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, size_in_bytes, data, GL_DYNAMIC_DRAW);
+	}
+	auto update(GLuint size_in_bytes, GLuint* data) -> void {
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size_in_bytes, data);
+	}
+	GLuint m_ID = 0;
+};
 class BatchRenderer {
 public:
 	BatchRenderer();
@@ -62,9 +134,9 @@ public:
 		std::vector<Vertex> vertices;
 		std::vector<GLuint> indices;
 
-		GLuint VBO = 0;
-		GLuint VAO = 0;
-		GLuint IBO = 0;
+		VertexBuffer vertex_buffer;
+		VertexArray vertex_array;
+		IndexBuffer index_buffer;
 
 		GLuint vertex_offset = 0;
 		GLuint index_offset = 0;
@@ -87,14 +159,7 @@ public:
 	//Matrix operations
 public:
 	auto update_matrices_and_send_to_GPU() -> void;
-	auto ortho(float left, float right, float buttom, float top, float zNear, float zFar) -> void;
-	auto perspective(float fovy, float aspect, float zNear, float zFar) -> void;
-	auto translate(Vec3 vec) -> void;
-	auto rotate(float angle, float x, float y, float z) -> void;
-	auto scale(float x, float y, float z) -> void;
 
-	auto push_matrix() -> void { matrix_stack.push(); }
-	auto pop_matrix() -> void { matrix_stack.pop(); }
 	//private:
 	struct MatrixStack {
 		std::stack<Mat4> stack;
@@ -105,22 +170,6 @@ public:
 		Mat4 transform_matrix;
 		bool use_transform_matrix;
 	public:
-		auto push() -> void {
-			use_transform_matrix = true;
-			current_matrix = &transform_matrix;
-			stack.push(*current_matrix);
-		}
-		auto pop() -> void {
-			if (!stack.empty()) {
-				Mat4 mat = stack.top();
-				*current_matrix = mat;
-				stack.pop();
-			}
-			if (stack.empty()) {
-				current_matrix = &view_matrix;
-				use_transform_matrix = false;
-			}
-		}
 		auto set_matrices_to_identity() -> void {
 			projection_matrix = Mat4();
 			view_matrix = Mat4();

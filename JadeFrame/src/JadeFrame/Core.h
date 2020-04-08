@@ -53,4 +53,6 @@ TODO:
 	- add maybe own GUI system
 	- add possible debug mode, so that one can see various performance data on screen
 
+	- create a graphics layer which could potential could be dynamically switched out between software rendering, OpenGL, Vulkan, Direct3D11 and Direct3D12 
+
 */

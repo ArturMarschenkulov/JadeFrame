@@ -1,9 +1,11 @@
 #include "Window.h"
+
 #include <Windows.h>
 #include "BaseApp.h"
 #include <iostream>
 #include <glad/glad.h>
 #include "Input.h"
+
 
 
 #define WGL_CONTEXT_MAJOR_VERSION_ARB           0x2091
@@ -60,16 +62,7 @@ auto CALLBACK WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	auto& window = app->m_window;
 
 	switch (message) {
-		//case WM_SIZE:
-		//{
-		//	//RECT wr;
-		//	//wr.left = 100;
-		//	//wr.right = width
-		//	//std::cout << "WM_SIZE" << std::endl;
-		//	//window_dimension dimension = getWindowDimension(hwnd);
-		//	//resizeDIBSection(&globalBackBuffer, dimension.width, dimension.height);
-		//	//OutputDebugStringA("WM_SIZE\n");
-		//}break;
+
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
 	case WM_KEYUP:
@@ -134,36 +127,18 @@ static auto win32_create_fake_window(HINSTANCE instance) -> HWND {
 static auto win32_set_fake_pixel_format(HDC fake_device_context) -> void {
 	PIXELFORMATDESCRIPTOR fake_pixel_format_descriptor;
 	ZeroMemory(&fake_pixel_format_descriptor, sizeof(fake_pixel_format_descriptor));
-	fake_pixel_format_descriptor.nSize				= sizeof(fake_pixel_format_descriptor);
-	fake_pixel_format_descriptor.nVersion			= 1;
-	fake_pixel_format_descriptor.dwFlags			= PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-	fake_pixel_format_descriptor.iPixelType			= PFD_TYPE_RGBA;
-	fake_pixel_format_descriptor.cColorBits			= 32;
-	fake_pixel_format_descriptor.cRedBits			= 0;
-	fake_pixel_format_descriptor.cRedShift			= 0;
-	fake_pixel_format_descriptor.cGreenBits			= 0;
-	fake_pixel_format_descriptor.cGreenShift		= 0;
-	fake_pixel_format_descriptor.cBlueBits			= 0;
-	fake_pixel_format_descriptor.cBlueShift			= 0;
-	fake_pixel_format_descriptor.cAlphaBits			= 8;
-	fake_pixel_format_descriptor.cAlphaShift		= 0;
-	fake_pixel_format_descriptor.cAccumBits			= 0;
-	fake_pixel_format_descriptor.cAccumRedBits		= 0;
-	fake_pixel_format_descriptor.cAccumGreenBits	= 0;
-	fake_pixel_format_descriptor.cAccumBlueBits		= 0;
-	fake_pixel_format_descriptor.cAccumAlphaBits	= 0;
-	fake_pixel_format_descriptor.cDepthBits			= 24;
-	fake_pixel_format_descriptor.cStencilBits		= 8;
-	fake_pixel_format_descriptor.cAuxBuffers		= 0;
-	fake_pixel_format_descriptor.iLayerType			= PFD_MAIN_PLANE;
-	fake_pixel_format_descriptor.bReserved			= 0;
-	fake_pixel_format_descriptor.dwLayerMask		= 0;
-	fake_pixel_format_descriptor.dwVisibleMask		= 0;
-	fake_pixel_format_descriptor.dwDamageMask		= 0;
+	fake_pixel_format_descriptor.nSize = sizeof(fake_pixel_format_descriptor);
+	fake_pixel_format_descriptor.nVersion = 1;
+	fake_pixel_format_descriptor.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+	fake_pixel_format_descriptor.iPixelType = PFD_TYPE_RGBA;
+	fake_pixel_format_descriptor.cColorBits = 32;
+	fake_pixel_format_descriptor.cAlphaBits = 8;
+	fake_pixel_format_descriptor.cDepthBits = 24;
+	fake_pixel_format_descriptor.iLayerType = PFD_MAIN_PLANE;
 
 	int fake_pixel_format_descriptor_ID = ChoosePixelFormat(fake_device_context, &fake_pixel_format_descriptor);
 	BOOL pixel_format_success = SetPixelFormat(fake_device_context, fake_pixel_format_descriptor_ID, &fake_pixel_format_descriptor);
-	
+
 	{
 		if (fake_pixel_format_descriptor_ID == 0) {
 			std::cout << "ChoosePixelFormat() failed." << std::endl;
@@ -185,7 +160,7 @@ static auto win32_create_fake_render_context(HDC fake_device_context) -> HGLRC {
 			return NULL;
 		} //else std::cout << "wglCreateContext() succeeded." << std::endl;
 
-		if (wglMakeCurrent(fake_device_context, fake_render_context) == false) {
+		if (current_succes == false) {
 			std::cout << "wglMakeCurrent() failed." << std::endl;
 			return NULL;
 		} //else std::cout << "wglMakeCurrent() succeeded." << std::endl;
@@ -199,15 +174,15 @@ static auto win32_destroy_fake_window(HWND fake_window_handle, HDC fake_device_c
 	DestroyWindow(fake_window_handle);
 }
 
-static auto win32_create_real_window(HINSTANCE instance) -> HWND {
+static auto win32_create_real_window(HINSTANCE instance, Vec2 size) -> HWND {
 	uint32_t window_ex_style = 0;
 	TCHAR app_window_class[] = L"Core";
 	TCHAR app_window_title[] = L"OpenGL Window";
 	uint32_t window_style = WS_OVERLAPPEDWINDOW;
 	int32_t window_x = CW_USEDEFAULT;
 	int32_t window_y = CW_USEDEFAULT;
-	int32_t window_width = CW_USEDEFAULT;
-	int32_t window_height = CW_USEDEFAULT;
+	int32_t window_width = size.x; //CW_USEDEFAULT;
+	int32_t window_height = size.y;  //CW_USEDEFAULT;
 
 	HWND real_window_handle = CreateWindowExW(
 		window_ex_style,
@@ -237,7 +212,7 @@ static auto win32_set_real_pixel_format(HDC real_device_context) -> void {
 		0,
 	};
 
-	int real_pixel_format_descriptor_ID; 
+	int real_pixel_format_descriptor_ID;
 	UINT num_formats;
 	bool status = wglChoosePixelFormatARB(real_device_context, pixel_attributes, NULL, 1, &real_pixel_format_descriptor_ID, &num_formats);
 
@@ -259,15 +234,19 @@ static auto win32_create_real_render_context(HDC real_device_context) -> HGLRC {
 		0
 	};
 	HGLRC real_render_context = wglCreateContextAttribsARB(real_device_context, 0, context_attributes);
-	if (real_render_context == NULL) {
-		std::cout << "wglCreateContextAttribsARB() failed." << std::endl;
-		return NULL;
-	} //else std::cout << "wglCreateContextAttribsARB() succeeded." << std::endl;
+	BOOL current_succes = wglMakeCurrent(real_device_context, real_render_context);
 
-	if (!wglMakeCurrent(real_device_context, real_render_context)) {
-		std::cout << "wglMakeCurrent() failed." << std::endl;
-		return NULL;
-	} //else std::cout << "wglMakeCurrent() succeeded." << std::endl;
+	{
+		if (real_render_context == NULL) {
+			std::cout << "wglCreateContextAttribsARB() failed." << std::endl;
+			return NULL;
+		} //else std::cout << "wglCreateContextAttribsARB() succeeded." << std::endl;
+
+		if (current_succes == false) {
+			std::cout << "wglMakeCurrent() failed." << std::endl;
+			return NULL;
+		} //else std::cout << "wglMakeCurrent() succeeded." << std::endl;
+	}
 	return real_render_context;
 }
 
@@ -293,10 +272,11 @@ auto Window::init(const std::string& title, Vec2 size) -> void {
 	win32_set_fake_pixel_format(fake_device_context);
 	HGLRC fake_render_context = win32_create_fake_render_context(fake_device_context);
 
+
 	load_opengl_functions();
 
 	// equivalent to glfwCreateWindow()
-	HWND real_window_handle = win32_create_real_window(instance);
+	HWND real_window_handle = win32_create_real_window(instance, size);
 	HDC real_device_context = GetDC(real_window_handle);
 	win32_set_real_pixel_format(real_device_context);
 	win32_destroy_fake_window(fake_window_handle, fake_device_context, fake_render_context);

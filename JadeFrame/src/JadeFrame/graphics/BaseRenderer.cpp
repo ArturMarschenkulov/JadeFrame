@@ -83,7 +83,7 @@ void BaseRenderer::handle_mesh(Mesh& mesh) {
 }
 void BaseRenderer::update_matrices() {
 	Mat4 MVP = matrix_stack.model_matrix * matrix_stack.view_matrix * matrix_stack.projection_matrix;
-	BaseApp::get_app_instance()->m_shader.set_uniform_matrix4fv("MVP", MVP);
+	BaseApp::get_app_instance()->m_shader->set_uniform_matrix("MVP", MVP);
 }
 void BaseRenderer::end() {
 	update_matrices();
@@ -92,7 +92,7 @@ void BaseRenderer::end() {
 void BaseRenderer::set_color(const Color& color) {
 	static Color cColor;
 	if(!(color == cColor)) {
-		current_shader->set_uniform4f("color", { color.r, color.g, color.b, color.a });
+		current_shader->set_uniform("color", { color.r, color.g, color.b, color.a });
 	}
 }
 void BaseRenderer::set_clear_color(const Color& color) {
