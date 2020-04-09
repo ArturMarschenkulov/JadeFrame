@@ -163,12 +163,9 @@ public:
 	//private:
 	struct MatrixStack {
 		std::stack<Mat4> stack;
-		Mat4 model_matrix;
+		Mat4 model_matrix = Mat4();
 		Mat4 view_matrix;
 		Mat4 projection_matrix;
-		Mat4* current_matrix;
-		Mat4 transform_matrix;
-		bool use_transform_matrix;
 	public:
 		auto set_matrices_to_identity() -> void {
 			projection_matrix = Mat4();
@@ -182,6 +179,4 @@ public:
 public:
 	GLCache gl_cache;
 	auto set_color(const Color& color) -> void;
-	//void set_clear_color(const Color& color);
-	//void set_depth_test(bool enable);
 };

@@ -20,9 +20,7 @@ void BatchRenderer::init(Shader* shader) {
 }
 
 void BatchRenderer::start(PRIMITIVE_TYPE type) {
-	//matrix_stack.view_matrix = Mat4();
 	matrix_stack.model_matrix = Mat4();
-	matrix_stack.current_matrix = &matrix_stack.view_matrix;
 
 	buffer_data.m_primitive_type = type;
 
@@ -30,7 +28,6 @@ void BatchRenderer::start(PRIMITIVE_TYPE type) {
 	current_shader->use();
 }
 void BatchRenderer::end() {
-
 	update_matrices_and_send_to_GPU();
 	buffer_data.update();
 	buffer_data.draw();
@@ -40,16 +37,7 @@ void BatchRenderer::update_matrices_and_send_to_GPU() {
 	Mat4 MVP = /*matrix_stack.model_matrix * */matrix_stack.view_matrix * matrix_stack.projection_matrix;
 	BaseApp::get_app_instance()->m_shader->set_uniform_matrix("MVP", MVP);
 }
-
-// TODO: more of a helper function. maybe I'll remove it.
 void BatchRenderer::handle_mesh(Mesh& mesh) {
-	if(matrix_stack.use_transform_matrix == true) {
-		Mat4 m = matrix_stack.transform_matrix;
-		for(int i = 0; i < mesh.vertices.size(); i++) {
-			mesh.vertices[i].position = m * mesh.vertices[i].position;
-		}
-	}
-
 	buffer_data.add_to_buffer(mesh);
 }
 
@@ -79,24 +67,22 @@ void BatchRenderer::BufferData::init() {
 	index_buffer.reserve_in_GPU(index_buffer_size_in_bytes);
 
 	vertex_array.unbind();
-	//glBindVertexArray(0);
-
 }
 void BatchRenderer::BufferData::add_to_buffer(Mesh& mesh) {
-	if((vertex_count + mesh.vertices.size() > MAX_VERTICES_FOR_BATCH) ||
+	if ((vertex_count + mesh.vertices.size() > MAX_VERTICES_FOR_BATCH) ||
 		(index_count + mesh.indices.size() > MAX_INDICES_FOR_BATCH)) {
 		update();
 		draw();
 		reset_counters();
 	}
 
-	for(GLuint i = 0; i < mesh.vertices.size(); i++) {
+	for (GLuint i = 0; i < mesh.vertices.size(); i++) {
 		vertices[i + vertex_offset].position = mesh.vertices[i].position;
 		vertices[i + vertex_offset].color = current_color;;
 		vertex_count++;
 	}
 
-	for(int i = 0; i < mesh.indices.size(); i++) {
+	for (int i = 0; i < mesh.indices.size(); i++) {
 		indices[i + index_offset] = mesh.indices[i] + vertex_offset;
 		index_count++;
 	}
