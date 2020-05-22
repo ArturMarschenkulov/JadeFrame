@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Shader.h"
+#include "GLShader.h"
 
 #include <vector>
 #include "../math/Vec3.h"
@@ -12,13 +12,13 @@
 class BaseRenderer {
 public:
 	BaseRenderer();
-	void init(Shader* shader);
+	void init(GLShader* shader);
 	void start();
-	void handle_mesh(Mesh& mesh);
+	void add_to_buffer(Mesh& mesh);
 	void end();
 
 private:
-	Shader* current_shader = nullptr;
+	GLShader* current_shader = nullptr;
 
 	//Matrix operations
 public:
@@ -62,34 +62,4 @@ public:
 	void set_color(const Color& color);
 	void set_clear_color(const Color& color);
 	int num_draw_calls;
-};
-
-class JadeFrame {
-public:
-	//static bool RegisterClass(const HINSTANCE HInstance, const HICON HIcon) {
-	//	WNDCLASS wc;
-	//	FMemory::Memzero(&wc, sizeof(wc));
-	//	wc.style = CS_DBLCLKS; // We want to receive double clicks
-	//	wc.lpfnWndProc = AppWndProc;
-	//	wc.cbClsExtra = 0;
-	//	wc.cbWndExtra = 0;
-	//	wc.hInstance = HInstance;
-	//	wc.hIcon = HIcon;
-	//	wc.hCursor = NULL;	// We manage the cursor ourselves
-	//	wc.hbrBackground = NULL; // Transparent
-	//	wc.lpszMenuName = NULL;
-	//	wc.lpszClassName = FWindowsWindow::AppWindowClass;
-
-	//	if(!::RegisterClass(&wc)) {
-	//		//ShowLastError();
-
-	//		// @todo Slate: Error message should be localized!
-	//		FSlowHeartBeatScope SuspendHeartBeat;
-	//		MessageBox(NULL, TEXT("Window Registration Failed!"), TEXT("Error!"), MB_ICONEXCLAMATION | MB_OK);
-
-	//		return false;
-	//	}
-
-	//	return true;
-	//}
 };

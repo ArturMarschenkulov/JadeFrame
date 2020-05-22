@@ -59,7 +59,6 @@ Mat4 Mat4::operator*(const Mat4& other) const {
 	Mat4 result(0.0f);
 	for(int row = 0; row < 4; ++row) {
 		for(int col = 0; col < 4; ++col) {
-			float sum = 0.0f;
 			for(unsigned int k = 0; k < 4; ++k) {
 				//result.el[col][row] += el[k][row] * other.el[col][k];
 				result.el[col][row] += el[col][k] * other.el[k][row];

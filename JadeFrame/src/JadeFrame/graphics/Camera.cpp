@@ -23,7 +23,6 @@ auto Camera::perspective(Vec3 pos, float fov, float aspect, float zNear, float z
 }
 
 auto Camera::get_view_matrix() const -> Mat4 {
-
 	Mat4 view = Mat4::lookAt(m_position, m_position + m_front, m_up);
 	return view;
 }
@@ -38,22 +37,22 @@ auto Camera::move() -> void {
 	auto i = BaseApp::get_app_instance()->m_input_manager;
 
 
-	if(i.is_key_down(EKey::E)) m_position += m_up * r;
-	if(i.is_key_down(EKey::Q)) m_position -= m_up * r;
+	if(i.is_key_down(KEY::E)) m_position += m_up * r;
+	if(i.is_key_down(KEY::Q)) m_position -= m_up * r;
 
-	if(i.is_key_down(EKey::A)) m_position -= m_right * r;
-	if(i.is_key_down(EKey::D)) m_position += m_right * r;
+	if(i.is_key_down(KEY::A)) m_position -= m_right * r;
+	if(i.is_key_down(KEY::D)) m_position += m_right * r;
 
-	if(i.is_key_down(EKey::S)) m_position -= m_front * r;
-	if(i.is_key_down(EKey::W)) m_position += m_front * r;
+	if(i.is_key_down(KEY::S)) m_position -= m_front * r;
+	if(i.is_key_down(KEY::W)) m_position += m_front * r;
 
-	if(i.is_key_down(EKey::UP))    m_pitch += r;
-	if(i.is_key_down(EKey::DOWN))  m_pitch -= r;
-	if(i.is_key_down(EKey::RIGHT)) m_yaw += r;
-	if(i.is_key_down(EKey::LEFT))  m_yaw -= r;
+	if(i.is_key_down(KEY::UP))    m_pitch += r;
+	if(i.is_key_down(KEY::DOWN))  m_pitch -= r;
+	if(i.is_key_down(KEY::RIGHT)) m_yaw += r;
+	if(i.is_key_down(KEY::LEFT))  m_yaw -= r;
 
-	if(i.is_key_down(EKey::R))  m_fovy += r;
-	if(i.is_key_down(EKey::F))  m_fovy -= r;
+	if(i.is_key_down(KEY::R))  m_fovy += r;
+	if(i.is_key_down(KEY::F))  m_fovy -= r;
 
 
 

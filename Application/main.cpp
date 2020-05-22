@@ -1,12 +1,14 @@
 #include<JadeFrame.h>
+#include <variant>
+#include <optional>
 
 
 class App : public BaseApp {
 public:
 public:
-	void setup() {}
-	void update() {}
-	void draw() {}
+	auto setup() -> void {}
+	auto update() -> void {}
+	auto draw() -> void {}
 };
 
 

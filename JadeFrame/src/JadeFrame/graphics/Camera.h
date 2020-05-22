@@ -12,16 +12,16 @@ public:
 	auto move() -> void;
 	auto update() -> void;
 
-	Mat4 m_projection_matrix;
-	Vec3 m_position;
-	Vec3 m_up;
-	Vec3 m_right;
-	Vec3 m_front;
-	Vec3 m_worldUp;
+	Mat4 m_projection_matrix{};
+	Vec3 m_position{};
+	Vec3 m_up{};
+	Vec3 m_right{};
+	Vec3 m_front{};
+	Vec3 m_worldUp{};
 
-	float m_fovy;
-	float m_yaw;
-	float m_pitch;
-	float m_roll;
+	float m_fovy{};
+	float m_yaw{};
+	float m_pitch{};
+	float m_roll{};
 
 };

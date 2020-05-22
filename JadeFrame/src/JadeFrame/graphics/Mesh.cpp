@@ -1,6 +1,13 @@
 #include "Mesh.h"
 #include "../BaseApp.h"
-
+const Color EColor::RED = { 255, 0, 0 };
+const Color EColor::GREEN = { 0, 255, 0 };
+const Color EColor::BLUE = { 0, 0, 255 };
+const Color EColor::YELLOW = { 255, 255, 0 };
+const Color EColor::CYAN = { 0, 255, 255 };
+const Color EColor::MAGENTA = { 255, 0, 255 };
+const Color EColor::BLACK = { 255, 255, 255 };
+const Color EColor::WHITE = { 0, 0, 0 };
 auto MeshManager::make_line(Vec3 pos1, Vec3 pos2) -> Mesh {
 	Mesh mesh;
 	mesh.vertices.resize(2);
@@ -120,10 +127,4 @@ auto MeshManager::make_cube(Vec3 pos, Vec3 size) -> Mesh {
 		6, 5, 2
 	};
 	return mesh;
-}
-
-
-auto Mesh::send_to_buffer() -> void {
-	BaseApp::get_app_instance()->m_renderer->handle_mesh(*this);
-
 }

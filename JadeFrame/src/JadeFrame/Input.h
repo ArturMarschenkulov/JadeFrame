@@ -4,46 +4,46 @@
 #include "math/Vec2.h"
 
 
-enum class EInputState {
-	PRESSED,
-	RELEASED
+enum class INPUT_STATE {
+	RELEASED,
+	PRESSED
 };
-
-enum class EKey {
-	SPACE = 32,
-	ESCAPE = 256,
-	ENTER = 257,
-	TAB = 258,
-	BACKSPACE = 259,
-	INSERT = 260,
-	DELET = 261,
-	RIGHT = 262,
-	LEFT = 263,
-	DOWN = 264,
-	UP = 265,
-	PAGE_UP = 266,
-	PAGE_DOWN = 267,
-	HOME = 268,
-	END = 269,
-	CAPS_LOCK = 280,
-	SCROLL_LOCK = 281,
-	NUM_LOCK = 282,
-	PRINT_SCREEN = 283,
-	PAUSE = 284,
-	F1 = 290,
-	F2 = 291,
-	F3 = 292,
-	F4 = 293,
-	F5 = 294,
-	F6 = 295,
-	F7 = 296,
-	F8 = 297,
-	F9 = 298,
-	F10 = 299,
-	F11 = 300,
-	F12 = 301,
-	LEFT_SHIFT = 340,
-	LEFT_CONTROL = 341,
+#include <windows.h>
+enum class KEY {
+	SPACE = VK_SPACE,
+	ESCAPE = VK_ESCAPE,// 256,
+	ENTER = VK_RETURN,
+	TAB = VK_TAB,
+	BACKSPACE = VK_BACK,
+	INSERT = VK_INSERT,
+	DELET = VK_DELETE,
+	RIGHT = VK_RIGHT,
+	LEFT = VK_LEFT,
+	DOWN = VK_DOWN,
+	UP = VK_UP,
+	PAGE_UP = VK_PRIOR,
+	PAGE_DOWN = VK_NEXT,
+	HOME = VK_HOME,
+	END = VK_END,
+	CAPS_LOCK = VK_CAPITAL,
+	SCROLL_LOCK = VK_SCROLL,
+	NUM_LOCK = VK_NUMLOCK,
+	PRINT_SCREEN = VK_SNAPSHOT,
+	PAUSE = VK_PAUSE,
+	F1 = VK_F1,
+	F2 = VK_F2,
+	F3 = VK_F3,
+	F4 = VK_F4,
+	F5 = VK_F5,
+	F6 = VK_F6,
+	F7 = VK_F7,
+	F8 = VK_F8,
+	F9 = VK_F9,
+	F10 = VK_F10,
+	F11 = VK_F11,
+	F12 = VK_F12,
+	LEFT_SHIFT = VK_LSHIFT,
+	LEFT_CONTROL = VK_LCONTROL,
 	LEFT_ALT = 342,
 	RIGHT_SHIFT = 344,
 	RIGHT_CONTROL = 345,
@@ -97,8 +97,12 @@ public:
 	static std::array<bool, 512> m_current_key_state;
 	static std::array<bool, 512> m_previous_key_state;
 
-	auto is_key_down(const EKey key) -> bool;
-	auto is_key_up(const EKey key) const -> bool;
-	auto is_key_pressed(const EKey key) const -> bool;
-	auto is_key_released(const EKey key) const -> bool;
+
+	auto is_key_down(const KEY key) const -> bool;
+	auto is_key_up(const KEY key) const -> bool;
+	auto is_key_pressed(const KEY key) const -> bool;
+	auto is_key_released(const KEY key) const -> bool;
+
+	static auto mouse_button_callback(int32_t button, int32_t x, int32_t y) -> void;
+
 };

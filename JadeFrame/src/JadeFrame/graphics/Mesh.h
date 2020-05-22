@@ -8,6 +8,7 @@
 #include "../math/Mat4.h"
 
 
+
 class Color {
 public:
 	float r, g, b, a;
@@ -19,6 +20,19 @@ public:
 		return r != color.r || g != color.g || b != color.b || a != color.a;
 	}
 };
+class EColor {
+public:
+	static const Color RED;
+	static const Color GREEN;
+	static const Color BLUE;
+	static const Color YELLOW;
+	static const Color CYAN;
+	static const Color MAGENTA;
+	static const Color BLACK;
+	static const Color WHITE;
+};
+
+
 
 struct Vertex {
 	Vec3 position;
@@ -36,28 +50,16 @@ public:
 	int vertex_offset;
 	Vertex* vertex_buffer_ptr;
 	bool is_dirty;
-
-	auto send_to_buffer() -> void;
 };
 
 class MeshManager {
 public:
 	//use PRIMITIVE_TYPE::LINE
-	static auto make_line(Vec3 pos1, Vec3 pos2) -> Mesh;
-			    
-	static auto make_rectangle(Vec3 position, Vec3 size) ->Mesh;
-	static auto make_triangle(Vec3 pos1, Vec3 pos2, Vec3 pos3) ->Mesh;
-	static auto make_circle(Vec3 position, float radius, int numSegments) ->Mesh;
+	static auto make_line(Vec3 pos1, Vec3 pos2)->Mesh;
 
-	static auto make_cube(Vec3 start, Vec3 end) ->Mesh;
-};
+	static auto make_rectangle(Vec3 position, Vec3 size)->Mesh;
+	static auto make_triangle(Vec3 pos1, Vec3 pos2, Vec3 pos3)->Mesh;
+	static auto make_circle(Vec3 position, float radius, int numSegments)->Mesh;
 
-class MeshPrototype {
-	MeshPrototype();
-	std::vector<Vertex> vertices; // actual vertex data
-	std::vector<GLuint> indices; // actual index data
-	int vertex_offset; // at what offset this mesh starts
-	Vertex* vertex_buffer_ptr; // pointer to the vertex_buffer. Probably only needed if I have multiple buffers
-	bool is_dirty; // says whether this mesh has to be resent to the GPU
-
+	static auto make_cube(Vec3 start, Vec3 end)->Mesh;
 };

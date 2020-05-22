@@ -1,8 +1,10 @@
 #pragma once
-#include "Window.h"
-#include "graphics/BatchRenderer.h"
+#include "WinWindow.h"
+#include "graphics/GLRenderer.h"
 #include "graphics/BaseRenderer.h"
 #include "Input.h"
+
+
 
 
 class BaseApp {
@@ -25,15 +27,15 @@ public:
 private:
 	static BaseApp* instance;
 public:
-	auto get_window() const -> Window { return m_window; };
+	auto get_window() const -> WinWindow { return m_window; };
 	//auto get_input() const -> Input { return m_input; };
 	//BatchShader& get_shader() { return m_shader; };
 	//Renderer* get_renderer() { return m_renderer; };
-	std::unique_ptr<Shader> m_shader;
-	std::unique_ptr<BatchRenderer> m_renderer;
+	std::unique_ptr<GLShader> m_shader;
+	std::unique_ptr<GLBatchRenderer> m_renderer;
 	//private:
-	Window m_window;
+	WinWindow m_window;
 	InputManager m_input_manager;
 	//Input m_input;
-	Camera cam;
+	//Camera cam;
 };

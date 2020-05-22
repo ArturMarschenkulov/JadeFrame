@@ -77,7 +77,6 @@ public:
 	};
 
 	Mat4& makeEchelon() {
-		int lead = 0;
 		int colCount = 4;
 		int rowCount = 4;
 		// go through every column
@@ -95,7 +94,6 @@ public:
 	}
 	Mat4 getEchelon() {
 		Mat4 m = *this;
-		int lead = 0;
 		int colCount = 4;
 		int rowCount = 4;
 		// go through every column
