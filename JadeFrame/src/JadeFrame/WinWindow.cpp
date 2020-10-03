@@ -72,27 +72,26 @@ auto CALLBACK WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	case WM_SYSKEYUP: {
 		//InputManager::key_callback(lParam, wParam, message);
 		input_manager.key_callback(lParam, wParam, message);
-
 	}break;
 	case WM_LBUTTONDOWN:
 	case WM_LBUTTONUP:
 	case WM_RBUTTONDOWN:
 	case WM_RBUTTONUP:
 	case WM_MBUTTONDOWN:
-	case WM_MBUTTONUP:
-		input_manager.mouse_button_callback(message, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-
+	case WM_MBUTTONUP: {
+		input_manager.mouse_button_callback(lParam, wParam, message);
+	}break;
 	case WM_CLOSE: {
 		std::cout << "WM_CLOSE" << std::endl;
-		PostQuitMessage(0);
+		::PostQuitMessage(0);
 	}break;
 	case WM_DESTROY: {
 		std::cout << "WM_DESTROY" << std::endl;
-		//PostQuitMessage(0);
+		//::PostQuitMessage(0);
 	}break;
 	case WM_QUIT: {
 		std::cout << "WM_QUIT" << std::endl;
-		//PostQuitMessage(0);
+		//::PostQuitMessage(0);
 	}break;
 
 	default: {
@@ -107,7 +106,7 @@ auto CALLBACK WindowProcedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 static auto win32_convert_char_array_to_LPCWSTR(const char* charArray) -> wchar_t* {
 	wchar_t* wString = new wchar_t[4096];
 	//wchar_t wString[4096];
-	MultiByteToWideChar(CP_ACP, 0, charArray, -1, wString, 4096);
+	::MultiByteToWideChar(CP_ACP, 0, charArray, -1, wString, 4096);
 	return wString;
 }
 
@@ -120,7 +119,7 @@ static auto win32_register_window_class(HINSTANCE instance) -> void {
 	window_class.hInstance = instance;
 	window_class.hCursor = 0;// LoadCursor(NULL, IDC_ARROW);
 	window_class.lpszClassName = L"Core";
-	RegisterClassExW(&window_class);
+	::RegisterClassExW(&window_class);
 }
 
 static auto win32_create_fake_window(HINSTANCE instance) -> HWND {
@@ -160,8 +159,11 @@ static auto win32_set_fake_pixel_format(HDC fake_device_context) -> void {
 		} //else std::cout << "SetPixelFormat() succeeded." << std::endl;
 	}
 }
+
+
+
 #include <Wingdi.h>
-static auto win32_create_fake_render_context(HDC fake_device_context) -> HGLRC {
+static auto win32_wgl_create_fake_render_context(HDC fake_device_context) -> HGLRC {
 	HGLRC fake_render_context = wglCreateContext(fake_device_context);
 	BOOL current_succes = wglMakeCurrent(fake_device_context, fake_render_context);
 
@@ -178,17 +180,17 @@ static auto win32_create_fake_render_context(HDC fake_device_context) -> HGLRC {
 	}
 	return fake_render_context;
 }
-static auto win32_destroy_fake_window(HWND fake_window_handle, HDC fake_device_context, HGLRC fake_render_context) -> void {
+static auto win32_wgl_destroy_fake_window(HWND fake_window_handle, HDC fake_device_context, HGLRC fake_render_context) -> void {
 	wglMakeCurrent(NULL, NULL);
 	wglDeleteContext(fake_render_context);
-	ReleaseDC(fake_window_handle, fake_device_context);
-	DestroyWindow(fake_window_handle);
+	::ReleaseDC(fake_window_handle, fake_device_context);
+	::DestroyWindow(fake_window_handle);
 }
 
 static auto win32_create_real_window(HINSTANCE instance, Vec2 size, const std::string& title) -> HWND {
 	uint32_t window_ex_style = 0;
 	TCHAR app_window_class[] = L"Core";
-	TCHAR* app_window_title = win32_convert_char_array_to_LPCWSTR((const char*)title.c_str());
+	TCHAR* app_window_title = win32_convert_char_array_to_LPCWSTR(static_cast<const char*>(title.c_str()));
 	uint32_t window_style = WS_OVERLAPPEDWINDOW;
 	int32_t window_x = CW_USEDEFAULT;
 	int32_t window_y = CW_USEDEFAULT;
@@ -207,18 +209,19 @@ static auto win32_create_real_window(HINSTANCE instance, Vec2 size, const std::s
 		);
 	return real_window_handle;
 }
-static auto win32_set_real_pixel_format(HDC real_device_context) -> void {
+static auto win32_wgl_set_real_pixel_format(HDC real_device_context) -> void {
 	PIXELFORMATDESCRIPTOR real_pixel_format_descriptor;
 	const int pixel_attributes[] = {
 		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
-		WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
 		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
 		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
 		WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
-		WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, GL_TRUE,
 		WGL_COLOR_BITS_ARB, 32,
 		WGL_DEPTH_BITS_ARB, 24,
 		WGL_STENCIL_BITS_ARB, 8,
+
+		WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
+		WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, GL_TRUE,
 		WGL_SWAP_METHOD_ARB, WGL_SWAP_EXCHANGE_ARB,
 		0,
 	};
@@ -236,7 +239,7 @@ static auto win32_set_real_pixel_format(HDC real_device_context) -> void {
 	DescribePixelFormat(real_device_context, real_pixel_format_descriptor_ID, sizeof(real_pixel_format_descriptor), &real_pixel_format_descriptor);
 	SetPixelFormat(real_device_context, real_pixel_format_descriptor_ID, &real_pixel_format_descriptor);
 }
-static auto win32_create_real_render_context(HDC real_device_context) -> HGLRC {
+static auto win32_wgl_create_real_render_context(HDC real_device_context) -> HGLRC {
 	const int major_min = 4, minor_min = 5;
 	int  context_attributes[] = {
 		WGL_CONTEXT_MAJOR_VERSION_ARB, major_min,
@@ -261,30 +264,34 @@ static auto win32_create_real_render_context(HDC real_device_context) -> HGLRC {
 	return real_render_context;
 }
 
+#include <tuple>
+auto  win32_wgl_create_fake_context(HINSTANCE instance) -> std::tuple<HWND, HDC, HGLRC> {
+	HWND fake_window_handle = win32_create_fake_window(instance);
+	HDC fake_device_context = GetDC(fake_window_handle);
+	win32_set_fake_pixel_format(fake_device_context);
+	HGLRC fake_render_context = win32_wgl_create_fake_render_context(fake_device_context);
+	return std::make_tuple(fake_window_handle, fake_device_context, fake_render_context);
+}
+
 WinWindow::WinWindow() : m_window_handle(nullptr) {}
 
 auto WinWindow::init(const std::string& title, Vec2 size) -> void {
 	m_size = size;
 	m_title = title;
 
-	//equivalent to glfwInit()
 	HINSTANCE instance = GetModuleHandleW(NULL);
 	win32_register_window_class(instance);
 
-	HWND fake_window_handle = win32_create_fake_window(instance);
-	HDC fake_device_context = GetDC(fake_window_handle);
-	win32_set_fake_pixel_format(fake_device_context);
-	HGLRC fake_render_context = win32_create_fake_render_context(fake_device_context);
-
+	auto [fake_window_handle, fake_device_context, fake_render_context] = win32_wgl_create_fake_context(instance);
 
 	load_opengl_functions();
 
 	// equivalent to glfwCreateWindow()
 	HWND real_window_handle = win32_create_real_window(instance, size, title);
 	HDC real_device_context = GetDC(real_window_handle);
-	win32_set_real_pixel_format(real_device_context);
-	win32_destroy_fake_window(fake_window_handle, fake_device_context, fake_render_context);
-	HGLRC real_render_context = win32_create_real_render_context(real_device_context);
+	win32_wgl_set_real_pixel_format(real_device_context);
+	win32_wgl_destroy_fake_window(fake_window_handle, fake_device_context, fake_render_context);
+	/*HGLRC real_render_context = */win32_wgl_create_real_render_context(real_device_context);
 
 
 	if (gladLoadGL() != 1) {
@@ -308,13 +315,13 @@ auto WinWindow::init(const std::string& title, Vec2 size) -> void {
 //	return m_handle;
 //}
 
-auto WinWindow::get_size() const -> Vec2 {
-	return m_size;
-}
-
-auto WinWindow::get_width() const  -> float {
-	return get_size().x;
-}
-auto WinWindow::get_height() const -> float {
-	return get_size().y;
-}
+//auto WinWindow::get_size() const -> Vec2 {
+//	return m_size;
+//}
+//
+//auto WinWindow::get_width() const  -> float {
+//	return get_size().x;
+//}
+//auto WinWindow::get_height() const -> float {
+//	return get_size().y;
+//}

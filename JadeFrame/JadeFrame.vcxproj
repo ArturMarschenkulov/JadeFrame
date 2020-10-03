@@ -95,7 +95,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -116,7 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -137,7 +137,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -160,7 +160,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -277,6 +277,7 @@
     <ClInclude Include="src\extern\glad\glad.h" />
     <ClInclude Include="src\extern\imgui\imconfig.h" />
     <ClInclude Include="src\extern\imgui\imgui.h" />
+    <ClInclude Include="src\extern\imgui\imgui_impl_dx11.h" />
     <ClInclude Include="src\extern\imgui\imgui_impl_opengl3.h" />
     <ClInclude Include="src\extern\imgui\imgui_impl_win32.h" />
     <ClInclude Include="src\extern\imgui\imgui_internal.h" />
@@ -356,6 +357,7 @@
     <ClCompile Include="src\extern\imgui\imgui.cpp" />
     <ClCompile Include="src\extern\imgui\imgui_demo.cpp" />
     <ClCompile Include="src\extern\imgui\imgui_draw.cpp" />
+    <ClCompile Include="src\extern\imgui\imgui_impl_dx11.cpp" />
     <ClCompile Include="src\extern\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="src\extern\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="src\extern\imgui\imgui_widgets.cpp" />

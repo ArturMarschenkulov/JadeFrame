@@ -12,24 +12,24 @@ public:
 	Mat4(float diagonal);
 	Mat4(Vec4 col1, Vec4 col2, Vec4 col3, Vec4 col4);
 
-	std::array<float, 4>& operator[](const int index); // for writing
-	const std::array<float, 4>& operator[](const int index) const; // for reading
+	auto operator[](const int index) -> std::array<float, 4>&; // for writing
+	auto operator[](const int index) const -> const std::array<float, 4>&; // for reading
 
-	Vec3 operator*(const Vec3& vector) const;
-	Vec4 operator*(const Vec4& vector) const;
-	Mat4 operator*(const Mat4& other) const;
+	auto operator*(const Vec3& vector) const -> Vec3;
+	auto operator*(const Vec4& vector) const -> Vec4;
+	auto operator*(const Mat4& other) const -> Mat4;
 
-	static Mat4 ortho(float left, float right, float buttom, float top, float near, float far);
-	static Mat4 perspective(float fovy, float aspect, float near, float far);
+	static auto ortho(float left, float right, float buttom, float top, float near, float far) -> Mat4;
+	static auto perspective(float fovy, float aspect, float near, float far) -> Mat4;
 
-	static Mat4 translate(Mat4 const& mat, const Vec3& trans);
-	static Mat4 translate(const Vec3& trans);
-	static Mat4 rotate(Mat4 const& mat, float angle, const Vec3& axis);
-	static Mat4 rotate(float angle, const Vec3& axis);
-	static Mat4 scale(Mat4 const& mat, const Vec3& scale);
-	static Mat4 scale(const Vec3& scale);
+	static auto translate(Mat4 const& mat, const Vec3& trans) -> Mat4;
+	static auto translate(const Vec3& trans) -> Mat4;
+	static auto rotate(Mat4 const& mat, float angle, const Vec3& axis) -> Mat4;
+	static auto rotate(float angle, const Vec3& axis) -> Mat4;
+	static auto scale(Mat4 const& mat, const Vec3& scale) -> Mat4;
+	static auto scale(const Vec3& scale) -> Mat4;
 
-	static Mat4 lookAt(const Vec3& camera, Vec3 object, Vec3 up) {
+	static auto lookAt(const Vec3& camera, Vec3 object, Vec3 up) -> Mat4 {
 
 #if 1
 		Vec3 forward = (object - camera).normalize();
@@ -76,7 +76,7 @@ public:
 	
 	};
 
-	Mat4& makeEchelon() {
+	auto makeEchelon() -> Mat4& {
 		int colCount = 4;
 		int rowCount = 4;
 		// go through every column

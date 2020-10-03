@@ -6,22 +6,20 @@
 class App : public BaseApp {
 public:
 public:
-	auto setup() -> void {}
-	auto update() -> void {}
-	auto draw() -> void {}
+	virtual auto setup() -> void override {}
+	virtual auto update() -> void override {}
+	virtual auto draw() -> void override {}
 };
 
-
+#include <iostream>
+#include <thread>
 int main(void) {
-	//std::string t = "Test";
-	//BaseApp* app = new App();
-	//app->init_app(t, 1800, 800);
-	//app->run_app();
-
-	std::string t = "Test";
 	App app;
-	app.init_app(t, { 1800, 800 });
-	app.run_app();
+	std::string title = "Test";
+	float width = 1800;
+	float height = 800;
+	app.start(title, { width, height });
+
 	return 0;
 }
 

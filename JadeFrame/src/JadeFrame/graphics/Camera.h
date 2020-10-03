@@ -2,6 +2,15 @@
 #include "../math/Mat4.h"
 #include "../math/Vec3.h"
 
+struct Cam {
+	enum class TYPE {
+		ORTHOGRAPHIC,
+		PERSPECTIVE,
+	};
+	Cam(TYPE type);
+
+};
+
 class Camera {
 public:
 	Camera() {}
@@ -23,5 +32,9 @@ public:
 	float m_yaw{};
 	float m_pitch{};
 	float m_roll{};
+
+	float m_aspect;
+	float m_zNear;
+	float m_zFar;
 
 };

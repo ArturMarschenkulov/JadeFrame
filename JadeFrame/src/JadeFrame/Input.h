@@ -2,6 +2,7 @@
 #include "../extern/glad/glad.h"
 #include <array>
 #include "math/Vec2.h"
+#include <cstdint>
 
 
 enum class INPUT_STATE {
@@ -9,6 +10,14 @@ enum class INPUT_STATE {
 	PRESSED
 };
 #include <windows.h>
+
+enum class BUTTON {
+	LEFT = VK_LBUTTON,
+	RIGHT = VK_RBUTTON,
+	MIDDLE = VK_MBUTTON,
+	X1 = VK_XBUTTON1,
+	X2 = VK_XBUTTON2,
+}; 
 enum class KEY {
 	SPACE = VK_SPACE,
 	ESCAPE = VK_ESCAPE,// 256,
@@ -90,12 +99,12 @@ enum class KEY {
 	Z = 90,
 };
 class InputManager {
-	friend class Window;
+	friend class WinWindow;
 public:
 	auto handle_input() -> void;
 	static auto key_callback(int64_t lParam, uint64_t wParam, uint32_t message) -> void;
-	static std::array<bool, 512> m_current_key_state;
-	static std::array<bool, 512> m_previous_key_state;
+	static std::array<INPUT_STATE, 512> m_current_key_state;
+	static std::array<INPUT_STATE, 512> m_previous_key_state;
 
 
 	auto is_key_down(const KEY key) const -> bool;
@@ -103,6 +112,8 @@ public:
 	auto is_key_pressed(const KEY key) const -> bool;
 	auto is_key_released(const KEY key) const -> bool;
 
-	static auto mouse_button_callback(int32_t button, int32_t x, int32_t y) -> void;
-
+	static auto mouse_button_callback(int64_t lParam, int64_t wParam, int32_t message) -> void;
+	static std::array<INPUT_STATE, 3> m_current_mouse_button_state;
+	static std::array<INPUT_STATE, 3> m_previous_mouse_button_state;
+	static Vec2 m_mouse_posiition;
 };

@@ -13,30 +13,18 @@ class Color {
 public:
 	float r, g, b, a;
 
-	bool operator==(const Color& color) const {
+	auto operator==(const Color& color) const -> bool {
 		return r == color.r && g == color.g && b == color.b && a == color.a;
 	}
-	bool operator!=(const Color& color) const {
+	auto operator!=(const Color& color) const -> bool {
 		return r != color.r || g != color.g || b != color.b || a != color.a;
 	}
 };
-class EColor {
-public:
-	static const Color RED;
-	static const Color GREEN;
-	static const Color BLUE;
-	static const Color YELLOW;
-	static const Color CYAN;
-	static const Color MAGENTA;
-	static const Color BLACK;
-	static const Color WHITE;
-};
-
-
 
 struct Vertex {
 	Vec3 position;
 	Color color;
+	Vec2 tex_coord;
 };
 
 
@@ -51,6 +39,19 @@ public:
 	Vertex* vertex_buffer_ptr;
 	bool is_dirty;
 };
+
+class Mesh2 {
+public:
+	std::vector<Vec3> positions;
+	std::vector<Color> colors;
+	std::vector<Vec2> tex_coords;
+
+	std::vector<GLuint> indices;
+	int vertex_offset;
+	Vertex* vertex_buffer_ptr;
+	bool is_dirty;
+};
+
 
 class MeshManager {
 public:

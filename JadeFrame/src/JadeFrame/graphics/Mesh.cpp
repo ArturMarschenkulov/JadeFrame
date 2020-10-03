@@ -1,18 +1,13 @@
 #include "Mesh.h"
 #include "../BaseApp.h"
-const Color EColor::RED = { 255, 0, 0 };
-const Color EColor::GREEN = { 0, 255, 0 };
-const Color EColor::BLUE = { 0, 0, 255 };
-const Color EColor::YELLOW = { 255, 255, 0 };
-const Color EColor::CYAN = { 0, 255, 255 };
-const Color EColor::MAGENTA = { 255, 0, 255 };
-const Color EColor::BLACK = { 255, 255, 255 };
-const Color EColor::WHITE = { 0, 0, 0 };
 auto MeshManager::make_line(Vec3 pos1, Vec3 pos2) -> Mesh {
 	Mesh mesh;
 	mesh.vertices.resize(2);
 	mesh.vertices[0].position = pos1;
 	mesh.vertices[1].position = pos2;
+
+	mesh.vertices[0].tex_coord = { 0.0f, 0.0f };
+	mesh.vertices[1].tex_coord = { 0.0f, 0.0f };
 
 	mesh.indices.reserve(2);
 	mesh.indices = {
@@ -21,6 +16,27 @@ auto MeshManager::make_line(Vec3 pos1, Vec3 pos2) -> Mesh {
 	return mesh;
 }
 
+
+auto make_rectangle(Vec3 pos, Vec3 size) -> Mesh2 {
+	Mesh2 mesh;
+	mesh.positions.resize(4);
+	mesh.positions[0] = Vec3{ pos.x, pos.y, pos.z };
+	mesh.positions[1] = Vec3{ pos.x + size.x, pos.y, pos.z };
+	mesh.positions[2] = Vec3{ pos.x + size.x, pos.y + size.y, pos.z };
+	mesh.positions[3] = Vec3{ pos.x, pos.y + size.y, pos.z };
+
+	mesh.tex_coords.resize(4);
+	mesh.tex_coords[0] = { 1.0, 1.0 };
+	mesh.tex_coords[1] = { 1.0, 0.0 };
+	mesh.tex_coords[2] = { 0.0, 0.0 };
+	mesh.tex_coords[3] = { 0.0, 1.0 };
+
+	mesh.indices.reserve(6);
+	mesh.indices = {
+		0, 1, 3,
+		1, 2, 3
+	};
+}
 auto MeshManager::make_rectangle(Vec3 pos, Vec3 size) -> Mesh {
 	Mesh mesh;
 	mesh.vertices.resize(4);
@@ -29,6 +45,10 @@ auto MeshManager::make_rectangle(Vec3 pos, Vec3 size) -> Mesh {
 	mesh.vertices[2].position = Vec3{ pos.x + size.x, pos.y + size.y, pos.z };
 	mesh.vertices[3].position = Vec3{ pos.x, pos.y + size.y, pos.z };
 
+	mesh.vertices[0].tex_coord = { 1.0, 1.0 };
+	mesh.vertices[1].tex_coord = { 1.0, 0.0 };
+	mesh.vertices[2].tex_coord = { 0.0, 0.0 };
+	mesh.vertices[3].tex_coord = { 0.0, 1.0 };
 
 
 	mesh.indices.reserve(6);
@@ -100,6 +120,16 @@ auto MeshManager::make_cube(Vec3 pos, Vec3 size) -> Mesh {
 	mesh.vertices[6].position = { pos.x    , pos.y + size.y, pos.z - size.z };
 	mesh.vertices[7].position = { pos.x    , pos.y    , pos.z - size.z };
 
+	mesh.vertices[0].tex_coord = { 1.0, 1.0 };
+	mesh.vertices[1].tex_coord = { 1.0, 0.0 };
+	mesh.vertices[2].tex_coord = { 0.0, 0.0 };
+	mesh.vertices[3].tex_coord = { 0.0, 1.0 };
+	mesh.vertices[4].tex_coord = { 1.0, 1.0 };
+	mesh.vertices[5].tex_coord = { 1.0, 0.0 };
+	mesh.vertices[6].tex_coord = { 0.0, 0.0 };
+	mesh.vertices[7].tex_coord = { 0.0, 1.0 };
+
+
 	mesh.indices.resize(36);
 	mesh.indices = {
 		// Front
@@ -128,3 +158,14 @@ auto MeshManager::make_cube(Vec3 pos, Vec3 size) -> Mesh {
 	};
 	return mesh;
 }
+
+
+
+class Material {
+	GLShader m_shader;
+};
+
+class Model {
+	std::vector<Mesh> m_meshes;
+	std::vector<Material> m_materials;
+};

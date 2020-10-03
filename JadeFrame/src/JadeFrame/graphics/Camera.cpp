@@ -6,9 +6,9 @@
 
 
 
-auto Camera::perspective(Vec3 pos, float fov, float aspect, float zNear, float zFar) -> void {
+auto Camera::perspective(Vec3 pos, float fovy, float aspect, float zNear, float zFar) -> void {
 
-	m_projection_matrix = Mat4::perspective(fov, aspect, zNear, zFar);
+	m_projection_matrix = Mat4::perspective(fovy, aspect, zNear, zFar);
 	m_position = pos;
 	m_up = { 0, 0, 1 };
 	m_worldUp = { 0, 0, 1 };
@@ -16,10 +16,14 @@ auto Camera::perspective(Vec3 pos, float fov, float aspect, float zNear, float z
 	m_right = { 0, 1 , 0 };
 	m_front = { -1, 0, 0 };
 
-	m_fovy = 0.0f;
+	m_fovy = fovy;
 	m_yaw = 0.0f;
 	m_pitch = 0.0f;
 	m_roll = 0.0f;
+
+	m_aspect = aspect;
+	m_zNear = zNear;
+	m_zFar = zFar;
 }
 
 auto Camera::get_view_matrix() const -> Mat4 {
@@ -51,8 +55,19 @@ auto Camera::move() -> void {
 	if(i.is_key_down(KEY::RIGHT)) m_yaw += r;
 	if(i.is_key_down(KEY::LEFT))  m_yaw -= r;
 
-	if(i.is_key_down(KEY::R))  m_fovy += r;
-	if(i.is_key_down(KEY::F))  m_fovy -= r;
+
+	static float old_fovy = m_fovy;
+	if(i.is_key_down(KEY::R))  m_fovy += to_radians(r);
+	if(i.is_key_down(KEY::F))  m_fovy -= to_radians(r);
+
+	if(old_fovy != m_fovy) {
+		old_fovy = m_fovy;
+		perspective(m_position, m_fovy, m_aspect, m_zNear, m_zFar);
+		__debugbreak();
+		//BaseApp::get_app_instance()->m_renderer->matrix_stack.projection_matrix = get_projection_matrix();
+	}
+
+
 
 
 
