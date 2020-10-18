@@ -1,8 +1,96 @@
 #include "GLShader.h"
+#include<array>
 
 GLShader::GLShader()
 	: m_ID() {
 }
+
+struct Shader {
+	Shader(GLenum shader_type) {
+		GLuint shader_ID = glCreateShader(shader_type);
+	}
+	~Shader() {
+		glDeleteShader(m_ID);
+	}
+	auto set_shader_source(const std::string& code_source) -> void {
+		const GLchar* shader_code = code_source.c_str();
+		glShaderSource(m_ID, 1, &shader_code, nullptr);
+	}
+
+	auto compile() -> void {
+		glCompileShader(m_ID);
+	}
+	auto get_info(GLenum pname) -> GLint {
+		GLint result;
+		glGetShaderiv(m_ID, pname, &result);
+		return result;
+	}
+	auto get_compile_status() -> GLint {
+		GLint is_compiled = GL_FALSE;
+		glGetShaderiv(m_ID, GL_COMPILE_STATUS, &is_compiled);
+		return is_compiled;
+	}
+	auto get_info_log(GLsizei max_length) -> GLchar* {
+		GLchar info_log[512];
+		glGetShaderInfoLog(m_ID, max_length, &max_length, &info_log[0]);
+		return info_log;
+	}
+
+	GLuint m_ID;
+};
+
+struct Program {
+	Program() {
+		m_ID = glCreateProgram();
+	}
+	auto init() -> void {
+		//m_shaders.push_back({ GL_VERTEX_SHADER });
+		//m_shaders[0].set_shader_source(vs_source_flat);
+		//m_shaders[0].compile();
+
+		//m_shaders.push_back({ GL_FRAGMENT_SHADER });
+		//m_shaders[1].set_shader_source(vs_source_flat);
+		//m_shaders[1].compile();
+
+		//Program program;
+		//program.attach(v_shader);
+		//program.attach(f_shader);
+		//program.link();
+
+
+		//program.detach(v_shader);
+		//program.detach(f_shader);
+	}
+	auto attach(const Shader& shader) -> void {
+		glAttachShader(m_ID, shader.m_ID);
+	}
+	auto detach(const Shader& shader) -> void {
+		glDetachShader(m_ID, shader.m_ID);
+	}
+	auto link() -> void {
+		glLinkProgram(m_ID);
+	}
+	auto get_info(GLenum pname) -> GLint {
+		GLint result;
+		glGetProgramiv(m_ID, pname, &result);
+		return result;
+	}
+	auto use() -> void {
+		glUseProgram(m_ID);	
+	}
+
+	auto get_info_log(GLsizei max_length) -> GLchar* {
+		GLchar info_log[512];
+		glGetProgramInfoLog(m_ID, max_length, &max_length, &info_log[0]);
+		return info_log;
+	}
+	GLuint m_ID;
+	std::vector<Shader> m_shaders; //0:vertex_shader, 1: fragment_shader
+};
+
+struct GLShaderProgram {
+	Program program;
+};
 
 static auto compile(GLenum type, const std::string& code_source)->GLuint {
 	GLuint shader_ID = glCreateShader(type);
@@ -14,7 +102,7 @@ static auto compile(GLenum type, const std::string& code_source)->GLuint {
 	glGetShaderiv(shader_ID, GL_COMPILE_STATUS, &is_compiled);
 
 	if (is_compiled == GL_FALSE) {
-		GLint max_length = 512;
+		GLint max_length;
 		glGetShaderiv(shader_ID, GL_INFO_LOG_LENGTH, &max_length);
 		GLchar info_log[512];
 		glGetShaderInfoLog(shader_ID, max_length, &max_length, &info_log[0]);
@@ -63,18 +151,18 @@ static auto validate(GLuint program_id) -> void {
 const GLchar* vs_source_flat =
 R"(
 			#version 450 core
-			layout (location = 0) in vec3 v_pos;
-			layout (location = 1) in vec4 v_col;
+			layout (location = 0) in vec3 v_position;
+			layout (location = 1) in vec4 v_color;
 			layout (location = 2) in vec2 v_texture_coord;
 
-			out vec4 f_col;
+			out vec4 f_color;
 			out vec2 f_texture_coord;
 
 			uniform mat4 MVP;
 
 			void main() {
-				gl_Position = MVP * vec4(v_pos.x, v_pos.y, v_pos.z, 1.0);
-				f_col = v_col;
+				gl_Position = MVP * vec4(v_position.x, v_position.y, v_position.z, 1.0);
+				f_color = v_color;
 				f_texture_coord = v_texture_coord;
 			}
 		)";
@@ -82,16 +170,16 @@ const GLchar* fs_source_flat =
 R"(
 			#version 450 core
 
-			in vec4 f_col;
+			in vec4 f_color;
 			in vec2 f_texture_coord;
-			out vec4 o_col;
+			out vec4 o_color;
 
 			uniform sampler2D texture_0;
 
 			void main() {
 				
-				o_col = texture(texture_0, f_texture_coord);
-				o_col = f_col;
+				o_color = texture(texture_0, f_texture_coord);
+				o_color = f_color;
 			}
 		)";
 
@@ -122,6 +210,8 @@ R"(
 		)";
 
 
+
+
 auto GLShader::init() -> void {
 	//const GLchar* vertex_shader_source = vs_source_flat;
 	//const GLchar* fragment_shader_source = fs_source_flat;
@@ -142,7 +232,7 @@ auto GLShader::init() -> void {
 }
 
 auto GLShader::use() -> void {
-	glUseProgram(this->m_ID);
+	glUseProgram(m_ID);
 }
 
 auto GLShader::get_uniform_location(const std::string& name) const -> GLint {

@@ -293,7 +293,6 @@ auto WinWindow::init(const std::string& title, Vec2 size) -> void {
 	win32_wgl_destroy_fake_window(fake_window_handle, fake_device_context, fake_render_context);
 	/*HGLRC real_render_context = */win32_wgl_create_real_render_context(real_device_context);
 
-
 	if (gladLoadGL() != 1) {
 		std::cout << "gladLoadGL() failed." << std::endl;
 	}

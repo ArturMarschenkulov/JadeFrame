@@ -7,12 +7,9 @@
 #include "FontManager.h"
 
 
-auto print_GPU_variable_info() -> void;
 
 
-
-
-static auto add_grid_to_buffer(GLBufferData& buffer) -> void {
+static auto add_grid_to_buffer(GLBatchBufferData& buffer) -> void {
 	for (int i = -10; i <= 10; i += 1) {
 		buffer.set_color({ 0.5f, 0.8f, 0.5f, 1.0f }); buffer.add_to_buffer(MeshManager::make_line({ static_cast<float>(i), -10, 0 }, { static_cast<float>(i), 10, 0 }));//.send_to_buffer(); // RED X
 	}
@@ -20,7 +17,7 @@ static auto add_grid_to_buffer(GLBufferData& buffer) -> void {
 		buffer.set_color({ 0.8f, 0.5f, 0.5f, 1.0f }); buffer.add_to_buffer(MeshManager::make_line({ -10, static_cast<float>(i), 0 }, { 10, static_cast<float>(i), 0 }));//.send_to_buffer(); // RED X
 	}
 }
-static auto add_xyz_lines_to_buffer(GLBufferData& buffer) -> void {
+static auto add_xyz_lines_to_buffer(GLBatchBufferData& buffer) -> void {
 	buffer.set_color({ 1.0f, 0.0f, 0.0f, 1.0f }); buffer.add_to_buffer(MeshManager::make_line({ 0, 0, 0 }, { 10, 0, 0 }));// RED X
 	buffer.set_color({ 0.0f, 1.0f, 0.0f, 1.0f }); buffer.add_to_buffer(MeshManager::make_line({ 0, 0, 0 }, { 0, 10, 0 }));// GREEN Y
 	buffer.set_color({ 0.0f, 0.0f, 1.0f, 1.0f }); buffer.add_to_buffer(MeshManager::make_line({ 0, 0, 0 }, { 0, 0, 10 }));// BLUE Z
@@ -29,15 +26,10 @@ static auto add_xyz_lines_to_buffer(GLBufferData& buffer) -> void {
 	buffer.set_color({ 0.0f, 0.5f, 0.0f, 1.0f }); buffer.add_to_buffer(MeshManager::make_line({ 0, 0, 0 }, { 0, -10, 0 })); // GREEN Y
 	buffer.set_color({ 0.0f, 0.0f, 0.5f, 1.0f }); buffer.add_to_buffer(MeshManager::make_line({ 0, 0, 0 }, { 0, 0, -10 })); // BLUE Z
 }
-static auto add_cubes_to_buffer(GLBufferData& buffer) -> void {
+static auto add_cubes_to_buffer(GLBatchBufferData& buffer) -> void {
 	static Vec3 cubePos;
-	//ImGui::SliderFloat("cubePosX", &cubePos.x, -30, 30);
-	//ImGui::SliderFloat("cubePosY", &cubePos.y, -30, 30);
-	//ImGui::SliderFloat("cubePosZ", &cubePos.z, -30, 30);
-
-	//if (m_input_manager.is_key_press(EKey::B))
 	{
-		buffer.set_color({ 0.0f, 0.0, 0.0f, 1.0f }); buffer.add_to_buffer(MeshManager::make_cube(cubePos, { 1.0f, 1.0f, 1.0f }));//.send_to_buffer(); // RED X
+		buffer.set_color({ 0.0f, 0.0, 0.0f, 0.5f }); buffer.add_to_buffer(MeshManager::make_cube(cubePos, { 1.0f, 1.0f, 1.0f }));// BLACK X
 
 		 
 		buffer.set_color({ 1.0f, 0.0, 0.0f, 1.0f }); buffer.add_to_buffer(MeshManager::make_cube({ 5, 5, 5 }, { 1.0f, 1.0f, 100.0f }));   // RED X
@@ -47,7 +39,11 @@ static auto add_cubes_to_buffer(GLBufferData& buffer) -> void {
 	}
 }
 
-static auto add_texture_plane(GLBufferData& buffer) -> void {
+static auto add_cube_to_buffer(GLBatchBufferData& buffer) -> void {
+	buffer.set_color({ 0.0f, 0.0, 0.0f, 0.5f }); buffer.add_to_buffer(MeshManager::make_cube({0, 0, 0}, { 1.0f, 1.0f, 1.0f }));// BLACK X
+}
+
+static auto add_texture_plane(GLBatchBufferData& buffer) -> void {
 	buffer.set_color({ 1.0f, 1.0, 1.0f, 0.1f }); buffer.add_to_buffer(MeshManager::make_rectangle({ 5, -5, -5 }, { 5, 5, 5 }));
 }
 
@@ -77,6 +73,13 @@ auto draw_GUI(GLRenderer* m_renderer) -> void {
 	ImGui::SliderFloat("cam.m_fovy", &m_renderer->cam.m_fovy, to_radians(-60), to_radians(60));
 }
 
+static auto do_render_stuff(GLRenderer& renderer) -> void {
+	renderer.start(PRIMITIVE_TYPE::TRIANGLES);
+	//add_cube_to_buffer(renderer.buffer_data);
+	add_texture_plane(renderer.buffer_data);
+	renderer.end();
+}
+
 BaseApp* BaseApp::instance = nullptr;
 BaseApp::BaseApp() {
 }
@@ -88,28 +91,26 @@ auto BaseApp::start(const std::string& title, Vec2 size) -> void {
 	instance = this;
 	m_window.init(title, size);
 
-	//Shader
-	GLShader shader;
-	shader.init();
-	//~Shader
-
 	//Renderer
 	GLRenderer renderer;
 	renderer.init();
 	renderer.gl_cache.set_clear_color({ 0.2f, 0.2f, 0.2f, 1.0f });
 	renderer.gl_cache.set_depth_test(true);
+	renderer.gl_cache.set_clear_bitfield(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	renderer.gl_cache.set_blending(true);
+	//~Renderer
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+	//Shader
+	GLShader shader;
+	shader.init();
 	renderer.current_shader = &shader;
 	renderer.current_shader->use();
-	//~Renderer
+	//~Shader
 
 	//Camera
 	Camera camera;
 	camera.perspective(
-		{ 10, 10, 10 },
+		{ -20, 10, -5 },
 		to_radians(45.0f),
 		m_window.m_size.x / m_window.m_size.y,
 		0.1f,
@@ -119,125 +120,91 @@ auto BaseApp::start(const std::string& title, Vec2 size) -> void {
 	renderer.cam = camera;
 	//~Camera
 
+
+	//BufferData
+	GLBatchBufferData buffer_data;
+	buffer_data.init();
+	renderer.buffer_data = buffer_data;
+	//~BufferData
+
+	//Mesh cube_mesh = MeshManager::make_cube({ 0, 0, 0 }, { 1.0f, 1.0f, 1.0f });
+	//GLBatchBufferData cube_mesh_buffer;
+	//cube_mesh_buffer.init();
+	//cube_mesh_buffer.set_color({ 0.0f, 1.0, 0.0f, 1.0f }); cube_mesh_buffer.add_to_buffer(cube_mesh);
+	//cube_mesh_buffer.update();
+
+	Mesh cube_mesh = MeshManager::make_cube({ 0, 0, 0 }, { 1.0f, 1.0f, 1.0f });
+	GLBufferData cube_mesh_buffer;
+	cube_mesh_buffer.set_color({ 0.0f, 1.0, 0.0f, 1.0f });
+	cube_mesh_buffer.init(cube_mesh);
+
+
+
+	std::deque<GLBufferData> buffers;
+	//buffers.reserve(4);
+	for (int i = 0; i < 10; i++) {
+		Mesh mesh = MeshManager::make_cube({ 1.0f * i, 1.0f * i, 1.0f * i }, { 1.0f, 1.0f, 1.0f });
+		buffers.emplace_back();
+		buffers[i].set_color({ 0.0f, 1.0, 0.0f, 1.0f });
+		buffers[i].init(mesh);
+	}	
+
 	//GUI
-	GUI_init(m_window.m_window_handle);
+ 	GUI_init(m_window.m_window_handle);
 	//~GUI
+
 	HDC device_context = GetDC(m_window.m_window_handle);
 	while (m_window.m_is_running) {
 		SwapBuffers(device_context);
-		this->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-
+		this->clear(renderer.gl_cache.clear_bitfield);
 		this->poll_events();
 		GUI_new_frame();
 
-		draw_GUI(&renderer);
+		cube_mesh_buffer.m_primitive_type = PRIMITIVE_TYPE::TRIANGLES;
+		shader.use();
+		renderer.cam.move();
 
-		renderer.start(PRIMITIVE_TYPE::LINES);
-		add_grid_to_buffer(renderer.buffer_data);
-		add_xyz_lines_to_buffer(renderer.buffer_data);
-		renderer.end();
+		{
+			
+
+			renderer.matrix_stack.view_matrix = renderer.cam.get_view_matrix();
+			Mat4 MVP = renderer.matrix_stack.view_matrix * renderer.matrix_stack.projection_matrix;
+			shader.set_uniform_matrix("MVP", MVP);
+
+			for(int i = 0; i < buffers.size(); i++) {
+				buffers[i].draw();
+			}
+
+			//cube_mesh_buffer.draw();
+		}
 
 		renderer.start(PRIMITIVE_TYPE::TRIANGLES);
-		add_cubes_to_buffer(renderer.buffer_data);
-		add_texture_plane(renderer.buffer_data);
+		//add_cube_to_buffer(renderer.buffer_data);
+		//add_texture_plane(renderer.buffer_data);
 		renderer.end();
 
+
+		draw_GUI(&renderer);
 		GUI_render();
 	}
 
 }
-
-//auto BaseApp::init(const std::string& title, Vec2 size) -> void {
-//	instance = this;
-//	m_window.init(title, size);
-//	m_renderer = std::make_unique<GLRenderer>();
-//	m_renderer->init();
-//}
-
-//auto BaseApp::run() -> void {
-//	GUI_init(get_window().m_window_handle);
-//	static Vec3 camPos = { 10, 10, 10 };
-//	m_renderer->cam.perspective(
-//		camPos,
-//		to_radians(45.0f),
-//		m_window.get_width() / m_window.get_height(),
-//		0.1f,
-//		100.0f
-//	);
-//	m_renderer->matrix_stack.projection_matrix = m_renderer->cam.get_projection_matrix();
-//
-//	m_renderer->gl_cache.set_clear_color({ 0.2f, 0.2f, 0.2f, 1.0f });
-//
-//	HDC device_context = GetDC(m_window.m_window_handle);
-//
-//	m_renderer->gl_cache.set_depth_test(true);
-//	//m_renderer->gl_cache.set_blending(true);
-//	glEnable(GL_BLEND);
-//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//	
-//	while (get_window().m_is_running) {
-//		SwapBuffers(device_context);
-//		this->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-//		
-//
-//		this->poll_events();
-//		GUI_new_frame();
-//
-//		draw_GUI();
-//		
-//		m_renderer->start(PRIMITIVE_TYPE::LINES);
-//			add_grid_to_buffer(m_renderer->buffer_data);
-//			add_xyz_lines_to_buffer(m_renderer->buffer_data);
-//		m_renderer->end();
-//
-//		m_renderer->start(PRIMITIVE_TYPE::TRIANGLES);
-//			add_cubes_to_buffer(m_renderer->buffer_data);
-//			add_texture_plane(m_renderer->buffer_data);
-//		m_renderer->end();
-//		
-//		GUI_render();
-//	}
-//}
-
-
 auto BaseApp::poll_events() -> void {
 	m_input_manager.handle_input();
 
 	MSG message;
 	while (PeekMessageW(&message, NULL, 0, 0, PM_REMOVE)) {
 		if (message.message == WM_QUIT) {
-			m_window.m_is_running = false;
+			//m_window.m_is_running = false;
 			return;
 		}
 		TranslateMessage(&message);
 		DispatchMessageW(&message);
 	}
 }
-
 auto BaseApp::clear(GLbitfield bitfield) -> void {
 	glClear(bitfield);
 }
-
-
-auto print_GPU_variable_info(GLShader* m_shader) -> void {
-
-	//auto& m_shader = BaseApp::get_app_instance()->m_renderer->m_shader;
-
-	std::cout << "Uniforms: ";
-	for (auto uniform : m_shader->m_variables[0]) {
-		std::cout << uniform.name << " ";
-	} std::cout << std::endl;
-
-	std::cout << "Attribs : ";
-	for (auto attributes : m_shader->m_variables[1]) {
-		std::cout << attributes.name << " ";
-	} std::cout << std::endl;
-}
-
-
-
-
 
 struct CPUInfo {
 	CPUInfo() {
@@ -253,14 +220,14 @@ struct CPUInfo {
 		active_processor_mask = siSysInfo.dwActiveProcessorMask;
 	}
 	auto print() -> void {
-		//printf("Hardware information: \n");
-		//printf("  OEM ID: %u\n", OEM_ID);
-		//printf("  Number of processors: %u\n", number_of_processors);
-		//printf("  Page size: %u\n", page_size);
-		//printf("  Processor type: %u\n", processor_type);
-		//printf("  Minimum application address: %lx\n", minimum_application_address);
-		//printf("  Maximum application address: %lx\n", maximum_application_address);
-		//printf("  Active processor mask: %u\n", active_processor_mask);
+		printf("Hardware information: \n");
+		printf("  OEM ID: %u\n", OEM_ID);
+		printf("  Number of processors: %u\n", number_of_processors);
+		printf("  Page size: %u\n", page_size);
+		printf("  Processor type: %u\n", processor_type);
+		printf("  Minimum application address: %lx\n", minimum_application_address);
+		printf("  Maximum application address: %lx\n", maximum_application_address);
+		printf("  Active processor mask: %u\n", active_processor_mask);
 	}
 	DWORD OEM_ID;
 	DWORD page_size;
@@ -314,17 +281,6 @@ struct GPUInfo {
 	int num_extensions;
 };
 
-enum class OPERATING_SYSTEM {
-	WINDOWS,
-	LINUX,
-	MAC,
-};
 
-enum class RENDER_API {
-	OPENGL,
-	VULKAN,
-	DIRECTX11,
-	DIRECTX12,
-	METAL,
-	SOFTWARE,
+struct Actor {
 };

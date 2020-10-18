@@ -119,11 +119,42 @@ public:
 };
 
 
+enum BLENDING_FACTOR : int {
+	ZERO = GL_ZERO, 
+	ONE = GL_ONE, 
+	SRC_COLOR = GL_SRC_COLOR,
+	ONE_MINUS_SRC_COLOR = GL_ONE_MINUS_SRC_COLOR, 
+	DST_COLOR = GL_DST_COLOR, 
+	ONE_MINUS_DST_COLOR = GL_ONE_MINUS_DST_COLOR, 
+	SRC_ALPHA = GL_SRC_ALPHA, 
+	ONE_MINUS_SRC_ALPHA = GL_ONE_MINUS_SRC_ALPHA,
+	DST_ALPHA = GL_DST_ALPHA,
+	ONE_MINUS_DST_ALPHA = GL_ONE_MINUS_DST_ALPHA,
+	CONSTANT_COLOR = GL_CONSTANT_COLOR, 
+	ONE_MINUS_CONSTANT_COLOR = GL_ONE_MINUS_CONSTANT_COLOR, 
+	CONSTANT_ALPHA = GL_CONSTANT_ALPHA,
+	ONE_MINUS_CONSTANT_ALPHA = GL_ONE_MINUS_CONSTANT_ALPHA,
+};
+
+
 struct GLCache {
 
 	bool depth_test;
 	Color clear_color;
 	GLbitfield clear_bitfield;
+	bool blending;
+
+	auto set_blending(bool enable, BLENDING_FACTOR sfactor = SRC_ALPHA, BLENDING_FACTOR dfactor = ONE_MINUS_SRC_ALPHA) -> void {
+		if (blending != enable) {
+			blending = enable;
+			if (enable) {
+				glEnable(GL_BLEND);
+				glBlendFunc(sfactor, dfactor);
+			} else {
+				glDisable(GL_BLEND);
+			}
+		}
+	}
 
 	auto set_clear_color(const Color& color) -> void {
 		if (clear_color != color) {
@@ -132,11 +163,13 @@ struct GLCache {
 		}
 	}
 
-
-	auto add_clear_bitfield(GLbitfield bitfield) -> void {
+	auto set_clear_bitfield(const GLbitfield& bitfield) -> void {
+		clear_bitfield = bitfield;
+	}
+	auto add_clear_bitfield(const GLbitfield& bitfield) -> void {
 		clear_bitfield |= (1 << bitfield);
 	}
-	auto remove_clear_bitfield(GLbitfield bitfield) -> void {
+	auto remove_clear_bitfield(const GLbitfield& bitfield) -> void {
 		clear_bitfield &= ~(1 << bitfield);
 	}
 	auto set_depth_test(bool enable) -> void {
@@ -191,6 +224,7 @@ public:
 	}
 	~GLVertexBuffer() {
 		glDeleteBuffers(1, &m_ID);
+		std::cout << "glvb d" << std::endl;
 	}
 
 	auto bind() const -> void {
@@ -228,17 +262,44 @@ public:
 		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
 		glEnableVertexAttribArray(1);
 	}
-
 	auto set_layout(BufferLayout buffer_layout) const -> void {
-
-		for(auto& element : buffer_layout) {
-			switch(element.type) {
+		int vertex_buffer_index = 0;
+		for (int i = 0; i != buffer_layout.m_elements.size(); i++) {
+			BufferElement& element = buffer_layout.m_elements[i];
+			switch (element.type) {
 			case SHADER_DATA_TYPE::FLOAT:
 			case SHADER_DATA_TYPE::FLOAT_2:
 			case SHADER_DATA_TYPE::FLOAT_3:
 			case SHADER_DATA_TYPE::FLOAT_4:
 			{
-				static int vertex_buffer_index = 0;
+				glEnableVertexAttribArray(vertex_buffer_index);
+				glVertexAttribPointer(
+					vertex_buffer_index,
+					element.get_component_count(),
+					shader_data_type_to_openGL_base_type(element.type),
+					element.normalized ? GL_TRUE : GL_FALSE,
+					buffer_layout.m_stride,
+					//reinterpret_cast<const void*>(element.offset)
+					(const void*)element.offset
+				);
+				vertex_buffer_index++;
+			} break;
+			default: __debugbreak();
+
+			}
+		}
+	}
+	auto set_layout2(BufferLayout buffer_layout) const -> void {
+
+		int vertex_buffer_index = 0;
+		for (auto& element : buffer_layout) {
+			switch (element.type) {
+			case SHADER_DATA_TYPE::FLOAT:
+			case SHADER_DATA_TYPE::FLOAT_2:
+			case SHADER_DATA_TYPE::FLOAT_3:
+			case SHADER_DATA_TYPE::FLOAT_4:
+			{
+				bind();
 				glEnableVertexAttribArray(vertex_buffer_index);
 				glVertexAttribPointer(
 					vertex_buffer_index,
@@ -297,18 +358,191 @@ struct GLBufferData {
 	GLuint index_count = 0;
 
 	Color current_color = { 0.5f, 0.5f, 0.5f, 1.0f };
-	PRIMITIVE_TYPE m_primitive_type;
+	PRIMITIVE_TYPE m_primitive_type = PRIMITIVE_TYPE::TRIANGLES;
+
+
+	GLBufferData() {
+	}
+	auto init(Mesh mesh) -> void {
+		//CPU
+		vertices.resize(mesh.vertices.size());
+		for (GLuint i = 0; i < mesh.vertices.size(); i++) {
+			vertices[i + vertex_offset].position = mesh.vertices[i].position;
+			vertices[i + vertex_offset].color = current_color;
+			vertex_count++;
+		}
+		indices.resize(mesh.indices.size());
+		for (int i = 0; i < mesh.indices.size(); i++) {
+			indices[i + index_offset] = mesh.indices[i] + vertex_offset;
+			index_count++;
+		}
+
+		//GPU
+		vertex_buffer.bind();
+		vertex_buffer.send_to_GPU(vertices.size() * sizeof(Vertex), vertices.data());
+
+		vertex_array.bind();
+		BufferLayout layout = {
+			{SHADER_DATA_TYPE::FLOAT_3, "v_pos"},
+			{SHADER_DATA_TYPE::FLOAT_4, "v_col"},
+			{SHADER_DATA_TYPE::FLOAT_2, "v_texture_coord"},
+		};
+		vertex_array.set_layout(layout);
+
+		index_buffer.bind();
+		index_buffer.send_to_GPU(indices.size() * sizeof(GLuint), indices.data());
+
+		vertex_array.unbind();
+
+	}
+	auto add_to_buffer(const Mesh& mesh) -> void {
+		for (GLuint i = 0; i < mesh.vertices.size(); i++) {
+			vertices[i + vertex_offset].position = mesh.vertices[i].position;
+			vertices[i + vertex_offset].color = current_color;
+			vertex_count++;
+		}
+
+		for (int i = 0; i < mesh.indices.size(); i++) {
+			indices[i + index_offset] = mesh.indices[i] + vertex_offset;
+			index_count++;
+		}
+
+		vertex_offset += mesh.vertices.size();
+		index_offset += mesh.indices.size();
+	}
+	auto update() -> void {
+		vertex_array.bind();
+		vertex_buffer.bind();
+		vertex_buffer.update(/*vertex_buffer_size_in_bytes*/vertices.size() * sizeof(Vertex), vertices.data());
+		index_buffer.bind();
+		index_buffer.update(/*index_buffer_size_in_bytes*/indices.size() * sizeof(GLuint), indices.data());
+		vertex_array.unbind();
+	}
+	auto draw() -> void {
+		vertex_array.bind();
+		if (index_count > 0) {
+			glDrawElements(static_cast<GLenum>(m_primitive_type), index_count, GL_UNSIGNED_INT, 0);
+		} else {
+			//__debugbreak();
+		}
+	}
+	auto reset_counters() -> void {
+		vertex_offset = 0;
+		index_offset = 0;
+		vertex_count = 0;
+		index_count = 0;
+	}
+	auto set_color(const Color& color) -> void {
+		current_color = color;
+	}
+};
+
+struct GLBatchBufferData {
+	std::vector<Vertex> vertices;
+	std::vector<GLuint> indices;
+
+	GLVertexBuffer vertex_buffer;
+	GLVertexArray vertex_array;
+	GLIndexBuffer index_buffer;
+
+	GLuint vertex_offset = 0;
+	GLuint index_offset = 0;
+
+	GLuint vertex_count = 0;
+	GLuint index_count = 0;
+
+	Color current_color = { 0.5f, 0.5f, 0.5f, 1.0f };
+	PRIMITIVE_TYPE m_primitive_type = PRIMITIVE_TYPE::TRIANGLES;
 
 	int MAX_BATCH_QUADS = 100000;
 	int MAX_VERTICES_FOR_BATCH = 4 * MAX_BATCH_QUADS;
 	int MAX_INDICES_FOR_BATCH = 6 * MAX_BATCH_QUADS;
 
-	auto init() -> void;
-	auto add_to_buffer(const Mesh& mesh) -> void;
-	auto update() -> void;
-	auto draw() -> void;
-	auto reset_counters() -> void;
-	auto set_color(const Color& color) -> void;
+	auto init() -> void {
+		//CPU
+		vertices.resize(MAX_VERTICES_FOR_BATCH);
+		indices.resize(MAX_INDICES_FOR_BATCH);
+
+		//GPU
+		vertex_buffer.bind();
+		vertex_buffer.reserve_in_GPU(/*vertex_buffer_size_in_bytes*/vertices.size() * sizeof(Vertex));
+
+		vertex_array.bind();
+		BufferLayout layout = {
+			{SHADER_DATA_TYPE::FLOAT_3, "v_pos"},
+			{SHADER_DATA_TYPE::FLOAT_4, "v_col"},
+			{SHADER_DATA_TYPE::FLOAT_2, "v_texture_coord"},
+		};
+		vertex_array.set_layout(layout);
+
+		index_buffer.bind();
+		index_buffer.reserve_in_GPU(/*index_buffer_size_in_bytes*/indices.size() * sizeof(GLuint));
+
+		vertex_array.unbind();
+	}
+	auto add_to_buffer(const Mesh& mesh) -> void {
+		//if vertex or index count is larger than the max, flush the data
+		if ((vertex_count + mesh.vertices.size() > MAX_VERTICES_FOR_BATCH) ||
+			(index_count + mesh.indices.size() > MAX_INDICES_FOR_BATCH)) {
+			update();
+			draw();
+			reset_counters();
+			__debugbreak();
+		}
+
+		for (GLuint i = 0; i < mesh.vertices.size(); i++) {
+			vertices[i + vertex_offset].position = mesh.vertices[i].position;
+			vertices[i + vertex_offset].color = current_color;
+			vertex_count++;
+		}
+
+		for (int i = 0; i < mesh.indices.size(); i++) {
+			indices[i + index_offset] = mesh.indices[i] + vertex_offset;
+			index_count++;
+		}
+
+
+		if (0) {
+			Mesh2 mesh;
+			for (GLuint i = 0; i < mesh.positions.size(); i++) {
+				vertices[i + vertex_offset].position = mesh.positions[i];
+				vertices[i + vertex_offset].color = current_color;
+				vertex_count++;
+			}
+
+			for (int i = 0; i < mesh.indices.size(); i++) {
+				indices[i + index_offset] = mesh.indices[i] + vertex_offset;
+				index_count++;
+			}
+		}
+		vertex_offset += mesh.vertices.size();
+		index_offset += mesh.indices.size();
+	}
+	auto update() -> void {
+		vertex_array.bind();
+		vertex_buffer.bind();
+		vertex_buffer.update(/*vertex_buffer_size_in_bytes*/vertex_count * sizeof(Vertex), vertices.data());
+		index_buffer.bind();
+		index_buffer.update(/*index_buffer_size_in_bytes*/index_count * sizeof(GLuint), indices.data());
+		vertex_array.unbind();
+	}
+	auto draw() -> void {
+		vertex_array.bind();
+		if (index_count > 0) {
+			glDrawElements(static_cast<GLenum>(m_primitive_type), index_count, GL_UNSIGNED_INT, 0);
+		} else {
+			//__debugbreak();
+		}
+	}
+	auto reset_counters() -> void {
+		vertex_offset = 0;
+		index_offset = 0;
+		vertex_count = 0;
+		index_count = 0;
+	}
+	auto set_color(const Color& color) -> void {
+		current_color = color;
+	}
 };
 
 struct MatrixStack {
@@ -325,7 +559,12 @@ public:
 	auto start(PRIMITIVE_TYPE type) -> void;
 	auto end() -> void;
 
-	GLBufferData buffer_data;
+
+	auto draw_mesh(Mesh mesh) -> void {
+
+	}
+
+	GLBatchBufferData buffer_data;
 	GLShader* current_shader = nullptr;
 	MatrixStack matrix_stack;
 	Camera cam;

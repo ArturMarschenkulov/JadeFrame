@@ -169,3 +169,8 @@ class Model {
 	std::vector<Mesh> m_meshes;
 	std::vector<Material> m_materials;
 };
+
+class Scene {
+	std::vector<Model> m_models;
+	
+};
