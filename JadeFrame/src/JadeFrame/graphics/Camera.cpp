@@ -38,7 +38,7 @@ auto Camera::get_projection_matrix() const -> Mat4 {
 auto Camera::move() -> void {
 	float r = 0.1f;
 
-	auto i = BaseApp::get_app_instance()->m_input_manager;
+	WinInputManager i = BaseApp::get_instance()->m_input_manager;
 
 
 	if(i.is_key_down(KEY::E)) m_position += m_up * r;
@@ -64,7 +64,7 @@ auto Camera::move() -> void {
 		old_fovy = m_fovy;
 		perspective(m_position, m_fovy, m_aspect, m_zNear, m_zFar);
 		__debugbreak();
-		//BaseApp::get_app_instance()->m_renderer->matrix_stack.projection_matrix = get_projection_matrix();
+		//BaseApp::get_instance()->m_renderer->matrix_stack.projection_matrix = get_projection_matrix();
 	}
 
 

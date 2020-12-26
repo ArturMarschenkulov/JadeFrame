@@ -97,6 +97,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-W4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -118,6 +119,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-W4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,6 +141,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-W4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -162,6 +165,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-W4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -297,6 +301,7 @@
     <ClInclude Include="src\JadeFrame\Core.h" />
     <ClInclude Include="src\JadeFrame\FontManager.h" />
     <ClInclude Include="src\JadeFrame\graphics\Camera.h" />
+    <ClInclude Include="src\JadeFrame\graphics\GLTexture.h" />
     <ClInclude Include="src\JadeFrame\GUI.h" />
     <ClInclude Include="src\JadeFrame\Input.h" />
     <ClInclude Include="src\JadeFrame\math\Mat4.h" />
@@ -307,6 +312,7 @@
     <ClInclude Include="src\JadeFrame\graphics\Mesh.h" />
     <ClInclude Include="src\JadeFrame\graphics\GLRenderer.h" />
     <ClInclude Include="src\JadeFrame\graphics\GLShader.h" />
+    <ClInclude Include="src\JadeFrame\uilts\Utils.h" />
     <ClInclude Include="src\JadeFrame\WinWindow.h" />
   </ItemGroup>
   <ItemGroup>
@@ -366,6 +372,7 @@
     <ClCompile Include="src\JadeFrame\Core.cpp" />
     <ClCompile Include="src\JadeFrame\FontManager.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\Camera.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\GLTexture.cpp" />
     <ClCompile Include="src\JadeFrame\GUI.cpp" />
     <ClCompile Include="src\JadeFrame\Input.cpp" />
     <ClCompile Include="src\JadeFrame\math\Mat4.cpp" />

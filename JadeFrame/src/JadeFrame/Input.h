@@ -10,6 +10,7 @@ enum class INPUT_STATE {
 	PRESSED
 };
 #include <windows.h>
+#include <queue>
 
 enum class BUTTON {
 	LEFT = VK_LBUTTON,
@@ -98,21 +99,51 @@ enum class KEY {
 	Y = 89,
 	Z = 90,
 };
-class InputManager {
+struct Event {
+
+};
+struct KeyEvent : public Event {
+	enum class TYPE {
+		PRESSED,
+		RELEASED
+	};
+	KeyEvent(const TYPE type, const uint64_t key_code)
+		: type(type)
+		, key_code(key_code) {
+		
+	}
+	TYPE type;
+	uint64_t key_code;
+};
+class WinInputManager {
 	friend class WinWindow;
 public:
 	auto handle_input() -> void;
-	static auto key_callback(int64_t lParam, uint64_t wParam, uint32_t message) -> void;
-	static std::array<INPUT_STATE, 512> m_current_key_state;
-	static std::array<INPUT_STATE, 512> m_previous_key_state;
 
+public:
+	//key part
+	std::queue<KeyEvent> key_buffer;
+	static auto key_callback(int64_t lParam, uint64_t wParam, uint32_t message) -> void;
+	static auto key_callback2(int64_t lParam, uint64_t wParam, uint32_t message) -> void;
+	static auto char_callback(int64_t lParam, uint64_t wParam, uint32_t message) -> void;
 
 	auto is_key_down(const KEY key) const -> bool;
 	auto is_key_up(const KEY key) const -> bool;
 	auto is_key_pressed(const KEY key) const -> bool;
 	auto is_key_released(const KEY key) const -> bool;
 
+	static std::array<INPUT_STATE, 512> m_current_key_state;
+	static std::array<INPUT_STATE, 512> m_previous_key_state;
+
+public:
+	//mouse part
 	static auto mouse_button_callback(int64_t lParam, int64_t wParam, int32_t message) -> void;
+
+	auto is_button_down(const BUTTON button) const -> bool;
+	auto is_button_up(const BUTTON button) const -> bool;
+	auto is_button_pressed(const BUTTON button) const -> bool;
+	auto is_button_released(const BUTTON button) const -> bool;
+
 	static std::array<INPUT_STATE, 3> m_current_mouse_button_state;
 	static std::array<INPUT_STATE, 3> m_previous_mouse_button_state;
 	static Vec2 m_mouse_posiition;

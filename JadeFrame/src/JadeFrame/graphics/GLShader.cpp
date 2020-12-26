@@ -7,7 +7,7 @@ GLShader::GLShader()
 
 struct Shader {
 	Shader(GLenum shader_type) {
-		GLuint shader_ID = glCreateShader(shader_type);
+		m_ID = glCreateShader(shader_type);
 	}
 	~Shader() {
 		glDeleteShader(m_ID);
@@ -30,10 +30,11 @@ struct Shader {
 		glGetShaderiv(m_ID, GL_COMPILE_STATUS, &is_compiled);
 		return is_compiled;
 	}
-	auto get_info_log(GLsizei max_length) -> GLchar* {
+	auto get_info_log(GLsizei max_length) -> std::string {
 		GLchar info_log[512];
 		glGetShaderInfoLog(m_ID, max_length, &max_length, &info_log[0]);
-		return info_log;
+		std::string result(info_log);
+		return result;
 	}
 
 	GLuint m_ID;
@@ -76,13 +77,14 @@ struct Program {
 		return result;
 	}
 	auto use() -> void {
-		glUseProgram(m_ID);	
+		glUseProgram(m_ID);
 	}
 
-	auto get_info_log(GLsizei max_length) -> GLchar* {
+	auto get_info_log(GLsizei max_length) -> std::string {
 		GLchar info_log[512];
 		glGetProgramInfoLog(m_ID, max_length, &max_length, &info_log[0]);
-		return info_log;
+		std::string result(info_log);
+		return result;
 	}
 	GLuint m_ID;
 	std::vector<Shader> m_shaders; //0:vertex_shader, 1: fragment_shader
@@ -148,7 +150,7 @@ static auto validate(GLuint program_id) -> void {
 
 
 
-const GLchar* vs_source_flat =
+static const GLchar* vs_default =
 R"(
 			#version 450 core
 			layout (location = 0) in vec3 v_position;
@@ -159,14 +161,18 @@ R"(
 			out vec2 f_texture_coord;
 
 			uniform mat4 MVP;
+			uniform mat4 view_projection;
+			uniform mat4 projection;
+			uniform mat4 view;
+			uniform mat4 model;
 
 			void main() {
-				gl_Position = MVP * vec4(v_position.x, v_position.y, v_position.z, 1.0);
+				gl_Position = view_projection * model * vec4(v_position, 1.0);
 				f_color = v_color;
 				f_texture_coord = v_texture_coord;
 			}
-		)";
-const GLchar* fs_source_flat =
+)";
+static const GLchar* fs_default =
 R"(
 			#version 450 core
 
@@ -178,46 +184,18 @@ R"(
 
 			void main() {
 				
+				o_color = mix(f_color, texture(texture_0, f_texture_coord), 0.8);
 				o_color = texture(texture_0, f_texture_coord);
-				o_color = f_color;
+				//o_color = f_color;
 			}
-		)";
-
-const GLchar* fs_source_flat_2 =
-R"(
-			#version 450 core
-
-			in vec4 f_col;
-
-			out vec4 o_col;
-
-
-			float near = 0.1;
-			float far = 10.0;
-
-			void main() {
-
-				float z_ndc = gl_FragCoord.z * 2.0 - 1.0;
-				float z_clip = z_ndc / gl_FragCoord.w;
-				float depth2 = (z_clip + near) / (near + far);
-
-				float depth3 = (2.0 * near * far) / (far + near - z_ndc * (near - far));
-
-
-
-				o_Col = vec4(vec3(depth2), 1.0);
-			}
-		)";
+)";
 
 
 
 
 auto GLShader::init() -> void {
-	//const GLchar* vertex_shader_source = vs_source_flat;
-	//const GLchar* fragment_shader_source = fs_source_flat;
-
-	GLuint vertex_shader_id = compile(GL_VERTEX_SHADER, vs_source_flat);
-	GLuint fragment_shader_id = compile(GL_FRAGMENT_SHADER, fs_source_flat);
+	GLuint vertex_shader_id = compile(GL_VERTEX_SHADER, vs_default);
+	GLuint fragment_shader_id = compile(GL_FRAGMENT_SHADER, fs_default);
 
 	GLuint program_id = link(vertex_shader_id, fragment_shader_id);
 	validate(program_id);
@@ -227,8 +205,8 @@ auto GLShader::init() -> void {
 
 	m_ID = program_id;
 
-	m_variables[0] = update_shader_variables(GL_ACTIVE_UNIFORMS);
-	m_variables[1] = update_shader_variables(GL_ACTIVE_ATTRIBUTES);
+	m_variables[0] = get_shader_variables(GL_ACTIVE_UNIFORMS);
+	m_variables[1] = get_shader_variables(GL_ACTIVE_ATTRIBUTES);
 }
 
 auto GLShader::use() -> void {
@@ -236,9 +214,7 @@ auto GLShader::use() -> void {
 }
 
 auto GLShader::get_uniform_location(const std::string& name) const -> GLint {
-	GLint location = glGetUniformLocation(
-		m_ID, 
-		name.c_str());
+	GLint location = glGetUniformLocation(m_ID, name.c_str());
 	if (location == -1) {
 		std::cout << "Location of " << name << " can not be found" << std::endl;
 		__debugbreak();
@@ -267,6 +243,10 @@ auto GLShader::set_uniform(const std::string& name, int value) const -> void {
 	int loc = get_uniform_location(name);
 	glUniform1i(loc, value);
 }
+auto GLShader::set_uniform(const std::string& name, const unsigned int value) const -> void {
+	int loc = get_uniform_location(name);
+	glUniform1ui(loc, value);
+}
 auto GLShader::set_uniform(const std::string& name, float value) const -> void {
 	int loc = get_uniform_location(name);
 	glUniform1f(loc, value);
@@ -288,7 +268,7 @@ auto GLShader::set_uniform_matrix(const std::string& name, const Mat4& mat) cons
 	glUniformMatrix4fv(loc, 1, GL_FALSE, &mat[0][0]);
 }
 
-auto GLShader::update_shader_variables(GLenum variable_type) -> std::vector<GLShader::Variable> {
+auto GLShader::get_shader_variables(GLenum variable_type) -> std::vector<GLShader::Variable> {
 	GLint num;
 	glGetProgramiv(m_ID, variable_type, &num);
 

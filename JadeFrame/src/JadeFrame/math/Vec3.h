@@ -69,14 +69,14 @@ public:
 	}
 
 	auto normalize() -> Vec3 {
-		float length = (float)sqrt(x * x + y * y + z * z);
+		float length = static_cast<float>(sqrt(x * x + y * y + z * z));
 		if(length == 0) {
 			length = 10000;
 		}
 		return Vec3(x / length, y / length, z / length);
 	}
 	auto normalize() const -> Vec3 {
-		float length = (float)sqrt(x * x + y * y + z * z);
+		float length = static_cast<float>(sqrt(x * x + y * y + z * z));
 		return Vec3(x / length, y / length, z / length);
 	}
 public:

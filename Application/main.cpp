@@ -1,25 +1,28 @@
 #include<JadeFrame.h>
+#include<iostream>
 #include <variant>
-#include <optional>
-
 
 class App : public BaseApp {
 public:
 public:
-	virtual auto setup() -> void override {}
-	virtual auto update() -> void override {}
-	virtual auto draw() -> void override {}
+	virtual auto init() -> void override {
+		std::cout << "sss" << std::endl;
+	}
+	virtual auto update() -> void override {
+		std::cout << "sss" << std::endl;
+	}
+	virtual auto draw() -> void override {
+		std::cout << "sss" << std::endl;
+	}
 };
+int main() {
+#if 1
 
-#include <iostream>
-#include <thread>
-int main(void) {
-	App app;
 	std::string title = "Test";
-	float width = 1800;
-	float height = 800;
-	app.start(title, { width, height });
-
+	float width = 1280;
+	float height = 720;
+	TestApp app(title, { width, height });
+	app.start();
 	return 0;
+#endif
 }
-

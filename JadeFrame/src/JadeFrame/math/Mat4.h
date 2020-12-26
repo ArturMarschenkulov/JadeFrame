@@ -74,7 +74,7 @@ public:
 		return result * Mat4::translate(Vec3(-camera.x, -camera.y, -camera.z));
 #endif
 	
-	};
+	}
 
 	auto makeEchelon() -> Mat4& {
 		int colCount = 4;
