@@ -11,9 +11,11 @@
 
 class GLShader {
 public:
-	GLShader();
-	auto init() -> void;
-	auto use() -> void;
+	GLShader() = default;
+	GLShader(int num);
+	static auto init(int num) -> GLShader;
+	auto bind() -> void;
+	auto unbind() -> void;
 //private:
 	GLuint m_ID = 0;
 //private:
@@ -52,5 +54,7 @@ public:
 	auto set_uniform_matrix(const std::string& name, const Mat4& mat) const -> void;
 
 	auto get_shader_variables(GLenum variable_type) -> std::vector<GLShader::Variable>;
-	std::array<std::vector<Variable>, 2> m_variables; //0 uniforms, 1 attributes
+	//std::array<std::vector<Variable>, 2> m_variables; //0 uniforms, 1 attributes
+	std::vector<Variable> m_uniforms;
+	std::vector<Variable> m_attributes;
 };

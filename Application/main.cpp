@@ -1,6 +1,7 @@
 #include<JadeFrame.h>
 #include<iostream>
 #include <variant>
+#include <map>
 
 class App : public BaseApp {
 public:
@@ -15,9 +16,26 @@ public:
 		std::cout << "sss" << std::endl;
 	}
 };
-int main() {
-#if 1
 
+
+
+int main() {
+
+	std::multimap<int, char> dict{
+	{1, 'A'},
+	{2, 'B'},
+	{2, 'C'},
+	{2, 'D'},
+	{4, 'E'},
+	{3, 'F'}
+	};
+
+	auto range = dict.equal_range(2);
+
+	for (auto i = range.first; i != range.second; ++i) {
+		std::cout << i->first << ": " << i->second << '\n';
+	}
+#if 1
 	std::string title = "Test";
 	float width = 1280;
 	float height = 720;

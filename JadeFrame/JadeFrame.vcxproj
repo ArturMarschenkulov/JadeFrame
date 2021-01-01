@@ -301,6 +301,7 @@
     <ClInclude Include="src\JadeFrame\Core.h" />
     <ClInclude Include="src\JadeFrame\FontManager.h" />
     <ClInclude Include="src\JadeFrame\graphics\Camera.h" />
+    <ClInclude Include="src\JadeFrame\graphics\GLBuffer.h" />
     <ClInclude Include="src\JadeFrame\graphics\GLTexture.h" />
     <ClInclude Include="src\JadeFrame\GUI.h" />
     <ClInclude Include="src\JadeFrame\Input.h" />
@@ -372,6 +373,7 @@
     <ClCompile Include="src\JadeFrame\Core.cpp" />
     <ClCompile Include="src\JadeFrame\FontManager.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\Camera.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\GLBuffer.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\GLTexture.cpp" />
     <ClCompile Include="src\JadeFrame\GUI.cpp" />
     <ClCompile Include="src\JadeFrame\Input.cpp" />

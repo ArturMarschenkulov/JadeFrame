@@ -19,8 +19,6 @@ public:
 	auto perspective(Vec3 pos, float fov, float aspect, float zNear, float zFar) -> void;
 	auto get_projection_matrix() const->Mat4;
 	auto get_view_matrix() const->Mat4;
-	auto move() -> void;
-	auto update() -> void;
 
 	Mat4 m_projection_matrix{};
 	Vec3 m_position{};
@@ -39,7 +37,34 @@ public:
 	float m_zFar;
 
 };
+auto camera_control(Camera& camera) -> void;
 
+class Camera1 {
+public:
+	auto perspective(Vec3 position, float fov, float aspect, float zNear, float zFar) -> void;
+	auto get_projection_matrix() const->Mat4 {
+		return m_projection;
+	}
+	auto get_view_matrix() const->Mat4 {
+		return Mat4::lookAt(m_position, m_position + m_forward, m_up);
+	}
+	
+public:
+	enum class MODE {
+		ORTHOGRAPHIC,
+		PERSPECTIVE,
+	} m_mode;
+	Mat4 m_projection;
+	Vec3 m_position;
+	Vec3 m_forward;
+	Vec3 m_up;
+	float m_fov;
+	float m_aspect;
+	float m_near;
+	float m_far;
+};
+
+auto camera_control(Camera1& camera) -> void;
 
 class Camera0 {
 	Mat4 m_projection;

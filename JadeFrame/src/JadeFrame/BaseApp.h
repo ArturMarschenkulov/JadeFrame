@@ -14,18 +14,18 @@ public:
 	WinTimeManager() {
 		uint64_t frequency;
 		if (QueryPerformanceFrequency((LARGE_INTEGER*)&frequency)) {
-			timer.timer.has_performance_counter = true;
-			timer.timer.frequency = frequency;
+			m_has_performance_counter = true;
+			m_frequency = frequency;
 		} else {
-			timer.timer.has_performance_counter = true;
-			timer.timer.frequency = 1000;
+			m_has_performance_counter = true;
+			m_frequency = 1000;
 		}
 
-		timer.offset = get_timer_value();
+		m_offset = get_timer_value();
 	}
 
 	auto get_time() {
-		return static_cast<double>(get_timer_value() - timer.offset) / get_timer_frequency();
+		return static_cast<double>(get_timer_value() - m_offset) / get_timer_frequency();
 	}
 
 private:
@@ -35,16 +35,12 @@ private:
 		return value;
 	}
 	auto get_timer_frequency() -> uint64_t {
-		return timer.timer.frequency;
+		return m_frequency;
 	}
 private:
-	struct {
-		struct Timer {
-			bool has_performance_counter;
-			uint64_t frequency;
-		} timer;
-		uint64_t offset;
-	} timer;
+	bool m_has_performance_counter;
+	uint64_t m_frequency;
+	uint64_t m_offset;
 };
 
 struct CachedData {
@@ -57,7 +53,7 @@ struct CachedData {
 class GLContext {
 
 	GLContext() {
-	
+
 	}
 
 };
@@ -87,9 +83,10 @@ public:
 
 	WinInputManager m_input_manager;
 	WinTimeManager m_time_manager;
+	Camera1 m_camera;
 
-	CachedData m_cached_data;
-	std::vector<Object> m_objects;
+	//CachedData m_cached_data;
+	//std::vector<Object> m_objects;
 
 	bool m_is_running = true;
 	float m_last_frame_time = 0.0f;
@@ -97,12 +94,11 @@ public:
 };
 
 struct TestApp : public BaseApp {
-	Camera m_camera;
+	//Camera1 m_camera;
 
-	GLShader m_shader;
+	GLShader m_shader[2]; // 0 = flat, 1 = textures
 	GLTexture m_textures[2];
-	Mesh m_meshes[3] = {};
-
+	Mesh m_meshes[6] = {};
 	std::vector<Object> m_objs;
 
 	TestApp(const std::string& title, Vec2 size, Vec2 position = { -1, -1 });
@@ -110,10 +106,4 @@ struct TestApp : public BaseApp {
 	virtual auto init() -> void override;
 	virtual auto update() -> void override;
 	virtual auto draw() -> void override;
-
-	auto draw_all_objects() {
-		for (size_t i = 0; i < m_objects.size(); i++) {
-			m_objects[i].draw();
-		}
-	}
 };

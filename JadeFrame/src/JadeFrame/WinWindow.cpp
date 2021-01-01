@@ -1,14 +1,16 @@
 #include "WinWindow.h"
 
-#include <Windows.h>
 #include "BaseApp.h"
-#include <iostream>
 #include <glad/glad.h>
 #include "Input.h"
-#include <Windows.h>
-#include <Windowsx.h>
+//#include <Windows.h>
+//#include <Windowsx.h>
+//#include <Wingdi.h>
+
 #include <sstream>
 #include <iomanip>
+#include <iostream>
+#include <tuple>
 
 #pragma comment(lib,"opengl32.lib")
 
@@ -291,18 +293,15 @@ auto window_resize_callback(int64_t lParam, uint64_t wParam, uint32_t message) -
 	switch (wParam) {
 	case SIZE_MAXIMIZED:
 	{
-		app->m_window.is_minimized = false;
-		app->m_window.is_maximized = true;
+		app->m_window.m_window_state = WinWindow::WINDOW_STATE::MAXIMIZED;
 	}break;
 	case SIZE_MINIMIZED:
 	{
-		app->m_window.is_minimized = true;
-		app->m_window.is_maximized = false;
+		app->m_window.m_window_state = WinWindow::WINDOW_STATE::MINIMIZED;
 	}break;
 	case SIZE_RESTORED:
 	{
-		app->m_window.is_minimized = false;
-		app->m_window.is_maximized = false;
+		app->m_window.m_window_state = WinWindow::WINDOW_STATE::WINDOWED;
 	}break;
 	case SIZE_MAXHIDE: break;
 	case SIZE_MAXSHOW: break;
@@ -404,13 +403,13 @@ static auto win32_register_window_class(HINSTANCE instance) -> void {
 	window_class.cbSize = sizeof(window_class);
 	window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 	window_class.lpfnWndProc = WindowProcedure;
-	window_class.cbClsExtra;
-	window_class.cbWndExtra;
+	//window_class.cbClsExtra;
+	//window_class.cbWndExtra;
 	window_class.hInstance = instance;
 	window_class.hIcon = LoadIcon(NULL, IDI_WINLOGO);
 	window_class.hCursor = LoadCursor(NULL, IDC_ARROW);
-	window_class.hbrBackground;
-	window_class.lpszMenuName;
+	//window_class.hbrBackground;
+	//window_class.lpszMenuName;
 	window_class.lpszClassName = L"Core";//"L"JadeFrame Window";
 	::RegisterClassExW(&window_class);
 }
@@ -444,7 +443,7 @@ static auto win32_set_fake_pixel_format(HDC fake_device_context) -> void {
 
 
 
-#include <Wingdi.h>
+
 static auto win32_wgl_create_fake_render_context(HDC fake_device_context) -> HGLRC {
 	HGLRC fake_render_context = wglCreateContext(fake_device_context);
 	BOOL current_succes = wglMakeCurrent(fake_device_context, fake_render_context);
@@ -539,7 +538,6 @@ static auto win32_wgl_create_real_render_context(HDC real_device_context) -> HGL
 	return real_render_context;
 }
 
-#include <tuple>
 static auto  win32_wgl_create_fake_context(HINSTANCE instance) -> std::tuple<HWND, HDC, HGLRC> {
 	HWND fake_window_handle = win32_create_fake_window(instance);
 	HDC fake_device_context = GetDC(fake_window_handle);
@@ -584,11 +582,14 @@ WinWindow::WinWindow(const std::string& title, Vec2 size, Vec2 position)
 	m_window_handle = real_window_handle;
 
 	{	//OpenGL init
-		glEnable(GL_DEBUG_OUTPUT);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		glDebugMessageCallback(opengl_message_callback, nullptr);
+		if (false) { // enable debug output
+			glEnable(GL_DEBUG_OUTPUT);
+			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+			glDebugMessageCallback(opengl_message_callback, nullptr);
+			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+		}
 
-		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -607,4 +608,8 @@ auto WinWindow::init(const std::string& title, Vec2 size, Vec2 position) -> WinW
 auto WinWindow::set_title(const std::string& title) {
 	m_title = title;
 	SetWindowTextA(m_window_handle, m_title.c_str());
+}
+
+auto WinWindow::set_v_sync(bool b) -> void {
+	wglSwapIntervalEXT(static_cast<int>(b));
 }

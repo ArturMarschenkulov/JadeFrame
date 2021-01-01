@@ -30,13 +30,7 @@ public:
 
 	void generate(unsigned int width, unsigned int height, GLenum internalFormat, GLenum format, GLenum type, void* data);
 
-	void bind(int unit = -1) {
-		if (unit >= 0)
-			glActiveTexture(GL_TEXTURE0 + unit);
-		glBindTexture(m_target, m_ID);
-	}
+	void bind(int unit = -1);
 	// --------------------------------------------------------------------------------------------
-	void unbind() {
-		glBindTexture(m_target, 0);
-	}
+	void unbind();
 };

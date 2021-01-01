@@ -9,7 +9,7 @@
 #include <time.h>
 #include "uilts/Utils.h"
 
-static auto draw_GUI(Camera& camera) -> void {
+static auto draw_GUI(/*Camera& camera*/) -> void {
 	ImGui::BeginMainMenuBar();
 
 	ImGui::EndMainMenuBar();
@@ -24,15 +24,15 @@ static auto draw_GUI(Camera& camera) -> void {
 
 	//auto& m_renderer = BaseApp::get_instance()->m_renderer;
 
-	ImGui::SliderFloat("cam.m_position.x", &camera.m_position.x, -30, 30);
-	ImGui::SliderFloat("cam.m_position.y", &camera.m_position.y, -30, 30);
-	ImGui::SliderFloat("cam.m_position.z", &camera.m_position.z, -30, 30);
+	//ImGui::SliderFloat("cam.m_position.x", &camera.m_position.x, -30, 30);
+	//ImGui::SliderFloat("cam.m_position.y", &camera.m_position.y, -30, 30);
+	//ImGui::SliderFloat("cam.m_position.z", &camera.m_position.z, -30, 30);
 
-	ImGui::SliderFloat("cam.m_right.x", &camera.m_right.x, -30, 30);
-	ImGui::SliderFloat("cam.m_right.y", &camera.m_right.y, -30, 30);
-	ImGui::SliderFloat("cam.m_right.z", &camera.m_right.z, -30, 30);
+	//ImGui::SliderFloat("cam.m_right.x", &camera.m_right.x, -30, 30);
+	//ImGui::SliderFloat("cam.m_right.y", &camera.m_right.y, -30, 30);
+	//ImGui::SliderFloat("cam.m_right.z", &camera.m_right.z, -30, 30);
 
-	ImGui::SliderFloat("cam.m_fovy", &camera.m_fovy, to_radians(-60), to_radians(60));
+	//ImGui::SliderFloat("cam.m_fovy", &camera.m_fovy, to_radians(-60), to_radians(60));
 	static float point_size = 1;
 	ImGui::SliderFloat("point size", &point_size, 0, 100);
 	glPointSize(point_size);
@@ -40,6 +40,9 @@ static auto draw_GUI(Camera& camera) -> void {
 	static float line_width = 1;
 	ImGui::SliderFloat("line width", &line_width, 0, 100);
 	glLineWidth(line_width);
+	static bool is_v_snyc_on = true;
+	ImGui::Checkbox("VSync", &is_v_snyc_on);
+	BaseApp::get_instance()->m_window.set_v_sync(is_v_snyc_on);
 
 
 }
@@ -50,20 +53,24 @@ BaseApp::BaseApp(const std::string& title, Vec2 size, Vec2 position) {
 	instance = this;
 	m_window = WinWindow::init(title, size, position);
 }
-BaseApp::~BaseApp() {}
+BaseApp::~BaseApp() {
+}
 
 
 auto BaseApp::start() -> void {
 	init();
 	GUI_init(m_window.m_window_handle);
+	int num = 0;
 	while (m_is_running) {
 		float time = (float)m_time_manager.get_time();
 		Timestep timstep = time - m_last_frame_time;
 		m_last_frame_time = time;
 		update();
-		if (m_window.is_minimized == false) {
+		if (m_window.m_window_state != WinWindow::WINDOW_STATE::MINIMIZED) {
 			GUI_new_frame();
+
 			draw();
+
 			GUI_render();
 		}
 	}
@@ -114,28 +121,31 @@ auto TestApp::init() -> void {
 	//~Camera
 
 	//Shader
-	m_shader.init();
-	m_shader.use();
+	m_shader[0] = GLShader::init(0);
+	m_shader[1] = GLShader::init(1);
+	//m_shader.bind();
+
 	//Textures
 	m_textures[0] = GLTexture::load("C:\\DEV\\Projects\\JadeFrame\\Release\\wall.jpg", GL_TEXTURE_2D, GL_RGB);
 	m_textures[1] = GLTexture::load("C:\\DEV\\Projects\\JadeFrame\\Release\\awesomeface.png", GL_TEXTURE_2D, GL_RGB);
-	m_shader.set_uniform("texture_0", m_textures[0].m_ID);
+	//m_shader.set_uniform("texture_0", static_cast<uint32_t>(m_textures[0].m_ID));
 	//~Shader
-
+	Color color_red = { 1.0f, 0.0f, 0.0f, 1.0f };
 	Color color_green = { 0.0f, 1.0f, 0.0f, 1.0f };
+	Color color_blue = { 0.0f, 0.0f, 1.0f, 1.0f };
 
 	m_meshes[0].set_color(color_green);
 	m_meshes[0].add_to_data(VertexDataFactory::make_cube({ 1.0f, 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f }));
 
 	m_meshes[1].set_color(color_green);
 	m_meshes[1].add_to_data(VertexDataFactory::make_rectangle({ 0.0f, 0.0f, 0.0f }, { 10.0f, 10.0f, 10.0f }));
-
+#if 1
 	for (int i = 0; i < 10; i++) {
 		Object temp_obj;
 		temp_obj.m_transform = Mat4::translate({ 1.0f * i, 1.0f * i, 1.0f * i });
 		temp_obj.m_mesh = &m_meshes[0];
 		temp_obj.m_buffer_data.finalize(*temp_obj.m_mesh);
-		temp_obj.m_shader = &m_shader;
+		temp_obj.m_shader = &m_shader[1];
 		temp_obj.m_texture = &m_textures[0];
 		m_objs.push_back(std::move(temp_obj));
 	}
@@ -144,7 +154,7 @@ auto TestApp::init() -> void {
 	m_obj.m_transform = Mat4::translate({ -1.0f, 0.0f, 0.0f });
 	m_obj.m_mesh = &m_meshes[1];
 	m_obj.m_buffer_data.finalize(*m_obj.m_mesh);
-	m_obj.m_shader = &m_shader;
+	m_obj.m_shader = &m_shader[1];
 	m_obj.m_texture = &m_textures[0];
 	m_objs.push_back(std::move(m_obj));
 
@@ -152,9 +162,33 @@ auto TestApp::init() -> void {
 	m_obj1.m_transform = Mat4::translate({ -1.0f, 0.0f, 2.0f });
 	m_obj1.m_mesh = &m_meshes[1];
 	m_obj1.m_buffer_data.finalize(*m_obj1.m_mesh);
-	m_obj1.m_shader = &m_shader;
+	m_obj1.m_shader = &m_shader[1];
 	m_obj1.m_texture = &m_textures[1];
 	m_objs.push_back(std::move(m_obj1));
+#endif
+#if 1
+	Mesh mesh_arrows[3] = {}; // x, y, z
+	mesh_arrows[0].set_color(color_red);
+	mesh_arrows[0].add_to_data(VertexDataFactory::make_cube({ 0.0f, 0.0f, 0.0f }, { 100.0f, .1f, .1f }));
+	mesh_arrows[1].set_color(color_green);
+	mesh_arrows[1].add_to_data(VertexDataFactory::make_cube({ 0.0f, 0.0f, 0.0f }, { .1f, 100.0f, .1f }));
+	mesh_arrows[2].set_color(color_blue);
+	mesh_arrows[2].add_to_data(VertexDataFactory::make_cube({ 0.0f, 0.0f, 0.0f }, { .1f, .1f, 100.0f }));
+	m_meshes[3] = mesh_arrows[0];
+	m_meshes[4] = mesh_arrows[1];
+	m_meshes[5] = mesh_arrows[2];
+
+	for (int i = 3; i < 6; i++) {
+		Object temp_obj;
+		temp_obj.m_transform = Mat4::translate({ 0.0f, 0.0f, 0.0f });
+		temp_obj.m_mesh = &m_meshes[i];
+		temp_obj.m_buffer_data.finalize(*temp_obj.m_mesh);
+		temp_obj.m_shader = &m_shader[0];
+		temp_obj.m_texture = &m_textures[0];
+		m_objs.push_back(std::move(temp_obj));
+	}
+
+#endif
 }
 auto TestApp::update() -> void {
 	HDC device_context = GetDC(m_window.m_window_handle);
@@ -164,18 +198,20 @@ auto TestApp::update() -> void {
 	this->poll_events();
 }
 auto TestApp::draw() -> void {
-	m_shader.use();
-	m_camera.move();
+	//m_shader[0].bind();
+	camera_control(m_camera);
 	{
-		m_renderer.matrix_stack.view_matrix = m_camera.get_view_matrix();
-		Mat4 view_projection = m_renderer.matrix_stack.view_matrix * m_renderer.matrix_stack.projection_matrix;
-		m_shader.set_uniform_matrix("view_projection", view_projection);
+		//m_renderer.matrix_stack.view_matrix = m_camera.get_view_matrix();
+		//Mat4 view_projection = m_renderer.matrix_stack.view_matrix * m_renderer.matrix_stack.projection_matrix;
+		//m_shader[0].set_uniform_matrix("view_projection", view_projection);
 
 		for (size_t i = 0; i < m_objs.size(); i++) {
-			m_objs[i].draw();
+			m_renderer.render(m_objs[i]);
 		}
 	}
-	draw_GUI(m_camera);
+
+	draw_GUI(/*m_camera*/);
+
 }
 
 struct Layer {
@@ -195,7 +231,7 @@ struct LayerStack {
 	uint32_t m_layer_insert_index = 0;
 	LayerStack() = default;
 	~LayerStack() {
-		for(Layer* layer : m_layers) {
+		for (Layer* layer : m_layers) {
 			layer->on_detach();
 			delete layer;
 		}
@@ -210,7 +246,7 @@ struct LayerStack {
 	}
 	auto pop_layer(Layer* layer) -> void {
 		auto it = std::find(m_layers.begin(), m_layers.begin() + m_layer_insert_index, layer);
-		if(it != m_layers.begin() + m_layer_insert_index) {
+		if (it != m_layers.begin() + m_layer_insert_index) {
 			layer->on_detach();
 			m_layers.erase(it);
 			m_layer_insert_index--;
@@ -218,7 +254,7 @@ struct LayerStack {
 	}
 	auto pop_overlay(Layer* overlay) -> void {
 		auto it = std::find(m_layers.begin() + m_layer_insert_index, m_layers.end(), overlay);
-		if(it != m_layers.end()) {
+		if (it != m_layers.end()) {
 			overlay->on_detach();
 			m_layers.erase(it);
 		}
