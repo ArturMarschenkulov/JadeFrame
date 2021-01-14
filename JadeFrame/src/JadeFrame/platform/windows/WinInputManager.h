@@ -1,16 +1,18 @@
 #pragma once
-#include "../extern/glad/glad.h"
-#include <array>
-#include "math/Vec2.h"
-#include <cstdint>
 
+#include <windows.h>
+
+#include <cstdint>
+#include <array>
+#include <queue>
+
+struct WindowsMessage;
+class Vec2;
 
 enum class INPUT_STATE {
 	RELEASED,
 	PRESSED
 };
-#include <windows.h>
-#include <queue>
 
 enum class BUTTON {
 	LEFT = VK_LBUTTON,
@@ -123,9 +125,10 @@ public:
 public:
 	//key part
 	std::queue<KeyEvent> key_buffer;
-	static auto key_callback(int64_t lParam, uint64_t wParam, uint32_t message) -> void;
+	//static auto key_callback(int64_t lParam, uint64_t wParam, uint32_t message) -> void;
+	static auto key_callback(const WindowsMessage& window_message) -> void;
 	static auto key_callback2(int64_t lParam, uint64_t wParam, uint32_t message) -> void;
-	static auto char_callback(int64_t lParam, uint64_t wParam, uint32_t message) -> void;
+	static auto char_callback(const WindowsMessage& window_message) -> void;
 
 	auto is_key_down(const KEY key) const -> bool;
 	auto is_key_up(const KEY key) const -> bool;
@@ -137,7 +140,7 @@ public:
 
 public:
 	//mouse part
-	static auto mouse_button_callback(int64_t lParam, int64_t wParam, int32_t message) -> void;
+	static auto mouse_button_callback(const WindowsMessage& window_message) -> void;
 
 	auto is_button_down(const BUTTON button) const -> bool;
 	auto is_button_up(const BUTTON button) const -> bool;

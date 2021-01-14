@@ -32,13 +32,13 @@ struct CPUInfo {
 	}
 	auto print() -> void {
 		printf("Hardware information: \n");
-		printf("  OEM ID: %u\n", OEM_ID);
+		printf("  OEM ID: %ul\n", OEM_ID);
 		printf("  Number of processors: %u\n", number_of_processors);
-		printf("  Page size: %u\n", page_size);
-		printf("  Processor type: %u\n", processor_type);
+		printf("  Page size: %ull\n", page_size);
+		printf("  Processor type: %ul\n", processor_type);
 		printf("  Minimum application address: %lx\n", minimum_application_address);
 		printf("  Maximum application address: %lx\n", maximum_application_address);
-		printf("  Active processor mask: %u\n", active_processor_mask);
+		printf("  Active processor mask: %ul\n", active_processor_mask);
 	}
 
 };

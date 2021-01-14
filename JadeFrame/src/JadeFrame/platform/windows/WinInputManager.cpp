@@ -1,10 +1,13 @@
-#include "Input.h"
-#include "BaseApp.h"
-#include <iostream>
-#include "GUI.h"
-#include "Windows.h"
-#include <windowsx.h>
+#include "WinInputManager.h"
 
+#include "../../BaseApp.h"
+//#include "GUI.h"
+#include <windows.h>
+#include <windowsx.h>
+#include "WinWindow.h" // for WindowMessage struct
+#include "../../math/Vec2.h"
+
+#include <iostream>
 
 
 /*
@@ -14,29 +17,39 @@ std::array<INPUT_STATE, 512> WinInputManager::m_current_key_state = {};
 std::array<INPUT_STATE, 512> WinInputManager::m_previous_key_state = {};
 
 auto WinInputManager::handle_input() -> void {
+	auto hWnd =  BaseApp::get_instance()->m_windows[0].m_window_handle;
+	POINT mouse;
+	GetCursorPos(&mouse);
+	ScreenToClient(hWnd, &mouse);
 	for (size_t i = 0; i < m_current_key_state.size(); i++) {
 		m_previous_key_state[i] = m_current_key_state[i];
 	}
 }
 
-auto WinInputManager::key_callback(int64_t lParam, uint64_t wParam, uint32_t message) -> void {
+//auto WinInputManager::key_callback(int64_t lParam, uint64_t wParam, uint32_t message) -> void {
+auto WinInputManager::key_callback(const WindowsMessage& window_message) -> void {
+	//window_message.hWnd;
+	//window_message.message;
+	auto wParam = window_message.wParam;
+	auto lParam = window_message.lParam;
+
 	uint64_t key_code = wParam;
-	int64_t bit_29 = (lParam >> 29) & 1; // 1 == system key
-	int64_t bit_30 = (lParam >> 30) & 1; // 1 == repeatedly pressed
+	//int64_t bit_29 = (lParam >> 29) & 1; // 1 == system key
+	//int64_t bit_30 = (lParam >> 30) & 1; // 1 == repeatedly pressed
 	int64_t bit_31 = (lParam >> 31) & 1; // 0 == pressed, 1 == released
 
-	bool b_is_system_key = (bit_29 == 1);
-	bool b_is_repeated = (bit_30 == 1);
+	//bool b_is_system_key = (bit_29 == 1);
+	//bool b_is_repeated = (bit_30 == 1);
 	bool b_is_pressed = (bit_31 == 0);
 
 	m_current_key_state[key_code] = static_cast<INPUT_STATE>(b_is_pressed);
 
 
-	//TODO: Try to extract that to somewhere else.
-	if (m_current_key_state[static_cast<int>(KEY::ESCAPE)] == INPUT_STATE::PRESSED) {
-		BaseApp::get_instance()->m_is_running = false;
-		::PostQuitMessage(0);
-	}
+	////TODO: Try to extract that to somewhere else.
+	//if (m_current_key_state[static_cast<int>(KEY::ESCAPE)] == INPUT_STATE::PRESSED) {
+	//	//BaseApp::get_instance()->m_is_running = false;
+	//	::PostQuitMessage(0);
+	//}
 }
 auto WinInputManager::key_callback2(int64_t lParam, uint64_t wParam, uint32_t message) -> void {
 	uint64_t key_code = wParam;
@@ -45,8 +58,8 @@ auto WinInputManager::key_callback2(int64_t lParam, uint64_t wParam, uint32_t me
 	int64_t bit_30 = (lParam >> 30) & 1; // 1 == repeatedly pressed
 	int64_t bit_31 = (lParam >> 31) & 1; // 0 == pressed, 1 == released
 
-	bool b_is_system_key = (bit_29 == 1);
-	bool b_is_repeated = (bit_30 == 1);
+	//bool b_is_system_key = (bit_29 == 1);
+	//bool b_is_repeated = (bit_30 == 1);
 	bool b_is_pressed = (bit_31 == 0);
 
 	auto key_event_type = b_is_pressed ? KeyEvent::TYPE::PRESSED : KeyEvent::TYPE::RELEASED;
@@ -70,10 +83,16 @@ auto WinInputManager::key_callback2(int64_t lParam, uint64_t wParam, uint32_t me
 		::PostQuitMessage(0);
 	}
 }
-auto WinInputManager::char_callback(int64_t lParam, uint64_t wParam, uint32_t message) -> void {
-	int64_t bit_29 = (lParam >> 29) & 1; // 1 == system key
-	int64_t bit_30 = (lParam >> 30) & 1; // 1 == repeatedly pressed
-	int64_t bit_31 = (lParam >> 31) & 1; // 0 == pressed, 1 == released
+//auto WinInputManager::char_callback(int64_t lParam, uint64_t wParam, uint32_t message) -> void {
+auto WinInputManager::char_callback(const WindowsMessage& window_message) -> void {
+	//window_message.hWnd;
+	//window_message.message;
+	//auto wParam = window_message.wParam;
+	//auto lParam = window_message.lParam;
+
+	//int64_t bit_29 = (lParam >> 29) & 1; // 1 == system key
+	//int64_t bit_30 = (lParam >> 30) & 1; // 1 == repeatedly pressed
+	//int64_t bit_31 = (lParam >> 31) & 1; // 0 == pressed, 1 == released
 
 
 }
@@ -118,9 +137,15 @@ static auto convert_buttons_from_JF_to_imgui(BUTTON button) -> int {
 	}
 	return result;
 }
-auto WinInputManager::mouse_button_callback(int64_t lParam, int64_t wParam, int32_t message) -> void {
 
-	ImGuiIO& io = ImGui::GetIO();
+//auto WinInputManager::mouse_button_callback(int64_t lParam, int64_t wParam, int32_t message) -> void {
+auto WinInputManager::mouse_button_callback(const WindowsMessage& window_message) -> void {
+	//window_message.hWnd;
+	auto message = window_message.message;
+	//auto wParam = window_message.wParam;
+	auto lParam = window_message.lParam;
+
+	//ImGuiIO& io = ImGui::GetIO();
 	BUTTON button;
 	switch (message) {
 	case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
@@ -137,7 +162,7 @@ auto WinInputManager::mouse_button_callback(int64_t lParam, int64_t wParam, int3
 			button = BUTTON::MIDDLE;
 		}
 		m_current_mouse_button_state[static_cast<int>(button)] = INPUT_STATE::PRESSED;
-		io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = true;
+		//io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = true;
 
 
 	}break;
@@ -155,12 +180,12 @@ auto WinInputManager::mouse_button_callback(int64_t lParam, int64_t wParam, int3
 			button = BUTTON::MIDDLE;
 		}
 		m_current_mouse_button_state[static_cast<int>(button)] = INPUT_STATE::RELEASED;
-		io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = false;
+		//io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = false;
 	}break;
 	}
 	int mposx = GET_X_LPARAM(lParam);
 	int mposy = GET_Y_LPARAM(lParam);
 	m_mouse_posiition.x = mposx;
 	m_mouse_posiition.y = mposy;
-	io.DeltaTime = 1.0f / 60.0f;
+	//io.DeltaTime = 1.0f / 60.0f;
 }

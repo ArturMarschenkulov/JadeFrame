@@ -1,10 +1,14 @@
 #include "GLShader.h"
+
+#include "../math/Vec2.h"
+#include "../math/Vec3.h"
+#include "../math/Vec4.h"
+#include "../math/Mat4.h"
+
 #include<array>
 #include<tuple>
 
-
-
-static auto compile(GLenum type, const std::string& code_source)->GLuint {
+static auto compile(GLenum type, const std::string& code_source) -> GLuint {
 	GLuint shader_ID = glCreateShader(type);
 	const GLchar* shader_code = code_source.c_str();
 	glShaderSource(shader_ID, 1, &shader_code, nullptr);
@@ -22,7 +26,7 @@ static auto compile(GLenum type, const std::string& code_source)->GLuint {
 		std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED" << info_log << std::endl;
 		return 0;
 	} else {
-		std::cout << "SUCCE::SHADER::PROGRAM::COMPILATION_SUCCEEDED" << std::endl;
+		//std::cout << "SUCCE::SHADER::PROGRAM::COMPILATION_SUCCEEDED" << std::endl;
 	}
 	return shader_ID;
 }
@@ -40,7 +44,7 @@ static auto link(GLuint vertex_shader_id, GLuint fragment_shader_id)->GLuint {
 		glGetProgramInfoLog(program_ID, 512, nullptr, info_log);
 		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << info_log << std::endl;
 	} else {
-		std::cout << "SUCCE::SHADER::PROGRAM::LINKING_SUCCEEDED\n" << std::endl;
+		//std::cout << "SUCCE::SHADER::PROGRAM::LINKING_SUCCEEDED\n" << std::endl;
 	}
 	return program_ID;
 }
@@ -54,11 +58,11 @@ static auto validate(GLuint program_id) -> void {
 		glGetProgramInfoLog(program_id, 512, nullptr, info_log);
 		std::cout << "ERROR::SHADER::PROGRAM::VALIDATION_FAILED\n" << info_log << std::endl;
 	} else {
-		std::cout << "SUCCE::SHADER::PROGRAM::VALIDATION_SUCCEEDED\n" << std::endl;
+		//std::cout << "SUCCE::SHADER::PROGRAM::VALIDATION_SUCCEEDED\n" << std::endl;
 	}
 }
 static auto get_default_shader_0() -> std::tuple<std::string, std::string> {
-	static const GLchar* vs_default =
+	const GLchar* vs_default =
 		R"(
 			#version 450 core
 			layout (location = 0) in vec3 v_position;
@@ -80,7 +84,7 @@ static auto get_default_shader_0() -> std::tuple<std::string, std::string> {
 				f_texture_coord = v_texture_coord;
 			}
 	)";
-	static const GLchar* fs_default =
+	const GLchar* fs_default =
 		R"(
 			#version 450 core
 
@@ -101,7 +105,7 @@ static auto get_default_shader_0() -> std::tuple<std::string, std::string> {
 	return std::make_tuple(std::string(vs_default), std::string(fs_default));
 }
 static auto get_default_shader_1() -> std::tuple<std::string, std::string> {
-	static const GLchar* vs_default =
+	const GLchar* vs_default =
 		R"(
 			#version 450 core
 			layout (location = 0) in vec3 v_position;
@@ -123,7 +127,7 @@ static auto get_default_shader_1() -> std::tuple<std::string, std::string> {
 				f_texture_coord = v_texture_coord;
 			}
 	)";
-	static const GLchar* fs_default =
+	const GLchar* fs_default =
 		R"(
 			#version 450 core
 

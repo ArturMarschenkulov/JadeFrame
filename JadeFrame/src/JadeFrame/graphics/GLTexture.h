@@ -2,9 +2,6 @@
 #include <glad/glad.h>
 
 #include <string>
-#include <iostream>
-
-
 
 class GLTexture {
 public:
@@ -26,11 +23,10 @@ public:
 
 
 
-	static auto load(std::string path, GLenum target, GLenum internalFormat, bool srgb = false)->GLTexture;
+	static auto load(const std::string& path, GLenum target, GLenum internalFormat, bool srgb = false) -> GLTexture;
 
-	void generate(unsigned int width, unsigned int height, GLenum internalFormat, GLenum format, GLenum type, void* data);
+	auto generate(unsigned int width, unsigned int height, GLenum internalFormat, GLenum format, GLenum type, void* data) -> void;
 
-	void bind(int unit = -1);
-	// --------------------------------------------------------------------------------------------
-	void unbind();
+	auto bind(int unit = -1) -> void;
+	auto unbind() -> void;
 };

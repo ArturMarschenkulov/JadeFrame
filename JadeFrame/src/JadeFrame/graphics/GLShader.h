@@ -1,13 +1,13 @@
 #pragma once
 #include <glad/glad.h>
+
 #include <vector>
+#include <string>
 
-#include "../math/Vec2.h"
-#include "../math/Vec3.h"
-#include "../math/Vec4.h"
-#include "../math/Mat4.h"
-
-
+class Vec2;
+class Vec3;
+class Vec4;
+class Mat4;
 
 class GLShader {
 public:

@@ -4,7 +4,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
-auto GLTexture::load(std::string path, GLenum target, GLenum internalFormat, bool is_srgb) -> GLTexture {
+#include <iostream>
+
+auto GLTexture::load(const std::string& path, GLenum target, GLenum internalFormat, bool is_srgb) -> GLTexture {
 	GLTexture texture;
 	texture.m_target = target;
 	texture.m_internal_format = internalFormat;

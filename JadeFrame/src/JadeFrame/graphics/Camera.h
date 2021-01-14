@@ -1,15 +1,7 @@
 #pragma once
+
 #include "../math/Mat4.h"
 #include "../math/Vec3.h"
-
-struct Cam {
-	enum class TYPE {
-		ORTHOGRAPHIC,
-		PERSPECTIVE,
-	};
-	Cam(TYPE type);
-
-};
 
 class Camera {
 public:
@@ -35,9 +27,8 @@ public:
 	float m_aspect;
 	float m_zNear;
 	float m_zFar;
-
+	auto control() -> void;
 };
-auto camera_control(Camera& camera) -> void;
 
 class Camera1 {
 public:
@@ -48,7 +39,7 @@ public:
 	auto get_view_matrix() const->Mat4 {
 		return Mat4::lookAt(m_position, m_position + m_forward, m_up);
 	}
-	
+
 public:
 	enum class MODE {
 		ORTHOGRAPHIC,
@@ -62,9 +53,9 @@ public:
 	float m_aspect;
 	float m_near;
 	float m_far;
-};
 
-auto camera_control(Camera1& camera) -> void;
+	auto control() -> void;
+};
 
 class Camera0 {
 	Mat4 m_projection;

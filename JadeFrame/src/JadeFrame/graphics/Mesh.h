@@ -1,13 +1,11 @@
 #pragma once
-#include <glad/glad.h>
-
-#include <vector>
-
+//#include <glad/glad.h>
 #include "../math/Vec2.h"
 #include "../math/Vec3.h"
 #include "../math/Mat4.h"
 
 
+#include <vector>
 
 class Color {
 public:
@@ -34,7 +32,7 @@ class Mesh3 {
 public:
 	//private:
 	std::vector<Vertex> vertices;
-	std::vector<GLuint> indices;
+	std::vector<uint32_t> indices;
 };
 
 class VertexData {
@@ -43,7 +41,7 @@ public:
 	std::vector<Color> colors;
 	std::vector<Vec2> tex_coords;
 
-	std::vector<GLuint> indices;
+	std::vector<uint32_t> indices;
 };
 
 

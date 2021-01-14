@@ -26,45 +26,20 @@ enum class SHADER_DATA_TYPE {
 	BOOL
 };
 
-static auto shader_data_type_size(const SHADER_DATA_TYPE type) -> uint32_t {
-	switch (type) {
-	case SHADER_DATA_TYPE::FLOAT:	return 4;
-	case SHADER_DATA_TYPE::FLOAT_2:	return 4 * 2;
-	case SHADER_DATA_TYPE::FLOAT_3:	return 4 * 3;
-	case SHADER_DATA_TYPE::FLOAT_4:	return 4 * 4;
-	case SHADER_DATA_TYPE::MAT_3:	return 4 * 3 * 3;
-	case SHADER_DATA_TYPE::MAT_4:	return 4 * 4 * 4;
-	case SHADER_DATA_TYPE::INT:		return 4;
-	case SHADER_DATA_TYPE::INT_2:	return 4 * 2;
-	case SHADER_DATA_TYPE::INT_3:	return 4 * 3;
-	case SHADER_DATA_TYPE::INT_4:	return 4 * 4;
-	case SHADER_DATA_TYPE::BOOL:	return 1;
-	default: __debugbreak(); return -1;
-	}
-	return 0;
-}
 
-static auto shader_data_type_to_openGL_base_type(const SHADER_DATA_TYPE type) -> GLenum {
-	switch (type) {
-	case SHADER_DATA_TYPE::FLOAT:
-	case SHADER_DATA_TYPE::FLOAT_2:
-	case SHADER_DATA_TYPE::FLOAT_3:
-	case SHADER_DATA_TYPE::FLOAT_4: return GL_FLOAT;
-	default: __debugbreak(); return 0;
-	}
-}
 
-struct BufferElement {
-	std::string name;
-	SHADER_DATA_TYPE type;
-	uint32_t size;
-	size_t offset;
-	bool normalized;
-
-	BufferElement(SHADER_DATA_TYPE type, const std::string& name, bool normalized = false);
-	auto get_component_count()->uint32_t;
-};
 class BufferLayout {
+public:
+	struct BufferElement {
+		std::string name;
+		SHADER_DATA_TYPE type;
+		uint32_t size;
+		size_t offset;
+		bool normalized;
+
+		BufferElement(SHADER_DATA_TYPE type, const std::string& name, bool normalized = false);
+		auto get_component_count()->uint32_t;
+	};
 public:
 	BufferLayout(const std::initializer_list<BufferElement>& elements);
 	auto calculate_offset_and_stride() -> void;

@@ -1,7 +1,10 @@
 #include "Camera.h"
+
+//#if 1 // NOTE: for camera cotrolling. Remove if we move it
 #include "../BaseApp.h"
-#include "../Input.h"
+#include "../platform/windows/WinInputManager.h"
 #include "../math/Math.h"
+//#endif
 
 
 
@@ -37,40 +40,34 @@ auto Camera::get_view_matrix() const -> Mat4 {
 	
 }
 
-auto Camera::get_projection_matrix() const -> Mat4 {
-	return m_projection_matrix;
-}
-
-auto camera_control(Camera& camera) -> void {
+auto Camera::control() -> void {
 	float r = 0.1f;
 
 	WinInputManager i = BaseApp::get_instance()->m_input_manager;
 
-	auto& c = camera;
+
+	if (i.is_key_down(KEY::E)) m_position += m_up * r;
+	if (i.is_key_down(KEY::Q)) m_position -= m_up * r;
+
+	if (i.is_key_down(KEY::A)) m_position -= m_right * r;
+	if (i.is_key_down(KEY::D)) m_position += m_right * r;
+
+	if (i.is_key_down(KEY::S)) m_position -= m_front * r;
+	if (i.is_key_down(KEY::W)) m_position += m_front * r;
+
+	if (i.is_key_down(KEY::UP))    m_pitch += r;
+	if (i.is_key_down(KEY::DOWN))  m_pitch -= r;
+	if (i.is_key_down(KEY::RIGHT)) m_yaw += r;
+	if (i.is_key_down(KEY::LEFT))  m_yaw -= r;
 
 
-	if (i.is_key_down(KEY::E)) c.m_position += c.m_up * r;
-	if (i.is_key_down(KEY::Q)) c.m_position -= c.m_up * r;
+	static float old_fovy = m_fovy;
+	if (i.is_key_down(KEY::R))  m_fovy += to_radians(r);
+	if (i.is_key_down(KEY::F))  m_fovy -= to_radians(r);
 
-	if (i.is_key_down(KEY::A)) c.m_position -= c.m_right * r;
-	if (i.is_key_down(KEY::D)) c.m_position += c.m_right * r;
-
-	if (i.is_key_down(KEY::S)) c.m_position -= c.m_front * r;
-	if (i.is_key_down(KEY::W)) c.m_position += c.m_front * r;
-
-	if (i.is_key_down(KEY::UP))    c.m_pitch += r;
-	if (i.is_key_down(KEY::DOWN))  c.m_pitch -= r;
-	if (i.is_key_down(KEY::RIGHT)) c.m_yaw += r;
-	if (i.is_key_down(KEY::LEFT))  c.m_yaw -= r;
-
-
-	static float old_fovy = c.m_fovy;
-	if (i.is_key_down(KEY::R))  c.m_fovy += to_radians(r);
-	if (i.is_key_down(KEY::F))  c.m_fovy -= to_radians(r);
-
-	if (old_fovy != c.m_fovy) {
-		old_fovy = c.m_fovy;
-		c.perspective(c.m_position, c.m_fovy, c.m_aspect, c.m_zNear, c.m_zFar);
+	if (old_fovy != m_fovy) {
+		old_fovy = m_fovy;
+		perspective(m_position, m_fovy, m_aspect, m_zNear, m_zFar);
 		__debugbreak();
 		//BaseApp::get_instance()->m_renderer->matrix_stack.projection_matrix = get_projection_matrix();
 	}
@@ -80,10 +77,10 @@ auto camera_control(Camera& camera) -> void {
 
 
 	Vec3 front;
-	front.x = cos(to_radians(c.m_yaw)) * cos(to_radians(c.m_pitch));
-	front.y = sin(to_radians(c.m_pitch));
-	front.z = sin(to_radians(c.m_yaw)) * cos(to_radians(c.m_pitch));
-	c.m_front = front.normalize();
+	front.x = cos(to_radians(m_yaw)) * cos(to_radians(m_pitch));
+	front.y = sin(to_radians(m_pitch));
+	front.z = sin(to_radians(m_yaw)) * cos(to_radians(m_pitch));
+	m_front = front.normalize();
 
 	//m_right = m_worldUp.cross(m_front).normalize();
 	//m_up = m_front.cross(m_right).normalize();
@@ -92,57 +89,8 @@ auto camera_control(Camera& camera) -> void {
 	//m_up = m_right.cross(m_front).normalize();
 }
 
-auto camera_control(Camera1& camera) -> void {
-	float r = 0.1f;
-
-	WinInputManager i = BaseApp::get_instance()->m_input_manager;
-
-	auto& c = camera;
-
-	Vec3 right = { 0.0f, 1.0f, 0.0f };
-	Vec3 front = { -1.0f, 0.0f, 0.0f };
-	//if (i.is_key_down(KEY::E)) c.m_position += c.m_up * r;
-	//if (i.is_key_down(KEY::Q)) c.m_position -= c.m_up * r;
-
-	if (i.is_key_down(KEY::A)) c.m_position -= right * r;
-	if (i.is_key_down(KEY::D)) c.m_position += right * r;
-
-	if (i.is_key_down(KEY::S)) c.m_position -= front * r;
-	if (i.is_key_down(KEY::W)) c.m_position += front * r;
-
-	//if (i.is_key_down(KEY::UP))    c.m_pitch += r;
-	//if (i.is_key_down(KEY::DOWN))  c.m_pitch -= r;
-	//if (i.is_key_down(KEY::RIGHT)) c.m_yaw += r;
-	//if (i.is_key_down(KEY::LEFT))  c.m_yaw -= r;
-
-
-	//static float old_fovy = c.m_fovy;
-	//if (i.is_key_down(KEY::R))  c.m_fovy += to_radians(r);
-	//if (i.is_key_down(KEY::F))  c.m_fovy -= to_radians(r);
-
-	//if (old_fovy != c.m_fovy) {
-	//	old_fovy = c.m_fovy;
-	//	c.perspective(c.m_position, c.m_fovy, c.m_aspect, c.m_zNear, c.m_zFar);
-	//	__debugbreak();
-	//	//BaseApp::get_instance()->m_renderer->matrix_stack.projection_matrix = get_projection_matrix();
-	//}
-
-
-
-
-	float yaw = 0;
-	float pitch = 0;
-	Vec3 ffront;
-	ffront.x = cos(to_radians(yaw)) * cos(to_radians(pitch));
-	ffront.y = sin(to_radians(pitch));
-	ffront.z = sin(to_radians(yaw)) * cos(to_radians(pitch));
-	c.m_forward = ffront.normalize();
-
-	////m_right = m_worldUp.cross(m_front).normalize();
-	////m_up = m_front.cross(m_right).normalize();
-
-	////m_right = m_front.cross(m_worldUp).normalize();
-	////m_up = m_right.cross(m_front).normalize();
+auto Camera::get_projection_matrix() const -> Mat4 {
+	return m_projection_matrix;
 }
 
 auto Camera1::perspective(Vec3 position, float fov, float aspect, float zNear, float zFar) -> void {
@@ -170,4 +118,55 @@ auto Camera1::perspective(Vec3 position, float fov, float aspect, float zNear, f
 	//front.y = sin(to_radians(pitch));
 	//front.z = sin(to_radians(yaw)) * cos(to_radians(pitch));
 	//m_forward = front.normalize();
+}
+
+auto Camera1::control() -> void {
+	float r = 0.1f;
+
+	WinInputManager i = BaseApp::get_instance()->m_input_manager;
+
+	Vec3 right = { 0.0f, 1.0f, 0.0f };
+	Vec3 front = { -1.0f, 0.0f, 0.0f };
+	//if (i.is_key_down(KEY::E)) m_position += m_up * r;
+	//if (i.is_key_down(KEY::Q)) m_position -= m_up * r;
+
+	if (i.is_key_down(KEY::A)) m_position -= right * r;
+	if (i.is_key_down(KEY::D)) m_position += right * r;
+
+	if (i.is_key_down(KEY::S)) m_position -= front * r;
+	if (i.is_key_down(KEY::W)) m_position += front * r;
+
+	//if (i.is_key_down(KEY::UP))    m_pitch += r;
+	//if (i.is_key_down(KEY::DOWN))  m_pitch -= r;
+	//if (i.is_key_down(KEY::RIGHT)) m_yaw += r;
+	//if (i.is_key_down(KEY::LEFT))  m_yaw -= r;
+
+
+	//static float old_fovy = m_fovy;
+	//if (i.is_key_down(KEY::R))  m_fovy += to_radians(r);
+	//if (i.is_key_down(KEY::F))  m_fovy -= to_radians(r);
+
+	//if (old_fovy != m_fovy) {
+	//	old_fovy = m_fovy;
+	//	perspective(m_position, m_fovy, m_aspect, m_zNear, m_zFar);
+	//	__debugbreak();
+	//	//BaseApp::get_instance()->m_renderer->matrix_stack.projection_matrix = get_projection_matrix();
+	//}
+
+
+
+
+	float yaw = 0;
+	float pitch = 0;
+	Vec3 ffront;
+	ffront.x = cos(to_radians(yaw)) * cos(to_radians(pitch));
+	ffront.y = sin(to_radians(pitch));
+	ffront.z = sin(to_radians(yaw)) * cos(to_radians(pitch));
+	m_forward = ffront.normalize();
+
+	////m_right = m_worldUp.cross(m_front).normalize();
+	////m_up = m_front.cross(m_right).normalize();
+
+	////m_right = m_front.cross(m_worldUp).normalize();
+	////m_up = m_right.cross(m_front).normalize();
 }

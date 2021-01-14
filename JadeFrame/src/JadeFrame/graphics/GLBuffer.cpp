@@ -2,11 +2,38 @@
 
 #include "Mesh.h"
 
-BufferElement::BufferElement(SHADER_DATA_TYPE type, const std::string& name, bool normalized)
-	: name(name), type(type), size(shader_data_type_size(type)), offset(0), normalized(normalized) {
+static auto SHADER_DATA_TYPE_get_size(const SHADER_DATA_TYPE type) -> uint32_t {
+	switch (type) {
+	case SHADER_DATA_TYPE::FLOAT:	return 4;
+	case SHADER_DATA_TYPE::FLOAT_2:	return 4 * 2;
+	case SHADER_DATA_TYPE::FLOAT_3:	return 4 * 3;
+	case SHADER_DATA_TYPE::FLOAT_4:	return 4 * 4;
+	case SHADER_DATA_TYPE::MAT_3:	return 4 * 3 * 3;
+	case SHADER_DATA_TYPE::MAT_4:	return 4 * 4 * 4;
+	case SHADER_DATA_TYPE::INT:		return 4;
+	case SHADER_DATA_TYPE::INT_2:	return 4 * 2;
+	case SHADER_DATA_TYPE::INT_3:	return 4 * 3;
+	case SHADER_DATA_TYPE::INT_4:	return 4 * 4;
+	case SHADER_DATA_TYPE::BOOL:	return 1;
+	default: __debugbreak(); return -1;
+	}
+	return 0;
+}
+static auto SHADER_DATA_TYPE_to_openGL_type(const SHADER_DATA_TYPE type) -> GLenum {
+	switch (type) {
+	case SHADER_DATA_TYPE::FLOAT:
+	case SHADER_DATA_TYPE::FLOAT_2:
+	case SHADER_DATA_TYPE::FLOAT_3:
+	case SHADER_DATA_TYPE::FLOAT_4: return GL_FLOAT;
+	default: __debugbreak(); return 0;
+	}
 }
 
-auto BufferElement::get_component_count() -> uint32_t {
+BufferLayout::BufferElement::BufferElement(SHADER_DATA_TYPE type, const std::string& name, bool normalized)
+	: name(name), type(type), size(SHADER_DATA_TYPE_get_size(type)), offset(0), normalized(normalized) {
+}
+
+auto BufferLayout::BufferElement::get_component_count() -> uint32_t {
 	switch (type) {
 	case SHADER_DATA_TYPE::FLOAT:	return 1;
 	case SHADER_DATA_TYPE::FLOAT_2:	return 2;
@@ -99,10 +126,12 @@ auto GLVertexArray::unbind() const -> void {
 	glBindVertexArray(0);
 }
 
+
+
 auto GLVertexArray::set_layout(BufferLayout buffer_layout) const -> void {
 	int vertex_buffer_index = 0;
 	for (size_t i = 0; i != buffer_layout.m_elements.size(); i++) {
-		BufferElement& element = buffer_layout.m_elements[i];
+		BufferLayout::BufferElement& element = buffer_layout.m_elements[i];
 		switch (element.type) {
 		case SHADER_DATA_TYPE::FLOAT:
 		case SHADER_DATA_TYPE::FLOAT_2:
@@ -114,7 +143,7 @@ auto GLVertexArray::set_layout(BufferLayout buffer_layout) const -> void {
 			glVertexAttribPointer(
 				vertex_buffer_index,
 				element.get_component_count(),
-				shader_data_type_to_openGL_base_type(element.type),
+				SHADER_DATA_TYPE_to_openGL_type(element.type),
 				element.normalized ? GL_TRUE : GL_FALSE,
 				buffer_layout.m_stride,
 				//reinterpret_cast<const void*>(element.offset)

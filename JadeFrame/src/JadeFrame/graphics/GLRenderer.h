@@ -4,14 +4,14 @@
 #include "GLShader.h"
 #include "Camera.h"
 
-
-#include <vector>
 #include "../math/Vec3.h"
 #include "../math/Vec2.h"
 #include "../math/Mat4.h"
 #include "Mesh.h"
-#include <stack>
 #include "GLBuffer.h"
+
+#include <vector>
+#include <stack>
 
 enum BLENDING_FACTOR : int {
 	ZERO = GL_ZERO,
