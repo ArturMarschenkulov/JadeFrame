@@ -1,6 +1,7 @@
 #include "Mat4.h"
 
-Mat4::Mat4() {
+Mat4::Mat4()
+	:el(){
 	for(int col = 0; col < 4; col++) {
 		for(int row = 0; row < 4; row++) {
 			el[col][row] = (col == row) ? float(1.0f) : float(0.0f);
@@ -11,7 +12,7 @@ Mat4::Mat4() {
 	//el[0][2] = 0.0f; el[1][2] = 0.0f; el[2][2] = 1.0f; el[3][2] = 0.0f;
 	//el[0][3] = 0.0f; el[1][3] = 0.0f; el[2][3] = 0.0f; el[3][3] = 1.0f;
 }
-Mat4::Mat4(float digo) {
+Mat4::Mat4(const float digo) {
 	for(int col = 0; col < 4; col++) {
 		for(int row = 0; row < 4; row++) {
 			el[col][row] = (col == row) ? float(digo) : float(0.0f);
@@ -22,7 +23,7 @@ Mat4::Mat4(float digo) {
 	//el[0][2] = 0.0f; el[1][2] = 0.0f; el[2][2] = digo; el[3][2] = 0.0f;
 	//el[0][3] = 0.0f; el[1][3] = 0.0f; el[2][3] = 0.0f; el[3][3] = digo;
 }
-Mat4::Mat4(Vec4 col0, Vec4 col1, Vec4 col2, Vec4 col3) {
+Mat4::Mat4(const Vec4& col0, const Vec4& col1, const Vec4& col2, const Vec4& col3) {
 	el[0][0] = col0.x; el[1][0] = col1.x; el[2][0] = col2.x; el[3][0] = col3.x;
 	el[0][1] = col0.y; el[1][1] = col1.y; el[2][1] = col2.y; el[3][1] = col3.y;
 	el[0][2] = col0.z; el[1][2] = col1.z; el[2][2] = col2.z; el[3][2] = col3.z;
@@ -37,13 +38,13 @@ auto Mat4::operator[](const int index) const -> const std::array<float, 4>& {
 	return this->el[index];
 }
 
-auto Mat4::operator*(const Vec3& vector) const -> Vec3{
-	Vec3 result;
-	result.x = el[0][0] * vector.x + el[1][0] * vector.y + el[2][0] * vector.z + el[3][0] * 1;
-	result.y = el[0][1] * vector.x + el[1][1] * vector.y + el[2][1] * vector.z + el[3][1] * 1;
-	result.z = el[0][2] * vector.x + el[1][2] * vector.y + el[2][2] * vector.z + el[3][2] * 1;
-	return result;
-}
+//auto Mat4::operator*(const Vec3& vector) const -> Vec3{
+//	Vec3 result;
+//	result.x = el[0][0] * vector.x + el[1][0] * vector.y + el[2][0] * vector.z + el[3][0] * 1;
+//	result.y = el[0][1] * vector.x + el[1][1] * vector.y + el[2][1] * vector.z + el[3][1] * 1;
+//	result.z = el[0][2] * vector.x + el[1][2] * vector.y + el[2][2] * vector.z + el[3][2] * 1;
+//	return result;
+//}
 
 auto Mat4::operator*(const Vec4& vector) const -> Vec4 {
 	Vec4 result;

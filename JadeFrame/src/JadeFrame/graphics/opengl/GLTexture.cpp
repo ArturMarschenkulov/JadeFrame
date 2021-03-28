@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-auto GLTexture::load(const std::string& path, GLenum target, GLenum internalFormat, bool is_srgb) -> GLTexture {
+auto GLTextureLoader::load(const std::string& path, GLenum target, GLenum internalFormat, bool is_srgb) -> GLTexture {
 	GLTexture texture;
 	texture.m_target = target;
 	texture.m_internal_format = internalFormat;
@@ -32,9 +32,9 @@ auto GLTexture::load(const std::string& path, GLenum target, GLenum internalForm
 		//	format = GL_RGBA;
 		//}
 		switch (num_components) {
-		case 1: format = GL_RED; break;
-		case 3: format = GL_RGB; break;
-		case 4: format = GL_RGBA; break;
+			case 1: format = GL_RED; break;
+			case 3: format = GL_RGB; break;
+			case 4: format = GL_RGBA; break;
 		}
 
 		if (target == GL_TEXTURE_2D) {
@@ -65,8 +65,18 @@ void GLTexture::generate(unsigned int width, unsigned int height, GLenum interna
 	m_type = type;
 
 	//assert(Target == GL_TEXTURE_2D);
-	bind();
-	glTexImage2D(m_target, 0, internalFormat, width, height, 0, format, type, data);
+	this->bind();
+	glTexImage2D(
+		m_target,
+		0,
+		internalFormat,
+		width,
+		height,
+		0,
+		format,
+		type,
+		data
+	);
 	glTexParameteri(m_target, GL_TEXTURE_MIN_FILTER, m_filterMin);
 	glTexParameteri(m_target, GL_TEXTURE_MAG_FILTER, m_filterMax);
 	glTexParameteri(m_target, GL_TEXTURE_WRAP_S, m_wrapS);
@@ -74,15 +84,34 @@ void GLTexture::generate(unsigned int width, unsigned int height, GLenum interna
 	if (m_mipmapping) {
 		glGenerateMipmap(m_target);
 	}
-	unbind();
+	this->unbind();
 }
 
-void GLTexture::bind(int unit) {
+void GLTexture::bind(int unit) const {
 	if (unit >= 0) {
 		glActiveTexture(GL_TEXTURE0 + unit);
 	}
 	glBindTexture(m_target, m_ID);
 }
-void GLTexture::unbind() {
+void GLTexture::unbind() const {
 	glBindTexture(m_target, 0);
+}
+
+auto GLTexture::resize(uint32_t width, uint32_t height, uint32_t depth) {
+
+	this->bind();
+	switch (m_target) {
+		case GL_TEXTURE_1D: 
+			glTexImage1D(GL_TEXTURE_1D, 0, m_internal_format, width, 0, m_format, m_type, 0);
+			break;
+		case GL_TEXTURE_2D:
+			assert(height > 0);
+			glTexImage2D(GL_TEXTURE_2D, 0, m_internal_format, width, height, 0, m_format, m_type, 0);
+			break;
+		case GL_TEXTURE_3D: 
+			assert(height > 0 && depth > 0);
+			glTexImage3D(GL_TEXTURE_3D, 0, m_internal_format, width, height, depth, 0, m_format, m_type, 0);
+			break;
+		default: assert(false);
+	}
 }

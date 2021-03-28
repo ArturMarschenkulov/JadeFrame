@@ -8,7 +8,7 @@ public:
 	Camera() {
 	}
 
-	auto perspective(Vec3 pos, float fov, float aspect, float zNear, float zFar) -> void;
+	auto perspective(const Vec3& pos, const float fov, const float aspect, const float zNear, const float zFar) -> void;
 	auto get_projection_matrix() const->Mat4;
 	auto get_view_matrix() const->Mat4;
 
@@ -32,12 +32,13 @@ public:
 
 class Camera1 {
 public:
-	auto perspective(Vec3 position, float fov, float aspect, float zNear, float zFar) -> void;
+	auto perspective(const Vec3& position, const float fov, const float aspect, const float zNear, const float zFar) -> void;
+	auto othographic(const float left, const float right, const float buttom, const float top, const float near_, const float far_) -> void;
 	auto get_projection_matrix() const->Mat4 {
 		return m_projection;
 	}
 	auto get_view_matrix() const->Mat4 {
-		return Mat4::lookAt(m_position, m_position + m_forward, m_up);
+		return Mat4::look_at(m_position, m_position + m_forward, m_up);
 	}
 
 public:
@@ -72,7 +73,7 @@ class Camera0 {
 	float m_far;
 	bool m_is_perspective;
 
-	auto set_perspective(float fov, float aspect, float t_near, float t_far) -> void {
+	auto set_perspective(const float fov, const float aspect, const float t_near, const float t_far) -> void {
 		m_is_perspective = true;
 		m_projection = Mat4::perspective(fov, aspect, t_near, t_far);
 		m_FOV = fov;
@@ -80,13 +81,13 @@ class Camera0 {
 		m_near = t_near;
 		m_far = t_far;
 	}
-	auto set_orthographic(float left, float right, float top, float bottom, float t_near, float t_far) {
+	auto set_orthographic(const float left, const float right, const float top, const float bottom, const float t_near, const float t_far) -> void {
 		m_is_perspective = false;
 		m_projection = Mat4::ortho(left, right, top, bottom, t_near, t_far);
 		m_near = t_near;
 		m_far = t_far;
 	}
-	auto update_view() {
-		m_view = Mat4::lookAt(m_position, m_position + m_forward, m_up);
+	auto update_view() -> void {
+		m_view = Mat4::look_at(m_position, m_position + m_forward, m_up);
 	}
 };

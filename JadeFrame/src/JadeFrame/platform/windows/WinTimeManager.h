@@ -1,16 +1,23 @@
 #pragma once
 #include <cstdint>
 
-class WinTimeManager {
+class Windows_TimeManager {
 public:
-	WinTimeManager();
-	auto get_time();
+	auto initialize() -> void;
+	auto get_time() const -> double;
 
 private:
-	auto get_timer_value() -> uint64_t;
-	auto get_timer_frequency() -> uint64_t;
+	auto query_timer_value() const -> uint64_t;
+	auto get_timer_frequency() const -> uint64_t;
 private:
 	bool m_has_performance_counter;
 	uint64_t m_frequency;
 	uint64_t m_offset;
+
+	double current;
+	double previous;
+	double update;
+	double draw;
+	double frame;
+	double target;
 };

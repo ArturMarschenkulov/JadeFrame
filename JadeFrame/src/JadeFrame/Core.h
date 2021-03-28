@@ -7,13 +7,16 @@
 /*
 List of various (open source) source codes which can be taken for inspiration
 
+Engines:
 	Blender, Godot, Unreal Engine, 
-	Ogre, SFML, Cell, MagnumEngine, 
-	Hazel/Spark, raylib, Urho3D, 
+	Ogre, Urho3D, 
 	Handmade Hero, CrystalSpace3D, 
 	Juce, Banshee Engine, NoahGameFrame, 
 	olcConsoleGameEngine
+	FlaxEngine, Spartan
 
+Frameworks:
+	SFML, Cell, MagnumEngine, Hazel/Sparky, raylib,
 
 Orthographical convention:
 	variables and functions in snake case (my_variable, my_function())
@@ -33,6 +36,14 @@ Orthographical convention:
 			- functions with short names will be unneccsarily longer
 			- VS2019 doesn't show the trailing return type if the function is collapsed
 
+
+	Platform specific constructs are named by the following pattern <Platform>_. 
+	E.g. Windows_*, Linux_*, MacOS_* or OpenGL_*, Vulkan_*, DirectX11_*, DirectX12_*, Software_*, Dummy_*
+
+	Maybe, light wrapper structs/classes in OpenGL, should get a simply "GL" prefix instead of "OpenGL_", which would be reserved for higher level constructs.
+	So that the general OpenGL renderer would be named "OpenGL_Renderer", while a light OpenGL Bufferobject wrappers, would be GLVertexBuffer.
+	Another example would be the OpenGL Shader. What people usually regard as a Shader is (AFAIK), referred to as Program in OpenGL, which consists
+	of several shaders, e.g. fragment, geometry shader. Thus they would be named GLProgram and GLShader which would be inside the OpenGL_Shader class. 
 
 TODO:
 	

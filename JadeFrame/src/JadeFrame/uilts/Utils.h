@@ -32,13 +32,13 @@ struct CPUInfo {
 	}
 	auto print() -> void {
 		printf("Hardware information: \n");
-		printf("  OEM ID: %ul\n", OEM_ID);
-		printf("  Number of processors: %u\n", number_of_processors);
-		printf("  Page size: %ull\n", page_size);
-		printf("  Processor type: %ul\n", processor_type);
-		printf("  Minimum application address: %lx\n", minimum_application_address);
-		printf("  Maximum application address: %lx\n", maximum_application_address);
-		printf("  Active processor mask: %ul\n", active_processor_mask);
+		printf("  OEM ID: %lu\n", OEM_ID);
+		printf("  Number of processors: %lu\n", number_of_processors);
+		printf("  Page size: %lu\n", page_size);
+		printf("  Processor type: %lu\n", processor_type);
+		printf("  Minimum application address: %p\n", minimum_application_address);
+		printf("  Maximum application address: %p\n", maximum_application_address);
+		printf("  Active processor mask: %llu\n", active_processor_mask);
 	}
 
 };
@@ -142,3 +142,37 @@ public:
 		return m_time_step * 0.001f;
 	}
 };
+
+#if 0
+#include <string>
+#include <codecvt>
+#include <locale>
+using convert_t = std::codecvt_utf8<wchar_t>;
+static std::wstring_convert<convert_t, wchar_t> strconverter;
+
+static auto from_wstring_to_string(std::wstring wstr) -> std::string {
+	return strconverter.to_bytes(wstr);
+}
+
+static auto from_string_to_wstring(std::string str) -> std::wstring {
+	return strconverter.from_bytes(str);
+}
+#else
+// Convert a wide Unicode string to an UTF8 string
+static auto from_wstring_to_string(const std::wstring& wstr) -> std::string {
+	if (wstr.empty()) return std::string();
+	int size_needed = WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), NULL, 0, NULL, NULL);
+	std::string strTo(size_needed, 0);
+	WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), &strTo[0], size_needed, NULL, NULL);
+	return strTo;
+}
+
+// Convert an UTF8 string to a wide Unicode String
+static auto from_string_to_wstring(const std::string& str) -> std::wstring {
+	if (str.empty()) return std::wstring();
+	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0);
+	std::wstring wstrTo(size_needed, 0);
+	MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), &wstrTo[0], size_needed);
+	return wstrTo;
+}
+#endif

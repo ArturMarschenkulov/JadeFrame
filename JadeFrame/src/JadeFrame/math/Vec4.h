@@ -1,15 +1,13 @@
 #pragma once
 #include <string>
-#include "Vec3.h"
-
+//#include "Vec3.h"
+class Vec3;
 class Vec4 {
 public:
 	Vec4();
-	Vec4(float scalar);
-	Vec4(float x, float y, float z, float w);
-	Vec4(float x, float y, float z);
-	Vec4(Vec3 vec3);
-	Vec4(Vec3 vec3, float w);
+	Vec4(const float scalar);
+	Vec4(const float x, const float y, const float z, const float w);
+	Vec4(const Vec3& vec3, const float w);
 public:
 	float x;
 	float y;

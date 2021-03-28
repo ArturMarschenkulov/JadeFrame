@@ -117,7 +117,7 @@ struct KeyEvent : public Event {
 	TYPE type;
 	uint64_t key_code;
 };
-class WinInputManager {
+class Windows_InputManager {
 	friend class WinWindow;
 public:
 	auto handle_input() -> void;

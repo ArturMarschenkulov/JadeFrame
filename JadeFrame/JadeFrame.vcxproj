@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -301,8 +301,9 @@
     <ClInclude Include="src\JadeFrame\Core.h" />
     <ClInclude Include="src\JadeFrame\FontManager.h" />
     <ClInclude Include="src\JadeFrame\graphics\Camera.h" />
-    <ClInclude Include="src\JadeFrame\graphics\GLBuffer.h" />
-    <ClInclude Include="src\JadeFrame\graphics\GLTexture.h" />
+    <ClInclude Include="src\JadeFrame\graphics\opengl\GLBuffer.h" />
+    <ClInclude Include="src\JadeFrame\graphics\opengl\GLContext.h" />
+    <ClInclude Include="src\JadeFrame\graphics\opengl\GLTexture.h" />
     <ClInclude Include="src\JadeFrame\GUI.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\WinInputManager.h" />
     <ClInclude Include="src\JadeFrame\math\Mat4.h" />
@@ -311,8 +312,9 @@
     <ClInclude Include="src\JadeFrame\math\Vec3.h" />
     <ClInclude Include="src\JadeFrame\math\Vec4.h" />
     <ClInclude Include="src\JadeFrame\graphics\Mesh.h" />
-    <ClInclude Include="src\JadeFrame\graphics\GLRenderer.h" />
-    <ClInclude Include="src\JadeFrame\graphics\GLShader.h" />
+    <ClInclude Include="src\JadeFrame\graphics\opengl\GLRenderer.h" />
+    <ClInclude Include="src\JadeFrame\graphics\opengl\GLShader.h" />
+    <ClInclude Include="src\JadeFrame\platform\windows\WinSystemManager.h" />
     <ClInclude Include="src\JadeFrame\uilts\Utils.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\WindowsMessageMap.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\WinTimeManager.h" />
@@ -375,8 +377,9 @@
     <ClCompile Include="src\JadeFrame\Core.cpp" />
     <ClCompile Include="src\JadeFrame\FontManager.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\Camera.cpp" />
-    <ClCompile Include="src\JadeFrame\graphics\GLBuffer.cpp" />
-    <ClCompile Include="src\JadeFrame\graphics\GLTexture.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\opengl\GLBuffer.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\opengl\GLContext.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\opengl\GLTexture.cpp" />
     <ClCompile Include="src\JadeFrame\GUI.cpp" />
     <ClCompile Include="src\JadeFrame\platform\windows\WinInputManager.cpp" />
     <ClCompile Include="src\JadeFrame\math\Mat4.cpp" />
@@ -385,11 +388,16 @@
     <ClCompile Include="src\JadeFrame\math\Vec3.cpp" />
     <ClCompile Include="src\JadeFrame\math\Vec4.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\Mesh.cpp" />
-    <ClCompile Include="src\JadeFrame\graphics\GLRenderer.cpp" />
-    <ClCompile Include="src\JadeFrame\graphics\GLShader.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\opengl\GLRenderer.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\opengl\GLShader.cpp" />
     <ClCompile Include="src\JadeFrame\platform\windows\WindowsMessageMap.cpp" />
+    <ClCompile Include="src\JadeFrame\platform\windows\WinSystemManager.cpp" />
     <ClCompile Include="src\JadeFrame\platform\windows\WinTimeManager.cpp" />
     <ClCompile Include="src\JadeFrame\platform\windows\WinWindow.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resource\awesomeface.png" />
+    <Image Include="resource\wall.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

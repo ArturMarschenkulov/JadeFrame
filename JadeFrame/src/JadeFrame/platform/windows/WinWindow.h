@@ -1,5 +1,4 @@
 #pragma once
-#include <windows.h>
 
 #include "../../math/Vec2.h"
 
@@ -12,6 +11,12 @@ typedef HGLRC__* HGLRC;
 struct HDC__;
 typedef HDC__* HDC;
 
+typedef unsigned int        UINT;
+typedef unsigned __int64	UINT_PTR;
+typedef UINT_PTR            WPARAM;
+typedef __int64				LONG_PTR;
+typedef LONG_PTR            LPARAM;
+
 struct WindowsMessage {
 	HWND hWnd;
 	UINT message;
@@ -19,21 +24,16 @@ struct WindowsMessage {
 	LPARAM lParam;
 };
 
-class WinWindow {
+class Windows_Window {
 public:
-	WinWindow(const std::string& title, Vec2 size, Vec2 position);
-
-	WinWindow() = default;
-	//static auto init(const std::string& title, Vec2 size, Vec2 position)->WinWindow;
-	~WinWindow();
-	auto deinit() -> void;
-	auto _init(const std::string& title, Vec2 size, Vec2 position) -> void;
+	~Windows_Window();
+	auto initialize(const std::string& title, const Vec2& size, const Vec2& position) -> void;
+	auto deinitialize() const -> void;
 
 	auto set_title(const std::string& title);
-	auto set_v_sync(bool b) -> void;
-	auto make_current() -> void;
-	//private:
+	auto make_current() const -> void;
 
+public:
 	HWND m_window_handle;
 	HGLRC m_render_context;
 	HDC m_device_context;

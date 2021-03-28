@@ -396,22 +396,22 @@
     <ClInclude Include="src\JadeFrame\FontManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\GLShader.h">
+    <ClInclude Include="src\JadeFrame\graphics\opengl\GLShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\GLRenderer.h">
+    <ClInclude Include="src\JadeFrame\graphics\opengl\GLRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\extern\imgui\imgui_impl_dx11.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\GLTexture.h">
+    <ClInclude Include="src\JadeFrame\graphics\opengl\GLTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\JadeFrame\uilts\Utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\GLBuffer.h">
+    <ClInclude Include="src\JadeFrame\graphics\opengl\GLBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\JadeFrame\platform\windows\WinWindow.h">
@@ -424,6 +424,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\JadeFrame\platform\windows\WinTimeManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\platform\windows\WinSystemManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\graphics\opengl\GLContext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -614,19 +620,19 @@
     <ClCompile Include="src\JadeFrame\FontManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\GLShader.cpp">
+    <ClCompile Include="src\JadeFrame\graphics\opengl\GLShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\GLRenderer.cpp">
+    <ClCompile Include="src\JadeFrame\graphics\opengl\GLRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\extern\imgui\imgui_impl_dx11.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\GLTexture.cpp">
+    <ClCompile Include="src\JadeFrame\graphics\opengl\GLTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\GLBuffer.cpp">
+    <ClCompile Include="src\JadeFrame\graphics\opengl\GLBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\JadeFrame\platform\windows\WindowsMessageMap.cpp">
@@ -641,5 +647,19 @@
     <ClCompile Include="src\JadeFrame\platform\windows\WinWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\JadeFrame\platform\windows\WinSystemManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\graphics\opengl\GLContext.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resource\awesomeface.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resource\wall.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

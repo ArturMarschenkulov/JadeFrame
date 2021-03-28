@@ -9,29 +9,29 @@
 class Mat4 {
 public:
 	Mat4();
-	Mat4(float diagonal);
-	Mat4(Vec4 col1, Vec4 col2, Vec4 col3, Vec4 col4);
+	Mat4(const float diagonal);
+	Mat4(const Vec4& col1, const Vec4& col2, const Vec4& col3, const Vec4& col4);
 
-	auto operator[](const int index) -> std::array<float, 4>&; // for writing
+	auto operator[](const int index)->std::array<float, 4>&; // for writing
 	auto operator[](const int index) const -> const std::array<float, 4>&; // for reading
 
-	auto operator*(const Vec3& vector) const -> Vec3;
-	auto operator*(const Vec4& vector) const -> Vec4;
-	auto operator*(const Mat4& other) const -> Mat4;
+	//auto operator*(const Vec3& vector) const -> Vec3;
+	auto operator*(const Vec4& vector) const->Vec4;
+	auto operator*(const Mat4& other) const->Mat4;
 
-	static auto ortho(float left, float right, float buttom, float top, float near, float far) -> Mat4;
-	static auto perspective(float fovy, float aspect, float near, float far) -> Mat4;
+	static auto ortho(float left, float right, float buttom, float top, float near, float far)->Mat4;
+	static auto perspective(float fovy, float aspect, float near, float far)->Mat4;
 
-	static auto translate(Mat4 const& mat, const Vec3& trans) -> Mat4;
-	static auto translate(const Vec3& trans) -> Mat4;
-	static auto rotate(Mat4 const& mat, float angle, const Vec3& axis) -> Mat4;
-	static auto rotate(float angle, const Vec3& axis) -> Mat4;
-	static auto scale(Mat4 const& mat, const Vec3& scale) -> Mat4;
-	static auto scale(const Vec3& scale) -> Mat4;
+	static auto translate(Mat4 const& mat, const Vec3& trans)->Mat4;
+	static auto translate(const Vec3& trans)->Mat4;
+	static auto rotate(Mat4 const& mat, float angle, const Vec3& axis)->Mat4;
+	static auto rotate(float angle, const Vec3& axis)->Mat4;
+	static auto scale(Mat4 const& mat, const Vec3& scale)->Mat4;
+	static auto scale(const Vec3& scale)->Mat4;
 
-	static auto lookAt(const Vec3& camera, Vec3 object, Vec3 up) -> Mat4 {
+	static auto look_at(const Vec3& camera, Vec3 object, Vec3 up) -> Mat4 {
 
-#if 1
+	#if 1
 		Vec3 forward = (object - camera).normalize();
 		Vec3 left = up.cross(forward).normalize();
 		Vec3 upp = forward.cross(left);
@@ -53,7 +53,7 @@ public:
 		matrix[3][1] = -(-upp.x * camera.x - upp.y * camera.y - up.z * camera.z);
 		matrix[3][2] = -(-forward.x * camera.x - forward.y * camera.y - forward.z * camera.z);
 		return matrix;
-#else 
+	#else 
 		Mat4 result;
 		Vec3 f = (object - camera).normalize();
 		Vec3 s = f.cross(up.normalize());
@@ -72,19 +72,19 @@ public:
 		result[2][2] = -f.z;
 
 		return result * Mat4::translate(Vec3(-camera.x, -camera.y, -camera.z));
-#endif
-	
+	#endif
+
 	}
 
-	auto makeEchelon() -> Mat4& {
+	auto make_echelon() -> Mat4& {
 		int colCount = 4;
 		int rowCount = 4;
 		// go through every column
-		for(int col = 0; col < colCount; col++) {
-			for(int row = col + 1; row < rowCount; row++) {
-				if(el[col][row] != 0) {
+		for (int col = 0; col < colCount; col++) {
+			for (int row = col + 1; row < rowCount; row++) {
+				if (el[col][row] != 0) {
 					float factor = el[col][row] / el[col][col];
-					for(int col2 = 0; col2 < colCount; col2++) {
+					for (int col2 = 0; col2 < colCount; col2++) {
 						el[col2][row] -= factor * el[col2][col];
 					}
 				}
@@ -92,16 +92,16 @@ public:
 		}
 		return *this;
 	}
-	Mat4 getEchelon() {
+	auto get_echelon() -> Mat4 {
 		Mat4 m = *this;
 		int colCount = 4;
 		int rowCount = 4;
 		// go through every column
-		for(int col = 0; col < colCount; col++) {
-			for(int row = col + 1; row < rowCount; row++) {
-				if(m[col][row] != 0) {
+		for (int col = 0; col < colCount; col++) {
+			for (int row = col + 1; row < rowCount; row++) {
+				if (m[col][row] != 0) {
 					float factor = m[col][row] / m[col][col];
-					for(int col2 = 0; col2 < colCount; col2++) {
+					for (int col2 = 0; col2 < colCount; col2++) {
 						m[col2][row] -= factor * m[col2][col];
 					}
 				}
@@ -110,13 +110,26 @@ public:
 		return m;
 	}
 
-	void printM() {
-		for(int row = 0; row < 4; row++) {
-			for(int col = 0; col < 4; col++) {
+	auto print_m() -> void {
+		for (int row = 0; row < 4; row++) {
+			for (int col = 0; col < 4; col++) {
 				std::cout << "\t" << el[col][row] << " ";
 			}
 			std::cout << std::endl;
 		}
+	}
+	auto to_string() -> std::string {
+		std::string result;
+		for (int row = 0; row < 4; row++) {
+			for (int col = 0; col < 4; col++) {
+				//result += "\t";
+				result += std::to_string(this->el[col][row]);
+				result += " ";
+			}
+			result += "\n";
+		}
+
+		return result;
 	}
 private:
 	union {

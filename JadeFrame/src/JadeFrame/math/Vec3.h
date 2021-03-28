@@ -5,13 +5,12 @@ class Vec2;
 class Vec3 {
 public:
 	Vec3();
-	Vec3(float scalar);
-	Vec3(float x, float y, float z);
-	Vec3(float x, float y);
-	Vec3(Vec2 vec);
-	Vec3(Vec4 vec);
-	Vec3(Vec3& vec);
+	Vec3(const float scalar);
+	Vec3(const float x, const float y, const float z);
+	Vec3(const Vec2& vec, const float z);
+	explicit Vec3(const Vec4& vec);
 	Vec3(const Vec3& vec);
+
 	auto operator=(const Vec3& other) -> Vec3& {
 		this->x = other.x;
 		this->y = other.y;
@@ -19,44 +18,40 @@ public:
 		return *this;
 	}
 	auto operator+(const Vec3& other) const -> Vec3 {
-		Vec3 result;
-		result.x = x + other.x;
-		result.y = y + other.y;
-		result.z = z + other.z;
-		return result;
+		return { this->x + other.x, this->y + other.y, this->z + other.z };
 	}
-	auto operator-(const Vec3& other) -> Vec3{
-		Vec3 result;
-		result.x = x - other.x;
-		result.y = y - other.y;
-		result.z = z - other.z;
-		return result;
+	auto operator-(const Vec3& other) const -> Vec3{
+		return { this->x - other.x, this->y - other.y, this->z - other.z };
 	}
-	auto operator*(const float& other) -> Vec3 {
-		Vec3 result;
-		result.x = x * other;
-		result.y = y * other;
-		result.z = z * other;
-		return result;
+	auto operator*(const float& other) const -> Vec3 {
+		return { this->x * other, this->y * other, this->z * other };
 	}
+	auto operator/(const float& other) const -> Vec3 {
+		return { this->x / other, this->y / other, this->z / other };
+	}
+
 	auto operator+=(const Vec3& other) -> Vec3& {
-		x += other.x;
-		y += other.y;
-		z += other.z;
+		*this = *this + other;
 		return *this;
 	}
 	auto operator-=(const Vec3& other) -> Vec3& {
-		x -= other.x;
-		y -= other.y;
-		z -= other.z;
+		*this = *this - other;
+		return *this;
+	}
+	auto operator*=(const float& other) -> Vec3& {
+		*this = *this * other;
+		return *this;
+	}
+	auto operator/=(const float& other) -> Vec3& {
+		*this = *this / other;
 		return *this;
 	}
 
 	auto operator==(const Vec3& other) -> bool{
-		return (x == other.x && y == other.y && z == other.z);
+		return ((x == other.x) && (y == other.y) && (z == other.z));
 	}
 	auto operator!=(const Vec3& other) -> bool {
-		return (x != other.x || y == other.y || z != other.z);
+		return !(*this == other);
 	}
 
 	auto cross(const Vec3& other) const -> Vec3 {

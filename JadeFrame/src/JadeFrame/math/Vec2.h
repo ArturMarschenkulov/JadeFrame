@@ -3,41 +3,23 @@ class Vec3;
 class Vec2 {
 public:
 	Vec2();
-	Vec2(float scalar);
-	Vec2(float x, float y);
-	Vec2(Vec3);
-	auto operator+(Vec2 other) -> Vec2{
-		return { this->x + other.x, this->y + other.y };
-	}
-	auto operator-(Vec2 other) -> Vec2 {
-		return { this->x - other.x, this->y - other.y };
-	}
-	auto operator*(float other) -> Vec2 {
-		return { this->x * other, this->y * other };
-	}
-	auto operator/(float other) -> Vec2 {
-		return { this->x / other, this->y / other };
-	}
-	auto operator+=(Vec2 other) -> Vec2& {
-		this->x += other.x;
-		this->y += other.y;
-		return *this;
-	}
-	auto operator-=(Vec2 other) -> Vec2& {
-		this->x -= other.x;
-		this->y -= other.y;
-		return *this;
-	}
-	auto operator*=(float other) -> Vec2& {
-		this->x *= other;
-		this->y *= other;
-		return *this;
-	}
-	auto operator/=(float other) -> Vec2& {
-		this->x /= other;
-		this->y /= other;
-		return *this;
-	}
+	Vec2(const float scalar);
+	Vec2(const float x, const float y);
+	explicit Vec2(const Vec3&);
+
+
+	auto operator==(const Vec2 & other) const -> bool;
+	auto operator!=(const Vec2 & other) const -> bool;
+
+	auto operator+(const Vec2& other) const->Vec2;
+	auto operator-(const Vec2& other) const->Vec2;
+	auto operator*(const float& other) const->Vec2;
+	auto operator/(const float& other) const->Vec2;
+
+	auto operator+=(const Vec2& other)->Vec2&;
+	auto operator-=(const Vec2& other)->Vec2&;
+	auto operator*=(const float& other)->Vec2&;
+	auto operator/=(const float& other)->Vec2&;
 
 
 public:
