@@ -45,34 +45,34 @@
     <ClInclude Include="src\JadeFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\math\Mat4.h">
+    <ClInclude Include="src\JadeFrame\math\mat_4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\math\Math.h">
+    <ClInclude Include="src\JadeFrame\math\math.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\math\Vec2.h">
+    <ClInclude Include="src\JadeFrame\math\vec_2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\math\Vec3.h">
+    <ClInclude Include="src\JadeFrame\math\vec_3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\math\Vec4.h">
+    <ClInclude Include="src\JadeFrame\math\vec_4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\Core.h">
+    <ClInclude Include="src\JadeFrame\core.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\BaseApp.h">
+    <ClInclude Include="src\JadeFrame\base_app.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\GUI.h">
+    <ClInclude Include="src\JadeFrame\gui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\Mesh.h">
+    <ClInclude Include="src\JadeFrame\graphics\mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\Camera.h">
+    <ClInclude Include="src\JadeFrame\graphics\camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\extern\stb\stb_image.h">
@@ -393,43 +393,43 @@
     <ClInclude Include="src\extern\freetype\src\base\md5.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\FontManager.h">
+    <ClInclude Include="src\JadeFrame\font_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\opengl\GLShader.h">
+    <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\opengl\GLRenderer.h">
+    <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\extern\imgui\imgui_impl_dx11.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\opengl\GLTexture.h">
+    <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\uilts\Utils.h">
+    <ClInclude Include="src\JadeFrame\utils\utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\opengl\GLBuffer.h">
+    <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\platform\windows\WinWindow.h">
+    <ClInclude Include="src\JadeFrame\platform\windows\windows_window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\platform\windows\WindowsMessageMap.h">
+    <ClInclude Include="src\JadeFrame\platform\windows\windows_message_map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\platform\windows\WinInputManager.h">
+    <ClInclude Include="src\JadeFrame\platform\windows\windows_input_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\platform\windows\WinTimeManager.h">
+    <ClInclude Include="src\JadeFrame\platform\windows\windows_time_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\platform\windows\WinSystemManager.h">
+    <ClInclude Include="src\JadeFrame\platform\windows\windows_system_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\opengl\GLContext.h">
+    <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -455,34 +455,34 @@
     <ClCompile Include="src\extern\imgui\imgui_widgets.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\math\Mat4.cpp">
+    <ClCompile Include="src\JadeFrame\math\mat_4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\math\Math.cpp">
+    <ClCompile Include="src\JadeFrame\math\math.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\math\Vec2.cpp">
+    <ClCompile Include="src\JadeFrame\math\vec_2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\math\Vec3.cpp">
+    <ClCompile Include="src\JadeFrame\math\vec_3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\math\Vec4.cpp">
+    <ClCompile Include="src\JadeFrame\math\vec_4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\Core.cpp">
+    <ClCompile Include="src\JadeFrame\core.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\BaseApp.cpp">
+    <ClCompile Include="src\JadeFrame\base_app.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\GUI.cpp">
+    <ClCompile Include="src\JadeFrame\gui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\Mesh.cpp">
+    <ClCompile Include="src\JadeFrame\graphics\mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\Camera.cpp">
+    <ClCompile Include="src\JadeFrame\graphics\camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\extern\imgui\imgui_impl_win32.cpp">
@@ -617,40 +617,40 @@
     <ClCompile Include="src\extern\freetype\src\base\ftbase.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\FontManager.cpp">
+    <ClCompile Include="src\JadeFrame\font_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\opengl\GLShader.cpp">
+    <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\opengl\GLRenderer.cpp">
+    <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\extern\imgui\imgui_impl_dx11.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\opengl\GLTexture.cpp">
+    <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\opengl\GLBuffer.cpp">
+    <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\platform\windows\WindowsMessageMap.cpp">
+    <ClCompile Include="src\JadeFrame\platform\windows\windows_message_map.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\platform\windows\WinInputManager.cpp">
+    <ClCompile Include="src\JadeFrame\platform\windows\windows_input_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\platform\windows\WinTimeManager.cpp">
+    <ClCompile Include="src\JadeFrame\platform\windows\windows_time_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\platform\windows\WinWindow.cpp">
+    <ClCompile Include="src\JadeFrame\platform\windows\windows_window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\platform\windows\WinSystemManager.cpp">
+    <ClCompile Include="src\JadeFrame\platform\windows\windows_system_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\opengl\GLContext.cpp">
+    <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

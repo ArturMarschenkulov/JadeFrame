@@ -1,8 +1,8 @@
 #pragma once
-#include "Mat4.h"
-#include "Vec4.h"
-#include "Vec3.h"
-#include "Vec2.h"
+#include "mat_4.h"
+#include "vec_4.h"
+#include "vec_3.h"
+#include "vec_2.h"
 
 #define M_PI 3.14159265359f
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <array>
-#include "Vec4.h"
-#include "Vec3.h"
+#include "vec_4.h"
+#include "vec_3.h"
 #include <vector>
 #include <iostream>
 

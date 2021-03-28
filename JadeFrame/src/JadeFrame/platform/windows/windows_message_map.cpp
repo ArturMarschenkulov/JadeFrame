@@ -1,6 +1,6 @@
-#include "WindowsMessageMap.h"
+#include "windows_message_map.h"
 
-#include "WinWindow.h"
+#include "windows_window.h"
 #include <sstream>
 #include <iomanip>
 

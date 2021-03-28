@@ -1,4 +1,4 @@
-#include "GLRenderer.h"
+#include "opengl_renderer.h"
 #include "windows.h"
 #include <cassert>
 

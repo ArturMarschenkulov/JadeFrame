@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../math/Vec2.h"
+#include "../../math/vec_2.h"
 
 #include <string>
 

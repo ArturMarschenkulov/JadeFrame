@@ -1,4 +1,4 @@
-#include "GLTexture.h"
+#include "opengl_texture.h"
 
 
 #define STB_IMAGE_IMPLEMENTATION

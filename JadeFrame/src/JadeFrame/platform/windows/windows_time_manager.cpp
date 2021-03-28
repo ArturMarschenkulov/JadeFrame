@@ -1,4 +1,4 @@
-#include "WinTimeManager.h"
+#include "windows_time_manager.h"
 #include <windows.h>
 #include <timeapi.h>
 #pragma comment(lib,"winmm.lib")

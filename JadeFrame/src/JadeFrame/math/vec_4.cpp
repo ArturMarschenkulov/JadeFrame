@@ -1,5 +1,5 @@
-#include "Vec4.h"
-#include "Vec3.h"
+#include "vec_4.h"
+#include "vec_3.h"
 
 Vec4::Vec4() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
 Vec4::Vec4(const float scalar) : x(scalar), y(scalar), z(scalar), w(scalar) {}

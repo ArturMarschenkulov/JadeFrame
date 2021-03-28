@@ -1,11 +1,11 @@
-#include "FontManager.h"
+#include "font_manager.h"
 #include <iostream>
 #include <map>
 #include <glad/glad.h>
-#include "math/Vec2.h"
+#include "math/vec_2.h"
 #include "freetype/include/ft2build.h"
 
-#include "graphics/opengl/GLTexture.h"
+#include "graphics/opengl/opengl_texture.h"
 
 #include FT_FREETYPE_H
 #include FT_STROKER_H

@@ -2,7 +2,7 @@
 
 //#if 1 // NOTE: for camera cotrolling. Remove if we move it
 #include "../BaseApp.h"
-#include "../platform/windows/WinInputManager.h"
+#include "../platform/windows/windows_input_manager.h"
 #include "../math/Math.h"
 //#endif
 

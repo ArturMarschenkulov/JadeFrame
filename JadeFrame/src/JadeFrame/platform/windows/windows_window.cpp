@@ -1,8 +1,8 @@
-#include "WinWindow.h"
+#include "windows_window.h"
 
 #include <windows.h>
 
-#include "WindowsMessageMap.h"
+#include "windows_message_map.h"
 
 #include "../../BaseApp.h" // for the singleton
 

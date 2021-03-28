@@ -1,6 +1,6 @@
 #pragma once
 #include <glad/glad.h>
-#include "GLBuffer.h" // TODO: FOr SHADER_DATA_TYPE. Maybe move?
+#include "opengl_buffer.h" // TODO: FOr SHADER_DATA_TYPE. Maybe move?
 
 #include <vector>
 #include <string>

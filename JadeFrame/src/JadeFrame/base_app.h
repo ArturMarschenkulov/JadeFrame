@@ -1,17 +1,17 @@
 #pragma once
 #if _WIN32 || _WIN64 
-#include "platform/windows/WinTimeManager.h"
-#include "platform/windows/WinInputManager.h"
-#include "platform/windows/WinWindow.h"
-#include "platform/windows/WinSystemManager.h"
+#include "platform/windows/windows_time_manager.h"
+#include "platform/windows/windows_input_manager.h"
+#include "platform/windows/windows_window.h"
+#include "platform/windows/windows_system_manager.h"
 
 using SystemManager = Windows_SystemManager;
 using TimeManager = Windows_TimeManager;
 using InputManager = Windows_InputManager;
 
 #endif 
-#include "graphics/Camera.h"
-#include "graphics/opengl/GLRenderer.h"
+#include "graphics/camera.h"
+#include "graphics/opengl/opengl_renderer.h"
 
 #include <set>
 #include <unordered_map>

@@ -1,4 +1,4 @@
-#include "Math.h"
+#include "math.h"
 
 auto to_radians(float degrees) -> float {
 	return degrees * (M_PI / 180.0f);

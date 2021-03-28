@@ -1,4 +1,4 @@
-#include "GUI.h"
+#include "gui.h"
 #include <imgui/imgui_impl_win32.h>
 #include <imgui/imgui_impl_opengl3.h>
 

@@ -2,7 +2,7 @@
 #include <glad/glad.h>
 
 #include <utility>
-#include "../Mesh.h" // For Color
+#include "../mesh.h" // For Color
 
 enum BLENDING_FACTOR : int {
 	ZERO = GL_ZERO,

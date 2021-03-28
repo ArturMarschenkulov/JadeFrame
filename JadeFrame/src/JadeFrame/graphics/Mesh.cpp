@@ -1,4 +1,4 @@
-#include "Mesh.h"
+#include "mesh.h"
 
 auto VertexDataFactory::make_line(const Vec3& pos1, const Vec3& pos2) -> VertexData {
 	VertexData vertex_data;

@@ -1,11 +1,11 @@
-#include "WinInputManager.h"
+#include "windows_input_manager.h"
 
 #include "../../BaseApp.h"
 #include "../../GUI.h"
 #include <windows.h>
 #include <windowsx.h>
-#include "WinWindow.h" // for WindowMessage struct
-#include "../../math/Vec2.h"
+#include "windows_window.h" // for WindowMessage struct
+#include "../../math/vec_2.h"
 
 #include <iostream>
 

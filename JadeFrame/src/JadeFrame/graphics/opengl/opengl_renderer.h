@@ -1,15 +1,15 @@
 #pragma once
-#include "GLTexture.h"
-#include "GLBuffer.h"
-#include "GLShader.h"
-#include "GLContext.h"
+#include "opengl_texture.h"
+#include "opengl_buffer.h"
+#include "opengl_shader.h"
+#include "opengl_context.h"
 
-#include "../Camera.h"
+#include "../camera.h"
 
-#include "../../math/Vec3.h"
-#include "../../math/Vec2.h"
-#include "../../math/Mat4.h"
-#include "../Mesh.h"
+#include "../../math/vec_3.h"
+#include "../../math/vec_2.h"
+#include "../../math/mat_4.h"
+#include "../mesh.h"
 
 #include <vector>
 #include <stack>

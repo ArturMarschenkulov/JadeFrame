@@ -1,4 +1,4 @@
-#include "GLContext.h"
+#include "opengl_context.h"
 
 auto opengl_message_callback(unsigned source, unsigned type, unsigned id, unsigned severity, int length, const char* message, const void* userParam) -> void {
 	std::string _source;

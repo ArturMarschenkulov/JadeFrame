@@ -1,4 +1,4 @@
-#include "WinSystemManager.h"
+#include "windows_system_manager.h"
 
 #include <windows.h>
 #include <winreg.h>

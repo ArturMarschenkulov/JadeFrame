@@ -1,9 +1,9 @@
-#include "BaseApp.h"
+#include "base_app.h"
 
-#include "GUI.h"
+#include "gui.h"
 #include "math/Math.h"
 
-#include "graphics/opengl/GLTexture.h"
+#include "graphics/opengl/opengl_texture.h"
 
 #include <stdint.h>
 #include <iostream>

@@ -1,6 +1,6 @@
-#include "GLBuffer.h"
+#include "opengl_buffer.h"
 
-#include "../Mesh.h"
+#include "../mesh.h"
 
 static auto SHADER_DATA_TYPE_get_size(const SHADER_DATA_TYPE type) -> uint32_t {
 	switch (type) {

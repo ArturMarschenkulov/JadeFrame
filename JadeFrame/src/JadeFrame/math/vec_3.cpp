@@ -1,6 +1,6 @@
-#include "Vec2.h"
-#include "Vec3.h"
-#include "Vec4.h"
+#include "vec_2.h"
+#include "vec_3.h"
+#include "vec_4.h"
 
 Vec3::Vec3() : x(0.0f), y(0.0f), z(0.0f) {}
 Vec3::Vec3(const float scalar) : x(scalar), y(scalar), z(scalar) {}
