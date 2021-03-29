@@ -1,7 +1,7 @@
 #include "Camera.h"
 
 //#if 1 // NOTE: for camera cotrolling. Remove if we move it
-#include "../BaseApp.h"
+#include "../base_app.h"
 #include "../platform/windows/windows_input_manager.h"
 #include "../math/Math.h"
 //#endif

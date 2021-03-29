@@ -432,6 +432,9 @@
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_object.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\JadeFrame.cpp">

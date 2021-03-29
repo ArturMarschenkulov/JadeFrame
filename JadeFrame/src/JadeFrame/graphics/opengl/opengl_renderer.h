@@ -83,7 +83,7 @@ struct UniformValueSampler {
 };
 struct Material {
 	const GLTexture* m_texture = nullptr;
-	const OpenGL_Shader* m_shader = nullptr;
+	OpenGL_Shader* m_shader = nullptr;
 	std::map<std::string, UniformValueSampler> m_sampler_uniforms;
 };
 struct Object {

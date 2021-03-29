@@ -4,7 +4,7 @@
 
 #include "windows_message_map.h"
 
-#include "../../BaseApp.h" // for the singleton
+#include "../../base_app.h" // for the singleton
 
 #include <iostream>
 #include <tuple>
@@ -103,6 +103,7 @@ static auto CALLBACK window_procedure(HWND hWnd, UINT message, WPARAM wParam, LP
 		}break;
 		case WM_CHAR:
 		{
+			
 			//std::cout << "WindowProcedure:" << window_message_map(message, lParam, wParam);
 			input_manager.char_callback(win_message);
 		} break;
@@ -254,9 +255,6 @@ auto Windows_Window::set_title(const std::string& title) {
 	SetWindowTextA(m_window_handle, m_title.c_str());
 }
 
-//auto Windows_Window::set_v_sync(bool b) -> void {
-//	//wglSwapIntervalEXT(static_cast<int>(b));
-//}
 #include <cassert>
 auto Windows_Window::make_current() const -> void {
 	assert(m_device_context != 0);

@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-#include "../../uilts/Utils.h"
+#include "../../utils/utils.h"
 
 static auto get_primary_monitor_handle() -> HMONITOR {
 	const POINT pt_zero = { 0, 0 };

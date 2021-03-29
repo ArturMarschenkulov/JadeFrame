@@ -101,7 +101,7 @@ public:
 		}
 		__debugbreak();
 	}
-	auto set_material(const std::string& material_name, const OpenGL_Shader& shader, const GLTexture& texture) -> void {
+	auto set_material(const std::string& material_name, OpenGL_Shader& shader, GLTexture& texture) -> void {
 		m_materials[material_name].m_shader = &shader;
 		m_materials[material_name].m_texture = &texture;
 		__debugbreak();

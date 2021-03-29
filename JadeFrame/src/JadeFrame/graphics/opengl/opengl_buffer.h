@@ -27,25 +27,8 @@ enum class SHADER_DATA_TYPE {
 	BOOL,
 	SAMPLER_1D, SAMPLER_2D, SAMPLER_3D, SAMPLER_CUBE,
 };
-static auto SHADER_DATA_TYPE_to_openGL_type(const SHADER_DATA_TYPE type) -> GLenum {
-	switch (type) {
-		case SHADER_DATA_TYPE::FLOAT:
-		case SHADER_DATA_TYPE::FLOAT_2:
-		case SHADER_DATA_TYPE::FLOAT_3:
-		case SHADER_DATA_TYPE::FLOAT_4: return GL_FLOAT;
-		default: __debugbreak(); return 0;
-	}
-}
-static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_DATA_TYPE {
-	switch (type) {
-		case GL_FLOAT_VEC2: return SHADER_DATA_TYPE::FLOAT_2;  break;
-		case GL_FLOAT_VEC3: return SHADER_DATA_TYPE::FLOAT_3; break;
-		case GL_FLOAT_VEC4: return SHADER_DATA_TYPE::FLOAT_4; break;
-		case GL_FLOAT_MAT4: return SHADER_DATA_TYPE::MAT_4; break;
-		case GL_SAMPLER_2D: return SHADER_DATA_TYPE::SAMPLER_2D; break;
-		default: __debugbreak(); return {};
-	}
-}
+auto SHADER_DATA_TYPE_to_openGL_type(const SHADER_DATA_TYPE type)->GLenum;
+auto SHADER_TYPE_from_openGL_enum(const GLenum type)->SHADER_DATA_TYPE;
 
 
 class BufferLayout {

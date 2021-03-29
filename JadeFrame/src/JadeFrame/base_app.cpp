@@ -131,6 +131,7 @@ auto Time_frame_control(Time& time) -> void {
 		time.previous = time.current;
 		time.frame += time_wait;
 	}
+	//__debugbreak();
 }
 auto BaseApp::start() -> void {
 	this->on_init();
@@ -288,22 +289,27 @@ auto TestApp::on_init() -> void {
 	m_objs.push_back(std::move(cube));
 
 	Object light_cube;
-	light_cube.m_transform = Mat4::translate({ 0.0f, 0.0f, 0.0f });
+	light_cube.m_transform = Mat4::translate({ 5.0f, -5.0f, -5.0f });
 	light_cube.m_mesh = &m_meshes[1];
 	light_cube.m_material = &m_resources.get_material("light_server");
 	light_cube.m_buffer_data.finalize(*light_cube.m_mesh);
 	m_objs.push_back(std::move(light_cube));
-
-	m_resources.get_shader("light_client").set_uniform("light_position", light_cube.m_mesh->m_positions[0]);
+	const Vec3 n = Vec3(m_objs[1].m_transform * Vec4(m_objs[1].m_mesh->m_positions[0], 1.0f));
+	m_resources.get_shader("light_client").set_uniform("light_position", n);
 	//add_arrows(m_objs, m_resources.get_material("coordinate_arrow_material"));
+
+	//auto S = m_resources.get_shader("light_client").m_vertex_shader.query_source();
+	//std::cout << S << std::endl;
+	__debugbreak();
 }
 auto TestApp::on_update() -> void {
 	m_camera.control();
+
 }
 
 
 auto TestApp::on_draw() -> void {
-	static Vec3 curr_vec = { 0.0f, 0.0f, 0.0f };
+	static Vec3 curr_vec = Vec3(m_objs[1].m_transform * Vec4(m_objs[1].m_mesh->m_positions[0], 1.0f));
 	auto prev_vec = curr_vec;
 
 	ImGui::SliderFloat("vec_x", &curr_vec.x, -30, +30);
@@ -315,8 +321,6 @@ auto TestApp::on_draw() -> void {
 		m_resources.get_shader("light_client").bind();
 		const Vec3 n = Vec3(m_objs[1].m_transform * Vec4(m_objs[1].m_mesh->m_positions[0], 1.0f));
 		m_resources.get_shader("light_client").set_uniform("light_position", n);
-		auto o = n;
-		std::cout << "ll: " << o.x << ", " << o.y << ", " << o.z << std::endl;
 	}
 
 	static Vec2 vp_pos = { 0.0f, 0.0f };
@@ -329,7 +333,7 @@ auto TestApp::on_draw() -> void {
 	ImGui::SliderFloat("vp_size.x", &vp_size.x, 0, m_current_window_p->m_size.x);
 	ImGui::SliderFloat("vp_size.y", &vp_size.y, 0, m_current_window_p->m_size.y);
 
-	if((prev_vp_pos != vp_pos) || (prev_vp_size != vp_size)) {
+	if ((prev_vp_pos != vp_pos) || (prev_vp_size != vp_size)) {
 		m_renderer.set_viewport(vp_pos.x, vp_pos.y, vp_size.x, vp_size.y);
 		std::cout << "vv: " << std::endl;
 
@@ -339,8 +343,42 @@ auto TestApp::on_draw() -> void {
 		m_renderer.render(m_objs[i]);
 	}
 
+	{
+		static auto origin_text = m_resources.get_shader("light_client").m_fragment_source.c_str();
 
-	draw_GUI(m_camera, m_current_window_p);
+		static char* copy = (char*)malloc(strlen(origin_text) + 1);
+		strcpy(copy, origin_text);
+		static char* text = (char*)origin_text;
+
+		static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
+		//HelpMarker("You can use the ImGuiInputTextFlags_CallbackResize facility if you need to wire InputTextMultiline() to a dynamic string type. See misc/cpp/imgui_stdlib.h for an example. (This is not demonstrated in imgui_demo.cpp)");
+		//ImGui::CheckboxFlags("ImGuiInputTextFlags_ReadOnly", (unsigned int*)&flags, ImGuiInputTextFlags_ReadOnly);
+		//ImGui::CheckboxFlags("ImGuiInputTextFlags_AllowTabInput", (unsigned int*)&flags, ImGuiInputTextFlags_AllowTabInput);
+		//ImGui::CheckboxFlags("ImGuiInputTextFlags_CtrlEnterForNewLine", (unsigned int*)&flags, ImGuiInputTextFlags_CtrlEnterForNewLine);
+		ImGui::InputTextMultiline("##source", text, IM_ARRAYSIZE(text) + 4000, ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), flags);
+		if (ImGui::Button("Save")) {
+			auto& shader = m_resources.get_shader("light_client");
+			//shader.;
+			shader.m_vertex_shader.set_source(shader.m_vertex_source);
+			shader.m_vertex_shader.compile();
+
+			shader.m_fragment_shader.set_source(text);
+			shader.m_fragment_shader.compile();
+
+			shader.m_program.attach(shader.m_vertex_shader);
+			shader.m_program.attach(shader.m_fragment_shader);
+			shader.m_program.link();
+			shader.m_program.validate();
+
+			shader.m_program.detach(shader.m_vertex_shader);
+			shader.m_program.detach(shader.m_fragment_shader);
+			shader.update_uniforms();
+		}
+
+
+
+		//draw_GUI(m_camera, m_current_window_p);
+	}
 }
 #endif
 

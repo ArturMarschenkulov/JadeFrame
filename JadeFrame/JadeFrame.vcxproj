@@ -303,6 +303,7 @@
     <ClInclude Include="src\JadeFrame\graphics\camera.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_buffer.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_context.h" />
+    <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_object.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_texture.h" />
     <ClInclude Include="src\JadeFrame\gui.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_input_manager.h" />

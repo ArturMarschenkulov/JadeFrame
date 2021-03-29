@@ -22,8 +22,8 @@ auto OpenGL_Renderer::render(const Object& obj) const -> void {
 	//Mat4 view_projection = matrix_stack.view_matrix * matrix_stack.projection_matrix;
 	const Mat4 view_matrix = m_current_camera->get_view_matrix();
 	const Mat4 view_projection = view_matrix * matrix_stack.projection_matrix;
-	obj.m_material->m_shader->set_uniform_matrix("view_projection", view_projection);
-	obj.m_material->m_shader->set_uniform_matrix("model", obj.m_transform);
+	obj.m_material->m_shader->set_uniform("view_projection", view_projection);
+	obj.m_material->m_shader->set_uniform("model", obj.m_transform);
 	obj.m_material->m_texture->bind();
 
 	obj.m_buffer_data.vertex_array.bind();

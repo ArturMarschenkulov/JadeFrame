@@ -198,3 +198,24 @@ auto GLIndexBuffer::update(GLuint size_in_bytes, const GLuint* data) const -> vo
 	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size_in_bytes, data);
 	//glNamedBufferSubData(m_ID, 0, size_in_bytes, data);
 }
+
+auto SHADER_DATA_TYPE_to_openGL_type(const SHADER_DATA_TYPE type) -> GLenum {
+	switch (type) {
+		case SHADER_DATA_TYPE::FLOAT:
+		case SHADER_DATA_TYPE::FLOAT_2:
+		case SHADER_DATA_TYPE::FLOAT_3:
+		case SHADER_DATA_TYPE::FLOAT_4: return GL_FLOAT;
+		default: __debugbreak(); return 0;
+	}
+}
+
+auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_DATA_TYPE {
+	switch (type) {
+		case GL_FLOAT_VEC2: return SHADER_DATA_TYPE::FLOAT_2;  break;
+		case GL_FLOAT_VEC3: return SHADER_DATA_TYPE::FLOAT_3; break;
+		case GL_FLOAT_VEC4: return SHADER_DATA_TYPE::FLOAT_4; break;
+		case GL_FLOAT_MAT4: return SHADER_DATA_TYPE::MAT_4; break;
+		case GL_SAMPLER_2D: return SHADER_DATA_TYPE::SAMPLER_2D; break;
+		default: __debugbreak(); return {};
+	}
+}

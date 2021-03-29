@@ -2,6 +2,9 @@
 #include <glad/glad.h>
 #include "opengl_buffer.h" // TODO: FOr SHADER_DATA_TYPE. Maybe move?
 
+#include "../../math/mat_4.h"
+#include "../../math/vec_3.h"
+
 #include <vector>
 #include <string>
 #include <iostream>
@@ -12,11 +15,23 @@ class Vec4;
 class Mat4;
 class OpenGL_Shader;
 
+//struct GLVariable {
+//	SHADER_DATA_TYPE  type;
+//	std::string  name;
+//	int          size;
+//	GLuint		 location;
+//};
+#include <variant>
+#include <unordered_map>
+#include <functional>
+#include <queue>
+using GLValueVariant = std::variant<Vec3, Vec4, Mat4, int>;
 struct GLVariable {
 	SHADER_DATA_TYPE  type;
 	std::string  name;
 	int          size;
 	GLuint		 location;
+	GLValueVariant value;
 };
 struct GLShader {
 	GLShader() = default;
@@ -66,14 +81,24 @@ struct GLShader {
 		const GLchar* source = source_code.c_str();
 		glShaderSource(m_ID, 1, &source, nullptr);
 	}
-	auto query_source() const -> std::string {
-		GLchar* source = nullptr;
-		GLsizei buffer_size;
-		glGetShaderSource(m_ID, 1000, &buffer_size, source);
-		return std::string(source);
-	}
 	auto compile() -> void {
 		glCompileShader(m_ID);
+	}
+	auto get_info(GLenum pname) -> GLint {
+		GLint result;
+		glGetShaderiv(m_ID, pname, &result);
+		return result;
+	}
+	auto get_compile_status() -> GLint {
+		GLint is_compiled = GL_FALSE;
+		glGetShaderiv(m_ID, GL_COMPILE_STATUS, &is_compiled);
+		return is_compiled;
+	}
+	auto get_info_log(GLsizei max_length) -> std::string {
+		GLchar info_log[512];
+		glGetShaderInfoLog(m_ID, max_length, &max_length, &info_log[0]);
+		std::string result(info_log);
+		return result;
 	}
 	GLuint m_ID;
 };
@@ -81,9 +106,10 @@ struct GLProgram {
 	GLProgram()
 		: m_ID(glCreateProgram()) {
 	}
-	GLProgram(const GLProgram&) = delete;
+
 	GLProgram(GLProgram&& other) : m_ID(other.release()) {
 	}
+	GLProgram(const GLProgram&) = delete;
 	auto operator=(const GLProgram&)->GLProgram & = delete;
 	auto operator=(GLProgram&&)->GLProgram & = delete;
 	~GLProgram() {
@@ -147,49 +173,87 @@ struct GLProgram {
 		}
 		return location;
 	}
+	auto get_attribute_location(const std::string& name) const -> GLint {
+		GLint location = glGetAttribLocation(m_ID, name.c_str());
+		if (location == -1) {
+			std::cout << "Location of " << name << " can not be found" << std::endl;
+			__debugbreak();
+		}
+		return location;
+	}
+	auto get_info(GLenum pname) const -> GLint {
+		// GL_DELETE_STATUS, GL_LINK_STATUS, GL_VALIDATE_STATUS, GL_INFO_LOG_LENGTH, GL_ATTACHED_SHADERS, GL_ACTIVE_ATTRIBUTES, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, GL_ACTIVE_UNIFORMS, GL_ACTIVE_UNIFORM_MAX_LENGTH.
+		GLint result;
+		glGetProgramiv(m_ID, pname, &result);
+		return result;
+	}
 
-	auto query_uniforms(const GLenum variable_type) const -> std::vector<GLVariable> {
+	auto get_info_log(GLsizei max_length) const -> std::string {
+		GLchar info_log[512];
+		glGetProgramInfoLog(m_ID, max_length, &max_length, &info_log[0]);
+		std::string result(info_log);
+		return result;
+	}
+	auto query_uniforms(const GLenum variable_type) const -> std::unordered_map<std::string, GLVariable> {
 		// variable_type = GL_ACTIVE_UNIFORMS | GL_ACTIVE_ATTRIBUTES
 
-		GLint num_variables;
-		glGetProgramiv(m_ID, variable_type, &num_variables);
+		GLint num_variables = this->get_info(variable_type);
 		std::vector<GLVariable> variables(num_variables);
+		std::unordered_map<std::string, GLVariable> variable_map;
+
 		for (int i = 0; i < num_variables; ++i) {
 			char buffer[128];
 			GLenum gl_type;
 			switch (variable_type) {
-				case GL_ACTIVE_UNIFORMS: glGetActiveUniform(m_ID, i, sizeof(buffer), 0, &variables[i].size, &gl_type, buffer); break;
-				case GL_ACTIVE_ATTRIBUTES: glGetActiveAttrib(m_ID, i, sizeof(buffer), 0, &variables[i].size, &gl_type, buffer); break;
+				case GL_ACTIVE_UNIFORMS:
+					glGetActiveUniform(m_ID, i, sizeof(buffer), 0, &variables[i].size, &gl_type, buffer);
+					variables[i].location = this->get_uniform_location(buffer);
+					break;
+				case GL_ACTIVE_ATTRIBUTES:
+					glGetActiveAttrib(m_ID, i, sizeof(buffer), 0, &variables[i].size, &gl_type, buffer);
+					variables[i].location = this->get_attribute_location(buffer);
+					break;
 				default: __debugbreak(); gl_type = -1; break;
 			}
 			variables[i].name = std::string(buffer);
 			variables[i].type = SHADER_TYPE_from_openGL_enum(gl_type);
-			variables[i].location = glGetUniformLocation(m_ID, buffer);
+			{ // TODO: It initializes the types for the variant type, for error checking. Consider whether this is neccessary.
+				GLValueVariant value_init;
+				switch (variables[i].type) {
+					case SHADER_DATA_TYPE::FLOAT_3:
+						value_init = Vec3(); break;
+					case SHADER_DATA_TYPE::FLOAT_4:
+						value_init = Vec4(); break;
+					case SHADER_DATA_TYPE::MAT_4:
+						value_init = Mat4(); break;
+					default: __debugbreak(); break;
+				}
+				variables[i].value = value_init;
+			}
+
+			variable_map[variables[i].name] = variables[i];
 		}
-		return variables;
+		return variable_map;
 	}
 	GLuint m_ID;
 };
 
 class OpenGL_Shader {
 public:
-	OpenGL_Shader() = default;
-	OpenGL_Shader(const OpenGL_Shader&) = delete;
-	OpenGL_Shader(OpenGL_Shader&& other)
-		: m_program(std::move(other.m_program))
-		, m_vertex_shader(std::move(other.m_vertex_shader))
-		, m_fragment_shader(std::move(other.m_fragment_shader)) {
 
-		m_vertex_source = other.m_vertex_source;
-		m_fragment_source = other.m_fragment_source;
-	}
+	OpenGL_Shader(const std::string& name);
+
+	OpenGL_Shader() = default;
+	OpenGL_Shader(OpenGL_Shader&&) = default;
+
+	OpenGL_Shader(const OpenGL_Shader&) = delete;
 	auto operator=(const OpenGL_Shader&)->OpenGL_Shader & = delete;
 	auto operator=(OpenGL_Shader&&)->OpenGL_Shader & = delete;
-	OpenGL_Shader(const std::string& name);
+
 	auto bind() const -> void;
 	auto unbind() const -> void;
 
-//private:
+	//private:
 	GLProgram m_program;
 	GLShader m_vertex_shader;
 	GLShader m_fragment_shader;
@@ -199,14 +263,10 @@ public:
 
 public:
 	auto get_uniform_location(const std::string& name) const->GLint;
-	auto set_uniform(const std::string& name, const int value) const -> void;
-	auto set_uniform(const std::string& name, const unsigned int value) const -> void;
-	auto set_uniform(const std::string& name, const float value) const -> void;
-	auto set_uniform(const std::string& name, const Vec2& value) const -> void;
-	auto set_uniform(const std::string& name, const Vec3& value) const -> void;
-	auto set_uniform(const std::string& name, const Vec4& value) const -> void;
-	auto set_uniform_matrix(const std::string& name, const Mat4& mat) const -> void;
-	//std::array<std::vector<Variable>, 2> m_variables; //0 uniforms, 1 attributes
-	std::vector<GLVariable> m_uniforms;
-	std::vector<GLVariable> m_attributes;
+
+	auto set_uniform(const std::string& name, const Vec3& value) -> void;
+	auto set_uniform(const std::string& name, const Mat4& mat) -> void;
+	auto update_uniforms() -> void;
+	std::unordered_map<std::string, GLVariable> m_uniforms;
+	std::unordered_map<std::string, GLVariable> m_attributes;
 };

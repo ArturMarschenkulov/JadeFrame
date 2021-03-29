@@ -1,7 +1,7 @@
 #include "windows_input_manager.h"
 
-#include "../../BaseApp.h"
-#include "../../GUI.h"
+#include "../../base_app.h"
+#include "../../gui.h"
 #include <windows.h>
 #include <windowsx.h>
 #include "windows_window.h" // for WindowMessage struct
@@ -87,16 +87,19 @@ auto Windows_InputManager::key_callback2(int64_t lParam, uint64_t wParam, uint32
 		::PostQuitMessage(0);
 	}
 }
-auto Windows_InputManager::char_callback(const WindowsMessage& /*window_message*/) -> void {
+auto Windows_InputManager::char_callback(const WindowsMessage& window_message) -> void {
 	//window_message.hWnd;
 	//window_message.message;
-	//auto wParam = window_message.wParam;
+	auto wParam = window_message.wParam;
 	//auto lParam = window_message.lParam;
 
 	//int64_t bit_29 = (lParam >> 29) & 1; // 1 == system key
 	//int64_t bit_30 = (lParam >> 30) & 1; // 1 == repeatedly pressed
 	//int64_t bit_31 = (lParam >> 31) & 1; // 0 == pressed, 1 == released
-
+	ImGuiIO& io = ImGui::GetIO();
+	if (wParam > 0 && wParam < 0x10000) {
+		io.AddInputCharacter((unsigned short)wParam);
+	}
 
 }
 
