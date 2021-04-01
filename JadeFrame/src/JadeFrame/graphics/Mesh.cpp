@@ -88,6 +88,7 @@ auto VertexDataFactory::make_circle(const Vec3& position, const float radius, co
 
 auto VertexDataFactory::make_cube(const Vec3& pos, const Vec3& size) -> VertexData {
 	VertexData vertex_data;
+
 #if 0
 	vertex_data.positions.resize(8);
 	vertex_data.positions[0] = { pos.x    , pos.y    , pos.z };
@@ -141,7 +142,7 @@ auto VertexDataFactory::make_cube(const Vec3& pos, const Vec3& size) -> VertexDa
 	};
 #else 
 	vertex_data.positions.resize(36);
-	// back face
+	// back face -z
 	vertex_data.positions[00] = { pos.x			, pos.y			, pos.z };
 	vertex_data.positions[01] = { pos.x + size.x, pos.y + size.y, pos.z };
 	vertex_data.positions[02] = { pos.x + size.x, pos.y			, pos.z };
@@ -149,15 +150,15 @@ auto VertexDataFactory::make_cube(const Vec3& pos, const Vec3& size) -> VertexDa
 	vertex_data.positions[04] = { pos.x			, pos.y			, pos.z };
 	vertex_data.positions[05] = { pos.x			, pos.y + size.y, pos.z };
 
-	// front face
+	// front face +z
 	vertex_data.positions[06] = { pos.x			, pos.y			, pos.z + size.z };
 	vertex_data.positions[07] = { pos.x + size.x, pos.y			, pos.z + size.z };
-	vertex_data.positions[8] = { pos.x + size.x, pos.y + size.y, pos.z + size.z };
-	vertex_data.positions[9] = { pos.x + size.x, pos.y + size.y, pos.z + size.z };
+	vertex_data.positions[8l] = { pos.x + size.x, pos.y + size.y, pos.z + size.z };
+	vertex_data.positions[9l] = { pos.x + size.x, pos.y + size.y, pos.z + size.z };
 	vertex_data.positions[10] = { pos.x			, pos.y + size.y, pos.z + size.z };
 	vertex_data.positions[11] = { pos.x			, pos.y			, pos.z + size.z };
 
-	// left face
+	// left face -x
 	vertex_data.positions[12] = { pos.x			, pos.y + size.y, pos.z + size.z };
 	vertex_data.positions[13] = { pos.x			, pos.y + size.y, pos.z };
 	vertex_data.positions[14] = { pos.x			, pos.y			, pos.z };
@@ -165,7 +166,7 @@ auto VertexDataFactory::make_cube(const Vec3& pos, const Vec3& size) -> VertexDa
 	vertex_data.positions[16] = { pos.x			, pos.y			, pos.z + size.z };
 	vertex_data.positions[17] = { pos.x			, pos.y + size.y, pos.z + size.z };
 
-	// right face
+	// right face +x
 	vertex_data.positions[18] = { pos.x + size.x, pos.y + size.y, pos.z + size.z };
 	vertex_data.positions[19] = { pos.x + size.x, pos.y			, pos.z };
 	vertex_data.positions[20] = { pos.x + size.x, pos.y + size.y, pos.z };
@@ -193,15 +194,15 @@ auto VertexDataFactory::make_cube(const Vec3& pos, const Vec3& size) -> VertexDa
 
 	vertex_data.tex_coords.resize(36);
 	{
-		// back face
-		vertex_data.tex_coords[00] = { +0.0f, +0.0f };
-		vertex_data.tex_coords[01] = { +0.0f, +0.0f };
-		vertex_data.tex_coords[02] = { +0.0f, +0.0f };
-		vertex_data.tex_coords[03] = { +0.0f, +0.0f };
+		// back face -z
+		vertex_data.tex_coords[00] = { +1.0f, +0.0f };
+		vertex_data.tex_coords[01] = { +1.0f, +1.0f };
+		vertex_data.tex_coords[02] = { +0.0f, +1.0f };
+		vertex_data.tex_coords[03] = { +0.0f, +1.0f };
 		vertex_data.tex_coords[04] = { +0.0f, +0.0f };
-		vertex_data.tex_coords[05] = { +0.0f, +0.0f };
+		vertex_data.tex_coords[05] = { +1.0f, +0.0f };
 
-		// front face
+		// front face +z
 		vertex_data.tex_coords[06] = { +0.0f, +0.0f };
 		vertex_data.tex_coords[07] = { +0.0f, +0.0f };
 		vertex_data.tex_coords[8]  = { +0.0f, +0.0f };
@@ -217,7 +218,7 @@ auto VertexDataFactory::make_cube(const Vec3& pos, const Vec3& size) -> VertexDa
 		vertex_data.tex_coords[16] = { -1.0f, +0.0f };
 		vertex_data.tex_coords[17] = { -1.0f, +0.0f };
 
-		// right face
+		// right face +x
 		vertex_data.tex_coords[18] = { +1.0f, +0.0f };
 		vertex_data.tex_coords[19] = { +1.0f, +0.0f };
 		vertex_data.tex_coords[20] = { +1.0f, +0.0f };
@@ -225,15 +226,15 @@ auto VertexDataFactory::make_cube(const Vec3& pos, const Vec3& size) -> VertexDa
 		vertex_data.tex_coords[22] = { +1.0f, +0.0f };
 		vertex_data.tex_coords[23] = { +1.0f, +0.0f };
 
-		// bottom face
-		vertex_data.tex_coords[25] = { +0.0f, -1.0f };
-		vertex_data.tex_coords[24] = { +0.0f, -1.0f };
-		vertex_data.tex_coords[26] = { +0.0f, -1.0f };
-		vertex_data.tex_coords[27] = { +0.0f, -1.0f };
-		vertex_data.tex_coords[28] = { +0.0f, -1.0f };
-		vertex_data.tex_coords[29] = { +0.0f, -1.0f };
+		// bottom face -y
+		vertex_data.tex_coords[24] = { +1.0f, +0.0f };
+		vertex_data.tex_coords[25] = { +1.0f, +1.0f };
+		vertex_data.tex_coords[26] = { +0.0f, +1.0f };
+		vertex_data.tex_coords[27] = { +0.0f, +1.0f };
+		vertex_data.tex_coords[28] = { +0.0f, +0.0f };
+		vertex_data.tex_coords[29] = { +1.0f, +0.0f };
 
-		// top face
+		// top face +y
 		vertex_data.tex_coords[30] = { +0.0f, +1.0f };
 		vertex_data.tex_coords[31] = { +0.0f, +1.0f };
 		vertex_data.tex_coords[32] = { +0.0f, +1.0f };

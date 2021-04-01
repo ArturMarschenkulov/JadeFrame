@@ -29,13 +29,13 @@ auto OpenGL_Renderer::render(const Object& obj) const -> void {
 	obj.m_buffer_data.vertex_array.bind();
 
 	if (obj.m_mesh->m_indices.size() > 0) {
-		GLenum mode = static_cast<GLenum>(obj.m_mesh->m_primitive_type);
+		GLenum mode = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
 		GLsizei count = obj.m_mesh->m_indices.size();
 		GLenum type = GL_UNSIGNED_INT;
 		const void* indices = nullptr;
 		glDrawElements(mode, count, type, indices);
 	} else {
-		GLenum mode = static_cast<GLenum>(obj.m_mesh->m_primitive_type);
+		GLenum mode = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
 		GLint first = 0;
 		GLsizei count = obj.m_mesh->m_positions.size();
 		glDrawArrays(mode, first, count);
@@ -96,25 +96,7 @@ static auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::
 auto GLBufferData::finalize(const Mesh& mesh, bool interleaved) -> void {
 	const std::vector<float> data = convert_into_data(mesh, interleaved);
 
-	vertex_buffer.bind();
-	vertex_buffer.send_to_GPU(data);
-
-
-	//NOTE: the layout names don't do much right now
-	const BufferLayout layout = {
-		{ SHADER_DATA_TYPE::FLOAT_3, "v_position" },
-		{ SHADER_DATA_TYPE::FLOAT_4, "v_color" },
-		{ SHADER_DATA_TYPE::FLOAT_2, "v_texture_coord" },
-		{ SHADER_DATA_TYPE::FLOAT_3, "v_normal" },
-	};
-	vertex_array.bind();
-	vertex_array.set_layout(layout);
-
-	if (mesh.m_indices.size() > 0) {
-		index_buffer.bind();
-		index_buffer.send_to_GPU(mesh.m_indices);
-	}
-
-	vertex_array.unbind();
+	vertex_array.foo(data, mesh);
+	
 }
 

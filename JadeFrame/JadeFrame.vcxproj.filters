@@ -435,6 +435,9 @@
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_shader_loader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\JadeFrame.cpp">
@@ -656,12 +659,21 @@
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_shader_loader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_object.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="resource\awesomeface.png">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="resource\wall.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resource\container.jpg">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

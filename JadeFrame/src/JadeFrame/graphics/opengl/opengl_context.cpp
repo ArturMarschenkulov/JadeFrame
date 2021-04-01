@@ -37,13 +37,22 @@ auto opengl_message_callback(unsigned source, unsigned type, unsigned id, unsign
 		default:								_severity = "UKNOWN "; break;
 	}
 
-
-	std::cout << "GL_ERR: ";
-	std::cout << "Source: "		<< _source		<< "| ";
-	std::cout << "Type: "		<< _type		<< "| ";
-	std::cout << "ID: "			<< _id			<< "| ";
-	std::cout << "Severity: "	<< _severity	<< "| ";
-	std::cout << "Message "		<< message		<< std::endl;
+	if (0) {
+		std::cout << "GL_ERR: ";
+		std::cout << "Source: " << _source << "| ";
+		std::cout << "Type: " << _type << "| ";
+		std::cout << "ID: " << _id << "| ";
+		std::cout << "Severity: " << _severity << "| ";
+		std::cout << "Message " << message << std::endl;
+	} else {
+		std::cout << "GL_ERR: ";
+		std::cout << "Source: " << _source << std::endl << "| ";
+		std::cout << "Type: " << _type << std::endl << "| ";
+		std::cout << "ID: " << _id << std::endl << "| ";
+		std::cout << "Severity: " << _severity << std::endl << "| ";
+		std::cout << "Message " << message << std::endl;
+		std::cout << "|-----------------------------------------|" << std::endl;
+	}
 }
 
 static auto set_debug_mode(bool b) -> void {

@@ -1,7 +1,9 @@
 #pragma once
-#include <windows.h>
 #include <unordered_map>
 #include <string>
+
+typedef unsigned long DWORD;
+
 struct WindowsMessage;
 class WindowsMessageMap {
 public:

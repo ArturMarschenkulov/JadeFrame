@@ -5,232 +5,19 @@
 #include "../../math/vec_4.h"
 #include "../../math/mat_4.h"
 
+#include "opengl_shader_loader.h"
+
 #include<array>
 #include<tuple>
-
-
-
-static auto get_default_shader_flat() -> std::tuple<std::string, std::string> {
-	const GLchar* vertex_shader =
-		R"(
-#version 450 core
-layout (location = 0) in vec3 v_position;
-layout (location = 1) in vec4 v_color;
-layout (location = 2) in vec2 v_texture_coord;
-
-out vec4 f_color;
-out vec2 f_texture_coord;
-
-uniform mat4 MVP;
-uniform mat4 view_projection;
-uniform mat4 model;
-
-void main() {
-	gl_Position = view_projection * model * vec4(v_position, 1.0);
-	f_color = v_color;
-	f_texture_coord = v_texture_coord;
-}
-	)";
-	const GLchar* fragment_shader =
-		R"(
-#version 450 core
-
-in vec4 f_color;
-in vec2 f_texture_coord;
-out vec4 o_color;
-
-uniform sampler2D texture_0;
-
-void main() {
-	
-	//o_color = mix(f_color, texture(texture_0, f_texture_coord), 0.8);
-	//o_color = texture(texture_0, f_texture_coord);
-	o_color = f_color;
-}
-	)";
-
-	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
-}
-static auto get_default_shader_with_texture() -> std::tuple<std::string, std::string> {
-	const GLchar* vertex_shader =
-		R"(
-#version 450 core
-layout (location = 0) in vec3 v_position;
-layout (location = 1) in vec4 v_color;
-layout (location = 2) in vec2 v_texture_coord;
-
-out vec4 f_color;
-out vec2 f_texture_coord;
-
-uniform mat4 MVP;
-uniform mat4 view_projection;
-uniform mat4 model;
-
-void main() {
-	gl_Position = view_projection * model * vec4(v_position, 1.0);
-	f_color = v_color;
-	f_texture_coord = v_texture_coord;
-}
-	)";
-	const GLchar* fragment_shader =
-		R"(
-#version 450 core
-
-in vec4 f_color;
-in vec2 f_texture_coord;
-out vec4 o_color;
-
-uniform sampler2D texture_0;
-
-void main() {
-	
-	o_color = mix(f_color, texture(texture_0, f_texture_coord), 0.8);
-	o_color = texture(texture_0, f_texture_coord);
-	//o_color = f_color;
-}
-	)";
-
-	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
-}
-
-static auto get_default_shader_depth_testing() -> std::tuple<std::string, std::string> {
-	const GLchar* vertex_shader =
-		R"(
-#version 450 core
-layout (location = 0) in vec3 v_position;
-layout (location = 1) in vec4 v_color;
-layout (location = 2) in vec2 v_texture_coord;
-
-out vec4 f_color;
-out vec2 f_texture_coord;
-
-uniform mat4 view_projection;
-uniform mat4 model;
-
-void main() {
-	gl_Position = view_projection * model * vec4(v_position, 1.0);
-	f_color = v_color;
-	f_texture_coord = v_texture_coord;
-}
-	)";
-	const GLchar* fragment_shader =
-		R"(
-#version 450 core
-out vec4 o_color;
-
-const float far = 100.0; 
-float linearize_depth(float depth) {
-	float near = 0.1;
-    float z = depth * 2.0 - 1.0;
-    return (2.0 * near * far) / (far + near - z * (far - near));	
-}
-
-void main() {             
-    float depth = linearize_depth(gl_FragCoord.z) / far; // divide by far to get depth in range [0,1] for visualization purposes
-    o_color = vec4(vec3(0.4 - depth), 1.0);
-}
-	)";
-
-	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
-}
-
-static auto get_default_shader_light_client() -> std::tuple<std::string, std::string> {
-	const GLchar* vertex_shader =
-		R"(
-#version 450 core
-layout (location = 0) in vec3 v_position;
-layout (location = 1) in vec4 v_color;
-layout (location = 2) in vec2 v_texture_coord;
-layout (location = 3) in vec3 v_normal;
-
-out vec3 f_fragment_position;
-out vec3 f_normal;
-
-uniform mat4 view_projection;
-uniform mat4 model;
-
-void main() {
-	f_fragment_position = vec3(model * vec4(v_position, 1.0));
-	f_normal = mat3(transpose(inverse(model))) * v_normal; //v_normal;
-	gl_Position = view_projection * model * vec4(f_fragment_position, 1.0);
-
-}
-	)";
-	const GLchar* fragment_shader =
-		R"(
-#version 450 core
-out vec4 o_color;
-
-in vec3 f_normal;
-in vec3 f_fragment_position;
-
-uniform vec3 light_position;
-uniform vec3 light_color;
-uniform vec3 object_color;
-
-void main(){
-	float ambient_strength = 0.1;
-	vec3 ambient = ambient_strength * light_color;
-
-	vec3 norm = normalize(f_normal);
-	vec3 light_direction = normalize(light_position - f_fragment_position);
-	float difference = max(dot(norm, light_direction), 0.0);
-	vec3 diffuse = difference * light_color;
-
-	vec3 result = (ambient + diffuse) * object_color;
-    o_color = vec4(result, 1.0);
-}
-	)";
-
-	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
-}
-static auto get_default_shader_light_server() -> std::tuple<std::string, std::string> {
-	const GLchar* vertex_shader =
-		R"(
-#version 450 core
-layout (location = 0) in vec3 v_position;
-layout (location = 1) in vec4 v_color;
-layout (location = 2) in vec2 v_texture_coord;
-
-uniform mat4 view_projection;
-uniform mat4 model;
-
-void main() {
-	gl_Position = view_projection * model * vec4(v_position, 1.0);
-}
-	)";
-	const GLchar* fragment_shader =
-		R"(
-#version 450 core
-out vec4 o_color;
-
-void main()
-{             
-    o_color = vec4(1.0);
-}
-	)";
-
-	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
-}
 
 
 OpenGL_Shader::OpenGL_Shader(const std::string& name)
 	: m_program()
 	, m_vertex_shader(GL_VERTEX_SHADER)
 	, m_fragment_shader(GL_FRAGMENT_SHADER) {
+		
+	auto [vs_default, fs_default] = load_shader_by_name(name);
 
-	std::string vs_default, fs_default;
-	if (name == "flat_0") {
-		std::tie(vs_default, fs_default) = get_default_shader_flat();
-	} else if (name == "with_texture_0") {
-		std::tie(vs_default, fs_default) = get_default_shader_with_texture();
-	} else if (name == "depth_testing_0") {
-		std::tie(vs_default, fs_default) = get_default_shader_depth_testing();
-	} else if (name == "light_server") {
-		std::tie(vs_default, fs_default) = get_default_shader_light_server();
-	} else if (name == "light_client") {
-		std::tie(vs_default, fs_default) = get_default_shader_light_client();
-	}
 
 	m_vertex_shader.set_source(vs_default);
 	m_vertex_shader.compile();
@@ -249,8 +36,8 @@ OpenGL_Shader::OpenGL_Shader(const std::string& name)
 
 	m_vertex_source = vs_default;
 	m_fragment_source = fs_default;
-	m_uniforms = m_program.query_uniforms(GL_ACTIVE_UNIFORMS);
-	m_attributes = m_program.query_uniforms(GL_ACTIVE_ATTRIBUTES);
+	m_uniforms = this->query_uniforms(GL_ACTIVE_UNIFORMS);
+	m_attributes = this->query_uniforms(GL_ACTIVE_ATTRIBUTES);
 	//m_vertex_shader.query_source();
 }
 
@@ -268,6 +55,30 @@ auto OpenGL_Shader::get_uniform_location(const std::string& name) const -> GLint
 	__debugbreak();
 }
 
+
+auto OpenGL_Shader::set_uniform(const std::string& name, const int value) -> void {
+
+	if (m_uniforms.contains(name)) {
+		if (std::holds_alternative<int>(m_uniforms[name].value)) {
+			m_uniforms[name].value = value;
+			auto& v = std::get<int>(m_uniforms[name].value);
+			glUniform1i(m_uniforms[name].location, v);
+			return;
+		}
+	}
+	__debugbreak();
+}
+auto OpenGL_Shader::set_uniform(const std::string& name, const float value) -> void {
+	if (m_uniforms.contains(name)) {
+		if (std::holds_alternative<float>(m_uniforms[name].value)) {
+			m_uniforms[name].value = value;
+			auto& v = std::get<float>(m_uniforms[name].value);
+			glUniform1f(m_uniforms[name].location, v);
+			return;
+		}
+	}
+	__debugbreak();
+}
 auto OpenGL_Shader::set_uniform(const std::string& name, const Vec3& value) -> void {
 	if (m_uniforms.contains(name)) {
 		if (std::holds_alternative<Vec3>(m_uniforms[name].value)) {
@@ -277,14 +88,25 @@ auto OpenGL_Shader::set_uniform(const std::string& name, const Vec3& value) -> v
 			return;
 		}
 	}
-
+	__debugbreak();
+}
+auto OpenGL_Shader::set_uniform(const std::string& name, const Vec4& value) -> void {
+	if (m_uniforms.contains(name)) {
+		if (std::holds_alternative<Vec4>(m_uniforms[name].value)) {
+			m_uniforms[name].value = value;
+			auto& v = std::get<Vec4>(m_uniforms[name].value);
+			glUniform4f(m_uniforms[name].location, v.x, v.y, v.z, v.w);
+			return;
+		}
+	}
 	__debugbreak();
 }
 auto OpenGL_Shader::set_uniform(const std::string& name, const Mat4& value) -> void {
 	if (m_uniforms.contains(name)) {
 		if (std::holds_alternative<Mat4>(m_uniforms[name].value)) {
 			m_uniforms[name].value = value;
-			glUniformMatrix4fv(m_uniforms[name].location, 1, GL_FALSE, &std::get<Mat4>(m_uniforms[name].value)[0][0]);
+			auto& v = std::get<Mat4>(m_uniforms[name].value);
+			glUniformMatrix4fv(m_uniforms[name].location, 1, GL_FALSE, &v[0][0]);
 			return;
 		}
 	}
@@ -303,4 +125,53 @@ auto OpenGL_Shader::update_uniforms() -> void {
 			__debugbreak();
 		}
 	}
+}
+
+auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::unordered_map<std::string, GLVariable> {
+	// variable_type = GL_ACTIVE_UNIFORMS | GL_ACTIVE_ATTRIBUTES
+
+	GLint num_variables = m_program.get_info(variable_type);
+	std::vector<GLVariable> variables(num_variables);
+	std::unordered_map<std::string, GLVariable> variable_map;
+
+	for (int i = 0; i < num_variables; ++i) {
+		char buffer[128];
+		GLenum gl_type;
+		switch (variable_type) {
+			case GL_ACTIVE_UNIFORMS:
+				glGetActiveUniform(m_program.m_ID, i, sizeof(buffer), 0, &variables[i].size, &gl_type, buffer);
+				variables[i].location = m_program.get_uniform_location(buffer);
+				break;
+			case GL_ACTIVE_ATTRIBUTES:
+				glGetActiveAttrib(m_program.m_ID, i, sizeof(buffer), 0, &variables[i].size, &gl_type, buffer);
+				variables[i].location = m_program.get_attribute_location(buffer);
+				break;
+			default: __debugbreak(); gl_type = -1; break;
+		}
+		variables[i].name = std::string(buffer);
+		variables[i].type = SHADER_TYPE_from_openGL_enum(gl_type);
+
+		{ // TODO: It initializes the types for the variant type, for error checking. Consider whether this is neccessary.
+			GLValueVariant value_init;
+			switch (variables[i].type) {
+				case SHADER_DATA_TYPE::SAMPLER_2D:
+					value_init = int(); break;
+				case SHADER_DATA_TYPE::FLOAT:
+					value_init = float(); break;
+				case SHADER_DATA_TYPE::FLOAT_2:
+					value_init = Vec2(); break;
+				case SHADER_DATA_TYPE::FLOAT_3:
+					value_init = Vec3(); break;
+				case SHADER_DATA_TYPE::FLOAT_4:
+					value_init = Vec4(); break;
+				case SHADER_DATA_TYPE::MAT_4:
+					value_init = Mat4(); break;
+				default: __debugbreak(); break;
+			}
+			variables[i].value = value_init;
+		}
+
+		variable_map[variables[i].name] = variables[i];
+	}
+	return variable_map;
 }

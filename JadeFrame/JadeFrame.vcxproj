@@ -304,6 +304,7 @@
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_buffer.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_context.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_object.h" />
+    <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_shader_loader.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_texture.h" />
     <ClInclude Include="src\JadeFrame\gui.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_input_manager.h" />
@@ -380,6 +381,8 @@
     <ClCompile Include="src\JadeFrame\graphics\camera.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_buffer.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_context.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_object.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_shader_loader.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_texture.cpp" />
     <ClCompile Include="src\JadeFrame\gui.cpp" />
     <ClCompile Include="src\JadeFrame\platform\windows\windows_input_manager.cpp" />
@@ -398,6 +401,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="resource\awesomeface.png" />
+    <Image Include="resource\container.jpg" />
     <Image Include="resource\wall.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

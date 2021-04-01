@@ -30,6 +30,8 @@ enum class SHADER_DATA_TYPE {
 auto SHADER_DATA_TYPE_to_openGL_type(const SHADER_DATA_TYPE type)->GLenum;
 auto SHADER_TYPE_from_openGL_enum(const GLenum type)->SHADER_DATA_TYPE;
 
+#include "../mesh.h"
+#include "opengl_object.h"
 
 class BufferLayout {
 public:
@@ -53,82 +55,55 @@ public:
 	uint32_t m_stride = 0;
 
 };
-
-class GLVertexBuffer {
+class OpenGL_VertexArray {
 public:
-	GLVertexBuffer();
-	~GLVertexBuffer();
-	GLVertexBuffer(const GLVertexBuffer&) = delete;
-	GLVertexBuffer(GLVertexBuffer&& other);
-	auto operator=(const GLVertexBuffer&)->GLVertexBuffer & = delete;
-	auto operator=(GLVertexBuffer&&)->GLVertexBuffer & = delete;
-	auto release() -> GLuint {
-		GLuint ret = m_ID;
-		m_ID = 0;
-		return ret;
-	}
-	auto reset(GLuint ID = 0) -> void {
-		glDeleteBuffers(1, &m_ID);
-		m_ID = ID;
-	}
-	auto bind() const -> void;
-	auto unbind() const -> void;
-	auto reserve_in_GPU(GLuint size_in_bytes) const -> void;
-	auto send_to_GPU(const std::vector<float>& data) const -> void;
-	auto update(GLuint size_in_bytes, const void* data) const -> void;
-private:
-	GLuint m_ID = 0;
-	//BUFFER_USAGE buffer_usage = BUFFER_USAGE::STATIC_DRAW;
-};
-class GLVertexArray {
-public:
-	GLVertexArray();
-	~GLVertexArray();
-	GLVertexArray(GLVertexArray&) = delete;
-	GLVertexArray(GLVertexArray&& other);
 
-	auto operator=(const GLVertexArray&) -> GLVertexArray & = delete;
-	auto operator=(GLVertexArray&&) -> GLVertexArray & = delete;
-	auto release() -> GLuint {
-		GLuint ret = m_ID;
-		m_ID = 0;
-		return ret;
-	}
-	auto reset(GLuint ID = 0) -> void {
-		glDeleteBuffers(1, &m_ID);
-		m_ID = ID;
-	}
+	OpenGL_VertexArray()
+		: m_vertex_buffer()
+		, m_vertex_array()
+		, m_index_buffer() {
 
-	auto bind() const -> void;
-	auto unbind() const -> void;
+	}
+	auto bind() const -> void {
+		m_vertex_array.bind();
+	}
 	auto set_layout(const BufferLayout& buffer_layout) -> void;
+	auto foo(const std::vector<float> data, const Mesh& mesh) -> void {
+		m_vertex_buffer.bind();
+		m_vertex_buffer.send(data);
+
+
+		//NOTE: the layout names don't do much right now
+		const BufferLayout layout = {
+			{ SHADER_DATA_TYPE::FLOAT_3, "v_position" },
+			{ SHADER_DATA_TYPE::FLOAT_4, "v_color" },
+			{ SHADER_DATA_TYPE::FLOAT_2, "v_texture_coord" },
+			{ SHADER_DATA_TYPE::FLOAT_3, "v_normal" },
+		};
+		m_vertex_array.bind();
+		this->set_layout(layout);
+
+		if (mesh.m_indices.size() > 0) {
+			m_index_buffer.bind();
+			m_index_buffer.send(mesh.m_indices);
+		}
+
+		m_vertex_array.unbind();
+	}
 private:
-	GLuint m_ID = 0;
+	GLVertexBuffer m_vertex_buffer;
+	GLVertexArray m_vertex_array;
+	GLIndexBuffer m_index_buffer;
 	BufferLayout m_buffer_layout;
 };
-class GLIndexBuffer {
-public:
-	GLIndexBuffer();
-	~GLIndexBuffer();
-	GLIndexBuffer(GLIndexBuffer&) = delete;
-	GLIndexBuffer(GLIndexBuffer&& other);
-	auto operator=(const GLIndexBuffer&)->GLIndexBuffer & = delete;
-	auto operator=(GLIndexBuffer&&)->GLIndexBuffer & = delete;
-	auto release() -> GLuint {
-		GLuint ret = m_ID;
-		m_ID = 0;
-		return ret;
-	}
-	auto reset(GLuint ID = 0) -> void {
-		glDeleteBuffers(1, &m_ID);
-		m_ID = ID;
-	}
 
-	auto bind() const -> void;
-	auto unbind() const -> void;
-	auto reserve_in_GPU(GLuint size_in_bytes) const -> void;
-	auto send_to_GPU(const std::vector<GLuint>& data) const -> void;
-	auto update(GLuint size_in_bytes, const GLuint* data) const -> void;
-private:
-	GLuint m_ID = 0;
+
+class GLFrameBuffer {
+	GLFrameBuffer() {
+		glCreateFramebuffers(1, &m_ID);
+	}
+	auto bind() -> void {
+		glBindFramebuffer(GL_FRAMEBUFFER, m_ID);
+	}
+	GLuint m_ID;
 };

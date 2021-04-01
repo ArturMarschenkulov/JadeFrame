@@ -18,7 +18,7 @@ public:
 	auto bind(int unit = -1) const -> void;
 	auto unbind() const -> void;
 	auto resize(uint32_t width, uint32_t height, uint32_t depth);
-private:
+public:
 	GLuint m_ID;
 	GLenum m_target = GL_TEXTURE_2D;
 	GLenum m_internal_format = GL_RGBA;
