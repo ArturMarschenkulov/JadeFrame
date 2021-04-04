@@ -4,7 +4,21 @@
 #include "vec_3.h"
 #include <vector>
 #include <iostream>
+#include <string>
+/*
+	This matrix is column major?
 
+	mat[n][m]
+	n = columns
+	m = rows
+
+	n0 n1 n2
+	 __ __ __
+m0	|__|__|__|
+m1	|__|__|__|
+m2	|__|__|__|
+
+*/
 
 class Mat4 {
 public:
@@ -32,8 +46,8 @@ public:
 	static auto look_at(const Vec3& camera, Vec3 object, Vec3 up) -> Mat4 {
 
 	#if 1
-		Vec3 forward = (object - camera).normalize();
-		Vec3 left = up.cross(forward).normalize();
+		Vec3 forward = (object - camera).get_normal();
+		Vec3 left = up.cross(forward).get_normal();
 		Vec3 upp = forward.cross(left);
 
 		Mat4 matrix;
@@ -76,15 +90,16 @@ public:
 
 	}
 
+	auto get_determinant() const -> float;
 	auto make_echelon() -> Mat4& {
-		int colCount = 4;
-		int rowCount = 4;
+		int col_count = 4;
+		int row_count = 4;
 		// go through every column
-		for (int col = 0; col < colCount; col++) {
-			for (int row = col + 1; row < rowCount; row++) {
+		for (int col = 0; col < col_count; col++) {
+			for (int row = col + 1; row < row_count; row++) {
 				if (el[col][row] != 0) {
 					float factor = el[col][row] / el[col][col];
-					for (int col2 = 0; col2 < colCount; col2++) {
+					for (int col2 = 0; col2 < col_count; col2++) {
 						el[col2][row] -= factor * el[col2][col];
 					}
 				}
@@ -92,16 +107,16 @@ public:
 		}
 		return *this;
 	}
-	auto get_echelon() -> Mat4 {
+	auto get_echelon() const -> Mat4 {
 		Mat4 m = *this;
-		int colCount = 4;
-		int rowCount = 4;
+		int col_count = 4;
+		int row_count = 4;
 		// go through every column
-		for (int col = 0; col < colCount; col++) {
-			for (int row = col + 1; row < rowCount; row++) {
+		for (int col = 0; col < col_count; col++) {
+			for (int row = col + 1; row < row_count; row++) {
 				if (m[col][row] != 0) {
 					float factor = m[col][row] / m[col][col];
-					for (int col2 = 0; col2 < colCount; col2++) {
+					for (int col2 = 0; col2 < col_count; col2++) {
 						m[col2][row] -= factor * m[col2][col];
 					}
 				}
@@ -118,7 +133,7 @@ public:
 			std::cout << std::endl;
 		}
 	}
-	auto to_string() -> std::string {
+	auto to_string() const -> std::string {
 		std::string result;
 		for (int row = 0; row < 4; row++) {
 			for (int col = 0; col < 4; col++) {
@@ -136,7 +151,5 @@ private:
 		std::array<std::array<float, 4>, 4> el;
 		std::array<float, 4> colVec;
 	};
-
-
 	//std::array<std::array<float, 4>, 4> el;
 };

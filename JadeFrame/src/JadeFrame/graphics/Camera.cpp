@@ -3,7 +3,7 @@
 //#if 1 // NOTE: for camera cotrolling. Remove if we move it
 #include "../base_app.h"
 #include "../platform/windows/windows_input_manager.h"
-#include "../math/Math.h"
+#include "../math/math.h"
 //#endif
 
 
@@ -32,7 +32,7 @@ auto Camera::perspective(const Vec3& pos, const float fovy, const float aspect, 
 	front.x = cos(to_radians(m_yaw)) * cos(to_radians(m_pitch));
 	front.y = sin(to_radians(m_pitch));
 	front.z = sin(to_radians(m_yaw)) * cos(to_radians(m_pitch));
-	m_front = front.normalize();
+	m_front = front.get_normal();
 }
 
 auto Camera::get_view_matrix() const -> Mat4 {
@@ -69,7 +69,6 @@ auto Camera::control() -> void {
 		old_fovy = m_fovy;
 		perspective(m_position, m_fovy, m_aspect, m_zNear, m_zFar);
 		__debugbreak();
-		//BaseApp::get_instance()->m_renderer->matrix_stack.projection_matrix = get_projection_matrix();
 	}
 
 
@@ -80,7 +79,7 @@ auto Camera::control() -> void {
 	front.x = cos(to_radians(m_yaw)) * cos(to_radians(m_pitch));
 	front.y = sin(to_radians(m_pitch));
 	front.z = sin(to_radians(m_yaw)) * cos(to_radians(m_pitch));
-	m_front = front.normalize();
+	m_front = front.get_normal();
 
 	//m_right = m_worldUp.cross(m_front).normalize();
 	//m_up = m_front.cross(m_right).normalize();
@@ -110,7 +109,7 @@ auto Camera1::perspective(const Vec3& position, const float fov, const float asp
 auto Camera1::othographic(float left, float right, float bottom, float top, float near_, float far_) -> void {
 	m_mode = MODE::PERSPECTIVE;
 	m_projection = Mat4::ortho(left, right, bottom, top, near_, far_);
-	m_position = 0;
+	m_position = Vec3(0);
 	m_forward = { -1.0f, 0.0f, 0.0f };
 	m_up = { 0.0f, 0.0f, 1.0f };
 }
@@ -172,7 +171,6 @@ auto Camera1::control() -> void {
 	//	old_fovy = m_fovy;
 	//	perspective(m_position, m_fovy, m_aspect, m_zNear, m_zFar);
 	//	__debugbreak();
-	//	//BaseApp::get_instance()->m_renderer->matrix_stack.projection_matrix = get_projection_matrix();
 	//}
 
 
@@ -184,7 +182,7 @@ auto Camera1::control() -> void {
 	ffront.x = cos(to_radians(yaw)) * cos(to_radians(pitch));
 	ffront.y = sin(to_radians(pitch));
 	ffront.z = sin(to_radians(yaw)) * cos(to_radians(pitch));
-	m_forward = ffront.normalize();
+	m_forward = ffront.get_normal();
 
 	////m_right = m_worldUp.cross(m_front).normalize();
 	////m_up = m_front.cross(m_right).normalize();
@@ -305,10 +303,10 @@ private:
 		front.y = sin(to_radians(m_pitch));
 		front.z = sin(to_radians(m_yaw)) * cos(to_radians(m_pitch));
 		//Front = glm::normalize(front);
-		m_front = front.normalize();
+		m_front = front.get_normal();
 		// also re-calculate the Right and Up vector
-		m_right = m_front.cross(m_world_up).normalize();  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
-		m_up = m_right.cross(front).normalize();
+		m_right = m_front.cross(m_world_up).get_normal();  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+		m_up = m_right.cross(front).get_normal();
 	}
 };
 }

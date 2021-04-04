@@ -8,8 +8,8 @@
 using SystemManager = Windows_SystemManager;
 using TimeManager = Windows_TimeManager;
 using InputManager = Windows_InputManager;
-
 #endif 
+
 #include "graphics/camera.h"
 #include "graphics/opengl/opengl_renderer.h"
 

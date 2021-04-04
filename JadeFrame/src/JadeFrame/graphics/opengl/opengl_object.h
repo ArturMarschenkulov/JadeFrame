@@ -2,7 +2,9 @@
 /*
 	This is the place for the light OpenGL Wrapper classes.
 	The goal is to make OpenGL objects more C++ like.
-	This may or may not be temporary
+	This may or may not be temporary.
+
+	These wrapper classes should have as little state as possible. The optimal would be to only have their ID and nothing more
 */
 #include <glad/glad.h>
 #include <vector>

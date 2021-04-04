@@ -3,9 +3,9 @@ class Vec3;
 class Vec2 {
 public:
 	Vec2();
-	Vec2(const float scalar);
 	Vec2(const float x, const float y);
 	explicit Vec2(const Vec3&);
+	explicit Vec2(const float scalar);
 
 
 	auto operator==(const Vec2 & other) const -> bool;

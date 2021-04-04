@@ -10,6 +10,17 @@
 #include<array>
 #include<tuple>
 
+static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
+	switch (type) {
+		case GL_FLOAT: return SHADER_TYPE::FLOAT;  break;
+		case GL_FLOAT_VEC2: return SHADER_TYPE::FLOAT_2;  break;
+		case GL_FLOAT_VEC3: return SHADER_TYPE::FLOAT_3; break;
+		case GL_FLOAT_VEC4: return SHADER_TYPE::FLOAT_4; break;
+		case GL_FLOAT_MAT4: return SHADER_TYPE::MAT_4; break;
+		case GL_SAMPLER_2D: return SHADER_TYPE::SAMPLER_2D; break;
+		default: __debugbreak(); return {};
+	}
+}
 
 OpenGL_Shader::OpenGL_Shader(const std::string& name)
 	: m_program()
@@ -154,17 +165,17 @@ auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::uno
 		{ // TODO: It initializes the types for the variant type, for error checking. Consider whether this is neccessary.
 			GLValueVariant value_init;
 			switch (variables[i].type) {
-				case SHADER_DATA_TYPE::SAMPLER_2D:
+				case SHADER_TYPE::SAMPLER_2D:
 					value_init = int(); break;
-				case SHADER_DATA_TYPE::FLOAT:
+				case SHADER_TYPE::FLOAT:
 					value_init = float(); break;
-				case SHADER_DATA_TYPE::FLOAT_2:
+				case SHADER_TYPE::FLOAT_2:
 					value_init = Vec2(); break;
-				case SHADER_DATA_TYPE::FLOAT_3:
+				case SHADER_TYPE::FLOAT_3:
 					value_init = Vec3(); break;
-				case SHADER_DATA_TYPE::FLOAT_4:
+				case SHADER_TYPE::FLOAT_4:
 					value_init = Vec4(); break;
-				case SHADER_DATA_TYPE::MAT_4:
+				case SHADER_TYPE::MAT_4:
 					value_init = Mat4(); break;
 				default: __debugbreak(); break;
 			}

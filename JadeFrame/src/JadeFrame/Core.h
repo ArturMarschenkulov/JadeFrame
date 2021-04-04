@@ -16,7 +16,7 @@ Engines:
 	FlaxEngine, Spartan
 
 Frameworks:
-	SFML, Cell, MagnumEngine, Hazel/Sparky, raylib,
+	SFML, Cell, MagnumEngine, Hazel/Sparky, raylib
 
 Orthographical convention:
 	variables and functions in snake case (my_variable, my_function())

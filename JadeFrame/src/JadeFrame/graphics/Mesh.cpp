@@ -1,5 +1,31 @@
 #include "mesh.h"
 
+
+auto Mesh::add_to_data(const VertexData& vertex_data) -> void {
+
+	m_positions.resize(vertex_data.positions.size());
+	m_colors.resize(vertex_data.positions.size());
+	m_tex_coords.resize(vertex_data.tex_coords.size());
+
+	for (size_t i = 0; i < vertex_data.positions.size(); i++) {
+		m_positions[i] = vertex_data.positions[i];
+		m_colors[i] = current_color;
+		m_tex_coords[i] = vertex_data.tex_coords[i];
+	}
+
+	m_normals.resize(vertex_data.normals.size());
+	for (size_t i = 0; i < vertex_data.normals.size(); i++) {
+		m_normals[i] = vertex_data.normals[i];
+	}
+
+
+	m_indices.resize(vertex_data.indices.size());
+	for (size_t i = 0; i < vertex_data.indices.size(); i++) {
+		m_indices[i] = vertex_data.indices[i];
+	}
+
+}
+
 auto VertexDataFactory::make_line(const Vec3& pos1, const Vec3& pos2) -> VertexData {
 	VertexData vertex_data;
 	vertex_data.positions.resize(2);
@@ -89,58 +115,6 @@ auto VertexDataFactory::make_circle(const Vec3& position, const float radius, co
 auto VertexDataFactory::make_cube(const Vec3& pos, const Vec3& size) -> VertexData {
 	VertexData vertex_data;
 
-#if 0
-	vertex_data.positions.resize(8);
-	vertex_data.positions[0] = { pos.x    , pos.y    , pos.z };
-	vertex_data.positions[1] = { pos.x    , pos.y + size.y, pos.z };
-	vertex_data.positions[2] = { pos.x + size.x, pos.y + size.y, pos.z };
-	vertex_data.positions[3] = { pos.x + size.x, pos.y    , pos.z };
-
-	vertex_data.positions[4] = { pos.x + size.x, pos.y    , pos.z - size.z };
-	vertex_data.positions[5] = { pos.x + size.x, pos.y + size.y, pos.z - size.z };
-	vertex_data.positions[6] = { pos.x    , pos.y + size.y, pos.z - size.z };
-	vertex_data.positions[7] = { pos.x    , pos.y    , pos.z - size.z };
-
-	vertex_data.tex_coords.resize(8);
-	vertex_data.tex_coords[0] = { 1.0, 1.0 };
-	vertex_data.tex_coords[1] = { 1.0, 0.0 };
-	vertex_data.tex_coords[2] = { 0.0, 0.0 };
-	vertex_data.tex_coords[3] = { 0.0, 1.0 };
-	vertex_data.tex_coords[4] = { 1.0, 1.0 };
-	vertex_data.tex_coords[5] = { 1.0, 0.0 };
-	vertex_data.tex_coords[6] = { 0.0, 0.0 };
-	vertex_data.tex_coords[7] = { 0.0, 1.0 };
-
-
-
-
-	vertex_data.indices.resize(36);
-	vertex_data.indices = {
-		// Front
-		0, 1, 3,
-		1, 2, 3,
-
-		// Right
-		3, 2, 4,
-		2, 5, 4,
-
-		// Back
-		4, 5, 7,
-		5, 6, 7,
-
-		// Top
-		7, 0, 4,
-		0, 3, 4,
-
-		// Left
-		7, 6, 0,
-		6, 1, 0,
-
-		// Buttom
-		1, 6, 2,
-		6, 5, 2
-	};
-#else 
 	vertex_data.positions.resize(36);
 	// back face -z
 	vertex_data.positions[00] = { pos.x			, pos.y			, pos.z };
@@ -205,8 +179,8 @@ auto VertexDataFactory::make_cube(const Vec3& pos, const Vec3& size) -> VertexDa
 		// front face +z
 		vertex_data.tex_coords[06] = { +0.0f, +0.0f };
 		vertex_data.tex_coords[07] = { +0.0f, +0.0f };
-		vertex_data.tex_coords[8]  = { +0.0f, +0.0f };
-		vertex_data.tex_coords[9]  = { +0.0f, +0.0f };
+		vertex_data.tex_coords[8] = { +0.0f, +0.0f };
+		vertex_data.tex_coords[9] = { +0.0f, +0.0f };
 		vertex_data.tex_coords[10] = { +0.0f, +0.0f };
 		vertex_data.tex_coords[11] = { +0.0f, +0.0f };
 
@@ -256,8 +230,8 @@ auto VertexDataFactory::make_cube(const Vec3& pos, const Vec3& size) -> VertexDa
 	// front face
 	vertex_data.normals[06] = { +0.0f, +0.0f, +1.0f };
 	vertex_data.normals[07] = { +0.0f, +0.0f, +1.0f };
-	vertex_data.normals[8]  = { +0.0f, +0.0f, +1.0f };
-	vertex_data.normals[9]  = { +0.0f, +0.0f, +1.0f };
+	vertex_data.normals[8] = { +0.0f, +0.0f, +1.0f };
+	vertex_data.normals[9] = { +0.0f, +0.0f, +1.0f };
 	vertex_data.normals[10] = { +0.0f, +0.0f, +1.0f };
 	vertex_data.normals[11] = { +0.0f, +0.0f, +1.0f };
 
@@ -292,6 +266,127 @@ auto VertexDataFactory::make_cube(const Vec3& pos, const Vec3& size) -> VertexDa
 	vertex_data.normals[33] = { -1.0f, +1.0f, -1.0f };
 	vertex_data.normals[34] = { -1.0f, +1.0f, -1.0f };
 	vertex_data.normals[35] = { -1.0f, +1.0f, -1.0f };
-#endif
 	return vertex_data;
 }
+
+//namespace A {
+//struct AABB {
+//	AABB() = default;
+//	AABB(const Vec3& minimum, const Vec3& maximum);
+//	Vec3 base;
+//	Vec3 offset;
+//
+//	Vec3 center() const;
+//	AABB transform(const Mat4& mat) const;
+//	Vec3 corner(unsigned corner) const;
+//};
+//
+//struct BoundingSphere {
+//	BoundingSphere() = default;
+//	explicit BoundingSphere(const AABB& aabb);
+//
+//	Vec4 pos_radius;
+//};
+//
+//struct Frustum {
+//	Frustum() = default;
+//	Frustum(const Mat4& view_proj);
+//	Vec4 planes[6];
+//
+//	// Used for frustum culling.
+//	bool intersects_with_sphere(const BoundingSphere& sphere) const;
+//};
+//
+//AABB::AABB(const Vec3& minimum, const Vec3& maximum)    {
+//	base = minimum;
+//	offset = maximum - minimum;
+//}
+//
+//Vec3 AABB::center() const {
+//	return base + Vec3(0.5f) * offset;
+//}
+//
+//// Assumes we're not using projective geometry ... It gets troublesome to handle flipped-sign W.
+//// Transform all corners of the AABB then create a new AABB based on the transformed result.
+//AABB AABB::transform(const Mat4& mat) const    {
+//
+//	Vec3 corners[8];
+//	for (unsigned i = 0; i < 8; i++)       {
+//		Vec3 c = corner(i);
+//		Vec4 c_trans = mat * Vec4(c, 1.0f);
+//		corners[i] = Vec3(c_trans) / Vec3(c_trans.w);
+//	}
+//
+//	Vec3 minimum = corners[0];
+//	Vec3 maximum = minimum;
+//	for (auto& v : corners)       {
+//		minimum = std::min(minimum, v);
+//		maximum = std::max(maximum, v);
+//	}
+//
+//	AABB aabb;
+//	aabb.base = minimum;
+//	aabb.offset = maximum - minimum;
+//	return aabb;
+//}
+//
+//Vec3 AABB::corner(unsigned corner) const    {
+//	Vec3 b = base;
+//	if (corner & 4)
+//		b.z += offset.z;
+//	if (corner & 2)
+//		b.y += offset.y;
+//	if (corner & 1)
+//		b.x += offset.x;
+//
+//	return b;
+//}
+//
+//BoundingSphere::BoundingSphere(const AABB& aabb)    {
+//	pos_radius = Vec4(aabb.center(), length(aabb.offset * Vec3(0.5f)));
+//}
+//
+//Frustum::Frustum(const Mat4& view_proj)    {
+//	auto inv_view_proj = inverse(view_proj);
+//
+//	// Get world-space coordinates for clip-space bounds.
+//	auto lbn = inv_view_proj * Vec4(-1, -1, -1, 1);
+//	auto ltn = inv_view_proj * Vec4(-1, 1, -1, 1);
+//	auto lbf = inv_view_proj * Vec4(-1, -1, 1, 1);
+//	auto rbn = inv_view_proj * Vec4(1, -1, -1, 1);
+//	auto rtn = inv_view_proj * Vec4(1, 1, -1, 1);
+//	auto rbf = inv_view_proj * Vec4(1, -1, 1, 1);
+//	auto rtf = inv_view_proj * Vec4(1, 1, 1, 1);
+//
+//	auto lbn_pos = lbn.xyz / lbn.www;
+//	auto ltn_pos = ltn.xyz / ltn.www;
+//	auto lbf_pos = lbf.xyz / lbf.www;
+//	auto rbn_pos = rbn.xyz / rbn.www;
+//	auto rtn_pos = rtn.xyz / rtn.www;
+//	auto rbf_pos = rbf.xyz / rbf.www;
+//	auto rtf_pos = rtf.xyz / rtf.www;
+//
+//	// Get plane equations for all sides of frustum.
+//	auto left_normal = normalize(cross(lbf_pos - lbn_pos, ltn_pos - lbn_pos));
+//	auto right_normal = normalize(cross(rtn_pos - rbn_pos, rbf_pos - rbn_pos));
+//	auto top_normal = normalize(cross(ltn_pos - rtn_pos, rtf_pos - rtn_pos));
+//	auto bottom_normal = normalize(cross(rbf_pos - rbn_pos, lbn_pos - rbn_pos));
+//	auto near_normal = normalize(cross(ltn_pos - lbn_pos, rbn_pos - lbn_pos));
+//	auto far_normal = normalize(cross(rtf_pos - rbf_pos, lbf_pos - rbf_pos));
+//
+//	planes[0] = Vec4(near_normal, -dot(near_normal, lbn_pos)); // Near
+//	planes[1] = Vec4(far_normal, -dot(far_normal, lbf_pos)); // Far
+//	planes[2] = Vec4(left_normal, -dot(left_normal, lbn_pos)); // Left
+//	planes[3] = Vec4(right_normal, -dot(right_normal, rbn_pos)); // Right
+//	planes[4] = Vec4(top_normal, -dot(top_normal, ltn_pos)); // Top
+//	planes[5] = Vec4(bottom_normal, -dot(bottom_normal, lbn_pos)); // Top
+//}
+//
+//bool Frustum::intersects_with_sphere(const BoundingSphere& sphere) const    {
+//	Vec4 pos = Vec4(sphere.pos_radius.xyz, 1.0f);
+//	for (auto& plane : planes)
+//		if (dot(pos, plane) < -sphere.pos_radius.w)
+//			return false;
+//	return true;
+//}
+//}

@@ -19,7 +19,7 @@ enum BUFFER_USAGE : GLenum {
 	DYNAMIC_COPY = GL_DYNAMIC_COPY,
 };
 
-enum class SHADER_DATA_TYPE {
+enum class SHADER_TYPE {
 	NONE = 0,
 	FLOAT, FLOAT_2, FLOAT_3, FLOAT_4,
 	MAT_3, MAT_4,
@@ -27,8 +27,6 @@ enum class SHADER_DATA_TYPE {
 	BOOL,
 	SAMPLER_1D, SAMPLER_2D, SAMPLER_3D, SAMPLER_CUBE,
 };
-auto SHADER_DATA_TYPE_to_openGL_type(const SHADER_DATA_TYPE type)->GLenum;
-auto SHADER_TYPE_from_openGL_enum(const GLenum type)->SHADER_DATA_TYPE;
 
 #include "../mesh.h"
 #include "opengl_object.h"
@@ -37,13 +35,12 @@ class BufferLayout {
 public:
 	struct BufferElement {
 		std::string name;
-		SHADER_DATA_TYPE type;
+		SHADER_TYPE type;
 		uint32_t size;
 		size_t offset;
 		bool normalized;
 
-		BufferElement(SHADER_DATA_TYPE type, const std::string& name, bool normalized = false);
-		//auto get_component_count() const->uint32_t;
+		BufferElement(SHADER_TYPE type, const std::string& name, bool normalized = false);
 	};
 
 public:
@@ -55,6 +52,7 @@ public:
 	uint32_t m_stride = 0;
 
 };
+
 class OpenGL_VertexArray {
 public:
 
@@ -68,28 +66,7 @@ public:
 		m_vertex_array.bind();
 	}
 	auto set_layout(const BufferLayout& buffer_layout) -> void;
-	auto foo(const std::vector<float> data, const Mesh& mesh) -> void {
-		m_vertex_buffer.bind();
-		m_vertex_buffer.send(data);
-
-
-		//NOTE: the layout names don't do much right now
-		const BufferLayout layout = {
-			{ SHADER_DATA_TYPE::FLOAT_3, "v_position" },
-			{ SHADER_DATA_TYPE::FLOAT_4, "v_color" },
-			{ SHADER_DATA_TYPE::FLOAT_2, "v_texture_coord" },
-			{ SHADER_DATA_TYPE::FLOAT_3, "v_normal" },
-		};
-		m_vertex_array.bind();
-		this->set_layout(layout);
-
-		if (mesh.m_indices.size() > 0) {
-			m_index_buffer.bind();
-			m_index_buffer.send(mesh.m_indices);
-		}
-
-		m_vertex_array.unbind();
-	}
+	auto finalize(const Mesh& mesh, bool interleaved = true) -> void;
 private:
 	GLVertexBuffer m_vertex_buffer;
 	GLVertexArray m_vertex_array;

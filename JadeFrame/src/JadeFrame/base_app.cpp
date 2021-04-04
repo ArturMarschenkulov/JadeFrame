@@ -8,7 +8,10 @@
 #include <stdint.h>
 #include <iostream>
 
-static auto draw_GUI(TestApp* apps) -> void {
+static Vec4 object_color = { 0.5f, 0.5f, 0.5f, 1.0f };
+static Vec3 light_color = { 1.0f, 1.0f, 1.0f };
+
+static auto draw_GUI(TestApp& app) -> void {
 	ImGui::BeginMainMenuBar();
 
 	ImGui::EndMainMenuBar();
@@ -23,13 +26,6 @@ static auto draw_GUI(TestApp* apps) -> void {
 
 	//auto& m_renderer = BaseApp::get_instance()->m_renderer;
 
-	//ImGui::SliderFloat("cam.m_position.x", &camera.m_position.x, -30, 30);
-	//ImGui::SliderFloat("cam.m_position.y", &camera.m_position.y, -30, 30);
-	//ImGui::SliderFloat("cam.m_position.z", &camera.m_position.z, -30, 30);
-
-	//ImGui::SliderFloat("cam.m_right.x", &camera.m_right.x, -30, 30);
-	//ImGui::SliderFloat("cam.m_right.y", &camera.m_right.y, -30, 30);
-	//ImGui::SliderFloat("cam.m_right.z", &camera.m_right.z, -30, 30);
 
 	//ImGui::SliderFloat("cam.m_fovy", &camera.m_fovy, to_radians(-60), to_radians(60));
 	static float point_size = 1;
@@ -39,23 +35,74 @@ static auto draw_GUI(TestApp* apps) -> void {
 	static float line_width = 1;
 	ImGui::SliderFloat("line width", &line_width, 0, 100);
 	glLineWidth(line_width);
-	//static bool is_v_snyc_on = true;
-	//ImGui::Checkbox("VSync", &is_v_snyc_on);
 
-	//static bool ortho = false;
-	//ImGui::Checkbox("Ortho", &ortho);
-	//if (ortho) {
-	//	camera.perspective(
-	//		{ -20, 10, -5 },
-	//		to_radians(45.0f),
-	//		current_window_p->m_size.x / current_window_p->m_size.y,
-	//		0.1f,
-	//		10000.0f
-	//	);
-	//} else {
-	//	camera.othographic(-10, 10, 10, -10, -10, 10);
-	//}
-	//BaseApp::get_singleton()->m_current_window_p->set_v_sync(is_v_snyc_on);
+	static Vec3 curr_vec = Vec3(app.m_objs[1].m_transform * Vec4(app.m_objs[1].m_mesh->m_positions[0], 1.0f));
+	auto prev_vec = curr_vec;
+
+	ImGui::SliderFloat("vec_x", &curr_vec.x, -30, +30);
+	ImGui::SliderFloat("vec_y", &curr_vec.y, -30, +30);
+	ImGui::SliderFloat("vec_z", &curr_vec.z, -30, +30);
+
+	if (prev_vec != curr_vec) {
+		app.m_objs[1].m_transform = Mat4::translate(curr_vec);
+		app.m_resources.get_shader("light_client").bind();
+		const Vec3 n = Vec3(app.m_objs[1].m_transform * Vec4(app.m_objs[1].m_mesh->m_positions[0], 1.0f));
+		app.m_resources.get_shader("light_client").set_uniform("light_position", n);
+	}
+	if (1) {
+
+
+		//static Vec3 object_color = { 0.5f, 0.5f, 0.5f };
+		ImGui::SliderFloat("object_color.r", &object_color.x, 0.0f, 1.0f);
+		ImGui::SliderFloat("object_color.g", &object_color.y, 0.0f, 1.0f);
+		ImGui::SliderFloat("object_color.b", &object_color.z, 0.0f, 1.0f);
+		ImGui::SliderFloat("object_color.w", &object_color.w, 0.0f, 1.0f);
+		//static Vec3 light_color = {1.0f, 1.0f, 1.0f};
+		ImGui::SliderFloat("light_color.r", &light_color.x, 0.0f, 1.0f);
+		ImGui::SliderFloat("light_color.g", &light_color.y, 0.0f, 1.0f);
+		ImGui::SliderFloat("light_color.b", &light_color.z, 0.0f, 1.0f);
+		app.m_resources.get_shader("light_client").bind();
+		app.m_resources.get_shader("light_client").set_uniform("object_color", object_color);
+		app.m_resources.get_shader("light_client").set_uniform("light_color", light_color);
+		app.m_resources.get_shader("light_client").set_uniform("view_position", app.m_camera.m_position);
+
+		static float specular_strength = 0.5f;
+		ImGui::SliderFloat("specular_strength", &specular_strength, 0.0f, 1.0f);
+		app.m_resources.get_shader("light_client").set_uniform("specular_strength", specular_strength);
+
+		app.m_resources.get_shader("light_server").bind();
+		app.m_resources.get_shader("light_server").set_uniform("light_color", light_color);
+
+	}
+	if (0) {
+		static auto origin_text = app.m_resources.get_shader("light_client").m_fragment_source.c_str();
+
+		static char* copy = (char*)malloc(strlen(origin_text) + 1);
+		strcpy(copy, origin_text);
+		static char* text = (char*)origin_text;
+
+		static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
+		ImGui::InputTextMultiline("##source", text, IM_ARRAYSIZE(text) + 4000, ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), flags);
+		if (ImGui::Button("Save")) {
+			auto& shader = app.m_resources.get_shader("light_client");
+			//shader.;
+			shader.m_vertex_shader.set_source(shader.m_vertex_source);
+			shader.m_vertex_shader.compile();
+
+			shader.m_fragment_shader.set_source(text);
+			shader.m_fragment_shader.compile();
+
+			shader.m_program.attach(shader.m_vertex_shader);
+			shader.m_program.attach(shader.m_fragment_shader);
+			shader.m_program.link();
+			shader.m_program.validate();
+
+			shader.m_program.detach(shader.m_vertex_shader);
+			shader.m_program.detach(shader.m_fragment_shader);
+			shader.update_uniforms();
+		}
+	}
+
 
 
 }
@@ -137,7 +184,6 @@ auto BaseApp::start() -> void {
 	this->on_init();
 	GUI_init(m_current_window_p->m_window_handle);
 
-
 	Time time;
 	time.target = 1 / (double)60;
 	while (m_is_running) {
@@ -197,18 +243,18 @@ auto add_arrows(std::vector<Object>& objects, Material& material) -> void {
 	constexpr Color color_dark_blue = { 0.0f, 0.0f, 0.2f, 1.0f };
 
 	Mesh* mesh_arrows = new Mesh[6]; // x, y, z
-	mesh_arrows[0].set_color(color_light_red);
+	mesh_arrows[0].current_color = color_light_red;
 	mesh_arrows[0].add_to_data(VertexDataFactory::make_cube({ 0.0f, 0.0f, 0.0f }, { 10000.0f, .1f, .1f }));
-	mesh_arrows[1].set_color(color_light_green);
+	mesh_arrows[1].current_color = color_light_green;
 	mesh_arrows[1].add_to_data(VertexDataFactory::make_cube({ 0.0f, 0.0f, 0.0f }, { .1f, 10000.0f, .1f }));
-	mesh_arrows[2].set_color(color_light_blue);
+	mesh_arrows[2].current_color = color_light_blue;
 	mesh_arrows[2].add_to_data(VertexDataFactory::make_cube({ 0.0f, 0.0f, 0.0f }, { .1f, .1f, 10000.0f }));
 
-	mesh_arrows[3].set_color(color_dark_red);
+	mesh_arrows[3].current_color = color_dark_red;
 	mesh_arrows[3].add_to_data(VertexDataFactory::make_cube({ 0.0f, 0.0f, 0.0f }, { -10000.0f, .1f, .1f }));
-	mesh_arrows[4].set_color(color_dark_green);
+	mesh_arrows[4].current_color = color_dark_green;
 	mesh_arrows[4].add_to_data(VertexDataFactory::make_cube({ 0.0f, 0.0f, 0.0f }, { .1f, -10000.0f, .1f }));
-	mesh_arrows[5].set_color(color_dark_blue);
+	mesh_arrows[5].current_color = color_dark_blue;
 	mesh_arrows[5].add_to_data(VertexDataFactory::make_cube({ 0.0f, 0.0f, 0.0f }, { .1f, .1f, -10000.0f }));
 
 	for (int i = 0; i < 6; i++) {
@@ -216,12 +262,11 @@ auto add_arrows(std::vector<Object>& objects, Material& material) -> void {
 		temp_obj.m_transform = Mat4::translate({ 0.0f, 0.0f, 0.0f });
 		temp_obj.m_mesh = &mesh_arrows[i];
 		temp_obj.m_material = &material;
-		temp_obj.m_buffer_data.finalize(*temp_obj.m_mesh);
+		temp_obj.m_vertex_array.finalize(*temp_obj.m_mesh);
 		objects.push_back(std::move(temp_obj));
 	}
 }
-static Vec4 object_color = { 0.5f, 0.5f, 0.5f, 1.0f };
-static Vec3 light_color = { 1.0f, 1.0f, 1.0f };
+
 auto TestApp::on_init() -> void {
 	//glEnable(GL_CULL_FACE);
 	// Set Up Camera
@@ -238,8 +283,6 @@ auto TestApp::on_init() -> void {
 		m_camera.othographic(-10, m_windows[0].m_size.x, -10, m_windows[0].m_size.y, -10, 10);
 		//m_camera.othographic(-20, 20, -20, 20, -10, 10);
 	}
-	m_renderer.matrix_stack.projection_matrix = m_camera.get_projection_matrix();
-	m_renderer.m_current_camera = &m_camera;
 
 	// Load Resources
 	{
@@ -281,30 +324,29 @@ auto TestApp::on_init() -> void {
 	// Load Meshes
 	{
 		Mesh cube_mesh_0;
-		cube_mesh_0.set_color({ 0.0, 0.0, 0.0, 0.0 });
+		cube_mesh_0.current_color = { 0.0, 0.0, 0.0, 0.0 };
 		cube_mesh_0.add_to_data(VertexDataFactory::make_cube({ 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }));
 		m_meshes.push_back(cube_mesh_0);
 
 		Mesh light_cube_mesh;
-		light_cube_mesh.set_color({ 0.0, 0.0, 0.0, 0.0 });
+		light_cube_mesh.current_color = { 0.0, 0.0, 0.0, 0.0 };
 		light_cube_mesh.add_to_data(VertexDataFactory::make_cube({ 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }));
 		m_meshes.push_back(light_cube_mesh);
 	}
 	// Create Objects
 	Object cube;
-	//cube.m_transform = Mat4::translate({ 0.0f, 0.0f, 0.0f });
 	cube.m_transform = Mat4::scale({ 2.0f, 2.0f, 2.0f });
 	cube.m_mesh = &m_meshes[0];
 	cube.m_material = &m_resources.get_material("mat_0");//light_client
 
-	cube.m_buffer_data.finalize(*cube.m_mesh);
+	cube.m_vertex_array.finalize(*cube.m_mesh);
 	m_objs.push_back(std::move(cube));
 
 	Object light_cube;
 	light_cube.m_transform = Mat4::translate({ 5.0f, -5.0f, -5.0f });
 	light_cube.m_mesh = &m_meshes[1];
 	light_cube.m_material = &m_resources.get_material("light_server");
-	light_cube.m_buffer_data.finalize(*light_cube.m_mesh);
+	light_cube.m_vertex_array.finalize(*light_cube.m_mesh);
 	m_objs.push_back(std::move(light_cube));
 	auto vec = Vec3(m_objs[1].m_transform * Vec4(m_objs[1].m_mesh->m_positions[0], 1.0f));
 	m_resources.get_shader("light_client").bind();
@@ -319,79 +361,13 @@ auto TestApp::on_update() -> void {
 
 
 auto TestApp::on_draw() -> void {
-	static Vec3 curr_vec = Vec3(m_objs[1].m_transform * Vec4(m_objs[1].m_mesh->m_positions[0], 1.0f));
-	auto prev_vec = curr_vec;
-
-	ImGui::SliderFloat("vec_x", &curr_vec.x, -30, +30);
-	ImGui::SliderFloat("vec_y", &curr_vec.y, -30, +30);
-	ImGui::SliderFloat("vec_z", &curr_vec.z, -30, +30);
-
-	if (prev_vec != curr_vec) {
-		m_objs[1].m_transform = Mat4::translate(curr_vec);
-		m_resources.get_shader("light_client").bind();
-		const Vec3 n = Vec3(m_objs[1].m_transform * Vec4(m_objs[1].m_mesh->m_positions[0], 1.0f));
-		m_resources.get_shader("light_client").set_uniform("light_position", n);
-	}
 
 	for (size_t i = 0; i < m_objs.size(); i++) {
-		m_renderer.render(m_objs[i]);
+		m_renderer.push_to_renderer(m_objs[i]);
 	}
 
-	if (1) {
-
-
-		//static Vec3 object_color = { 0.5f, 0.5f, 0.5f };
-		ImGui::SliderFloat("object_color.r", &object_color.x, 0.0f, 1.0f);
-		ImGui::SliderFloat("object_color.g", &object_color.y, 0.0f, 1.0f);
-		ImGui::SliderFloat("object_color.b", &object_color.z, 0.0f, 1.0f);
-		ImGui::SliderFloat("object_color.w", &object_color.w, 0.0f, 1.0f);
-		//static Vec3 light_color = {1.0f, 1.0f, 1.0f};
-		ImGui::SliderFloat("light_color.r", &light_color.x, 0.0f, 1.0f);
-		ImGui::SliderFloat("light_color.g", &light_color.y, 0.0f, 1.0f);
-		ImGui::SliderFloat("light_color.b", &light_color.z, 0.0f, 1.0f);
-		m_resources.get_shader("light_client").bind();
-		m_resources.get_shader("light_client").set_uniform("object_color", object_color);
-		m_resources.get_shader("light_client").set_uniform("light_color", light_color);
-		m_resources.get_shader("light_client").set_uniform("view_position", m_camera.m_position);
-
-		static float specular_strength = 0.5f;
-		ImGui::SliderFloat("specular_strength", &specular_strength, 0.0f, 1.0f);
-		m_resources.get_shader("light_client").set_uniform("specular_strength", specular_strength);
-		
-		m_resources.get_shader("light_server").bind();
-		m_resources.get_shader("light_server").set_uniform("light_color", light_color);
-
-	}
-	if(0)
-	{
-		static auto origin_text = m_resources.get_shader("light_client").m_fragment_source.c_str();
-
-		static char* copy = (char*)malloc(strlen(origin_text) + 1);
-		strcpy(copy, origin_text);
-		static char* text = (char*)origin_text;
-
-		static ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput;
-		ImGui::InputTextMultiline("##source", text, IM_ARRAYSIZE(text) + 4000, ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), flags);
-		if (ImGui::Button("Save")) {
-			auto& shader = m_resources.get_shader("light_client");
-			//shader.;
-			shader.m_vertex_shader.set_source(shader.m_vertex_source);
-			shader.m_vertex_shader.compile();
-
-			shader.m_fragment_shader.set_source(text);
-			shader.m_fragment_shader.compile();
-
-			shader.m_program.attach(shader.m_vertex_shader);
-			shader.m_program.attach(shader.m_fragment_shader);
-			shader.m_program.link();
-			shader.m_program.validate();
-
-			shader.m_program.detach(shader.m_vertex_shader);
-			shader.m_program.detach(shader.m_fragment_shader);
-			shader.update_uniforms();
-		}
-
-		draw_GUI(this);
-	}
+	const Mat4 view_projection = m_camera.get_view_matrix() * m_camera.get_projection_matrix();
+	m_renderer.render_pushed(view_projection);
+	draw_GUI(*this);
 }
 #endif

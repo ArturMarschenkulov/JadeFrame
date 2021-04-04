@@ -1,6 +1,6 @@
 #include "windows_window.h"
 
-#include <windows.h>
+#include <Windows.h>
 
 #include "windows_message_map.h"
 
@@ -9,6 +9,7 @@
 #include <iostream>
 #include <tuple>
 #include <unordered_map>
+#include <cassert>
 
 
 static WindowsMessageMap windows_message_map;
@@ -255,7 +256,7 @@ auto Windows_Window::set_title(const std::string& title) {
 	SetWindowTextA(m_window_handle, m_title.c_str());
 }
 
-#include <cassert>
+
 auto Windows_Window::make_current() const -> void {
 	assert(m_device_context != 0);
 	assert(m_render_context != 0);

@@ -35,7 +35,6 @@ constexpr auto custom_simple_hash_1(const char* str) -> uint32_t {
 #include <intrin.h>
 
 int main() {
-
 #if 1
 	using GApp = TestApp;
 	JadeFrame jade_frame;
