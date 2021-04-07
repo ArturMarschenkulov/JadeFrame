@@ -64,8 +64,8 @@ public:
 	auto set_viewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) const -> void;
 
 	auto push_to_renderer(const Object& obj) -> void;
-	auto render_mesh(const OpenGL_VertexArray* buffer_data, const Mesh* mesh) -> void;
-	auto render_pushed(const Mat4& view_projection) -> void;
+	auto render_mesh(const OpenGL_VertexArray* buffer_data, const Mesh* mesh) const -> void;
+	auto render_pushed(const Mat4& view_projection) const -> void;
 public:
 	GLContext gl_context;
 	CommandBuffer m_command_buffer;

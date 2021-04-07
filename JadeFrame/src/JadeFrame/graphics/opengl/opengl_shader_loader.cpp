@@ -67,9 +67,10 @@ uniform mat4 view_projection;
 uniform mat4 model;
 
 void main() {
-	gl_Position = view_projection * model * vec4(v_position, 1.0);
 	f_color = v_color;
 	f_texture_coord = v_texture_coord;
+	vec3 fragment_position = vec3(model * vec4(v_position, 1.0));
+	gl_Position = view_projection * model * vec4(fragment_position, 1.0);
 }
 	)";
 	const GLchar* fragment_shader =

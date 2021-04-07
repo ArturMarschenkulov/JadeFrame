@@ -1,11 +1,12 @@
 #include "math.h"
 
 auto to_radians(float degrees) -> float {
-	return degrees * (M_PI / 180.0f);
-
+	//return degrees * (M_PI / 180.0f);
+	return degrees* static_cast<float>(0.01745329251994329576923690768489);
 }
 auto to_degrees(float radians) -> float {
-	return radians * (180.0f / M_PI);
+	//return radians * (180.0f / M_PI);
+	return radians * static_cast<float>(57.295779513082320876798154814105);
 }
 //
 //#include <cmath>

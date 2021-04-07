@@ -22,7 +22,7 @@ auto OpenGL_Renderer::push_to_renderer(const Object& obj) -> void {
 	m_command_buffer.push(mesh, material, transform, vertex_array);
 }
 
-auto OpenGL_Renderer::render_mesh(const OpenGL_VertexArray* vertex_array, const Mesh* mesh) -> void {
+auto OpenGL_Renderer::render_mesh(const OpenGL_VertexArray* vertex_array, const Mesh* mesh) const -> void {
 	vertex_array->bind();
 	if (mesh->m_indices.size() > 0) {
 		GLenum mode = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
@@ -37,8 +37,8 @@ auto OpenGL_Renderer::render_mesh(const OpenGL_VertexArray* vertex_array, const 
 		glDrawArrays(mode, first, count);
 	}
 }
-auto OpenGL_Renderer::render_pushed(const Mat4& view_projection) -> void {
-	std::vector<RenderCommand>& render_commands = m_command_buffer.m_render_commands;
+auto OpenGL_Renderer::render_pushed(const Mat4& view_projection) const -> void {
+	const std::vector<RenderCommand>& render_commands = m_command_buffer.m_render_commands;
 
 	for (size_t i = 0; i < render_commands.size(); ++i) {
 
@@ -55,5 +55,5 @@ auto OpenGL_Renderer::render_pushed(const Mat4& view_projection) -> void {
 		this->render_mesh(vertex_array, mesh);
 
 	}
-	render_commands.clear();
+
 }

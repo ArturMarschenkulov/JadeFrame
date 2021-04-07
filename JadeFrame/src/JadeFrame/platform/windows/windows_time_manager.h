@@ -14,10 +14,10 @@ private:
 	uint64_t m_frequency;
 	uint64_t m_offset;
 
-	double current;
-	double previous;
-	double update;
-	double draw;
-	double frame;
-	double target;
+	//double current;
+	//double previous;
+	//double update;
+	//double draw;
+	//double frame;
+	//double target;
 };

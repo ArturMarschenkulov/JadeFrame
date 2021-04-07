@@ -64,6 +64,7 @@ auto OpenGL_Shader::get_uniform_location(const std::string& name) const -> GLint
 		return m_uniforms.at(name).location;
 	}
 	__debugbreak();
+	return -1;
 }
 
 

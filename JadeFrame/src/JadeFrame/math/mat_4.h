@@ -3,8 +3,7 @@
 #include "vec_4.h"
 #include "vec_3.h"
 #include <vector>
-#include <iostream>
-#include <string>
+
 /*
 	This matrix is column major?
 
@@ -44,7 +43,53 @@ public:
 	static auto scale(const Vec3& scale)->Mat4;
 
 	static auto look_at(const Vec3& camera, Vec3 object, Vec3 up) -> Mat4 {
+		auto look_at_LH = [](const Vec3& eye, const Vec3& center, const Vec3& up) {
+			Vec3 const f((center - eye).get_normal());
+			Vec3 const s(up.cross(f).get_normal());
+			Vec3 const u(f.cross(s));
 
+			Mat4 Result(1);
+			Result[0][0] = s.x;
+			Result[1][0] = s.y;
+			Result[2][0] = s.z;
+
+			Result[0][1] = u.x;
+			Result[1][1] = u.y;
+			Result[2][1] = u.z;
+
+			Result[0][2] = f.x;
+			Result[1][2] = f.y;
+			Result[2][2] = f.z;
+
+			Result[3][0] = -s.dot(eye);
+			Result[3][1] = -u.dot(eye);
+			Result[3][2] = -s.dot(eye);
+			return Result;
+		};
+		auto look_at_RH = [](const Vec3& eye, const Vec3& center, const Vec3& up) {
+			Vec3 const f((center - eye).get_normal());
+			Vec3 const s(f.cross(up).get_normal());
+			Vec3 const u(s.cross(f));
+
+			Mat4 Result(1);
+			Result[0][0] = s.x;
+			Result[1][0] = s.y;
+			Result[2][0] = s.z;
+
+			Result[0][1] = u.x;
+			Result[1][1] = u.y;
+			Result[2][1] = u.z;
+
+			Result[0][2] = -f.x;
+			Result[1][2] = -f.y;
+			Result[2][2] = -f.z;
+
+			Result[3][0] = -s.dot(eye);
+			Result[3][1] = -u.dot(eye);
+			Result[3][2] = f.dot(eye);
+			return Result;
+		};
+		return look_at_RH(camera, object, up);
 	#if 1
 		Vec3 forward = (object - camera).get_normal();
 		Vec3 left = up.cross(forward).get_normal();
@@ -88,7 +133,7 @@ public:
 		return result * Mat4::translate(Vec3(-camera.x, -camera.y, -camera.z));
 	#endif
 
-	}
+		}
 
 	auto get_determinant() const -> float;
 	auto make_echelon() -> Mat4& {
@@ -125,31 +170,33 @@ public:
 		return m;
 	}
 
-	auto print_m() -> void {
-		for (int row = 0; row < 4; row++) {
-			for (int col = 0; col < 4; col++) {
-				std::cout << "\t" << el[col][row] << " ";
-			}
-			std::cout << std::endl;
-		}
-	}
-	auto to_string() const -> std::string {
-		std::string result;
-		for (int row = 0; row < 4; row++) {
-			for (int col = 0; col < 4; col++) {
-				//result += "\t";
-				result += std::to_string(this->el[col][row]);
-				result += " ";
-			}
-			result += "\n";
-		}
 
-		return result;
-	}
 private:
 	union {
 		std::array<std::array<float, 4>, 4> el;
 		std::array<float, 4> colVec;
 	};
 	//std::array<std::array<float, 4>, 4> el;
-};
+	};
+
+//auto print_m(const Mat4& mat) -> void {
+//	for (int row = 0; row < 4; row++) {
+//		for (int col = 0; col < 4; col++) {
+//			std::cout << "\t" << mat[col][row] << " ";
+//		}
+//		std::cout << std::endl;
+//	}
+//}
+//auto to_string(const Mat4& mat) -> std::string {
+//	std::string result;
+//	for (int row = 0; row < 4; row++) {
+//		for (int col = 0; col < 4; col++) {
+//			//result += "\t";
+//			result += std::to_string(mat[col][row]);
+//			result += " ";
+//		}
+//		result += "\n";
+//	}
+//
+//	return result;
+//}

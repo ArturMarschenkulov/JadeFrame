@@ -35,7 +35,7 @@ public:
 	auto perspective(const Vec3& position, const float fov, const float aspect, const float zNear, const float zFar) -> void;
 	auto othographic(const float left, const float right, const float buttom, const float top, const float near_, const float far_) -> void;
 	auto get_projection_matrix() const->Mat4 {
-		return m_projection;
+		return m_projection_matrix;
 	}
 	auto get_view_matrix() const->Mat4 {
 		return Mat4::look_at(m_position, m_position + m_forward, m_up);
@@ -46,14 +46,22 @@ public:
 		ORTHOGRAPHIC,
 		PERSPECTIVE,
 	} m_mode;
-	Mat4 m_projection;
-	Vec3 m_position;
-	Vec3 m_forward;
-	Vec3 m_up;
-	float m_fov;
-	float m_aspect;
-	float m_near;
-	float m_far;
+	Mat4 m_projection_matrix = {};
+	Mat4 m_view_matrix = {};
+
+	Vec3 m_position = {};
+	Vec3 m_forward = {}; // front
+	Vec3 m_up = {};
+	Vec3 m_world_up = {};
+	Vec3 m_right = {};
+
+	float m_fov = {};
+	float m_aspect = {};
+	float m_near = {};
+	float m_far = {};
+
+	float m_yaw = 0;
+	float m_pitch = {};
 
 	auto control() -> void;
 };
