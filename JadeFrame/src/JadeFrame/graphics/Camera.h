@@ -9,10 +9,10 @@ public:
 	}
 
 	auto perspective(const Vec3& pos, const float fov, const float aspect, const float zNear, const float zFar) -> void;
-	auto get_projection_matrix() const->Mat4;
-	auto get_view_matrix() const->Mat4;
+	auto get_projection_matrix() const->Matrix4x4;
+	auto get_view_matrix() const->Matrix4x4;
 
-	Mat4 m_projection_matrix{};
+	Matrix4x4 m_projection_matrix{};
 	Vec3 m_position{};
 	Vec3 m_up{};
 	Vec3 m_right{};
@@ -31,23 +31,24 @@ public:
 };
 
 class Camera1 {
-public:
-	auto perspective(const Vec3& position, const float fov, const float aspect, const float zNear, const float zFar) -> void;
-	auto othographic(const float left, const float right, const float buttom, const float top, const float near_, const float far_) -> void;
-	auto get_projection_matrix() const->Mat4 {
-		return m_projection_matrix;
-	}
-	auto get_view_matrix() const->Mat4 {
-		return Mat4::look_at(m_position, m_position + m_forward, m_up);
-	}
-
-public:
 	enum class MODE {
 		ORTHOGRAPHIC,
 		PERSPECTIVE,
-	} m_mode;
-	Mat4 m_projection_matrix = {};
-	Mat4 m_view_matrix = {};
+	};
+public:
+	auto perspective(const Vec3& position, const float fov, const float aspect, const float zNear, const float zFar) -> void;
+	auto othographic(const float left, const float right, const float buttom, const float top, const float near_, const float far_) -> void;
+	auto get_projection_matrix() const->Matrix4x4 {
+		return m_projection_matrix;
+	}
+	auto get_view_matrix() const->Matrix4x4 {
+		return Matrix4x4::look_at_matrix(m_position, m_position + m_forward, m_up);
+	}
+
+public:
+	MODE m_mode;
+	Matrix4x4 m_projection_matrix = {};
+	Matrix4x4 m_view_matrix = {};
 
 	Vec3 m_position = {};
 	Vec3 m_forward = {}; // front
@@ -67,8 +68,8 @@ public:
 };
 
 class Camera0 {
-	Mat4 m_projection;
-	Mat4 m_view;
+	Matrix4x4 m_projection;
+	Matrix4x4 m_view;
 
 	Vec3 m_position;
 	Vec3 m_forward;
@@ -83,7 +84,7 @@ class Camera0 {
 
 	auto set_perspective(const float fov, const float aspect, const float t_near, const float t_far) -> void {
 		m_is_perspective = true;
-		m_projection = Mat4::perspective(fov, aspect, t_near, t_far);
+		m_projection = Matrix4x4::perspective_projection_matrix(fov, aspect, t_near, t_far);
 		m_FOV = fov;
 		m_aspect = aspect;
 		m_near = t_near;
@@ -91,11 +92,11 @@ class Camera0 {
 	}
 	auto set_orthographic(const float left, const float right, const float top, const float bottom, const float t_near, const float t_far) -> void {
 		m_is_perspective = false;
-		m_projection = Mat4::ortho(left, right, top, bottom, t_near, t_far);
+		m_projection = Matrix4x4::orthogonal_projection_matrix(left, right, top, bottom, t_near, t_far);
 		m_near = t_near;
 		m_far = t_far;
 	}
 	auto update_view() -> void {
-		m_view = Mat4::look_at(m_position, m_position + m_forward, m_up);
+		m_view = Matrix4x4::look_at_matrix(m_position, m_position + m_forward, m_up);
 	}
 };

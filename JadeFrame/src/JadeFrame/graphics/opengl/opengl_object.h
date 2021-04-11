@@ -114,6 +114,10 @@ struct GLShader {
 	auto get_compile_status()->GLint;
 	auto get_info_log(GLsizei max_length)->std::string;
 public:
+	enum class SHADER_TYPE {
+		
+	};
+	SHADER_TYPE m_type;
 	GLuint m_ID;
 };
 struct GLProgram {

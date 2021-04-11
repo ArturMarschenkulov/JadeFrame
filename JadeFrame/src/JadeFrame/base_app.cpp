@@ -8,8 +8,7 @@
 #include <stdint.h>
 #include <iostream>
 
-static Vec4 object_color = { 0.5f, 0.5f, 0.5f, 1.0f };
-static Vec3 light_color = { 1.0f, 1.0f, 1.0f };
+
 
 static auto draw_GUI(TestApp& app) -> void;
 //**************************************************************
@@ -24,7 +23,7 @@ JadeFrame::JadeFrame() {
 	if (m_singleton == nullptr) {
 		m_singleton = this;
 		m_system_manager.initialize();
-		m_time_manager.initialize();
+		//m_time_manager.initialize();
 		//m_input_manager.initialize();
 
 		m_system_manager.log();
@@ -47,6 +46,8 @@ auto JadeFrame::add(BaseApp* app) -> void {
 //BaseApp
 //**************************************************************
 BaseApp::BaseApp(const std::string& title, const Vec2& size, const Vec2& position) {
+	m_time_manager.initialize();
+
 	m_windows[0].initialize(title, size, position);
 	//m_windows[1].initialize(title, size, position);
 	m_current_window_p = &m_windows[0];
@@ -56,55 +57,23 @@ BaseApp::BaseApp(const std::string& title, const Vec2& size, const Vec2& positio
 	HGLRC& win_render_context = m_windows[0].m_render_context;
 	m_renderer.gl_context = GLContext(win_handle, win_device_context, win_render_context);
 }
-struct Time {
-	double current = 0;
-	double previous = 0;
-	double update = 0;
-	double draw = 0;
-	double frame = 0;
-	double target = 0;
-};
-auto Time_calc_elapsed(Time& time) -> void {
-	time.current = JadeFrame::get_singleton()->m_time_manager.get_time();
-	time.update = time.current - time.previous;
-	time.previous = time.current;
-}
-auto Time_frame_control(Time& time) -> void {
-	// Frame time control system
-	time.current = JadeFrame::get_singleton()->m_time_manager.get_time();
-	time.draw = time.current - time.previous;
-	time.previous = time.current;
-
-	time.frame = time.update + time.draw;
-
-	if (time.frame < time.target) {
-		::Sleep((unsigned int)(float(time.target - time.frame) * 1000.0f));
-		time.current = JadeFrame::get_singleton()->m_time_manager.get_time();
-		double time_wait = time.current - time.previous;
-		time.previous = time.current;
-		time.frame += time_wait;
-	}
-	//__debugbreak();
-}
 auto BaseApp::start() -> void {
 	this->on_init();
 	GUI_init(m_current_window_p->m_window_handle);
 
-	Time time;
-	time.target = 1 / (double)60;
+	m_time_manager.set_FPS(400);
 	while (m_is_running) {
 		this->on_update();
-
 		if (m_current_window_p->m_window_state != Windows_Window::WINDOW_STATE::MINIMIZED) {
-			Time_calc_elapsed(time);
-
+			m_time_manager.calc_elapsed();
 			m_renderer.swap_buffer(m_current_window_p->m_window_handle);
 			m_renderer.clear(m_renderer.gl_context.gl_cache.clear_bitfield);
 			GUI_new_frame();
+
 			this->on_draw();
 			GUI_render();
 
-			Time_frame_control(time);
+			m_time_manager.frame_control();
 		}
 		this->poll_events();
 	}
@@ -137,7 +106,8 @@ auto BaseApp::poll_events() -> void {
 */
 
 #if 1 //Test
-TestApp::TestApp(const std::string& title, const Vec2& size, const Vec2& position)
+namespace Test1 {
+TestApp0::TestApp0(const std::string& title, const Vec2& size, const Vec2& position)
 	: BaseApp(title, size, position) {
 }
 auto add_arrows(std::vector<Object>& objects, Material& material) -> void {
@@ -165,18 +135,20 @@ auto add_arrows(std::vector<Object>& objects, Material& material) -> void {
 
 	for (int i = 0; i < 6; i++) {
 		Object temp_obj;
-		temp_obj.m_transform = Mat4::translate({ 0.0f, 0.0f, 0.0f });
+		temp_obj.m_transform = Matrix4x4::translation_matrix({ 0.0f, 0.0f, 0.0f });
 		temp_obj.m_mesh = &mesh_arrows[i];
 		temp_obj.m_material = &material;
 		temp_obj.m_vertex_array.finalize(*temp_obj.m_mesh);
 		objects.push_back(std::move(temp_obj));
 	}
 }
-
-auto TestApp::on_init() -> void {
+static Vec4 object_color = { 0.5f, 0.5f, 0.5f, 1.0f };
+static Vec3 light_color = { 1.0f, 1.0f, 1.0f };
+Matrix4x4* trans = nullptr;
+auto TestApp0::on_init() -> void {
 	//glEnable(GL_CULL_FACE);
 	// Set Up Camera
-	if (true) {
+	if (false) {
 		m_camera.perspective(
 			Vec3(0.0f, 0.0f, 3.0f),//{ -20, 10, -5 },
 			to_radians(45.0f),
@@ -186,7 +158,7 @@ auto TestApp::on_init() -> void {
 		);
 	} else {
 		//TODO: fix the orthographic camera
-		m_camera.othographic(-10, m_windows[0].m_size.x, -10, m_windows[0].m_size.y, -10, 10);
+		m_camera.othographic(0, m_windows[0].m_size.x, 0, m_windows[0].m_size.y,  -100, 100);
 		//m_camera.othographic(-20, 20, -20, 20, -10, 10);
 	}
 
@@ -237,48 +209,108 @@ auto TestApp::on_init() -> void {
 		light_cube_mesh.current_color = { 0.0, 0.0, 0.0, 0.0 };
 		light_cube_mesh.add_to_data(VertexDataFactory::make_cube({ 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }));
 		m_meshes.push_back(light_cube_mesh);
+
+		Mesh rect_mesh;
+		rect_mesh.current_color = { 0.0, 0.0, 0.0, 0.0 };
+		rect_mesh.add_to_data(VertexDataFactory::make_rectangle({ 0.0f, 0.0f, 0.0f }, { 100.0f, 100.0f, 0.0f }));
+		m_meshes.push_back(rect_mesh);
+
 	}
 
 
-	// Create Objects
-	Object cube;
-	cube.m_transform = Mat4::scale({ 2.0f, 2.0f, 2.0f });
-	cube.m_mesh = &m_meshes[0];
-	cube.m_material = &m_resources.get_material("mat_0");//light_client
-
-	cube.m_vertex_array.finalize(*cube.m_mesh);
-	m_objs.push_back(std::move(cube));
-
-	Object light_cube;
-	light_cube.m_transform = Mat4::translate({ 5.0f, -5.0f, -5.0f });
-	light_cube.m_mesh = &m_meshes[1];
-	light_cube.m_material = &m_resources.get_material("light_server");
-	light_cube.m_vertex_array.finalize(*light_cube.m_mesh);
-	m_objs.push_back(std::move(light_cube));
 
 
-	auto vec = Vec3(m_objs[1].m_transform * Vec4(m_objs[1].m_mesh->m_positions[0], 1.0f));
-	m_resources.get_shader("light_client").bind();
-	m_resources.get_shader("light_client").set_uniform("light_position", vec);
+	{
+		Object plane;
+		plane.m_transform = /*Matrix4x4::scale({ 15, 15, 1 }) * */Matrix4x4::translation_matrix({ 40.0f, 40.0f, 0.0f });
+		plane.m_mesh = &m_meshes[2];
+		plane.m_material = &m_resources.get_material("mat_0");
+		plane.m_vertex_array.finalize(*plane.m_mesh);
+		m_objs.push_back(std::move(plane));
+
+		trans = &plane.m_transform;
+	}
+	if(0)
+	{
+		// Create Objects
+		Object cube;
+		cube.m_transform = Matrix4x4::scale_matrix({ 2.0f, 2.0f, 2.0f });
+		cube.m_mesh = &m_meshes[0];
+		cube.m_material = &m_resources.get_material("mat_0");//light_client
+		cube.m_vertex_array.finalize(*cube.m_mesh);
+		m_objs.push_back(std::move(cube));
+		{
+			Object light_cube;
+			light_cube.m_transform = Matrix4x4::translation_matrix({ 5.0f, 5.0f, 5.0f });
+			light_cube.m_mesh = &m_meshes[1];
+			light_cube.m_material = &m_resources.get_material("light_server");
+			light_cube.m_vertex_array.finalize(*light_cube.m_mesh);
+			m_objs.push_back(std::move(light_cube));
+		}
+		{
+			Object light_cube;
+			light_cube.m_transform = Matrix4x4::translation_matrix({ 5.0f, -5.0f, 5.0f });
+			light_cube.m_mesh = &m_meshes[1];
+			light_cube.m_material = &m_resources.get_material("light_server");
+			light_cube.m_vertex_array.finalize(*light_cube.m_mesh);
+			m_objs.push_back(std::move(light_cube));
+		}
+		{
+			Object light_cube;
+			light_cube.m_transform = Matrix4x4::translation_matrix({ -5.0f, -5.0f, 5.0f });
+			light_cube.m_mesh = &m_meshes[1];
+			light_cube.m_material = &m_resources.get_material("light_server");
+			light_cube.m_vertex_array.finalize(*light_cube.m_mesh);
+			m_objs.push_back(std::move(light_cube));
+		}
+		{
+			Object light_cube;
+			light_cube.m_transform = Matrix4x4::translation_matrix({ -5.0f, 5.0f, 5.0f });
+			light_cube.m_mesh = &m_meshes[1];
+			light_cube.m_material = &m_resources.get_material("light_server");
+			light_cube.m_vertex_array.finalize(*light_cube.m_mesh);
+			m_objs.push_back(std::move(light_cube));
+		}
+		auto vec = Vec3(m_objs[1].m_transform * Vec4(m_objs[1].m_mesh->m_positions[0], 1.0f));
+		m_resources.get_shader("light_client").bind();
+		m_resources.get_shader("light_client").set_uniform("light_position", vec);
+	}
 
 	add_arrows(m_objs, m_resources.get_material("coordinate_arrow_material"));
 }
-auto TestApp::on_update() -> void {
+auto TestApp0::on_update() -> void {
 	m_camera.control();
+	auto& i = JadeFrame::get_singleton()->m_input_manager;
+	const auto& mp = i.get_mouse_position();
+	if (i.is_key_pressed(KEY::K)) {
+		__debugbreak();
+	}
+	std::cout << "0: " 
+		<< (*trans)[0][0] << ", " 
+		<< (*trans)[0][1] << ", " 
+		<< (*trans)[0][2] << ", " << std::endl;
+	auto ss = Matrix4x4::translation_matrix({ mp.x, mp.y, 0 });
+	auto s = *trans;
+	(*trans) = ss;
+	std::cout << "1: "
+		<< (*trans)[0][0] << ", "
+		<< (*trans)[0][1] << ", "
+		<< (*trans)[0][2] << ", " << std::endl;
 
 }
 
 
-auto TestApp::on_draw() -> void {
+auto TestApp0::on_draw() -> void {
 
 	for (size_t i = 0; i < m_objs.size(); i++) {
 		m_renderer.push_to_renderer(m_objs[i]);
 	}
 
-	const Mat4 view_projection = m_camera.get_view_matrix() * m_camera.get_projection_matrix();
+	const Matrix4x4 view_projection = m_camera.get_view_matrix() * m_camera.get_projection_matrix();
 	m_renderer.render_pushed(view_projection);
 	m_renderer.m_command_buffer.m_render_commands.clear();
-	draw_GUI(*this);
+	//draw_GUI(*this);
+}
 }
 #endif
 
@@ -290,6 +322,12 @@ static auto draw_GUI(TestApp& app) -> void {
 
 	static bool show = true;
 	ImGui::ShowDemoWindow(&show);
+
+
+
+	float& FPS_max = app.m_time_manager.max_FPS;
+	ImGui::SliderFloat("max FPS", &FPS_max, 0, 1000);
+	app.m_time_manager.set_FPS(FPS_max);
 
 
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);

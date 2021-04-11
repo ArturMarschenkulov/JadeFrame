@@ -29,7 +29,7 @@ public:
 
 public:
 	SystemManager m_system_manager;
-	TimeManager m_time_manager;
+	/*TimeManager m_time_manager;*/
 	InputManager m_input_manager;
 
 	std::deque<BaseApp*> m_apps;
@@ -62,6 +62,8 @@ public:
 	GCamera m_camera;
 
 	bool m_is_running = true;
+
+	TimeManager m_time_manager;
 };
 
 
@@ -120,9 +122,22 @@ private:
 	std::unordered_map<std::string, Material> m_materials;
 };
 
-struct TestApp : public BaseApp {
-	TestApp(const std::string& title, const Vec2& size, const Vec2& position = { -1, -1 });
-	virtual ~TestApp() = default;
+
+
+/*
+	********************
+	*
+	*
+	CLIENT PLACEHOLDER
+	*
+	*
+	********************
+*/
+
+namespace Test1 {
+struct TestApp0 : public BaseApp {
+	TestApp0(const std::string& title, const Vec2& size, const Vec2& position = { -1, -1 });
+	virtual ~TestApp0() = default;
 
 	virtual auto on_init() -> void override;
 	virtual auto on_update() -> void override;
@@ -133,3 +148,5 @@ public:
 	std::deque<Mesh> m_meshes;
 	std::vector<Object> m_objs;
 };
+}
+using TestApp = Test1::TestApp0;

@@ -14,10 +14,18 @@ private:
 	uint64_t m_frequency;
 	uint64_t m_offset;
 
-	//double current;
-	//double previous;
-	//double update;
-	//double draw;
-	//double frame;
-	//double target;
+public:
+	auto calc_elapsed() -> void;
+	auto frame_control() -> void;
+	auto set_FPS(double FPS) -> void;
+	struct Time {
+		double current = 0;
+		double previous = 0;
+		double update = 0;
+		double draw = 0;
+		double frame = 0;
+		double target = 0;
+	};
+	Time time;
+	float max_FPS;
 };

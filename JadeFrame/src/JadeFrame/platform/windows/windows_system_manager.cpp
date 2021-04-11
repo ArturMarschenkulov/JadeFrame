@@ -241,8 +241,27 @@ auto Windows_SystemManager::log() const -> void {
 	std::cout << "**********SYSTEM LOG**********" << std::endl;
 	std::cout << "\tComputer Name: " << m_computer_name << std::endl;
 	std::cout << "\tUser Name    : " << m_user_name << std::endl;
-	std::cout << "\tCPU Name     : " << m_cpu_name << std::endl;
 
+	std::cout << "\tCPU Name     : " << m_cpu_name << std::endl;
+	std::cout << "\tWin Ver Maj  : " << m_window_version_major << std::endl;
+	std::cout << "\tWin Ver Min  : " << m_window_version_minor << std::endl;
+
+	std::cout << "\tCache Line Si: " << m_cache_line_size << std::endl;
+	std::cout << "\tL1 Cache Size: " << m_L1_cache_size << std::endl;
+	std::cout << "\tL2 Cache Size: " << m_L2_cache_size << std::endl;
+	std::cout << "\tL3 Cache Size: " << m_L3_cache_size << std::endl;
+	std::cout << "\tProc Pack Num: " << m_processor_package_count << std::endl;
+	std::cout << "\tProc Core Num: " << m_processor_core_count << std::endl;
+	std::cout << "\tProc Log Num : " << m_logical_processor_count << std::endl;
+	std::cout << "\tPage Size    : " << m_page_size << std::endl;
+	uint32_t m_cache_line_size;
+	uint32_t m_L1_cache_size;
+	uint32_t m_L2_cache_size;
+	uint32_t m_L3_cache_size;
+	uint32_t m_processor_package_count;
+	uint32_t m_processor_core_count;
+	uint32_t m_logical_processor_count;
+	uint32_t m_page_size;
 
 
 

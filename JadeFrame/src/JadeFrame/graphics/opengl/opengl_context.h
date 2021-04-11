@@ -1,6 +1,6 @@
 #pragma once
 #include <glad/glad.h>
-
+#include <string>
 #include <utility>
 #include "../mesh.h" // For Color
 
@@ -71,4 +71,13 @@ public:
 	HWND m_window_handle;
 	HDC m_device_context;
 	HGLRC m_render_context;
+
+	std::string vendor;
+	std::string renderer;
+	std::string version;
+	std::string shading_language_version;
+	std::vector<std::string> extentenions;
+	int major_version;
+	int minor_version;
+	int num_extensions;
 };

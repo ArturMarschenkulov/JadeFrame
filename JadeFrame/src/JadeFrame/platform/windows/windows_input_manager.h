@@ -130,10 +130,10 @@ public:
 	static auto key_callback2(int64_t lParam, uint64_t wParam, uint32_t message) -> void;
 	static auto char_callback(const WindowsMessage& window_message) -> void;
 
-	auto is_key_down(const KEY key) const -> bool;
-	auto is_key_up(const KEY key) const -> bool;
-	auto is_key_pressed(const KEY key) const -> bool;
-	auto is_key_released(const KEY key) const -> bool;
+	static auto is_key_down(const KEY key) -> bool;
+	static auto is_key_up(const KEY key) -> bool;
+	static auto is_key_pressed(const KEY key) -> bool;
+	static auto is_key_released(const KEY key) -> bool;
 
 	static std::array<INPUT_STATE, 512> m_current_key_state;
 	static std::array<INPUT_STATE, 512> m_previous_key_state;
@@ -146,6 +146,7 @@ public:
 	auto is_button_up(const BUTTON button) const -> bool;
 	auto is_button_pressed(const BUTTON button) const -> bool;
 	auto is_button_released(const BUTTON button) const -> bool;
+	auto get_mouse_position() const -> Vec2;
 
 	static std::array<INPUT_STATE, 3> m_current_mouse_button_state;
 	static std::array<INPUT_STATE, 3> m_previous_mouse_button_state;

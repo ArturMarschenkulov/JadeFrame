@@ -17,7 +17,7 @@
 class Vec2;
 class Vec3;
 class Vec4;
-class Mat4;
+class Matrix4x4;
 class OpenGL_Shader;
 
 
@@ -25,7 +25,7 @@ using GLValueVariant =
 std::variant<
 	int, float,
 	Vec2, Vec3, Vec4,
-	Mat4
+	Matrix4x4
 >;
 struct GLVariable {
 	SHADER_TYPE  type;
@@ -66,7 +66,7 @@ public:
 	auto set_uniform(const std::string& name, const float value) -> void;
 	auto set_uniform(const std::string& name, const Vec3& value) -> void;
 	auto set_uniform(const std::string& name, const Vec4& value) -> void;
-	auto set_uniform(const std::string& name, const Mat4& mat) -> void;
+	auto set_uniform(const std::string& name, const Matrix4x4& mat) -> void;
 	auto update_uniforms() -> void;
 	auto query_uniforms(const GLenum variable_type) const -> std::unordered_map<std::string, GLVariable>;
 

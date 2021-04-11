@@ -45,25 +45,52 @@ auto VertexDataFactory::make_line(const Vec3& pos1, const Vec3& pos2) -> VertexD
 
 auto VertexDataFactory::make_rectangle(const Vec3& pos, const Vec3& size) -> VertexData {
 	VertexData vertex_data;
-	vertex_data.positions.resize(4);
-	vertex_data.positions[0] = Vec3{ pos.x, pos.y, pos.z };
-	vertex_data.positions[1] = Vec3{ pos.x + size.x, pos.y, pos.z };
-	vertex_data.positions[2] = Vec3{ pos.x + size.x, pos.y + size.y, pos.z };
-	vertex_data.positions[3] = Vec3{ pos.x, pos.y + size.y, pos.z };
+	vertex_data.positions.resize(6);
+	vertex_data.positions[00] = { pos.x			, pos.y			, pos.z };
+	vertex_data.positions[01] = { pos.x + size.x, pos.y + size.y, pos.z };
+	vertex_data.positions[02] = { pos.x + size.x, pos.y			, pos.z };
+	vertex_data.positions[03] = { pos.x + size.x, pos.y + size.y, pos.z };
+	vertex_data.positions[04] = { pos.x			, pos.y			, pos.z };
+	vertex_data.positions[05] = { pos.x			, pos.y + size.y, pos.z };
 
-	vertex_data.tex_coords.resize(4);
-	vertex_data.tex_coords[0] = { 1.0, 1.0 };
-	vertex_data.tex_coords[1] = { 1.0, 0.0 };
-	vertex_data.tex_coords[2] = { 0.0, 0.0 };
-	vertex_data.tex_coords[3] = { 0.0, 1.0 };
+	vertex_data.tex_coords.resize(6);
+	vertex_data.tex_coords[00] = { +1.0f, +0.0f };
+	vertex_data.tex_coords[01] = { +1.0f, +1.0f };
+	vertex_data.tex_coords[02] = { +0.0f, +1.0f };
+	vertex_data.tex_coords[03] = { +0.0f, +1.0f };
+	vertex_data.tex_coords[04] = { +0.0f, +0.0f };
+	vertex_data.tex_coords[05] = { +1.0f, +0.0f };
 
-
-	vertex_data.indices.reserve(6);
-	vertex_data.indices = {
-		0, 1, 3,
-		1, 2, 3
-	};
+	vertex_data.normals.resize(6);
+	vertex_data.normals[00] = { +0.0f, +0.0f, +1.0f };
+	vertex_data.normals[01] = { +0.0f, +0.0f, +1.0f };
+	vertex_data.normals[02] = { +0.0f, +0.0f, +1.0f };
+	vertex_data.normals[03] = { +0.0f, +0.0f, +1.0f };
+	vertex_data.normals[04] = { +0.0f, +0.0f, +1.0f };
+	vertex_data.normals[05] = { +0.0f, +0.0f, +1.0f };
 	return vertex_data;
+
+
+	//VertexData vertex_data;
+	//vertex_data.positions.resize(4);
+	//vertex_data.positions[0] = Vec3{ pos.x, pos.y, pos.z };
+	//vertex_data.positions[1] = Vec3{ pos.x + size.x, pos.y, pos.z };
+	//vertex_data.positions[2] = Vec3{ pos.x + size.x, pos.y + size.y, pos.z };
+	//vertex_data.positions[3] = Vec3{ pos.x, pos.y + size.y, pos.z };
+
+	//vertex_data.tex_coords.resize(4);
+	//vertex_data.tex_coords[0] = { 1.0, 1.0 };
+	//vertex_data.tex_coords[1] = { 1.0, 0.0 };
+	//vertex_data.tex_coords[2] = { 0.0, 0.0 };
+	//vertex_data.tex_coords[3] = { 0.0, 1.0 };
+
+
+	//vertex_data.indices.reserve(6);
+	//vertex_data.indices = {
+	//	0, 1, 3,
+	//	1, 2, 3
+	//};
+	//return vertex_data;
 }
 
 auto VertexDataFactory::make_triangle(const Vec3& pos1, const Vec3& pos2, const Vec3& pos3) -> VertexData {

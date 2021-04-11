@@ -57,7 +57,7 @@ static auto window_focux_callback(Windows_Window& current_window, bool should_fo
 }
 
 static auto CALLBACK window_procedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT {
-	WindowsMessage win_message = { hWnd, message, wParam, lParam };
+	WindowsMessage wm = { hWnd, message, wParam, lParam };
 
 	BaseApp* app = JadeFrame::get_singleton()->m_current_app;
 	if (app == nullptr) {
@@ -87,12 +87,12 @@ static auto CALLBACK window_procedure(HWND hWnd, UINT message, WPARAM wParam, LP
 		}break;
 		case WM_SIZE:
 		{
-			window_resize_callback(current_window, win_message);
+			window_resize_callback(current_window, wm);
 
 		} break;
 		case WM_MOVE:
 		{
-			window_move_callback(current_window, win_message);
+			window_move_callback(current_window, wm);
 		}break;
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
@@ -100,13 +100,13 @@ static auto CALLBACK window_procedure(HWND hWnd, UINT message, WPARAM wParam, LP
 		case WM_SYSKEYUP:
 		{
 			//std::cout << "WindowProcedure:" << window_message_map(message, lParam, wParam);
-			input_manager.key_callback(win_message);
+			input_manager.key_callback(wm);
 		}break;
 		case WM_CHAR:
 		{
-			
+
 			//std::cout << "WindowProcedure:" << window_message_map(message, lParam, wParam);
-			input_manager.char_callback(win_message);
+			input_manager.char_callback(wm);
 		} break;
 		case WM_LBUTTONDOWN:
 		case WM_LBUTTONUP:
@@ -114,12 +114,14 @@ static auto CALLBACK window_procedure(HWND hWnd, UINT message, WPARAM wParam, LP
 		case WM_RBUTTONUP:
 		case WM_MBUTTONDOWN:
 		case WM_MBUTTONUP:
+		case WM_MOUSEMOVE:
 		{
-			input_manager.mouse_button_callback(win_message);
+			input_manager.mouse_button_callback(wm);
 		}break;
+
 		case WM_CLOSE:
 		{
-			std::cout << "WindowProcedure:" << windows_message_map(win_message);
+			std::cout << "WindowProcedure:" << windows_message_map(wm);
 
 			current_window.deinitialize();
 			app->m_windows.erase(current_window_id);
@@ -139,13 +141,13 @@ static auto CALLBACK window_procedure(HWND hWnd, UINT message, WPARAM wParam, LP
 		}break;
 		case WM_DESTROY:
 		{
-			std::cout << "WindowProcedure:" << windows_message_map(win_message);
+			std::cout << "WindowProcedure:" << windows_message_map(wm);
 			//::PostQuitMessage(0);
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}break;
 		case WM_QUIT:
 		{
-			std::cout << "WindowProcedure:" << windows_message_map(win_message);
+			std::cout << "WindowProcedure:" << windows_message_map(wm);
 			return DefWindowProc(hWnd, message, wParam, lParam);
 			//::PostQuitMessage(0);
 		}break;

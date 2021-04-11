@@ -29,6 +29,18 @@ GLContext::GLContext(HWND hWnd, HDC& o_device_context, HGLRC& o_render_context) 
 
 	set_debug_mode(true);
 	gl_cache.set_default();
+
+
+	vendor = reinterpret_cast<char const*>(glGetString(GL_VENDOR));
+	renderer = reinterpret_cast<char const*>(glGetString(GL_RENDERER));
+	version = reinterpret_cast<char const*>(glGetString(GL_VERSION));
+	shading_language_version = reinterpret_cast<char const*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
+	glGetIntegerv(GL_MAJOR_VERSION, &major_version);
+	glGetIntegerv(GL_MINOR_VERSION, &minor_version);
+	glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
+	for (int i = 0; i < num_extensions; i++) {
+		extentenions.push_back(reinterpret_cast<char const*>(glGetStringi(GL_EXTENSIONS, i)));
+	}
 }
 
 GLContext::~GLContext() {

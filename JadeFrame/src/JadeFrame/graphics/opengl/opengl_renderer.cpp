@@ -16,7 +16,7 @@ auto OpenGL_Renderer::push_to_renderer(const Object& obj) -> void {
 
 	const Material* material = obj.m_material;
 	const Mesh* mesh = obj.m_mesh;
-	const Mat4* transform = &obj.m_transform;
+	const Matrix4x4* transform = &obj.m_transform;
 	const OpenGL_VertexArray* vertex_array = &obj.m_vertex_array;
 
 	m_command_buffer.push(mesh, material, transform, vertex_array);
@@ -37,14 +37,14 @@ auto OpenGL_Renderer::render_mesh(const OpenGL_VertexArray* vertex_array, const 
 		glDrawArrays(mode, first, count);
 	}
 }
-auto OpenGL_Renderer::render_pushed(const Mat4& view_projection) const -> void {
+auto OpenGL_Renderer::render_pushed(const Matrix4x4& view_projection) const -> void {
 	const std::vector<RenderCommand>& render_commands = m_command_buffer.m_render_commands;
 
 	for (size_t i = 0; i < render_commands.size(); ++i) {
 
 		const Material* material = render_commands[i].material;
 		const Mesh* mesh = render_commands[i].mesh;
-		const Mat4* transform = render_commands[i].transform;
+		const Matrix4x4* transform = render_commands[i].transform;
 		const OpenGL_VertexArray* vertex_array = render_commands[i].vertex_array;
 
 		material->m_shader->bind();

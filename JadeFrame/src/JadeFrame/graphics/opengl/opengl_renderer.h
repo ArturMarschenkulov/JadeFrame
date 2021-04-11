@@ -28,7 +28,7 @@ struct Object {
 	Material* m_material = nullptr;
 	Mesh* m_mesh = nullptr;
 
-	Mat4 m_transform;
+	Matrix4x4 m_transform;
 	OpenGL_VertexArray m_vertex_array;
 
 	auto set_color(const Color& color) -> void {
@@ -37,14 +37,14 @@ struct Object {
 };
 
 struct RenderCommand {
-	const Mat4* transform;
+	const Matrix4x4* transform;
 	const Mesh* mesh;
 	const Material* material;
 	const OpenGL_VertexArray* vertex_array;
 };
 class CommandBuffer {
 public:
-	auto push(const Mesh* mesh, const Material* material, const Mat4* tranform, const OpenGL_VertexArray* vertex_array) {
+	auto push(const Mesh* mesh, const Material* material, const Matrix4x4* tranform, const OpenGL_VertexArray* vertex_array) {
 		RenderCommand command = {};
 		command.mesh = mesh;
 		command.material = material;
@@ -65,7 +65,7 @@ public:
 
 	auto push_to_renderer(const Object& obj) -> void;
 	auto render_mesh(const OpenGL_VertexArray* buffer_data, const Mesh* mesh) const -> void;
-	auto render_pushed(const Mat4& view_projection) const -> void;
+	auto render_pushed(const Matrix4x4& view_projection) const -> void;
 public:
 	GLContext gl_context;
 	CommandBuffer m_command_buffer;

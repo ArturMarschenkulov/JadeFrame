@@ -113,11 +113,11 @@ auto OpenGL_Shader::set_uniform(const std::string& name, const Vec4& value) -> v
 	}
 	__debugbreak();
 }
-auto OpenGL_Shader::set_uniform(const std::string& name, const Mat4& value) -> void {
+auto OpenGL_Shader::set_uniform(const std::string& name, const Matrix4x4& value) -> void {
 	if (m_uniforms.contains(name)) {
-		if (std::holds_alternative<Mat4>(m_uniforms[name].value)) {
+		if (std::holds_alternative<Matrix4x4>(m_uniforms[name].value)) {
 			m_uniforms[name].value = value;
-			auto& v = std::get<Mat4>(m_uniforms[name].value);
+			auto& v = std::get<Matrix4x4>(m_uniforms[name].value);
 			glUniformMatrix4fv(m_uniforms[name].location, 1, GL_FALSE, &v[0][0]);
 			return;
 		}
@@ -128,8 +128,8 @@ auto OpenGL_Shader::set_uniform(const std::string& name, const Mat4& value) -> v
 auto OpenGL_Shader::update_uniforms() -> void {
 	for (auto& uniform : m_uniforms) {
 		auto variable = uniform.second;
-		if (std::holds_alternative<Mat4>(variable.value)) {
-			glUniformMatrix4fv(variable.location, 1, GL_FALSE, &std::get<Mat4>(variable.value)[0][0]);
+		if (std::holds_alternative<Matrix4x4>(variable.value)) {
+			glUniformMatrix4fv(variable.location, 1, GL_FALSE, &std::get<Matrix4x4>(variable.value)[0][0]);
 		} else if (std::holds_alternative<Vec3>(variable.value)) {
 			auto& v = std::get<Vec3>(variable.value);
 			glUniform3f(variable.location, v.x, v.y, v.z);
@@ -177,7 +177,7 @@ auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::uno
 				case SHADER_TYPE::FLOAT_4:
 					value_init = Vec4(); break;
 				case SHADER_TYPE::MAT_4:
-					value_init = Mat4(); break;
+					value_init = Matrix4x4(); break;
 				default: __debugbreak(); break;
 			}
 			variables[i].value = value_init;

@@ -35,3 +35,14 @@ public:
 	float z;
 	float w;
 };
+
+
+class Quaternion {
+public:
+
+public:
+	float a;
+	float i;
+	float j;
+	float k;
+};

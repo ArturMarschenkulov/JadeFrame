@@ -2,7 +2,7 @@
 
 #include "../../base_app.h"
 #include "../../gui.h"
-#include <windows.h>
+#include <Windows.h>
 #include <windowsx.h>
 #include "windows_window.h" // for WindowMessage struct
 #include "../../math/vec_2.h"
@@ -103,23 +103,23 @@ auto Windows_InputManager::char_callback(const WindowsMessage& window_message) -
 
 }
 
-auto Windows_InputManager::is_key_down(const KEY key) const -> bool {
+auto Windows_InputManager::is_key_down(const KEY key) -> bool {
 	int key_0 = static_cast<int>(key);
 	bool is_current_pressed = (m_current_key_state[key_0] == INPUT_STATE::PRESSED);
 	return is_current_pressed ? true : false;
 }
-auto Windows_InputManager::is_key_up(const KEY key) const -> bool {
+auto Windows_InputManager::is_key_up(const KEY key) -> bool {
 	int key_0 = static_cast<int>(key);
 	bool is_current_released = (m_current_key_state[key_0] == INPUT_STATE::RELEASED);
 	return is_current_released ? true : false;
 }
-auto Windows_InputManager::is_key_pressed(const KEY key) const -> bool {
+auto Windows_InputManager::is_key_pressed(const KEY key) -> bool {
 	int key_0 = static_cast<int>(key);
 	bool is_current_changed = (m_current_key_state[key_0] != m_previous_key_state[key_0]);
 	bool is_current_pressed = (m_current_key_state[key_0] == INPUT_STATE::PRESSED);
 	return (is_current_changed && is_current_pressed) ? true : false;
 }
-auto Windows_InputManager::is_key_released(const KEY key) const -> bool {
+auto Windows_InputManager::is_key_released(const KEY key) -> bool {
 	int key_0 = static_cast<int>(key);
 	bool is_current_changed = (m_current_key_state[key_0] != m_previous_key_state[key_0]);
 	bool is_current_released = (m_current_key_state[key_0] == INPUT_STATE::RELEASED);
@@ -165,44 +165,84 @@ auto Windows_InputManager::mouse_button_callback(const WindowsMessage& window_me
 	ImGuiIO& io = ImGui::GetIO();
 	BUTTON button;
 	switch (message) {
-	case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
-	case WM_RBUTTONDOWN: case WM_RBUTTONDBLCLK:
-	case WM_MBUTTONDOWN: case WM_MBUTTONDBLCLK:
-	{
-		if (message == WM_LBUTTONDOWN || message == WM_LBUTTONDBLCLK) {
-			button = BUTTON::LEFT;
-		}
-		if (message == WM_RBUTTONDOWN || message == WM_RBUTTONDBLCLK) {
-			button = BUTTON::RIGHT;
-		}
-		if (message == WM_MBUTTONDOWN || message == WM_MBUTTONDBLCLK) {
-			button = BUTTON::MIDDLE;
-		}
-		m_current_mouse_button_state[static_cast<int>(button)] = INPUT_STATE::PRESSED;
-		io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = true;
+		case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
+		case WM_RBUTTONDOWN: case WM_RBUTTONDBLCLK:
+		case WM_MBUTTONDOWN: case WM_MBUTTONDBLCLK:
+		{
+			if (message == WM_LBUTTONDOWN || message == WM_LBUTTONDBLCLK) {
+				button = BUTTON::LEFT;
+			}
+			if (message == WM_RBUTTONDOWN || message == WM_RBUTTONDBLCLK) {
+				button = BUTTON::RIGHT;
+			}
+			if (message == WM_MBUTTONDOWN || message == WM_MBUTTONDBLCLK) {
+				button = BUTTON::MIDDLE;
+			}
+			m_current_mouse_button_state[static_cast<int>(button)] = INPUT_STATE::PRESSED;
+			io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = true;
 
 
-	}break;
-	case WM_LBUTTONUP:
-	case WM_RBUTTONUP:
-	case WM_MBUTTONUP:
-	{
-		if (message == WM_LBUTTONUP) {
-			button = BUTTON::LEFT;
-		}
-		if (message == WM_RBUTTONUP) {
-			button = BUTTON::RIGHT;
-		}
-		if (message == WM_MBUTTONUP) {
-			button = BUTTON::MIDDLE;
-		}
-		m_current_mouse_button_state[static_cast<int>(button)] = INPUT_STATE::RELEASED;
-		io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = false;
-	}break;
+		}break;
+		case WM_LBUTTONUP:
+		case WM_RBUTTONUP:
+		case WM_MBUTTONUP:
+		{
+			if (message == WM_LBUTTONUP) {
+				button = BUTTON::LEFT;
+			}
+			if (message == WM_RBUTTONUP) {
+				button = BUTTON::RIGHT;
+			}
+			if (message == WM_MBUTTONUP) {
+				button = BUTTON::MIDDLE;
+			}
+			m_current_mouse_button_state[static_cast<int>(button)] = INPUT_STATE::RELEASED;
+			io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = false;
+		}break;
+		case WM_MOUSEMOVE:
+		{
+			int mposx = GET_X_LPARAM(lParam);
+			int mposy = GET_Y_LPARAM(lParam);
+			m_mouse_posiition.x = mposx;
+			m_mouse_posiition.y = mposy;
+		}break;
 	}
 	int mposx = GET_X_LPARAM(lParam);
 	int mposy = GET_Y_LPARAM(lParam);
 	m_mouse_posiition.x = mposx;
 	m_mouse_posiition.y = mposy;
+	if (is_key_down(KEY::L)) {
+		__debugbreak();
+	}
 	//io.DeltaTime = 1.0f / 60.0f;
+}
+
+auto Windows_InputManager::is_button_down(const BUTTON button) const -> bool {
+	int button_0 = static_cast<int>(button);
+	bool is_current_pressed = (m_current_key_state[button_0] == INPUT_STATE::PRESSED);
+	return is_current_pressed ? true : false;
+}
+
+auto Windows_InputManager::is_button_up(const BUTTON button) const -> bool {
+	int button_0 = static_cast<int>(button);
+	bool is_current_released = (m_current_key_state[button_0] == INPUT_STATE::RELEASED);
+	return is_current_released ? true : false;
+}
+
+auto Windows_InputManager::is_button_pressed(const BUTTON button) const -> bool {
+	int button_0 = static_cast<int>(button);
+	bool is_current_changed = (m_current_key_state[button_0] != m_previous_key_state[button_0]);
+	bool is_current_pressed = (m_current_key_state[button_0] == INPUT_STATE::PRESSED);
+	return (is_current_changed && is_current_pressed) ? true : false;
+}
+
+auto Windows_InputManager::is_button_released(const BUTTON button) const -> bool {
+	int button_0 = static_cast<int>(button);
+	bool is_current_changed = (m_current_key_state[button_0] != m_previous_key_state[button_0]);
+	bool is_current_released = (m_current_key_state[button_0] == INPUT_STATE::RELEASED);
+	return (is_current_changed && is_current_released) ? true : false;
+}
+
+auto Windows_InputManager::get_mouse_position() const -> Vec2 {
+	return m_mouse_posiition;
 }
