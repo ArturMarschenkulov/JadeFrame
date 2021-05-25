@@ -48,6 +48,8 @@ OpenGL_Context::OpenGL_Context(HWND hWnd) {
 	//glGetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
 	//glGetIntegerv(GL_MAX_CLIP_DISTANCES, &max_clip_distances);
 	//glGetIntegerv(GL_MAX_CLIP_DISTANCES, &max_clip_distances);
+
+	wglSwapIntervalEXT(0); //TODO: This is windows specific. Abstract this away
 }
 
 OpenGL_Context::~OpenGL_Context() {

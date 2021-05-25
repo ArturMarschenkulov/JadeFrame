@@ -1,4 +1,11 @@
+#pragma once
 #include "Windows.h"
+
+/*
+	NOTE: Make sure this header file is only only included in "opengl_context.h".
+*/
+typedef BOOL	WINAPI	PFNWGLSWAPINTERVALEXTPROC(int);
+extern PFNWGLSWAPINTERVALEXTPROC* wglSwapIntervalEXT;
 
 auto wgl_load_0() -> bool;
 auto wgl_set_pixel_format(const HDC& device_context) -> void;
