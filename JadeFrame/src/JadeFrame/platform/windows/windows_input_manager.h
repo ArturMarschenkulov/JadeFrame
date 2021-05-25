@@ -1,6 +1,6 @@
 #pragma once
-
-#include <windows.h>
+#include "JadeFrame/defines.h"
+#include <Windows.h>
 
 #include <cstdint>
 #include <array>
@@ -109,13 +109,13 @@ struct KeyEvent : public Event {
 		PRESSED,
 		RELEASED
 	};
-	KeyEvent(const TYPE type, const uint64_t key_code)
+	KeyEvent(const TYPE type, const u64 key_code)
 		: type(type)
 		, key_code(key_code) {
 		
 	}
 	TYPE type;
-	uint64_t key_code;
+	u64 key_code;
 };
 class Windows_InputManager {
 	friend class WinWindow;
@@ -125,9 +125,9 @@ public:
 public:
 	//key part
 	std::queue<KeyEvent> key_buffer;
-	//static auto key_callback(int64_t lParam, uint64_t wParam, uint32_t message) -> void;
+	//static auto key_callback(i64 lParam, u64 wParam, u32 message) -> void;
 	static auto key_callback(const WindowsMessage& window_message) -> void;
-	static auto key_callback2(int64_t lParam, uint64_t wParam, uint32_t message) -> void;
+	static auto key_callback2(i64 lParam, u64 wParam, u32 message) -> void;
 	static auto char_callback(const WindowsMessage& window_message) -> void;
 
 	static auto is_key_down(const KEY key) -> bool;

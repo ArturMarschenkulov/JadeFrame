@@ -42,10 +42,9 @@ auto FontManager::init() -> void {
 	if (error_code != 0) {
 		std::cout << "problem with FT_Load_Char" << std::endl;
 	}
-	GLuint texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(
+	GL_Texture tex;
+	tex.bind(GL_TEXTURE_2D);
+	tex.set_texture_image_2D(
 		GL_TEXTURE_2D,
 		0,
 		GL_RED,
@@ -56,19 +55,11 @@ auto FontManager::init() -> void {
 		GL_UNSIGNED_BYTE,
 		face->glyph->bitmap.buffer
 	);
-	// Set texture options
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// Now store character for later use
-	//Character character = {
-	//	texture,
-	//	Vec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-	//	Vec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-	//	face->glyph->advance.x
-	//};
-	//character_map.insert(std::pair<GLchar, Character>(c, character));
+
+	tex.set_texture_parameters(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	tex.set_texture_parameters(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	tex.set_texture_parameters(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	tex.set_texture_parameters(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 }
 
@@ -105,7 +96,7 @@ auto FontManager::init2() -> void {
 	if (error_code != 0) {
 		std::cout << "problem with FT_Load_Char" << std::endl;
 	}
-	GLTexture tex;
+	OpenGL_Texture tex;
 	tex.generate(
 		face->glyph->bitmap.width, 
 		face->glyph->bitmap.rows, 
@@ -114,23 +105,4 @@ auto FontManager::init2() -> void {
 		GL_UNSIGNED_BYTE, 
 		face->glyph->bitmap.buffer
 	);
-	GLuint texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(
-		GL_TEXTURE_2D,
-		0,
-		GL_RED,
-		face->glyph->bitmap.width,
-		face->glyph->bitmap.rows,
-		0,
-		GL_RED,
-		GL_UNSIGNED_BYTE,
-		face->glyph->bitmap.buffer
-	);
-	// Set texture options
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }

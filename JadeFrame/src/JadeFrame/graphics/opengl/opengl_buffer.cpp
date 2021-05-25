@@ -1,6 +1,6 @@
 #include "opengl_buffer.h"
 
-#include "../mesh.h"
+#include "JadeFrame/graphics/mesh.h"
 
 
 static auto SHADER_TYPE_to_openGL_type(const SHADER_TYPE type) -> GLenum {
@@ -12,7 +12,7 @@ static auto SHADER_TYPE_to_openGL_type(const SHADER_TYPE type) -> GLenum {
 		default: __debugbreak(); return 0;
 	}
 }
-static auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> uint32_t {
+static auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
 	switch (type) {
 		case SHADER_TYPE::FLOAT:	return 4;
 		case SHADER_TYPE::FLOAT_2:	return 4 * 2;
@@ -29,7 +29,7 @@ static auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> uint32_t {
 	}
 	return 0;
 }
-static auto SHADER_TYPE_get_component_count(const SHADER_TYPE type) -> uint32_t {
+static auto SHADER_TYPE_get_component_count(const SHADER_TYPE type) -> u32 {
 	switch (type) {
 		case SHADER_TYPE::FLOAT:
 		case SHADER_TYPE::INT:
@@ -69,7 +69,7 @@ auto BufferLayout::calculate_offset_and_stride() -> void {
 
 auto OpenGL_VertexArray::set_layout(const BufferLayout& buffer_layout) -> void {
 	m_buffer_layout = buffer_layout;
-	int vertex_buffer_index = 0;
+	i32 vertex_buffer_index = 0;
 	for (size_t i = 0; i != buffer_layout.m_elements.size(); i++) {
 		const BufferLayout::BufferElement& element = buffer_layout.m_elements[i];
 
@@ -100,15 +100,15 @@ auto OpenGL_VertexArray::set_layout(const BufferLayout& buffer_layout) -> void {
 	}
 }
 
-static auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::vector<float> {
+static auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::vector<f32> {
 	//assert(mesh.m_positions.size() == mesh.m_normals.size());
-	const uint64_t size
+	const u64 size
 		= mesh.m_positions.size() * 3
 		+ mesh.m_colors.size() * 4
 		+ mesh.m_tex_coords.size() * 2
 		+ mesh.m_normals.size() * 3;
 
-	std::vector<float> data;
+	std::vector<f32> data;
 	data.reserve(size);
 	if (interleaved) {
 		for (size_t i = 0; i < mesh.m_positions.size(); i++) {
@@ -153,7 +153,7 @@ static auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::
 }
 
 auto OpenGL_VertexArray::finalize(const Mesh& mesh, bool interleaved) -> void {
-	const std::vector<float> data = convert_into_data(mesh, interleaved);
+	const std::vector<f32> data = convert_into_data(mesh, interleaved);
 	m_vertex_buffer.bind();
 	m_vertex_buffer.send(data);
 

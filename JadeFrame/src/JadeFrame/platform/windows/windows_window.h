@@ -1,15 +1,11 @@
 #pragma once
 
-#include "../../math/vec_2.h"
+#include "JadeFrame/math/vec_2.h"
 
 #include <string>
 
 struct HWND__;
 typedef HWND__* HWND;
-struct HGLRC__;
-typedef HGLRC__* HGLRC;
-struct HDC__;
-typedef HDC__* HDC;
 
 typedef unsigned int        UINT;
 typedef unsigned __int64	UINT_PTR;
@@ -24,19 +20,26 @@ struct WindowsMessage {
 	LPARAM lParam;
 };
 
+/*
+	TODO: Consider whether this class should be RAII or not. Right now it is.
+*/
 class Windows_Window {
 public:
-	~Windows_Window();
-	auto initialize(const std::string& title, const Vec2& size, const Vec2& position) -> void;
-	auto deinitialize() const -> void;
 
-	auto set_title(const std::string& title);
-	auto make_current() const -> void;
+	Windows_Window(const Windows_Window&) = delete;
+	Windows_Window(Windows_Window&&) = delete;
+	auto operator=(const Windows_Window&) -> Windows_Window& = delete ;
+	auto operator=(Windows_Window&&) -> Windows_Window& = delete;
+
+	Windows_Window();
+	Windows_Window(const std::string& title, const Vec2& size, const Vec2& position);
+	~Windows_Window();
+
+
+	auto set_title(const std::string& title) -> void;
 
 public:
 	HWND m_window_handle;
-	HGLRC m_render_context;
-	HDC m_device_context;
 
 	std::string m_title;
 	Vec2 m_size;

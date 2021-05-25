@@ -1,6 +1,10 @@
 #include "mesh.h"
 
 
+Mesh::Mesh(const VertexData& vertex_data) {
+	this->add_to_data(vertex_data);
+}
+
 auto Mesh::add_to_data(const VertexData& vertex_data) -> void {
 
 	m_positions.resize(vertex_data.positions.size());
@@ -24,6 +28,15 @@ auto Mesh::add_to_data(const VertexData& vertex_data) -> void {
 		m_indices[i] = vertex_data.indices[i];
 	}
 
+}
+
+auto Mesh::set_color(const Color color) -> void {
+	if (current_color != color) {
+		current_color = color;
+		for (size_t i = 0; i < m_positions.size(); i++) {
+			m_colors[i] = current_color;
+		}
+	}
 }
 
 auto VertexDataFactory::make_line(const Vec3& pos1, const Vec3& pos2) -> VertexData {
@@ -54,12 +67,12 @@ auto VertexDataFactory::make_rectangle(const Vec3& pos, const Vec3& size) -> Ver
 	vertex_data.positions[05] = { pos.x			, pos.y + size.y, pos.z };
 
 	vertex_data.tex_coords.resize(6);
-	vertex_data.tex_coords[00] = { +1.0f, +0.0f };
+	vertex_data.tex_coords[00] = { +0.0f, +0.0f };
 	vertex_data.tex_coords[01] = { +1.0f, +1.0f };
-	vertex_data.tex_coords[02] = { +0.0f, +1.0f };
-	vertex_data.tex_coords[03] = { +0.0f, +1.0f };
+	vertex_data.tex_coords[02] = { +1.0f, +0.0f };
+	vertex_data.tex_coords[03] = { +1.0f, +1.0f };
 	vertex_data.tex_coords[04] = { +0.0f, +0.0f };
-	vertex_data.tex_coords[05] = { +1.0f, +0.0f };
+	vertex_data.tex_coords[05] = { +0.0f, +1.0f };
 
 	vertex_data.normals.resize(6);
 	vertex_data.normals[00] = { +0.0f, +0.0f, +1.0f };
@@ -107,29 +120,29 @@ auto VertexDataFactory::make_triangle(const Vec3& pos1, const Vec3& pos2, const 
 	return vertex_data;
 }
 
-auto VertexDataFactory::make_circle(const Vec3& position, const float radius, const int numSegments) -> VertexData {
-	const float theta = 2.0f * 3.1415926f / float(numSegments);//get the current angle 
-	const float cos = cosf(theta);//calculate the x component 
-	const float sin = sinf(theta);//calculate the y component 
+auto VertexDataFactory::make_circle(const Vec3& position, const f32 radius, const u32 numSegments) -> VertexData {
+	const f32 theta = 2.0f * 3.1415926f / f32(numSegments);//get the current angle 
+	const f32 cos = cosf(theta);//calculate the x component 
+	const f32 sin = sinf(theta);//calculate the y component 
 
 
 	VertexData vertex_data;
 	vertex_data.positions.resize(numSegments + 1);
 	vertex_data.positions[0] = position;
-	float x = radius;
-	float y = 0;
-	for (int i = 1; i < numSegments + 1; i++) {
+	f32 x = radius;
+	f32 y = 0;
+	for (u32 i = 1; i < numSegments + 1; i++) {
 		vertex_data.positions[i] = Vec3{ x + position.x, y + position.y, position.z };//output vertex 
 
-		const float t = x;
+		const f32 t = x;
 		x = cos * x - sin * y;
 		y = sin * t + cos * y;
 	}
 
-	const uint32_t num_index = (numSegments * 3);
+	const u32 num_index = (numSegments * 3);
 	vertex_data.indices.resize(num_index);
 
-	for (int i = 0; i < numSegments; i++) {
+	for (u32 i = 0; i < numSegments; i++) {
 		vertex_data.indices[(3 * i + 0)] = 0;
 		vertex_data.indices[(3 * i + 1)] = 1 + i;
 		vertex_data.indices[(3 * i + 2)] = 2 + i;
@@ -295,125 +308,3 @@ auto VertexDataFactory::make_cube(const Vec3& pos, const Vec3& size) -> VertexDa
 	vertex_data.normals[35] = { -1.0f, +1.0f, -1.0f };
 	return vertex_data;
 }
-
-//namespace A {
-//struct AABB {
-//	AABB() = default;
-//	AABB(const Vec3& minimum, const Vec3& maximum);
-//	Vec3 base;
-//	Vec3 offset;
-//
-//	Vec3 center() const;
-//	AABB transform(const Mat4& mat) const;
-//	Vec3 corner(unsigned corner) const;
-//};
-//
-//struct BoundingSphere {
-//	BoundingSphere() = default;
-//	explicit BoundingSphere(const AABB& aabb);
-//
-//	Vec4 pos_radius;
-//};
-//
-//struct Frustum {
-//	Frustum() = default;
-//	Frustum(const Mat4& view_proj);
-//	Vec4 planes[6];
-//
-//	// Used for frustum culling.
-//	bool intersects_with_sphere(const BoundingSphere& sphere) const;
-//};
-//
-//AABB::AABB(const Vec3& minimum, const Vec3& maximum)    {
-//	base = minimum;
-//	offset = maximum - minimum;
-//}
-//
-//Vec3 AABB::center() const {
-//	return base + Vec3(0.5f) * offset;
-//}
-//
-//// Assumes we're not using projective geometry ... It gets troublesome to handle flipped-sign W.
-//// Transform all corners of the AABB then create a new AABB based on the transformed result.
-//AABB AABB::transform(const Mat4& mat) const    {
-//
-//	Vec3 corners[8];
-//	for (unsigned i = 0; i < 8; i++)       {
-//		Vec3 c = corner(i);
-//		Vec4 c_trans = mat * Vec4(c, 1.0f);
-//		corners[i] = Vec3(c_trans) / Vec3(c_trans.w);
-//	}
-//
-//	Vec3 minimum = corners[0];
-//	Vec3 maximum = minimum;
-//	for (auto& v : corners)       {
-//		minimum = std::min(minimum, v);
-//		maximum = std::max(maximum, v);
-//	}
-//
-//	AABB aabb;
-//	aabb.base = minimum;
-//	aabb.offset = maximum - minimum;
-//	return aabb;
-//}
-//
-//Vec3 AABB::corner(unsigned corner) const    {
-//	Vec3 b = base;
-//	if (corner & 4)
-//		b.z += offset.z;
-//	if (corner & 2)
-//		b.y += offset.y;
-//	if (corner & 1)
-//		b.x += offset.x;
-//
-//	return b;
-//}
-//
-//BoundingSphere::BoundingSphere(const AABB& aabb)    {
-//	pos_radius = Vec4(aabb.center(), length(aabb.offset * Vec3(0.5f)));
-//}
-//
-//Frustum::Frustum(const Mat4& view_proj)    {
-//	auto inv_view_proj = inverse(view_proj);
-//
-//	// Get world-space coordinates for clip-space bounds.
-//	auto lbn = inv_view_proj * Vec4(-1, -1, -1, 1);
-//	auto ltn = inv_view_proj * Vec4(-1, 1, -1, 1);
-//	auto lbf = inv_view_proj * Vec4(-1, -1, 1, 1);
-//	auto rbn = inv_view_proj * Vec4(1, -1, -1, 1);
-//	auto rtn = inv_view_proj * Vec4(1, 1, -1, 1);
-//	auto rbf = inv_view_proj * Vec4(1, -1, 1, 1);
-//	auto rtf = inv_view_proj * Vec4(1, 1, 1, 1);
-//
-//	auto lbn_pos = lbn.xyz / lbn.www;
-//	auto ltn_pos = ltn.xyz / ltn.www;
-//	auto lbf_pos = lbf.xyz / lbf.www;
-//	auto rbn_pos = rbn.xyz / rbn.www;
-//	auto rtn_pos = rtn.xyz / rtn.www;
-//	auto rbf_pos = rbf.xyz / rbf.www;
-//	auto rtf_pos = rtf.xyz / rtf.www;
-//
-//	// Get plane equations for all sides of frustum.
-//	auto left_normal = normalize(cross(lbf_pos - lbn_pos, ltn_pos - lbn_pos));
-//	auto right_normal = normalize(cross(rtn_pos - rbn_pos, rbf_pos - rbn_pos));
-//	auto top_normal = normalize(cross(ltn_pos - rtn_pos, rtf_pos - rtn_pos));
-//	auto bottom_normal = normalize(cross(rbf_pos - rbn_pos, lbn_pos - rbn_pos));
-//	auto near_normal = normalize(cross(ltn_pos - lbn_pos, rbn_pos - lbn_pos));
-//	auto far_normal = normalize(cross(rtf_pos - rbf_pos, lbf_pos - rbf_pos));
-//
-//	planes[0] = Vec4(near_normal, -dot(near_normal, lbn_pos)); // Near
-//	planes[1] = Vec4(far_normal, -dot(far_normal, lbf_pos)); // Far
-//	planes[2] = Vec4(left_normal, -dot(left_normal, lbn_pos)); // Left
-//	planes[3] = Vec4(right_normal, -dot(right_normal, rbn_pos)); // Right
-//	planes[4] = Vec4(top_normal, -dot(top_normal, ltn_pos)); // Top
-//	planes[5] = Vec4(bottom_normal, -dot(bottom_normal, lbn_pos)); // Top
-//}
-//
-//bool Frustum::intersects_with_sphere(const BoundingSphere& sphere) const    {
-//	Vec4 pos = Vec4(sphere.pos_radius.xyz, 1.0f);
-//	for (auto& plane : planes)
-//		if (dot(pos, plane) < -sphere.pos_radius.w)
-//			return false;
-//	return true;
-//}
-//}

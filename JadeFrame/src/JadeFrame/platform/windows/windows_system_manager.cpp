@@ -1,19 +1,19 @@
 #include "windows_system_manager.h"
 
-#include <windows.h>
+#include <Windows.h>
 #include <winreg.h>
 #include <intrin.h> // for "__cpuid()"
 
 #include <iostream>
 
-#include "../../utils/utils.h"
+#include "JadeFrame/utils/utils.h"
 
 static auto get_primary_monitor_handle() -> HMONITOR {
 	const POINT pt_zero = { 0, 0 };
 	return ::MonitorFromPoint(pt_zero, MONITOR_DEFAULTTOPRIMARY);
 }
 static auto calculate_dpi(HMODULE shCoreDll) -> int32_t {
-	int32_t dpi_x = 96, dpi_y = 96;
+	i32 dpi_x = 96, dpi_y = 96;
 
 	if (shCoreDll) {
 		typedef HRESULT(STDAPICALLTYPE* GetDPIForMonitorProc)(HMONITOR hmonitor, UINT dpi_type, UINT* dpi_x, UINT* dpi_y);
@@ -25,8 +25,8 @@ static auto calculate_dpi(HMODULE shCoreDll) -> int32_t {
 			UINT x = 0, y = 0;
 			HRESULT hr = GetDpiForMonitor(monitor, 0, &x, &y);
 			if (SUCCEEDED(hr) && (x > 0) && (y > 0)) {
-				dpi_x = (int32_t)x;
-				dpi_y = (int32_t)y;
+				dpi_x = (i32)x;
+				dpi_y = (i32)y;
 			}
 		}
 		::FreeLibrary(shCoreDll);
@@ -101,20 +101,20 @@ auto Windows_SystemManager::initialize() -> void {
 		status.dwLength = sizeof(MEMORYSTATUSEX);
 		GlobalMemoryStatusEx(&status);
 
-		m_available_physical_memory = (int64_t)status.ullAvailPhys;
-		m_total_physical_memory = (int64_t)status.ullTotalPhys;
+		m_available_physical_memory = (i64)status.ullAvailPhys;
+		m_total_physical_memory = (i64)status.ullTotalPhys;
 
-		m_available_virtual_memory = (int64_t)status.ullAvailVirtual;
-		m_total_virtual_memory = (int64_t)status.ullTotalVirtual;
+		m_available_virtual_memory = (i64)status.ullAvailVirtual;
+		m_total_virtual_memory = (i64)status.ullTotalVirtual;
 
 	}
 	{
-		int args[4];
+		i32 args[4];
 		__cpuid(args, 0x80000006);
 		m_cache_line_size = args[2] & 0xFF;
 	}
 	{
-		int cpuInfo[4] = { -1 };
+		i32 cpuInfo[4] = { -1 };
 		char CPUBrandString[0x40];
 
 		memset(CPUBrandString, 0, sizeof(CPUBrandString));
@@ -203,8 +203,17 @@ auto Windows_SystemManager::initialize() -> void {
 	}
 	{
 		SYSTEM_INFO siSysInfo;
-		GetSystemInfo(&siSysInfo);
-		m_page_size = siSysInfo.dwPageSize;
+		GetNativeSystemInfo(&siSysInfo);
+
+		m_processor_architecture		= siSysInfo.wProcessorArchitecture;
+		m_page_size						= siSysInfo.dwPageSize;
+		m_minimum_application_address	= siSysInfo.lpMinimumApplicationAddress;
+		m_maximum_application_address	= siSysInfo.lpMaximumApplicationAddress;
+		m_active_processor_mask			= siSysInfo.dwActiveProcessorMask;
+		m_number_of_processors			= siSysInfo.dwNumberOfProcessors;
+		m_allocation_granularity		= siSysInfo.dwAllocationGranularity;
+		m_processor_level				= siSysInfo.wProcessorLevel;
+		m_processor_revision			= siSysInfo.wProcessorRevision;
 	}
 
 	{
@@ -221,53 +230,56 @@ auto Windows_SystemManager::initialize() -> void {
 	}
 }
 
-static auto bytes_to_string(const int64_t bytes) -> std::string {
-	static const double TB = 1024ull * 1024ull * 1024ull * 1024ull;
-	static const double GB = 1024ull * 1024ull * 1024ull;
-	static const double MB = 1024ull * 1024ull;
-	static const double KB = 1024ull;
+static auto bytes_to_string(const i64 bytes) -> std::string {
+	static const f64 TB = 1024_u64 * 1024_u64 * 1024_u64 * 1024_u64;
+	static const f64 GB = 1024_u64 * 1024_u64 * 1024_u64;
+	static const f64 MB = 1024_u64 * 1024_u64;
+	static const f64 KB = 1024_u64;
 
 	std::string result;
 	if (bytes > TB) result = std::to_string(bytes / TB) + " TB";
 	else if (bytes > GB) result = std::to_string(bytes / GB) + " GB";
 	else if (bytes > MB) result = std::to_string(bytes / MB) + " MB";
 	else if (bytes > KB) result = std::to_string(bytes / KB) + " KB";
-	else result = std::to_string((float)bytes) + " bytes";
+	else result = std::to_string((f32)bytes) + " bytes";
 
 	return result;
 }
-
+static auto win32_get_processor_architecture_string(u16 t) -> std::string {
+	std::string result;
+	switch (t) {
+		case PROCESSOR_ARCHITECTURE_AMD64: result = "x64 (AMD or Intel)"; break;
+		case PROCESSOR_ARCHITECTURE_ARM: result = "ARM"; break;
+		case PROCESSOR_ARCHITECTURE_ARM64: result = "ARM64"; break;
+		case PROCESSOR_ARCHITECTURE_IA64: result = "Intel Itanium-based"; break;
+		case PROCESSOR_ARCHITECTURE_INTEL: result = "x86"; break;
+		case PROCESSOR_ARCHITECTURE_UNKNOWN: result = "Unknown architecture"; break;
+	}
+	return result;
+}
 auto Windows_SystemManager::log() const -> void {
-	std::cout << "**********SYSTEM LOG**********" << std::endl;
-	std::cout << "\tComputer Name: " << m_computer_name << std::endl;
-	std::cout << "\tUser Name    : " << m_user_name << std::endl;
+	std::cout 
+		<< "**********SYSTEM LOG**********" << "\n"
+		<< "\tComputer Name: " << m_computer_name << "\n"
+	<< "\tUser Name    : " << m_user_name << "\n"
+	<< "\tWin Ver Maj  : " << m_window_version_major << "\n"
+	<< "\tWin Ver Min  : " << m_window_version_minor << "\n"
+	<< "**********CPU DATA**********" << "\n"
+	<< "\tCPU Name     : " << m_cpu_name << "\n"
+	<< "\tCache Line Size: " << m_cache_line_size << "\n"
+	<< "\tL1 Cache Size: " << bytes_to_string(m_L1_cache_size) << "\n"
+	<< "\tL2 Cache Size: " << bytes_to_string(m_L2_cache_size) << "\n"
+	<< "\tL3 Cache Size: " << bytes_to_string(m_L3_cache_size) << "\n"
+	<< "\tCPU Package Count: " << m_processor_package_count << "\n"
+	<< "\tCPU Core Count   : " << m_processor_core_count << "\n"
+	<< "\tCPU Logical Count: " << m_logical_processor_count << "\n"
+	<< "\tPage Size    : " << bytes_to_string(m_page_size) << "\n"
+	<< "\tCPU Architecture: " << win32_get_processor_architecture_string(m_processor_architecture) << "\n"
 
-	std::cout << "\tCPU Name     : " << m_cpu_name << std::endl;
-	std::cout << "\tWin Ver Maj  : " << m_window_version_major << std::endl;
-	std::cout << "\tWin Ver Min  : " << m_window_version_minor << std::endl;
-
-	std::cout << "\tCache Line Si: " << m_cache_line_size << std::endl;
-	std::cout << "\tL1 Cache Size: " << m_L1_cache_size << std::endl;
-	std::cout << "\tL2 Cache Size: " << m_L2_cache_size << std::endl;
-	std::cout << "\tL3 Cache Size: " << m_L3_cache_size << std::endl;
-	std::cout << "\tProc Pack Num: " << m_processor_package_count << std::endl;
-	std::cout << "\tProc Core Num: " << m_processor_core_count << std::endl;
-	std::cout << "\tProc Log Num : " << m_logical_processor_count << std::endl;
-	std::cout << "\tPage Size    : " << m_page_size << std::endl;
-	uint32_t m_cache_line_size;
-	uint32_t m_L1_cache_size;
-	uint32_t m_L2_cache_size;
-	uint32_t m_L3_cache_size;
-	uint32_t m_processor_package_count;
-	uint32_t m_processor_core_count;
-	uint32_t m_logical_processor_count;
-	uint32_t m_page_size;
-
-
-
-	std::cout << "\tAvailable RAM : " << bytes_to_string(m_available_physical_memory) << std::endl;
-	std::cout << "\tTotal RAM     : " << bytes_to_string(m_total_physical_memory) << std::endl;
-	std::cout << "\tAvailable RAM : " << bytes_to_string(m_available_virtual_memory) << std::endl;
-	std::cout << "\tTotal RAM     : " << bytes_to_string(m_total_virtual_memory) << std::endl;
-	std::cout << "******************************" << std::endl;
+	<< "**********RAM DATA**********" << "\n"
+	<< "\tAvailable RAM : " << bytes_to_string(m_available_physical_memory) << "\n"
+	<< "\tTotal RAM     : " << bytes_to_string(m_total_physical_memory) << "\n"
+	<< "\tAvailable RAM : " << bytes_to_string(m_available_virtual_memory) << "\n"
+	<< "\tTotal RAM     : " << bytes_to_string(m_total_virtual_memory) << "\n"
+	<< "******************************" << std::endl;
 }

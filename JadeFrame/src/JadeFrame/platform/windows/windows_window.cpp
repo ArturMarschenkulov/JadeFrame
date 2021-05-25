@@ -4,7 +4,7 @@
 
 #include "windows_message_map.h"
 
-#include "../../base_app.h" // for the singleton
+#include "JadeFrame/base_app.h" // for the singleton
 
 #include <iostream>
 #include <tuple>
@@ -23,43 +23,43 @@ static auto win32_convert_char_array_to_LPCWSTR(const char* charArray) -> wchar_
 }
 #endif
 
-static auto window_resize_callback(Windows_Window& current_window, const WindowsMessage& window_message) -> void {
+static auto window_resize_callback(Windows_Window& window, const WindowsMessage& wm) -> void {
 	//window_message.hWnd;
 	//window_message.message;
-	auto wParam = window_message.wParam;
-	auto lParam = window_message.lParam;
+	auto wParam = wm.wParam;
+	auto lParam = wm.lParam;
 
 	switch (wParam) {
-		case SIZE_MAXIMIZED: current_window.m_window_state = Windows_Window::WINDOW_STATE::MAXIMIZED; break;
-		case SIZE_MINIMIZED: current_window.m_window_state = Windows_Window::WINDOW_STATE::MINIMIZED; break;
-		case SIZE_RESTORED: current_window.m_window_state = Windows_Window::WINDOW_STATE::WINDOWED; break;
+		case SIZE_MAXIMIZED: window.m_window_state = Windows_Window::WINDOW_STATE::MAXIMIZED; break;
+		case SIZE_MINIMIZED: window.m_window_state = Windows_Window::WINDOW_STATE::MINIMIZED; break;
+		case SIZE_RESTORED: window.m_window_state = Windows_Window::WINDOW_STATE::WINDOWED; break;
 		case SIZE_MAXHIDE: break;
 		case SIZE_MAXSHOW: break;
 	}
-	current_window.m_size.width = LOWORD(lParam);
-	current_window.m_size.height = HIWORD(lParam);
+	window.m_size.width = LOWORD(lParam);
+	window.m_size.height = HIWORD(lParam);
 
-	auto& renderer = JadeFrame::get_singleton()->m_current_app->m_renderer;
-	renderer.set_viewport(0, 0, current_window.m_size.width, current_window.m_size.height);
+	auto& renderer = JadeFrame::get_singleton()->m_current_app_p->m_renderer;
+	renderer.set_viewport(0, 0, window.m_size.width, window.m_size.height);
 
 }
-static auto window_move_callback(Windows_Window& current_window, const WindowsMessage& window_message) -> void {
+static auto window_move_callback(Windows_Window& window, const WindowsMessage& wm) -> void {
 	//window_message.hWnd;
 	//window_message.message;
 	//window_message.wParam;
-	auto lParam = window_message.lParam;
+	auto lParam = wm.lParam;
 
-	current_window.m_position.x = LOWORD(lParam);
-	current_window.m_position.y = HIWORD(lParam);
+	window.m_position.x = LOWORD(lParam);
+	window.m_position.y = HIWORD(lParam);
 }
-static auto window_focux_callback(Windows_Window& current_window, bool should_focus) {
-	current_window.has_focus = should_focus;
+static auto window_focus_callback(Windows_Window& window, bool should_focus) {
+	window.has_focus = should_focus;
 }
 
 static auto CALLBACK window_procedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT {
-	WindowsMessage wm = { hWnd, message, wParam, lParam };
+	const WindowsMessage& wm = { hWnd, message, wParam, lParam };
 
-	BaseApp* app = JadeFrame::get_singleton()->m_current_app;
+	BaseApp* app = JadeFrame::get_singleton()->m_current_app_p;
 	if (app == nullptr) {
 		//std::cout << "WindowProced___:" << windows_message_map(win_message);
 		return DefWindowProc(hWnd, message, wParam, lParam);
@@ -69,7 +69,7 @@ static auto CALLBACK window_procedure(HWND hWnd, UINT message, WPARAM wParam, LP
 
 
 	Windows_InputManager& input_manager = JadeFrame::get_singleton()->m_input_manager;
-	int current_window_id = -1;
+	i32 current_window_id = -1;
 	for (auto const& [window_id, window] : app->m_windows) {
 		if (window.m_window_handle == hWnd) {
 			current_window_id = window_id;
@@ -83,7 +83,7 @@ static auto CALLBACK window_procedure(HWND hWnd, UINT message, WPARAM wParam, LP
 		{
 			//std::cout << "WindowProcedure:" << windows_message_map(win_message);
 			bool should_focus = message == WM_SETFOCUS ? true : false;
-			window_focux_callback(current_window, should_focus);
+			window_focus_callback(current_window, should_focus);
 		}break;
 		case WM_SIZE:
 		{
@@ -123,7 +123,6 @@ static auto CALLBACK window_procedure(HWND hWnd, UINT message, WPARAM wParam, LP
 		{
 			std::cout << "WindowProcedure:" << windows_message_map(wm);
 
-			current_window.deinitialize();
 			app->m_windows.erase(current_window_id);
 
 			std::cout << "\tLOG: Window Nr " << app->m_windows.size() << " closing" << std::endl;
@@ -136,7 +135,7 @@ static auto CALLBACK window_procedure(HWND hWnd, UINT message, WPARAM wParam, LP
 				app->m_is_running = false;
 			}
 
-			//TODO: One has to add code which deals with ImGui
+			//TODO: Add code which deals with ImGui!
 
 		}break;
 		case WM_DESTROY:
@@ -176,18 +175,18 @@ static auto win32_register_window_class(HINSTANCE instance) -> void {
 	window_class.lpszMenuName = nullptr;
 	window_class.lpszClassName = L"JadeFrame";//"L"JadeFrame Window";
 	if (!::RegisterClassExW(&window_class)) {
-		auto er = ::GetLastError();
-		LPVOID lpMsgBuf;
-		::FormatMessage(
-			FORMAT_MESSAGE_ALLOCATE_BUFFER |
-			FORMAT_MESSAGE_FROM_SYSTEM |
-			FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL,
-			er,
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			(LPTSTR)&lpMsgBuf,
-			0, NULL);
-		std::cout << "Window Registration Failed! " << er << std::endl;
+		std::cout << "Window Registration Failed! " << ::GetLastError() << std::endl;
+		__debugbreak();
+		//LPVOID lpMsgBuf;
+		//::FormatMessage(
+		//	FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		//	FORMAT_MESSAGE_FROM_SYSTEM |
+		//	FORMAT_MESSAGE_IGNORE_INSERTS,
+		//	NULL,
+		//	er,
+		//	MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		//	(LPTSTR)&lpMsgBuf,
+		//	0, NULL);
 	}
 }
 
@@ -196,10 +195,10 @@ static auto win32_create_window(HINSTANCE instance, const std::string& title, Ve
 	LPCWSTR app_window_class = L"JadeFrame";
 	LPCWSTR app_window_title = win32_convert_char_array_to_LPCWSTR(static_cast<const char*>(title.c_str()));
 	DWORD window_style = WS_OVERLAPPEDWINDOW;
-	int32_t window_x = (position.x == -1) ? CW_USEDEFAULT : position.x;
-	int32_t window_y = (position.y == -1) ? CW_USEDEFAULT : position.y;
-	int32_t window_width = static_cast<int32_t>(size.x); //CW_USEDEFAULT;
-	int32_t window_height = static_cast<int32_t>(size.y);  //CW_USEDEFAULT;
+	i32 window_x = (position.x == -1) ? CW_USEDEFAULT : position.x;
+	i32 window_y = (position.y == -1) ? CW_USEDEFAULT : position.y;
+	i32 window_width = static_cast<int32_t>(size.x); //CW_USEDEFAULT;
+	i32 window_height = static_cast<int32_t>(size.y);  //CW_USEDEFAULT;
 	HWND parent_window = NULL;
 	HMENU menu = NULL;
 	LPVOID lpParam = NULL;
@@ -214,29 +213,80 @@ static auto win32_create_window(HINSTANCE instance, const std::string& title, Ve
 		parent_window, menu,                     // parent window, menu
 		instance, lpParam
 	);
-	if (window_handle == nullptr) {
+	if (window_handle == NULL) {
 		std::cout << "win32_create_window error: " << GetLastError() << std::endl;
+		__debugbreak();
 	}
 	return window_handle;
 }
 
 
-Windows_Window::~Windows_Window() {
-
-	////wglMakeCurrent(NULL, NULL);
-	//wglDeleteContext(m_render_context);
-	//::ReleaseDC(m_window_handle, m_device_context);
-	//::DestroyWindow(m_window_handle);
+Windows_Window::Windows_Window() {
 }
 
-auto Windows_Window::initialize(const std::string& title, const Vec2& size, const Vec2& position) -> void {
+Windows_Window::Windows_Window(const std::string& title, const Vec2& size, const Vec2& position) {
 	HINSTANCE instance = GetModuleHandleW(NULL);
+	if (instance == NULL) {
+		std::cout << "GetModuleHandleW(NULL) failed! " << ::GetLastError() << std::endl;
+	}
 	static bool is_window_class_registered = false;
 	if (is_window_class_registered == false) {
-		win32_register_window_class(instance);
+
+		WNDCLASSEX window_class;
+		ZeroMemory(&window_class, sizeof(window_class));
+		window_class.cbSize = sizeof(window_class);
+		window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+		window_class.lpfnWndProc = window_procedure;
+		window_class.cbClsExtra = 0;
+		window_class.cbWndExtra = 0;
+		window_class.hInstance = instance;
+		window_class.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+		window_class.hCursor = LoadCursor(NULL, IDC_ARROW);
+		window_class.hbrBackground = nullptr;
+		window_class.lpszMenuName = nullptr;
+		window_class.lpszClassName = L"JadeFrame";//"L"JadeFrame Window";
+		if (!::RegisterClassExW(&window_class)) {
+			std::cout << "Window Registration Failed! " << ::GetLastError() << std::endl;
+			__debugbreak();
+		}
+
+
 		is_window_class_registered = true;
 	}
-	HWND window_handle = win32_create_window(instance, title, size, position);
+
+
+	DWORD window_ex_style = 0;
+	LPCWSTR app_window_class = L"JadeFrame";
+	LPCWSTR app_window_title = win32_convert_char_array_to_LPCWSTR(static_cast<const char*>(title.c_str()));
+	DWORD window_style = WS_OVERLAPPEDWINDOW;
+	i32 window_x = (position.x == -1) ? CW_USEDEFAULT : position.x;
+	i32 window_y = (position.y == -1) ? CW_USEDEFAULT : position.y;
+	i32 window_width = static_cast<int32_t>(size.x); //CW_USEDEFAULT;
+	i32 window_height = static_cast<int32_t>(size.y);  //CW_USEDEFAULT;
+	HWND parent_window = NULL;
+	HMENU menu = NULL;
+	LPVOID lpParam = NULL;
+	HWND window_handle = CreateWindowExW(
+		window_ex_style,
+		app_window_class,
+		app_window_title,
+		window_style,
+		window_x, 
+		window_y,
+		window_width, 
+		window_height,
+		parent_window, 
+		menu,                     // parent window, menu
+		instance, 
+		lpParam
+	);
+	if (window_handle == NULL) {
+		std::cout << "win32_create_window error: " << GetLastError() << std::endl;
+		__debugbreak();
+	}
+
+
+	//HWND window_handle = win32_create_window(instance, title, size, position);
 
 	m_title = title;
 	m_size = size;
@@ -245,26 +295,11 @@ auto Windows_Window::initialize(const std::string& title, const Vec2& size, cons
 
 	::ShowWindow(window_handle, SW_SHOW);
 }
-
-auto Windows_Window::deinitialize() const -> void {
-	//wglMakeCurrent(NULL, NULL);
-	wglDeleteContext(m_render_context);
-	::ReleaseDC(m_window_handle, m_device_context);
+Windows_Window::~Windows_Window() {
 	::DestroyWindow(m_window_handle);
 }
 
-auto Windows_Window::set_title(const std::string& title) {
+auto Windows_Window::set_title(const std::string& title) -> void {
 	m_title = title;
 	SetWindowTextA(m_window_handle, m_title.c_str());
-}
-
-
-auto Windows_Window::make_current() const -> void {
-	assert(m_device_context != 0);
-	assert(m_render_context != 0);
-	BOOL result = wglMakeCurrent(m_device_context, m_render_context);
-	if (result == FALSE) {
-		__debugbreak();
-		std::cout << GetLastError() << std::endl;
-	}
 }

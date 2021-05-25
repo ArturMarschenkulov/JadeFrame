@@ -96,7 +96,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-W4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -104,10 +104,10 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\glfw32;$(SolutionDir)JadeFrame\src\extern\glfw64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\glfw32;$(SolutionDir)JadeFrame\src\extern\glfw64;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Lib</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
     </Lib>
   </ItemDefinitionGroup>
@@ -118,7 +118,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-W4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -126,8 +126,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\glfw32;$(SolutionDir)JadeFrame\src\extern\glfw64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\glfw32;$(SolutionDir)JadeFrame\src\extern\glfw64;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Lib</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
     </Lib>
   </ItemDefinitionGroup>
@@ -140,7 +140,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-W4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -150,8 +150,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\glfw32;$(SolutionDir)JadeFrame\src\extern\glfw64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\glfw32;$(SolutionDir)JadeFrame\src\extern\glfw64;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Lib</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
     </Lib>
   </ItemDefinitionGroup>
@@ -164,7 +164,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-W4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -174,8 +174,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\glfw32;$(SolutionDir)JadeFrame\src\extern\glfw64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\glfw32;$(SolutionDir)JadeFrame\src\extern\glfw64;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Lib</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
     </Lib>
   </ItemDefinitionGroup>
@@ -299,8 +299,11 @@
     <ClInclude Include="src\JadeFrame.h" />
     <ClInclude Include="src\JadeFrame\base_app.h" />
     <ClInclude Include="src\JadeFrame\core.h" />
+    <ClInclude Include="src\JadeFrame\defines.h" />
     <ClInclude Include="src\JadeFrame\font_manager.h" />
     <ClInclude Include="src\JadeFrame\graphics\camera.h" />
+    <ClInclude Include="src\JadeFrame\graphics\d3d11\d3d11_renderer.h" />
+    <ClInclude Include="src\JadeFrame\graphics\d3d12\d3d12_renderer.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_buffer.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_context.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_debug.h" />
@@ -308,6 +311,9 @@
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_shader_loader.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_texture.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_windows.h" />
+    <ClInclude Include="src\JadeFrame\graphics\software\software_renderer.h" />
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_context.h" />
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_renderer.h" />
     <ClInclude Include="src\JadeFrame\gui.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_input_manager.h" />
     <ClInclude Include="src\JadeFrame\math\mat_4.h" />
@@ -388,6 +394,8 @@
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_shader_loader.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_texture.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_windows.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_context.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_renderer.cpp" />
     <ClCompile Include="src\JadeFrame\gui.cpp" />
     <ClCompile Include="src\JadeFrame\platform\windows\windows_input_manager.cpp" />
     <ClCompile Include="src\JadeFrame\math\mat_4.cpp" />
@@ -402,6 +410,7 @@
     <ClCompile Include="src\JadeFrame\platform\windows\windows_system_manager.cpp" />
     <ClCompile Include="src\JadeFrame\platform\windows\windows_time_manager.cpp" />
     <ClCompile Include="src\JadeFrame\platform\windows\windows_window.cpp" />
+    <ClCompile Include="src\JadeFrame\utils\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="resource\awesomeface.png" />

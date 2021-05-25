@@ -1,6 +1,7 @@
 #pragma once
 #include <glad/glad.h>
 
+#include "opengl_object.h"
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -28,7 +29,7 @@ enum class SHADER_TYPE {
 	SAMPLER_1D, SAMPLER_2D, SAMPLER_3D, SAMPLER_CUBE,
 };
 
-#include "../mesh.h"
+#include "JadeFrame/graphics/mesh.h"
 #include "opengl_object.h"
 
 class BufferLayout {
@@ -36,7 +37,7 @@ public:
 	struct BufferElement {
 		std::string name;
 		SHADER_TYPE type;
-		uint32_t size;
+		u8 size;
 		size_t offset;
 		bool normalized;
 
@@ -49,7 +50,7 @@ public:
 	auto calculate_offset_and_stride() -> void;
 
 	std::vector<BufferElement> m_elements;
-	uint32_t m_stride = 0;
+	u8 m_stride = 0;
 
 };
 
@@ -68,19 +69,8 @@ public:
 	auto set_layout(const BufferLayout& buffer_layout) -> void;
 	auto finalize(const Mesh& mesh, bool interleaved = true) -> void;
 private:
-	GLVertexBuffer m_vertex_buffer;
-	GLVertexArray m_vertex_array;
-	GLIndexBuffer m_index_buffer;
+	GL_VertexBuffer m_vertex_buffer;
+	GL_VertexArray m_vertex_array;
+	GL_IndexBuffer m_index_buffer;
 	BufferLayout m_buffer_layout;
-};
-
-
-class GLFrameBuffer {
-	GLFrameBuffer() {
-		glCreateFramebuffers(1, &m_ID);
-	}
-	auto bind() -> void {
-		glBindFramebuffer(GL_FRAMEBUFFER, m_ID);
-	}
-	GLuint m_ID;
 };

@@ -4,24 +4,26 @@
 #include "opengl_shader.h"
 #include "opengl_context.h"
 
-#include "../camera.h"
+#include "JadeFrame/graphics/camera.h"
 
-#include "../../math/vec_3.h"
-#include "../../math/vec_2.h"
-#include "../../math/mat_4.h"
-#include "../mesh.h"
+#include "JadeFrame/math/vec_3.h"
+#include "JadeFrame/math/vec_2.h"
+#include "JadeFrame/math/mat_4.h"
+#include "JadeFrame/graphics/mesh.h"
 
 #include <vector>
 #include <stack>
 #include <map>
 
+
 enum class PRIMITIVE_TYPE {
 	TRIANGLES = GL_TRIANGLES,
-	LINES = GL_LINES
+	LINES = GL_LINES,
+	POINTS = GL_POINTS,
 };
 
 struct Material {
-	const GLTexture* m_texture = nullptr;
+	const OpenGL_Texture* m_texture = nullptr;
 	OpenGL_Shader* m_shader = nullptr;
 };
 struct Object {
@@ -37,22 +39,14 @@ struct Object {
 };
 
 struct RenderCommand {
-	const Matrix4x4* transform;
-	const Mesh* mesh;
-	const Material* material;
-	const OpenGL_VertexArray* vertex_array;
+	const Matrix4x4* transform = nullptr;
+	const Mesh* mesh = nullptr;
+	const Material* material = nullptr;
+	const OpenGL_VertexArray* vertex_array = nullptr;
 };
 class CommandBuffer {
 public:
-	auto push(const Mesh* mesh, const Material* material, const Matrix4x4* tranform, const OpenGL_VertexArray* vertex_array) {
-		RenderCommand command = {};
-		command.mesh = mesh;
-		command.material = material;
-		command.transform = tranform;
-		command.vertex_array = vertex_array;
-
-		m_render_commands.push_back(command);
-	}
+	auto push(const Mesh& mesh, const Material& material, const Matrix4x4& tranform, const OpenGL_VertexArray& vertex_array) -> void;
 	std::vector<RenderCommand> m_render_commands;
 };
 
@@ -60,13 +54,21 @@ struct HWND__;	typedef HWND__* HWND;
 class OpenGL_Renderer {
 public:
 	auto swap_buffer(HWND window_handle) const -> void;
-	auto clear(GLbitfield bitfield) const -> void;
-	auto set_viewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) const -> void;
+	auto set_clear_color(const Color& color) -> void;
+
+	auto clear_background() const -> void;
+	auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void;
 
 	auto push_to_renderer(const Object& obj) -> void;
 	auto render_mesh(const OpenGL_VertexArray* buffer_data, const Mesh* mesh) const -> void;
 	auto render_pushed(const Matrix4x4& view_projection) const -> void;
-public:
-	GLContext gl_context;
-	CommandBuffer m_command_buffer;
+	auto clear_render_commands() -> void;
+
+	auto take_screenshot(const char* filename) -> void;
+
+	auto set_context(const HWND& window) -> void;
+
+private:
+	OpenGL_Context m_context;
+	std::deque<RenderCommand> m_render_commands;
 };

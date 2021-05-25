@@ -20,10 +20,7 @@ Frameworks:
 
 Orthographical convention:
 	variables and functions in snake case (my_variable, my_function())
-	Classes and structs are written in pascal case (MyClass, MyStruct). 
-	Maybe (certain) classes will be also in snake case, if it's sufficiently low-level.
-
-	Probably, more client oriented code will have variables and functions with camel case.
+	Classes and structs are written in pascal case (MyClass, MyStruct). Platform code with "_", e.g. "Windows_Window", "OpenGL_renderer".
 
 	Trailing return type should be the default way.
 		Pros:
@@ -44,6 +41,14 @@ Orthographical convention:
 	So that the general OpenGL renderer would be named "OpenGL_Renderer", while a light OpenGL Bufferobject wrappers, would be GLVertexBuffer.
 	Another example would be the OpenGL Shader. What people usually regard as a Shader is (AFAIK), referred to as Program in OpenGL, which consists
 	of several shaders, e.g. fragment, geometry shader. Thus they would be named GLProgram and GLShader which would be inside the OpenGL_Shader class. 
+
+	Idea: There should be three OpenGL API naming conventions.
+	"OpenGL_*" should be used for high level structs which would be common among many Graphics API and not specific to only OpenGL.
+	"OGL_*"/"OGL*" should be used for internal OpenGL stuff. "OGL_Shader" "OGLShader"
+	"GL_*" should be used for very light wrapper types of the original OpenGL objects. 
+	Should have as little state as possible, usually mostly only the ID. Methods of these structs should only have OpenGL API calls with some helper functions. 
+		If one wants to add state, one should use compose them into "OGL*" types. For example if you want to store the source code of GLShader, add that to OGLShader/OGL_Shader.
+
 
 TODO:
 	

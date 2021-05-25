@@ -1,9 +1,9 @@
 #include "opengl_shader.h"
 
-#include "../../math/vec_2.h"
-#include "../../math/vec_3.h"
-#include "../../math/vec_4.h"
-#include "../../math/mat_4.h"
+#include "JadeFrame/math/vec_2.h"
+#include "JadeFrame/math/vec_3.h"
+#include "JadeFrame/math/vec_4.h"
+#include "JadeFrame/math/mat_4.h"
 
 #include "opengl_shader_loader.h"
 
@@ -68,23 +68,23 @@ auto OpenGL_Shader::get_uniform_location(const std::string& name) const -> GLint
 }
 
 
-auto OpenGL_Shader::set_uniform(const std::string& name, const int value) -> void {
+auto OpenGL_Shader::set_uniform(const std::string& name, const i32 value) -> void {
 
 	if (m_uniforms.contains(name)) {
-		if (std::holds_alternative<int>(m_uniforms[name].value)) {
+		if (std::holds_alternative<i32>(m_uniforms[name].value)) {
 			m_uniforms[name].value = value;
-			auto& v = std::get<int>(m_uniforms[name].value);
+			auto& v = std::get<i32>(m_uniforms[name].value);
 			glUniform1i(m_uniforms[name].location, v);
 			return;
 		}
 	}
 	__debugbreak();
 }
-auto OpenGL_Shader::set_uniform(const std::string& name, const float value) -> void {
+auto OpenGL_Shader::set_uniform(const std::string& name, const f32 value) -> void {
 	if (m_uniforms.contains(name)) {
-		if (std::holds_alternative<float>(m_uniforms[name].value)) {
+		if (std::holds_alternative<f32>(m_uniforms[name].value)) {
 			m_uniforms[name].value = value;
-			auto& v = std::get<float>(m_uniforms[name].value);
+			auto& v = std::get<f32>(m_uniforms[name].value);
 			glUniform1f(m_uniforms[name].location, v);
 			return;
 		}
@@ -139,14 +139,14 @@ auto OpenGL_Shader::update_uniforms() -> void {
 	}
 }
 
-auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::unordered_map<std::string, GLVariable> {
+auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::unordered_map<std::string, GL_Variable> {
 	// variable_type = GL_ACTIVE_UNIFORMS | GL_ACTIVE_ATTRIBUTES
 
 	GLint num_variables = m_program.get_info(variable_type);
-	std::vector<GLVariable> variables(num_variables);
-	std::unordered_map<std::string, GLVariable> variable_map;
+	std::vector<GL_Variable> variables(num_variables);
+	std::unordered_map<std::string, GL_Variable> variable_map;
 
-	for (int i = 0; i < num_variables; ++i) {
+	for (u32 i = 0; i < num_variables; ++i) {
 		char buffer[128];
 		GLenum gl_type;
 		switch (variable_type) {
@@ -164,20 +164,14 @@ auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::uno
 		variables[i].type = SHADER_TYPE_from_openGL_enum(gl_type);
 
 		{ // TODO: It initializes the types for the variant type, for error checking. Consider whether this is neccessary.
-			GLValueVariant value_init;
+			GL_ValueVariant value_init;
 			switch (variables[i].type) {
-				case SHADER_TYPE::SAMPLER_2D:
-					value_init = int(); break;
-				case SHADER_TYPE::FLOAT:
-					value_init = float(); break;
-				case SHADER_TYPE::FLOAT_2:
-					value_init = Vec2(); break;
-				case SHADER_TYPE::FLOAT_3:
-					value_init = Vec3(); break;
-				case SHADER_TYPE::FLOAT_4:
-					value_init = Vec4(); break;
-				case SHADER_TYPE::MAT_4:
-					value_init = Matrix4x4(); break;
+				case SHADER_TYPE::SAMPLER_2D: value_init = i32(); break;
+				case SHADER_TYPE::FLOAT: value_init = f32(); break;
+				case SHADER_TYPE::FLOAT_2: value_init = Vec2(); break;
+				case SHADER_TYPE::FLOAT_3: value_init = Vec3(); break;
+				case SHADER_TYPE::FLOAT_4: value_init = Vec4(); break;
+				case SHADER_TYPE::MAT_4: value_init = Matrix4x4(); break;
 				default: __debugbreak(); break;
 			}
 			variables[i].value = value_init;

@@ -1,4 +1,5 @@
-
+#pragma once
+#include "JadeFrame/defines.h"
 #include <string>
 
 class Windows_SystemManager {
@@ -14,21 +15,29 @@ public:
 
 	std::string m_cpu_name;
 
-	int64_t m_available_physical_memory;
-	int64_t m_total_physical_memory;
-	int64_t m_available_virtual_memory;
-	int64_t m_total_virtual_memory;
+	i64 m_available_physical_memory;
+	i64 m_total_physical_memory;
+	i64 m_available_virtual_memory;
+	i64 m_total_virtual_memory;
 
-	int64_t m_window_version_major;
-	int64_t m_window_version_minor;
+	i64 m_window_version_major;
+	i64 m_window_version_minor;
 
-	uint32_t m_cache_line_size;
-	uint32_t m_L1_cache_size;
-	uint32_t m_L2_cache_size;
-	uint32_t m_L3_cache_size;
-	uint32_t m_processor_package_count;
-	uint32_t m_processor_core_count;
-	uint32_t m_logical_processor_count;
-	uint32_t m_page_size;
+	u32 m_cache_line_size;
+	u32 m_L1_cache_size;
+	u32 m_L2_cache_size;
+	u32 m_L3_cache_size;
+	u32 m_processor_package_count;
+	u32 m_processor_core_count;
+	u32 m_logical_processor_count;
 
+	u16 m_processor_architecture;
+	u32 m_page_size;
+	void* m_minimum_application_address;
+	void* m_maximum_application_address;
+	u64 m_active_processor_mask;
+	u32 m_number_of_processors;
+	u32 m_allocation_granularity;
+	u16 m_processor_level;
+	u16 m_processor_revision;
 };

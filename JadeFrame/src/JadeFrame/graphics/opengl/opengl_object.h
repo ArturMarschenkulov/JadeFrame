@@ -6,20 +6,21 @@
 
 	These wrapper classes should have as little state as possible. The optimal would be to only have their ID and nothing more
 */
+#include "JadeFrame/defines.h"
 #include <glad/glad.h>
 #include <vector>
 #include <string>
 #include <unordered_map>
 
-class GLVertexBuffer {
+class GL_VertexBuffer {
 public:
-	GLVertexBuffer();
-	~GLVertexBuffer();
-	GLVertexBuffer(GLVertexBuffer&& other);
+	GL_VertexBuffer();
+	~GL_VertexBuffer();
+	GL_VertexBuffer(GL_VertexBuffer&& other);
 
-	GLVertexBuffer(const GLVertexBuffer&) = delete;
-	auto operator=(const GLVertexBuffer&)->GLVertexBuffer & = delete;
-	auto operator=(GLVertexBuffer&&)->GLVertexBuffer & = delete;
+	GL_VertexBuffer(const GL_VertexBuffer&) = delete;
+	auto operator=(const GL_VertexBuffer&)->GL_VertexBuffer & = delete;
+	auto operator=(GL_VertexBuffer&&)->GL_VertexBuffer & = delete;
 
 	auto release() -> GLuint {
 		GLuint ret = m_ID;
@@ -34,20 +35,20 @@ public:
 	auto bind() const -> void;
 	auto unbind() const -> void;
 	auto reserve(GLuint size_in_bytes) const -> void;
-	auto send(const std::vector<float>& data) const -> void;
+	auto send(const std::vector<f32>& data) const -> void;
 	auto update(GLuint size_in_bytes, const void* data) const -> void;
 private:
 	GLuint m_ID;
 };
-class GLVertexArray {
+class GL_VertexArray {
 public:
-	GLVertexArray();
-	~GLVertexArray();
-	GLVertexArray(GLVertexArray&& other);
+	GL_VertexArray();
+	~GL_VertexArray();
+	GL_VertexArray(GL_VertexArray&& other);
 
-	GLVertexArray(GLVertexArray&) = delete;
-	auto operator=(const GLVertexArray&)->GLVertexArray & = delete;
-	auto operator=(GLVertexArray&&)->GLVertexArray & = delete;
+	GL_VertexArray(GL_VertexArray&) = delete;
+	auto operator=(const GL_VertexArray&)->GL_VertexArray & = delete;
+	auto operator=(GL_VertexArray&&)->GL_VertexArray & = delete;
 
 	auto release() -> GLuint {
 		GLuint ret = m_ID;
@@ -65,15 +66,15 @@ private:
 	GLuint m_ID;
 };
 
-class GLIndexBuffer {
+class GL_IndexBuffer {
 public:
-	GLIndexBuffer();
-	~GLIndexBuffer();
-	GLIndexBuffer(GLIndexBuffer&& other);
+	GL_IndexBuffer();
+	~GL_IndexBuffer();
+	GL_IndexBuffer(GL_IndexBuffer&& other);
 
-	GLIndexBuffer(GLIndexBuffer&) = delete;
-	auto operator=(const GLIndexBuffer&)->GLIndexBuffer & = delete;
-	auto operator=(GLIndexBuffer&&)->GLIndexBuffer & = delete;
+	GL_IndexBuffer(GL_IndexBuffer&) = delete;
+	auto operator=(const GL_IndexBuffer&)->GL_IndexBuffer & = delete;
+	auto operator=(GL_IndexBuffer&&)->GL_IndexBuffer & = delete;
 
 	auto release() -> GLuint {
 		GLuint ret = m_ID;
@@ -94,16 +95,16 @@ private:
 	GLuint m_ID;
 };
 
-struct GLShader {
-	GLShader() = default;
-	GLShader(GLShader&& other);
-	GLShader(const GLenum type);
-	GLShader(const GLenum type, const std::string& source_code);
-	~GLShader();
+struct GL_Shader {
+	GL_Shader() = default;
+	GL_Shader(GL_Shader&& other);
+	GL_Shader(const GLenum type);
+	GL_Shader(const GLenum type, const std::string& source_code);
+	~GL_Shader();
 
-	GLShader(const GLShader&) = delete;
-	auto operator=(const GLShader&)->GLShader & = delete;
-	auto operator=(GLShader&&)->GLShader & = delete;
+	GL_Shader(const GL_Shader&) = delete;
+	auto operator=(const GL_Shader&)->GL_Shader & = delete;
+	auto operator=(GL_Shader&&)->GL_Shader & = delete;
 
 	auto release()->GLuint;
 	auto reset(GLuint ID = 0) -> void;
@@ -120,22 +121,22 @@ public:
 	SHADER_TYPE m_type;
 	GLuint m_ID;
 };
-struct GLProgram {
-	GLProgram();
-	GLProgram(GLProgram&& other);
+struct GL_Program {
+	GL_Program();
+	GL_Program(GL_Program&& other);
 
-	GLProgram(const GLProgram&) = delete;
-	auto operator=(const GLProgram&)->GLProgram & = delete;
-	auto operator=(GLProgram&&)->GLProgram & = delete;
+	GL_Program(const GL_Program&) = delete;
+	auto operator=(const GL_Program&)->GL_Program & = delete;
+	auto operator=(GL_Program&&)->GL_Program & = delete;
 
-	~GLProgram();
+	~GL_Program();
 	auto release()->GLuint;
 	auto reset(GLuint ID = 0) -> void;
 	auto bind() const -> void;
 	auto unbind() const -> void;
-	auto attach(const GLShader& shader) const -> void;
+	auto attach(const GL_Shader& shader) const -> void;
 	auto link() const -> void;
-	auto detach(const GLShader& shader) const -> void;
+	auto detach(const GL_Shader& shader) const -> void;
 	auto validate() const -> bool;
 
 	auto get_uniform_location(const std::string& name) const->GLint;
@@ -144,5 +145,25 @@ struct GLProgram {
 
 	auto get_info_log(GLsizei max_length) const->std::string;
 public:
+	GLuint m_ID;
+};
+
+
+struct GL_Texture {
+	GL_Texture();
+	~GL_Texture();
+	GL_Texture(GL_Texture&& other);
+	GL_Texture(const GL_Texture&) = delete;
+	auto operator=(const GL_Texture&)->GL_Texture & = delete;
+	auto operator=(GL_Texture&&)->GL_Texture & = delete;
+	auto release()->GLuint;
+	auto reset(GLuint ID = 0) -> void;
+	auto bind(GLenum target) const -> void;
+	auto unbind(GLenum target) const -> void;
+	auto generate_mipmap(GLenum target) const -> void;
+	auto set_texture_parameters(GLenum target, GLenum pname, GLint param) const -> void;
+	auto set_texture_image_1D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void* pixels) const -> void;
+	auto set_texture_image_2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void* pixels) const -> void;
+	auto set_texture_image_3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void* pixels) const -> void;
 	GLuint m_ID;
 };

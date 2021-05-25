@@ -201,7 +201,7 @@ auto WindowsMessageMap::operator()(const WindowsMessage& m) const noexcept -> st
 	auto msg = m.message;
 	auto wp = m.wParam;
 	auto lp = m.lParam;
-	constexpr int first_col_width = 25;
+	constexpr i32 first_col_width = 25;
 	const auto message = map.find(msg);
 
 	std::ostringstream oss;

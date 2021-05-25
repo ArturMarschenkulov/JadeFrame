@@ -1,25 +1,24 @@
 #pragma once
+#include "JadeFrame/defines.h"
 #include <glad/glad.h>
+#include "opengl_object.h"
 
 #include <string>
 
 
-class GLTexture;
-class GLTextureLoader {
-	//friend GLTexture;
+class OpenGL_Texture;
+class OpenGL_TextureLoader {
 public:
-	static auto load(const std::string& path, GLenum target, GLenum internalFormat, bool srgb = false) -> GLTexture;
+	static auto load(const std::string& path, GLenum target, GLenum internalFormat, bool srgb = false)->OpenGL_Texture;
 };
 
-class GLTexture {
-	friend GLTextureLoader;
+class OpenGL_Texture {
 public:
-	auto generate(unsigned int width, unsigned int height, GLenum internalFormat, GLenum format, GLenum type, void* data) -> void;
-	auto bind(int unit = -1) const -> void;
-	auto unbind() const -> void;
-	auto resize(uint32_t width, uint32_t height, uint32_t depth);
-public:
-	GLuint m_ID;
+	auto generate(u32 width, u32 height, GLenum internalFormat, GLenum format, GLenum type, void* data) -> void;
+	auto resize(u32 width, u32 height, u32 depth) -> void;
+	auto bind() const -> void;
+	GL_Texture tex;
+
 	GLenum m_target = GL_TEXTURE_2D;
 	GLenum m_internal_format = GL_RGBA;
 	GLenum m_format = GL_RGBA;
@@ -30,8 +29,8 @@ public:
 	GLenum m_wrapT = GL_REPEAT;
 	GLenum m_wrapR = GL_REPEAT;
 	bool m_mipmapping = true;
-
 	GLuint m_width = 0;
 	GLuint m_height = 0;
 	GLuint m_depth = 0;
+
 };

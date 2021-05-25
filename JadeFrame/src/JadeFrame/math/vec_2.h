@@ -1,11 +1,12 @@
 #pragma once
+#include "JadeFrame/defines.h"
 class Vec3;
 class Vec2 {
 public:
 	Vec2();
-	Vec2(const float x, const float y);
+	Vec2(const f32 x, const f32 y);
 	explicit Vec2(const Vec3&);
-	explicit Vec2(const float scalar);
+	explicit Vec2(const f32 scalar);
 
 
 	auto operator==(const Vec2 & other) const -> bool;
@@ -13,28 +14,28 @@ public:
 
 	auto operator+(const Vec2& other) const->Vec2;
 	auto operator-(const Vec2& other) const->Vec2;
-	auto operator*(const float& other) const->Vec2;
-	auto operator/(const float& other) const->Vec2;
+	auto operator*(const f32& other) const->Vec2;
+	auto operator/(const f32& other) const->Vec2;
 
 	auto operator+=(const Vec2& other)->Vec2&;
 	auto operator-=(const Vec2& other)->Vec2&;
-	auto operator*=(const float& other)->Vec2&;
-	auto operator/=(const float& other)->Vec2&;
+	auto operator*=(const f32& other)->Vec2&;
+	auto operator/=(const f32& other)->Vec2&;
 
 
 public:
 	union {
 		struct {
-			float x;
-			float y;
+			f32 x;
+			f32 y;
 		};
 		struct {
-			float w;
-			float h;
+			f32 w;
+			f32 h;
 		};
 		struct {
-			float width;
-			float height;
+			f32 width;
+			f32 height;
 		};
 	};
 

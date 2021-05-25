@@ -2,8 +2,9 @@
 #include <glad/glad.h>
 #include <string>
 #include <iostream>
+#include "JadeFrame/defines.h"
 
-auto opengl_message_callback(unsigned source, unsigned type, unsigned id, unsigned severity, int length, const char* message, const void* userParam) -> void {
+auto opengl_message_callback(u32 source, u32 type, u32 id, u32 severity, i32 length, const char* message, const void* userParam) -> void {
 	std::string _source;
 	switch (source) {
 		case GL_DEBUG_SOURCE_API:				_source = "API "; break;
@@ -41,20 +42,22 @@ auto opengl_message_callback(unsigned source, unsigned type, unsigned id, unsign
 	}
 
 	if (0) {
-		std::cout << "GL_ERR: ";
-		std::cout << "Source: " << _source << "| ";
-		std::cout << "Type: " << _type << "| ";
-		std::cout << "ID: " << _id << "| ";
-		std::cout << "Severity: " << _severity << "| ";
-		std::cout << "Message " << message << std::endl;
+		std::cout 
+			<< "GL_ERR: "
+			<< "Source: " << _source << "| "
+			<< "Type: " << _type << "| "
+			<< "ID: " << _id << "| "
+			<< "Severity: " << _severity << "| "
+			<< "Message " << message << std::endl;
 	} else {
-		std::cout << "GL_ERR: ";
-		std::cout << "Source: " << _source << std::endl << "| ";
-		std::cout << "Type: " << _type << std::endl << "| ";
-		std::cout << "ID: " << _id << std::endl << "| ";
-		std::cout << "Severity: " << _severity << std::endl << "| ";
-		std::cout << "Message " << message << std::endl;
-		std::cout << "|-----------------------------------------|" << std::endl;
+		std::cout 
+			<< "GL_ERR: "
+			<< "Source: " << _source << std::endl << "| "
+			<< "Type: " << _type << std::endl << "| "
+			<< "ID: " << _id << std::endl << "| "
+			<< "Severity: " << _severity << std::endl << "| "
+			<< "Message " << message << std::endl
+			<< "|-----------------------------------------|" << std::endl;
 	}
 }
 

@@ -1,40 +1,25 @@
 #include<JadeFrame.h>
 #include<string>
+#include "example_0.h"
+//class App : public BaseApp {
+//public:
+//public:
+//	App(const std::string& title, const Vec2 pos)
+//		:BaseApp(title, pos) {
+//	}
+//	virtual auto on_init() -> void override {
+//	}
+//	virtual auto on_update() -> void override {
+//	}
+//	virtual auto on_draw() -> void override {
+//	}
+//};
 
-class App : public BaseApp {
-public:
-public:
-	App(const std::string& title, const Vec2 pos)
-		:BaseApp(title, pos) {
-	}
-	virtual auto on_init() -> void override {
-		//m_renderer.gl_cache.set_clear_color({ 1.0, 0.0, 0.0 });
-		//std::cout << "sss" << std::endl;
-	}
-	virtual auto on_update() -> void override {
-		//std::cout << "sss" << std::endl;
-	}
-	virtual auto on_draw() -> void override {
-		//std::cout << "sss" << std::endl;
-	}
-};
-auto custom_simple_hash_0(const std::string& str) -> uint32_t {
-	uint32_t hash = 0;
-	for (auto& it : str) {
-		hash = 37 * hash + 17 * static_cast<char>(it);
-	}
-	return hash;
-}
-constexpr auto custom_simple_hash_1(const char* str) -> uint32_t {
-	uint32_t hash = 0;
-	for (int i = 0; str[i] != '\0'; i++) {
-		hash = 37 * hash + 17 * str[i];
-	}
-	return hash;
-}
-#include <intrin.h>
 
 int main() {
+
+	//std::cout << map_range(200, 0, 255, 0, 1) << std::endl;
+
 #if 1
 	using GApp = TestApp;
 	JadeFrame jade_frame;

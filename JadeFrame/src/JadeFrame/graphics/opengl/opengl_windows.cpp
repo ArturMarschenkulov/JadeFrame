@@ -1,3 +1,4 @@
+#include "JadeFrame/defines.h"
 #include "opengl_windows.h"
 #include <glad/glad.h>
 #include <iostream>
@@ -49,6 +50,9 @@ static auto load_wgl_functions() -> void {
 auto wgl_load_0() -> bool {
 	//DummyWindow dummy_window;
 	const HINSTANCE instance = GetModuleHandleW(NULL);
+	if(instance == NULL) {
+		std::cout << "GetModuleHandleW(NULL) failed. " << ::GetLastError() << std::endl;
+	}
 	const LPCWSTR window_class_name = L"OpenGL";
 
 	//dummy_window.registerr();
@@ -64,7 +68,9 @@ auto wgl_load_0() -> bool {
 	window_class.hbrBackground = (HBRUSH)(COLOR_MENUTEXT);
 	window_class.lpszMenuName = NULL;
 	window_class.lpszClassName = window_class_name;
-	::RegisterClass(&window_class);
+	if (!::RegisterClassW(&window_class)) {
+		std::cout << "RegisterClassW Failed! " << ::GetLastError() << std::endl;
+	}
 
 	//dummy_window.create();
 	const HWND window_handle = CreateWindowExW(
@@ -87,22 +93,22 @@ auto wgl_load_0() -> bool {
 	}
 
 	//dummy_window.set_pixel_format();
-	PIXELFORMATDESCRIPTOR pixel_format_descriptor;
-	ZeroMemory(&pixel_format_descriptor, sizeof(pixel_format_descriptor));
-	pixel_format_descriptor.nSize = sizeof(pixel_format_descriptor);
-	pixel_format_descriptor.nVersion = 1;
-	pixel_format_descriptor.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-	pixel_format_descriptor.iPixelType = PFD_TYPE_RGBA;
-	pixel_format_descriptor.cColorBits = 32;
-	pixel_format_descriptor.cAlphaBits = 8;
-	pixel_format_descriptor.cDepthBits = 24;
-	pixel_format_descriptor.iLayerType = PFD_MAIN_PLANE;
+	PIXELFORMATDESCRIPTOR desired_pixel_format;
+	ZeroMemory(&desired_pixel_format, sizeof(desired_pixel_format));
+	desired_pixel_format.nSize = sizeof(desired_pixel_format);
+	desired_pixel_format.nVersion = 1;
+	desired_pixel_format.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+	desired_pixel_format.iPixelType = PFD_TYPE_RGBA;
+	desired_pixel_format.cColorBits = 32;
+	desired_pixel_format.cAlphaBits = 8;
+	desired_pixel_format.cDepthBits = 24;
+	desired_pixel_format.iLayerType = PFD_MAIN_PLANE;
 
-	const int pixel_format_descriptor_ID = ChoosePixelFormat(device_context, &pixel_format_descriptor);
-	if (pixel_format_descriptor_ID == 0) {
+	const i32 suggested_pixel_format_ID = ChoosePixelFormat(device_context, &desired_pixel_format);
+	if (suggested_pixel_format_ID == 0) {
 		__debugbreak();
 	}
-	const BOOL pixel_format_success = SetPixelFormat(device_context, pixel_format_descriptor_ID, &pixel_format_descriptor);
+	const BOOL pixel_format_success = SetPixelFormat(device_context, suggested_pixel_format_ID, &desired_pixel_format);
 	if (pixel_format_success == FALSE) {
 		__debugbreak();
 	}
@@ -120,13 +126,13 @@ auto wgl_load_0() -> bool {
 	::DestroyWindow(window_handle);
 
 	//dummy_window.unregister_();
-	UnregisterClassW(window_class_name, instance);
+	::UnregisterClassW(window_class_name, instance);
 
 	return true;
 }
 
 auto wgl_set_pixel_format(const HDC& device_context) -> void {
-	const int pixel_attributes[] = {
+	const i32 pixel_attributes[] = {
 		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
 		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
 		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
@@ -141,23 +147,28 @@ auto wgl_set_pixel_format(const HDC& device_context) -> void {
 		0,
 	};
 
-	int format_descriptor_ID;
+	i32 format_descriptor_ID;
 	UINT num_formats;
 	const bool status = wglChoosePixelFormatARB(device_context, pixel_attributes, NULL, 1, &format_descriptor_ID, &num_formats);
-
 	if (status == false || num_formats == 0) {
-		std::cout << "wglChoosePixelFormatARB() failed." << std::endl;
+		std::cout << "wglChoosePixelFormatARB() failed. " << ::GetLastError() << std::endl;
 		return;
 	}
 
 	PIXELFORMATDESCRIPTOR format_descriptor;
-	DescribePixelFormat(device_context, format_descriptor_ID, sizeof(format_descriptor), &format_descriptor);
-	SetPixelFormat(device_context, format_descriptor_ID, &format_descriptor);
+	i32 maximum_pixel_format_index = DescribePixelFormat(device_context, format_descriptor_ID, sizeof(format_descriptor), &format_descriptor);
+	if(maximum_pixel_format_index == 0) {
+		std::cout << "DescribePixelFormat() failed. " << ::GetLastError() << std::endl;
+	}
+	BOOL result = SetPixelFormat(device_context, format_descriptor_ID, &format_descriptor);
+	if(result == FALSE) {
+		std::cout << "SetPixelFormat() failed. " << ::GetLastError() << std::endl;
+	}
 }
 
 auto wgl_create_render_context(HDC device_context) -> HGLRC {
-	const int major_min = 4, minor_min = 5;
-	int  context_attributes[] = {
+	const i32 major_min = 4, minor_min = 5;
+	i32  context_attributes[] = {
 		WGL_CONTEXT_MAJOR_VERSION_ARB, major_min,
 		WGL_CONTEXT_MINOR_VERSION_ARB, minor_min,
 		WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB, // TODO check whether this UE4 part is relevant to us 
@@ -165,18 +176,14 @@ auto wgl_create_render_context(HDC device_context) -> HGLRC {
 		0
 	};
 	const HGLRC render_context = wglCreateContextAttribsARB(device_context, 0, context_attributes);
+	if (render_context == NULL) {
+		std::cout << "wglCreateContextAttribsARB() failed. " << ::GetLastError() << std::endl;
+		return NULL;
+	}
 	const BOOL current_succes = wglMakeCurrent(device_context, render_context);
-
-	{
-		if (render_context == NULL) {
-			std::cout << "wglCreateContextAttribsARB() failed." << std::endl;
-			return NULL;
-		}
-
-		if (current_succes == false) {
-			std::cout << "wglMakeCurrent() failed." << std::endl;
-			return NULL;
-		}
+	if (current_succes == false) {
+		std::cout << "wglMakeCurrent() failed. " << ::GetLastError() << std::endl;
+		return NULL;
 	}
 	return render_context;
 }

@@ -2,9 +2,9 @@
 #include <glad/glad.h>
 #include <string>
 #include <utility>
-#include "../mesh.h" // For Color
+#include "JadeFrame/graphics/mesh.h" // For Color
 
-enum BLENDING_FACTOR : int {
+enum BLENDING_FACTOR : i32 {
 	ZERO = GL_ZERO,
 	ONE = GL_ONE,
 	SRC_COLOR = GL_SRC_COLOR,
@@ -40,7 +40,7 @@ typedef HGLRC__* HGLRC;
 struct HDC__;
 typedef HDC__* HDC;
 
-struct GLCache {
+struct GL_Cache {
 public:
 	auto set_default() -> void;
 	auto set_blending(bool enable, BLENDING_FACTOR sfactor = SRC_ALPHA, BLENDING_FACTOR dfactor = ONE_MINUS_SRC_ALPHA) -> void;
@@ -50,23 +50,26 @@ public:
 	auto add_clear_bitfield(const GLbitfield& bitfield) -> void;
 	auto remove_clear_bitfield(const GLbitfield& bitfield) -> void;
 	auto set_depth_test(bool enable) -> void;
+	auto set_face_culling(bool enable, GLenum mode) -> void; // mode = GL_FRONT, GL_BACK, and GL_FRONT_AND_BACK 
 
 public:
 	bool depth_test;
 	Color clear_color;
 	GLbitfield clear_bitfield;
 	bool blending;
+	bool is_face_culling;
+	GLenum face_culling_mode; 
 	std::pair<POLYGON_FACE, POLYGON_MODE>  polygon_mode;
 };
-class GLContext {
+class OpenGL_Context {
 public:
-	GLContext() = default;
-	GLContext(HWND hWnd, HDC& device_context, HGLRC& render_context);
-	~GLContext();
+	OpenGL_Context() = default;
+	OpenGL_Context(HWND hWnd/*, HDC& device_context, HGLRC& render_context*/);
+	~OpenGL_Context();
 
 	
 public:
-	GLCache gl_cache;
+	GL_Cache gl_cache;
 
 	HWND m_window_handle;
 	HDC m_device_context;
@@ -77,7 +80,7 @@ public:
 	std::string version;
 	std::string shading_language_version;
 	std::vector<std::string> extentenions;
-	int major_version;
-	int minor_version;
-	int num_extensions;
+	i32 major_version;
+	i32 minor_version;
+	i32 num_extensions;
 };

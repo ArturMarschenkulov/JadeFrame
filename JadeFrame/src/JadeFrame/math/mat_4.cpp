@@ -8,7 +8,7 @@ Matrix4x4::Matrix4x4()
 	el[0][2] = 0.0f; el[1][2] = 0.0f; el[2][2] = 1.0f; el[3][2] = 0.0f;
 	el[0][3] = 0.0f; el[1][3] = 0.0f; el[2][3] = 0.0f; el[3][3] = 1.0f;
 }
-Matrix4x4::Matrix4x4(const float digo) {
+Matrix4x4::Matrix4x4(const f32 digo) {
 	el[0][0] = digo; el[1][0] = 0.0f; el[2][0] = 0.0f; el[3][0] = 0.0f;
 	el[0][1] = 0.0f; el[1][1] = digo; el[2][1] = 0.0f; el[3][1] = 0.0f;
 	el[0][2] = 0.0f; el[1][2] = 0.0f; el[2][2] = digo; el[3][2] = 0.0f;
@@ -26,19 +26,19 @@ Matrix4x4::Matrix4x4(const Matrix4x4& mat) {
 }
 
 auto Matrix4x4::operator=(const Matrix4x4& mat) -> Matrix4x4& {
-	for (int row = 0; row < 4; row++) {
-		for (int col = 0; col < 4; col++) {
-			el[row][col] = mat[row][col];
+	for (u32 col = 0; col < 4; col++) {
+		for (u32 row = 0; row < 4; row++) {
+			el[col][row] = mat[col][row];
 		}
 	}
 	return (*this);
 }
 
-auto Matrix4x4::operator[](const int index)->std::array<float, 4>& {
+auto Matrix4x4::operator[](const u32 index)->std::array<f32, 4>& {
 	return this->el[index];
 }
 
-auto Matrix4x4::operator[](const int index) const -> const std::array<float, 4>& {
+auto Matrix4x4::operator[](const u32 index) const -> const std::array<f32, 4>& {
 	return this->el[index];
 }
 
@@ -61,9 +61,9 @@ auto Matrix4x4::operator*(const Vec4& vector) const -> Vec4 {
 
 auto Matrix4x4::operator*(const Matrix4x4& other) const -> Matrix4x4 {
 	Matrix4x4 result(0.0f);
-	for (int row = 0; row < 4; ++row) {
-		for (int col = 0; col < 4; ++col) {
-			for (unsigned int k = 0; k < 4; ++k) {
+	for (u32 row = 0; row < 4; ++row) {
+		for (u32 col = 0; col < 4; ++col) {
+			for (u32 k = 0; k < 4; ++k) {
 				//result.el[col][row] += el[k][row] * other.el[col][k];
 				result.el[col][row] += el[col][k] * other.el[k][row];
 			}
@@ -72,18 +72,18 @@ auto Matrix4x4::operator*(const Matrix4x4& other) const -> Matrix4x4 {
 	return result;
 }
 
-auto Matrix4x4::orthogonal_projection_matrix(float left, float right, float bottom, float top, float near, float far) -> Matrix4x4 {
-	auto ortho_LH_ZO = [](float left, float right, float bottom, float top, float zNear, float zFar) -> Matrix4x4 {
+auto Matrix4x4::orthogonal_projection_matrix(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) -> Matrix4x4 {
+	auto ortho_LH_ZO = [](f32 left, f32 right, f32 bottom, f32 top, f32 zNear, f32 zFar) -> Matrix4x4 {
 		Matrix4x4 Result(1);
-		Result[0][0] = static_cast<float>(2) / (right - left);
-		Result[1][1] = static_cast<float>(2) / (top - bottom);
-		Result[2][2] = static_cast<float>(1) / (zFar - zNear);
+		Result[0][0] = static_cast<f32>(2) / (right - left);
+		Result[1][1] = static_cast<f32>(2) / (top - bottom);
+		Result[2][2] = static_cast<f32>(1) / (zFar - zNear);
 		Result[3][0] = -(right + left) / (right - left);
 		Result[3][1] = -(top + bottom) / (top - bottom);
 		Result[3][2] = -zNear / (zFar - zNear);
 		return Result;
 	};
-	auto ortho_LH_NO = [](float left, float right, float bottom, float top, float zNear, float zFar) -> Matrix4x4 {
+	auto ortho_LH_NO = [](f32 left, f32 right, f32 bottom, f32 top, f32 zNear, f32 zFar) -> Matrix4x4 {
 		Matrix4x4 Result(1);
 		Result[0][0] = 2.0f / (right - left);
 		Result[1][1] = 2.0f / (top - bottom);
@@ -93,7 +93,7 @@ auto Matrix4x4::orthogonal_projection_matrix(float left, float right, float bott
 		Result[3][2] = -(zFar + zNear) / (zFar - zNear);
 		return Result;
 	};
-	auto ortho_RH_ZO = [](float left, float right, float bottom, float top, float zNear, float zFar) -> Matrix4x4 {
+	auto ortho_RH_ZO = [](f32 left, f32 right, f32 bottom, f32 top, f32 zNear, f32 zFar) -> Matrix4x4 {
 		Matrix4x4 Result(1);
 		Result[0][0] = 2.0 / (right - left);
 		Result[1][1] = 2.0 / (top - bottom);
@@ -103,7 +103,7 @@ auto Matrix4x4::orthogonal_projection_matrix(float left, float right, float bott
 		Result[3][2] = -zNear / (zFar - zNear);
 		return Result;
 	};
-	auto ortho_RH_NO = [](float left, float right, float bottom, float top, float zNear, float zFar) -> Matrix4x4 {
+	auto ortho_RH_NO = [](f32 left, f32 right, f32 bottom, f32 top, f32 zNear, f32 zFar) -> Matrix4x4 {
 		Matrix4x4 Result(1);
 		Result[0][0] = 2.0f / (right - left);
 		Result[1][1] = 2.0f / (top - bottom);
@@ -113,7 +113,7 @@ auto Matrix4x4::orthogonal_projection_matrix(float left, float right, float bott
 		Result[3][2] = -(zFar + zNear) / (zFar - zNear);
 		return Result;
 	};
-	//Matrix4x4 (*ortho_fn[])(float, float, float, float, float, float) = { ortho_LH_ZO, ortho_LH_NO,ortho_RH_ZO, ortho_RH_NO };
+	//Matrix4x4 (*ortho_fn[])(f32, f32, f32, f32, f32, f32) = { ortho_LH_ZO, ortho_LH_NO,ortho_RH_ZO, ortho_RH_NO };
 	//return ortho_fn[1](left, right, bottom, top, near, far);
 	return ortho_RH_NO(left, right, bottom, top, near, far);
 
@@ -127,8 +127,8 @@ auto Matrix4x4::orthogonal_projection_matrix(float left, float right, float bott
 	//return result;
 }
 
-auto Matrix4x4::perspective_projection_matrix(float fovy, float aspect, float near, float far) -> Matrix4x4 {
-	const float tan_half_fovy = tan(fovy / 2.0f);
+auto Matrix4x4::perspective_projection_matrix(f32 fovy, f32 aspect, f32 near, f32 far) -> Matrix4x4 {
+	const f32 tan_half_fovy = tan(fovy / 2.0f);
 	Matrix4x4 result(0.0f);
 	result.el[0][0] = 1.0f / (aspect * tan_half_fovy);
 	result.el[1][1] = 1.0f / tan_half_fovy;
@@ -137,17 +137,18 @@ auto Matrix4x4::perspective_projection_matrix(float fovy, float aspect, float ne
 	result.el[3][2] = -(2 * far * near) / (far - near);
 	return result;
 }
-auto Matrix4x4::translation_matrix(const Vec3& trans) -> Matrix4x4 {
+auto Matrix4x4::
+translation_matrix(const Vec3& trans) -> Matrix4x4 {
 	Matrix4x4 result(1.0f);
 	result.el[3][0] = trans.x;
 	result.el[3][1] = trans.y;
 	result.el[3][2] = trans.z;
 	return result;
 }
-auto Matrix4x4::rotation_matrix(float angle, const Vec3& axis) -> Matrix4x4 {
-	const float c = cos(angle);
-	const float omc = 1 - c;
-	const float s = sin(angle);
+auto Matrix4x4::rotation_matrix(f32 angle, const Vec3& axis) -> Matrix4x4 {
+	const f32 c = cos(angle);
+	const f32 omc = 1 - c;
+	const f32 s = sin(angle);
 
 	Matrix4x4 result(1.0f);
 	result.el[0][0] = axis.x * axis.x * omc + c;
@@ -264,56 +265,56 @@ auto Matrix4x4::look_at_matrix(const Vec3& camera, Vec3 object, Vec3 up) -> Matr
 
 }
 
-auto Matrix4x4::get_determinant() const -> float {
+auto Matrix4x4::get_determinant() const -> f32 {
 	const Matrix4x4& m = *this;
-	float t00 = m[0][0] * m[1][1] * m[2][2] * m[3][3];
-	float t01 = m[0][0] * m[1][1] * m[3][2] * m[2][3];
-	float t02 = m[0][0] * m[2][1] * m[1][2] * m[3][3];
-	float t03 = m[0][0] * m[2][1] * m[3][2] * m[1][3];
-	float t04 = m[0][0] * m[3][1] * m[1][2] * m[2][3];
-	float t05 = m[0][0] * m[3][1] * m[2][2] * m[1][3];
+	f32 t00 = m[0][0] * m[1][1] * m[2][2] * m[3][3];
+	f32 t01 = m[0][0] * m[1][1] * m[3][2] * m[2][3];
+	f32 t02 = m[0][0] * m[2][1] * m[1][2] * m[3][3];
+	f32 t03 = m[0][0] * m[2][1] * m[3][2] * m[1][3];
+	f32 t04 = m[0][0] * m[3][1] * m[1][2] * m[2][3];
+	f32 t05 = m[0][0] * m[3][1] * m[2][2] * m[1][3];
 
-	float t10 = m[1][0] * m[0][1] * m[2][2] * m[3][3];
-	float t11 = m[1][0] * m[0][1] * m[3][2] * m[2][3];
-	float t12 = m[1][0] * m[2][1] * m[0][2] * m[3][3];
-	float t13 = m[1][0] * m[2][1] * m[3][2] * m[0][3];
-	float t14 = m[1][0] * m[3][1] * m[0][2] * m[2][3];
-	float t15 = m[1][0] * m[3][1] * m[2][2] * m[0][3];
+	f32 t10 = m[1][0] * m[0][1] * m[2][2] * m[3][3];
+	f32 t11 = m[1][0] * m[0][1] * m[3][2] * m[2][3];
+	f32 t12 = m[1][0] * m[2][1] * m[0][2] * m[3][3];
+	f32 t13 = m[1][0] * m[2][1] * m[3][2] * m[0][3];
+	f32 t14 = m[1][0] * m[3][1] * m[0][2] * m[2][3];
+	f32 t15 = m[1][0] * m[3][1] * m[2][2] * m[0][3];
 
-	float t20 = m[2][0] * m[0][1] * m[1][2] * m[3][3];
-	float t21 = m[2][0] * m[0][1] * m[3][2] * m[1][3];
-	float t22 = m[2][0] * m[1][1] * m[0][2] * m[3][3];
-	float t23 = m[2][0] * m[1][1] * m[3][2] * m[0][3];
-	float t24 = m[2][0] * m[3][1] * m[0][2] * m[1][3];
-	float t25 = m[2][0] * m[3][1] * m[1][2] * m[0][3];
+	f32 t20 = m[2][0] * m[0][1] * m[1][2] * m[3][3];
+	f32 t21 = m[2][0] * m[0][1] * m[3][2] * m[1][3];
+	f32 t22 = m[2][0] * m[1][1] * m[0][2] * m[3][3];
+	f32 t23 = m[2][0] * m[1][1] * m[3][2] * m[0][3];
+	f32 t24 = m[2][0] * m[3][1] * m[0][2] * m[1][3];
+	f32 t25 = m[2][0] * m[3][1] * m[1][2] * m[0][3];
 
-	float t30 = m[3][0] * m[0][1] * m[1][2] * m[2][3];
-	float t31 = m[3][0] * m[0][1] * m[2][2] * m[1][3];
-	float t32 = m[3][0] * m[1][1] * m[0][2] * m[2][3];
-	float t33 = m[3][0] * m[1][1] * m[2][2] * m[0][3];
-	float t34 = m[3][0] * m[2][1] * m[0][2] * m[1][3];
-	float t35 = m[3][0] * m[2][1] * m[1][2] * m[0][3];
+	f32 t30 = m[3][0] * m[0][1] * m[1][2] * m[2][3];
+	f32 t31 = m[3][0] * m[0][1] * m[2][2] * m[1][3];
+	f32 t32 = m[3][0] * m[1][1] * m[0][2] * m[2][3];
+	f32 t33 = m[3][0] * m[1][1] * m[2][2] * m[0][3];
+	f32 t34 = m[3][0] * m[2][1] * m[0][2] * m[1][3];
+	f32 t35 = m[3][0] * m[2][1] * m[1][2] * m[0][3];
 
-	float t0 = +t00 - t01 - t02 + t03 + t04 - t05;
-	float t1 = -t10 + t11 + t12 - t13 - t14 + t15;
-	float t2 = +t20 - t21 - t22 + t23 + t24 - t25;
-	float t3 = -t30 + t31 + t32 - t33 - t34 + t35;
+	f32 t0 = +t00 - t01 - t02 + t03 + t04 - t05;
+	f32 t1 = -t10 + t11 + t12 - t13 - t14 + t15;
+	f32 t2 = +t20 - t21 - t22 + t23 + t24 - t25;
+	f32 t3 = -t30 + t31 + t32 - t33 - t34 + t35;
 
-	float t = t0 + t1 + t2 + t3;
+	f32 t = t0 + t1 + t2 + t3;
 
 	return t;
 }
 
 auto Matrix4x4::get_echelon() const -> Matrix4x4 {
 	Matrix4x4 m = *this;
-	int col_count = 4;
-	int row_count = 4;
+	i32 col_count = 4;
+	i32 row_count = 4;
 	// go through every column
-	for (int col = 0; col < col_count; col++) {
-		for (int row = col + 1; row < row_count; row++) {
+	for (u32 col = 0; col < col_count; col++) {
+		for (u32 row = col + 1; row < row_count; row++) {
 			if (m[col][row] != 0) {
-				float factor = m[col][row] / m[col][col];
-				for (int col2 = 0; col2 < col_count; col2++) {
+				f32 factor = m[col][row] / m[col][col];
+				for (u32 col2 = 0; col2 < col_count; col2++) {
 					m[col2][row] -= factor * m[col2][col];
 				}
 			}
@@ -326,11 +327,11 @@ auto Matrix4x4::is_invertible() const -> bool {
 	return (this->get_determinant() == 0) ? false : true;
 }
 
-auto Matrix4x4::get_rank() const -> int {
-	int result = 0;
+auto Matrix4x4::get_rank() const -> i32 {
+	i32 result = 0;
 	auto e = this->get_echelon();
-	for (int col = 0; col < 4; col++) {
-		for (int row = 0; row < 4; row++) {
+	for (u32 col = 0; col < 4; col++) {
+		for (u32 row = 0; row < 4; row++) {
 			result += (e[col][row] > 0) ? 1 : 0;
 		}
 	}
@@ -339,8 +340,8 @@ auto Matrix4x4::get_rank() const -> int {
 
 auto Matrix4x4::get_transpose() const -> Matrix4x4 {
 	Matrix4x4 result;
-	for (int col = 0; col < 4; col++) {
-		for (int row = 0; row < 4; row++) {
+	for (i32 col = 0; col < 4; col++) {
+		for (i32 row = 0; row < 4; row++) {
 			result[col][row] = el[row][col];
 		}
 	}
@@ -348,14 +349,14 @@ auto Matrix4x4::get_transpose() const -> Matrix4x4 {
 }
 
 auto Matrix4x4::make_echelon() -> Matrix4x4& {
-	int col_count = 4;
-	int row_count = 4;
+	u32 col_count = 4;
+	u32 row_count = 4;
 	// go through every column
-	for (int col = 0; col < col_count; col++) {
-		for (int row = col + 1; row < row_count; row++) {
+	for (u32 col = 0; col < col_count; col++) {
+		for (u32 row = col + 1; row < row_count; row++) {
 			if (el[col][row] != 0) {
-				float factor = el[col][row] / el[col][col];
-				for (int col2 = 0; col2 < col_count; col2++) {
+				f32 factor = el[col][row] / el[col][col];
+				for (u32 col2 = 0; col2 < col_count; col2++) {
 					el[col2][row] -= factor * el[col2][col];
 				}
 			}
@@ -367,30 +368,30 @@ auto Matrix4x4::make_echelon() -> Matrix4x4& {
 //
 //struct Matrix4x4 {
 //	union {
-//		std::array<std::array<float, 4>, 4> el;
-//		std::array<float, 4> colVec;
+//		std::array<std::array<f32, 4>, 4> el;
+//		std::array<f32, 4> colVec;
 //	};
-//	Matrix4x4(const float digo) {
-//		for (int col = 0; col < 4; col++) {
-//			for (int row = 0; row < 4; row++) {
-//				el[col][row] = (col == row) ? float(digo) : float(0.0f);
+//	Matrix4x4(const f32 digo) {
+//		for (i32 col = 0; col < 4; col++) {
+//			for (i32 row = 0; row < 4; row++) {
+//				el[col][row] = (col == row) ? f32(digo) : f32(0.0f);
 //			}
 //		}
 //	}
 //
 //	static auto add(const Matrix4x4& mat0, const Matrix4x4& mat1) -> Matrix4x4 {
 //		Matrix4x4 result(0.0f);
-//		for (int row = 0; row < 4; ++row) {
-//			for (int col = 0; col < 4; ++col) {
+//		for (i32 row = 0; row < 4; ++row) {
+//			for (i32 col = 0; col < 4; ++col) {
 //				result.el[col][row] = mat0.el[col][row] + mat1.el[col][row];
 //			}
 //		}
 //		return result;
 //	}
-//	static auto scalar_mult(const float scalar, Matrix4x4 mat) -> Matrix4x4 {
+//	static auto scalar_mult(const f32 scalar, Matrix4x4 mat) -> Matrix4x4 {
 //		Matrix4x4 result(0.0f);
-//		for (int row = 0; row < 4; ++row) {
-//			for (int col = 0; col < 4; ++col) {
+//		for (i32 row = 0; row < 4; ++row) {
+//			for (i32 col = 0; col < 4; ++col) {
 //				result.el[col][row] = scalar * mat.el[col][row];
 //			}
 //		}
@@ -398,8 +399,8 @@ auto Matrix4x4::make_echelon() -> Matrix4x4& {
 //	}
 //	static auto transpose(Matrix4x4 mat) -> Matrix4x4 {
 //		Matrix4x4 result(0.0f);
-//		for (int row = 0; row < 4; ++row) {
-//			for (int col = 0; col < 4; ++col) {
+//		for (i32 row = 0; row < 4; ++row) {
+//			for (i32 col = 0; col < 4; ++col) {
 //				result.el[col][row] = mat.el[row][col];
 //			}
 //		}
@@ -407,9 +408,9 @@ auto Matrix4x4::make_echelon() -> Matrix4x4& {
 //	}
 //	static auto dot_product(const Matrix4x4& mat0, const Matrix4x4& mat1) -> Matrix4x4 {
 //		Matrix4x4 result(0.0f);
-//		for (int row = 0; row < 4; ++row) {
-//			for (int col = 0; col < 4; ++col) {
-//				for (unsigned int k = 0; k < 4; ++k) {
+//		for (i32 row = 0; row < 4; ++row) {
+//			for (i32 col = 0; col < 4; ++col) {
+//				for (unsigned i32 k = 0; k < 4; ++k) {
 //					result.el[col][row] += mat0.el[col][k] * mat1.el[k][row];
 //				}
 //			}

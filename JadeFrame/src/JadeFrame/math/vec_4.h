@@ -1,22 +1,23 @@
 #pragma once
+#include "JadeFrame/defines.h"
 class Vec3;
 class Vec4 {
 public:
 	Vec4();
-	Vec4(const float x, const float y, const float z, const float w);
-	Vec4(const Vec3& vec3, const float w);
-	explicit Vec4(const float scalar);
+	Vec4(const f32 x, const f32 y, const f32 z, const f32 w);
+	Vec4(const Vec3& vec3, const f32 w);
+	explicit Vec4(const f32 scalar);
 
 	auto operator=(const Vec4& other)->Vec4&;
 	auto operator+(const Vec4& other) const->Vec4;
 	auto operator-(const Vec4& other) const->Vec4;
-	auto operator*(const float& other) const->Vec4;
-	auto operator/(const float& other) const->Vec4;
+	auto operator*(const f32& other) const->Vec4;
+	auto operator/(const f32& other) const->Vec4;
 
 	auto operator+=(const Vec4& other)->Vec4&;
 	auto operator-=(const Vec4& other)->Vec4&;
-	auto operator*=(const float& other)->Vec4&;
-	auto operator/=(const float& other)->Vec4&;
+	auto operator*=(const f32& other)->Vec4&;
+	auto operator/=(const f32& other)->Vec4&;
 
 	auto operator==(const Vec4& other) -> bool;
 	auto operator!=(const Vec4& other) -> bool;
@@ -24,16 +25,16 @@ public:
 
 	auto add(const Vec4 o) const->Vec4;
 	auto sub(const Vec4 o) const->Vec4;
-	auto mult(const float o) const->Vec4;
-	auto div(const float o) const->Vec4;
-	auto get_length() const->float;
-	auto dot(const Vec4& o) const -> float;
+	auto mult(const f32 o) const->Vec4;
+	auto div(const f32 o) const->Vec4;
+	auto get_length() const->f32;
+	auto dot(const Vec4& o) const -> f32;
 	auto get_normal() const->Vec4;
 public:
-	float x;
-	float y;
-	float z;
-	float w;
+	f32 x;
+	f32 y;
+	f32 z;
+	f32 w;
 };
 
 
@@ -41,8 +42,8 @@ class Quaternion {
 public:
 
 public:
-	float a;
-	float i;
-	float j;
-	float k;
+	f32 a;
+	f32 i;
+	f32 j;
+	f32 k;
 };
