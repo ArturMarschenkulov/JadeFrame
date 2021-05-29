@@ -7,11 +7,11 @@
 
 
 auto OpenGL_Renderer::set_clear_color(const Color& color) -> void {
-	m_context.gl_cache.set_clear_color(color);
+	m_context.m_cache.set_clear_color(color);
 }
 
 auto OpenGL_Renderer::clear_background() const -> void {
-	auto bitfield = m_context.gl_cache.clear_bitfield;
+	auto bitfield = m_context.m_cache.clear_bitfield;
 	glClear(bitfield);
 }
 auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void {
@@ -22,7 +22,7 @@ auto OpenGL_Renderer::swap_buffer(const HWND window_handle) const -> void {
 	::SwapBuffers(GetDC(window_handle)); // TODO: This is Windows specific. Abstract his away!
 }
 auto OpenGL_Renderer::push_to_renderer(const Object& obj) -> void {
-	RenderCommand command = {};
+	OpenGL_RenderCommand command = {};
 	command.mesh = obj.m_mesh;
 	command.material = obj.m_material;
 	command.transform = &obj.m_transform;
@@ -50,22 +50,22 @@ auto OpenGL_Renderer::render_pushed(const Matrix4x4& view_projection) const -> v
 
 	for (size_t i = 0; i < m_render_commands.size(); ++i) {
 
-		const Material* material = m_render_commands[i].material;
-		const Mesh* mesh = m_render_commands[i].mesh;
+		const OpenGL_Material* material = m_render_commands[i].material;
 		const Matrix4x4* transform = m_render_commands[i].transform;
-		const OpenGL_VertexArray* vertex_array = m_render_commands[i].vertex_array;
 
 		material->m_shader->bind();
 		material->m_shader->set_uniform("u_view_projection", view_projection);
 		material->m_shader->set_uniform("u_model", *transform);
 		material->m_texture->bind();
 
+		const Mesh* mesh = m_render_commands[i].mesh;
+		const OpenGL_VertexArray* vertex_array = m_render_commands[i].vertex_array;
+
 		this->render_mesh(vertex_array, mesh);
 	}
-}
-auto OpenGL_Renderer::clear_render_commands() -> void {
 	m_render_commands.clear();
 }
+
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "extern/stb/stb_image_write.h"
 #include <chrono>
@@ -102,8 +102,8 @@ auto OpenGL_Renderer::set_context(const HWND& window_handle) -> void {
 	m_context = OpenGL_Context(window_handle);
 }
 
-auto CommandBuffer::push(const Mesh& mesh, const Material& material, const Matrix4x4& tranform, const OpenGL_VertexArray& vertex_array) -> void {
-	RenderCommand command = {};
+auto OpenGL_CommandBuffer::push(const Mesh& mesh, const OpenGL_Material& material, const Matrix4x4& tranform, const OpenGL_VertexArray& vertex_array) -> void {
+	OpenGL_RenderCommand command = {};
 	command.mesh = &mesh;
 	command.material = &material;
 	command.transform = &tranform;

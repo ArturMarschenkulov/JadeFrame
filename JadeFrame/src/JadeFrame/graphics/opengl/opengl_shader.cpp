@@ -146,7 +146,7 @@ auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::uno
 	std::vector<GL_Variable> variables(num_variables);
 	std::unordered_map<std::string, GL_Variable> variable_map;
 
-	for (u32 i = 0; i < num_variables; ++i) {
+	for (i32 i = 0; i < num_variables; ++i) {
 		char buffer[128];
 		GLenum gl_type;
 		switch (variable_type) {

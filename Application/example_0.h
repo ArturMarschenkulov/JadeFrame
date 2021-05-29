@@ -36,7 +36,8 @@ struct Drop {
 			y = -100;
 		}
 	}
-	auto show(OpenGL_Renderer& renderer) const -> void {
+	auto show() const -> void {
+		Renderer& renderer = JadeFrame::get_singleton()->m_apps[0]->m_renderer;
 		renderer.push_to_renderer(obj);
 	}
 
@@ -108,7 +109,7 @@ auto Example_0::on_update() -> void {
 auto Example_0::on_draw() -> void {
 
 	for (u32 i = 0; i < drops.size(); i++) {
-		drops[i].show(m_renderer);
+		drops[i].show();
 	}
 
 

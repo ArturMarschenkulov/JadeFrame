@@ -73,36 +73,36 @@ auto Matrix4x4::operator*(const Matrix4x4& other) const -> Matrix4x4 {
 }
 
 auto Matrix4x4::orthogonal_projection_matrix(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) -> Matrix4x4 {
-	auto ortho_LH_ZO = [](f32 left, f32 right, f32 bottom, f32 top, f32 zNear, f32 zFar) -> Matrix4x4 {
-		Matrix4x4 Result(1);
-		Result[0][0] = static_cast<f32>(2) / (right - left);
-		Result[1][1] = static_cast<f32>(2) / (top - bottom);
-		Result[2][2] = static_cast<f32>(1) / (zFar - zNear);
-		Result[3][0] = -(right + left) / (right - left);
-		Result[3][1] = -(top + bottom) / (top - bottom);
-		Result[3][2] = -zNear / (zFar - zNear);
-		return Result;
-	};
-	auto ortho_LH_NO = [](f32 left, f32 right, f32 bottom, f32 top, f32 zNear, f32 zFar) -> Matrix4x4 {
-		Matrix4x4 Result(1);
-		Result[0][0] = 2.0f / (right - left);
-		Result[1][1] = 2.0f / (top - bottom);
-		Result[2][2] = 2.0f / (zFar - zNear);
-		Result[3][0] = -(right + left) / (right - left);
-		Result[3][1] = -(top + bottom) / (top - bottom);
-		Result[3][2] = -(zFar + zNear) / (zFar - zNear);
-		return Result;
-	};
-	auto ortho_RH_ZO = [](f32 left, f32 right, f32 bottom, f32 top, f32 zNear, f32 zFar) -> Matrix4x4 {
-		Matrix4x4 Result(1);
-		Result[0][0] = 2.0 / (right - left);
-		Result[1][1] = 2.0 / (top - bottom);
-		Result[2][2] = -1.0 / (zFar - zNear);
-		Result[3][0] = -(right + left) / (right - left);
-		Result[3][1] = -(top + bottom) / (top - bottom);
-		Result[3][2] = -zNear / (zFar - zNear);
-		return Result;
-	};
+	//auto ortho_LH_ZO = [](f32 left, f32 right, f32 bottom, f32 top, f32 zNear, f32 zFar) -> Matrix4x4 {
+	//	Matrix4x4 Result(1);
+	//	Result[0][0] = static_cast<f32>(2) / (right - left);
+	//	Result[1][1] = static_cast<f32>(2) / (top - bottom);
+	//	Result[2][2] = static_cast<f32>(1) / (zFar - zNear);
+	//	Result[3][0] = -(right + left) / (right - left);
+	//	Result[3][1] = -(top + bottom) / (top - bottom);
+	//	Result[3][2] = -zNear / (zFar - zNear);
+	//	return Result;
+	//};
+	//auto ortho_LH_NO = [](f32 left, f32 right, f32 bottom, f32 top, f32 zNear, f32 zFar) -> Matrix4x4 {
+	//	Matrix4x4 Result(1);
+	//	Result[0][0] = 2.0f / (right - left);
+	//	Result[1][1] = 2.0f / (top - bottom);
+	//	Result[2][2] = 2.0f / (zFar - zNear);
+	//	Result[3][0] = -(right + left) / (right - left);
+	//	Result[3][1] = -(top + bottom) / (top - bottom);
+	//	Result[3][2] = -(zFar + zNear) / (zFar - zNear);
+	//	return Result;
+	//};
+	//auto ortho_RH_ZO = [](f32 left, f32 right, f32 bottom, f32 top, f32 zNear, f32 zFar) -> Matrix4x4 {
+	//	Matrix4x4 Result(1);
+	//	Result[0][0] = 2.0 / (right - left);
+	//	Result[1][1] = 2.0 / (top - bottom);
+	//	Result[2][2] = -1.0 / (zFar - zNear);
+	//	Result[3][0] = -(right + left) / (right - left);
+	//	Result[3][1] = -(top + bottom) / (top - bottom);
+	//	Result[3][2] = -zNear / (zFar - zNear);
+	//	return Result;
+	//};
 	auto ortho_RH_NO = [](f32 left, f32 right, f32 bottom, f32 top, f32 zNear, f32 zFar) -> Matrix4x4 {
 		Matrix4x4 Result(1);
 		Result[0][0] = 2.0f / (right - left);
@@ -173,29 +173,29 @@ auto Matrix4x4::scale_matrix(const Vec3& scale) -> Matrix4x4 {
 }
 
 auto Matrix4x4::look_at_matrix(const Vec3& camera, Vec3 object, Vec3 up) -> Matrix4x4 {
-	auto look_at_LH = [](const Vec3& eye, const Vec3& center, const Vec3& up) {
-		Vec3 const f((center - eye).get_normal());
-		Vec3 const s(up.cross(f).get_normal());
-		Vec3 const u(f.cross(s));
+	//auto look_at_LH = [](const Vec3& eye, const Vec3& center, const Vec3& up) {
+	//	Vec3 const f((center - eye).get_normal());
+	//	Vec3 const s(up.cross(f).get_normal());
+	//	Vec3 const u(f.cross(s));
 
-		Matrix4x4 Result(1);
-		Result[0][0] = s.x;
-		Result[1][0] = s.y;
-		Result[2][0] = s.z;
+	//	Matrix4x4 Result(1);
+	//	Result[0][0] = s.x;
+	//	Result[1][0] = s.y;
+	//	Result[2][0] = s.z;
 
-		Result[0][1] = u.x;
-		Result[1][1] = u.y;
-		Result[2][1] = u.z;
+	//	Result[0][1] = u.x;
+	//	Result[1][1] = u.y;
+	//	Result[2][1] = u.z;
 
-		Result[0][2] = f.x;
-		Result[1][2] = f.y;
-		Result[2][2] = f.z;
+	//	Result[0][2] = f.x;
+	//	Result[1][2] = f.y;
+	//	Result[2][2] = f.z;
 
-		Result[3][0] = -s.dot(eye);
-		Result[3][1] = -u.dot(eye);
-		Result[3][2] = -s.dot(eye);
-		return Result;
-	};
+	//	Result[3][0] = -s.dot(eye);
+	//	Result[3][1] = -u.dot(eye);
+	//	Result[3][2] = -s.dot(eye);
+	//	return Result;
+	//};
 	auto look_at_RH = [](const Vec3& eye, const Vec3& center, const Vec3& up) {
 		Vec3 const f((center - eye).get_normal());
 		Vec3 const s(f.cross(up).get_normal());
@@ -307,8 +307,8 @@ auto Matrix4x4::get_determinant() const -> f32 {
 
 auto Matrix4x4::get_echelon() const -> Matrix4x4 {
 	Matrix4x4 m = *this;
-	i32 col_count = 4;
-	i32 row_count = 4;
+	u32 col_count = 4;
+	u32 row_count = 4;
 	// go through every column
 	for (u32 col = 0; col < col_count; col++) {
 		for (u32 row = col + 1; row < row_count; row++) {

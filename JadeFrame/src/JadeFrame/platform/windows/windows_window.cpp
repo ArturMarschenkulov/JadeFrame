@@ -160,65 +160,65 @@ static auto CALLBACK window_procedure(HWND hWnd, UINT message, WPARAM wParam, LP
 
 	return 0;       // message handled
 }
-static auto win32_register_window_class(HINSTANCE instance) -> void {
-	WNDCLASSEX window_class;
-	ZeroMemory(&window_class, sizeof(window_class));
-	window_class.cbSize = sizeof(window_class);
-	window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	window_class.lpfnWndProc = window_procedure;
-	window_class.cbClsExtra = 0;
-	window_class.cbWndExtra = 0;
-	window_class.hInstance = instance;
-	window_class.hIcon = LoadIcon(NULL, IDI_WINLOGO);
-	window_class.hCursor = LoadCursor(NULL, IDC_ARROW);
-	window_class.hbrBackground = nullptr;
-	window_class.lpszMenuName = nullptr;
-	window_class.lpszClassName = L"JadeFrame";//"L"JadeFrame Window";
-	if (!::RegisterClassExW(&window_class)) {
-		std::cout << "Window Registration Failed! " << ::GetLastError() << std::endl;
-		__debugbreak();
-		//LPVOID lpMsgBuf;
-		//::FormatMessage(
-		//	FORMAT_MESSAGE_ALLOCATE_BUFFER |
-		//	FORMAT_MESSAGE_FROM_SYSTEM |
-		//	FORMAT_MESSAGE_IGNORE_INSERTS,
-		//	NULL,
-		//	er,
-		//	MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		//	(LPTSTR)&lpMsgBuf,
-		//	0, NULL);
-	}
-}
+//static auto win32_register_window_class(HINSTANCE instance) -> void {
+//	WNDCLASSEX window_class;
+//	ZeroMemory(&window_class, sizeof(window_class));
+//	window_class.cbSize = sizeof(window_class);
+//	window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+//	window_class.lpfnWndProc = window_procedure;
+//	window_class.cbClsExtra = 0;
+//	window_class.cbWndExtra = 0;
+//	window_class.hInstance = instance;
+//	window_class.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+//	window_class.hCursor = LoadCursor(NULL, IDC_ARROW);
+//	window_class.hbrBackground = nullptr;
+//	window_class.lpszMenuName = nullptr;
+//	window_class.lpszClassName = L"JadeFrame";//"L"JadeFrame Window";
+//	if (!::RegisterClassExW(&window_class)) {
+//		std::cout << "Window Registration Failed! " << ::GetLastError() << std::endl;
+//		__debugbreak();
+//		//LPVOID lpMsgBuf;
+//		//::FormatMessage(
+//		//	FORMAT_MESSAGE_ALLOCATE_BUFFER |
+//		//	FORMAT_MESSAGE_FROM_SYSTEM |
+//		//	FORMAT_MESSAGE_IGNORE_INSERTS,
+//		//	NULL,
+//		//	er,
+//		//	MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+//		//	(LPTSTR)&lpMsgBuf,
+//		//	0, NULL);
+//	}
+//}
 
-static auto win32_create_window(HINSTANCE instance, const std::string& title, Vec2 size, Vec2 position) -> HWND {
-	DWORD window_ex_style = 0;
-	LPCWSTR app_window_class = L"JadeFrame";
-	LPCWSTR app_window_title = win32_convert_char_array_to_LPCWSTR(static_cast<const char*>(title.c_str()));
-	DWORD window_style = WS_OVERLAPPEDWINDOW;
-	i32 window_x = (position.x == -1) ? CW_USEDEFAULT : position.x;
-	i32 window_y = (position.y == -1) ? CW_USEDEFAULT : position.y;
-	i32 window_width = static_cast<int32_t>(size.x); //CW_USEDEFAULT;
-	i32 window_height = static_cast<int32_t>(size.y);  //CW_USEDEFAULT;
-	HWND parent_window = NULL;
-	HMENU menu = NULL;
-	LPVOID lpParam = NULL;
-
-	HWND window_handle = CreateWindowExW(
-		window_ex_style,
-		app_window_class,
-		app_window_title,
-		window_style,
-		window_x, window_y,
-		window_width, window_height,
-		parent_window, menu,                     // parent window, menu
-		instance, lpParam
-	);
-	if (window_handle == NULL) {
-		std::cout << "win32_create_window error: " << GetLastError() << std::endl;
-		__debugbreak();
-	}
-	return window_handle;
-}
+//static auto win32_create_window(HINSTANCE instance, const std::string& title, Vec2 size, Vec2 position) -> HWND {
+//	DWORD window_ex_style = 0;
+//	LPCWSTR app_window_class = L"JadeFrame";
+//	LPCWSTR app_window_title = win32_convert_char_array_to_LPCWSTR(static_cast<const char*>(title.c_str()));
+//	DWORD window_style = WS_OVERLAPPEDWINDOW;
+//	i32 window_x = (position.x == -1) ? CW_USEDEFAULT : position.x;
+//	i32 window_y = (position.y == -1) ? CW_USEDEFAULT : position.y;
+//	i32 window_width = static_cast<int32_t>(size.x); //CW_USEDEFAULT;
+//	i32 window_height = static_cast<int32_t>(size.y);  //CW_USEDEFAULT;
+//	HWND parent_window = NULL;
+//	HMENU menu = NULL;
+//	LPVOID lpParam = NULL;
+//
+//	HWND window_handle = CreateWindowExW(
+//		window_ex_style,
+//		app_window_class,
+//		app_window_title,
+//		window_style,
+//		window_x, window_y,
+//		window_width, window_height,
+//		parent_window, menu,                     // parent window, menu
+//		instance, lpParam
+//	);
+//	if (window_handle == NULL) {
+//		std::cout << "win32_create_window error: " << GetLastError() << std::endl;
+//		__debugbreak();
+//	}
+//	return window_handle;
+//}
 
 
 Windows_Window::Windows_Window() {

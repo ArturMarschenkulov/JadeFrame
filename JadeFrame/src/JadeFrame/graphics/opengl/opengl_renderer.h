@@ -22,12 +22,12 @@ enum class PRIMITIVE_TYPE {
 	POINTS = GL_POINTS,
 };
 
-struct Material {
+struct OpenGL_Material {
 	const OpenGL_Texture* m_texture = nullptr;
 	OpenGL_Shader* m_shader = nullptr;
 };
 struct Object {
-	Material* m_material = nullptr;
+	OpenGL_Material* m_material = nullptr;
 	Mesh* m_mesh = nullptr;
 
 	Matrix4x4 m_transform;
@@ -38,16 +38,16 @@ struct Object {
 	}
 };
 
-struct RenderCommand {
+struct OpenGL_RenderCommand {
 	const Matrix4x4* transform = nullptr;
 	const Mesh* mesh = nullptr;
-	const Material* material = nullptr;
+	const OpenGL_Material* material = nullptr;
 	const OpenGL_VertexArray* vertex_array = nullptr;
 };
-class CommandBuffer {
+class OpenGL_CommandBuffer {
 public:
-	auto push(const Mesh& mesh, const Material& material, const Matrix4x4& tranform, const OpenGL_VertexArray& vertex_array) -> void;
-	std::vector<RenderCommand> m_render_commands;
+	auto push(const Mesh& mesh, const OpenGL_Material& material, const Matrix4x4& tranform, const OpenGL_VertexArray& vertex_array) -> void;
+	std::vector<OpenGL_RenderCommand> m_render_commands;
 };
 
 struct HWND__;	typedef HWND__* HWND;
@@ -62,7 +62,6 @@ public:
 	auto push_to_renderer(const Object& obj) -> void;
 	auto render_mesh(const OpenGL_VertexArray* buffer_data, const Mesh* mesh) const -> void;
 	auto render_pushed(const Matrix4x4& view_projection) const -> void;
-	auto clear_render_commands() -> void;
 
 	auto take_screenshot(const char* filename) -> void;
 
@@ -70,5 +69,5 @@ public:
 
 private:
 	OpenGL_Context m_context;
-	std::deque<RenderCommand> m_render_commands;
+	mutable std::deque<OpenGL_RenderCommand> m_render_commands;
 };

@@ -462,6 +462,9 @@
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_debug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\JadeFrame.cpp">

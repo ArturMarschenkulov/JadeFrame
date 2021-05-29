@@ -20,22 +20,6 @@ class Vec4;
 class Matrix4x4;
 class OpenGL_Shader;
 
-
-using GL_ValueVariant = 
-std::variant<
-	i32, f32,
-	Vec2, Vec3, Vec4,
-	Matrix4x4
->;
-struct GL_Variable {
-	SHADER_TYPE  type;
-	std::string  name;
-	i32          size;
-	GLuint		 location;
-	GL_ValueVariant value;
-};
-
-
 class OpenGL_Shader {
 public:
 
@@ -51,7 +35,7 @@ public:
 	auto bind() const -> void;
 	auto unbind() const -> void;
 
-	//private:
+private:
 	GL_Program m_program;
 	GL_Shader m_vertex_shader;
 	GL_Shader m_fragment_shader;
@@ -68,7 +52,22 @@ public:
 	auto set_uniform(const std::string& name, const Vec4& value) -> void;
 	auto set_uniform(const std::string& name, const Matrix4x4& mat) -> void;
 	auto update_uniforms() -> void;
+private:
+	using GL_ValueVariant =
+		std::variant<
+		i32, f32,
+		Vec2, Vec3, Vec4,
+		Matrix4x4
+		>;
+	struct GL_Variable {
+		SHADER_TYPE  type;
+		std::string  name;
+		i32          size;
+		GLuint		 location;
+		GL_ValueVariant value;
+	};
 	auto query_uniforms(const GLenum variable_type) const -> std::unordered_map<std::string, GL_Variable>;
+private:
 
 	std::unordered_map<std::string, GL_Variable> m_uniforms;
 	std::unordered_map<std::string, GL_Variable> m_attributes;

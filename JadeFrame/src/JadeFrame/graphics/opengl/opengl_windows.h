@@ -7,6 +7,6 @@
 typedef BOOL	WINAPI	PFNWGLSWAPINTERVALEXTPROC(int);
 extern PFNWGLSWAPINTERVALEXTPROC* wglSwapIntervalEXT;
 
-auto wgl_load_0() -> bool;
+auto wgl_load() -> bool;
 auto wgl_set_pixel_format(const HDC& device_context) -> void;
 auto wgl_create_render_context(HDC device_context) -> HGLRC;

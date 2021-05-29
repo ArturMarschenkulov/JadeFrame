@@ -104,7 +104,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vulkan-1.lib;shadercd.lib;shaderc_combinedd.lib;shaderc_sharedd.lib;shaderc_utild.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\glfw32;$(SolutionDir)JadeFrame\src\extern\glfw64;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Lib</AdditionalLibraryDirectories>
@@ -126,7 +126,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vulkan-1.lib;shadercd.lib;shaderc_combinedd.lib;shaderc_sharedd.lib;shaderc_utild.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\glfw32;$(SolutionDir)JadeFrame\src\extern\glfw64;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Lib</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
     </Lib>
@@ -150,7 +150,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vulkan-1.lib;shaderc.lib;shaderc_combined.lib;shaderc_shared.lib;shaderc_util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\glfw32;$(SolutionDir)JadeFrame\src\extern\glfw64;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Lib</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
     </Lib>
@@ -174,7 +174,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vulkan-1.lib;shaderc.lib;shaderc_combined.lib;shaderc_shared.lib;shaderc_util.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\glfw32;$(SolutionDir)JadeFrame\src\extern\glfw64;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Lib</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
     </Lib>
@@ -313,6 +313,7 @@
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_windows.h" />
     <ClInclude Include="src\JadeFrame\graphics\software\software_renderer.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_context.h" />
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_debug.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_renderer.h" />
     <ClInclude Include="src\JadeFrame\gui.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_input_manager.h" />

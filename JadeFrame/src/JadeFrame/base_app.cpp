@@ -47,19 +47,19 @@ BaseApp::BaseApp(const std::string& title, const Vec2& size, const Vec2& positio
 	m_main_window_p = &m_windows[0];
 
 	m_renderer.set_context(m_windows[0].m_window_handle);
-	m_vulkan_renderer.set_context(m_windows[0].m_window_handle);
+
+
 }
 auto BaseApp::start() -> void {
 
 
 	this->on_init();
 	GUI_init(m_current_window_p->m_window_handle);
-
-	m_time_manager.set_FPS(400);
+	m_vulkan_renderer.set_context(m_windows[0].m_window_handle);
+	m_time_manager.set_FPS(60);
 	while (m_is_running) {
 
 		this->on_update();
-
 		if (m_current_window_p->m_window_state != Windows_Window::WINDOW_STATE::MINIMIZED) {
 			m_time_manager.calc_elapsed();
 			m_renderer.swap_buffer(m_current_window_p->m_window_handle);
@@ -69,10 +69,8 @@ auto BaseApp::start() -> void {
 
 
 			this->on_draw();
-			const Matrix4x4 view_projection = m_camera.get_view_matrix() * m_camera.get_projection_matrix();
+			const Matrix4x4& view_projection = m_camera.get_view_projection_matrix();
 			m_renderer.render_pushed(view_projection);
-			m_renderer.clear_render_commands();
-
 
 			GUI_render();
 

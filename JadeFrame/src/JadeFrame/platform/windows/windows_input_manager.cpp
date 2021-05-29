@@ -55,38 +55,38 @@ auto Windows_InputManager::key_callback(const WindowsMessage& wm) -> void {
 		//::PostQuitMessage(0);
 	}
 }
-auto Windows_InputManager::key_callback2(i64 lParam, u64 wParam, u32 message) -> void {
-	u64 key_code = wParam;
-
-	//int64_t bit_29 = (lParam >> 29) & 1; // 1 == system key (basically ALT key + some key)
-	//int64_t bit_30 = (lParam >> 30) & 1; // 1 == repeatedly pressed
-	i64 bit_31 = (lParam >> 31) & 1; // 0 == pressed, 1 == released
-
-	//bool b_is_system_key = (bit_29 == 1);
-	//bool b_is_repeated = (bit_30 == 1);
-	bool b_is_pressed = (bit_31 == 0);
-
-	KeyEvent::TYPE key_event_type = b_is_pressed ? KeyEvent::TYPE::PRESSED : KeyEvent::TYPE::RELEASED;
-	KeyEvent key_event = { key_event_type, key_code };
-
-	std::vector<KeyEvent> key_events;
-	key_events.push_back(key_event);
-
-	if (key_event.type == KeyEvent::TYPE::PRESSED) {
-		m_current_key_state[key_code] = INPUT_STATE::PRESSED;
-	} else if (key_event.type == KeyEvent::TYPE::RELEASED) {
-		m_current_key_state[key_code] = INPUT_STATE::RELEASED;
-	} else {
-		__debugbreak();
-	}
-
-
-	//TODO: Try to extract that to somewhere else.
-	if (m_current_key_state[static_cast<i32>(KEY::ESCAPE)] == INPUT_STATE::PRESSED) {
-		JadeFrame::get_singleton()->m_current_app_p->m_is_running = false;
-		::PostQuitMessage(0);
-	}
-}
+//auto Windows_InputManager::key_callback2(i64 lParam, u64 wParam, u32 message) -> void {
+//	u64 key_code = wParam;
+//
+//	//int64_t bit_29 = (lParam >> 29) & 1; // 1 == system key (basically ALT key + some key)
+//	//int64_t bit_30 = (lParam >> 30) & 1; // 1 == repeatedly pressed
+//	i64 bit_31 = (lParam >> 31) & 1; // 0 == pressed, 1 == released
+//
+//	//bool b_is_system_key = (bit_29 == 1);
+//	//bool b_is_repeated = (bit_30 == 1);
+//	bool b_is_pressed = (bit_31 == 0);
+//
+//	KeyEvent::TYPE key_event_type = b_is_pressed ? KeyEvent::TYPE::PRESSED : KeyEvent::TYPE::RELEASED;
+//	KeyEvent key_event = { key_event_type, key_code };
+//
+//	std::vector<KeyEvent> key_events;
+//	key_events.push_back(key_event);
+//
+//	if (key_event.type == KeyEvent::TYPE::PRESSED) {
+//		m_current_key_state[key_code] = INPUT_STATE::PRESSED;
+//	} else if (key_event.type == KeyEvent::TYPE::RELEASED) {
+//		m_current_key_state[key_code] = INPUT_STATE::RELEASED;
+//	} else {
+//		__debugbreak();
+//	}
+//
+//
+//	//TODO: Try to extract that to somewhere else.
+//	if (m_current_key_state[static_cast<i32>(KEY::ESCAPE)] == INPUT_STATE::PRESSED) {
+//		JadeFrame::get_singleton()->m_current_app_p->m_is_running = false;
+//		::PostQuitMessage(0);
+//	}
+//}
 auto Windows_InputManager::char_callback(const WindowsMessage& wm) -> void {
 	//window_message.hWnd;
 	//window_message.message;
@@ -144,16 +144,16 @@ static auto convert_buttons_from_JF_to_imgui(BUTTON button) -> i32 {
 	}
 	return result;
 }
-static auto convert_keys_from_JF_to_imgui(KEY button) -> i32 {
-	i32 result;
-	switch (button) {
-		//case BUTTON::LEFT: result = 0; break;
-		//case BUTTON::RIGHT: result = 1; break;
-		//case BUTTON::MIDDLE: result = 4; break;
-		default: result = -1; __debugbreak(); break;
-	}
-	return result;
-}
+//static auto convert_keys_from_JF_to_imgui(KEY button) -> i32 {
+//	i32 result;
+//	switch (button) {
+//		//case BUTTON::LEFT: result = 0; break;
+//		//case BUTTON::RIGHT: result = 1; break;
+//		//case BUTTON::MIDDLE: result = 4; break;
+//		default: result = -1; __debugbreak(); break;
+//	}
+//	return result;
+//}
 
 //auto Windows_InputManager::mouse_button_callback(i64 lParam, i64 wParam, i32 message) -> void {
 auto Windows_InputManager::mouse_button_callback(const WindowsMessage& wm) -> void {

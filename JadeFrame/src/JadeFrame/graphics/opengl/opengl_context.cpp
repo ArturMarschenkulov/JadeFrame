@@ -10,7 +10,7 @@ OpenGL_Context::OpenGL_Context(HWND hWnd) {
 
 	static bool is_wgl_loaded = false;
 	if (is_wgl_loaded == false) {
-		is_wgl_loaded = wgl_load_0();
+		is_wgl_loaded = wgl_load();
 	}
 
 	HDC device_context = GetDC(hWnd);
@@ -30,7 +30,7 @@ OpenGL_Context::OpenGL_Context(HWND hWnd) {
 	}
 
 	set_debug_mode(true);
-	gl_cache.set_default();
+	m_cache.set_default();
 
 
 	vendor = reinterpret_cast<char const*>(glGetString(GL_VENDOR));
@@ -40,7 +40,7 @@ OpenGL_Context::OpenGL_Context(HWND hWnd) {
 	glGetIntegerv(GL_MAJOR_VERSION, &major_version);
 	glGetIntegerv(GL_MINOR_VERSION, &minor_version);
 	glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
-	for (u32 i = 0; i < num_extensions; i++) {
+	for (i32 i = 0; i < num_extensions; i++) {
 		extentenions.push_back(reinterpret_cast<char const*>(glGetStringi(GL_EXTENSIONS, i)));
 	}
 

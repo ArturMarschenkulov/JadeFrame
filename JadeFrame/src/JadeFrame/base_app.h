@@ -106,7 +106,7 @@ public:
 		//__debugbreak();
 	}
 
-	auto get_material(const std::string& name) -> Material& {
+	auto get_material(const std::string& name) -> OpenGL_Material& {
 		if (m_materials.contains(name)) {
 			return m_materials.at(name);
 		}
@@ -127,7 +127,7 @@ public:
 private:
 	std::unordered_map<std::string, OpenGL_Shader> m_shaders;
 	std::unordered_map<std::string, OpenGL_Texture> m_textures;
-	std::unordered_map<std::string, Material> m_materials;
+	std::unordered_map<std::string, OpenGL_Material> m_materials;
 	std::unordered_map<std::string, Mesh> m_meshes;
 };
 
@@ -143,7 +143,7 @@ public:
 	virtual auto on_draw() -> void = 0;
 
 	auto start() -> void;
-protected:
+//protected:
 	auto poll_events() -> void;
 
 public:

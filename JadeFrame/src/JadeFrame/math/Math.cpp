@@ -72,23 +72,23 @@ auto to_degrees(f32 radians) -> f32 {
 
 
 namespace Test1 {
-static auto line_closest_point(const Vec2& a, const Vec2& b, const Vec2& p) -> Vec2 {
-    Vec2 ap = p - a;
-    Vec2 ab_dir = b - a;
-    f32 ab_len = sqrtf(ab_dir.x * ab_dir.x + ab_dir.y * ab_dir.y);
-    ab_dir *= 1.0f / ab_len;
-    f32 dot = ap.x * ab_dir.x + ap.y * ab_dir.y;
-    if (dot < 0.0f)
-        return a;
-    if (dot > ab_len)
-        return b;
-    return a + ab_dir * dot;
-}
-
-static auto triangle_contains_point(const Vec2& a, const Vec2& b, const Vec2& c, const Vec2& p) -> bool {
-    bool b1 = ((p.x - b.x) * (a.y - b.y) - (p.y - b.y) * (a.x - b.x)) < 0.0f;
-    bool b2 = ((p.x - c.x) * (b.y - c.y) - (p.y - c.y) * (b.x - c.x)) < 0.0f;
-    bool b3 = ((p.x - a.x) * (c.y - a.y) - (p.y - a.y) * (c.x - a.x)) < 0.0f;
-    return ((b1 == b2) && (b2 == b3));
-}
+//static auto line_closest_point(const Vec2& a, const Vec2& b, const Vec2& p) -> Vec2 {
+//    Vec2 ap = p - a;
+//    Vec2 ab_dir = b - a;
+//    f32 ab_len = sqrtf(ab_dir.x * ab_dir.x + ab_dir.y * ab_dir.y);
+//    ab_dir *= 1.0f / ab_len;
+//    f32 dot = ap.x * ab_dir.x + ap.y * ab_dir.y;
+//    if (dot < 0.0f)
+//        return a;
+//    if (dot > ab_len)
+//        return b;
+//    return a + ab_dir * dot;
+//}
+//
+//static auto triangle_contains_point(const Vec2& a, const Vec2& b, const Vec2& c, const Vec2& p) -> bool {
+//    bool b1 = ((p.x - b.x) * (a.y - b.y) - (p.y - b.y) * (a.x - b.x)) < 0.0f;
+//    bool b2 = ((p.x - c.x) * (b.y - c.y) - (p.y - c.y) * (b.x - c.x)) < 0.0f;
+//    bool b3 = ((p.x - a.x) * (c.y - a.y) - (p.y - a.y) * (c.x - a.x)) < 0.0f;
+//    return ((b1 == b2) && (b2 == b3));
+//}
 }

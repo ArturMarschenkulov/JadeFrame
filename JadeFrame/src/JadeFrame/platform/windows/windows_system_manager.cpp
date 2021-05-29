@@ -8,37 +8,37 @@
 
 #include "JadeFrame/utils/utils.h"
 
-static auto get_primary_monitor_handle() -> HMONITOR {
-	const POINT pt_zero = { 0, 0 };
-	return ::MonitorFromPoint(pt_zero, MONITOR_DEFAULTTOPRIMARY);
-}
-static auto calculate_dpi(HMODULE shCoreDll) -> int32_t {
-	i32 dpi_x = 96, dpi_y = 96;
-
-	if (shCoreDll) {
-		typedef HRESULT(STDAPICALLTYPE* GetDPIForMonitorProc)(HMONITOR hmonitor, UINT dpi_type, UINT* dpi_x, UINT* dpi_y);
-		const GetDPIForMonitorProc GetDpiForMonitor = (GetDPIForMonitorProc)::GetProcAddress(shCoreDll, "GetDpiForMonitor");
-
-		if (GetDpiForMonitor) {
-			HMONITOR monitor = get_primary_monitor_handle();
-
-			UINT x = 0, y = 0;
-			HRESULT hr = GetDpiForMonitor(monitor, 0, &x, &y);
-			if (SUCCEEDED(hr) && (x > 0) && (y > 0)) {
-				dpi_x = (i32)x;
-				dpi_y = (i32)y;
-			}
-		}
-		::FreeLibrary(shCoreDll);
-	}
-	return (dpi_x + dpi_y) / 2;
-}
-static auto calculate_dpi() -> int32_t {
-	if (const HMODULE shCoreDll = ::LoadLibraryW(L"Shcore.dll")) {
-		return calculate_dpi(shCoreDll);
-	}
-	return 96;
-}
+//static auto get_primary_monitor_handle() -> HMONITOR {
+//	const POINT pt_zero = { 0, 0 };
+//	return ::MonitorFromPoint(pt_zero, MONITOR_DEFAULTTOPRIMARY);
+//}
+//static auto calculate_dpi(HMODULE shCoreDll) -> int32_t {
+//	i32 dpi_x = 96, dpi_y = 96;
+//
+//	if (shCoreDll) {
+//		typedef HRESULT(STDAPICALLTYPE* GetDPIForMonitorProc)(HMONITOR hmonitor, UINT dpi_type, UINT* dpi_x, UINT* dpi_y);
+//		const GetDPIForMonitorProc GetDpiForMonitor = (GetDPIForMonitorProc)::GetProcAddress(shCoreDll, "GetDpiForMonitor");
+//
+//		if (GetDpiForMonitor) {
+//			HMONITOR monitor = get_primary_monitor_handle();
+//
+//			UINT x = 0, y = 0;
+//			HRESULT hr = GetDpiForMonitor(monitor, 0, &x, &y);
+//			if (SUCCEEDED(hr) && (x > 0) && (y > 0)) {
+//				dpi_x = (i32)x;
+//				dpi_y = (i32)y;
+//			}
+//		}
+//		::FreeLibrary(shCoreDll);
+//	}
+//	return (dpi_x + dpi_y) / 2;
+//}
+//static auto calculate_dpi() -> int32_t {
+//	if (const HMODULE shCoreDll = ::LoadLibraryW(L"Shcore.dll")) {
+//		return calculate_dpi(shCoreDll);
+//	}
+//	return 96;
+//}
 
 // Helper function to count set bits in the processor mask
 DWORD count_set_bits(ULONG_PTR bit_mask) {
@@ -187,6 +187,8 @@ auto Windows_SystemManager::initialize() -> void {
 					// Logical processors share a physical package
 					processor_package_count++;
 					break;
+				//default:
+				//	__debugbreak();
 			}
 			byte_offset += sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
 			ptr++;

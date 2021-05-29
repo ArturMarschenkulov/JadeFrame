@@ -40,6 +40,7 @@ public:
 	auto othographic_mode(const f32 left, const f32 right, const f32 buttom, const f32 top, const f32 near_, const f32 far_) -> void;
 	auto get_projection_matrix() const -> Matrix4x4;
 	auto get_view_matrix() const -> Matrix4x4;
+	auto get_view_projection_matrix() const -> Matrix4x4;
 
 public:
 	MODE m_mode;

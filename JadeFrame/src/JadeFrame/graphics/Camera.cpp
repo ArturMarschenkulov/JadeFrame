@@ -133,6 +133,10 @@ auto Camera1::get_view_matrix() const -> Matrix4x4 {
 	return Matrix4x4::look_at_matrix(m_position, m_position + m_forward, m_up);
 }
 
+auto Camera1::get_view_projection_matrix() const -> Matrix4x4 {
+	return this->get_view_matrix() * this->get_projection_matrix();
+}
+
 auto Camera1::control() -> void {
 	if (m_mode == MODE::PERSPECTIVE) {
 		const f32 velocity = 0.1f;

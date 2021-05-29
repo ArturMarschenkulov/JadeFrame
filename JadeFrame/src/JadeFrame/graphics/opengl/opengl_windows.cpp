@@ -39,38 +39,33 @@
 
 typedef BOOL	WINAPI	PFNWGLCHOOSEPIXELFORMATARBPROC(HDC hdc, const int* piAttribIList, const FLOAT* pfAttribFList, UINT nMaxFormats, int* piFormats, UINT* nNumFormats);
 typedef HGLRC	WINAPI	PFNWGLCREATECONTEXTATTRIBSARBPROC(HDC hDC, HGLRC hShareContext, const int* attribList);
-typedef const char* (WINAPI* PFNWGLGETEXTENSIONSSTRINGEXTPROC) (void);
-
+//typedef const char* (WINAPI* PFNWGLGETEXTENSIONSSTRINGEXTPROC) (void);
+typedef const char* WINAPI PFNWGLGETEXTENSIONSSTRINGEXTPROC(void);
 
 //typedef BOOL(WINAPI* PFNWGLSWAPINTERVALEXTPROC) (int interval);
 
-static PFNWGLCHOOSEPIXELFORMATARBPROC* wglChoosePixelFormatARB;
-static PFNWGLCREATECONTEXTATTRIBSARBPROC* wglCreateContextAttribsARB;
-static PFNWGLSWAPINTERVALEXTPROC* wglSwapIntervalEXT;
+static PFNWGLCHOOSEPIXELFORMATARBPROC* wglChoosePixelFormatARB = nullptr;
+static PFNWGLCREATECONTEXTATTRIBSARBPROC* wglCreateContextAttribsARB = nullptr;
+static PFNWGLSWAPINTERVALEXTPROC* wglSwapIntervalEXT = nullptr;
+static PFNWGLGETEXTENSIONSSTRINGEXTPROC* wglGetExtensionsStringEXT = nullptr;
 
-static auto WGL_extension_supported(const char* extension_name) -> bool {
-	// this is pointer to function which returns pointer to string with list of all wgl extensions
-	PFNWGLGETEXTENSIONSSTRINGEXTPROC _wglGetExtensionsStringEXT = NULL;
-
-	// determine pointer to wglGetExtensionsStringEXT function
-	_wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC)wglGetProcAddress("wglGetExtensionsStringEXT");
-
-	if (strstr(_wglGetExtensionsStringEXT(), extension_name) == NULL)     {
-		// string was not found
-		return false;
-	}
-
-	// extension is supported
-	return true;
-}
+//static auto wgl_extension_supported(const char* extension_name) -> bool {
+//	if (strstr(wglGetExtensionsStringEXT(), extension_name) == NULL)     {
+//		// string was not found
+//		return false;
+//	}
+//	// extension is supported
+//	return true;
+//}
 
 static auto load_wgl_functions() -> void {
 	wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC*)wglGetProcAddress("wglChoosePixelFormatARB");
 	wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC*)wglGetProcAddress("wglCreateContextAttribsARB");
 	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC*)wglGetProcAddress("wglSwapIntervalEXT");
+	wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC*)wglGetProcAddress("wglGetExtensionsStringEXT");
 }
 
-auto wgl_load_0() -> bool {
+auto wgl_load() -> bool {
 	//DummyWindow dummy_window;
 	const HINSTANCE instance = GetModuleHandleW(NULL);
 	if(instance == NULL) {

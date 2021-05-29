@@ -3,8 +3,6 @@
 #include "JadeFrame/math/vec_3.h"
 #include "JadeFrame/math/mat_4.h"
 
-//#include "opengl/opengl_renderer.h"
-
 #include <vector>
 
 class Color {

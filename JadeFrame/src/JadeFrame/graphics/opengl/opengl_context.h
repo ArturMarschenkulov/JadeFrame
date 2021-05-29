@@ -69,7 +69,7 @@ public:
 
 	
 public:
-	GL_Cache gl_cache;
+	GL_Cache m_cache;
 
 	HWND m_window_handle;
 	HDC m_device_context;

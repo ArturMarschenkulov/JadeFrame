@@ -22,14 +22,14 @@ struct STBIImage {
 	unsigned char* data;
 };
 
-auto OpenGL_TextureLoader::load(const std::string& path, GLenum target, GLenum internalFormat, bool is_srgb) -> OpenGL_Texture {
+auto OpenGL_TextureLoader::load(const std::string& path, GLenum target, const GLenum internal_format, bool is_srgb) -> OpenGL_Texture {
 	OpenGL_Texture texture;
 	texture.m_target = target;
-	texture.m_internal_format = internalFormat;
-	if (texture.m_internal_format == GL_RGB || texture.m_internal_format == GL_SRGB) {
+	//texture.m_internal_format = internal_format;
+	if (internal_format == GL_RGB || internal_format == GL_SRGB) {
 		texture.m_internal_format = is_srgb ? GL_SRGB : GL_RGB;
 	}
-	if (texture.m_internal_format == GL_RGBA || texture.m_internal_format == GL_SRGB_ALPHA) {
+	if (internal_format == GL_RGBA || internal_format == GL_SRGB_ALPHA) {
 		texture.m_internal_format = is_srgb ? GL_SRGB_ALPHA : GL_RGBA;
 	}
 
@@ -59,20 +59,13 @@ auto OpenGL_TextureLoader::load(const std::string& path, GLenum target, GLenum i
 
 
 
-void OpenGL_Texture::generate(u32 width, u32 height, GLenum internalFormat, GLenum format, GLenum type, void* data) {
-	m_width = width;
-	m_height = height;
-	m_depth = 0;
-	m_internal_format = internalFormat;
-	m_format = format;
-	m_type = type;
-
+void OpenGL_Texture::generate(u32 width, u32 height, GLenum internal_format, GLenum format, GLenum type, void* data) {
 	//assert(Target == GL_TEXTURE_2D);
 	tex.bind(m_target);
 	tex.set_texture_image_2D(
 		m_target,
 		0,
-		internalFormat,
+		internal_format,
 		width,
 		height,
 		0,
@@ -89,6 +82,13 @@ void OpenGL_Texture::generate(u32 width, u32 height, GLenum internalFormat, GLen
 		tex.generate_mipmap(m_target);
 	}
 	tex.unbind(m_target);
+
+	m_width = width;
+	m_height = height;
+	m_depth = 0;
+	m_internal_format = internal_format;
+	m_format = format;
+	m_type = type;
 }
 auto OpenGL_Texture::resize(u32 width, u32 height, u32 depth)-> void {
 
