@@ -91,7 +91,7 @@ static auto find_queue_families(VkPhysicalDevice physical_device, VkSurfaceKHR s
 	vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_count, nullptr);
 	std::cout << "Found " << queue_family_count << " queue families" << std::endl;
 
-	std::vector<VkQueueFamilyProperties> queue_families; 
+	std::vector<VkQueueFamilyProperties> queue_families;
 	queue_families.resize(queue_family_count);
 	vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_count, queue_families.data());
 
@@ -105,7 +105,7 @@ static auto find_queue_families(VkPhysicalDevice physical_device, VkSurfaceKHR s
 		}
 
 		if (present_support) {
-			indices.present_family = 1;
+			indices.present_family = i;
 		}
 		if (indices.is_complete()) {
 			break;
@@ -426,10 +426,38 @@ auto Vulkan_Context::pick_physical_device() -> void {
 	}
 }
 
+auto get_queue_families_info(VkPhysicalDevice physical_device, VkSurfaceKHR surface) -> void {
+	u32 queue_family_count = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_count, nullptr);
+	std::cout << "Found " << queue_family_count << " queue families" << std::endl;
+
+	std::vector<VkQueueFamilyProperties> queue_families;
+	queue_families.resize(queue_family_count);
+	vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_count, queue_families.data());
+
+	for (u32 i = 0; i < queue_families.size(); i++) {
+		if (queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+			std::cout << "Queue Family " << i << " supports VK_QUEUE_GRAPHICS_BIT" << std::endl;
+		}
+		if (queue_families[i].queueFlags & VK_QUEUE_COMPUTE_BIT) {
+			std::cout << "Queue Family " << i << " supports VK_QUEUE_COMPUTE_BIT" << std::endl;
+		}
+		if (queue_families[i].queueFlags & VK_QUEUE_TRANSFER_BIT) {
+			std::cout << "Queue Family " << i << " supports VK_QUEUE_TRANSFER_BIT" << std::endl;
+		}
+		if (queue_families[i].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) {
+			std::cout << "Queue Family " << i << " supports VK_QUEUE_SPARSE_BINDING_BIT" << std::endl;
+		}
+		if (queue_families[i].queueFlags & VK_QUEUE_PROTECTED_BIT) {
+			std::cout << "Queue Family " << i << " supports VK_QUEUE_PROTECTED_BIT" << std::endl;
+		}
+	}
+}
 auto Vulkan_Context::create_logical_device() -> void {
 	std::cout << __FUNCTION__ << std::endl;
 	QueueFamilyIndices indices = find_queue_families(m_physical_device, m_surface);
-
+	//get_queue_families_info(m_physical_device, m_surface);
+	//__debugbreak();
 	std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
 	std::set<u32> unique_queue_families = {
 		indices.graphics_family.value(),
@@ -462,21 +490,10 @@ auto Vulkan_Context::create_logical_device() -> void {
 	} else {
 		create_info.enabledLayerCount = 0;
 	}
-
-	/*
-	validation layer: 
-	Validation Error: [ VUID-VkDeviceQueueCreateInfo-queueFamilyIndex-00381 ] 
-	Object 0: handle = 0x165da23e9c0, type = VK_OBJECT_TYPE_PHYSICAL_DEVICE; | 
-	MessageID = 0xc8571a14 | 
-	vkCreateDevice: pCreateInfo->pQueueCreateInfos[1].queueFamilyIndex (= 1) 
-	is not less than any previously obtained pQueueFamilyPropertyCount from vkGetPhysicalDeviceQueueFamilyProperties (i.e. is not less than 1). 
-	The Vulkan spec states: queueFamilyIndex must be less than pQueueFamilyPropertyCount returned by 
-	vkGetPhysicalDeviceQueueFamilyProperties (https://vulkan.lunarg.com/doc/view/1.2.176.1/windows/1.2-extensions/vkspec.html#VUID-VkDeviceQueueCreateInfo-queueFamilyIndex-00381)
-	*/
 	if (vkCreateDevice(m_physical_device, &create_info, nullptr, &m_device) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create logical device!");
 	}
-	__debugbreak();
+
 
 	vkGetDeviceQueue(m_device, indices.graphics_family.value(), 0, &m_graphics_queue);
 	vkGetDeviceQueue(m_device, indices.present_family.value(), 0, &m_present_queue);
@@ -625,13 +642,13 @@ static auto create_shader_module_from_spirv(VkDevice device, const std::vector<u
 }
 #include <shaderc/shaderc.hpp>
 
-static auto string_to_SPIRV(const char* code) -> std::vector<u32> {
+static auto string_to_SPIRV(const char* code, u32 i) -> std::vector<u32> {
 	std::cout << __FUNCTION__ << " start" << std::endl;
 	using namespace shaderc;
 	Compiler compiler;
 	CompileOptions options;
 	options.SetOptimizationLevel(shaderc_optimization_level_size);
-	SpvCompilationResult result = compiler.CompileGlslToSpv(std::string(code), shaderc_vertex_shader, "", options);
+	SpvCompilationResult result = compiler.CompileGlslToSpv(std::string(code), (shaderc_shader_kind)i /*shaderc_vertex_shader*/, "", options);
 	if (result.GetCompilationStatus() != shaderc_compilation_status_success) {
 		__debugbreak();
 		return std::vector<u32>();
@@ -648,21 +665,20 @@ auto Vulkan_Context::create_graphics_pipeline() -> void {
 	std::cout << __FUNCTION__ << std::endl;
 	auto tm = &JadeFrame::get_singleton()->m_apps[0]->m_time_manager;
 	auto time_0 = tm->get_time();
-	VkShaderModule vert_shader_module;
-	VkShaderModule frag_shader_module;
-	if (false) {
-		std::future<std::vector<u32>> vert_shader_spirv = std::async(std::launch::async, string_to_SPIRV, vs);
-		std::future<std::vector<u32>> frag_shader_spirv = std::async(std::launch::async, string_to_SPIRV, fs);
 
-		vert_shader_module = create_shader_module_from_spirv(m_device, vert_shader_spirv.get());
-		frag_shader_module = create_shader_module_from_spirv(m_device, frag_shader_spirv.get());
-	} else {
-		std::vector<u32> vert_shader_spirv = string_to_SPIRV(vs);
-		std::vector<u32> frag_shader_spirv = string_to_SPIRV(fs);
+#if 1
+	std::future<std::vector<u32>> vert_shader_spirv = std::async(std::launch::async, string_to_SPIRV, vs, 0);
+	std::future<std::vector<u32>> frag_shader_spirv = std::async(std::launch::async, string_to_SPIRV, fs, 1);
 
-		vert_shader_module = create_shader_module_from_spirv(m_device, vert_shader_spirv);
-		frag_shader_module = create_shader_module_from_spirv(m_device, frag_shader_spirv);
-	}
+	VkShaderModule vert_shader_module = create_shader_module_from_spirv(m_device, vert_shader_spirv.get());
+	VkShaderModule frag_shader_module = create_shader_module_from_spirv(m_device, frag_shader_spirv.get());
+#else
+	std::vector<u32> vert_shader_spirv = string_to_SPIRV(vs, 0);
+	std::vector<u32> frag_shader_spirv = string_to_SPIRV(fs, 1);
+
+	VkShaderModule vert_shader_module = create_shader_module_from_spirv(m_device, vert_shader_spirv);
+	VkShaderModule frag_shader_module = create_shader_module_from_spirv(m_device, frag_shader_spirv);
+#endif
 
 	auto time_1 = tm->get_time();
 	std::cout << "it took " << time_1 - time_0 << std::endl;
