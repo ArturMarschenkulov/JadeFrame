@@ -947,6 +947,7 @@ auto VulkanLogicalDevice::create_sync_objects() -> void {
 
 auto VulkanLogicalDevice::draw_frame() -> void {
 	std::cout << __FUNCTION__ << std::endl;
+	vkWaitForFences(m_device, 1, &m_in_flight_fences[m_current_frame], VK_TRUE, UINT64_MAX);
 	u32 image_index;
 
 	if (VK_SUCCESS != vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX, m_image_available_semaphores[m_current_frame], VK_NULL_HANDLE, &image_index)) {
@@ -957,15 +958,14 @@ auto VulkanLogicalDevice::draw_frame() -> void {
 		vkWaitForFences(m_device, 1, &m_images_in_flight[image_index], VK_TRUE, UINT64_MAX);
 	}
 
-	VkSubmitInfo submit_info{};
-	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
 	VkSemaphore wait_semaphores[] = { m_image_available_semaphores[m_current_frame] };
 	VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+
+	VkSubmitInfo submit_info = {};
+	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submit_info.waitSemaphoreCount = 1;
 	submit_info.pWaitSemaphores = wait_semaphores;
 	submit_info.pWaitDstStageMask = wait_stages;
-
 	submit_info.commandBufferCount = 1;
 	submit_info.pCommandBuffers = &m_command_buffers[image_index];
 

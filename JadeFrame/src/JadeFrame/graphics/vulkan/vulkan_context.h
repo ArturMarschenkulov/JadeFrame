@@ -11,6 +11,17 @@ struct SwapChainSupportDetails {
 };
 struct HWND__;	typedef HWND__* HWND;
 
+
+
+struct VulkanSwapchain {
+private:
+public:
+public:
+	VkSwapchainKHR m_swapchain;
+	std::vector<VkImage> m_swapchain_images;
+	VkFormat m_swapchain_image_format;
+	VkExtent2D m_swapchain_extent;
+};
 struct VulkanSurface {
 private:
 public:
