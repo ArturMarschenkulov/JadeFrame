@@ -5,8 +5,6 @@
 #include<JadeFrame/utils/utils.h>
 
 
-namespace Test1 {
-
 struct Drop {
 	Drop() {
 		BaseApp* app = JadeFrame::get_singleton()->m_current_app_p;
@@ -14,7 +12,7 @@ struct Drop {
 
 		x = (f32)get_random_number(0, window_width);
 		const f32 rando = (f32)get_random_number(1, 30);
-		y_speed = map_range(rando, 1, 30, 1, 3);
+		y_speed = (f32)map_range(rando, 1, 30, 1, 3);
 
 		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 80.0f, 1.0f }) * Matrix4x4::translation_matrix({ x, y, 0.0f });
 		app->m_resources.get_mesh("rectangle").set_color({ 138_u8, 43_u8, 226_u8, 255_u8 });
@@ -56,12 +54,10 @@ public:
 	std::vector<Object> m_objs;
 	std::deque<Drop> drops;
 };
-}
 
 
-static auto draw_GUI(Test1::Example_0& app) -> void;
+static auto draw_GUI(Example_0& app) -> void;
 
-namespace Test1 {
 Example_0::Example_0(const std::string& title, const Vec2& size, const Vec2& position)
 	: BaseApp(title, size, position) {
 	m_current_app_p = reinterpret_cast<Example_0*>(this);
@@ -85,10 +81,11 @@ auto Example_0::on_init() -> void {
 		Mesh rectangle_mesh;
 		rectangle_mesh.add_to_data(VertexDataFactory::make_rectangle({ 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }));
 		m_resources.set_mesh("rectangle", rectangle_mesh);
-	for (u32 i = 0; i < 100; i++) {
-		drops.emplace_back();
-	}
+		for (u32 i = 0; i < 100; i++) {
+			drops.emplace_back();
+		}
 
+	}
 }
 auto Example_0::on_update() -> void {
 	m_camera.control();
@@ -110,10 +107,9 @@ auto Example_0::on_draw() -> void {
 
 	draw_GUI(*this);
 }
-}
 
 
-static auto draw_GUI(Test1::Example_0& app) -> void {
+static auto draw_GUI(Example_0& app) -> void {
 	//ImGui::BeginMainMenuBar();
 
 	//ImGui::EndMainMenuBar();
@@ -145,4 +141,4 @@ static auto draw_GUI(Test1::Example_0& app) -> void {
 
 	ImGui::SliderFloat2("yaw pitch", *yp, -100.0f, 100.0f);
 }
-using TestApp = Test1::Example_0;
+using TestApp = Example_0;

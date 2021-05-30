@@ -7,7 +7,7 @@ GL_VertexBuffer::GL_VertexBuffer() {
 GL_VertexBuffer::~GL_VertexBuffer() {
 	this->reset();
 }
-GL_VertexBuffer::GL_VertexBuffer(GL_VertexBuffer&& other) : m_ID(other.release()) {
+GL_VertexBuffer::GL_VertexBuffer(GL_VertexBuffer&& other) noexcept : m_ID(other.release()) {
 }
 auto GL_VertexBuffer::bind() const -> void {
 	glBindBuffer(GL_ARRAY_BUFFER, m_ID);
@@ -35,7 +35,7 @@ GL_VertexArray::GL_VertexArray() {
 GL_VertexArray::~GL_VertexArray() {
 	this->release();
 }
-GL_VertexArray::GL_VertexArray(GL_VertexArray&& other) : m_ID(other.release()) {
+GL_VertexArray::GL_VertexArray(GL_VertexArray&& other) noexcept : m_ID(other.release()) {
 }
 auto GL_VertexArray::bind() const -> void {
 	glBindVertexArray(m_ID);
@@ -50,7 +50,7 @@ GL_IndexBuffer::GL_IndexBuffer() {
 GL_IndexBuffer::~GL_IndexBuffer() {
 	this->release();
 }
-GL_IndexBuffer::GL_IndexBuffer(GL_IndexBuffer&& other) : m_ID(other.release()) {
+GL_IndexBuffer::GL_IndexBuffer(GL_IndexBuffer&& other) noexcept : m_ID(other.release()) {
 }
 auto GL_IndexBuffer::bind() const -> void {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ID);
@@ -74,7 +74,7 @@ auto GL_IndexBuffer::update(GLuint size_in_bytes, const GLuint* data) const -> v
 
 
 
-GL_Shader::GL_Shader(GL_Shader&& other) : m_ID(other.release()) {
+GL_Shader::GL_Shader(GL_Shader&& other) noexcept : m_ID(other.release()) {
 }
 GL_Shader::GL_Shader(const GLenum type)
 	: m_ID(glCreateShader(type)) {
@@ -140,7 +140,7 @@ auto GL_Shader::get_info_log(GLsizei max_length) -> std::string {
 GL_Program::GL_Program()
 	: m_ID(glCreateProgram()) {
 }
-GL_Program::GL_Program(GL_Program&& other) : m_ID(other.release()) {
+GL_Program::GL_Program(GL_Program&& other) noexcept : m_ID(other.release()) {
 }
 GL_Program::~GL_Program() {
 	this->reset();
@@ -257,13 +257,13 @@ enum class TargetHint : GLenum {
 	UNIFORM_BUFFER = GL_UNIFORM_BUFFER
 };
 
-GL_Texture::GL_Texture() {
+GL_Texture::GL_Texture() noexcept {
 	glGenTextures(1, &m_ID);
 }
 GL_Texture::~GL_Texture() {
 	this->reset();
 }
-GL_Texture::GL_Texture(GL_Texture&& other)
+GL_Texture::GL_Texture(GL_Texture&& other) noexcept
 	: m_ID(other.release()) {
 
 }

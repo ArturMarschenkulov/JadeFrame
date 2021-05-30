@@ -25,7 +25,7 @@ static auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
 		case SHADER_TYPE::INT_3:	return 4 * 3;
 		case SHADER_TYPE::INT_4:	return 4 * 4;
 		case SHADER_TYPE::BOOL:	return 1;
-		default: __debugbreak(); return -1;
+		default: __debugbreak(); return 0;
 	}
 	return 0;
 }
@@ -46,7 +46,7 @@ static auto SHADER_TYPE_get_component_count(const SHADER_TYPE type) -> u32 {
 		case SHADER_TYPE::MAT_4:	 // 4* float4
 		case SHADER_TYPE::INT_4:	return 4;
 
-		default: __debugbreak(); return -1;
+		default: __debugbreak(); return 0;
 	}
 }
 

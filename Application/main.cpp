@@ -1,7 +1,7 @@
 #include<JadeFrame.h>
 #include<string>
-//#include "example_0.h"
-//#include "example_5.h"
+#include "example_0.h"
+//#include "example_empty.h"
 class App : public BaseApp {
 public:
 public:
@@ -18,7 +18,7 @@ public:
 
 int main() {
 #if 1
-	using GApp = App;
+	using GApp = TestApp;
 	JadeFrame jade_frame;
 
 	std::string title = "Test";

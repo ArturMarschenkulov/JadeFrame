@@ -26,7 +26,7 @@ public:
 	OpenGL_Shader(const std::string& name);
 
 	OpenGL_Shader() = default;
-	OpenGL_Shader(OpenGL_Shader&&) = default;
+	OpenGL_Shader(OpenGL_Shader&&) noexcept = default;
 
 	OpenGL_Shader(const OpenGL_Shader&) = delete;
 	auto operator=(const OpenGL_Shader&)->OpenGL_Shader & = delete;

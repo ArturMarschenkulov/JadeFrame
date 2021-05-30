@@ -48,17 +48,17 @@ BaseApp::BaseApp(const std::string& title, const Vec2& size, const Vec2& positio
 
 
 
-	//m_renderer.set_context(m_windows[0]);
+	m_renderer.set_context(m_windows[0]);
 	//std::cout << "OPENGL end" << std::endl;
 	//::Sleep(5000);
 	//std::cout << "Vulkan start" << std::endl;
 }
 auto BaseApp::start() -> void {
-
-
-	this->on_init();
 	m_vulkan_renderer.set_context(&m_windows[0]);
 	m_vulkan_renderer.main_loop();
+
+	this->on_init();
+
 	GUI_init(m_current_window_p->m_window_handle);
 
 	m_time_manager.set_FPS(60);

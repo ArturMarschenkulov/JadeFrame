@@ -128,7 +128,7 @@ auto Matrix4x4::orthogonal_projection_matrix(f32 left, f32 right, f32 bottom, f3
 }
 
 auto Matrix4x4::perspective_projection_matrix(f32 fovy, f32 aspect, f32 near, f32 far) -> Matrix4x4 {
-	const f32 tan_half_fovy = tan(fovy / 2.0f);
+	const f64 tan_half_fovy = tan(fovy / 2.0f);
 	Matrix4x4 result(0.0f);
 	result.el[0][0] = 1.0f / (aspect * tan_half_fovy);
 	result.el[1][1] = 1.0f / tan_half_fovy;
@@ -146,9 +146,9 @@ translation_matrix(const Vec3& trans) -> Matrix4x4 {
 	return result;
 }
 auto Matrix4x4::rotation_matrix(f32 angle, const Vec3& axis) -> Matrix4x4 {
-	const f32 c = cos(angle);
-	const f32 omc = 1 - c;
-	const f32 s = sin(angle);
+	const f64 c = cos(angle);
+	const f64 omc = 1 - c;
+	const f64 s = sin(angle);
 
 	Matrix4x4 result(1.0f);
 	result.el[0][0] = axis.x * axis.x * omc + c;

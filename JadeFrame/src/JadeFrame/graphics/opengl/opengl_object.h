@@ -16,7 +16,7 @@ class GL_VertexBuffer {
 public:
 	GL_VertexBuffer();
 	~GL_VertexBuffer();
-	GL_VertexBuffer(GL_VertexBuffer&& other);
+	GL_VertexBuffer(GL_VertexBuffer&& other) noexcept;
 
 	GL_VertexBuffer(const GL_VertexBuffer&) = delete;
 	auto operator=(const GL_VertexBuffer&)->GL_VertexBuffer & = delete;
@@ -44,7 +44,7 @@ class GL_VertexArray {
 public:
 	GL_VertexArray();
 	~GL_VertexArray();
-	GL_VertexArray(GL_VertexArray&& other);
+	GL_VertexArray(GL_VertexArray&& other) noexcept;
 
 	GL_VertexArray(GL_VertexArray&) = delete;
 	auto operator=(const GL_VertexArray&)->GL_VertexArray & = delete;
@@ -70,7 +70,7 @@ class GL_IndexBuffer {
 public:
 	GL_IndexBuffer();
 	~GL_IndexBuffer();
-	GL_IndexBuffer(GL_IndexBuffer&& other);
+	GL_IndexBuffer(GL_IndexBuffer&& other) noexcept;
 
 	GL_IndexBuffer(GL_IndexBuffer&) = delete;
 	auto operator=(const GL_IndexBuffer&)->GL_IndexBuffer & = delete;
@@ -97,7 +97,7 @@ private:
 
 struct GL_Shader {
 	GL_Shader() = default;
-	GL_Shader(GL_Shader&& other);
+	GL_Shader(GL_Shader&& other) noexcept;
 	GL_Shader(const GLenum type);
 	GL_Shader(const GLenum type, const std::string& source_code);
 	~GL_Shader();
@@ -123,7 +123,7 @@ public:
 };
 struct GL_Program {
 	GL_Program();
-	GL_Program(GL_Program&& other);
+	GL_Program(GL_Program&& other) noexcept;
 
 	GL_Program(const GL_Program&) = delete;
 	auto operator=(const GL_Program&)->GL_Program & = delete;
@@ -150,12 +150,12 @@ public:
 
 
 struct GL_Texture {
-	GL_Texture();
+	GL_Texture() noexcept;
 	~GL_Texture();
-	GL_Texture(GL_Texture&& other);
+	GL_Texture(GL_Texture&& other) noexcept;
 	GL_Texture(const GL_Texture&) = delete;
-	auto operator=(const GL_Texture&)->GL_Texture & = delete;
-	auto operator=(GL_Texture&&)->GL_Texture & = delete;
+	auto operator=(const GL_Texture&) noexcept -> GL_Texture & = delete;
+	auto operator=(GL_Texture&&) noexcept -> GL_Texture & = delete;
 	auto release()->GLuint;
 	auto reset(GLuint ID = 0) -> void;
 	auto bind(GLenum target) const -> void;

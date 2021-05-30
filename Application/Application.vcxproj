@@ -167,10 +167,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="example_5.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="example_0.h" />
+    <ClInclude Include="example_empty.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
