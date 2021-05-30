@@ -85,7 +85,6 @@ auto Example_0::on_init() -> void {
 		Mesh rectangle_mesh;
 		rectangle_mesh.add_to_data(VertexDataFactory::make_rectangle({ 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }));
 		m_resources.set_mesh("rectangle", rectangle_mesh);
-	}
 	for (u32 i = 0; i < 100; i++) {
 		drops.emplace_back();
 	}

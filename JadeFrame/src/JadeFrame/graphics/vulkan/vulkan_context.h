@@ -10,6 +10,21 @@ struct SwapChainSupportDetails {
 	std::vector<VkPresentModeKHR> m_present_modes;
 };
 struct HWND__;	typedef HWND__* HWND;
+
+struct VulkanInstance {
+	VkInstance m_instance;
+	std::vector<VkLayerProperties> m_layers;
+	std::vector<VkExtensionProperties> m_extensions;
+	std::vector<const char*> m_extension_names;
+	VkDebugUtilsMessengerEXT m_debug_messenger;
+
+	auto query_layers()->std::vector<VkLayerProperties>;
+	auto query_extensions()->std::vector<VkExtensionProperties>;
+	auto query_physical_devices() -> std::vector<VkPhysicalDevice>;
+	auto setup_debug() -> void;
+	auto init() -> void;
+};
+
 struct Vulkan_Context {
 	//Vulkan_Context(const Vulkan_Context&) = delete;
 	//Vulkan_Context(Vulkan_Context&&) = delete;
@@ -20,8 +35,9 @@ struct Vulkan_Context {
 	Vulkan_Context(Windows_Window* window);
 	~Vulkan_Context();
 public:
+	VulkanInstance m_instance;
 	HWND m_window_handle;
-	VkInstance m_instance;
+	//VkInstance m_instance;
 	VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
 	VkDevice m_device;
 	VkSwapchainKHR m_swapchain;
@@ -43,7 +59,7 @@ public:
 	std::vector<VkImage> m_swapchain_images;
 	VkFormat m_swapchain_image_format;
 	VkExtent2D m_swapchain_extent;
-	VkDebugUtilsMessengerEXT m_debug_messenger;
+	
 	std::vector<VkImageView> m_swapchain_image_views;
 
 	std::vector<VkSemaphore> m_image_available_semaphores;
@@ -73,8 +89,8 @@ public:
 
 	auto create_sync_objects() -> void;
 
-	auto query_extensions() -> std::vector<VkExtensionProperties>;
-	auto query_physical_devices() -> std::vector<VkPhysicalDevice>;
-	auto query_layers() -> std::vector<VkLayerProperties>;
+	//auto query_extensions() -> std::vector<VkExtensionProperties>;
+	//auto query_physical_devices() -> std::vector<VkPhysicalDevice>;
+	//auto query_layers() -> std::vector<VkLayerProperties>;
 	//auto query_swapchain_support(VkPhysicalDevice device)->SwapChainSupportDetails;
 };

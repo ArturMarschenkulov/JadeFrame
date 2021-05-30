@@ -39,8 +39,8 @@ static auto window_resize_callback(Windows_Window& window, const WindowsMessage&
 	window.m_size.width = LOWORD(lParam);
 	window.m_size.height = HIWORD(lParam);
 
-	auto& renderer = JadeFrame::get_singleton()->m_current_app_p->m_renderer;
-	renderer.set_viewport(0, 0, window.m_size.width, window.m_size.height);
+	//auto& renderer = JadeFrame::get_singleton()->m_current_app_p->m_renderer;
+	//renderer.set_viewport(0, 0, window.m_size.width, window.m_size.height);
 
 }
 static auto window_move_callback(Windows_Window& window, const WindowsMessage& wm) -> void {
