@@ -16,6 +16,9 @@
 #include <map>
 
 
+#include "JadeFrame/platform/windows/windows_window.h"
+
+
 enum class PRIMITIVE_TYPE {
 	TRIANGLES = GL_TRIANGLES,
 	LINES = GL_LINES,
@@ -50,7 +53,7 @@ public:
 	std::vector<OpenGL_RenderCommand> m_render_commands;
 };
 
-struct HWND__;	typedef HWND__* HWND;
+
 class OpenGL_Renderer {
 public:
 	auto swap_buffer(HWND window_handle) const -> void;
@@ -65,7 +68,7 @@ public:
 
 	auto take_screenshot(const char* filename) -> void;
 
-	auto set_context(const HWND& window) -> void;
+	auto set_context(const Windows_Window& window) -> void;
 
 private:
 	OpenGL_Context m_context;

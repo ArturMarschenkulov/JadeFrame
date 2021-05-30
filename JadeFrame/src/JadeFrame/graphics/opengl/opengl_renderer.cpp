@@ -98,7 +98,7 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
 	t.detach();
 }
 
-auto OpenGL_Renderer::set_context(const HWND& window_handle) -> void {
+auto OpenGL_Renderer::set_context(const Windows_Window& window_handle) -> void {
 	m_context = OpenGL_Context(window_handle);
 }
 

@@ -1,27 +1,24 @@
 #include<JadeFrame.h>
 #include<string>
-#include "example_0.h"
-//class App : public BaseApp {
-//public:
-//public:
-//	App(const std::string& title, const Vec2 pos)
-//		:BaseApp(title, pos) {
-//	}
-//	virtual auto on_init() -> void override {
-//	}
-//	virtual auto on_update() -> void override {
-//	}
-//	virtual auto on_draw() -> void override {
-//	}
-//};
-
+//#include "example_0.h"
+//#include "example_5.h"
+class App : public BaseApp {
+public:
+public:
+	App(const std::string& title, const Vec2 pos)
+		:BaseApp(title, pos) {
+	}
+	virtual auto on_init() -> void override {
+	}
+	virtual auto on_update() -> void override {
+	}
+	virtual auto on_draw() -> void override {
+	}
+};
 
 int main() {
-
-	//std::cout << map_range(200, 0, 255, 0, 1) << std::endl;
-
 #if 1
-	using GApp = TestApp;
+	using GApp = App;
 	JadeFrame jade_frame;
 
 	std::string title = "Test";

@@ -6,14 +6,18 @@
 #endif
 
 
-OpenGL_Context::OpenGL_Context(HWND hWnd) {
-
+OpenGL_Context::OpenGL_Context(const Windows_Window& window) {
+	if (window.m_is_graphics_api_init == true) {
+		if (window.m_graphics_api != Windows_Window::GRAPHICS_API::OPENGL) {
+			window.recreate();
+		}
+	}
 	static bool is_wgl_loaded = false;
 	if (is_wgl_loaded == false) {
 		is_wgl_loaded = wgl_load();
 	}
 
-	HDC device_context = GetDC(hWnd);
+	HDC device_context = GetDC(window.m_window_handle);
 	if(device_context == NULL) {
 		std::cout << "GetDC(hWnd) failed! " << ::GetLastError() << std::endl;
 		__debugbreak();
@@ -21,7 +25,7 @@ OpenGL_Context::OpenGL_Context(HWND hWnd) {
 	wgl_set_pixel_format(device_context);
 	HGLRC render_context = wgl_create_render_context(device_context);
 
-	m_window_handle = hWnd;
+	m_window_handle = window.m_window_handle;
 	m_device_context = device_context;
 	m_render_context = render_context;
 
@@ -50,6 +54,9 @@ OpenGL_Context::OpenGL_Context(HWND hWnd) {
 	//glGetIntegerv(GL_MAX_CLIP_DISTANCES, &max_clip_distances);
 
 	wglSwapIntervalEXT(0); //TODO: This is windows specific. Abstract this away
+
+	window.m_is_graphics_api_init = true;
+	window.m_graphics_api = Windows_Window::GRAPHICS_API::OPENGL;
 }
 
 OpenGL_Context::~OpenGL_Context() {

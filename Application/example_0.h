@@ -5,11 +5,6 @@
 #include<JadeFrame/utils/utils.h>
 
 
-
-namespace jf {
-}
-
-
 namespace Test1 {
 
 struct Drop {

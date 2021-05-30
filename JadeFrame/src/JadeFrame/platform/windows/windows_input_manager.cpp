@@ -162,7 +162,7 @@ auto Windows_InputManager::mouse_button_callback(const WindowsMessage& wm) -> vo
 	//auto wParam = window_message.wParam;
 	auto lParam = wm.lParam;
 
-	ImGuiIO& io = ImGui::GetIO();
+	//ImGuiIO& io = ImGui::GetIO();
 	BUTTON button;
 	switch (message) {
 		case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
@@ -179,7 +179,7 @@ auto Windows_InputManager::mouse_button_callback(const WindowsMessage& wm) -> vo
 				button = BUTTON::MIDDLE;
 			}
 			m_current_mouse_button_state[static_cast<i32>(button)] = INPUT_STATE::PRESSED;
-			io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = true;
+			//io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = true;
 
 
 		}break;
@@ -197,7 +197,7 @@ auto Windows_InputManager::mouse_button_callback(const WindowsMessage& wm) -> vo
 				button = BUTTON::MIDDLE;
 			}
 			m_current_mouse_button_state[static_cast<i32>(button)] = INPUT_STATE::RELEASED;
-			io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = false;
+			//io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = false;
 		}break;
 		case WM_MOUSEMOVE:
 		{

@@ -38,16 +38,29 @@ public:
 
 	auto set_title(const std::string& title) -> void;
 
-public:
-	HWND m_window_handle;
+	auto recreate() const -> void;
 
-	std::string m_title;
-	Vec2 m_size;
-	Vec2 m_position;
-	bool has_focus = true;
+private:
+	auto init(const std::string& title, const Vec2& size, const Vec2& position) const -> void;
+	auto deinit() const -> void;
+
+public:
+	mutable HWND m_window_handle;
+
+	mutable std::string m_title;
+	mutable Vec2 m_size;
+	mutable Vec2 m_position;
+	mutable bool has_focus = true;
 	enum class WINDOW_STATE {
 		WINDOWED,
 		MINIMIZED,
 		MAXIMIZED,
 	} m_window_state;
+
+	//TODO: Consider whether to keep it like this. This is mainly used for recraeting the window, if a graphics api switch happens.
+	mutable enum class GRAPHICS_API {
+		OPENGL,
+		VULKAN,
+	} m_graphics_api;
+	mutable bool m_is_graphics_api_init = false;
 };

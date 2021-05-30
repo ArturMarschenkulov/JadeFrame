@@ -4,6 +4,8 @@
 #include <utility>
 #include "JadeFrame/graphics/mesh.h" // For Color
 
+#include "JadeFrame/platform/windows/windows_window.h"
+
 enum BLENDING_FACTOR : i32 {
 	ZERO = GL_ZERO,
 	ONE = GL_ONE,
@@ -64,7 +66,7 @@ public:
 class OpenGL_Context {
 public:
 	OpenGL_Context() = default;
-	OpenGL_Context(HWND hWnd/*, HDC& device_context, HGLRC& render_context*/);
+	OpenGL_Context(const Windows_Window& window);
 	~OpenGL_Context();
 
 	

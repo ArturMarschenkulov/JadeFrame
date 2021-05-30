@@ -2,6 +2,8 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 
+#include "JadeFrame/platform/windows/windows_window.h"
+
 struct SwapChainSupportDetails {
 	VkSurfaceCapabilitiesKHR m_capabilities;
 	std::vector<VkSurfaceFormatKHR> m_formats;
@@ -9,8 +11,13 @@ struct SwapChainSupportDetails {
 };
 struct HWND__;	typedef HWND__* HWND;
 struct Vulkan_Context {
+	//Vulkan_Context(const Vulkan_Context&) = delete;
+	//Vulkan_Context(Vulkan_Context&&) = delete;
+	//auto operator=(const Vulkan_Context&)->Vulkan_Context & = delete;
+	//auto operator=(Vulkan_Context&&)->Vulkan_Context & = delete;
+
 	Vulkan_Context() = default;
-	Vulkan_Context(HWND window);
+	Vulkan_Context(Windows_Window* window);
 	~Vulkan_Context();
 public:
 	HWND m_window_handle;
@@ -45,7 +52,7 @@ public:
 	std::vector<VkFence> m_images_in_flight;
 	size_t m_current_frame = 0;
 
-private:
+public:
 
 	auto create_instance() -> void;
 	auto setup_debug_messenger() -> void;

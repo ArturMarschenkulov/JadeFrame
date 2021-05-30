@@ -225,6 +225,25 @@ Windows_Window::Windows_Window() {
 }
 
 Windows_Window::Windows_Window(const std::string& title, const Vec2& size, const Vec2& position) {
+	this->init(title, size, position);
+}
+Windows_Window::~Windows_Window() {
+	this->deinit();
+}
+
+auto Windows_Window::set_title(const std::string& title) -> void {
+	m_title = title;
+	SetWindowTextA(m_window_handle, m_title.c_str());
+}
+
+auto Windows_Window::recreate() const -> void {
+	::DestroyWindow(m_window_handle);
+	::PostQuitMessage(0);
+
+	this->init(m_title, m_size, m_position);
+}
+
+auto Windows_Window::init(const std::string& title, const Vec2& size, const Vec2& position) const -> void {
 	HINSTANCE instance = GetModuleHandleW(NULL);
 	if (instance == NULL) {
 		std::cout << "GetModuleHandleW(NULL) failed! " << ::GetLastError() << std::endl;
@@ -271,13 +290,13 @@ Windows_Window::Windows_Window(const std::string& title, const Vec2& size, const
 		app_window_class,
 		app_window_title,
 		window_style,
-		window_x, 
+		window_x,
 		window_y,
-		window_width, 
+		window_width,
 		window_height,
-		parent_window, 
+		parent_window,
 		menu,                     // parent window, menu
-		instance, 
+		instance,
 		lpParam
 	);
 	if (window_handle == NULL) {
@@ -295,11 +314,8 @@ Windows_Window::Windows_Window(const std::string& title, const Vec2& size, const
 
 	::ShowWindow(window_handle, SW_SHOW);
 }
-Windows_Window::~Windows_Window() {
-	::DestroyWindow(m_window_handle);
-}
 
-auto Windows_Window::set_title(const std::string& title) -> void {
-	m_title = title;
-	SetWindowTextA(m_window_handle, m_title.c_str());
+auto Windows_Window::deinit() const -> void {
+	::DestroyWindow(m_window_handle);
+
 }
