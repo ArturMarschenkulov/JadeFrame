@@ -7,7 +7,7 @@
 
 
 #include <iostream>
-#include <optional>
+
 #include <set>
 #include <JadeFrame/graphics/vulkan/vulkan_debug.h>
 
@@ -23,14 +23,6 @@ const bool enable_validation_layers = false;
 #else
 const bool enable_validation_layers = true;
 #endif
-struct QueueFamilyIndices {
-	std::optional<u32> graphics_family;
-	std::optional<u32> present_family;
-	auto is_complete() -> bool {
-		return graphics_family.has_value() && present_family.has_value();
-	}
-
-};
 
 static auto check_validation_layer_support(const std::vector<VkLayerProperties>& available_layers) -> bool {
 	for (u32 i = 0; i < validation_layers.size(); i++) {
@@ -45,25 +37,9 @@ static auto check_validation_layer_support(const std::vector<VkLayerProperties>&
 			return false;
 		}
 	}
-
 	return true;
 }
-static bool check_device_extension_support(VulkanPhysicalDevice physical_device) {
-	uint32_t extension_count;
-	vkEnumerateDeviceExtensionProperties(physical_device.m_physical_device, nullptr, &extension_count, nullptr);
-	std::vector<VkExtensionProperties> available_extensions(extension_count);
-	if (VK_SUCCESS != vkEnumerateDeviceExtensionProperties(physical_device.m_physical_device, nullptr, &extension_count, available_extensions.data())) {
-		__debugbreak();
-	}
 
-	std::set<std::string> required_extensions(device_extensions.begin(), device_extensions.end());
-
-	for (const auto& extension : available_extensions) {
-		required_extensions.erase(extension.extensionName);
-	}
-
-	return required_extensions.empty();
-}
 
 static auto query_swapchain_support(VulkanPhysicalDevice physical_device, VulkanSurface surface) -> SwapChainSupportDetails {
 	SwapChainSupportDetails details;
@@ -124,24 +100,19 @@ static auto find_queue_families(VulkanPhysicalDevice physical_device, VulkanSurf
 	return indices;
 }
 
-static auto is_device_suitable(VulkanPhysicalDevice physical_device, VulkanSurface surface) -> bool {
-	QueueFamilyIndices indices = find_queue_families(physical_device, surface);
-
-	bool extensions_supported = check_device_extension_support(physical_device);
-
+static auto is_device_suitable(VulkanPhysicalDevice physical_device) -> bool {
 	bool swapchain_adequate = false;
-	if (extensions_supported) {
-		SwapChainSupportDetails swapchain_support = query_swapchain_support(physical_device, surface);
-		swapchain_adequate = !swapchain_support.m_formats.empty() && !swapchain_support.m_present_modes.empty();
+	if (physical_device.m_extension_support) {
+		swapchain_adequate = 
+			!physical_device.m_swapchain_support_details.m_formats.empty() && 
+			!physical_device.m_swapchain_support_details.m_present_modes.empty()
+		;
 	}
-	return indices.is_complete() && extensions_supported && swapchain_adequate;
-	//VkPhysicalDeviceProperties device_properties;
-	//vkGetPhysicalDeviceProperties(device, &device_properties);
-
-	//VkPhysicalDeviceFeatures device_features;
-	//vkGetPhysicalDeviceFeatures(device, &device_features);
-
-	//return device_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && device_features.geometryShader;
+	return 
+		physical_device.m_queue_family_indices.is_complete() && 
+		physical_device.m_extension_support && 
+		swapchain_adequate
+	;
 }
 
 //static auto get_required_instance_extensions(u32* count) -> const char* {
@@ -186,10 +157,6 @@ static auto vulkan_get_device_type_string(const VkPhysicalDeviceType& device_typ
 }
 
 
-
-//auto Vulkan_Context::create_instance() {
-//
-//}
 static auto choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& available_formats) -> VkSurfaceFormatKHR {
 	for (u32 i = 0; i < available_formats.size(); i++) {
 		if (available_formats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
@@ -471,7 +438,13 @@ auto VulkanInstance::pick_physical_deivce() -> void {
 	std::cout << __FUNCTION__ << std::endl;
 	m_physical_devices = this->query_physical_devices();
 	for (u32 i = 0; i < m_physical_devices.size(); i++) {
-		if (is_device_suitable(m_physical_devices[i], m_surface)) {
+		m_physical_devices[i].m_extension_properties = m_physical_devices[i].query_extension_properties();
+		m_physical_devices[i].m_extension_support = m_physical_devices[i].check_extension_support();
+		m_physical_devices[i].m_queue_family_indices = find_queue_families(m_physical_devices[i], m_surface);
+		m_physical_devices[i].m_swapchain_support_details = query_swapchain_support(m_physical_devices[i], m_surface);
+	}
+	for (u32 i = 0; i < m_physical_devices.size(); i++) {
+		if (is_device_suitable(m_physical_devices[i])) {
 			m_physical_device = m_physical_devices[i];
 		}
 	}
@@ -579,7 +552,7 @@ auto VulkanInstance::deinit() -> void {
 
 auto VulkanLogicalDevice::create_swapchain(VulkanPhysicalDevice physical_device, VulkanSurface surface, HWND window_handle) -> void {
 	std::cout << __FUNCTION__ << std::endl;
-	SwapChainSupportDetails swapchain_support = query_swapchain_support(physical_device, surface);
+	SwapChainSupportDetails swapchain_support = physical_device.m_swapchain_support_details;
 
 	VkSurfaceFormatKHR surface_format = choose_swap_surface_format(swapchain_support.m_formats);
 	VkPresentModeKHR present_mode = choose_swap_present_mode(swapchain_support.m_present_modes);
@@ -610,7 +583,8 @@ auto VulkanLogicalDevice::create_swapchain(VulkanPhysicalDevice physical_device,
 	//create_info.clipped;
 	//create_info.oldSwapchain;
 
-	QueueFamilyIndices indices = find_queue_families(physical_device, surface);
+
+	QueueFamilyIndices& indices = physical_device.m_queue_family_indices;
 	u32 queue_family_indices[] = {
 		indices.graphics_family.value(),
 		indices.present_family.value()
@@ -864,9 +838,9 @@ auto VulkanLogicalDevice::create_framebuffers() -> void {
 	}
 }
 
-auto VulkanLogicalDevice::create_command_pool(VulkanPhysicalDevice physical_device, VulkanSurface surface) -> void {
+auto VulkanLogicalDevice::create_command_pool(VulkanPhysicalDevice physical_device) -> void {
 	std::cout << __FUNCTION__ << std::endl;
-	QueueFamilyIndices queue_family_indices = find_queue_families(physical_device, surface);
+	QueueFamilyIndices queue_family_indices = physical_device.m_queue_family_indices;
 	VkCommandPoolCreateInfo pool_info{};
 	pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	pool_info.queueFamilyIndex = queue_family_indices.graphics_family.value();
@@ -945,6 +919,17 @@ auto VulkanLogicalDevice::create_sync_objects() -> void {
 	}
 }
 
+auto VulkanLogicalDevice::recreate_swapchain() -> void {
+	vkDeviceWaitIdle(m_device);
+
+	//this->create_swapchain();
+	this->create_image_views();
+	this->create_render_pass();
+	this->create_graphics_pipeline();
+	this->create_framebuffers();
+	this->create_command_buffers();
+}
+
 auto VulkanLogicalDevice::draw_frame() -> void {
 	std::cout << __FUNCTION__ << std::endl;
 	vkWaitForFences(m_device, 1, &m_in_flight_fences[m_current_frame], VK_TRUE, UINT64_MAX);
@@ -999,7 +984,7 @@ auto VulkanLogicalDevice::draw_frame() -> void {
 auto VulkanLogicalDevice::init(VulkanPhysicalDevice physical_device, VulkanSurface surface, HWND window_handle) -> void {
 
 	std::cout << __FUNCTION__ << std::endl;
-	QueueFamilyIndices indices = find_queue_families(physical_device, surface);
+	QueueFamilyIndices indices = physical_device.m_queue_family_indices;
 	get_queue_families_info(physical_device);
 
 	std::set<u32> unique_queue_families = {
@@ -1045,7 +1030,7 @@ auto VulkanLogicalDevice::init(VulkanPhysicalDevice physical_device, VulkanSurfa
 	this->create_render_pass();
 	this->create_graphics_pipeline();
 	this->create_framebuffers();
-	this->create_command_pool(physical_device, surface);
+	this->create_command_pool(physical_device);
 	this->create_command_buffers();
 	this->create_sync_objects();
 }
@@ -1089,4 +1074,22 @@ auto VulkanSurface::init(VkInstance instance, HWND window_handle) -> void {
 		__debugbreak();
 		throw std::runtime_error("failed to create window surface!");
 	}
+}
+
+auto VulkanPhysicalDevice::query_extension_properties() -> std::vector<VkExtensionProperties> {
+	uint32_t extension_count;
+	vkEnumerateDeviceExtensionProperties(m_physical_device, nullptr, &extension_count, nullptr);
+	std::vector<VkExtensionProperties> available_extensions(extension_count);
+	if (VK_SUCCESS != vkEnumerateDeviceExtensionProperties(m_physical_device, nullptr, &extension_count, available_extensions.data())) {
+		__debugbreak();
+	}
+	return available_extensions;
+}
+
+auto VulkanPhysicalDevice::check_extension_support() -> bool {
+	std::set<std::string> required_extensions(device_extensions.begin(), device_extensions.end());
+	for (u32 i = 0; i < m_extension_properties.size(); i++) {
+		required_extensions.erase(m_extension_properties[i].extensionName);
+	}
+	return required_extensions.empty();
 }

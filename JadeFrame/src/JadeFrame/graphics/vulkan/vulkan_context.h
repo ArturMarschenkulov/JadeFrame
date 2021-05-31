@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 #include <vector>
+#include <optional>
 
 #include "JadeFrame/platform/windows/windows_window.h"
 
@@ -18,9 +19,10 @@ private:
 public:
 public:
 	VkSwapchainKHR m_swapchain;
-	std::vector<VkImage> m_swapchain_images;
-	VkFormat m_swapchain_image_format;
-	VkExtent2D m_swapchain_extent;
+
+	//std::vector<VkImage> m_swapchain_images;
+	//VkFormat m_swapchain_image_format;
+	//VkExtent2D m_swapchain_extent;
 };
 struct VulkanSurface {
 private:
@@ -29,11 +31,25 @@ public:
 public:
 	VkSurfaceKHR m_surface;
 };
+struct QueueFamilyIndices {
+	std::optional<u32> graphics_family;
+	std::optional<u32> present_family;
+	auto is_complete() -> bool {
+		return graphics_family.has_value() && present_family.has_value();
+	}
+
+};
 struct VulkanPhysicalDevice {
 private:
 public:
+	auto query_extension_properties()->std::vector< VkExtensionProperties>;
+	auto check_extension_support() -> bool;
 public:
 	VkPhysicalDevice m_physical_device;
+	std::vector<VkExtensionProperties> m_extension_properties;
+	bool m_extension_support;
+	QueueFamilyIndices m_queue_family_indices;
+	SwapChainSupportDetails m_swapchain_support_details;
 };
 struct VulkanLogicalDevice {
 private:
@@ -42,9 +58,11 @@ private:
 	auto create_render_pass() -> void;
 	auto create_graphics_pipeline() -> void;
 	auto create_framebuffers() -> void;
-	auto create_command_pool(VulkanPhysicalDevice physical_device, VulkanSurface surface) -> void;
+	auto create_command_pool(VulkanPhysicalDevice physical_device) -> void;
 	auto create_command_buffers() -> void;
 	auto create_sync_objects() -> void;
+
+	auto recreate_swapchain() -> void;
 
 public:
 	auto draw_frame() -> void;
@@ -89,7 +107,6 @@ private:
 	auto pick_physical_deivce() -> void;
 	auto create_surface(HWND window_handle) -> void;
 public:
-	auto find_queue_families(VulkanPhysicalDevice physical_device, VkSurfaceKHR surface);
 	auto init(HWND window_handle) -> void;
 	auto deinit() -> void;
 public:
