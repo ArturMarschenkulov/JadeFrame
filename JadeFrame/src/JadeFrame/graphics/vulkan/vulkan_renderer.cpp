@@ -8,3 +8,12 @@ auto Vulkan_Renderer::set_context(Windows_Window* window) -> void {
 auto Vulkan_Renderer::main_loop() -> void {
 	m_context_p->main_loop();
 }
+
+auto Vulkan_Renderer::swap_buffer(HWND window_handle) const -> void {
+}
+
+auto Vulkan_Renderer::clear_background() const -> void {
+}
+
+auto Vulkan_Renderer::render_pushed(const Matrix4x4& view_projection) const -> void {
+}

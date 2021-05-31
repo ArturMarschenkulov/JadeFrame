@@ -10,6 +10,7 @@
 #include "JadeFrame/math/vec_2.h"
 #include "JadeFrame/math/mat_4.h"
 #include "JadeFrame/graphics/mesh.h"
+#include "JadeFrame/graphics/shared.h"
 
 #include <vector>
 #include <stack>
@@ -54,21 +55,23 @@ public:
 };
 
 
-class OpenGL_Renderer {
+class OpenGL_Renderer : public IRenderer {
 public:
-	auto swap_buffer(HWND window_handle) const -> void;
+	virtual auto swap_buffer(HWND window_handle) const -> void override;
 	auto set_clear_color(const Color& color) -> void;
 
-	auto clear_background() const -> void;
+	virtual auto clear_background() const -> void override;
 	auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void;
 
 	auto push_to_renderer(const Object& obj) -> void;
-	auto render_mesh(const OpenGL_VertexArray* buffer_data, const Mesh* mesh) const -> void;
-	auto render_pushed(const Matrix4x4& view_projection) const -> void;
+	virtual auto render_pushed(const Matrix4x4& view_projection) const -> void override;
 
 	auto take_screenshot(const char* filename) -> void;
 
 	auto set_context(const Windows_Window& window) -> void;
+
+private:
+	auto render_mesh(const OpenGL_VertexArray* buffer_data, const Mesh* mesh) const -> void;
 
 private:
 	OpenGL_Context m_context;

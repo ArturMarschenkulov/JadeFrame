@@ -1,17 +1,33 @@
 #pragma once
 #include <vulkan/vulkan.h>
-#include <vector>
-#include <optional>
+
+#include "vulkan_physical_device.h"
+#include "vulkan_surface.h"
+#include "vulkan_logical_device.h"
+
 
 #include "JadeFrame/platform/windows/windows_window.h"
 
-struct SwapChainSupportDetails {
-	VkSurfaceCapabilitiesKHR m_capabilities;
-	std::vector<VkSurfaceFormatKHR> m_formats;
-	std::vector<VkPresentModeKHR> m_present_modes;
-};
-struct HWND__;	typedef HWND__* HWND;
+#include <vector>
 
+
+
+
+
+static auto is_device_suitable(VulkanPhysicalDevice physical_device) -> bool {
+	bool swapchain_adequate = false;
+	if (physical_device.m_extension_support) {
+		swapchain_adequate =
+			!physical_device.m_swapchain_support_details.m_formats.empty() &&
+			!physical_device.m_swapchain_support_details.m_present_modes.empty()
+		;
+	}
+	return
+		physical_device.m_queue_family_indices.is_complete() &&
+		physical_device.m_extension_support &&
+		swapchain_adequate
+	;
+}
 
 
 struct VulkanSwapchain {
@@ -24,79 +40,54 @@ public:
 	//VkFormat m_swapchain_image_format;
 	//VkExtent2D m_swapchain_extent;
 };
-struct VulkanSurface {
-private:
-public:
-	auto init(VkInstance instance, HWND window_handle) -> void;
-public:
-	VkSurfaceKHR m_surface;
-};
-struct QueueFamilyIndices {
-	std::optional<u32> graphics_family;
-	std::optional<u32> present_family;
-	auto is_complete() -> bool {
-		return graphics_family.has_value() && present_family.has_value();
-	}
 
-};
-struct VulkanPhysicalDevice {
-private:
-public:
-	auto query_extension_properties()->std::vector< VkExtensionProperties>;
-	auto check_extension_support() -> bool;
-public:
-	VkPhysicalDevice m_physical_device;
-	std::vector<VkExtensionProperties> m_extension_properties;
-	bool m_extension_support;
-	QueueFamilyIndices m_queue_family_indices;
-	SwapChainSupportDetails m_swapchain_support_details;
-};
-struct VulkanLogicalDevice {
-private:
-	auto create_swapchain(VulkanPhysicalDevice physical_device, VulkanSurface surface, HWND window_handle) -> void;
-	auto create_image_views() -> void;
-	auto create_render_pass() -> void;
-	auto create_graphics_pipeline() -> void;
-	auto create_framebuffers() -> void;
-	auto create_command_pool(VulkanPhysicalDevice physical_device) -> void;
-	auto create_command_buffers() -> void;
-	auto create_sync_objects() -> void;
 
-	auto recreate_swapchain() -> void;
-
-public:
-	auto draw_frame() -> void;
-	auto init(VulkanPhysicalDevice physical_device, VulkanSurface surface, HWND window_handle) -> void;
-	auto deinit() -> void;
-public:
-	VkDevice m_device;
-	VkQueue m_graphics_queue;
-	VkQueue m_present_queue;
-
-	VkSwapchainKHR m_swapchain;
-	std::vector<VkImage> m_swapchain_images;
-	VkFormat m_swapchain_image_format;
-	VkExtent2D m_swapchain_extent;
-
-	std::vector<VkImageView> m_swapchain_image_views;
-
-	VkRenderPass m_render_pass;
-
-	VkPipelineLayout m_pipeline_layout;
-	VkPipeline m_graphics_pipeline;
-
-	std::vector<VkFramebuffer> m_swapchain_framebuffers;
-
-	VkCommandPool m_command_pool;
-
-	std::vector<VkCommandBuffer> m_command_buffers;
-
-	std::vector<VkSemaphore> m_image_available_semaphores;
-	std::vector<VkSemaphore> m_render_finished_semaphores;
-	std::vector<VkFence> m_in_flight_fences;
-	std::vector<VkFence> m_images_in_flight;
-	size_t m_current_frame = 0;
-};
+//struct VulkanLogicalDevice {
+//private:
+//	auto create_swapchain(VulkanPhysicalDevice physical_device, VulkanSurface surface, HWND window_handle) -> void;
+//	auto create_image_views() -> void;
+//	auto create_render_pass() -> void;
+//	auto create_graphics_pipeline() -> void;
+//	auto create_framebuffers() -> void;
+//	auto create_command_pool(VulkanPhysicalDevice physical_device) -> void;
+//	auto create_command_buffers() -> void;
+//	auto create_sync_objects() -> void;
+//
+//	auto recreate_swapchain() -> void;
+//
+//public:
+//	auto draw_frame() -> void;
+//	auto init(VulkanPhysicalDevice physical_device, VulkanSurface surface, HWND window_handle) -> void;
+//	auto deinit() -> void;
+//public:
+//	VkDevice m_handle;
+//	VkQueue m_graphics_queue;
+//	VkQueue m_present_queue;
+//
+//	VkSwapchainKHR m_swapchain;
+//	std::vector<VkImage> m_swapchain_images;
+//	VkFormat m_swapchain_image_format;
+//	VkExtent2D m_swapchain_extent;
+//
+//	std::vector<VkImageView> m_swapchain_image_views;
+//
+//	VkRenderPass m_render_pass;
+//
+//	VkPipelineLayout m_pipeline_layout;
+//	VkPipeline m_graphics_pipeline;
+//
+//	std::vector<VkFramebuffer> m_swapchain_framebuffers;
+//
+//	VkCommandPool m_command_pool;
+//
+//	std::vector<VkCommandBuffer> m_command_buffers;
+//
+//	std::vector<VkSemaphore> m_image_available_semaphores;
+//	std::vector<VkSemaphore> m_render_finished_semaphores;
+//	std::vector<VkFence> m_in_flight_fences;
+//	std::vector<VkFence> m_images_in_flight;
+//	size_t m_current_frame = 0;
+//};
 struct VulkanInstance {
 
 private:
@@ -105,7 +96,6 @@ private:
 	auto query_physical_devices() -> std::vector<VulkanPhysicalDevice>;
 	auto setup_debug() -> void;
 	auto pick_physical_deivce() -> void;
-	auto create_surface(HWND window_handle) -> void;
 public:
 	auto init(HWND window_handle) -> void;
 	auto deinit() -> void;
@@ -122,7 +112,7 @@ public:
 	std::vector<VulkanPhysicalDevice> m_physical_devices;
 	VulkanPhysicalDevice m_physical_device;
 
-	VulkanLogicalDevice m_device;
+	VulkanLogicalDevice m_logical_device;
 
 	VulkanSurface m_surface;
 

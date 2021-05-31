@@ -465,6 +465,21 @@
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_physical_device.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_surface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\graphics\shared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_shared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_logical_device.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\JadeFrame.cpp">
@@ -705,6 +720,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_context.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_physical_device.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_surface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_logical_device.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
