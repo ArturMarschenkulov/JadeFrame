@@ -21,7 +21,7 @@ auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const ->
 auto OpenGL_Renderer::swap_buffer(const HWND window_handle) const -> void {
 	::SwapBuffers(GetDC(window_handle)); // TODO: This is Windows specific. Abstract his away!
 }
-auto OpenGL_Renderer::push_to_renderer(const Object& obj) -> void {
+auto OpenGL_Renderer::submit(const Object& obj) -> void {
 	OpenGL_RenderCommand command = {};
 	command.mesh = obj.m_mesh;
 	command.material = obj.m_material;
@@ -46,7 +46,7 @@ auto OpenGL_Renderer::render_mesh(const OpenGL_VertexArray* vertex_array, const 
 		glDrawArrays(mode, first, count);
 	}
 }
-auto OpenGL_Renderer::render_pushed(const Matrix4x4& view_projection) const -> void {
+auto OpenGL_Renderer::render(const Matrix4x4& view_projection) const -> void {
 
 	for (size_t i = 0; i < m_render_commands.size(); ++i) {
 

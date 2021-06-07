@@ -10,20 +10,20 @@
 
 #include <set>
 
-const std::vector<const char*> validation_layers = {
+const std::vector<const char*> g_validation_layers = {
 	"VK_LAYER_KHRONOS_validation"
 };
 #ifdef NDEBUG
 const bool enable_validation_layers = false;
 #else
-const bool enable_validation_layers = true;
+const bool g_enable_validation_layers = true;
 #endif
 
 static auto check_validation_layer_support(const std::vector<VkLayerProperties>& available_layers) -> bool {
-	for (u32 i = 0; i < validation_layers.size(); i++) {
+	for (u32 i = 0; i < g_validation_layers.size(); i++) {
 		bool layer_found = false;
 		for (u32 j = 0; j < available_layers.size(); j++) {
-			if (strcmp(validation_layers[i], available_layers[j].layerName) == 0) {
+			if (strcmp(g_validation_layers[i], available_layers[j].layerName) == 0) {
 				layer_found = true;
 				break;
 			}
@@ -77,16 +77,16 @@ static auto vulkan_get_device_type_string(const VkPhysicalDeviceType& device_typ
 }
 
 
-Vulkan_Context::Vulkan_Context(Windows_Window* window) {
+Vulkan_Context::Vulkan_Context(const Windows_Window& window) {
 	std::cout << __FUNCTION__ << std::endl;
-	if (window->m_is_graphics_api_init == true) {
-		if (window->m_graphics_api != Windows_Window::GRAPHICS_API::VULKAN) {
-			window->recreate();
+	if (window.m_is_graphics_api_init == true) {
+		if (window.m_graphics_api != Windows_Window::GRAPHICS_API::VULKAN) {
+			window.recreate();
 		}
 	}
-	m_window_handle = window->m_window_handle;
-	m_instance.init(window->m_window_handle);
-	window->m_graphics_api = Windows_Window::GRAPHICS_API::VULKAN;
+	m_window_handle = window.m_window_handle;
+	m_instance.init(window.m_window_handle);
+	window.m_graphics_api = Windows_Window::GRAPHICS_API::VULKAN;
 	this->main_loop();
 }
 
@@ -102,13 +102,13 @@ Vulkan_Context::~Vulkan_Context() {
 
 
 auto Vulkan_Context::main_loop() -> void {
-	std::cout << __FUNCTION__ << " start" << std::endl;
+	VkResult result;
 	while (true) {
 		JadeFrame::get_singleton()->m_apps[0]->poll_events();
 		m_instance.m_logical_device.draw_frame();
 	}
 	std::cout << __FUNCTION__ << " pre-end" << std::endl;
-	vkDeviceWaitIdle(m_instance.m_logical_device.m_handle);
+	result = vkDeviceWaitIdle(m_instance.m_logical_device.m_handle);
 	std::cout << __FUNCTION__ << " end" << std::endl;
 }
 
@@ -141,14 +141,14 @@ auto VulkanInstance::query_layers() -> std::vector<VkLayerProperties> {
 	std::vector<VkLayerProperties> available_layers;
 	available_layers.resize(layer_count);
 	vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
-	//std::cout << "available layers:\n";
-	//for (u32 i = 0; i < available_layers.size(); i++) {
-	//	std::cout << '\t' << available_layers[i].layerName << '\n';
-	//}
 	if (!check_validation_layer_support(available_layers)) {
 		__debugbreak();
 	}
 	return available_layers;
+	//std::cout << "available layers:\n";
+	//for (u32 i = 0; i < available_layers.size(); i++) {
+	//	std::cout << '\t' << available_layers[i].layerName << '\n';
+	//}
 }
 
 auto VulkanInstance::query_extensions() -> std::vector<VkExtensionProperties> {
@@ -157,11 +157,11 @@ auto VulkanInstance::query_extensions() -> std::vector<VkExtensionProperties> {
 	std::vector<VkExtensionProperties> m_extensions;
 	m_extensions.resize(extension_count);
 	vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, m_extensions.data());
+	return m_extensions;
 	//std::cout << "available extensions:\n";
 	//for (u32 i = 0; i < m_extensions.size(); i++) {
 	//	std::cout << '\t' << m_extensions[i].extensionName << '\n';
 	//}
-	return m_extensions;
 }
 
 auto VulkanInstance::query_physical_devices() -> std::vector<VulkanPhysicalDevice> {
@@ -201,35 +201,21 @@ auto VulkanInstance::query_physical_devices() -> std::vector<VulkanPhysicalDevic
 }
 
 auto VulkanInstance::setup_debug() -> void {
-	std::cout << __FUNCTION__ << std::endl;
-	if (!enable_validation_layers) return;
+	VkResult result;
+	if (!g_enable_validation_layers) return;
 	VkDebugUtilsMessengerCreateInfoEXT create_info;
 	populate_debug_messenger_create_info(create_info);
 
-	if (vkCreateDebugUtilsMessengerEXT(m_instance, &create_info, nullptr, &m_debug_messenger) != VK_SUCCESS) {
+	result = vkCreateDebugUtilsMessengerEXT(m_instance, &create_info, nullptr, &m_debug_messenger);
+	if (result != VK_SUCCESS) {
 		throw std::runtime_error("failed to set up debug messenger!");
 	}
 }
 
-auto VulkanInstance::pick_physical_deivce() -> void {
-	std::cout << __FUNCTION__ << std::endl;
-	m_physical_devices = this->query_physical_devices();
-	for (u32 i = 0; i < m_physical_devices.size(); i++) {
-		m_physical_devices[i].init(m_surface);
-
-	}
-	for (u32 i = 0; i < m_physical_devices.size(); i++) {
-		if (is_device_suitable(m_physical_devices[i])) {
-			m_physical_device = m_physical_devices[i];
-		}
-	}
-	if (m_physical_device.m_handle == VK_NULL_HANDLE) {
-		throw std::runtime_error("failed to find a suitable GPU!");
-	}
-}
-
-
 auto VulkanInstance::init(HWND window_handle) -> void {
+	VkResult result;
+	m_window_handle = window_handle;
+
 	m_layers = this->query_layers();
 	m_extensions = this->query_extensions();
 	m_extension_names.resize(m_extensions.size());
@@ -240,7 +226,7 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 		m_extension_names[i] = m_extensions[i].extensionName;
 	}
 
-	if (enable_validation_layers && !check_validation_layer_support(m_layers)) {
+	if (g_enable_validation_layers && !check_validation_layer_support(m_layers)) {
 		throw std::runtime_error("validation layers requested, but not available!");
 	}
 
@@ -268,9 +254,9 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 	//__debugbreak();
 
 	VkDebugUtilsMessengerCreateInfoEXT debug_create_info;
-	if (enable_validation_layers) {
-		create_info.enabledLayerCount = static_cast<uint32_t>(validation_layers.size());
-		create_info.ppEnabledLayerNames = validation_layers.data();
+	if (g_enable_validation_layers) {
+		create_info.enabledLayerCount = static_cast<uint32_t>(g_validation_layers.size());
+		create_info.ppEnabledLayerNames = g_validation_layers.data();
 
 		populate_debug_messenger_create_info(debug_create_info);
 		create_info.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debug_create_info;
@@ -279,23 +265,36 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 		create_info.pNext = nullptr;
 	}
 
-	VkResult result = vkCreateInstance(&create_info, nullptr, &m_instance);
+	result = vkCreateInstance(&create_info, nullptr, &m_instance);
 	if (result != VK_SUCCESS) {
-		throw std::runtime_error("failed to create instance!");
-		//__debugbreak();
+		std::cout << "failed to create instance!" << std::endl;
+		__debugbreak();
 	}
 
 	this->setup_debug();
 	m_surface.init(m_instance, window_handle);
-	//this->create_surface(window_handle);
-	this->pick_physical_deivce();
-	m_logical_device.init(m_physical_device, m_surface, window_handle);
-	//this->create_logical_device(m_surface);
+	{
+		m_physical_devices = this->query_physical_devices();
+		for (u32 i = 0; i < m_physical_devices.size(); i++) {
+			m_physical_devices[i].init(m_surface);
+		}
+		for (u32 i = 0; i < m_physical_devices.size(); i++) {
+			if (is_device_suitable(m_physical_devices[i])) {
+				m_physical_device = m_physical_devices[i];
+			}
+		}
+		if (m_physical_device.m_handle == VK_NULL_HANDLE) {
+			std::cout << "failed to find a suitable GPU!" << std::endl;
+			__debugbreak();
+		}
+	}
+	m_logical_device.init(*this);
+
 	//__debugbreak();
 }
 
 auto VulkanInstance::deinit() -> void {
-	if (enable_validation_layers) {
+	if (g_enable_validation_layers) {
 		vkDestroyDebugUtilsMessengerEXT(m_instance, m_debug_messenger, nullptr);
 	}
 	vkDestroySurfaceKHR(m_instance, m_surface.m_surface, nullptr);

@@ -2,4 +2,4 @@
 #include <tuple>
 #include <string>
 
-auto load_shader_by_name(const std::string& name)->std::tuple<std::string, std::string>;
+auto get_shader_by_name(const std::string& name)->std::tuple<std::string, std::string>;

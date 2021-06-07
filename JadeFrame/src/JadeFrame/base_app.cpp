@@ -54,8 +54,8 @@ BaseApp::BaseApp(const std::string& title, const Vec2& size, const Vec2& positio
 	//std::cout << "Vulkan start" << std::endl;
 }
 auto BaseApp::start() -> void {
-	m_vulkan_renderer.set_context(&m_windows[0]);
-	m_vulkan_renderer.main_loop();
+	//m_vulkan_renderer.set_context(m_windows[0]);
+	//m_vulkan_renderer.main_loop();
 
 	this->on_init();
 
@@ -75,7 +75,7 @@ auto BaseApp::start() -> void {
 
 			this->on_draw();
 			const Matrix4x4& view_projection = m_camera.get_view_projection_matrix();
-			m_renderer.render_pushed(view_projection);
+			m_renderer.render(view_projection);
 
 			GUI_render();
 
@@ -310,11 +310,11 @@ auto BaseApp::poll_events() -> void {
 //auto TestApp0::on_draw() -> void {
 //
 //	for (size_t i = 0; i < m_objs.size(); i++) {
-//		m_renderer.push_to_renderer(m_objs[i]);
+//		m_renderer.submit(m_objs[i]);
 //	}
 //
 //	const Matrix4x4 view_projection = m_camera.get_view_matrix() * m_camera.get_projection_matrix();
-//	m_renderer.render_pushed(view_projection);
+//	m_renderer.render(view_projection);
 //	m_renderer.m_command_buffer.m_render_commands.clear();
 //	//draw_GUI(*this);
 //}

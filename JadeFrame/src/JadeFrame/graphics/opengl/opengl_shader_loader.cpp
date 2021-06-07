@@ -11,6 +11,18 @@
 	o_ = from fragment to output
 	u_ = uniform
 	   = local variables
+
+	   
+	Certain variables should be inside a shader.
+		"v_position" is the actual position
+		"u_view_projection"
+		"u_model" 
+	   
+	The structure is:
+		in variables with layout
+		out variables
+		uniforms
+		
 */
 static auto get_default_shader_flat() -> std::tuple<std::string, std::string> {
 	const GLchar* vertex_shader =
@@ -229,7 +241,7 @@ void main()
 	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
 
-auto load_shader_by_name(const std::string& name) -> std::tuple<std::string, std::string> {
+auto get_shader_by_name(const std::string& name) -> std::tuple<std::string, std::string> {
 	std::tuple<std::string, std::string> shader_tuple;
 	if (name == "flat_0") {
 		shader_tuple = get_default_shader_flat();

@@ -10,5 +10,6 @@ struct HWND__;	typedef HWND__* HWND;
 class IRenderer {
 	virtual auto swap_buffer(HWND window_handle) const -> void = 0;
 	virtual auto clear_background() const -> void = 0;
-	virtual auto render_pushed(const Matrix4x4& view_projection) const -> void = 0;
+	virtual auto render(const Matrix4x4& view_projection) const -> void = 0;
+	virtual auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void = 0;
 };

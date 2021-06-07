@@ -58,13 +58,13 @@ public:
 class OpenGL_Renderer : public IRenderer {
 public:
 	virtual auto swap_buffer(HWND window_handle) const -> void override;
-	auto set_clear_color(const Color& color) -> void;
-
 	virtual auto clear_background() const -> void override;
+	virtual auto render(const Matrix4x4& view_projection) const -> void override;
+	auto submit(const Object& obj) -> void;
+
+	auto set_clear_color(const Color& color) -> void;
 	auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void;
 
-	auto push_to_renderer(const Object& obj) -> void;
-	virtual auto render_pushed(const Matrix4x4& view_projection) const -> void override;
 
 	auto take_screenshot(const char* filename) -> void;
 

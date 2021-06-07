@@ -22,18 +22,6 @@ Orthographical convention:
 	variables and functions in snake case (my_variable, my_function())
 	Classes and structs are written in pascal case (MyClass, MyStruct). Platform code with "_", e.g. "Windows_Window", "OpenGL_renderer".
 
-	Trailing return type should be the default way.
-		Pros:
-			- function name is better readable if the return type is long
-			- better searchability, since -> type will mostly be the return type
-			- better "eye flow"
-			- one can indentify functions much better
-		Cons:
-			- one has to type more
-			- functions with short names will be unneccsarily longer
-			- VS2019 doesn't show the trailing return type if the function is collapsed
-
-
 	Platform specific constructs are named by the following pattern <Platform>_. 
 	E.g. Windows_*, Linux_*, MacOS_* or OpenGL_*, Vulkan_*, DirectX11_*, DirectX12_*, Software_*, Dummy_*
 
@@ -50,6 +38,8 @@ Orthographical convention:
 		If one wants to add state, one should use compose them into "OGL*" types. For example if you want to store the source code of GLShader, add that to OGLShader/OGL_Shader.
 
 
+	
+
 TODO:
 	
 	- expend the math library especially the various vector classes to support more operations
@@ -61,13 +51,7 @@ TODO:
 			is worth creating. That would have the added bonus that one could change the properties 
 			relatively easy, like size etc.
 	- Rendering
-		- the BatchRenderer should only send the vertices to the GPU if vertices are "dirty"
-			- consider whether it is better to always resend the whole vertex buffer if something changes
-				or whether it is better to only resend what changed. Probably one could create a system
-				which dynamically decides what to do
 		- add textures
-		- add Camera
-			- should be able to switch between orthographic and perspective mode
 		- add some sort of axis grid for better orientation in the 3D space. Can be toggled on and off
 
 	- add ways to render text
@@ -76,5 +60,11 @@ TODO:
 	- add possible debug mode, so that one can see various performance data on screen
 
 	- create a graphics layer which could potential could be dynamically switched out between software rendering, OpenGL, Vulkan, Direct3D11 and Direct3D12 
+
+
+	- add data types
+		- containters
+			- singly linked list
+			- dynamically
 
 */

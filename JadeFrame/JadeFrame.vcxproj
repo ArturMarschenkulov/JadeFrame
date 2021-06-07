@@ -301,6 +301,8 @@
     <ClInclude Include="src\JadeFrame.h" />
     <ClInclude Include="src\JadeFrame\base_app.h" />
     <ClInclude Include="src\JadeFrame\core.h" />
+    <ClInclude Include="src\JadeFrame\datatypes\cowdata.h" />
+    <ClInclude Include="src\JadeFrame\datatypes\string.h" />
     <ClInclude Include="src\JadeFrame\defines.h" />
     <ClInclude Include="src\JadeFrame\font_manager.h" />
     <ClInclude Include="src\JadeFrame\graphics\camera.h" />
@@ -332,6 +334,7 @@
     <ClInclude Include="src\JadeFrame\graphics\mesh.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_renderer.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_shader.h" />
+    <ClInclude Include="src\JadeFrame\platform\windows\windows_shared.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_system_manager.h" />
     <ClInclude Include="src\JadeFrame\utils\utils.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_message_map.h" />

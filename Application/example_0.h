@@ -31,7 +31,7 @@ struct Drop {
 	}
 	auto show() const -> void {
 		Renderer& renderer = JadeFrame::get_singleton()->m_apps[0]->m_renderer;
-		renderer.push_to_renderer(obj);
+		renderer.submit(obj);
 	}
 
 	Mesh mesh;

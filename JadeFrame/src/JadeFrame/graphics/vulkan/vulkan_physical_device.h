@@ -7,7 +7,7 @@
 #include <optional>
 #include <vector>
 
-const std::vector<const char*> device_extensions = {
+const std::vector<const char*> g_device_extensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 };
 
@@ -28,9 +28,7 @@ struct VulkanPhysicalDevice {
 private:
 public:
 	auto init(VulkanSurface surface) -> void;
-	auto query_extension_properties() -> std::vector<VkExtensionProperties>;
-	auto check_extension_support() -> bool;
-	auto query_swapchain_support(VulkanSurface surface) -> SwapChainSupportDetails;
+	auto check_extension_support(const std::vector<const char*> extensions) -> bool;
 	auto find_queue_families(VulkanSurface surface) -> QueueFamilyIndices;
 public:
 	VkPhysicalDevice m_handle;
@@ -45,5 +43,8 @@ public:
 
 	bool m_extension_support;
 	QueueFamilyIndices m_queue_family_indices;
-	SwapChainSupportDetails m_swapchain_support_details;
+	//SwapChainSupportDetails m_swapchain_support_details;
+	VkSurfaceCapabilitiesKHR m_surface_capabilities;
+	std::vector<VkSurfaceFormatKHR> m_surface_formats;
+	std::vector<VkPresentModeKHR> m_present_modes;
 };
