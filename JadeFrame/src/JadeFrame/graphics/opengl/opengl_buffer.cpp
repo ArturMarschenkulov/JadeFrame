@@ -4,50 +4,55 @@
 
 
 static auto SHADER_TYPE_to_openGL_type(const SHADER_TYPE type) -> GLenum {
+	GLenum result;
 	switch (type) {
 		case SHADER_TYPE::FLOAT:
 		case SHADER_TYPE::FLOAT_2:
 		case SHADER_TYPE::FLOAT_3:
-		case SHADER_TYPE::FLOAT_4: return GL_FLOAT;
-		default: __debugbreak(); return 0;
+		case SHADER_TYPE::FLOAT_4: result = GL_FLOAT; break;
+		default: __debugbreak(); result = 0; break;
 	}
+	return result;
 }
 static auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
+	u32 result;
 	switch (type) {
-		case SHADER_TYPE::FLOAT:	return 4;
-		case SHADER_TYPE::FLOAT_2:	return 4 * 2;
-		case SHADER_TYPE::FLOAT_3:	return 4 * 3;
-		case SHADER_TYPE::FLOAT_4:	return 4 * 4;
-		case SHADER_TYPE::MAT_3:	return 4 * 3 * 3;
-		case SHADER_TYPE::MAT_4:	return 4 * 4 * 4;
-		case SHADER_TYPE::INT:		return 4;
-		case SHADER_TYPE::INT_2:	return 4 * 2;
-		case SHADER_TYPE::INT_3:	return 4 * 3;
-		case SHADER_TYPE::INT_4:	return 4 * 4;
-		case SHADER_TYPE::BOOL:	return 1;
-		default: __debugbreak(); return 0;
+		case SHADER_TYPE::FLOAT:	result = 4; break;
+		case SHADER_TYPE::FLOAT_2:	result = 4 * 2; break;
+		case SHADER_TYPE::FLOAT_3:	result = 4 * 3; break;
+		case SHADER_TYPE::FLOAT_4:	result = 4 * 4; break;
+		case SHADER_TYPE::MAT_3:	result = 4 * 3 * 3; break;
+		case SHADER_TYPE::MAT_4:	result = 4 * 4 * 4; break;
+		case SHADER_TYPE::INT:		result = 4; break;
+		case SHADER_TYPE::INT_2:	result = 4 * 2; break;
+		case SHADER_TYPE::INT_3:	result = 4 * 3; break;
+		case SHADER_TYPE::INT_4:	result = 4 * 4; break;
+		case SHADER_TYPE::BOOL:	result = 1; break;
+		default: __debugbreak(); result = 0; break;
 	}
-	return 0;
+	return result;
 }
 static auto SHADER_TYPE_get_component_count(const SHADER_TYPE type) -> u32 {
+	u32 result;
 	switch (type) {
 		case SHADER_TYPE::FLOAT:
 		case SHADER_TYPE::INT:
-		case SHADER_TYPE::BOOL:	return 1;
+		case SHADER_TYPE::BOOL:	result = 1; break;
 
 		case SHADER_TYPE::FLOAT_2:
-		case SHADER_TYPE::INT_2:	return 2;
+		case SHADER_TYPE::INT_2:	result = 2; break;
 
 		case SHADER_TYPE::FLOAT_3:
 		case SHADER_TYPE::MAT_3:// 3* float3
-		case SHADER_TYPE::INT_3:	return 3;
+		case SHADER_TYPE::INT_3:	result = 3; break;
 
 		case SHADER_TYPE::FLOAT_4:
 		case SHADER_TYPE::MAT_4:	 // 4* float4
-		case SHADER_TYPE::INT_4:	return 4;
+		case SHADER_TYPE::INT_4:	result = 4; break;
 
-		default: __debugbreak(); return 0;
+		default: __debugbreak(); result = 0; break;
 	}
+	return result;
 }
 
 BufferLayout::BufferElement::BufferElement(SHADER_TYPE type, const std::string& name, bool normalized)

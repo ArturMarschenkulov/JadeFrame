@@ -5,33 +5,11 @@
 #include "vulkan_surface.h"
 #include "vulkan_logical_device.h"
 
-
-#include "JadeFrame/platform/windows/windows_window.h"
-
 #include <vector>
 
+class Windows_Window;
 
-
-
-
-static auto is_device_suitable(VulkanPhysicalDevice physical_device) -> bool {
-	bool swapchain_adequate = false;
-	if (physical_device.m_extension_support) {
-		swapchain_adequate =
-			!physical_device.m_surface_formats.empty() &&
-			!physical_device.m_present_modes.empty()
-		;
-	}
-	return
-		physical_device.m_queue_family_indices.is_complete() &&
-		physical_device.m_extension_support &&
-		swapchain_adequate
-	;
-}
-
-
-
-struct VulkanInstance {
+class VulkanInstance {
 
 private:
 	auto query_layers()->std::vector<VkLayerProperties>;

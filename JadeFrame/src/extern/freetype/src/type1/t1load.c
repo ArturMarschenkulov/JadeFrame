@@ -1909,7 +1909,8 @@
       FT_TRACE0(( "parse_charstrings: adjusting number of glyphs"
                   " (from %d to %d)\n",
                   num_glyphs, ( limit - cur ) >> 3 ));
-      num_glyphs = ( limit - cur ) >> 3;
+      num_glyphs = ( limit - cur ) >> 3
+          ;
     }
 
     /* some fonts like Optima-Oblique not only define the /CharStrings */

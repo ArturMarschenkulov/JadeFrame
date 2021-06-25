@@ -140,7 +140,7 @@ inline constexpr auto Matrix4x4::orthogonal_projection_matrix(f32 left, f32 righ
 }
 
 inline /*constexpr*/ auto Matrix4x4::perspective_projection_matrix(f32 fovy, f32 aspect, f32 zNear, f32 zFar) noexcept -> Matrix4x4 {
-	const f64 tan_half_fovy = tan(fovy / 2.0f);
+	const f32 tan_half_fovy = static_cast<f32>(tan(fovy / 2.0f));
 	Matrix4x4 result(0.0f);
 	result.el[0][0] = 1.0f / (aspect * tan_half_fovy);
 	result.el[1][1] = 1.0f / tan_half_fovy;
@@ -156,10 +156,10 @@ inline constexpr auto Matrix4x4::translation_matrix(const Vec3& trans) noexcept 
 	result.el[3][2] = trans.z;
 	return result;
 }
-inline /*constexpr*/ auto Matrix4x4::rotation_matrix(f32 angle, const Vec3& axis) -> Matrix4x4 {
-	const f64 c = cos(angle);
-	const f64 omc = 1 - c;
-	const f64 s = sin(angle);
+inline /*constexpr*/ auto Matrix4x4::rotation_matrix(f32 angle, const Vec3& axis) noexcept -> Matrix4x4 {
+	const f32 c = static_cast<f32>(cos(angle));
+	const f32 omc = 1 - c;
+	const f32 s = static_cast<f32>(sin(angle));
 
 	Matrix4x4 result(1.0f);
 	result.el[0][0] = axis.x * axis.x * omc + c;
@@ -175,7 +175,7 @@ inline /*constexpr*/ auto Matrix4x4::rotation_matrix(f32 angle, const Vec3& axis
 	result.el[2][2] = axis.z * axis.z * omc + c;
 	return result;
 }
-inline /*constexpr*/ auto Matrix4x4::scale_matrix(const Vec3& scale) -> Matrix4x4 {
+inline /*constexpr*/ auto Matrix4x4::scale_matrix(const Vec3& scale) noexcept -> Matrix4x4 {
 	Matrix4x4 result(1.0f);
 	result.el[0][0] = scale.x;
 	result.el[1][1] = scale.y;
@@ -183,7 +183,7 @@ inline /*constexpr*/ auto Matrix4x4::scale_matrix(const Vec3& scale) -> Matrix4x
 	return result;
 }
 
-inline constexpr auto Matrix4x4::look_at_matrix(const Vec3& eye, Vec3 center, Vec3 up) -> Matrix4x4 {
+inline constexpr auto Matrix4x4::look_at_matrix(const Vec3& eye, Vec3 center, Vec3 up) noexcept -> Matrix4x4 {
 	Vec3 const f((center - eye).get_normal());
 	Vec3 const s(f.cross(up).get_normal());
 	Vec3 const u(s.cross(f));

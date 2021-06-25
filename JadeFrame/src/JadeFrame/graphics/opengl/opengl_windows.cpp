@@ -41,7 +41,7 @@ typedef BOOL	WINAPI	PFNWGLCHOOSEPIXELFORMATARBPROC(HDC hdc, const int* piAttribI
 typedef HGLRC	WINAPI	PFNWGLCREATECONTEXTATTRIBSARBPROC(HDC hDC, HGLRC hShareContext, const int* attribList);
 //typedef const char* (WINAPI* PFNWGLGETEXTENSIONSSTRINGEXTPROC) (void);
 typedef const char* WINAPI PFNWGLGETEXTENSIONSSTRINGEXTPROC(void);
-
+typedef BOOL	WINAPI	PFNWGLSWAPINTERVALEXTPROC(int);
 //typedef BOOL(WINAPI* PFNWGLSWAPINTERVALEXTPROC) (int interval);
 
 static PFNWGLCHOOSEPIXELFORMATARBPROC* wglChoosePixelFormatARB = nullptr;
@@ -147,6 +147,10 @@ auto wgl_load() -> bool {
 	::UnregisterClassW(window_class_name, instance);
 
 	return true;
+}
+
+auto wgl_swap_interval(i32 i) -> void {
+	wglSwapIntervalEXT(i); 
 }
 
 auto wgl_set_pixel_format(const HDC& device_context) -> void {

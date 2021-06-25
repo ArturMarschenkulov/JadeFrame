@@ -1,8 +1,11 @@
 #include "vulkan_physical_device.h"
+
+#include "vulkan_context.h"
+#include "vulkan_surface.h"
+
+#include <iostream>
 #include <set>
 #include <string>
-#include "vulkan_context.h"
-#include <iostream>
 
 
 auto get_queue_families_info(VulkanPhysicalDevice physical_device) -> void {
@@ -84,7 +87,7 @@ auto VulkanPhysicalDevice::init(VulkanSurface surface) -> void {
 	//__debugbreak();
 }
 
-auto VulkanPhysicalDevice::check_extension_support(const std::vector<const char*> extensions) -> bool {
+auto VulkanPhysicalDevice::check_extension_support(const std::vector<const char*>& extensions) -> bool {
 	std::set<std::string> required_extensions(extensions.begin(), extensions.end());
 	for (u32 i = 0; i < m_extension_properties.size(); i++) {
 		required_extensions.erase(m_extension_properties[i].extensionName);
@@ -98,7 +101,7 @@ auto VulkanPhysicalDevice::find_queue_families(VulkanSurface surface) -> QueueFa
 	QueueFamilyIndices indices;
 	for (u32 i = 0; i < m_queue_family_properties.size(); i++) {
 		if (m_queue_family_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-			indices.graphics_family = i;
+			indices.m_graphics_family = i;
 		}
 		VkBool32 present_support = false;
 
@@ -108,7 +111,7 @@ auto VulkanPhysicalDevice::find_queue_families(VulkanSurface surface) -> QueueFa
 		}
 
 		if (present_support) {
-			indices.present_family = i;
+			indices.m_present_family = i;
 		}
 		if (indices.is_complete()) {
 			break;

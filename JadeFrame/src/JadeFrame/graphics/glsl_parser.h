@@ -26,6 +26,7 @@ enum class TOKEN_TYPE {
 
 	//Directives
 	D_VERSION, // #version
+	D_EXTENSION, // #extension
 
 	//Keywords, Qualifiers
 	KW_IN,
@@ -67,6 +68,9 @@ struct Token {
 struct GLSLParser {
 	GLSLParser();
 	auto parse(const std::string& text) -> void;
+	auto parse_stmt_directive(const Token& t, const Token* current_ptr) -> void;
+	auto parse_stmt_declaration_variable(const Token& t, const Token*& current_ptr) -> void;
+	
 	auto parse_statement() -> void;
 
 public: //Parser part

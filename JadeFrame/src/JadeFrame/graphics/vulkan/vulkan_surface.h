@@ -4,7 +4,8 @@
 #include <vulkan/vulkan.h>
 
 struct HWND__;	typedef HWND__* HWND;
-struct VulkanSurface {
+
+class VulkanSurface {
 private:
 public:
 	auto init(VkInstance instance, HWND window_handle) -> void;

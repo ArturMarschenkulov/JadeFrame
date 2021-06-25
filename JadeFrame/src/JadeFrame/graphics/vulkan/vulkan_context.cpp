@@ -3,6 +3,10 @@
 #include "vulkan_context.h"
 #include "vulkan_debug.h"
 #include "vulkan_shared.h"
+#include "vulkan_physical_device.h"
+
+#include "JadeFrame/platform/windows/windows_window.h"
+
 
 #include "JadeFrame/defines.h"
 
@@ -33,6 +37,21 @@ static auto check_validation_layer_support(const std::vector<VkLayerProperties>&
 		}
 	}
 	return true;
+}
+
+static auto is_device_suitable(VulkanPhysicalDevice physical_device) -> bool {
+	bool swapchain_adequate = false;
+	if (physical_device.m_extension_support) {
+		swapchain_adequate =
+			!physical_device.m_surface_formats.empty() &&
+			!physical_device.m_present_modes.empty()
+			;
+	}
+	return
+		physical_device.m_queue_family_indices.is_complete() &&
+		physical_device.m_extension_support &&
+		swapchain_adequate
+		;
 }
 
 //static auto get_required_instance_extensions(u32* count) -> const char* {
@@ -112,28 +131,6 @@ auto Vulkan_Context::main_loop() -> void {
 	std::cout << __FUNCTION__ << " end" << std::endl;
 }
 
-
-
-/*
-Vulkan Scratch
-
-
-struct Instance {
-	physical_devices: PhysicalDevice[*],
-	surface : Surface,
-};
-
-struct PhysicalDevice {
-	queue_families: QueueFamily[*],
-	logical_devices: Device[*],
-};
-
-struct QueueFamily {
-	type: from {graphics, present, ...}
-	queues: type[*],
-};
-
-*/
 
 auto VulkanInstance::query_layers() -> std::vector<VkLayerProperties> {
 	u32 layer_count;
@@ -289,8 +286,6 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 		}
 	}
 	m_logical_device.init(*this);
-
-	//__debugbreak();
 }
 
 auto VulkanInstance::deinit() -> void {

@@ -35,7 +35,7 @@ auto OpenGL_TextureLoader::load(const std::string& path, GLenum target, const GL
 
 	STBIImage image(path);
 	if (image.data) {
-		GLenum format = -1;
+		GLenum format = static_cast<GLenum>(-1);
 		switch (image.num_components) {
 			case 1: format = GL_RED; break;
 			case 3: format = GL_RGB; break;

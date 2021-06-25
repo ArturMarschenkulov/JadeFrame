@@ -53,7 +53,7 @@ OpenGL_Context::OpenGL_Context(const Windows_Window& window) {
 	//glGetIntegerv(GL_MAX_CLIP_DISTANCES, &max_clip_distances);
 	//glGetIntegerv(GL_MAX_CLIP_DISTANCES, &max_clip_distances);
 
-	wglSwapIntervalEXT(0); //TODO: This is windows specific. Abstract this away
+	wgl_swap_interval(0); //TODO: This is windows specific. Abstract this away
 
 	window.m_is_graphics_api_init = true;
 	window.m_graphics_api = Windows_Window::GRAPHICS_API::OPENGL;

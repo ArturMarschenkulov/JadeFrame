@@ -37,7 +37,7 @@ public:
 	struct BufferElement {
 		std::string name;
 		SHADER_TYPE type;
-		u8 size;
+		u32 size;
 		size_t offset;
 		bool normalized;
 

@@ -54,8 +54,8 @@ BaseApp::BaseApp(const std::string& title, const Vec2& size, const Vec2& positio
 	//std::cout << "Vulkan start" << std::endl;
 }
 auto BaseApp::start() -> void {
-	//m_vulkan_renderer.set_context(m_windows[0]);
-	//m_vulkan_renderer.main_loop();
+	m_vulkan_renderer.set_context(m_windows[0]);
+	m_vulkan_renderer.main_loop();
 
 	this->on_init();
 

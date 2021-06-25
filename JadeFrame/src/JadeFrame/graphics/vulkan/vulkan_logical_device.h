@@ -1,96 +1,56 @@
 #pragma once
-#include "vulkan_physical_device.h"
-#include "vulkan_surface.h"
 #include "JadeFrame/math/vec_2.h"
 #include "JadeFrame/math/vec_3.h"
+
+#include "vulkan_shared.h"
+#include "vulkan_swapchain.h"
+#include "vulkan_render_pass.h"
+#include "vulkan_pipeline.h"
+#include "vulkan_command_pool.h"
+#include "vulkan_buffer.h"
+
 #include <array>
-struct VVertex {
-	Vec2 pos;
-	Vec3 color;
+#include <vector>
 
-	static auto get_binding_description() -> VkVertexInputBindingDescription {
-		VkVertexInputBindingDescription binding_description = {};
-		binding_description.binding = 0;
-		binding_description.stride = sizeof(VVertex);
-		binding_description.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-		return binding_description;
-	}
+class VulkanInstance;
+class VulkanPhysicalDevice;
+class VulkanPipeline;
 
-	static auto get_attribute_descriptions() -> std::array<VkVertexInputAttributeDescription, 2> {
-		std::array<VkVertexInputAttributeDescription, 2> attribute_descriptions = {};
-
-		attribute_descriptions[0].binding = 0;
-		attribute_descriptions[0].location = 0;
-		attribute_descriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
-		attribute_descriptions[0].offset = offsetof(VVertex, pos);
-
-		attribute_descriptions[1].binding = 0;
-		attribute_descriptions[1].location = 1;
-		attribute_descriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-		attribute_descriptions[1].offset = offsetof(VVertex, color);
-
-		return attribute_descriptions;
-	}
-};
-struct VulkanSwapchain {
-private:
-public:
-public:
-	VkSwapchainKHR m_swapchain;
-
-	//std::vector<VkImage> m_swapchain_images;
-	//VkFormat m_swapchain_image_format;
-	//VkExtent2D m_swapchain_extent;
-};
-
-struct VulkanInstance;
-struct VulkanLogicalDevice {
+class VulkanLogicalDevice {
 private:
 public:
 	auto draw_frame() -> void;
 	auto init(const VulkanInstance& instance) -> void;
 	auto deinit() -> void;
 public:
-	const VulkanInstance* m_instance_p;
-	VkDevice m_handle;
-	const VulkanPhysicalDevice* m_physical_device_p;
-	VkQueue m_graphics_queue;
-	VkQueue m_present_queue;
+	const VulkanInstance* m_instance_p = nullptr;
+	VkDevice m_handle = nullptr;
+	const VulkanPhysicalDevice* m_physical_device_p = nullptr;
+	VkQueue m_graphics_queue = nullptr;
+	VkQueue m_present_queue = nullptr;
 
 public: // Swapchain stuff
-	auto create_swapchain(const VulkanInstance& instance) -> void;
 	auto recreate_swapchain() -> void;
 	auto cleanup_swapchain() -> void;
 
-	VkSwapchainKHR m_swapchain;
-	std::vector<VkImage> m_swapchain_images;
-	VkFormat m_swapchain_image_format;
-	VkExtent2D m_swapchain_extent;
+	VulkanSwapchain m_swapchain;
 
 public:
-	auto create_image_views() -> void;
+	VulkanRenderPass m_render_pass;
 
-	std::vector<VkImageView> m_swapchain_image_views;
+public: // Descriptor set
+	auto create_descriptor_set_layout() -> void;
+	auto update_uniform_buffer(u32 current_image) -> void;
+	auto create_descriptor_pool() -> void;
+	auto create_descriptor_sets() -> void;
+	VkDescriptorPool m_descriptor_pool;
+	VkDescriptorSetLayout m_descriptor_set_layout;
+	std::vector<VkDescriptorSet> m_descriptor_sets;
+public:
+	VulkanPipeline m_pipeline;
 
 public:
-	auto create_render_pass() -> void;
-
-	VkRenderPass m_render_pass;
-
-public:
-	auto create_graphics_pipeline() -> void;
-
-	VkPipelineLayout m_pipeline_layout;
-	VkPipeline m_graphics_pipeline;
-public:
-	auto create_framebuffers() -> void;
-
-	std::vector<VkFramebuffer> m_framebuffers;
-
-public:
-	auto create_command_pool(const VulkanPhysicalDevice& physical_device) -> void;
-
-	VkCommandPool m_command_pool;
+	VulkanCommandPool m_command_pool;
 
 public:
 	auto create_command_buffers() -> void;
@@ -98,14 +58,10 @@ public:
 	std::vector<VkCommandBuffer> m_command_buffers;
 
 public: // buffer stuff
-	auto create_vertex_buffer(const std::vector<VVertex>& vertices) -> void;
-	auto create_index_buffer(const std::vector<u16>& indices) -> void;
-	auto create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) -> void;
-	auto copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size) -> void;
-	VkBuffer m_vertex_buffer;
-	VkDeviceMemory m_vertex_buffer_memory;
-	VkBuffer m_index_buffer;
-	VkDeviceMemory m_index_buffer_memory;
+	VulkanBuffer m_vertex_buffer = { VULKAN_BUFFER_TYPE::VERTEX };
+	VulkanBuffer m_index_buffer = { VULKAN_BUFFER_TYPE::INDEX };
+	std::vector<VulkanBuffer> m_uniform_buffers = { VULKAN_BUFFER_TYPE::UNIFORM };
+
 public: // synchro objects
 	auto create_sync_objects() -> void;
 

@@ -122,6 +122,7 @@ static auto TOKEN_TYPE_is_directive(TOKEN_TYPE type) {
 	bool result;
 	switch (type) {
 		case TOKEN_TYPE::D_VERSION: result = true; break;
+		case TOKEN_TYPE::D_EXTENSION: result = true; break;
 		default: result = false;
 	}
 	return result;
@@ -136,15 +137,10 @@ auto GLSLParser::parse(const std::string& text) -> void {
 	parse(tokens);
 }
 
-auto GLSLParser::parse(const std::vector<Token>& tokens) -> void {
-	const Token* start_ptr = tokens.data();
-	const Token* current_ptr = tokens.data();
-
-	while (current_ptr->type != TOKEN_TYPE::SKW_EOF) {
-		const Token t = *current_ptr;
-
-		if (TOKEN_TYPE_is_directive(t.type)) {
-
+auto GLSLParser::parse_stmt_directive(const Token& t, const Token* current_ptr) -> void {
+	switch (t.type) {
+		case TOKEN_TYPE::D_VERSION:
+		{
 			if ((current_ptr + 1)->type == TOKEN_TYPE::L_NUMBER) {
 				current_ptr++;
 				m_version.m_number = std::stoi(current_ptr->lexeme);
@@ -159,176 +155,84 @@ auto GLSLParser::parse(const std::vector<Token>& tokens) -> void {
 					__debugbreak();
 				}
 			}
+		} break;
+		case TOKEN_TYPE::D_EXTENSION:
+		{
+
+
+		}break;
+	}
+}
+
+auto GLSLParser::parse_stmt_declaration_variable(const Token& t, const Token*& current_ptr) -> void {
+	Variable v;
+	if (t.type == TOKEN_TYPE::KW_LAYOUT) {
+		if ((current_ptr + 1)->type == TOKEN_TYPE::P_LEFT_PAREN) {
 			current_ptr++;
-			continue;
-		} else {
-
-			Variable v;
-			if (t.type == TOKEN_TYPE::KW_LAYOUT) {
-				if ((current_ptr + 1)->type == TOKEN_TYPE::P_LEFT_PAREN) {
-					current_ptr++;
-					while (current_ptr->type != TOKEN_TYPE::P_RIGHT_PAREN) {
-						current_ptr++;
-						if (current_ptr->type == TOKEN_TYPE::L_NUMBER) {
-							v.m_layout = std::atoi(current_ptr->lexeme.c_str());
-						}
-					}
+			while (current_ptr->type != TOKEN_TYPE::P_RIGHT_PAREN) {
+				current_ptr++;
+				if (current_ptr->type == TOKEN_TYPE::L_NUMBER) {
+					v.m_layout = std::atoi(current_ptr->lexeme.c_str());
 				}
-				current_ptr++;
 			}
+		}
+		current_ptr++;
+	}
 
-			if (TOKEN_TYPE_is_qualifier(current_ptr->type)) {
+	if (TOKEN_TYPE_is_qualifier(current_ptr->type)) {
 
-				v.m_qualifier =
-					current_ptr->type == TOKEN_TYPE::KW_IN ? Variable::QUALIFIER::IN :
-					current_ptr->type == TOKEN_TYPE::KW_OUT ? Variable::QUALIFIER::OUT :
-					current_ptr->type == TOKEN_TYPE::KW_UNIFORM ? Variable::QUALIFIER::UNIFORM :
-					Variable::QUALIFIER::INVALID
-				;
-				current_ptr++;
-			}
-			//if (v.m_qualifier == Variable::QUALIFIER::INVALID) __debugbreak();
+		v.m_qualifier =
+			current_ptr->type == TOKEN_TYPE::KW_IN ? Variable::QUALIFIER::IN :
+			current_ptr->type == TOKEN_TYPE::KW_OUT ? Variable::QUALIFIER::OUT :
+			current_ptr->type == TOKEN_TYPE::KW_UNIFORM ? Variable::QUALIFIER::UNIFORM :
+			Variable::QUALIFIER::INVALID
+			;
+		current_ptr++;
+	}
+	if (TOKEN_TYPE_is_type(current_ptr->type)) {
+		v.m_type =
+			(current_ptr->type == TOKEN_TYPE::KW_VEC2) ? Variable::TYPE::VEC2 :
+			(current_ptr->type == TOKEN_TYPE::KW_VEC3) ? Variable::TYPE::VEC3 :
+			(current_ptr->type == TOKEN_TYPE::KW_VEC4) ? Variable::TYPE::VEC4 :
+			(current_ptr->type == TOKEN_TYPE::KW_FLOAT) ? Variable::TYPE::FLOAT :
+			(current_ptr->type == TOKEN_TYPE::KW_SAMPLER2D) ? Variable::TYPE::SAMPLER2D :
+			(current_ptr->type == TOKEN_TYPE::KW_DOUBLE) ? Variable::TYPE::DOUBLE :
+			(current_ptr->type == TOKEN_TYPE::KW_MAT4) ? Variable::TYPE::MAT4 :
+			Variable::TYPE::INVALID
+			;
 
-			if (TOKEN_TYPE_is_type(current_ptr->type)) {
-				v.m_type =
-					(current_ptr->type == TOKEN_TYPE::KW_VEC2) ? Variable::TYPE::VEC2 :
-					(current_ptr->type == TOKEN_TYPE::KW_VEC3) ? Variable::TYPE::VEC3 :
-					(current_ptr->type == TOKEN_TYPE::KW_VEC4) ? Variable::TYPE::VEC4 :
-					(current_ptr->type == TOKEN_TYPE::KW_FLOAT) ? Variable::TYPE::FLOAT :
-					(current_ptr->type == TOKEN_TYPE::KW_SAMPLER2D) ? Variable::TYPE::SAMPLER2D :
-					(current_ptr->type == TOKEN_TYPE::KW_DOUBLE) ? Variable::TYPE::DOUBLE :
-					(current_ptr->type == TOKEN_TYPE::KW_MAT4) ? Variable::TYPE::MAT4 :
-					Variable::TYPE::INVALID
-				;
+		current_ptr++;
 
-				current_ptr++;
-			} else {
-				current_ptr++;
-				continue;
-			}
-			//if (v.m_type == Variable::TYPE::INVALID) __debugbreak();
-			
-			if (current_ptr->type == TOKEN_TYPE::L_IDENTIFIER) {
-				v.m_name = current_ptr->lexeme;
-				current_ptr++;
-			}
-			if (current_ptr->type != TOKEN_TYPE::P_SEMICOLON) {
-				current_ptr++;
-				continue;
-			}
 
+		if (current_ptr->type == TOKEN_TYPE::L_IDENTIFIER) {
+			v.m_name = current_ptr->lexeme;
+			current_ptr++;
+		}
+		if (current_ptr->type == TOKEN_TYPE::P_SEMICOLON) {
 			if (v.m_name != "") {
 				m_variables.push_back(v);
 			}
-
-			current_ptr++;
 		}
 
-	#if 0
-		if(false)
-		{
-			switch (t.type) {
-				case TOKEN_TYPE::D_VERSION:
-				{
-					if ((current_ptr + 1)->type == TOKEN_TYPE::L_NUMBER) {
-						current_ptr++;
-						m_version.m_number = std::stoi(current_ptr->lexeme);
-					}
-					if ((current_ptr + 1)->type == TOKEN_TYPE::L_IDENTIFIER) {
-						current_ptr++;
-						if (current_ptr->lexeme == "core") {
-							m_version.m_profile = VersionNumber::PROFILE::CORE;
-						} else if (current_ptr->lexeme == "compatibility") {
-							m_version.m_profile = VersionNumber::PROFILE::COMPATIBILITY;
-						} else {
-							__debugbreak();
-						}
-					}
-				} break;
-				case TOKEN_TYPE::KW_LAYOUT:
-				{
 
-					if ((current_ptr + 1)->type == TOKEN_TYPE::P_LEFT_PAREN) {
-						current_ptr++;
-						while (current_ptr->type != TOKEN_TYPE::P_RIGHT_PAREN) {
-							current_ptr++;
-							if (current_ptr->type == TOKEN_TYPE::L_NUMBER) {
-								v.m_layout = std::atoi(current_ptr->lexeme.c_str());
-							}
-						}
-					}
-					if (TOKEN_TYPE_is_qualifier((current_ptr + 1)->type)) {
-						current_ptr++;
-						v.m_qualifier =
-							current_ptr->type == TOKEN_TYPE::KW_IN ? Variable::QUALIFIER::IN :
-							current_ptr->type == TOKEN_TYPE::KW_OUT ? Variable::QUALIFIER::OUT :
-							current_ptr->type == TOKEN_TYPE::KW_UNIFORM ? Variable::QUALIFIER::UNIFORM :
-							Variable::QUALIFIER::INVALID;
+	}
+}
+auto GLSLParser::parse(const std::vector<Token>& tokens) -> void {
+	//const Token* start_ptr = tokens.data();
+	const Token* current_ptr = tokens.data();
 
-					}
+	while (current_ptr->type != TOKEN_TYPE::SKW_EOF) {
+		const Token t = *current_ptr;
 
-					if (TOKEN_TYPE_is_type((current_ptr + 1)->type)) {
-						current_ptr++;
-						v.m_type =
-							(current_ptr->type == TOKEN_TYPE::KW_VEC2) ? Variable::TYPE::VEC2 :
-							(current_ptr->type == TOKEN_TYPE::KW_VEC3) ? Variable::TYPE::VEC3 :
-							(current_ptr->type == TOKEN_TYPE::KW_VEC4) ? Variable::TYPE::VEC4 :
-							(current_ptr->type == TOKEN_TYPE::KW_FLOAT) ? Variable::TYPE::FLOAT :
-							(current_ptr->type == TOKEN_TYPE::KW_SAMPLER2D) ? Variable::TYPE::SAMPLER2D :
-							(current_ptr->type == TOKEN_TYPE::KW_DOUBLE) ? Variable::TYPE::DOUBLE :
-							(current_ptr->type == TOKEN_TYPE::KW_MAT4) ? Variable::TYPE::MAT4 :
-							Variable::TYPE::INVALID;
-					}
-					if ((current_ptr + 1)->type == TOKEN_TYPE::L_IDENTIFIER) {
-						current_ptr++;
-						__debugbreak();
-						v.m_name = current_ptr->lexeme;
-					}
+		if (TOKEN_TYPE_is_directive(t.type)) {
+			this->parse_stmt_directive(t, current_ptr);
 
-					m_variables.push_back(v);
-				}break;
-				case TOKEN_TYPE::KW_IN:
-				case TOKEN_TYPE::KW_OUT:
-				case TOKEN_TYPE::KW_UNIFORM:
-				{
-					Variable v;
-					if (TOKEN_TYPE_is_qualifier((current_ptr + 1)->type)) {
-						current_ptr++;
-						v.m_qualifier =
-							current_ptr->type == TOKEN_TYPE::KW_IN ? Variable::QUALIFIER::IN :
-							current_ptr->type == TOKEN_TYPE::KW_OUT ? Variable::QUALIFIER::OUT :
-							current_ptr->type == TOKEN_TYPE::KW_UNIFORM ? Variable::QUALIFIER::UNIFORM :
-							Variable::QUALIFIER::INVALID;
+		} else if (current_ptr->type == TOKEN_TYPE::SKW_COMMENT) {
 
-					}
-
-					if (TOKEN_TYPE_is_type((current_ptr + 1)->type)) {
-						current_ptr++;
-						v.m_type =
-							(current_ptr->type == TOKEN_TYPE::KW_VEC2) ? Variable::TYPE::VEC2 :
-							(current_ptr->type == TOKEN_TYPE::KW_VEC3) ? Variable::TYPE::VEC3 :
-							(current_ptr->type == TOKEN_TYPE::KW_VEC4) ? Variable::TYPE::VEC4 :
-							(current_ptr->type == TOKEN_TYPE::KW_FLOAT) ? Variable::TYPE::FLOAT :
-							(current_ptr->type == TOKEN_TYPE::KW_SAMPLER2D) ? Variable::TYPE::SAMPLER2D :
-							(current_ptr->type == TOKEN_TYPE::KW_DOUBLE) ? Variable::TYPE::DOUBLE :
-							(current_ptr->type == TOKEN_TYPE::KW_MAT4) ? Variable::TYPE::MAT4 :
-							Variable::TYPE::INVALID;
-					}
-					if ((current_ptr + 1)->type == TOKEN_TYPE::L_IDENTIFIER) {
-						current_ptr++;
-						__debugbreak();
-						v.m_name = current_ptr->lexeme;
-					}
-					m_variables.push_back(v);
-				} break;
-				case TOKEN_TYPE::SKW_NEWLINE: break;
-				default:
-				{
-
-				}break;
-			}
+		} else {
+			this->parse_stmt_declaration_variable(t, current_ptr);
 		}
-	#endif
+		current_ptr++;
 	}
 }
 
@@ -413,9 +317,11 @@ auto Tokenizer::scan_token(const char c) const -> const Token {
 			}
 
 			std::string directive(prev_cursor.get(), current_cursor.get() + 1);
-			TOKEN_TYPE type;
+			TOKEN_TYPE type = TOKEN_TYPE::SKW_UNKNOWN;
 			if (directive == "#version") {
 				type = TOKEN_TYPE::D_VERSION;
+			} else if (directive == "#extension") {
+				type = TOKEN_TYPE::D_EXTENSION;
 			}
 			token_type = type;
 		} break;

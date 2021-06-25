@@ -203,14 +203,14 @@ auto Windows_InputManager::mouse_button_callback(const WindowsMessage& wm) -> vo
 		{
 			i32 mposx = GET_X_LPARAM(lParam);
 			i32 mposy = GET_Y_LPARAM(lParam);
-			m_mouse_posiition.x = mposx;
-			m_mouse_posiition.y = mposy;
+			m_mouse_posiition.x = static_cast<f32>(mposx);
+			m_mouse_posiition.y = static_cast<f32>(mposy);
 		}break;
 	}
 	i32 mposx = GET_X_LPARAM(lParam);
 	i32 mposy = GET_Y_LPARAM(lParam);
-	m_mouse_posiition.x = mposx;
-	m_mouse_posiition.y = mposy;
+	m_mouse_posiition.x = static_cast<f32>(mposx);
+	m_mouse_posiition.y = static_cast<f32>(mposy);
 	if (is_key_down(KEY::L)) {
 		__debugbreak();
 	}

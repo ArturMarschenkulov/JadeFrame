@@ -492,6 +492,24 @@
     <ClInclude Include="src\JadeFrame\graphics\glsl_parser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\JadeFrame\math\i128.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_pipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_swapchain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_render_pass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_command_pool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\JadeFrame.cpp">
@@ -744,6 +762,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\JadeFrame\graphics\glsl_parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_pipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_swapchain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_render_pass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_command_pool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

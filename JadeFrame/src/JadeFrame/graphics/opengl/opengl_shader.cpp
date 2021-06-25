@@ -10,6 +10,7 @@
 #include<array>
 #include<tuple>
 #include <JadeFrame/graphics/glsl_parser.h>
+#include <cassert>
 
 static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
 	switch (type) {
@@ -22,7 +23,9 @@ static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
 		default: __debugbreak(); return {};
 	}
 }
-
+//static auto check_glsl_variables(const std::unordered_map<std::string, OpenGL_Shader::GL_Variable>& ) -> void {
+//
+//}
 OpenGL_Shader::OpenGL_Shader(const std::string& name)
 	: m_program()
 	, m_vertex_shader(GL_VERTEX_SHADER)
@@ -32,6 +35,11 @@ OpenGL_Shader::OpenGL_Shader(const std::string& name)
 
 	GLSLParser parser;
 	parser.parse(vs_default);
+	assert(parser.m_variables.size() == 8);
+	//__debugbreak();
+	parser.parse(fs_default);
+	//__debugbreak();
+	//exit(0);
 
 
 	m_vertex_shader.set_source(vs_default);
@@ -53,7 +61,32 @@ OpenGL_Shader::OpenGL_Shader(const std::string& name)
 	m_fragment_source = fs_default;
 	m_uniforms = this->query_uniforms(GL_ACTIVE_UNIFORMS);
 	m_attributes = this->query_uniforms(GL_ACTIVE_ATTRIBUTES);
-	//m_vertex_shader.query_source();
+
+	{
+		// Check whether m_uniforms and m_attributes are all contained in parser.
+		for (auto uniform = m_uniforms.begin(); uniform != m_uniforms.end(); uniform++) {
+			bool exists = false;
+			for (int j = 0; j < parser.m_variables.size(); j++) {
+				const GLSLParser::Variable& parser_variable = parser.m_variables[j];
+				const std::string& uniform_name = uniform->first;
+				if (uniform_name == parser_variable.m_name) {
+					exists = true;
+				}
+			}
+			if (exists == false) __debugbreak();
+		}
+		for (auto attribute = m_attributes.begin(); attribute != m_attributes.end(); attribute++) {
+			bool exists = false;
+			for (int j = 0; j < parser.m_variables.size(); j++) {
+				const GLSLParser::Variable& parser_variable = parser.m_variables[j];
+				const std::string& uniform_name = attribute->first;
+				if (uniform_name == parser_variable.m_name) {
+					exists = true;
+				}
+			}
+			if (exists == false) __debugbreak();
+		}
+	}
 }
 
 auto OpenGL_Shader::bind() const -> void {
@@ -77,7 +110,7 @@ auto OpenGL_Shader::set_uniform(const std::string& name, const i32 value) -> voi
 	if (m_uniforms.contains(name)) {
 		if (std::holds_alternative<i32>(m_uniforms[name].value)) {
 			m_uniforms[name].value = value;
-			auto& v = std::get<i32>(m_uniforms[name].value);
+			i32& v = std::get<i32>(m_uniforms[name].value);
 			glUniform1i(m_uniforms[name].location, v);
 			return;
 		}
@@ -88,7 +121,7 @@ auto OpenGL_Shader::set_uniform(const std::string& name, const f32 value) -> voi
 	if (m_uniforms.contains(name)) {
 		if (std::holds_alternative<f32>(m_uniforms[name].value)) {
 			m_uniforms[name].value = value;
-			auto& v = std::get<f32>(m_uniforms[name].value);
+			f32& v = std::get<f32>(m_uniforms[name].value);
 			glUniform1f(m_uniforms[name].location, v);
 			return;
 		}
@@ -99,7 +132,7 @@ auto OpenGL_Shader::set_uniform(const std::string& name, const Vec3& value) -> v
 	if (m_uniforms.contains(name)) {
 		if (std::holds_alternative<Vec3>(m_uniforms[name].value)) {
 			m_uniforms[name].value = value;
-			auto& v = std::get<Vec3>(m_uniforms[name].value);
+			Vec3& v = std::get<Vec3>(m_uniforms[name].value);
 			glUniform3f(m_uniforms[name].location, v.x, v.y, v.z);
 			return;
 		}
@@ -110,7 +143,7 @@ auto OpenGL_Shader::set_uniform(const std::string& name, const Vec4& value) -> v
 	if (m_uniforms.contains(name)) {
 		if (std::holds_alternative<Vec4>(m_uniforms[name].value)) {
 			m_uniforms[name].value = value;
-			auto& v = std::get<Vec4>(m_uniforms[name].value);
+			Vec4& v = std::get<Vec4>(m_uniforms[name].value);
 			glUniform4f(m_uniforms[name].location, v.x, v.y, v.z, v.w);
 			return;
 		}
@@ -121,7 +154,7 @@ auto OpenGL_Shader::set_uniform(const std::string& name, const Matrix4x4& value)
 	if (m_uniforms.contains(name)) {
 		if (std::holds_alternative<Matrix4x4>(m_uniforms[name].value)) {
 			m_uniforms[name].value = value;
-			auto& v = std::get<Matrix4x4>(m_uniforms[name].value);
+			Matrix4x4& v = std::get<Matrix4x4>(m_uniforms[name].value);
 			glUniformMatrix4fv(m_uniforms[name].location, 1, GL_FALSE, &v[0][0]);
 			return;
 		}
@@ -131,11 +164,12 @@ auto OpenGL_Shader::set_uniform(const std::string& name, const Matrix4x4& value)
 
 auto OpenGL_Shader::update_uniforms() -> void {
 	for (auto& uniform : m_uniforms) {
-		auto variable = uniform.second;
+		GL_Variable variable = uniform.second;
 		if (std::holds_alternative<Matrix4x4>(variable.value)) {
-			glUniformMatrix4fv(variable.location, 1, GL_FALSE, &std::get<Matrix4x4>(variable.value)[0][0]);
+			Matrix4x4& v = std::get<Matrix4x4>(variable.value);
+			glUniformMatrix4fv(variable.location, 1, GL_FALSE, &v[0][0]);
 		} else if (std::holds_alternative<Vec3>(variable.value)) {
-			auto& v = std::get<Vec3>(variable.value);
+			Vec3& v = std::get<Vec3>(variable.value);
 			glUniform3f(variable.location, v.x, v.y, v.z);
 		} else {
 			__debugbreak();
