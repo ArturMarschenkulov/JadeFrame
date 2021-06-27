@@ -7,7 +7,7 @@
 #include <iostream>
 
 #include "JadeFrame/utils/utils.h"
-
+namespace JadeFrame {
 //static auto get_primary_monitor_handle() -> HMONITOR {
 //	const POINT pt_zero = { 0, 0 };
 //	return ::MonitorFromPoint(pt_zero, MONITOR_DEFAULTTOPRIMARY);
@@ -84,16 +84,16 @@ auto Windows_SystemManager::initialize() -> void {
 
 
 		GetUserDefaultLocaleName(buffer, LOCALE_NAME_MAX_LENGTH);
-		m_user_locale = from_wstring_to_string(buffer);
+		m_user_locale = JadeFrame::from_wstring_to_string(buffer);
 
 		GetSystemDefaultLocaleName(buffer, LOCALE_NAME_MAX_LENGTH);
-		m_system_locale = from_wstring_to_string(buffer);
+		m_system_locale = JadeFrame::from_wstring_to_string(buffer);
 
 		GetComputerNameW(buffer, &size);
-		m_computer_name = from_wstring_to_string(buffer);
+		m_computer_name = JadeFrame::from_wstring_to_string(buffer);
 
 		GetUserNameW(buffer, &size);
-		m_user_name = from_wstring_to_string(buffer);
+		m_user_name = JadeFrame::from_wstring_to_string(buffer);
 	}
 
 	{
@@ -187,8 +187,8 @@ auto Windows_SystemManager::initialize() -> void {
 					// Logical processors share a physical package
 					processor_package_count++;
 					break;
-				//default:
-				//	__debugbreak();
+					//default:
+					//	__debugbreak();
 			}
 			byte_offset += sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
 			ptr++;
@@ -207,15 +207,15 @@ auto Windows_SystemManager::initialize() -> void {
 		SYSTEM_INFO siSysInfo;
 		GetNativeSystemInfo(&siSysInfo);
 
-		m_processor_architecture		= siSysInfo.wProcessorArchitecture;
-		m_page_size						= siSysInfo.dwPageSize;
-		m_minimum_application_address	= siSysInfo.lpMinimumApplicationAddress;
-		m_maximum_application_address	= siSysInfo.lpMaximumApplicationAddress;
-		m_active_processor_mask			= siSysInfo.dwActiveProcessorMask;
-		m_number_of_processors			= siSysInfo.dwNumberOfProcessors;
-		m_allocation_granularity		= siSysInfo.dwAllocationGranularity;
-		m_processor_level				= siSysInfo.wProcessorLevel;
-		m_processor_revision			= siSysInfo.wProcessorRevision;
+		m_processor_architecture = siSysInfo.wProcessorArchitecture;
+		m_page_size = siSysInfo.dwPageSize;
+		m_minimum_application_address = siSysInfo.lpMinimumApplicationAddress;
+		m_maximum_application_address = siSysInfo.lpMaximumApplicationAddress;
+		m_active_processor_mask = siSysInfo.dwActiveProcessorMask;
+		m_number_of_processors = siSysInfo.dwNumberOfProcessors;
+		m_allocation_granularity = siSysInfo.dwAllocationGranularity;
+		m_processor_level = siSysInfo.wProcessorLevel;
+		m_processor_revision = siSysInfo.wProcessorRevision;
 	}
 
 	{
@@ -260,28 +260,29 @@ static auto win32_get_processor_architecture_string(u16 t) -> std::string {
 	return result;
 }
 auto Windows_SystemManager::log() const -> void {
-	std::cout 
+	std::cout
 		<< "**********SYSTEM LOG**********" << "\n"
 		<< "\tComputer Name: " << m_computer_name << "\n"
-	<< "\tUser Name    : " << m_user_name << "\n"
-	<< "\tWin Ver Maj  : " << m_window_version_major << "\n"
-	<< "\tWin Ver Min  : " << m_window_version_minor << "\n"
-	<< "**********CPU DATA**********" << "\n"
-	<< "\tCPU Name     : " << m_cpu_name << "\n"
-	<< "\tCache Line Size: " << m_cache_line_size << "\n"
-	<< "\tL1 Cache Size: " << bytes_to_string(m_L1_cache_size) << "\n"
-	<< "\tL2 Cache Size: " << bytes_to_string(m_L2_cache_size) << "\n"
-	<< "\tL3 Cache Size: " << bytes_to_string(m_L3_cache_size) << "\n"
-	<< "\tCPU Package Count: " << m_processor_package_count << "\n"
-	<< "\tCPU Core Count   : " << m_processor_core_count << "\n"
-	<< "\tCPU Logical Count: " << m_logical_processor_count << "\n"
-	<< "\tPage Size    : " << bytes_to_string(m_page_size) << "\n"
-	<< "\tCPU Architecture: " << win32_get_processor_architecture_string(m_processor_architecture) << "\n"
+		<< "\tUser Name    : " << m_user_name << "\n"
+		<< "\tWin Ver Maj  : " << m_window_version_major << "\n"
+		<< "\tWin Ver Min  : " << m_window_version_minor << "\n"
+		<< "**********CPU DATA**********" << "\n"
+		<< "\tCPU Name     : " << m_cpu_name << "\n"
+		<< "\tCache Line Size: " << m_cache_line_size << "\n"
+		<< "\tL1 Cache Size: " << bytes_to_string(m_L1_cache_size) << "\n"
+		<< "\tL2 Cache Size: " << bytes_to_string(m_L2_cache_size) << "\n"
+		<< "\tL3 Cache Size: " << bytes_to_string(m_L3_cache_size) << "\n"
+		<< "\tCPU Package Count: " << m_processor_package_count << "\n"
+		<< "\tCPU Core Count   : " << m_processor_core_count << "\n"
+		<< "\tCPU Logical Count: " << m_logical_processor_count << "\n"
+		<< "\tPage Size    : " << bytes_to_string(m_page_size) << "\n"
+		<< "\tCPU Architecture: " << win32_get_processor_architecture_string(m_processor_architecture) << "\n"
 
-	<< "**********RAM DATA**********" << "\n"
-	<< "\tAvailable RAM : " << bytes_to_string(m_available_physical_memory) << "\n"
-	<< "\tTotal RAM     : " << bytes_to_string(m_total_physical_memory) << "\n"
-	<< "\tAvailable RAM : " << bytes_to_string(m_available_virtual_memory) << "\n"
-	<< "\tTotal RAM     : " << bytes_to_string(m_total_virtual_memory) << "\n"
-	<< "******************************" << std::endl;
+		<< "**********RAM DATA**********" << "\n"
+		<< "\tAvailable RAM : " << bytes_to_string(m_available_physical_memory) << "\n"
+		<< "\tTotal RAM     : " << bytes_to_string(m_total_physical_memory) << "\n"
+		<< "\tAvailable RAM : " << bytes_to_string(m_available_virtual_memory) << "\n"
+		<< "\tTotal RAM     : " << bytes_to_string(m_total_virtual_memory) << "\n"
+		<< "******************************" << std::endl;
+}
 }

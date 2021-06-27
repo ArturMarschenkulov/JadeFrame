@@ -15,6 +15,8 @@
 //	10000.0f
 //);
 
+namespace JadeFrame {
+
 auto Camera::perspective(const Vec3& pos, const f32 fovy, const f32 aspect, const f32 zNear, const f32 zFar) -> void {
 
 	m_projection_matrix = Matrix4x4::perspective_projection_matrix(fovy, aspect, zNear, zFar);
@@ -49,7 +51,7 @@ auto Camera::get_view_matrix() const -> Matrix4x4 {
 auto Camera::control() -> void {
 	f32 r = 0.1f;
 
-	Windows_InputManager i = JadeFrame::get_singleton()->m_input_manager;
+	Windows_InputManager i = JadeFrameInstance::get_singleton()->m_input_manager;
 
 
 	if (i.is_key_down(KEY::E)) m_position += m_up * r;
@@ -115,7 +117,7 @@ auto Camera1::perspective_mode(const Vec3& position, const f32 fov, const f32 as
 
 auto Camera1::othographic_mode(f32 left, f32 right, f32 bottom, f32 top, f32 near_, f32 far_) -> void {
 	m_mode = MODE::ORTHOGRAPHIC;
-	m_projection_matrix = 
+	m_projection_matrix =
 		Matrix4x4::orthogonal_projection_matrix(left, right, bottom, top, near_, far_);
 
 	m_position = { 0.0f, 0.0f, 0.0f };
@@ -140,7 +142,7 @@ auto Camera1::get_view_projection_matrix() const -> Matrix4x4 {
 auto Camera1::control() -> void {
 	if (m_mode == MODE::PERSPECTIVE) {
 		const f32 velocity = 0.1f;
-		const Windows_InputManager& i = JadeFrame::get_singleton()->m_input_manager;
+		const Windows_InputManager& i = JadeFrameInstance::get_singleton()->m_input_manager;
 		if (i.is_key_down(KEY::E)) m_position += m_up * velocity;
 		if (i.is_key_down(KEY::Q)) m_position -= m_up * velocity;
 
@@ -171,4 +173,5 @@ auto Camera1::control() -> void {
 		m_right = m_forward.cross(m_world_up).get_normal();
 		m_up = m_right.cross(m_forward).get_normal();
 	}
+}
 }

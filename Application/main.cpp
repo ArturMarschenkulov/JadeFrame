@@ -2,6 +2,7 @@
 #include<string>
 #include "example_0.h"
 //#include "example_empty.h"
+using namespace JadeFrame;
 class App : public BaseApp {
 public:
 public:
@@ -19,7 +20,7 @@ public:
 int main() {
 #if 1
 	using GApp = TestApp;
-	JadeFrame jade_frame;
+	JadeFrameInstance jade_frame;
 
 	std::string title = "Test";
 	float width = 1280;

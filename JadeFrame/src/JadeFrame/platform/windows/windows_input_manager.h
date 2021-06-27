@@ -6,6 +6,8 @@
 #include <array>
 #include <queue>
 
+namespace JadeFrame {
+
 struct WindowsMessage;
 class Vec2;
 
@@ -20,7 +22,7 @@ enum class BUTTON {
 	MIDDLE = VK_MBUTTON,
 	X1 = VK_XBUTTON1,
 	X2 = VK_XBUTTON2,
-}; 
+};
 enum class KEY {
 	SPACE = VK_SPACE,
 	ESCAPE = VK_ESCAPE,// 256,
@@ -112,7 +114,7 @@ struct KeyEvent : public Event {
 	KeyEvent(const TYPE type, const u64 key_code)
 		: type(type)
 		, key_code(key_code) {
-		
+
 	}
 	TYPE type;
 	u64 key_code;
@@ -146,9 +148,11 @@ public:
 	auto is_button_up(const BUTTON button) const -> bool;
 	auto is_button_pressed(const BUTTON button) const -> bool;
 	auto is_button_released(const BUTTON button) const -> bool;
-	auto get_mouse_position() const -> Vec2;
+	auto get_mouse_position() const->Vec2;
 
 	static std::array<INPUT_STATE, 3> m_current_mouse_button_state;
 	static std::array<INPUT_STATE, 3> m_previous_mouse_button_state;
 	static Vec2 m_mouse_posiition;
 };
+
+}

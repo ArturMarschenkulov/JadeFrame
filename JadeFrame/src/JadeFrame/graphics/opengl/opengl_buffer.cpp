@@ -2,6 +2,7 @@
 
 #include "JadeFrame/graphics/mesh.h"
 
+namespace JadeFrame {
 
 static auto SHADER_TYPE_to_openGL_type(const SHADER_TYPE type) -> GLenum {
 	GLenum result;
@@ -179,4 +180,5 @@ auto OpenGL_VertexArray::finalize(const Mesh& mesh, bool interleaved) -> void {
 	}
 
 	m_vertex_array.unbind();
+}
 }

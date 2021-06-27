@@ -5,6 +5,8 @@
 
 #include <vector>
 
+namespace JadeFrame {
+
 class Color {
 public:
 	f32 r, g, b, a;
@@ -71,3 +73,4 @@ public:
 
 	static auto make_cube(const Vec3& pos, const Vec3& size)->VertexData;
 };
+}

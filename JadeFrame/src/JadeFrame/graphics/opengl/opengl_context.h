@@ -6,6 +6,15 @@
 
 #include "JadeFrame/platform/windows/windows_window.h"
 
+struct HWND__;
+typedef HWND__* HWND;
+struct HGLRC__;
+typedef HGLRC__* HGLRC;
+struct HDC__;
+typedef HDC__* HDC;
+
+namespace JadeFrame {
+
 enum BLENDING_FACTOR : i32 {
 	ZERO = GL_ZERO,
 	ONE = GL_ONE,
@@ -35,12 +44,7 @@ enum class POLYGON_MODE : GLenum {
 
 
 
-struct HWND__;
-typedef HWND__* HWND;
-struct HGLRC__;
-typedef HGLRC__* HGLRC;
-struct HDC__;
-typedef HDC__* HDC;
+
 
 struct GL_Cache {
 public:
@@ -60,7 +64,7 @@ public:
 	GLbitfield clear_bitfield;
 	bool blending;
 	bool is_face_culling;
-	GLenum face_culling_mode; 
+	GLenum face_culling_mode;
 	std::pair<POLYGON_FACE, POLYGON_MODE>  polygon_mode;
 };
 class OpenGL_Context {
@@ -69,7 +73,7 @@ public:
 	OpenGL_Context(const Windows_Window& window);
 	~OpenGL_Context();
 
-	
+
 public:
 	GL_Cache m_cache;
 
@@ -86,3 +90,4 @@ public:
 	i32 minor_version;
 	i32 num_extensions;
 };
+}

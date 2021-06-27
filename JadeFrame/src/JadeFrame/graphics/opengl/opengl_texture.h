@@ -5,6 +5,7 @@
 
 #include <string>
 
+namespace JadeFrame {
 
 class OpenGL_Texture;
 class OpenGL_TextureLoader {
@@ -34,3 +35,5 @@ public:
 	GLuint m_depth = 0;
 
 };
+
+}

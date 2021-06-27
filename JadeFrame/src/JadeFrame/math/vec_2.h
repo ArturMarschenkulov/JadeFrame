@@ -1,5 +1,8 @@
 #pragma once
 #include "JadeFrame/defines.h"
+
+namespace JadeFrame {
+
 class Vec3;
 class Vec2 {
 public:
@@ -9,8 +12,8 @@ public:
 	explicit Vec2(const f32 scalar);
 
 
-	auto operator==(const Vec2 & other) const -> bool;
-	auto operator!=(const Vec2 & other) const -> bool;
+	auto operator==(const Vec2& other) const -> bool;
+	auto operator!=(const Vec2& other) const -> bool;
 
 	auto operator+(const Vec2& other) const->Vec2;
 	auto operator-(const Vec2& other) const->Vec2;
@@ -40,3 +43,4 @@ public:
 	};
 
 };
+}

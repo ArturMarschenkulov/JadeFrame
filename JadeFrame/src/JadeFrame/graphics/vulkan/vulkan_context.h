@@ -7,6 +7,9 @@
 
 #include <vector>
 
+
+namespace JadeFrame {
+
 class Windows_Window;
 
 class VulkanInstance {
@@ -14,7 +17,7 @@ class VulkanInstance {
 private:
 	auto query_layers()->std::vector<VkLayerProperties>;
 	auto query_extensions()->std::vector<VkExtensionProperties>;
-	auto query_physical_devices() -> std::vector<VulkanPhysicalDevice>;
+	auto query_physical_devices()->std::vector<VulkanPhysicalDevice>;
 	auto setup_debug() -> void;
 public:
 	auto init(HWND window_handle) -> void;
@@ -52,3 +55,4 @@ public:
 public:
 	auto main_loop() -> void;
 };
+}

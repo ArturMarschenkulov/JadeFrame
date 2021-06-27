@@ -13,6 +13,9 @@
 #include <iostream>
 
 #include <set>
+#include <JadeFrame/base_app.h>
+
+namespace JadeFrame {
 
 const std::vector<const char*> g_validation_layers = {
 	"VK_LAYER_KHRONOS_validation"
@@ -117,13 +120,13 @@ Vulkan_Context::~Vulkan_Context() {
 
 
 
-#include <JadeFrame/base_app.h>
+
 
 
 auto Vulkan_Context::main_loop() -> void {
 	VkResult result;
 	while (true) {
-		JadeFrame::get_singleton()->m_apps[0]->poll_events();
+		JadeFrameInstance::get_singleton()->m_apps[0]->poll_events();
 		m_instance.m_logical_device.draw_frame();
 	}
 	std::cout << __FUNCTION__ << " pre-end" << std::endl;
@@ -297,3 +300,4 @@ auto VulkanInstance::deinit() -> void {
 }
 
 
+}

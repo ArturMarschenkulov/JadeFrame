@@ -19,6 +19,7 @@
 
 #include "JadeFrame/platform/windows/windows_window.h"
 
+namespace JadeFrame {
 
 enum class PRIMITIVE_TYPE {
 	TRIANGLES = GL_TRIANGLES,
@@ -77,3 +78,5 @@ private:
 	OpenGL_Context m_context;
 	mutable std::deque<OpenGL_RenderCommand> m_render_commands;
 };
+
+}

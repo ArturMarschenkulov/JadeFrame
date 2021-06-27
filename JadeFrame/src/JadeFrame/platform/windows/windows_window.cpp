@@ -11,6 +11,8 @@
 #include <unordered_map>
 #include <cassert>
 
+namespace JadeFrame {
+
 
 static WindowsMessageMap windows_message_map;
 
@@ -56,10 +58,10 @@ static auto window_focus_callback(Windows_Window& window, bool should_focus) {
 	window.has_focus = should_focus;
 }
 
-static auto CALLBACK window_procedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT {
+static auto CALLBACK window_procedure(::HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT {
 	const WindowsMessage& wm = { hWnd, message, wParam, lParam };
 
-	BaseApp* app = JadeFrame::get_singleton()->m_current_app_p;
+	BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
 	if (app == nullptr) {
 		//std::cout << "WindowProced___:" << windows_message_map(win_message);
 		return DefWindowProc(hWnd, message, wParam, lParam);
@@ -68,7 +70,7 @@ static auto CALLBACK window_procedure(HWND hWnd, UINT message, WPARAM wParam, LP
 	}
 
 
-	Windows_InputManager& input_manager = JadeFrame::get_singleton()->m_input_manager;
+	Windows_InputManager& input_manager = JadeFrameInstance::get_singleton()->m_input_manager;
 	i32 current_window_id = -1;
 	for (auto const& [window_id, window] : app->m_windows) {
 		if (window.m_window_handle == hWnd) {
@@ -317,5 +319,7 @@ auto Windows_Window::init(const std::string& title, const Vec2& size, const Vec2
 
 auto Windows_Window::deinit() const -> void {
 	::DestroyWindow(m_window_handle);
+
+}
 
 }

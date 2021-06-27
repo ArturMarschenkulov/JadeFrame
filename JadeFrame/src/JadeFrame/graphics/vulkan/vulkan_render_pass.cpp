@@ -2,6 +2,8 @@
 
 #include "vulkan_logical_device.h"
 
+namespace JadeFrame {
+
 auto VulkanRenderPass::init(const VulkanLogicalDevice& device) -> void {
 	VkResult result;
 
@@ -37,4 +39,5 @@ auto VulkanRenderPass::init(const VulkanLogicalDevice& device) -> void {
 		//throw std::runtime_error("failed to create render pass!");
 	}
 	m_device = device.m_handle;
+}
 }

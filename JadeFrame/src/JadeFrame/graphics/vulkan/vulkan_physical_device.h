@@ -7,6 +7,8 @@
 #include <optional>
 #include <vector>
 
+namespace JadeFrame {
+
 class VulkanSurface;
 
 const std::vector<const char*> g_device_extensions = {
@@ -27,7 +29,7 @@ private:
 public:
 	auto init(VulkanSurface surface) -> void;
 	auto check_extension_support(const std::vector<const char*>& extensions) -> bool;
-	auto find_queue_families(VulkanSurface surface) -> QueueFamilyIndices;
+	auto find_queue_families(VulkanSurface surface)->QueueFamilyIndices;
 public:
 	VkPhysicalDevice m_handle;
 	VkPhysicalDeviceProperties m_properties = {};
@@ -42,3 +44,4 @@ public:
 	std::vector<VkSurfaceFormatKHR> m_surface_formats;
 	std::vector<VkPresentModeKHR> m_present_modes;
 };
+}

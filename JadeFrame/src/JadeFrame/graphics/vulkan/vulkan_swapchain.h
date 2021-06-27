@@ -5,6 +5,9 @@
 
 #include <vector>
 
+
+namespace JadeFrame {
+
 class VulkanLogicalDevice;
 class VulkanInstance;
 
@@ -25,3 +28,4 @@ public:
 	u32 m_width = 0;
 	u32 m_height = 0;
 };
+}

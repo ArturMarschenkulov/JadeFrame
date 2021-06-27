@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-
+namespace JadeFrame {
 /*
 	KEY INPUT
 */
@@ -47,7 +47,7 @@ auto Windows_InputManager::key_callback(const WindowsMessage& wm) -> void {
 		if (MessageBoxW(hwnd, L"Quit through ESC?", L"My application", MB_OKCANCEL) == IDOK) {
 			std::cout << "WinInputManager::key_callback(); WM_QUIT" << std::endl;
 			//__debugbreak();
-			JadeFrame::get_singleton()->m_current_app_p->m_is_running = false;
+			JadeFrameInstance::get_singleton()->m_current_app_p->m_is_running = false;
 			::PostQuitMessage(0);
 			//DestroyWindow(hwnd);
 		}
@@ -245,4 +245,6 @@ auto Windows_InputManager::is_button_released(const BUTTON button) const -> bool
 
 auto Windows_InputManager::get_mouse_position() const -> Vec2 {
 	return m_mouse_posiition;
+}
+
 }

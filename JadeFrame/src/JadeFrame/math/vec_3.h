@@ -3,6 +3,9 @@
 #include "vec_2.h"
 #include "vec_4.h"
 #include <cmath>
+
+namespace JadeFrame {
+
 class Vec3 {
 public:
 	constexpr Vec3() noexcept;
@@ -32,7 +35,7 @@ public:
 	constexpr auto mult(const f32 o) const->Vec3;
 	constexpr auto div(const f32 o) const->Vec3;
 	constexpr auto get_length() const->f32;
-	constexpr auto dot(const Vec3& o) const -> f32;
+	constexpr auto dot(const Vec3& o) const->f32;
 	constexpr auto cross(const Vec3& o) const->Vec3;
 	constexpr auto get_normal() const->Vec3;
 public:
@@ -129,4 +132,6 @@ inline constexpr auto Vec3::cross(const Vec3& o) const -> Vec3 {
 inline constexpr auto Vec3::get_normal() const -> Vec3 {
 	const f32& length = this->get_length();
 	return Vec3(x / length, y / length, z / length);
+}
+
 }

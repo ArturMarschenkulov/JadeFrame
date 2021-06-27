@@ -14,6 +14,9 @@
 #include <shaderc/shaderc.hpp>
 #include <JadeFrame/math/math.h>
 
+
+namespace JadeFrame {
+
 static const i32 MAX_FRAMES_IN_FLIGHT = 2;
 
 
@@ -74,10 +77,7 @@ auto VulkanLogicalDevice::create_command_buffers() -> void {
 	alloc_info.commandBufferCount = (uint32_t)m_command_buffers.size();
 
 	result = vkAllocateCommandBuffers(m_handle, &alloc_info, m_command_buffers.data());
-	if (result != VK_SUCCESS) {
-		__debugbreak();
-		throw std::runtime_error("failed to allocate command buffers!");
-	}
+	if (result != VK_SUCCESS) __debugbreak();
 
 	for (size_t i = 0; i < m_command_buffers.size(); i++) {
 		VkCommandBufferBeginInfo begin_info = {};
@@ -87,10 +87,7 @@ auto VulkanLogicalDevice::create_command_buffers() -> void {
 		begin_info.pInheritanceInfo = nullptr; // Optional
 
 		result = vkBeginCommandBuffer(m_command_buffers[i], &begin_info);
-		if (result != VK_SUCCESS) {
-			__debugbreak();
-			throw std::runtime_error("failed to begin recording command buffer!");
-		}
+		if (result != VK_SUCCESS) __debugbreak();
 
 		VkClearValue clear_color = { 0.0f, 0.0f, 0.0f, 1.0f };
 
@@ -117,10 +114,8 @@ auto VulkanLogicalDevice::create_command_buffers() -> void {
 		}
 		vkCmdEndRenderPass(m_command_buffers[i]);
 
-		if (vkEndCommandBuffer(m_command_buffers[i]) != VK_SUCCESS) {
-			__debugbreak();
-			throw std::runtime_error("failed to record command buffer!");
-		}
+		result = vkEndCommandBuffer(m_command_buffers[i]);
+		if (result != VK_SUCCESS) __debugbreak();
 	}
 }
 
@@ -274,7 +269,7 @@ auto VulkanLogicalDevice::update_uniform_buffer(u32 current_image) -> void {
 
 	void* data;
 	vkMapMemory(m_handle, m_uniform_buffers[current_image].m_memory, 0, sizeof(ubo), 0, &data);
-		memcpy(data, &ubo, sizeof(ubo));
+	memcpy(data, &ubo, sizeof(ubo));
 	vkUnmapMemory(m_handle, m_uniform_buffers[current_image].m_memory);
 }
 
@@ -507,4 +502,5 @@ auto VulkanLogicalDevice::deinit() -> void {
 	}
 	vkDestroySwapchainKHR(m_handle, m_swapchain.m_swapchain, nullptr);
 	vkDestroyDevice(m_handle, nullptr);
+}
 }

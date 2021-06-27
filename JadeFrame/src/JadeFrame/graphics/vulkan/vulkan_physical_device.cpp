@@ -7,8 +7,9 @@
 #include <set>
 #include <string>
 
+namespace JadeFrame {
 
-auto get_queue_families_info(VulkanPhysicalDevice physical_device) -> void {
+auto print_queue_families_info(VulkanPhysicalDevice physical_device) -> void {
 	auto& queue_families = physical_device.m_queue_family_properties;
 	{
 		for (u32 i = 0; i < queue_families.size(); i++) {
@@ -40,6 +41,7 @@ auto VulkanPhysicalDevice::init(VulkanSurface surface) -> void {
 	vkGetPhysicalDeviceProperties(m_handle, &m_properties);
 	vkGetPhysicalDeviceFeatures(m_handle, &m_features);
 	vkGetPhysicalDeviceMemoryProperties(m_handle, &m_memory_properties);
+
 	result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_surface, &m_surface_capabilities);
 	{ // Query Queue Family Properties
 		u32 queue_family_count = 0;
@@ -47,44 +49,35 @@ auto VulkanPhysicalDevice::init(VulkanSurface surface) -> void {
 		m_queue_family_properties.resize(queue_family_count);
 		vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &queue_family_count, m_queue_family_properties.data());
 	}
-	{ // uery_extension_properties
+	{ // Query_extension_properties
 		u32 extension_count = 0;
 		result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &extension_count, nullptr);
 		m_extension_properties.resize(extension_count);
 		result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &extension_count, m_extension_properties.data());
-		if (VK_SUCCESS != result) {
-			__debugbreak();
-		}
+		if (VK_SUCCESS != result) __debugbreak();
 	}
 	{ // Query Surface Formats
 		u32 format_count;
 		result = vkGetPhysicalDeviceSurfaceFormatsKHR(m_handle, surface.m_surface, &format_count, nullptr);
-		if (VK_SUCCESS != result || (format_count == 0)) {
-			__debugbreak();
-		}
+		if (VK_SUCCESS != result || (format_count == 0)) __debugbreak();
+
 		m_surface_formats.resize(format_count);
 		result = vkGetPhysicalDeviceSurfaceFormatsKHR(m_handle, surface.m_surface, &format_count, m_surface_formats.data());
-		if (VK_SUCCESS != result) {
-			__debugbreak();
-		}
+		if (VK_SUCCESS != result) __debugbreak();
 	}
 	{ // Query Surface Present Modes
 		u32 present_modes_count;
 		result = vkGetPhysicalDeviceSurfacePresentModesKHR(m_handle, surface.m_surface, &present_modes_count, nullptr);
-		if (VK_SUCCESS != result || (present_modes_count == 0)) {
-			__debugbreak();
-		}
+		if (VK_SUCCESS != result || (present_modes_count == 0)) __debugbreak();
+
 		m_present_modes.resize(present_modes_count);
 		result = vkGetPhysicalDeviceSurfacePresentModesKHR(m_handle, surface.m_surface, &present_modes_count, m_present_modes.data());
-		if (VK_SUCCESS != result) {
-			__debugbreak();
-		}
+		if (VK_SUCCESS != result) __debugbreak();
+
 	}
 	m_extension_support = this->check_extension_support(g_device_extensions);
 	m_queue_family_indices = this->find_queue_families(surface);
-	get_queue_families_info(*this);
-
-	//__debugbreak();
+	print_queue_families_info(*this);
 }
 
 auto VulkanPhysicalDevice::check_extension_support(const std::vector<const char*>& extensions) -> bool {
@@ -106,9 +99,8 @@ auto VulkanPhysicalDevice::find_queue_families(VulkanSurface surface) -> QueueFa
 		VkBool32 present_support = false;
 
 		result = vkGetPhysicalDeviceSurfaceSupportKHR(m_handle, i, surface.m_surface, &present_support);
-		if (VK_SUCCESS != result) {
-			__debugbreak();
-		}
+		if (result != VK_SUCCESS) __debugbreak();
+
 
 		if (present_support) {
 			indices.m_present_family = i;
@@ -118,4 +110,5 @@ auto VulkanPhysicalDevice::find_queue_families(VulkanSurface surface) -> QueueFa
 		}
 	}
 	return indices;
+}
 }

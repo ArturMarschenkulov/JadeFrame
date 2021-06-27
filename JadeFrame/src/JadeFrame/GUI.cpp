@@ -2,6 +2,8 @@
 #include <imgui/imgui_impl_win32.h>
 #include <imgui/imgui_impl_opengl3.h>
 
+namespace JadeFrame {
+
 auto GUI_init(HWND window) -> void {
 	ImGui::CreateContext();
 	ImGui_ImplWin32_Init(window);
@@ -21,4 +23,5 @@ auto GUI_destroy() -> void {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
+}
 }

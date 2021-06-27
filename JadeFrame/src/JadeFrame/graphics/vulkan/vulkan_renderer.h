@@ -3,7 +3,7 @@
 #include "vulkan_context.h"
 #include "JadeFrame/platform/windows/windows_window.h"
 #include "JadeFrame/graphics/shared.h"
-
+namespace JadeFrame {
 class Vulkan_Renderer : public IRenderer {
 public:
 	auto set_context(const Windows_Window& window)  -> void;
@@ -19,3 +19,4 @@ private:
 
 
 };
+}

@@ -12,6 +12,8 @@
 #include <string>
 #include <unordered_map>
 
+namespace JadeFrame {
+
 class GL_VertexBuffer {
 public:
 	GL_VertexBuffer();
@@ -116,7 +118,7 @@ struct GL_Shader {
 	auto get_info_log(GLsizei max_length)->std::string;
 public:
 	enum class SHADER_TYPE {
-		
+
 	};
 	SHADER_TYPE m_type;
 	GLuint m_ID;
@@ -167,3 +169,4 @@ struct GL_Texture {
 	auto set_texture_image_3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void* pixels) const -> void;
 	GLuint m_ID;
 };
+}

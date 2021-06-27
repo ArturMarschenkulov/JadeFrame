@@ -1,6 +1,8 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
+namespace JadeFrame {
+
 class VulkanPhysicalDevice;
 class VulkanCommandPool {
 public:
@@ -10,3 +12,4 @@ public:
 	VkDevice      m_device = VK_NULL_HANDLE;
 	VkCommandPool m_command_pool = VK_NULL_HANDLE;
 };
+}

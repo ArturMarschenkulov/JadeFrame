@@ -6,6 +6,8 @@
 #include "JadeFrame/math/mat_4.h"
 #include "vulkan_logical_device.cpp"
 
+namespace JadeFrame {
+
 VulkanBuffer::VulkanBuffer(const VULKAN_BUFFER_TYPE type)
 	: m_type(type) {
 
@@ -184,4 +186,5 @@ auto VulkanBuffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDevic
 	vkQueueWaitIdle(m_device->m_graphics_queue);
 
 	vkFreeCommandBuffers(m_device->m_handle, m_device->m_command_pool.m_command_pool, 1, &command_buffer);
+}
 }

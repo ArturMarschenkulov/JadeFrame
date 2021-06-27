@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <map>
-
+namespace JadeFrame {
 enum class TOKEN_TYPE {
 	P_SEMICOLON, // ;
 	P_EQUAL, // =
@@ -70,7 +70,7 @@ struct GLSLParser {
 	auto parse(const std::string& text) -> void;
 	auto parse_stmt_directive(const Token& t, const Token* current_ptr) -> void;
 	auto parse_stmt_declaration_variable(const Token& t, const Token*& current_ptr) -> void;
-	
+
 	auto parse_statement() -> void;
 
 public: //Parser part
@@ -111,3 +111,4 @@ public: //Parser part
 
 
 };
+}

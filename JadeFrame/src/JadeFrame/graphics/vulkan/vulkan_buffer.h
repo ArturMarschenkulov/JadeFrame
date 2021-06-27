@@ -9,6 +9,7 @@
 
 #include <vector>
 
+namespace JadeFrame {
 
 class VulkanLogicalDevice;
 
@@ -43,3 +44,4 @@ public:
 	const VulkanLogicalDevice* m_device = nullptr;
 
 };
+}

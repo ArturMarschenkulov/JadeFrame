@@ -7,6 +7,7 @@
 #include <iostream>
 #include "JadeFrame/defines.h"
 
+namespace JadeFrame {
 
 struct STBIImage {
 	STBIImage(const std::string& path) {
@@ -112,4 +113,6 @@ auto OpenGL_Texture::resize(u32 width, u32 height, u32 depth)-> void {
 
 auto OpenGL_Texture::bind() const -> void {
 	tex.bind(m_target);
+}
+
 }

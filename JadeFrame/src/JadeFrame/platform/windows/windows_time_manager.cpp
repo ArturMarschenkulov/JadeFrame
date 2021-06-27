@@ -3,6 +3,7 @@
 #include <timeapi.h>
 #pragma comment(lib,"winmm.lib")
 
+namespace JadeFrame {
 
 auto Windows_TimeManager::initialize() -> void {
 	timeBeginPeriod(1);
@@ -59,4 +60,5 @@ auto Windows_TimeManager::frame_control() -> void {
 auto Windows_TimeManager::set_FPS(f64 FPS) -> void {
 	max_FPS = FPS;
 	time.target = 1 / (f64)FPS;
+}
 }

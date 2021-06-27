@@ -1,5 +1,5 @@
 #include "mesh.h"
-
+namespace JadeFrame {
 
 Mesh::Mesh(const VertexData& vertex_data) {
 	this->add_to_data(vertex_data);
@@ -307,4 +307,5 @@ auto VertexDataFactory::make_cube(const Vec3& pos, const Vec3& size) -> VertexDa
 	vertex_data.normals[34] = { -1.0f, +1.0f, -1.0f };
 	vertex_data.normals[35] = { -1.0f, +1.0f, -1.0f };
 	return vertex_data;
+}
 }

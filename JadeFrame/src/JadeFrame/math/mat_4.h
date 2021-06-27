@@ -1,10 +1,14 @@
 #pragma once
 #include "JadeFrame/defines.h"
-#include <array>
+
 #include "vec_4.h"
 #include "vec_3.h"
-#include <vector>
 
+#include <vector>
+#include <array>
+
+
+namespace JadeFrame {
 /*
 	This matrix is column major
 
@@ -29,7 +33,7 @@ public:
 	constexpr Matrix4x4(const Matrix4x4& mat) noexcept;
 
 	constexpr auto operator=(const Matrix4x4& mat) noexcept ->Matrix4x4&;
-	constexpr auto operator[](const u32 index) noexcept ->std::array<f32, 4>&; // for writing
+	constexpr auto operator[](const u32 index) noexcept -> std::array<f32, 4>&; // for writing
 	constexpr auto operator[](const u32 index) const  noexcept -> const std::array<f32, 4>&; // for reading
 	/*constexpr*/ auto operator*(const Vec4& vector) const  noexcept ->Vec4;
 	constexpr auto operator*(const Matrix4x4& other) const  noexcept ->Matrix4x4;
@@ -44,13 +48,13 @@ public: // static methods for matrices
 	constexpr static auto look_at_matrix(const Vec3& camera, Vec3 object, Vec3 up)noexcept ->Matrix4x4;
 
 public:
-	constexpr auto get_determinant() const -> f32;
+	constexpr auto get_determinant() const->f32;
 	constexpr auto get_echelon() const->Matrix4x4;
 	constexpr auto get_transpose() const->Matrix4x4;
 	constexpr auto get_inverted() const->Matrix4x4;
 
 	constexpr auto is_invertible() const -> bool;
-	constexpr auto get_rank() const -> i32;
+	constexpr auto get_rank() const->i32;
 
 	constexpr auto make_echelon()->Matrix4x4&;
 
@@ -305,4 +309,5 @@ inline constexpr auto Matrix4x4::make_echelon() -> Matrix4x4& {
 		}
 	}
 	return *this;
+}
 }

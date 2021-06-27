@@ -2,9 +2,15 @@
 #include <glad/glad.h>
 
 #include "opengl_object.h"
+
+#include "JadeFrame/graphics/mesh.h"
+#include "opengl_object.h"
+
 #include <cstdint>
 #include <string>
 #include <vector>
+
+namespace JadeFrame {
 struct Vertex;
 
 //TODO: Consider whether to keep this wrapper
@@ -29,8 +35,7 @@ enum class SHADER_TYPE {
 	SAMPLER_1D, SAMPLER_2D, SAMPLER_3D, SAMPLER_CUBE,
 };
 
-#include "JadeFrame/graphics/mesh.h"
-#include "opengl_object.h"
+
 
 class BufferLayout {
 public:
@@ -74,3 +79,4 @@ private:
 	GL_IndexBuffer m_index_buffer;
 	BufferLayout m_buffer_layout;
 };
+}

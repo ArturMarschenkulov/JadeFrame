@@ -4,15 +4,15 @@
 #include<JadeFrame/gui.h>
 #include<JadeFrame/utils/utils.h>
 
-
+namespace JadeFrame {
 struct Drop {
 	Drop() {
-		BaseApp* app = JadeFrame::get_singleton()->m_current_app_p;
+		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
 		const f32 window_width = app->m_main_window_p->m_size.x;
 
-		x = (f32)get_random_number(0, window_width);
-		const f32 rando = (f32)get_random_number(1, 30);
-		y_speed = (f32)map_range(rando, 1, 30, 1, 3);
+		x = (f32)JadeFrame::get_random_number(0, window_width);
+		const f32 rando = (f32)JadeFrame::get_random_number(1, 30);
+		y_speed = (f32)JadeFrame::map_range(rando, 1, 30, 1, 3);
 
 		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 80.0f, 1.0f }) * Matrix4x4::translation_matrix({ x, y, 0.0f });
 		app->m_resources.get_mesh("rectangle").set_color({ 138_u8, 43_u8, 226_u8, 255_u8 });
@@ -24,13 +24,13 @@ struct Drop {
 	auto fall() -> void {
 		y = y + y_speed;
 		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 80.0f, 1.0f }) * Matrix4x4::translation_matrix({ x, y, 0.0f });
-		const f32 window_height = JadeFrame::get_singleton()->m_current_app_p->m_main_window_p->m_size.y;
+		const f32 window_height = JadeFrameInstance::get_singleton()->m_current_app_p->m_main_window_p->m_size.y;
 		if (y >= window_height) {
 			y = -100;
 		}
 	}
 	auto show() const -> void {
-		Renderer& renderer = JadeFrame::get_singleton()->m_apps[0]->m_renderer;
+		Renderer& renderer = JadeFrameInstance::get_singleton()->m_apps[0]->m_renderer;
 		renderer.submit(obj);
 	}
 
@@ -92,7 +92,7 @@ auto Example_0::on_update() -> void {
 	for (u32 i = 0; i < drops.size(); i++) {
 		drops[i].fall();
 	}
-	if (JadeFrame::get_singleton()->m_input_manager.is_key_released(KEY::P)) {
+	if (JadeFrameInstance::get_singleton()->m_input_manager.is_key_released(KEY::P)) {
 		//std::thread t(&Renderer::take_screenshot, &m_renderer);
 		m_renderer.take_screenshot("im.png");
 	}
@@ -142,3 +142,4 @@ static auto draw_GUI(Example_0& app) -> void {
 	ImGui::SliderFloat2("yaw pitch", *yp, -100.0f, 100.0f);
 }
 using TestApp = Example_0;
+}

@@ -2,10 +2,16 @@
 #include "vec_3.h"
 #include <cmath>
 
-Vec4::Vec4() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
-Vec4::Vec4(const f32 scalar) : x(scalar), y(scalar), z(scalar), w(scalar) {}
-Vec4::Vec4(const f32 x, const f32 y, const f32 z, const f32 w) : x(x), y(y), z(z), w(w) {}
-Vec4::Vec4(const Vec3& vec3, const f32 w): x(vec3.x), y(vec3.y), z(vec3.z), w(w) {}
+namespace JadeFrame {
+
+Vec4::Vec4() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {
+}
+Vec4::Vec4(const f32 scalar) : x(scalar), y(scalar), z(scalar), w(scalar) {
+}
+Vec4::Vec4(const f32 x, const f32 y, const f32 z, const f32 w) : x(x), y(y), z(z), w(w) {
+}
+Vec4::Vec4(const Vec3& vec3, const f32 w) : x(vec3.x), y(vec3.y), z(vec3.z), w(w) {
+}
 
 
 auto Vec4::operator=(const Vec4& other) -> Vec4& {
@@ -72,4 +78,6 @@ auto Vec4::dot(const Vec4& o) const -> f32 {
 auto Vec4::get_normal() const -> Vec4 {
 	f32 length = this->get_length();
 	return Vec4(x / length, y / length, z / length, w / length);
+}
+
 }

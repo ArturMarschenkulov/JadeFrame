@@ -1,7 +1,7 @@
 #pragma once
 #include "JadeFrame/defines.h"
 #include <string>
-
+namespace JadeFrame {
 class Windows_SystemManager {
 public:
 	auto initialize() -> void;
@@ -41,3 +41,4 @@ public:
 	u16 m_processor_level;
 	u16 m_processor_revision;
 };
+}

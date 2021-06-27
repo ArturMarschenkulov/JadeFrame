@@ -1,12 +1,14 @@
 #include "math.h"
 
+namespace JadeFrame {
 auto to_radians(f32 degrees) -> f32 {
 	//return degrees * (M_PI / 180.0f);
-	return degrees* static_cast<f32>(0.01745329251994329576923690768489);
+	return degrees * static_cast<f32>(0.01745329251994329576923690768489);
 }
 auto to_degrees(f32 radians) -> f32 {
 	//return radians * (180.0f / M_PI);
 	return radians * static_cast<f32>(57.295779513082320876798154814105);
+}
 }
 //
 //#include <cmath>

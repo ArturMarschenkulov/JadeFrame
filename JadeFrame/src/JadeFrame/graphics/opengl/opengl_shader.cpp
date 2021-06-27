@@ -12,6 +12,7 @@
 #include <JadeFrame/graphics/glsl_parser.h>
 #include <cassert>
 
+namespace JadeFrame {
 static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
 	switch (type) {
 		case GL_FLOAT: return SHADER_TYPE::FLOAT;  break;
@@ -218,4 +219,5 @@ auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::uno
 		variable_map[variables[i].name] = variables[i];
 	}
 	return variable_map;
+}
 }

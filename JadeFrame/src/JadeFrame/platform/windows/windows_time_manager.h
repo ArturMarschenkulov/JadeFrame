@@ -2,14 +2,15 @@
 #include "JadeFrame/defines.h"
 #include <cstdint>
 
+namespace JadeFrame {
 class Windows_TimeManager {
 public:
 	auto initialize() -> void;
-	auto get_time() const -> f64;
+	auto get_time() const->f64;
 
 private:
-	auto query_timer_value() const -> u64;
-	auto get_timer_frequency() const ->u64;
+	auto query_timer_value() const->u64;
+	auto get_timer_frequency() const->u64;
 private:
 	bool m_has_performance_counter;
 	u64 m_frequency;
@@ -30,3 +31,4 @@ public:
 	Time time;
 	f32 max_FPS;
 };
+}

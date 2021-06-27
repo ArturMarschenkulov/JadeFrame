@@ -1,16 +1,19 @@
 #include "base_app.h"
+
+
+#include "gui.h"
+
 #include <utility>
 
-
-
+namespace JadeFrame {
 //**************************************************************
 //JadeFrame
 //**************************************************************
-JadeFrame* JadeFrame::m_singleton = nullptr;
-auto JadeFrame::get_singleton() -> JadeFrame* {
+JadeFrameInstance* JadeFrameInstance::m_singleton = nullptr;
+auto JadeFrameInstance::get_singleton() -> JadeFrameInstance* {
 	return m_singleton;
 }
-JadeFrame::JadeFrame() {
+JadeFrameInstance::JadeFrameInstance() {
 	std::cout << "JadeFrame is starting..." << std::endl;
 	if (m_singleton == nullptr) {
 		m_singleton = this;
@@ -23,11 +26,11 @@ JadeFrame::JadeFrame() {
 		__debugbreak();
 	}
 }
-auto JadeFrame::run() -> void {
+auto JadeFrameInstance::run() -> void {
 	m_current_app_p = m_apps[0];
 	m_apps.back()->start();
 }
-auto JadeFrame::add(BaseApp* app) -> void {
+auto JadeFrameInstance::add(BaseApp* app) -> void {
 	m_apps.push_back(app);
 }
 //**************************************************************
@@ -37,7 +40,7 @@ auto JadeFrame::add(BaseApp* app) -> void {
 //**************************************************************
 //BaseApp
 //**************************************************************
-#include "gui.h"
+
 BaseApp::BaseApp(const std::string& title, const Vec2& size, const Vec2& position) {
 	m_time_manager.initialize();
 	m_windows.try_emplace(0, title, size, position);
@@ -85,7 +88,7 @@ auto BaseApp::start() -> void {
 	}
 }
 auto BaseApp::poll_events() -> void {
-	JadeFrame::get_singleton()->m_input_manager.handle_input();
+	JadeFrameInstance::get_singleton()->m_input_manager.handle_input();
 
 	//TODO: Abstract the Windows code away
 	MSG message;
@@ -351,3 +354,5 @@ auto BaseApp::poll_events() -> void {
 //
 //	ImGui::SliderFloat2("yaw pitch", *yp, -100.0f, 100.0f);
 //}
+
+}

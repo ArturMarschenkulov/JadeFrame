@@ -3,6 +3,8 @@
 #include "JadeFrame/math/mat_4.h"
 #include "JadeFrame/math/vec_3.h"
 
+namespace JadeFrame {
+
 class Camera {
 public:
 	Camera() {
@@ -38,9 +40,9 @@ class Camera1 {
 public:
 	auto perspective_mode(const Vec3& position, const f32 fov, const f32 aspect, const f32 zNear, const f32 zFar) -> void;
 	auto othographic_mode(const f32 left, const f32 right, const f32 buttom, const f32 top, const f32 near_, const f32 far_) -> void;
-	auto get_projection_matrix() const -> Matrix4x4;
-	auto get_view_matrix() const -> Matrix4x4;
-	auto get_view_projection_matrix() const -> Matrix4x4;
+	auto get_projection_matrix() const->Matrix4x4;
+	auto get_view_matrix() const->Matrix4x4;
+	auto get_view_projection_matrix() const->Matrix4x4;
 
 public:
 	MODE m_mode;
@@ -97,3 +99,5 @@ class Camera0 {
 		m_view = Matrix4x4::look_at_matrix(m_position, m_position + m_forward, m_up);
 	}
 };
+
+}

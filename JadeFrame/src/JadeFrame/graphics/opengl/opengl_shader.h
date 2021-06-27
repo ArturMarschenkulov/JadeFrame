@@ -14,6 +14,7 @@
 #include <functional>
 #include <queue>
 
+namespace JadeFrame {
 class Vec2;
 class Vec3;
 class Vec4;
@@ -66,9 +67,10 @@ private:
 		GLuint		 location;
 		GL_ValueVariant value;
 	};
-	auto query_uniforms(const GLenum variable_type) const -> std::unordered_map<std::string, GL_Variable>;
+	auto query_uniforms(const GLenum variable_type) const->std::unordered_map<std::string, GL_Variable>;
 private:
 
 	std::unordered_map<std::string, GL_Variable> m_uniforms;
 	std::unordered_map<std::string, GL_Variable> m_attributes;
 };
+}

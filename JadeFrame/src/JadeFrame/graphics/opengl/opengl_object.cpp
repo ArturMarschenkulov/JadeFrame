@@ -1,6 +1,8 @@
 #include "opengl_object.h"
 #include <iostream>
 
+namespace JadeFrame {
+
 GL_VertexBuffer::GL_VertexBuffer() {
 	glCreateBuffers(1, &m_ID);
 }
@@ -297,4 +299,6 @@ auto GL_Texture::set_texture_image_2D(GLenum target, GLint level, GLint internal
 }
 auto GL_Texture::set_texture_image_3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void* pixels) const -> void {
 	glTexImage3D(target, level, internalformat, width, height, depth, border, format, type, pixels);
+}
+
 }

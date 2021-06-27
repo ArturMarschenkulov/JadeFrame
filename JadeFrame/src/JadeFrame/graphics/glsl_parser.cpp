@@ -1,6 +1,6 @@
 #include "glsl_parser.h"
 #include <cassert>
-
+namespace JadeFrame {
 static auto is_digit(const char c) -> bool {
 	return c >= '0' && c <= '9';
 }
@@ -361,4 +361,5 @@ auto Tokenizer::scan_token(const char c) const -> const Token {
 	std::string text(start_cursor.get(), current_cursor.get() + 1);
 
 	return Token{ token_type, text };
+}
 }

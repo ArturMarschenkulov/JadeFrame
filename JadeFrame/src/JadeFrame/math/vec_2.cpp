@@ -1,6 +1,8 @@
 #include "vec_2.h"
 #include "vec_3.h"
 
+namespace JadeFrame {
+
 Vec2::Vec2() : x(0.0f), y(0.0f) {
 }
 Vec2::Vec2(const f32 scalar) : x(scalar), y(scalar) {
@@ -47,3 +49,4 @@ auto Vec2::operator/=(const f32& other) -> Vec2& {
 	return *this;
 }
 
+}

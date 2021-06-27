@@ -9,10 +9,12 @@
 
 #define M_PI 3.14159265359f
 
+
+namespace JadeFrame {
 auto to_radians(f32 degrees)->f32;
 auto to_degrees(f32 radians)->f32;
 
-
+}
 
 //#include <type_traits>
 //#include <limits>

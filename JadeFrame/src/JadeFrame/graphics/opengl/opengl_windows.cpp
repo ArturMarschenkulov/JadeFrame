@@ -57,7 +57,7 @@ static PFNWGLGETEXTENSIONSSTRINGEXTPROC* wglGetExtensionsStringEXT = nullptr;
 //	// extension is supported
 //	return true;
 //}
-
+namespace JadeFrame {
 static auto load_wgl_functions() -> void {
 	wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC*)wglGetProcAddress("wglChoosePixelFormatARB");
 	wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC*)wglGetProcAddress("wglCreateContextAttribsARB");
@@ -68,7 +68,7 @@ static auto load_wgl_functions() -> void {
 auto wgl_load() -> bool {
 	//DummyWindow dummy_window;
 	const HINSTANCE instance = GetModuleHandleW(NULL);
-	if(instance == NULL) {
+	if (instance == NULL) {
 		std::cout << "GetModuleHandleW(NULL) failed. " << ::GetLastError() << std::endl;
 	}
 	const LPCWSTR window_class_name = L"OpenGL";
@@ -150,7 +150,7 @@ auto wgl_load() -> bool {
 }
 
 auto wgl_swap_interval(i32 i) -> void {
-	wglSwapIntervalEXT(i); 
+	wglSwapIntervalEXT(i);
 }
 
 auto wgl_set_pixel_format(const HDC& device_context) -> void {
@@ -179,11 +179,11 @@ auto wgl_set_pixel_format(const HDC& device_context) -> void {
 
 	PIXELFORMATDESCRIPTOR format_descriptor;
 	i32 maximum_pixel_format_index = DescribePixelFormat(device_context, format_descriptor_ID, sizeof(format_descriptor), &format_descriptor);
-	if(maximum_pixel_format_index == 0) {
+	if (maximum_pixel_format_index == 0) {
 		std::cout << "DescribePixelFormat() failed. " << ::GetLastError() << std::endl;
 	}
 	BOOL result = SetPixelFormat(device_context, format_descriptor_ID, &format_descriptor);
-	if(result == FALSE) {
+	if (result == FALSE) {
 		std::cout << "SetPixelFormat() failed. " << ::GetLastError() << std::endl;
 	}
 }
@@ -208,4 +208,5 @@ auto wgl_create_render_context(HDC device_context) -> HGLRC {
 		return NULL;
 	}
 	return render_context;
+}
 }

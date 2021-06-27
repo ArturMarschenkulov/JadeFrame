@@ -14,6 +14,7 @@
 #define WM_UAHINITMENU 0x0093
 #define WM_UAHMEASUREMENUITEM 0x0094
 #define WM_UAHNCPAINTMENUPOPUP 0x0095
+namespace JadeFrame {
 
 WindowsMessageMap::WindowsMessageMap() noexcept :
 	map({
@@ -217,4 +218,6 @@ auto WindowsMessageMap::operator()(const WindowsMessage& m) const noexcept -> st
 	oss << "   WP: 0x" << std::hex << std::setfill('0') << std::setw(8) << wp << std::endl;
 
 	return oss.str();
+}
+
 }

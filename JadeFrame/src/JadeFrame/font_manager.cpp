@@ -9,6 +9,8 @@
 
 #include FT_FREETYPE_H
 #include FT_STROKER_H
+
+namespace JadeFrame {
 auto FontManager::init() -> void {
 	struct Character {
 		GLuint TextureID;  // ID handle of the glyph texture
@@ -98,11 +100,12 @@ auto FontManager::init2() -> void {
 	}
 	OpenGL_Texture tex;
 	tex.generate(
-		face->glyph->bitmap.width, 
-		face->glyph->bitmap.rows, 
-		GL_RED, 
-		GL_RED, 
-		GL_UNSIGNED_BYTE, 
+		face->glyph->bitmap.width,
+		face->glyph->bitmap.rows,
+		GL_RED,
+		GL_RED,
+		GL_UNSIGNED_BYTE,
 		face->glyph->bitmap.buffer
 	);
+}
 }

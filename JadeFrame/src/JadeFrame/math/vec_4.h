@@ -1,5 +1,8 @@
 #pragma once
 #include "JadeFrame/defines.h"
+
+namespace JadeFrame {
+
 class Vec3;
 class Vec4 {
 public:
@@ -28,7 +31,7 @@ public:
 	auto mult(const f32 o) const->Vec4;
 	auto div(const f32 o) const->Vec4;
 	auto get_length() const->f32;
-	auto dot(const Vec4& o) const -> f32;
+	auto dot(const Vec4& o) const->f32;
 	auto get_normal() const->Vec4;
 public:
 	f32 x;
@@ -47,3 +50,5 @@ public:
 	f32 j;
 	f32 k;
 };
+
+}

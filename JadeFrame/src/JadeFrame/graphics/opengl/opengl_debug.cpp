@@ -4,6 +4,8 @@
 #include <iostream>
 #include "JadeFrame/defines.h"
 
+namespace JadeFrame {
+
 auto opengl_message_callback(u32 source, u32 type, u32 id, u32 severity, i32 length, const char* message, const void* userParam) -> void {
 	std::string _source;
 	switch (source) {
@@ -42,7 +44,7 @@ auto opengl_message_callback(u32 source, u32 type, u32 id, u32 severity, i32 len
 	}
 
 	if (0) {
-		std::cout 
+		std::cout
 			<< "GL_ERR: "
 			<< "Source: " << _source << "| "
 			<< "Type: " << _type << "| "
@@ -50,7 +52,7 @@ auto opengl_message_callback(u32 source, u32 type, u32 id, u32 severity, i32 len
 			<< "Severity: " << _severity << "| "
 			<< "Message " << message << std::endl;
 	} else {
-		std::cout 
+		std::cout
 			<< "GL_ERR: "
 			<< "Source: " << _source << std::endl << "| "
 			<< "Type: " << _type << std::endl << "| "
@@ -68,4 +70,5 @@ auto set_debug_mode(bool b) -> void {
 		glDebugMessageCallback(opengl_message_callback, nullptr);
 		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
 	}
+}
 }

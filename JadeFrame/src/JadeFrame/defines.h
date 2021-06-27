@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+namespace JadeFrame {
+
 using int8 = int8_t;
 using int16 = int16_t;
 using int32 = int32_t;
@@ -61,4 +63,6 @@ constexpr auto operator"" _f32(long double x) -> f32 {
 }
 constexpr auto operator"" _f64(long double x) -> f64 {
 	return static_cast<f64>(x);
+}
+
 }

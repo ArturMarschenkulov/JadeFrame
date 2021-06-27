@@ -5,6 +5,13 @@
 
 #include <cassert>
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "extern/stb/stb_image_write.h"
+#include <chrono>
+#include <thread>
+#include <future>
+
+namespace JadeFrame {
 
 auto OpenGL_Renderer::set_clear_color(const Color& color) -> void {
 	m_context.m_cache.set_clear_color(color);
@@ -66,11 +73,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) const -> void {
 	m_render_commands.clear();
 }
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "extern/stb/stb_image_write.h"
-#include <chrono>
-#include <thread>
-#include <future>
+
 
 auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
 	GLint viewport[4];
@@ -110,4 +113,6 @@ auto OpenGL_CommandBuffer::push(const Mesh& mesh, const OpenGL_Material& materia
 	command.vertex_array = &vertex_array;
 
 	m_render_commands.push_back(command);
+}
+
 }

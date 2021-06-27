@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
+namespace JadeFrame {
 class VulkanLogicalDevice;
 
 class VulkanRenderPass {
@@ -10,3 +11,4 @@ public:
 	VkRenderPass m_render_pass = VK_NULL_HANDLE;
 	VkDevice m_device = VK_NULL_HANDLE;
 };
+}

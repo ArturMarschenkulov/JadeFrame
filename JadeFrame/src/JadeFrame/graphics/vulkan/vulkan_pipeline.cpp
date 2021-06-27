@@ -11,6 +11,7 @@
 #include <vector>
 
 
+namespace JadeFrame {
 
 static const char* vs =
 R"(
@@ -232,4 +233,5 @@ auto VulkanPipeline::init(const VulkanLogicalDevice& device) -> void {
 
 auto VulkanPipeline::deinit() -> void {
 
+}
 }

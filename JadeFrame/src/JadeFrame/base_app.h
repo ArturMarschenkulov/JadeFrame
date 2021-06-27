@@ -1,16 +1,30 @@
 #pragma once
+
 #if _WIN32 || _WIN64 
 #include "platform/windows/windows_time_manager.h"
 #include "platform/windows/windows_input_manager.h"
 #include "platform/windows/windows_window.h"
 #include "platform/windows/windows_system_manager.h"
+#endif 
 
+#include <deque>
+
+#include "graphics/camera.h"
+#include <map>
+#include "graphics/opengl/opengl_renderer.h"
+#include "graphics/vulkan/vulkan_renderer.h"
+
+
+
+namespace JadeFrame {
+
+#if _WIN32 || _WIN64 
 using SystemManager = Windows_SystemManager;
 using TimeManager = Windows_TimeManager;
 using InputManager = Windows_InputManager;
 #endif 
-
-#include <deque>
+using Window = Windows_Window;
+using Renderer = OpenGL_Renderer;
 
 /*
 	The struct JadeFrame should act more or less like the ultimate global scope of JadeFrame.
@@ -20,17 +34,17 @@ using InputManager = Windows_InputManager;
 */
 
 class BaseApp;
-class JadeFrame {
+class JadeFrameInstance {
 public:
-	JadeFrame(const JadeFrame&) = delete;
-	JadeFrame(JadeFrame&&) = delete;
-	auto operator=(const JadeFrame&) -> JadeFrame& = delete;
-	auto operator=(JadeFrame&&) -> JadeFrame& = delete;
+	JadeFrameInstance(const JadeFrameInstance&) = delete;
+	JadeFrameInstance(JadeFrameInstance&&) = delete;
+	auto operator=(const JadeFrameInstance&)->JadeFrameInstance & = delete;
+	auto operator=(JadeFrameInstance&&)->JadeFrameInstance & = delete;
 
-	JadeFrame();
+	JadeFrameInstance();
 	auto run() -> void;
 	auto add(BaseApp* app) -> void;
-	static auto get_singleton() -> JadeFrame*;
+	static auto get_singleton()->JadeFrameInstance*;
 
 public:
 	SystemManager m_system_manager;
@@ -39,20 +53,14 @@ public:
 	std::deque<BaseApp*> m_apps;
 	BaseApp* m_current_app_p = nullptr;
 
-	static JadeFrame* m_singleton;
+	static JadeFrameInstance* m_singleton;
 };
 
-#include "graphics/camera.h"
-#include <map>
-#include "graphics/opengl/opengl_renderer.h"
-#include "graphics/vulkan/vulkan_renderer.h"
 
-using Window = Windows_Window;
-using Renderer = OpenGL_Renderer;
 
 /*
 	This is the storage of various resources which should be accessible "globally" in JadeFrame.
-	TODO: Think whether std::unordered_map is the best way to store it. 
+	TODO: Think whether std::unordered_map is the best way to store it.
 		Technically, it shoud be fine as accessing should not be a frequent thing.
 
 	This struct should be used for all "default" stuff and should be able to have custom stuff
@@ -118,7 +126,7 @@ public:
 		m_meshes.emplace(name, std::move(mesh));
 	}
 	auto get_mesh(const std::string& name) -> Mesh& {
-		if(m_meshes.contains(name)) {
+		if (m_meshes.contains(name)) {
 			return m_meshes.at(name);
 		}
 		__debugbreak();
@@ -143,7 +151,7 @@ public:
 	virtual auto on_draw() -> void = 0;
 
 	auto start() -> void;
-//protected:
+	//protected:
 	auto poll_events() -> void;
 
 public:
@@ -167,6 +175,8 @@ public:
 
 	ResourceStorage m_resources;
 };
+
+}
 
 
 

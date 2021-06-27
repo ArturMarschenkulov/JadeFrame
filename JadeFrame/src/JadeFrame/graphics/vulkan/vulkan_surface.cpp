@@ -3,7 +3,7 @@
 #include <iostream>
 #include <cassert>
 
-
+namespace JadeFrame {
 auto VulkanSurface::init(VkInstance instance, HWND window_handle) -> void {
 	VkResult result;
 
@@ -20,4 +20,5 @@ auto VulkanSurface::init(VkInstance instance, HWND window_handle) -> void {
 		__debugbreak();
 		throw std::runtime_error("failed to create window surface!");
 	}
+}
 }

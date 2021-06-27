@@ -9,6 +9,8 @@
 #undef min
 #undef max
 
+namespace JadeFrame {
+
 static auto choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& available_formats) -> VkSurfaceFormatKHR {
 	for (u32 i = 0; i < available_formats.size(); i++) {
 		if (available_formats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
@@ -94,6 +96,12 @@ auto VulkanSwapchain::init(const VulkanLogicalDevice& device, const VulkanInstan
 	const VkPresentModeKHR present_mode = choose_swap_present_mode(pd.m_present_modes);
 	const VkExtent2D extent = choose_swap_extent(instance.m_window_handle, pd.m_surface_capabilities);
 
+	const QueueFamilyIndices& indices = instance.m_physical_device.m_queue_family_indices;
+	u32 queue_family_indices[] = {
+		indices.m_graphics_family.value(),
+		indices.m_present_family.value()
+	};
+
 	VkSwapchainCreateInfoKHR create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	create_info.pNext = nullptr;
@@ -113,14 +121,6 @@ auto VulkanSwapchain::init(const VulkanLogicalDevice& device, const VulkanInstan
 	create_info.presentMode = present_mode;
 	create_info.clipped = VK_TRUE;
 	create_info.oldSwapchain = VK_NULL_HANDLE;
-
-
-	const QueueFamilyIndices& indices = instance.m_physical_device.m_queue_family_indices;
-	u32 queue_family_indices[] = {
-		indices.m_graphics_family.value(),
-		indices.m_present_family.value()
-	};
-
 	if (indices.m_graphics_family != indices.m_present_family) {
 		create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 		create_info.queueFamilyIndexCount = 2;
@@ -193,4 +193,6 @@ auto VulkanSwapchain::create_framebuffers(const VkRenderPass& render_pass) -> vo
 			throw std::runtime_error("failed to create framebuffer!");
 		}
 	}
+}
+
 }

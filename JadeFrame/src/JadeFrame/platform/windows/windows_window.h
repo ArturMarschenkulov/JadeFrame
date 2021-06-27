@@ -13,6 +13,8 @@ typedef UINT_PTR            WPARAM;
 typedef __int64				LONG_PTR;
 typedef LONG_PTR            LPARAM;
 
+namespace JadeFrame {
+
 struct WindowsMessage {
 	HWND hWnd;
 	UINT message;
@@ -28,8 +30,8 @@ public:
 
 	Windows_Window(const Windows_Window&) = delete;
 	Windows_Window(Windows_Window&&) = delete;
-	auto operator=(const Windows_Window&) -> Windows_Window& = delete ;
-	auto operator=(Windows_Window&&) -> Windows_Window& = delete;
+	auto operator=(const Windows_Window&)->Windows_Window & = delete;
+	auto operator=(Windows_Window&&)->Windows_Window & = delete;
 
 	Windows_Window();
 	Windows_Window(const std::string& title, const Vec2& size, const Vec2& position);
@@ -64,3 +66,5 @@ public:
 	} m_graphics_api;
 	mutable bool m_is_graphics_api_init = false;
 };
+
+}

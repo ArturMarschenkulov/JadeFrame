@@ -12,6 +12,7 @@
 #include <array>
 #include <vector>
 
+namespace JadeFrame {
 class VulkanInstance;
 class VulkanPhysicalDevice;
 class VulkanPipeline;
@@ -72,3 +73,4 @@ public: // synchro objects
 	size_t m_current_frame = 0;
 	bool m_framebuffer_resized = false;
 };
+}

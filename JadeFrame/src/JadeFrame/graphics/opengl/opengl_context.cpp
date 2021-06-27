@@ -5,7 +5,7 @@
 #include "opengl_windows.h"
 #endif
 
-
+namespace JadeFrame {
 OpenGL_Context::OpenGL_Context(const Windows_Window& window) {
 	if (window.m_is_graphics_api_init == true) {
 		if (window.m_graphics_api != Windows_Window::GRAPHICS_API::OPENGL) {
@@ -18,7 +18,7 @@ OpenGL_Context::OpenGL_Context(const Windows_Window& window) {
 	}
 
 	HDC device_context = GetDC(window.m_window_handle);
-	if(device_context == NULL) {
+	if (device_context == NULL) {
 		std::cout << "GetDC(hWnd) failed! " << ::GetLastError() << std::endl;
 		__debugbreak();
 	}
@@ -131,4 +131,5 @@ auto GL_Cache::set_face_culling(bool enable, GLenum mode) -> void {
 			glDisable(GL_CULL_FACE);
 		}
 	}
+}
 }

@@ -5,6 +5,7 @@
 
 struct HWND__;	typedef HWND__* HWND;
 
+namespace JadeFrame {
 class VulkanSurface {
 private:
 public:
@@ -12,3 +13,4 @@ public:
 public:
 	VkSurfaceKHR m_surface;
 };
+}

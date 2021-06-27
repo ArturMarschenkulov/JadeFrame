@@ -2,10 +2,8 @@
 #include "JadeFrame/defines.h"
 #include<string>
 
-
-// Convert a wide Unicode string to an UTF8 string
+namespace JadeFrame {
 auto from_wstring_to_string(const std::wstring& wstr)->std::string;
-// Convert an UTF8 string to a wide Unicode String
 auto from_string_to_wstring(const std::string& str)->std::wstring;
 
 auto custom_simple_hash_0(const std::string& str)->u32;
@@ -19,3 +17,4 @@ auto custom_simple_hash_0(const std::string& str)->u32;
 
 auto get_random_number(i32 begin, i32 end)->i32;
 auto map_range(f64 x, f64 in_min, f64 in_max, f64 out_min, f64 out_max)->f64;
+}

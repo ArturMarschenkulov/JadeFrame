@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <string>
 
+namespace JadeFrame {
 typedef unsigned long DWORD;
 
 struct WindowsMessage;
@@ -12,3 +13,4 @@ public:
 private:
 	std::unordered_map<DWORD, std::string> map;
 };
+}
