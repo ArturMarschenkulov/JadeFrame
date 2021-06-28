@@ -5,6 +5,7 @@
 
 namespace JadeFrame {
 auto VulkanSurface::init(VkInstance instance, HWND window_handle) -> void {
+	std::cout << __FUNCTION__ << std::endl;
 	VkResult result;
 
 	VkWin32SurfaceCreateInfoKHR create_info = {};

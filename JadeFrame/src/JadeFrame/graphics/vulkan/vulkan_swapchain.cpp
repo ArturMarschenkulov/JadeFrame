@@ -62,7 +62,7 @@ static auto create_image_views(const VulkanLogicalDevice& device, std::vector<Vk
 		create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		create_info.image = swapchain_images[i];
 		create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		create_info.format = device.m_swapchain.m_swapchain_image_format;
+		create_info.format = device.m_swapchain.m_image_format;
 		create_info.components.r = VK_COMPONENT_SWIZZLE_R;
 		create_info.components.g = VK_COMPONENT_SWIZZLE_G;
 		create_info.components.b = VK_COMPONENT_SWIZZLE_B;
@@ -138,15 +138,14 @@ auto VulkanSwapchain::init(const VulkanLogicalDevice& device, const VulkanInstan
 	}
 
 	result = vkGetSwapchainImagesKHR(device.m_handle, m_swapchain, &image_count, nullptr);
-	m_swapchain_images.resize(image_count);
-	result = vkGetSwapchainImagesKHR(device.m_handle, m_swapchain, &image_count, m_swapchain_images.data());
+	m_images.resize(image_count);
+	result = vkGetSwapchainImagesKHR(device.m_handle, m_swapchain, &image_count, m_images.data());
 	if (VK_SUCCESS != result) {
 		__debugbreak();
 	}
-	m_swapchain_image_format = surface_format.format;
-	m_swapchain_extent = extent;
-
-	m_swapchain_image_views = create_image_views(device, m_swapchain_images);
+	m_image_format = surface_format.format;
+	m_extent = extent;
+	m_image_views = create_image_views(device, m_images);
 
 	m_device = device.m_handle;
 
@@ -156,8 +155,8 @@ auto VulkanSwapchain::deinit() -> void {
 	for (uint32_t i = 0; i < m_framebuffers.size(); i++) {
 		vkDestroyFramebuffer(m_device, m_framebuffers[i], nullptr);
 	}
-	for (uint32_t i = 0; i < m_swapchain_image_views.size(); i++) {
-		vkDestroyImageView(m_device, m_swapchain_image_views[i], nullptr);
+	for (uint32_t i = 0; i < m_image_views.size(); i++) {
+		vkDestroyImageView(m_device, m_image_views[i], nullptr);
 	}
 
 	vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
@@ -169,11 +168,11 @@ auto VulkanSwapchain::deinit() -> void {
 auto VulkanSwapchain::create_framebuffers(const VkRenderPass& render_pass) -> void {
 	VkResult result;
 
-	m_framebuffers.resize(m_swapchain_image_views.size());
+	m_framebuffers.resize(m_image_views.size());
 
-	for (size_t i = 0; i < m_swapchain_image_views.size(); i++) {
+	for (size_t i = 0; i < m_image_views.size(); i++) {
 		VkImageView attachments[] = {
-			m_swapchain_image_views[i]
+			m_image_views[i]
 		};
 
 		VkFramebufferCreateInfo framebuffer_info{};
@@ -183,8 +182,8 @@ auto VulkanSwapchain::create_framebuffers(const VkRenderPass& render_pass) -> vo
 		framebuffer_info.renderPass = render_pass;
 		framebuffer_info.attachmentCount = 1;
 		framebuffer_info.pAttachments = attachments;
-		framebuffer_info.width = m_swapchain_extent.width;
-		framebuffer_info.height = m_swapchain_extent.height;
+		framebuffer_info.width = m_extent.width;
+		framebuffer_info.height = m_extent.height;
 		framebuffer_info.layers = 1;
 
 		result = vkCreateFramebuffer(m_device, &framebuffer_info, nullptr, &m_framebuffers[i]);

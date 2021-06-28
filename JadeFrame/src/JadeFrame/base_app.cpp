@@ -15,6 +15,7 @@ auto JadeFrameInstance::get_singleton() -> JadeFrameInstance* {
 }
 JadeFrameInstance::JadeFrameInstance() {
 	std::cout << "JadeFrame is starting..." << std::endl;
+
 	if (m_singleton == nullptr) {
 		m_singleton = this;
 		m_system_manager.initialize();

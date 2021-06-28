@@ -19,7 +19,6 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, const std::vector<VVe
 	VkResult result;
 
 	VkDeviceSize buffer_size = sizeof(vertices[0]) * vertices.size();
-	std::cout << "vb: " << sizeof(vertices[0]) << ", " << vertices.size() << "= " << buffer_size << std::endl;
 
 
 	VkBuffer staging_buffer;
@@ -58,7 +57,6 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, const std::vector<u16
 	VkResult result;
 
 	VkDeviceSize buffer_size = sizeof(indices[0]) * indices.size();
-	std::cout << "vb: " << sizeof(indices[0]) << ", " << indices.size() << "= " << buffer_size << std::endl;
 
 
 	VkBuffer staging_buffer;

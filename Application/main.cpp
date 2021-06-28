@@ -21,7 +21,6 @@ int main() {
 #if 1
 	using GApp = TestApp;
 	JadeFrameInstance jade_frame;
-
 	std::string title = "Test";
 	float width = 1280;
 	float height = 720;

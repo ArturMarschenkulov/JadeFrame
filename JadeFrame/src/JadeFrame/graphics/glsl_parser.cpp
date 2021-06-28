@@ -4,15 +4,15 @@ namespace JadeFrame {
 static auto is_digit(const char c) -> bool {
 	return c >= '0' && c <= '9';
 }
-static auto is_binary_digit(const char c) -> bool {
-	return c >= '0' && c <= '1';
-}
-static auto is_octal_digit(const char c) -> bool {
-	return c >= '0' && c <= '7';
-}
-static auto is_hexadecimal_digit(const char c) -> bool {
-	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
-}
+//static auto is_binary_digit(const char c) -> bool {
+//	return c >= '0' && c <= '1';
+//}
+//static auto is_octal_digit(const char c) -> bool {
+//	return c >= '0' && c <= '7';
+//}
+//static auto is_hexadecimal_digit(const char c) -> bool {
+//	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+//}
 static auto is_alpha(const char c) -> bool {
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }

@@ -124,6 +124,7 @@ Vulkan_Context::~Vulkan_Context() {
 
 
 auto Vulkan_Context::main_loop() -> void {
+	std::cout << __FUNCTION__ << std::endl;
 	VkResult result;
 	while (true) {
 		JadeFrameInstance::get_singleton()->m_apps[0]->poll_events();
@@ -213,6 +214,7 @@ auto VulkanInstance::setup_debug() -> void {
 }
 
 auto VulkanInstance::init(HWND window_handle) -> void {
+	std::cout << __FUNCTION__ << std::endl;
 	VkResult result;
 	m_window_handle = window_handle;
 
@@ -288,7 +290,9 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 			__debugbreak();
 		}
 	}
+	std::cout << "before device init" << std::endl;
 	m_logical_device.init(*this);
+	std::cout << "after device init" << std::endl;
 }
 
 auto VulkanInstance::deinit() -> void {

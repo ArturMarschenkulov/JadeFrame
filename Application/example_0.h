@@ -10,9 +10,9 @@ struct Drop {
 		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
 		const f32 window_width = app->m_main_window_p->m_size.x;
 
-		x = (f32)JadeFrame::get_random_number(0, window_width);
-		const f32 rando = (f32)JadeFrame::get_random_number(1, 30);
-		y_speed = (f32)JadeFrame::map_range(rando, 1, 30, 1, 3);
+		x = static_cast<f32>(get_random_number(0, window_width));
+		const f32 rando = static_cast<f32>(get_random_number(1, 30));
+		y_speed = static_cast<f32>(map_range(rando, 1, 30, 1, 3));
 
 		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 80.0f, 1.0f }) * Matrix4x4::translation_matrix({ x, y, 0.0f });
 		app->m_resources.get_mesh("rectangle").set_color({ 138_u8, 43_u8, 226_u8, 255_u8 });

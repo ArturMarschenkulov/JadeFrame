@@ -1,5 +1,6 @@
 
 #include "vulkan_renderer.h"
+#include <iostream>
 namespace JadeFrame {
 
 auto Vulkan_Renderer::set_context(const Windows_Window& window) -> void {
@@ -10,17 +11,17 @@ auto Vulkan_Renderer::main_loop() -> void {
 	m_context_p->main_loop();
 }
 
-auto Vulkan_Renderer::swap_buffer(HWND window_handle) const -> void {
+auto Vulkan_Renderer::swap_buffer(HWND /*window_handle*/) const -> void {
 
 }
 
 auto Vulkan_Renderer::clear_background() const -> void {
 }
 
-auto Vulkan_Renderer::render(const Matrix4x4& view_projection) const -> void {
+auto Vulkan_Renderer::render(const Matrix4x4& /*view_projection*/) const -> void {
 }
 
-auto Vulkan_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void {
+auto Vulkan_Renderer::set_viewport(u32 /*x*/, u32 /*y*/, u32 /*width*/, u32 /*height*/) const -> void {
 
 }
 }

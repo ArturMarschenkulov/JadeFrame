@@ -67,7 +67,7 @@ OpenGL_Shader::OpenGL_Shader(const std::string& name)
 		// Check whether m_uniforms and m_attributes are all contained in parser.
 		for (auto uniform = m_uniforms.begin(); uniform != m_uniforms.end(); uniform++) {
 			bool exists = false;
-			for (int j = 0; j < parser.m_variables.size(); j++) {
+			for (u32 j = 0; j < parser.m_variables.size(); j++) {
 				const GLSLParser::Variable& parser_variable = parser.m_variables[j];
 				const std::string& uniform_name = uniform->first;
 				if (uniform_name == parser_variable.m_name) {
@@ -78,7 +78,7 @@ OpenGL_Shader::OpenGL_Shader(const std::string& name)
 		}
 		for (auto attribute = m_attributes.begin(); attribute != m_attributes.end(); attribute++) {
 			bool exists = false;
-			for (int j = 0; j < parser.m_variables.size(); j++) {
+			for (u32 j = 0; j < parser.m_variables.size(); j++) {
 				const GLSLParser::Variable& parser_variable = parser.m_variables[j];
 				const std::string& uniform_name = attribute->first;
 				if (uniform_name == parser_variable.m_name) {

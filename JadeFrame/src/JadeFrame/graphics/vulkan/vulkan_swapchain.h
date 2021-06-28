@@ -19,10 +19,10 @@ public:
 	VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;
 	VkDevice m_device = VK_NULL_HANDLE;
 
-	std::vector<VkImage> m_swapchain_images;
-	std::vector<VkImageView> m_swapchain_image_views;
-	VkFormat m_swapchain_image_format;
-	VkExtent2D m_swapchain_extent;
+	std::vector<VkImage> m_images;
+	std::vector<VkImageView> m_image_views;
+	VkFormat m_image_format;
+	VkExtent2D m_extent;
 	std::vector<VkFramebuffer> m_framebuffers;
 
 	u32 m_width = 0;

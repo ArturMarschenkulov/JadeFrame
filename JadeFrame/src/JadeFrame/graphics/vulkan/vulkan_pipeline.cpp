@@ -3,7 +3,8 @@
 
 #include "JadeFrame/defines.h"
 
-#include <shaderc/shaderc.hpp>
+//#include <shaderc/shaderc.hpp>
+#include "extern/shaderc/shaderc.hpp"
 
 #include <array>
 #include <thread>
@@ -145,14 +146,14 @@ auto VulkanPipeline::init(const VulkanLogicalDevice& device) -> void {
 	VkViewport viewport = {};
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
-	viewport.width = (float)device.m_swapchain.m_swapchain_extent.width;
-	viewport.height = (float)device.m_swapchain.m_swapchain_extent.height;
+	viewport.width = (float)device.m_swapchain.m_extent.width;
+	viewport.height = (float)device.m_swapchain.m_extent.height;
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 
 	VkRect2D scissor = {};
 	scissor.offset = { 0, 0 };
-	scissor.extent = device.m_swapchain.m_swapchain_extent;
+	scissor.extent = device.m_swapchain.m_extent;
 
 	VkPipelineViewportStateCreateInfo viewport_state = {};
 	viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -193,11 +194,11 @@ auto VulkanPipeline::init(const VulkanLogicalDevice& device) -> void {
 
 	VkPipelineLayoutCreateInfo pipeline_layout_info = {};
 	pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipeline_layout_info.pNext;
+	pipeline_layout_info.pNext = nullptr;
 	pipeline_layout_info.setLayoutCount = 1;
 	pipeline_layout_info.pSetLayouts = &device.m_descriptor_set_layout;
 	pipeline_layout_info.pushConstantRangeCount = 0;
-	pipeline_layout_info.pPushConstantRanges;
+	//pipeline_layout_info.pPushConstantRanges;
 
 	result = vkCreatePipelineLayout(device.m_handle, &pipeline_layout_info, nullptr, &m_pipeline_layout);
 	if (result != VK_SUCCESS) {

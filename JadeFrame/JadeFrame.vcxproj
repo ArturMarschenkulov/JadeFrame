@@ -22,7 +22,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{65177E85-84D8-4337-9437-8636589AE8F4}</ProjectGuid>
     <RootNamespace>JadeFrame</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -74,12 +74,14 @@
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)bin-int\$(Platform)\$(Configuration)\</IntDir>
     <EnableMicrosoftCodeAnalysis>true</EnableMicrosoftCodeAnalysis>
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)bin-int\$(Platform)\$(Configuration)\</IntDir>
     <EnableMicrosoftCodeAnalysis>true</EnableMicrosoftCodeAnalysis>
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -98,7 +100,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;$(SolutionDir)JadeFrame\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-W4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -120,7 +122,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;$(SolutionDir)JadeFrame\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-W4 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -291,6 +293,11 @@
     <ClInclude Include="src\extern\imgui\imstb_textedit.h" />
     <ClInclude Include="src\extern\imgui\imstb_truetype.h" />
     <ClInclude Include="src\extern\KHR\khrplatform.h" />
+    <ClInclude Include="src\extern\shaderc\env.h" />
+    <ClInclude Include="src\extern\shaderc\shaderc.h" />
+    <ClInclude Include="src\extern\shaderc\shaderc.hpp" />
+    <ClInclude Include="src\extern\shaderc\status.h" />
+    <ClInclude Include="src\extern\shaderc\visibility.h" />
     <ClInclude Include="src\extern\stb\stb_image.h" />
     <ClInclude Include="src\extern\stb\stb_image_resize.h" />
     <ClInclude Include="src\extern\stb\stb_image_write.h" />

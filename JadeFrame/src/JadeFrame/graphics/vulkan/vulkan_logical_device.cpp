@@ -4,15 +4,14 @@
 
 #include <Windows.h> // TODO: Try to remove it
 
-#include <iostream>
+#include "JadeFrame/math/mat_4.h"
+#include "JadeFrame/math/math.h"
 
+#include <iostream>
 #include <thread>
 #include <future>
 #include <set>
-#include <JadeFrame/math/mat_4.h>
-
-#include <shaderc/shaderc.hpp>
-#include <JadeFrame/math/math.h>
+#include <cassert>
 
 
 namespace JadeFrame {
@@ -96,7 +95,7 @@ auto VulkanLogicalDevice::create_command_buffers() -> void {
 		render_pass_info.renderPass = m_render_pass.m_render_pass;
 		render_pass_info.framebuffer = m_swapchain.m_framebuffers[i];
 		render_pass_info.renderArea.offset = { 0, 0 };
-		render_pass_info.renderArea.extent = m_swapchain.m_swapchain_extent;
+		render_pass_info.renderArea.extent = m_swapchain.m_extent;
 		render_pass_info.clearValueCount = 1;
 		render_pass_info.pClearValues = &clear_color;
 
@@ -123,7 +122,7 @@ auto VulkanLogicalDevice::create_sync_objects() -> void {
 	m_image_available_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
 	m_render_finished_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
 	m_in_flight_fences.resize(MAX_FRAMES_IN_FLIGHT);
-	m_images_in_flight.resize(m_swapchain.m_swapchain_images.size(), VK_NULL_HANDLE);
+	m_images_in_flight.resize(m_swapchain.m_images.size(), VK_NULL_HANDLE);
 
 	VkSemaphoreCreateInfo semaphore_info = {};
 	semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -151,11 +150,10 @@ auto VulkanLogicalDevice::create_sync_objects() -> void {
 
 auto VulkanLogicalDevice::recreate_swapchain() -> void {
 	VkResult result;
-	std::cout << " lololo " << std::endl;
 	RECT area;
 	GetClientRect(m_instance_p->m_window_handle, &area);
-	i32 width = area.right;
-	i32 height = area.bottom;
+	//i32 width = area.right;
+	//i32 height = area.bottom;
 
 	result = vkDeviceWaitIdle(m_handle);
 
@@ -168,15 +166,15 @@ auto VulkanLogicalDevice::recreate_swapchain() -> void {
 
 	this->create_command_buffers();
 	//this->create_uniform_buffer();
-	m_uniform_buffers.resize(m_swapchain.m_swapchain_images.size());
-	for (u32 i = 0; i < m_swapchain.m_swapchain_images.size(); i++) {
+	m_uniform_buffers.resize(m_swapchain.m_images.size());
+	for (u32 i = 0; i < m_swapchain.m_images.size(); i++) {
 		m_uniform_buffers[i].init(*this);
 	}
 	this->create_descriptor_pool();
 	this->create_descriptor_sets();
 	this->create_command_buffers();
 
-	m_images_in_flight.resize(m_swapchain.m_swapchain_images.size(), VK_NULL_HANDLE);
+	m_images_in_flight.resize(m_swapchain.m_images.size(), VK_NULL_HANDLE);
 }
 auto VulkanLogicalDevice::cleanup_swapchain() -> void {
 	for (auto framebuffer : m_swapchain.m_framebuffers) {
@@ -189,11 +187,11 @@ auto VulkanLogicalDevice::cleanup_swapchain() -> void {
 	vkDestroyPipelineLayout(m_handle, m_pipeline.m_pipeline_layout, nullptr);
 	vkDestroyRenderPass(m_handle, m_render_pass.m_render_pass, nullptr);
 
-	for (auto image_view : m_swapchain.m_swapchain_image_views) {
+	for (auto image_view : m_swapchain.m_image_views) {
 		vkDestroyImageView(m_handle, image_view, nullptr);
 	}
 
-	for (size_t i = 0; i < m_swapchain.m_swapchain_images.size(); i++) {
+	for (size_t i = 0; i < m_swapchain.m_images.size(); i++) {
 		vkDestroyBuffer(m_handle, m_uniform_buffers[i].m_buffer, nullptr);
 		vkFreeMemory(m_handle, m_uniform_buffers[i].m_memory, nullptr);
 	}
@@ -231,7 +229,7 @@ auto VulkanLogicalDevice::update_uniform_buffer(u32 current_image) -> void {
 	f32 time = std::chrono::duration<f32, std::chrono::seconds::period>(current_time - start_time).count();
 
 	f32 d_0 = to_radians(90.0f);
-	f32 d_1 = to_radians(45.0f);
+	//f32 d_1 = to_radians(45.0f);
 
 
 	//UniformBufferObject ubo = {};
@@ -277,13 +275,13 @@ auto VulkanLogicalDevice::create_descriptor_pool() -> void {
 	VkResult result;
 	VkDescriptorPoolSize pool_size{};
 	pool_size.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	pool_size.descriptorCount = static_cast<u32>(m_swapchain.m_swapchain_images.size());
+	pool_size.descriptorCount = static_cast<u32>(m_swapchain.m_images.size());
 
 	VkDescriptorPoolCreateInfo pool_info{};
 	pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	pool_info.poolSizeCount = 1;
 	pool_info.pPoolSizes = &pool_size;
-	pool_info.maxSets = static_cast<u32>(m_swapchain.m_swapchain_images.size());
+	pool_info.maxSets = static_cast<u32>(m_swapchain.m_images.size());
 
 	result = vkCreateDescriptorPool(m_handle, &pool_info, nullptr, &m_descriptor_pool);
 	if (result != VK_SUCCESS) {
@@ -295,24 +293,22 @@ auto VulkanLogicalDevice::create_descriptor_pool() -> void {
 auto VulkanLogicalDevice::create_descriptor_sets() -> void {
 	VkResult result;
 
-	std::vector<VkDescriptorSetLayout> layouts(m_swapchain.m_swapchain_images.size(), m_descriptor_set_layout);
+	std::vector<VkDescriptorSetLayout> layouts(m_swapchain.m_images.size(), m_descriptor_set_layout);
 
-	VkDescriptorSetAllocateInfo alloc_info{};
+	VkDescriptorSetAllocateInfo alloc_info = {};
 	alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	alloc_info.pNext = nullptr;
 	alloc_info.descriptorPool = m_descriptor_pool;
-	alloc_info.descriptorSetCount = static_cast<u32>(m_swapchain.m_swapchain_images.size());
+	alloc_info.descriptorSetCount = static_cast<u32>(m_swapchain.m_images.size());
 	alloc_info.pSetLayouts = layouts.data();
 
-	m_descriptor_sets.resize(m_swapchain.m_swapchain_images.size());
-
+	m_descriptor_sets.resize(m_swapchain.m_images.size());
+	assert(m_physical_device_p->m_properties.limits.maxBoundDescriptorSets > m_descriptor_sets.size());
+	//__debugbreak();
 	result = vkAllocateDescriptorSets(m_handle, &alloc_info, m_descriptor_sets.data());
-	if (result != VK_SUCCESS) {
-		__debugbreak();
-		throw std::runtime_error("failed to allocate descriptor sets!");
-	}
+	if (result != VK_SUCCESS) __debugbreak();
 
-	for (u32 i = 0; i < m_swapchain.m_swapchain_images.size(); i++) {
+	for (u32 i = 0; i < m_swapchain.m_images.size(); i++) {
 		VkDescriptorBufferInfo buffer_info{};
 		buffer_info.buffer = m_uniform_buffers[i].m_buffer;
 		buffer_info.offset = 0;
@@ -402,7 +398,7 @@ auto VulkanLogicalDevice::draw_frame() -> void {
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_framebuffer_resized) {
 			m_framebuffer_resized = false;
 			std::cout << "recreate because of vkQueuePresentKHR" << std::endl;
-			__debugbreak();
+			//__debugbreak();
 			this->recreate_swapchain();
 		} else if (result != VK_SUCCESS) {
 			std::cout << "failed to present swap chain image!" << std::endl;
@@ -415,6 +411,7 @@ auto VulkanLogicalDevice::draw_frame() -> void {
 }
 
 auto VulkanLogicalDevice::init(const VulkanInstance& instance) -> void {
+	//std::cout << __FUNCTION__ << std::endl;
 	VkResult  result;
 
 	QueueFamilyIndices indices = instance.m_physical_device.m_queue_family_indices;
@@ -472,8 +469,8 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance) -> void {
 	m_vertex_buffer.init(*this, g_vertices);
 	m_index_buffer.init(*this, g_indices);
 
-	m_uniform_buffers.resize(m_swapchain.m_swapchain_images.size(), VULKAN_BUFFER_TYPE::UNIFORM);
-	for (u32 i = 0; i < m_swapchain.m_swapchain_images.size(); i++) {
+	m_uniform_buffers.resize(m_swapchain.m_images.size(), VULKAN_BUFFER_TYPE::UNIFORM);
+	for (u32 i = 0; i < m_swapchain.m_images.size(); i++) {
 		m_uniform_buffers[i].init(*this);
 	}
 
@@ -497,8 +494,8 @@ auto VulkanLogicalDevice::deinit() -> void {
 	vkDestroyPipelineLayout(m_handle, m_pipeline.m_pipeline_layout, nullptr);
 
 	vkDestroyRenderPass(m_handle, m_render_pass.m_render_pass, nullptr);
-	for (u32 i = 0; i < m_swapchain.m_swapchain_image_views.size(); i++) {
-		vkDestroyImageView(m_handle, m_swapchain.m_swapchain_image_views[i], nullptr);
+	for (u32 i = 0; i < m_swapchain.m_image_views.size(); i++) {
+		vkDestroyImageView(m_handle, m_swapchain.m_image_views[i], nullptr);
 	}
 	vkDestroySwapchainKHR(m_handle, m_swapchain.m_swapchain, nullptr);
 	vkDestroyDevice(m_handle, nullptr);
