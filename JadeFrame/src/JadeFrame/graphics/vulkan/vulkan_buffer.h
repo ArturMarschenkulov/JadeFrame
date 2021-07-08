@@ -24,11 +24,11 @@ class VulkanBuffer {
 public:
 	VulkanBuffer() = default;
 	VulkanBuffer(const VULKAN_BUFFER_TYPE type);
-
-	auto init(const VulkanLogicalDevice& device, const std::vector<VVertex>& vertices) -> void; // vertex buffer
-	auto init(const VulkanLogicalDevice& device, const std::vector<u16>& indices) -> void; // index buffer
-	auto init(const VulkanLogicalDevice& device) -> void; // uniform buffer
-
+	auto init(const VulkanLogicalDevice& device, VULKAN_BUFFER_TYPE buffer_type, void* data, size_t size) -> void;
+	//auto init(const VulkanLogicalDevice& device, const std::vector<VVertex>& vertices) -> void; // vertex buffer
+	//auto init(const VulkanLogicalDevice& device, const std::vector<u16>& indices) -> void; // index buffer
+	//auto init(const VulkanLogicalDevice& device) -> void; // uniform buffer
+	auto deinit() -> void;
 private:
 	auto create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& buffer_memory) -> void;
 	auto copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size) -> void;

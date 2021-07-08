@@ -229,11 +229,6 @@
     <ClInclude Include="src\extern\freetype\fttrigon.h" />
     <ClInclude Include="src\extern\freetype\fttypes.h" />
     <ClInclude Include="src\extern\freetype\ftwinfnt.h" />
-    <ClInclude Include="src\extern\freetype\include\freetype\config\ftheader.h" />
-    <ClInclude Include="src\extern\freetype\include\freetype\config\ftstdlib.h" />
-    <ClInclude Include="src\extern\freetype\include\freetype\fttypes.h" />
-    <ClInclude Include="src\extern\freetype\include\freetype\internal\ftvalid.h" />
-    <ClInclude Include="src\extern\freetype\include\ft2build.h" />
     <ClInclude Include="src\extern\freetype\internal\autohint.h" />
     <ClInclude Include="src\extern\freetype\internal\cffotypes.h" />
     <ClInclude Include="src\extern\freetype\internal\cfftypes.h" />
@@ -276,8 +271,6 @@
     <ClInclude Include="src\extern\freetype\internal\sfnt.h" />
     <ClInclude Include="src\extern\freetype\internal\t1types.h" />
     <ClInclude Include="src\extern\freetype\internal\tttypes.h" />
-    <ClInclude Include="src\extern\freetype\src\base\ftbase.h" />
-    <ClInclude Include="src\extern\freetype\src\base\md5.h" />
     <ClInclude Include="src\extern\freetype\t1tables.h" />
     <ClInclude Include="src\extern\freetype\ttnameid.h" />
     <ClInclude Include="src\extern\freetype\tttables.h" />
@@ -325,10 +318,15 @@
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_windows.h" />
     <ClInclude Include="src\JadeFrame\graphics\shared.h" />
     <ClInclude Include="src\JadeFrame\graphics\software\software_renderer.h" />
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\to_spirv.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_buffer.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_command_pool.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_context.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_debug.h" />
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_pool.h" />
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_set.h" />
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_set_layout.h" />
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_instance.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_logical_device.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_physical_device.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_pipeline.h" />
@@ -337,6 +335,7 @@
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_shared.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_surface.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_swapchain.h" />
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_texture.h" />
     <ClInclude Include="src\JadeFrame\gui.h" />
     <ClInclude Include="src\JadeFrame\math\i128.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_input_manager.h" />
@@ -356,49 +355,6 @@
     <ClInclude Include="src\JadeFrame\platform\windows\windows_window.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\extern\freetype\src\autofit\autofit.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftbase.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftbbox.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftbdf.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftbitmap.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftcid.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftdbgmem.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftdebug.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftfstype.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftgasp.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftglyph.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftgxval.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftinit.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftmac.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftmm.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftotval.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftpatent.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftpfr.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftstroke.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftsynth.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftsystem.c" />
-    <ClCompile Include="src\extern\freetype\src\base\fttype1.c" />
-    <ClCompile Include="src\extern\freetype\src\base\ftwinfnt.c" />
-    <ClCompile Include="src\extern\freetype\src\base\md5.c" />
-    <ClCompile Include="src\extern\freetype\src\bdf\bdf.c" />
-    <ClCompile Include="src\extern\freetype\src\bzip2\ftbzip2.c" />
-    <ClCompile Include="src\extern\freetype\src\cache\ftcache.c" />
-    <ClCompile Include="src\extern\freetype\src\cff\cff.c" />
-    <ClCompile Include="src\extern\freetype\src\cid\type1cid.c" />
-    <ClCompile Include="src\extern\freetype\src\gzip\ftgzip.c" />
-    <ClCompile Include="src\extern\freetype\src\lzw\ftlzw.c" />
-    <ClCompile Include="src\extern\freetype\src\pcf\pcf.c" />
-    <ClCompile Include="src\extern\freetype\src\pfr\pfr.c" />
-    <ClCompile Include="src\extern\freetype\src\psaux\psaux.c" />
-    <ClCompile Include="src\extern\freetype\src\pshinter\pshinter.c" />
-    <ClCompile Include="src\extern\freetype\src\psnames\psnames.c" />
-    <ClCompile Include="src\extern\freetype\src\raster\raster.c" />
-    <ClCompile Include="src\extern\freetype\src\sfnt\sfnt.c" />
-    <ClCompile Include="src\extern\freetype\src\smooth\smooth.c" />
-    <ClCompile Include="src\extern\freetype\src\truetype\truetype.c" />
-    <ClCompile Include="src\extern\freetype\src\type1\type1.c" />
-    <ClCompile Include="src\extern\freetype\src\type42\type42.c" />
-    <ClCompile Include="src\extern\freetype\src\winfonts\winfnt.c" />
     <ClCompile Include="src\extern\glad.c" />
     <ClCompile Include="src\extern\imgui\imgui.cpp" />
     <ClCompile Include="src\extern\imgui\imgui_demo.cpp" />
@@ -420,9 +376,14 @@
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_shader_loader.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_texture.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_windows.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\to_spirv.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_buffer.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_command_pool.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_context.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_pool.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_set.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_set_layout.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_instance.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_logical_device.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_physical_device.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_pipeline.cpp" />
@@ -430,6 +391,7 @@
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_render_pass.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_surface.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_swapchain.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_texture.cpp" />
     <ClCompile Include="src\JadeFrame\gui.cpp" />
     <ClCompile Include="src\JadeFrame\platform\windows\windows_input_manager.cpp" />
     <ClCompile Include="src\JadeFrame\math\mat_4.cpp" />
@@ -450,6 +412,9 @@
     <Image Include="resource\awesomeface.png" />
     <Image Include="resource\container.jpg" />
     <Image Include="resource\wall.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\JadeFrame\math\vec3.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

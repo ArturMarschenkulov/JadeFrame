@@ -11,90 +11,52 @@
 
 namespace JadeFrame {
 
-static auto choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& available_formats) -> VkSurfaceFormatKHR {
-	for (u32 i = 0; i < available_formats.size(); i++) {
-		if (available_formats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
-			available_formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-			return available_formats[i];
-		}
-	}
-	return available_formats[0];
-}
-static auto choose_swap_present_mode(const std::vector<VkPresentModeKHR>& available_present_modes) -> VkPresentModeKHR {
-	for (u32 i = 0; i < available_present_modes.size(); i++) {
-		if (available_present_modes[i] == VK_PRESENT_MODE_MAILBOX_KHR) {
-			return available_present_modes[i];
-		}
-	}
-	return VK_PRESENT_MODE_FIFO_KHR;
-}
-
-static auto choose_swap_extent(HWND window_handle, const VkSurfaceCapabilitiesKHR& capabilities) -> VkExtent2D {
-	if (capabilities.currentExtent.width != UINT32_MAX) {
-		return capabilities.currentExtent;
-	} else {
-		RECT area;
-		GetClientRect(window_handle, &area);
-		i32 width = area.right;
-		i32 height = area.bottom;
-		//glfwGetFramebufferSize(window, &width, &height);
-
-		VkExtent2D actual_extent = {
-			static_cast<uint32_t>(width),
-			static_cast<uint32_t>(height)
-		};
-
-		actual_extent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actual_extent.width));
-		actual_extent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actual_extent.height));
-
-		return actual_extent;
-	}
-}
-
-static auto create_image_views(const VulkanLogicalDevice& device, std::vector<VkImage>& swapchain_images) -> std::vector<VkImageView> {
+static auto create_image_views(const VulkanLogicalDevice& device, std::vector<VkImage>& swapchain_images, VkFormat image_format) -> std::vector<VkImageView> {
 	VkResult result;
 
 	std::vector<VkImageView> swapchain_image_views;
 	swapchain_image_views.resize(swapchain_images.size());
 
 	for (size_t i = 0; i < swapchain_images.size(); i++) {
-		VkImageViewCreateInfo create_info = {};
-		create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		create_info.image = swapchain_images[i];
-		create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		create_info.format = device.m_swapchain.m_image_format;
-		create_info.components.r = VK_COMPONENT_SWIZZLE_R;
-		create_info.components.g = VK_COMPONENT_SWIZZLE_G;
-		create_info.components.b = VK_COMPONENT_SWIZZLE_B;
-		create_info.components.a = VK_COMPONENT_SWIZZLE_A;
-		create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		create_info.subresourceRange.baseMipLevel = 0;
-		create_info.subresourceRange.levelCount = 1;
-		create_info.subresourceRange.baseArrayLayer = 0;
-		create_info.subresourceRange.layerCount = 1;
+		VkImageViewCreateInfo create_info = {
+			.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+			.image = swapchain_images[i],
+			.viewType = VK_IMAGE_VIEW_TYPE_2D,
+			.format = image_format,
+			.components = {
+				.r = VK_COMPONENT_SWIZZLE_R,
+				.g = VK_COMPONENT_SWIZZLE_G,
+				.b = VK_COMPONENT_SWIZZLE_B,
+				.a = VK_COMPONENT_SWIZZLE_A,
+			},
+			.subresourceRange = {
+				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+				.baseMipLevel = 0,
+				.levelCount = 1,
+				.baseArrayLayer = 0,
+				.layerCount = 1,
+			}
+		};
 
 		result = vkCreateImageView(device.m_handle, &create_info, nullptr, &swapchain_image_views[i]);
-		if (result != VK_SUCCESS) {
-
-			__debugbreak();
-			//throw std::runtime_error("failed to create image views!");
-		}
+		if (result != VK_SUCCESS) __debugbreak();
 	}
 	return swapchain_image_views;
 }
-auto VulkanSwapchain::init(const VulkanLogicalDevice& device, const VulkanInstance& instance) -> void {
+auto VulkanSwapchain::init(const VulkanLogicalDevice& device) -> void {
 	VkResult result;
 
 	const VulkanPhysicalDevice& pd = *device.m_physical_device_p;
+	const VulkanInstance& instance = *device.m_instance_p;
 
 	u32 image_count = pd.m_surface_capabilities.minImageCount + 1;
 	if (pd.m_surface_capabilities.maxImageCount > 0 && image_count > pd.m_surface_capabilities.maxImageCount) {
 		image_count = pd.m_surface_capabilities.maxImageCount;
 	}
 
-	const VkSurfaceFormatKHR surface_format = choose_swap_surface_format(pd.m_surface_formats);
-	const VkPresentModeKHR present_mode = choose_swap_present_mode(pd.m_present_modes);
-	const VkExtent2D extent = choose_swap_extent(instance.m_window_handle, pd.m_surface_capabilities);
+	const VkSurfaceFormatKHR surface_format = pd.choose_swap_surface_format();
+	const VkPresentModeKHR present_mode = pd.choose_swap_present_mode();
+	const VkExtent2D extent = pd.choose_swap_extent();
 
 	const QueueFamilyIndices& indices = instance.m_physical_device.m_queue_family_indices;
 	u32 queue_family_indices[] = {
@@ -132,20 +94,16 @@ auto VulkanSwapchain::init(const VulkanLogicalDevice& device, const VulkanInstan
 
 
 	result = vkCreateSwapchainKHR(device.m_handle, &create_info, nullptr, &m_swapchain);
-	if (result != VK_SUCCESS) {
-		std::cout << "failed to create swap chain!" << std::endl;
-		__debugbreak();
-	}
+	if (result != VK_SUCCESS) __debugbreak();
 
 	result = vkGetSwapchainImagesKHR(device.m_handle, m_swapchain, &image_count, nullptr);
 	m_images.resize(image_count);
 	result = vkGetSwapchainImagesKHR(device.m_handle, m_swapchain, &image_count, m_images.data());
-	if (VK_SUCCESS != result) {
-		__debugbreak();
-	}
+	if (VK_SUCCESS != result) __debugbreak();
+
 	m_image_format = surface_format.format;
 	m_extent = extent;
-	m_image_views = create_image_views(device, m_images);
+	m_image_views = create_image_views(device, m_images, surface_format.format);
 
 	m_device = device.m_handle;
 
@@ -187,10 +145,7 @@ auto VulkanSwapchain::create_framebuffers(const VkRenderPass& render_pass) -> vo
 		framebuffer_info.layers = 1;
 
 		result = vkCreateFramebuffer(m_device, &framebuffer_info, nullptr, &m_framebuffers[i]);
-		if (result != VK_SUCCESS) {
-			__debugbreak();
-			throw std::runtime_error("failed to create framebuffer!");
-		}
+		if (result != VK_SUCCESS) __debugbreak();
 	}
 }
 

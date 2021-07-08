@@ -13,7 +13,7 @@ class VulkanInstance;
 
 class VulkanSwapchain {
 public:
-	auto init(const VulkanLogicalDevice& device, const VulkanInstance& instance) -> void;
+	auto init(const VulkanLogicalDevice& device) -> void;
 	auto deinit() -> void;
 	auto create_framebuffers(const VkRenderPass& render_pass) -> void;
 	VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;

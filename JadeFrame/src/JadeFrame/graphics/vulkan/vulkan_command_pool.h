@@ -10,6 +10,6 @@ public:
 	auto deinit() -> void;
 public:
 	VkDevice      m_device = VK_NULL_HANDLE;
-	VkCommandPool m_command_pool = VK_NULL_HANDLE;
+	VkCommandPool m_handle = VK_NULL_HANDLE;
 };
 }

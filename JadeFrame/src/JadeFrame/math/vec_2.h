@@ -1,6 +1,8 @@
 #pragma once
 #include "JadeFrame/defines.h"
 
+#pragma warning(push)
+#pragma warning(disable:4201)
 namespace JadeFrame {
 
 class Vec3;
@@ -44,3 +46,4 @@ public:
 
 };
 }
+#pragma warning(pop)

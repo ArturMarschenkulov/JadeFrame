@@ -1,13 +1,18 @@
 #pragma once
-#include "JadeFrame/math/vec_2.h"
-#include "JadeFrame/math/vec_3.h"
 
+#include <vulkan/vulkan.h>
 #include "vulkan_shared.h"
 #include "vulkan_swapchain.h"
 #include "vulkan_render_pass.h"
 #include "vulkan_pipeline.h"
 #include "vulkan_command_pool.h"
 #include "vulkan_buffer.h"
+#include "vulkan_descriptor_set_layout.h"
+#include "vulkan_descriptor_pool.h"
+#include "vulkan_descriptor_set.h"
+
+#include "JadeFrame/math/vec_2.h"
+#include "JadeFrame/math/vec_3.h"
 
 #include <array>
 #include <vector>
@@ -20,9 +25,10 @@ class VulkanPipeline;
 class VulkanLogicalDevice {
 private:
 public:
-	auto draw_frame() -> void;
 	auto init(const VulkanInstance& instance) -> void;
 	auto deinit() -> void;
+
+	auto draw_frame() -> void;
 public:
 	const VulkanInstance* m_instance_p = nullptr;
 	VkDevice m_handle = nullptr;
@@ -40,13 +46,16 @@ public:
 	VulkanRenderPass m_render_pass;
 
 public: // Descriptor set
-	auto create_descriptor_set_layout() -> void;
+	VulkanDescriptorSetLayout m_descriptor_set_layout;
+	VulkanDescriptorPool m_descriptor_pool;
+
+	//auto create_descriptor_sets(u32 image_amount) -> void;
+	//std::vector<VkDescriptorSet> m_descriptor_sets;
+	VulkanDescriptorSets m_descriptor_sets;
+
 	auto update_uniform_buffer(u32 current_image) -> void;
-	auto create_descriptor_pool() -> void;
-	auto create_descriptor_sets() -> void;
-	VkDescriptorPool m_descriptor_pool;
-	VkDescriptorSetLayout m_descriptor_set_layout;
-	std::vector<VkDescriptorSet> m_descriptor_sets;
+
+
 public:
 	VulkanPipeline m_pipeline;
 

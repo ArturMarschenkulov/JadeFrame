@@ -23,7 +23,7 @@ struct WindowsMessage {
 };
 
 /*
-	TODO: Consider whether this class should be RAII or not. Right now it is.
+	TOOD: Consider whether this class should be RAII or not. Right now it is.
 */
 class Windows_Window {
 public:

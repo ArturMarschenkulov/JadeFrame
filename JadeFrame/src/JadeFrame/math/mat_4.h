@@ -7,7 +7,8 @@
 #include <vector>
 #include <array>
 
-
+#pragma warning(push)
+#pragma warning(disable:4201)
 namespace JadeFrame {
 /*
 	This matrix is column major
@@ -65,6 +66,7 @@ private:
 		std::array<f32, 4> colVec;
 	};
 };
+
 
 // IMPLEMENTATION
 
@@ -311,3 +313,4 @@ inline constexpr auto Matrix4x4::make_echelon() -> Matrix4x4& {
 	return *this;
 }
 }
+#pragma warning(pop)

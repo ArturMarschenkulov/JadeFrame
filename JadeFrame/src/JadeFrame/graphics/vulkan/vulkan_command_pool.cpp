@@ -7,19 +7,20 @@ auto VulkanCommandPool::init(VkDevice device, const VulkanPhysicalDevice& physic
 	VkResult result;
 	QueueFamilyIndices queue_family_indices = physical_device.m_queue_family_indices;
 
-	VkCommandPoolCreateInfo pool_info = {};
-	pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	pool_info.pNext = nullptr;
-	pool_info.flags = 0; // Optional
-	pool_info.queueFamilyIndex = queue_family_indices.m_graphics_family.value();
+	const VkCommandPoolCreateInfo pool_info = {
+		.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+		.pNext = nullptr,
+		.flags = 0, // Optional
+		.queueFamilyIndex = queue_family_indices.m_graphics_family.value(),
+	};
 
-	result = vkCreateCommandPool(device, &pool_info, nullptr, &m_command_pool);
+	result = vkCreateCommandPool(device, &pool_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
 
 	m_device = device;
 }
 
 auto VulkanCommandPool::deinit() -> void {
-	vkDestroyCommandPool(m_device, m_command_pool, nullptr);
+	vkDestroyCommandPool(m_device, m_handle, nullptr);
 }
 }

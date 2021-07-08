@@ -1,15 +1,20 @@
 #include "vulkan_physical_device.h"
 
 #include "vulkan_context.h"
+#include "vulkan_instance.h"
 #include "vulkan_surface.h"
 
 #include <iostream>
 #include <set>
 #include <string>
+#include <Windows.h> // TODO: Try to remove it. Used in "choose_swap_extent()"
+
+#undef min
+#undef max
 
 namespace JadeFrame {
 
-auto print_queue_families_info(VulkanPhysicalDevice physical_device) -> void {
+static auto print_queue_families_info(VulkanPhysicalDevice physical_device) -> void {
 	auto& queue_families = physical_device.m_queue_family_properties;
 	{
 		for (u32 i = 0; i < queue_families.size(); i++) {
@@ -35,9 +40,9 @@ auto print_queue_families_info(VulkanPhysicalDevice physical_device) -> void {
 		}
 	}
 }
-auto VulkanPhysicalDevice::init(VulkanSurface surface) -> void {
+auto VulkanPhysicalDevice::init(VulkanInstance& instance, const VulkanSurface& surface) -> void {
+	m_instance_p = &instance;
 	VkResult result;
-
 	vkGetPhysicalDeviceProperties(m_handle, &m_properties);
 	vkGetPhysicalDeviceFeatures(m_handle, &m_features);
 	vkGetPhysicalDeviceMemoryProperties(m_handle, &m_memory_properties);
@@ -75,7 +80,7 @@ auto VulkanPhysicalDevice::init(VulkanSurface surface) -> void {
 		if (VK_SUCCESS != result) __debugbreak();
 
 	}
-	m_extension_support = this->check_extension_support(g_device_extensions);
+	m_extension_support = this->check_extension_support(m_device_extensions);
 	m_queue_family_indices = this->find_queue_families(surface);
 	print_queue_families_info(*this);
 }
@@ -110,5 +115,49 @@ auto VulkanPhysicalDevice::find_queue_families(VulkanSurface surface) -> QueueFa
 		}
 	}
 	return indices;
+}
+auto VulkanPhysicalDevice::choose_swap_surface_format() const -> VkSurfaceFormatKHR {
+	
+	for (u32 i = 0; i < m_surface_formats.size(); i++) {
+		if (m_surface_formats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
+			m_surface_formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+			return m_surface_formats[i];
+		}
+	}
+	return m_surface_formats[0];
+}
+auto VulkanPhysicalDevice::choose_swap_present_mode() const -> VkPresentModeKHR {
+	for (u32 i = 0; i < m_present_modes.size(); i++) {
+		if (m_present_modes[i] == VK_PRESENT_MODE_MAILBOX_KHR) {
+			return m_present_modes[i];
+		}
+	}
+	return VK_PRESENT_MODE_FIFO_KHR;
+}
+auto VulkanPhysicalDevice::choose_swap_extent() const -> VkExtent2D {
+	//vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_surface, &m_surface_capabilities);
+	if (false/*m_surface_capabilities.currentExtent.width != UINT32_MAX*/) {
+		return m_surface_capabilities.currentExtent;
+	} else {
+		RECT area;
+		GetClientRect(m_instance_p->m_window_handle, &area);
+		i32 width = area.right;
+		i32 height = area.bottom;
+		//glfwGetFramebufferSize(window, &width, &height);
+
+		VkExtent2D actual_extent = {
+			static_cast<u32>(width),
+			static_cast<u32>(height)
+		};
+
+		//actual_extent.width = std::max(m_surface_capabilities.minImageExtent.width, std::min(m_surface_capabilities.maxImageExtent.width, actual_extent.width));
+		//actual_extent.height = std::max(m_surface_capabilities.minImageExtent.height, std::min(m_surface_capabilities.maxImageExtent.height, actual_extent.height));
+
+
+		//actual_extent.width = std::clamp(actual_extent.width, m_surface_capabilities.minImageExtent.width, m_surface_capabilities.maxImageExtent.width);
+		//actual_extent.height = std::clamp(actual_extent.height, m_surface_capabilities.minImageExtent.height, m_surface_capabilities.maxImageExtent.height);
+
+		return actual_extent;
+	}
 }
 }
