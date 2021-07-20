@@ -59,24 +59,24 @@ public:
 
 };
 
-class OpenGL_VertexArray {
+class OpenGL_GPUMeshData {
 public:
 
-	OpenGL_VertexArray()
+	OpenGL_GPUMeshData()
 		: m_vertex_buffer()
 		, m_vertex_array()
 		, m_index_buffer() {
 
 	}
 	auto bind() const -> void {
-		m_vertex_array.bind();
-	}
+		m_vertex_array.bind();	
+	}	
 	auto set_layout(const BufferLayout& buffer_layout) -> void;
 	auto finalize(const Mesh& mesh, bool interleaved = true) -> void;
 private:
-	GL_VertexBuffer m_vertex_buffer;
+	GL_Buffer<GL_ARRAY_BUFFER> m_vertex_buffer;
 	GL_VertexArray m_vertex_array;
-	GL_IndexBuffer m_index_buffer;
+	GL_Buffer<GL_ELEMENT_ARRAY_BUFFER> m_index_buffer;
 	BufferLayout m_buffer_layout;
 };
 }

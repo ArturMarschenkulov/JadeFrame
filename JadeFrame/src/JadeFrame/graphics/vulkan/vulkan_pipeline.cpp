@@ -1,14 +1,17 @@
 #include "vulkan_pipeline.h"
 #include "vulkan_logical_device.h"
+#include "vulkan_swapchain.h"
+#include "vulkan_descriptor_set_layout.h"
+#include "vulkan_render_pass.h"
 
-#include "to_spirv.h"
+#include "../to_spirv.h"
 
 #include <array>
 
 
 namespace JadeFrame {
 
-static const char* vs =
+static const char* vs_ =
 R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -30,7 +33,7 @@ void main() {
 }
 )";
 
-static const char* fs =
+static const char* fs_ =
 R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -46,10 +49,14 @@ void main() {
 
 static auto create_shader_module_from_spirv(VkDevice device, const std::vector<u32>& spirv) -> VkShaderModule {
 	VkResult result;
-	VkShaderModuleCreateInfo create_info = {};
-	create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	create_info.codeSize = spirv.size() * 4; // NOTE: It has to be multiplied by 4!
-	create_info.pCode = spirv.data();
+	const VkShaderModuleCreateInfo create_info = {
+		.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+		.pNext = {},
+		.flags = {},
+		.codeSize = spirv.size() * 4, // NOTE: It has to be multiplied by 4!
+		.pCode = spirv.data(),
+	};
+
 	VkShaderModule shader_module;
 	result = vkCreateShaderModule(device, &create_info, nullptr, &shader_module);
 	if (result != VK_SUCCESS) __debugbreak();
@@ -57,34 +64,29 @@ static auto create_shader_module_from_spirv(VkDevice device, const std::vector<u
 }
 
 
-auto VulkanPipeline::init(const VulkanLogicalDevice& device) -> void {
+auto VulkanPipeline::init(
+	const VulkanLogicalDevice& device, 
+	const VulkanSwapchain& swapchain,
+	const VulkanDescriptorSetLayout& descriptor_set_layout,
+	const VulkanRenderPass& render_pass,
+	const GLSLCode& code) -> void {
+
 	VkResult result;
 	//auto tm = &JadeFrame::get_singleton()->m_apps[0]->m_time_manager;
 	//auto time_0 = tm->get_time();
 
-	std::future<std::vector<u32>> vert_shader_spirv;
-	std::future<std::vector<u32>> frag_shader_spirv;
-
-	VkShaderModule vert_shader_module;
-	VkShaderModule frag_shader_module;
-
-
 	if (m_is_compiled == false) {
-		vert_shader_spirv = std::async(std::launch::async, string_to_SPIRV, vs, 0);
-		frag_shader_spirv = std::async(std::launch::async, string_to_SPIRV, fs, 1);
+		std::future<std::vector<u32>> vert_shader_spirv = std::async(std::launch::async, string_to_SPIRV, code.m_vertex_shader.c_str(), 0);
+		std::future<std::vector<u32>> frag_shader_spirv = std::async(std::launch::async, string_to_SPIRV, code.m_fragment_shader.c_str(), 1);
 
 		m_vert_shader_spirv = vert_shader_spirv.get();
 		m_frag_shader_spirv = frag_shader_spirv.get();
 
-		vert_shader_module = create_shader_module_from_spirv(device.m_handle, m_vert_shader_spirv);
-		frag_shader_module = create_shader_module_from_spirv(device.m_handle, m_frag_shader_spirv);
-
 		m_is_compiled = true;
-	} else {
-
-		vert_shader_module = create_shader_module_from_spirv(device.m_handle, m_vert_shader_spirv);
-		frag_shader_module = create_shader_module_from_spirv(device.m_handle, m_frag_shader_spirv);
 	}
+
+	VkShaderModule vert_shader_module = create_shader_module_from_spirv(device.m_handle, m_vert_shader_spirv);
+	VkShaderModule frag_shader_module = create_shader_module_from_spirv(device.m_handle, m_frag_shader_spirv);
 
 
 
@@ -140,15 +142,15 @@ auto VulkanPipeline::init(const VulkanLogicalDevice& device) -> void {
 	const VkViewport viewport = {
 		.x = 0.0f,
 		.y = 0.0f,
-		.width = (float)device.m_swapchain.m_extent.width,
-		.height = (float)device.m_swapchain.m_extent.height,
+		.width = static_cast<f32>(swapchain.m_extent.width),
+		.height = static_cast<f32>(swapchain.m_extent.height),
 		.minDepth = 0.0f,
 		.maxDepth = 1.0f,
 	};
 
 	const VkRect2D scissor = {
 		.offset = { 0, 0 },
-		.extent = device.m_swapchain.m_extent,
+		.extent = swapchain.m_extent,
 	};
 
 	const VkPipelineViewportStateCreateInfo viewport_state = {
@@ -213,16 +215,13 @@ auto VulkanPipeline::init(const VulkanLogicalDevice& device) -> void {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
 		.pNext = nullptr,
 		.setLayoutCount = 1,
-		.pSetLayouts = &device.m_descriptor_set_layout.m_handle,
+		.pSetLayouts = &descriptor_set_layout.m_handle,
 		.pushConstantRangeCount = 0,
 		.pPushConstantRanges = {},
 	};
 
 	result = vkCreatePipelineLayout(device.m_handle, &pipeline_layout_info, nullptr, &m_pipeline_layout);
-	if (result != VK_SUCCESS) {
-		__debugbreak();
-		throw std::runtime_error("failed to create pipeline layout!");
-	}
+	if (result != VK_SUCCESS) __debugbreak();
 
 	const VkGraphicsPipelineCreateInfo pipeline_info = {
 		.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -240,26 +239,23 @@ auto VulkanPipeline::init(const VulkanLogicalDevice& device) -> void {
 		.pColorBlendState = &color_blending,
 		.pDynamicState = {},
 		.layout = m_pipeline_layout,
-		.renderPass = device.m_render_pass.m_render_pass,
+		.renderPass = render_pass.m_handle,
 		.subpass = 0,
 		.basePipelineHandle = VK_NULL_HANDLE,
 		.basePipelineIndex = {},
 	};
 
 	result = vkCreateGraphicsPipelines(device.m_handle, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_graphics_pipeline);
-	if (result != VK_SUCCESS) {
-		__debugbreak();
-		throw std::runtime_error("failed to create graphics pipeline!");
-	}
+	if (result != VK_SUCCESS) __debugbreak();
 
 	vkDestroyShaderModule(device.m_handle, frag_shader_module, nullptr);
 	vkDestroyShaderModule(device.m_handle, vert_shader_module, nullptr);
-	m_device = device.m_handle;
+	m_device = &device;
 }
 
 auto VulkanPipeline::deinit() -> void {
-	vkDestroyPipeline(m_device, m_graphics_pipeline, nullptr);
-	vkDestroyPipelineLayout(m_device, m_pipeline_layout, nullptr);
+	vkDestroyPipeline(m_device->m_handle, m_graphics_pipeline, nullptr);
+	vkDestroyPipelineLayout(m_device->m_handle, m_pipeline_layout, nullptr);
 }
 
 auto VulkanPipeline::operator=(const VulkanPipeline& o) {

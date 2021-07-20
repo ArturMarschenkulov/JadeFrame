@@ -4,12 +4,12 @@
 
 namespace JadeFrame {
 
-auto VulkanRenderPass::init(const VulkanLogicalDevice& device) -> void {
+auto VulkanRenderPass::init(const VulkanLogicalDevice& device, VkFormat image_format) -> void {
 	VkResult result;
 
 	const VkAttachmentDescription color_attachment = {
 		.flags = {},
-		.format = device.m_swapchain.m_image_format,
+		.format = image_format,
 		.samples = VK_SAMPLE_COUNT_1_BIT,
 		.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
 		.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -49,12 +49,12 @@ auto VulkanRenderPass::init(const VulkanLogicalDevice& device) -> void {
 		.pDependencies = {},
 	};
 
-	result = vkCreateRenderPass(device.m_handle, &render_pass_info, nullptr, &m_render_pass);
+	result = vkCreateRenderPass(device.m_handle, &render_pass_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
 
-	m_device = device.m_handle;
+	m_device = &device;
 }
 auto VulkanRenderPass::deinit() -> void {
-	vkDestroyRenderPass(m_device, m_render_pass, nullptr);
+	vkDestroyRenderPass(m_device->m_handle, m_handle, nullptr);
 }
 }

@@ -7,6 +7,9 @@
 
 #include "opengl_shader_loader.h"
 
+#include "../to_spirv.h"
+#include <future>
+
 #include<array>
 #include<tuple>
 #include <JadeFrame/graphics/glsl_parser.h>
@@ -27,27 +30,34 @@ static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
 //static auto check_glsl_variables(const std::unordered_map<std::string, OpenGL_Shader::GL_Variable>& ) -> void {
 //
 //}
-OpenGL_Shader::OpenGL_Shader(const std::string& name)
+
+OpenGL_Shader::OpenGL_Shader(const GLSLCode& code) 
 	: m_program()
 	, m_vertex_shader(GL_VERTEX_SHADER)
 	, m_fragment_shader(GL_FRAGMENT_SHADER) {
 
-	auto [vs_default, fs_default] = get_shader_by_name(name);
+	if constexpr (false) {
+		//auto [vertex_shader_code, fragment_shader_code] = get_shader_by_name("spirv_test_0");
+		std::future<std::vector<u32>> vert_shader_spirv = std::async(std::launch::async, string_to_SPIRV, code.m_vertex_shader.c_str(), 0);
+		std::future<std::vector<u32>> frag_shader_spirv = std::async(std::launch::async, string_to_SPIRV, code.m_fragment_shader.data(), 1);
 
-	GLSLParser parser;
-	parser.parse(vs_default);
-	assert(parser.m_variables.size() == 8);
-	//__debugbreak();
-	parser.parse(fs_default);
-	//__debugbreak();
-	//exit(0);
+		std::vector<u32> mvert_shader_spirv = vert_shader_spirv.get();
+		std::vector<u32> mfrag_shader_spirv = frag_shader_spirv.get();
+
+		m_fragment_shader.set_binary(mfrag_shader_spirv);
+		m_fragment_shader.compile_binary();
+
+		m_vertex_shader.set_binary(mvert_shader_spirv);
+		m_vertex_shader.compile_binary();
 
 
-	m_vertex_shader.set_source(vs_default);
-	m_vertex_shader.compile();
+	} else {
+		m_vertex_shader.set_source(code.m_vertex_shader);
+		m_vertex_shader.compile();
 
-	m_fragment_shader.set_source(fs_default);
-	m_fragment_shader.compile();
+		m_fragment_shader.set_source(code.m_fragment_shader);
+		m_fragment_shader.compile();
+	}
 
 	m_program.attach(m_vertex_shader);
 	m_program.attach(m_fragment_shader);
@@ -58,12 +68,20 @@ OpenGL_Shader::OpenGL_Shader(const std::string& name)
 	m_program.detach(m_fragment_shader);
 
 
-	m_vertex_source = vs_default;
-	m_fragment_source = fs_default;
+
+
+	m_vertex_source = code.m_vertex_shader;
+	m_fragment_source = code.m_fragment_shader;
 	m_uniforms = this->query_uniforms(GL_ACTIVE_UNIFORMS);
 	m_attributes = this->query_uniforms(GL_ACTIVE_ATTRIBUTES);
 
-	{
+
+
+	if constexpr (false) {
+
+		GLSLParser parser;
+		parser.parse(code.m_vertex_shader);
+		parser.parse(code.m_fragment_shader);
 		// Check whether m_uniforms and m_attributes are all contained in parser.
 		for (auto uniform = m_uniforms.begin(); uniform != m_uniforms.end(); uniform++) {
 			bool exists = false;
@@ -163,6 +181,12 @@ auto OpenGL_Shader::set_uniform(const std::string& name, const Matrix4x4& value)
 	__debugbreak();
 }
 
+auto OpenGL_Shader::set_uniform_block(const std::string& name, const std::vector<Matrix4x4>& mat) -> void {
+	m_uniform_buffer.bind();
+	m_uniform_buffer.send(mat);
+	m_uniform_buffer.unbind();
+}
+
 auto OpenGL_Shader::update_uniforms() -> void {
 	for (auto& uniform : m_uniforms) {
 		GL_Variable variable = uniform.second;
@@ -177,6 +201,7 @@ auto OpenGL_Shader::update_uniforms() -> void {
 		}
 	}
 }
+#include "opengl_object.h"
 
 auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::unordered_map<std::string, GL_Variable> {
 	// variable_type = GL_ACTIVE_UNIFORMS | GL_ACTIVE_ATTRIBUTES
@@ -190,13 +215,30 @@ auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::uno
 		GLenum gl_type;
 		switch (variable_type) {
 			case GL_ACTIVE_UNIFORMS:
+			{
 				glGetActiveUniform(m_program.m_ID, i, sizeof(buffer), 0, &variables[i].size, &gl_type, buffer);
-				variables[i].location = m_program.get_uniform_location(buffer);
-				break;
+				GLint location = m_program.get_uniform_location(buffer);
+				if (location == -1) {
+
+					m_uniform_buffer.bind();
+					m_uniform_buffer.reserve(16 + 16);
+					m_uniform_buffer.unbind();
+
+					const u32 binding_point = 0;
+					//GLint index = glGetUniformBlockIndex(m_program.m_ID, buffer);
+					//glUniformBlockBinding(m_program.m_ID, index, binding_point);
+
+					glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_uniform_buffer.m_ID);
+				} else {
+					variables[i].location = location;
+				}
+			}
+			break;
 			case GL_ACTIVE_ATTRIBUTES:
+			{
 				glGetActiveAttrib(m_program.m_ID, i, sizeof(buffer), 0, &variables[i].size, &gl_type, buffer);
 				variables[i].location = m_program.get_attribute_location(buffer);
-				break;
+			}break;
 			default: __debugbreak(); gl_type = -1; break;
 		}
 		variables[i].name = std::string(buffer);

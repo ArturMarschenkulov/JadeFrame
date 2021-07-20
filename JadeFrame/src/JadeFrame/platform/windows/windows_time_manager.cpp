@@ -33,19 +33,20 @@ auto Windows_TimeManager::get_timer_frequency() const -> u64 {
 	return m_frequency;
 }
 
-auto Windows_TimeManager::calc_elapsed() -> void {
+auto Windows_TimeManager::calc_elapsed() -> f64 {
 	time.current = this->get_time();
 	time.update = time.current - time.previous;
 	time.previous = time.current;
+	return time.update;
 }
 
-auto Windows_TimeManager::frame_control() -> void {
+auto Windows_TimeManager::frame_control(f64 delta_time) -> void {
 	// Frame time control system
 	time.current = this->get_time();
 	time.draw = time.current - time.previous;
 	time.previous = time.current;
 
-	time.frame = time.update + time.draw;
+	time.frame = /*time.update*/delta_time + time.draw;
 
 	if (time.frame < time.target) {
 		::Sleep((u32)(f32(time.target - time.frame) * 1000.0f));

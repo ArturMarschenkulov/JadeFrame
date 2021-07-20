@@ -507,7 +507,7 @@
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_instance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\vulkan\to_spirv.h">
+    <ClInclude Include="src\JadeFrame\graphics\to_spirv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_set_layout.h">
@@ -520,6 +520,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\graphics\material_handle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -665,7 +668,7 @@
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_instance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\vulkan\to_spirv.cpp">
+    <ClCompile Include="src\JadeFrame\graphics\to_spirv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_set_layout.cpp">
@@ -678,6 +681,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\graphics\material_handle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

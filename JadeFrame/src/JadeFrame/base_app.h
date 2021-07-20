@@ -5,7 +5,9 @@
 #include "platform/windows/windows_input_manager.h"
 #include "platform/windows/windows_window.h"
 #include "platform/windows/windows_system_manager.h"
-#endif 
+#endif
+
+#include "graphics/material_handle.h"
 
 #include <deque>
 
@@ -57,7 +59,6 @@ public:
 };
 
 
-
 /*
 	This is the storage of various resources which should be accessible "globally" in JadeFrame.
 	TODO: Think whether std::unordered_map is the best way to store it.
@@ -67,39 +68,37 @@ public:
 */
 struct ResourceStorage {
 public:
-	//auto set_shader(const std::string& name, const OpenGL_Shader& shader) -> void {
-	//	m_shaders.insert({ name, shader });
-	//}
-	auto set_shader(const std::string& name, OpenGL_Shader&& shader) -> void {
+	auto set_shader_handle(const std::string& name, ShaderHandle&& shader) -> void {
 		//m_shaders.insert({ name, shader });
-		m_shaders.emplace(name, std::move(shader));
+		m_shader_handles.emplace(name, std::move(shader));
 	}
-	auto get_shader(const std::string& name) -> OpenGL_Shader& {
-		if (m_shaders.contains(name)) {
-			return m_shaders.at(name);
+	auto get_shader_handle(const std::string& name) -> ShaderHandle& {
+		if (m_shader_handles.contains(name)) {
+			return m_shader_handles.at(name);
 		}
 		__debugbreak();
-		return m_shaders.at(name);
+		return m_shader_handles.at(name);
 	}
 
-	auto set_texture(const std::string& name, OpenGL_Texture&& texture) -> void {
-		//m_textures.insert(std::pair<std::string, OpenGL_Texture>(name, texture));
-		m_textures.emplace(name, std::move(texture));
-
+	auto set_texture_handle(const std::string& name, const std::string& path) -> void {
+		//m_shaders.insert({ name, shader });
+		m_texture_handles.emplace(name, path);
+		//m_texture_handles.emplace(name, std::move(texture));
 	}
-	auto get_texture(const std::string& name) -> OpenGL_Texture& {
-		if (m_textures.contains(name)) {
-			return m_textures.at(name);
+	auto get_texture_handle(const std::string& name) -> TextureHandle& {
+		if (m_texture_handles.contains(name)) {
+			return m_texture_handles.at(name);
 		}
 		__debugbreak();
-		return m_textures.at(name);
+		return m_texture_handles.at(name);
 	}
 
-	auto set_material(const std::string& material_name, const std::string& shader_name, const std::string& texture_name) -> void {
-		if (m_shaders.contains(shader_name)) {
-			m_materials[material_name].m_shader = &m_shaders[shader_name];
-			if (m_textures.contains(texture_name)) {
-				m_materials[material_name].m_texture = &m_textures[texture_name];
+	auto set_material_handle(const std::string& material_name, const std::string& shader_name, const std::string& texture_name) -> void {
+
+		if (m_shader_handles.contains(shader_name)) {
+			m_material_handles[material_name].m_shader_handle = &m_shader_handles[shader_name];
+			if (m_texture_handles.contains(texture_name)) {
+				m_material_handles[material_name].m_texture_handle = &m_texture_handles[texture_name];
 				return;
 			} else if (texture_name == "") {
 				return;
@@ -108,18 +107,12 @@ public:
 		__debugbreak();
 
 	}
-	auto set_material(const std::string& material_name, OpenGL_Shader& shader, OpenGL_Texture& texture) -> void {
-		m_materials[material_name].m_shader = &shader;
-		m_materials[material_name].m_texture = &texture;
-		//__debugbreak();
-	}
-
-	auto get_material(const std::string& name) -> OpenGL_Material& {
-		if (m_materials.contains(name)) {
-			return m_materials.at(name);
+	auto get_material_handle(const std::string& name) -> MaterialHandle& {
+		if (m_material_handles.contains(name)) {
+			return m_material_handles.at(name);
 		}
 		__debugbreak();
-		return m_materials.at(name);
+		return m_material_handles.at(name);
 	}
 
 	auto set_mesh(const std::string& name, const Mesh& mesh) -> void {
@@ -133,9 +126,9 @@ public:
 		return m_meshes.at(name);
 	}
 private:
-	std::unordered_map<std::string, OpenGL_Shader> m_shaders;
-	std::unordered_map<std::string, OpenGL_Texture> m_textures;
-	std::unordered_map<std::string, OpenGL_Material> m_materials;
+	std::unordered_map<std::string, ShaderHandle> m_shader_handles;
+	std::unordered_map<std::string, TextureHandle> m_texture_handles;
+	std::unordered_map<std::string, MaterialHandle> m_material_handles;
 	std::unordered_map<std::string, Mesh> m_meshes;
 };
 

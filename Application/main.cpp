@@ -18,6 +18,7 @@ public:
 };
 
 int main() {
+	std::cout << "lll" << std::endl;
 #if 1
 	using GApp = TestApp;
 	JadeFrameInstance jade_frame;

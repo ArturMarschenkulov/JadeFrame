@@ -32,7 +32,7 @@ public:
 
 	VkDebugUtilsMessengerEXT m_debug_messenger;
 #ifdef NDEBUG
-	const bool enable_validation_layers = false;
+	const bool m_enable_validation_layers = false;
 #else
 	const bool m_enable_validation_layers = true;
 #endif

@@ -93,31 +93,31 @@ auto VulkanSwapchain::init(const VulkanLogicalDevice& device) -> void {
 
 
 
-	result = vkCreateSwapchainKHR(device.m_handle, &create_info, nullptr, &m_swapchain);
+	result = vkCreateSwapchainKHR(device.m_handle, &create_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
 
-	result = vkGetSwapchainImagesKHR(device.m_handle, m_swapchain, &image_count, nullptr);
+	result = vkGetSwapchainImagesKHR(device.m_handle, m_handle, &image_count, nullptr);
 	m_images.resize(image_count);
-	result = vkGetSwapchainImagesKHR(device.m_handle, m_swapchain, &image_count, m_images.data());
+	result = vkGetSwapchainImagesKHR(device.m_handle, m_handle, &image_count, m_images.data());
 	if (VK_SUCCESS != result) __debugbreak();
 
 	m_image_format = surface_format.format;
 	m_extent = extent;
 	m_image_views = create_image_views(device, m_images, surface_format.format);
 
-	m_device = device.m_handle;
+	m_device = &device;
 
 }
 
 auto VulkanSwapchain::deinit() -> void {
 	for (uint32_t i = 0; i < m_framebuffers.size(); i++) {
-		vkDestroyFramebuffer(m_device, m_framebuffers[i], nullptr);
+		vkDestroyFramebuffer(m_device->m_handle, m_framebuffers[i], nullptr);
 	}
 	for (uint32_t i = 0; i < m_image_views.size(); i++) {
-		vkDestroyImageView(m_device, m_image_views[i], nullptr);
+		vkDestroyImageView(m_device->m_handle, m_image_views[i], nullptr);
 	}
 
-	vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
+	vkDestroySwapchainKHR(m_device->m_handle, m_handle, nullptr);
 
 	m_height = 0;
 	m_width = 0;
@@ -144,7 +144,7 @@ auto VulkanSwapchain::create_framebuffers(const VkRenderPass& render_pass) -> vo
 		framebuffer_info.height = m_extent.height;
 		framebuffer_info.layers = 1;
 
-		result = vkCreateFramebuffer(m_device, &framebuffer_info, nullptr, &m_framebuffers[i]);
+		result = vkCreateFramebuffer(m_device->m_handle, &framebuffer_info, nullptr, &m_framebuffers[i]);
 		if (result != VK_SUCCESS) __debugbreak();
 	}
 }

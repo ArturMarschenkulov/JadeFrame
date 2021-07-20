@@ -6,10 +6,10 @@ class VulkanLogicalDevice;
 
 class VulkanRenderPass {
 public:
-	auto init(const VulkanLogicalDevice& device) -> void;
+	auto init(const VulkanLogicalDevice& device, VkFormat image_format) -> void;
 	auto deinit() -> void;
 public:
-	VkRenderPass m_render_pass = VK_NULL_HANDLE;
-	VkDevice m_device = VK_NULL_HANDLE;
+	VkRenderPass m_handle = VK_NULL_HANDLE;
+	const VulkanLogicalDevice* m_device = nullptr;
 };
 }

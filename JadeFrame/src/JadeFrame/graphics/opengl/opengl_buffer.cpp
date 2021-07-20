@@ -73,7 +73,7 @@ auto BufferLayout::calculate_offset_and_stride() -> void {
 	}
 }
 
-auto OpenGL_VertexArray::set_layout(const BufferLayout& buffer_layout) -> void {
+auto OpenGL_GPUMeshData::set_layout(const BufferLayout& buffer_layout) -> void {
 	m_buffer_layout = buffer_layout;
 	i32 vertex_buffer_index = 0;
 	for (size_t i = 0; i != buffer_layout.m_elements.size(); i++) {
@@ -158,7 +158,7 @@ static auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::
 	return data;
 }
 
-auto OpenGL_VertexArray::finalize(const Mesh& mesh, bool interleaved) -> void {
+auto OpenGL_GPUMeshData::finalize(const Mesh& mesh, bool interleaved) -> void {
 	const std::vector<f32> data = convert_into_data(mesh, interleaved);
 	m_vertex_buffer.bind();
 	m_vertex_buffer.send(data);

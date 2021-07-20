@@ -12,6 +12,7 @@ OpenGL_Context::OpenGL_Context(const Windows_Window& window) {
 			window.recreate();
 		}
 	}
+
 	static bool is_wgl_loaded = false;
 	if (is_wgl_loaded == false) {
 		is_wgl_loaded = wgl_load();

@@ -17,8 +17,8 @@ private:
 	u64 m_offset;
 
 public:
-	auto calc_elapsed() -> void;
-	auto frame_control() -> void;
+	auto calc_elapsed() -> f64;
+	auto frame_control(f64 delta_time) -> void;
 	auto set_FPS(f64 FPS) -> void;
 	struct Time {
 		f64 current = 0;

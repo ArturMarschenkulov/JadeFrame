@@ -44,10 +44,9 @@ auto FontManager::init() -> void {
 	if (error_code != 0) {
 		std::cout << "problem with FT_Load_Char" << std::endl;
 	}
-	GL_Texture tex;
-	tex.bind(GL_TEXTURE_2D);
+	GL_Texture<GL_TEXTURE_2D> tex;
+	tex.bind(0);
 	tex.set_texture_image_2D(
-		GL_TEXTURE_2D,
 		0,
 		GL_RED,
 		face->glyph->bitmap.width,
@@ -58,10 +57,10 @@ auto FontManager::init() -> void {
 		face->glyph->bitmap.buffer
 	);
 
-	tex.set_texture_parameters(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	tex.set_texture_parameters(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	tex.set_texture_parameters(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	tex.set_texture_parameters(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	tex.set_texture_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	tex.set_texture_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	tex.set_texture_parameters(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	tex.set_texture_parameters(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 }
 
@@ -99,7 +98,7 @@ auto FontManager::init2() -> void {
 		std::cout << "problem with FT_Load_Char" << std::endl;
 	}
 	OpenGL_Texture tex;
-	tex.generate(
+	tex.init(
 		face->glyph->bitmap.width,
 		face->glyph->bitmap.rows,
 		GL_RED,

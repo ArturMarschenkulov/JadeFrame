@@ -79,6 +79,19 @@ Vulkan_Context::~Vulkan_Context() {
 
 auto Vulkan_Context::main_loop() -> void {
 	VkResult result;
+
+	const std::vector<VVertex> vertices = {
+		{{-0.5f, -0.5f}, {+1.0f, +0.0f, +0.0f}},
+		{{+0.5f, -0.5f}, {+0.0f, +1.0f, +0.0f}},
+		{{+0.5f, +0.5f}, {+0.0f, +0.0f, +1.0f}},
+
+		{{-0.5f, +0.5f}, {+1.0f, +1.0f, +1.0f}},
+	};
+	const std::vector<u16> indices = {
+		0, 1, 2,
+		2, 3, 0,
+	};
+
 	while (true) {
 		JadeFrameInstance::get_singleton()->m_apps[0]->poll_events();
 		m_instance.m_logical_device.draw_frame();

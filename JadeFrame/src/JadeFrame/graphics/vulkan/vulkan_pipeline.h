@@ -5,20 +5,31 @@
 #include <thread>
 #include <future>
 #include <vector>
+#include <JadeFrame/graphics/opengl/opengl_shader_loader.h>
 
 namespace JadeFrame {
 class VulkanLogicalDevice;
+class VulkanSwapchain;
+class VulkanDescriptorSetLayout;
+class VulkanRenderPass;
+
 
 class VulkanPipeline {
 public:
-	auto init(const VulkanLogicalDevice& device) -> void;
+	auto init(
+		const VulkanLogicalDevice& device, 
+		const VulkanSwapchain& swapchain, 
+		const VulkanDescriptorSetLayout& descriptor_layout, 
+		const VulkanRenderPass& render_pass,
+		const GLSLCode& code
+	) -> void;
 	auto deinit() -> void;
 
 	auto operator=(const VulkanPipeline& pipeline);
 public:
 	VkPipelineLayout m_pipeline_layout;
 	VkPipeline m_graphics_pipeline;
-	VkDevice m_device = VK_NULL_HANDLE;
+	const VulkanLogicalDevice* m_device = nullptr;
 
 	//VkShaderModule m_vert_shader_module = VK_NULL_HANDLE;
 	//VkShaderModule m_frag_shader_module = VK_NULL_HANDLE;

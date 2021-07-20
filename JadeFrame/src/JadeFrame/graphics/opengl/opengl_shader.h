@@ -1,6 +1,7 @@
 #pragma once
 #include <glad/glad.h>
 #include "opengl_buffer.h" // TODO: FOr SHADER_DATA_TYPE. Maybe move?
+#include "opengl_shader_loader.h"
 
 #include "JadeFrame/math/mat_4.h"
 #include "JadeFrame/math/vec_2.h"
@@ -23,8 +24,7 @@ class OpenGL_Shader;
 
 class OpenGL_Shader {
 public:
-
-	OpenGL_Shader(const std::string& name);
+	OpenGL_Shader(const GLSLCode& code);
 
 	OpenGL_Shader() = default;
 	OpenGL_Shader(OpenGL_Shader&&) noexcept = default;
@@ -52,6 +52,8 @@ public:
 	auto set_uniform(const std::string& name, const Vec3& value) -> void;
 	auto set_uniform(const std::string& name, const Vec4& value) -> void;
 	auto set_uniform(const std::string& name, const Matrix4x4& mat) -> void;
+
+	auto set_uniform_block(const std::string& name, const std::vector<Matrix4x4>& mat) -> void;
 	auto update_uniforms() -> void;
 private:
 	using GL_ValueVariant =
@@ -71,6 +73,9 @@ private:
 private:
 
 	std::unordered_map<std::string, GL_Variable> m_uniforms;
+	//std::unordered_map<std::string, GLuint> m_uniform_buffer_IDs;
+	/*GLuint m_uniform_buffer_ID;*/
+	GL_Buffer<GL_UNIFORM_BUFFER> m_uniform_buffer;
 	std::unordered_map<std::string, GL_Variable> m_attributes;
 };
 }

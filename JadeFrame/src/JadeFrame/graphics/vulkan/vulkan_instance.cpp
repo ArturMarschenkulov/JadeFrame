@@ -16,7 +16,7 @@ auto VulkanInstance::check_validation_layer_support(const std::vector<VkLayerPro
 				break;
 			}
 		}
-		if (!layer_found) {
+		if (layer_found == false) {
 			return false;
 		}
 	}
@@ -44,14 +44,10 @@ auto VulkanInstance::query_layers() -> std::vector<VkLayerProperties> {
 	std::vector<VkLayerProperties> available_layers;
 	available_layers.resize(layer_count);
 	vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
-	if (!check_validation_layer_support(available_layers)) {
+	if (!this->check_validation_layer_support(available_layers)) {
 		__debugbreak();
 	}
 	return available_layers;
-	//std::cout << "available layers:\n";
-	//for (u32 i = 0; i < available_layers.size(); i++) {
-	//	std::cout << '\t' << available_layers[i].layerName << '\n';
-	//}
 }
 
 auto VulkanInstance::query_extensions() -> std::vector<VkExtensionProperties> {
@@ -61,10 +57,6 @@ auto VulkanInstance::query_extensions() -> std::vector<VkExtensionProperties> {
 	m_extensions.resize(extension_count);
 	vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, m_extensions.data());
 	return m_extensions;
-	//std::cout << "available extensions:\n";
-	//for (u32 i = 0; i < m_extensions.size(); i++) {
-	//	std::cout << '\t' << m_extensions[i].extensionName << '\n';
-	//}
 }
 
 auto VulkanInstance::query_physical_devices() -> std::vector<VulkanPhysicalDevice> {
@@ -82,24 +74,6 @@ auto VulkanInstance::query_physical_devices() -> std::vector<VulkanPhysicalDevic
 	for (u32 i = 0; i < physical_devices_2.size(); i++) {
 		physical_devices_2[i].m_handle = physical_devices[i];
 	}
-
-	//std::cout << "available devices:\n";
-	//for (u32 i = 0; i < physical_devices.size(); i++) {
-	//	VkPhysicalDeviceProperties device_properties;
-	//	vkGetPhysicalDeviceProperties(physical_devices[i], &device_properties);
-	//	auto vkver = vulkan_get_api_version(device_properties.apiVersion);
-	//	std::cout
-	//		<< '\t' << "device_properties.apiVersion: " << vkver.variant << "." << vkver.major << "." << vkver.minor << "." << vkver.patch << "." << '\n'
-	//		<< '\t' << "device_properties.driverVersion: " << device_properties.driverVersion << '\n'
-	//		<< '\t' << "device_properties.vendorID: " << std::hex << device_properties.vendorID << std::dec << '\n'
-	//		<< '\t' << "device_properties.deviceID: " << device_properties.deviceID << '\n'
-	//		<< '\t' << "device_properties.deviceType: " << vulkan_get_device_type_string(device_properties.deviceType) << '\n'
-	//		<< '\t' << "device_properties.deviceName: " << device_properties.deviceName << '\n'
-	//		<< '\t' << "device_properties.pipelineCacheUUID: " /*<< device_properties.pipelineCacheUUID*/ << '\n'
-	//		<< '\t' << "device_properties.limits: " /*<< device_properties.limits*/ << '\n'
-	//		<< '\t' << "device_properties.sparseProperties: " /*<< device_properties.sparseProperties*/ << '\n'
-	//		;
-	//}
 	return physical_devices_2;
 }
 
@@ -110,9 +84,7 @@ auto VulkanInstance::setup_debug() -> void {
 	populate_debug_messenger_create_info(create_info);
 
 	result = vkCreateDebugUtilsMessengerEXT(m_instance, &create_info, nullptr, &m_debug_messenger);
-	if (result != VK_SUCCESS) {
-		throw std::runtime_error("failed to set up debug messenger!");
-	}
+	if (result != VK_SUCCESS) __debugbreak();
 }
 
 auto VulkanInstance::init(HWND window_handle) -> void {
@@ -134,31 +106,31 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 	}
 
 
-	VkApplicationInfo app_info{};
-	app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	//app_info.pNext;
-	app_info.pApplicationName = "Hello Triangle";
-	app_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-	app_info.pEngineName = "No Engine";
-	app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-	app_info.apiVersion = VK_API_VERSION_1_2;
+	const VkApplicationInfo app_info = {
+		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+		.pNext = {},
+		.pApplicationName = "Hello Triangle",
+		.applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+		.pEngineName = "No Engine",
+		.engineVersion = VK_MAKE_VERSION(1, 0, 0),
+		.apiVersion = VK_API_VERSION_1_2,
+	};
 
 
-
-	VkInstanceCreateInfo create_info{};
-	create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	//create_info.pNext;
-	//create_info.flags;
-	create_info.pApplicationInfo = &app_info;
-	//create_info.enabledLayerCount;
-	//create_info.ppEnabledLayerNames;
-	create_info.enabledExtensionCount = m_extensions.size();
-	create_info.ppEnabledExtensionNames = m_extension_names.data();
-	//__debugbreak();
+	VkInstanceCreateInfo create_info = {
+		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+		.pNext = {},
+		.flags = {},
+		.pApplicationInfo = &app_info,
+		.enabledLayerCount = {},
+		.ppEnabledLayerNames = {},
+		.enabledExtensionCount = static_cast<u32>(m_extensions.size()),
+		.ppEnabledExtensionNames = m_extension_names.data(),
+	};
 
 	VkDebugUtilsMessengerCreateInfoEXT debug_create_info;
 	if (m_enable_validation_layers) {
-		create_info.enabledLayerCount = static_cast<uint32_t>(m_validation_layers.size());
+		create_info.enabledLayerCount = static_cast<u32>(m_validation_layers.size());
 		create_info.ppEnabledLayerNames = m_validation_layers.data();
 
 		populate_debug_messenger_create_info(debug_create_info);
@@ -169,10 +141,7 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 	}
 
 	result = vkCreateInstance(&create_info, nullptr, &m_instance);
-	if (result != VK_SUCCESS) {
-		std::cout << "failed to create instance!" << std::endl;
-		__debugbreak();
-	}
+	if (result != VK_SUCCESS) __debugbreak();
 
 	this->setup_debug();
 	m_surface.init(m_instance, window_handle);
@@ -187,7 +156,6 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 			}
 		}
 		if (m_physical_device.m_handle == VK_NULL_HANDLE) {
-			std::cout << "failed to find a suitable GPU!" << std::endl;
 			__debugbreak();
 		}
 	}

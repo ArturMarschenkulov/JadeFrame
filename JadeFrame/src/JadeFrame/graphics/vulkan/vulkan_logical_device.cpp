@@ -1,6 +1,7 @@
 #include "vulkan_logical_device.h"
 #include "vulkan_physical_device.h"
 #include "vulkan_instance.h"
+#include "vulkan_buffer.h"
 
 #include <Windows.h> // TODO: Try to remove it. This is used in "recreate_swapchain()"
 
@@ -34,12 +35,6 @@ static auto VkResult_to_string(VkResult x) {
 	return str;
 }
 
-//const std::vector<Vertex> g_vertices = {
-//	{{+0.0f, -0.5f}, {+1.0f, +0.0f, +0.0f}},
-//	{{+0.5f, +0.5f}, {+0.0f, +1.0f, +0.0f}},
-//	{{-0.5f, +0.5f}, {+0.0f, +0.0f, +1.0f}}
-//};
-
 const std::vector<VVertex> g_vertices = {
 	{{-0.5f, -0.5f}, {+1.0f, +0.0f, +0.0f}},
 	{{+0.5f, -0.5f}, {+0.0f, +1.0f, +0.0f}},
@@ -53,42 +48,71 @@ const std::vector<u16> g_indices = {
 };
 
 
+struct Meshhh {
+	std::vector<VVertex> m_vertices = {
+		{{-0.5f, -0.5f}, {+1.0f, +0.0f, +0.0f}},
+		{{+0.5f, -0.5f}, {+0.0f, +1.0f, +0.0f}},
+		{{+0.5f, +0.5f}, {+0.0f, +0.0f, +1.0f}},
 
-auto VulkanLogicalDevice::create_command_buffers() -> void {
+		{{-0.5f, +0.5f}, {+1.0f, +1.0f, +1.0f}},
+	};
+	std::vector<u16> m_indices = {
+		0, 1, 2,
+		2, 3, 0,
+	};
+};
+
+static Meshhh g_mesh;
+
+
+auto VulkanLogicalDevice::create_command_buffers(
+	const VulkanCommandPool& command_pool,
+	const VulkanSwapchain& swapchain) -> void {
+
 	VkResult result;
-	m_command_buffers.resize(m_swapchain.m_framebuffers.size());
+	m_command_buffers.resize(swapchain.m_framebuffers.size());
 
 	const VkCommandBufferAllocateInfo alloc_info = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
 		.pNext = nullptr,
-		.commandPool = m_command_pool.m_handle,
+		.commandPool = command_pool.m_handle,
 		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
 		.commandBufferCount = static_cast<u32>(m_command_buffers.size()),
 	};
-
 	result = vkAllocateCommandBuffers(m_handle, &alloc_info, m_command_buffers.data());
 	if (result != VK_SUCCESS) __debugbreak();
+}
+
+auto VulkanLogicalDevice::draw_into_command_buffers(
+	const VulkanRenderPass& render_pass, 
+	const VulkanSwapchain& swapchain,
+	const VulkanPipeline& pipeline,
+	const VulkanDescriptorSets& descriptor_sets,
+	const VulkanBuffer& vertex_buffer,
+	const VulkanBuffer& index_buffer,
+	const std::vector<u16>& indices
+) -> void {
+
+	VkResult result;
 
 	for (size_t i = 0; i < m_command_buffers.size(); i++) {
 		const VkCommandBufferBeginInfo begin_info = {
 			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
 			.pNext = nullptr,
-			.flags = 0, // Optional
-			.pInheritanceInfo = nullptr, // Optional
+			.flags = 0,
+			.pInheritanceInfo = nullptr,
 		};
-
 		result = vkBeginCommandBuffer(m_command_buffers[i], &begin_info);
 		if (result != VK_SUCCESS) __debugbreak();
 
 		const VkClearValue clear_color = { 0.0f, 0.0f, 0.0f, 1.0f };
-
 		const VkRenderPassBeginInfo render_pass_info = {
 			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-			.renderPass = m_render_pass.m_render_pass,
-			.framebuffer = m_swapchain.m_framebuffers[i],
+			.renderPass = render_pass.m_handle,
+			.framebuffer = swapchain.m_framebuffers[i],
 			.renderArea = {
 				.offset = {0, 0},
-				.extent = m_swapchain.m_extent
+				.extent = swapchain.m_extent
 			},
 			.clearValueCount = 1,
 			.pClearValues = &clear_color,
@@ -96,15 +120,15 @@ auto VulkanLogicalDevice::create_command_buffers() -> void {
 
 		vkCmdBeginRenderPass(m_command_buffers[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
 		{
-			vkCmdBindPipeline(m_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.m_graphics_pipeline);
-			VkBuffer vertex_buffers[] = { m_vertex_buffer.m_buffer };
+			vkCmdBindPipeline(m_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_graphics_pipeline);
+			VkBuffer vertex_buffers[] = { vertex_buffer.m_buffer };
 			VkDeviceSize offsets[] = { 0 };
 			vkCmdBindVertexBuffers(m_command_buffers[i], 0, 1, vertex_buffers, offsets);
 			//vkCmdDraw(m_command_buffers[i], static_cast<u32>(g_vertices.size()), 1, 0, 0);
 
-			vkCmdBindIndexBuffer(m_command_buffers[i], m_index_buffer.m_buffer, 0, VK_INDEX_TYPE_UINT16);
-			vkCmdBindDescriptorSets(m_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.m_pipeline_layout, 0, 1, &m_descriptor_sets.m_descriptor_sets[i], 0, nullptr);
-			vkCmdDrawIndexed(m_command_buffers[i], static_cast<u32>(g_indices.size()), 1, 0, 0, 0);
+			vkCmdBindIndexBuffer(m_command_buffers[i], index_buffer.m_buffer, 0, VK_INDEX_TYPE_UINT16);
+			vkCmdBindDescriptorSets(m_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_pipeline_layout, 0, 1, &descriptor_sets.m_descriptor_sets[i], 0, nullptr);
+			vkCmdDrawIndexed(m_command_buffers[i], indices.size(), 1, 0, 0, 0);
 		}
 		vkCmdEndRenderPass(m_command_buffers[i]);
 
@@ -142,7 +166,6 @@ auto VulkanLogicalDevice::create_sync_objects() -> void {
 			res_1 != VK_SUCCESS ||
 			res_2 != VK_SUCCESS) {
 			__debugbreak();
-			throw std::runtime_error("failed to create semaphores!");
 		}
 	}
 }
@@ -164,21 +187,27 @@ auto VulkanLogicalDevice::recreate_swapchain() -> void {
 	m_swapchain.deinit();
 
 	m_swapchain.init(*this);
-	m_render_pass.init(*this);
-	m_pipeline.init(*this);
-	m_swapchain.create_framebuffers(m_render_pass.m_render_pass);
+	m_render_pass.init(*this, m_swapchain.m_image_format);
+	m_pipeline.init(*this, m_swapchain, m_descriptor_set_layout, m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
+	m_swapchain.create_framebuffers(m_render_pass.m_handle);
 
 
-	m_command_pool.init(this->m_handle, *m_physical_device_p);
+	m_command_pool.init(*this, *m_physical_device_p);
 
-	//m_uniform_buffers.resize(m_swapchain.m_images.size());
 	for (u32 i = 0; i < m_swapchain.m_images.size(); i++) {
 		m_uniform_buffers[i].init(*this, VULKAN_BUFFER_TYPE::UNIFORM, nullptr, sizeof(UniformBufferObject));
 	}
 	m_descriptor_pool.init(*this);
 	m_descriptor_sets.init(*this, m_swapchain.m_images.size(), m_descriptor_set_layout, m_descriptor_pool);
-	//this->create_descriptor_sets(m_swapchain.m_images.size());
-	this->create_command_buffers();
+
+	this->create_command_buffers(m_command_pool, m_swapchain);
+	this->draw_into_command_buffers(
+		m_render_pass, m_swapchain, m_pipeline, 
+		m_descriptor_sets, 
+		m_vertex_buffer, 
+		m_index_buffer,
+		g_indices
+	);
 	m_images_in_flight.resize(m_swapchain.m_images.size(), VK_NULL_HANDLE);
 }
 auto VulkanLogicalDevice::cleanup_swapchain() -> void {
@@ -190,7 +219,7 @@ auto VulkanLogicalDevice::cleanup_swapchain() -> void {
 
 	vkDestroyPipeline(m_handle, m_pipeline.m_graphics_pipeline, nullptr);
 	vkDestroyPipelineLayout(m_handle, m_pipeline.m_pipeline_layout, nullptr);
-	vkDestroyRenderPass(m_handle, m_render_pass.m_render_pass, nullptr);
+	vkDestroyRenderPass(m_handle, m_render_pass.m_handle, nullptr);
 
 	for (auto image_view : m_swapchain.m_image_views) {
 		vkDestroyImageView(m_handle, image_view, nullptr);
@@ -201,7 +230,7 @@ auto VulkanLogicalDevice::cleanup_swapchain() -> void {
 		vkFreeMemory(m_handle, m_uniform_buffers[i].m_memory, nullptr);
 	}
 
-	vkDestroySwapchainKHR(m_handle, m_swapchain.m_swapchain, nullptr);
+	vkDestroySwapchainKHR(m_handle, m_swapchain.m_handle, nullptr);
 }
 
 auto VulkanLogicalDevice::update_uniform_buffer(u32 current_image) -> void {
@@ -210,46 +239,18 @@ auto VulkanLogicalDevice::update_uniform_buffer(u32 current_image) -> void {
 	auto current_time = std::chrono::high_resolution_clock::now();
 	f32 time = std::chrono::duration<f32, std::chrono::seconds::period>(current_time - start_time).count();
 
-	f32 d_0 = to_radians(90.0f);
-	//f32 d_1 = to_radians(45.0f);
-
-
-	//UniformBufferObject ubo = {};
-	//ubo.model = Matrix4x4::rotation_matrix(
-	//	time * d_0, 
-	//	Vec3(0.0f, 0.0f, 1.0f)
-	//) * Matrix4x4(1.0f);
-	//ubo.view = Matrix4x4::look_at_matrix(
-	//	Vec3(2.0f, 2.0f, 2.0f), 
-	//	Vec3(0.0f, 0.0f, 0.0f), 
-	//	Vec3(0.0f, 0.0f, 1.0f)
-	//);
-	//ubo.proj = Matrix4x4::perspective_projection_matrix(
-	//	d_1, 
-	//	m_swapchain_extent.width / (f32)m_swapchain_extent.height, 
-	//	0.1f, 
-	//	10.0f
-	//);
-	//ubo.proj[1][1] *= -1;
-
 	UniformBufferObject ubo = {};
 	ubo.model = Matrix4x4::rotation_matrix(
-		time * d_0,
+		time * to_radians(90.0f),
 		Vec3(0.0f, 0.0f, 1.0f)
 	);
 	ubo.view = Matrix4x4(1.0f);
-	//ubo.proj = Matrix4x4::perspective_projection_matrix(
-	//	d_1, 
-	//	m_swapchain_extent.width / (f32)m_swapchain_extent.height, 
-	//	0.1f, 
-	//	10.0f
-	//);
 	ubo.proj = Matrix4x4(1.0f);
 	ubo.proj[1][1] *= -1;
 
-	void* data;
-	vkMapMemory(m_handle, m_uniform_buffers[current_image].m_memory, 0, sizeof(ubo), 0, &data);
-	memcpy(data, &ubo, sizeof(ubo));
+	void* mapped_data;
+	vkMapMemory(m_handle, m_uniform_buffers[current_image].m_memory, 0, sizeof(ubo), 0, &mapped_data);
+	memcpy(mapped_data, &ubo, sizeof(ubo));
 	vkUnmapMemory(m_handle, m_uniform_buffers[current_image].m_memory);
 }
 
@@ -261,7 +262,7 @@ auto VulkanLogicalDevice::draw_frame() -> void {
 	result = vkWaitForFences(m_handle, 1, &m_in_flight_fences[m_current_frame], VK_TRUE, UINT64_MAX);
 	if (result != VK_SUCCESS) __debugbreak();
 	{
-		result = vkAcquireNextImageKHR(m_handle, m_swapchain.m_swapchain, UINT64_MAX, m_image_available_semaphores[m_current_frame], VK_NULL_HANDLE, &image_index);
+		result = vkAcquireNextImageKHR(m_handle, m_swapchain.m_handle, UINT64_MAX, m_image_available_semaphores[m_current_frame], VK_NULL_HANDLE, &image_index);
 		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 			std::cout << "VK_ERROR_OUT_OF_DATE_KHR" << std::endl;
 			this->recreate_swapchain();
@@ -284,7 +285,7 @@ auto VulkanLogicalDevice::draw_frame() -> void {
 	VkSemaphore wait_semaphores[] = { m_image_available_semaphores[m_current_frame] };
 	VkSemaphore signal_semaphores[] = { m_render_finished_semaphores[m_current_frame] };
 	VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-	VkSwapchainKHR swapchains[] = { m_swapchain.m_swapchain };
+	VkSwapchainKHR swapchains[] = { m_swapchain.m_handle };
 	// swap buffers
 
 	{
@@ -385,34 +386,43 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance) -> void {
 
 
 	m_swapchain.init(*this);
-	m_render_pass.init(*this);
+	m_render_pass.init(*this, m_swapchain.m_image_format);
 
 	m_descriptor_set_layout.init(*this);
 
-	m_pipeline.init(*this);
-	m_swapchain.create_framebuffers(m_render_pass.m_render_pass);
+	m_pipeline.init(*this, m_swapchain, m_descriptor_set_layout, m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
+	m_swapchain.create_framebuffers(m_render_pass.m_handle);
 
-	m_command_pool.init(this->m_handle, *m_physical_device_p);
+	m_command_pool.init(*this, *m_physical_device_p);
+
+	this->create_texture_image("C:\\DEV\\Projects\\JadeFrame\\JadeFrame\\resource\\wall.jpg");
+	this->create_texture_image_view();
+	this->create_texture_sampler();
 
 
-	//m_vertex_buffer.init(*this, g_vertices);
-	//m_index_buffer.init(*this, g_indices);
 	m_vertex_buffer.init(*this, VULKAN_BUFFER_TYPE::VERTEX, (void*)g_vertices.data(), sizeof(g_vertices[0]) * g_vertices.size());
 	m_index_buffer.init(*this, VULKAN_BUFFER_TYPE::INDEX, (void*)g_indices.data(), sizeof(g_indices[0]) * g_indices.size());
 
 
 	m_uniform_buffers.resize(m_swapchain.m_images.size(), VULKAN_BUFFER_TYPE::UNIFORM);
 	for (u32 i = 0; i < m_swapchain.m_images.size(); i++) {
-		//m_uniform_buffers[i].init(*this);
 		m_uniform_buffers[i].init(*this, VULKAN_BUFFER_TYPE::UNIFORM, nullptr, sizeof(UniformBufferObject));
 	}
 
 	m_descriptor_pool.init(*this);
-	//this->create_descriptor_pool();
 	m_descriptor_sets.init(*this, m_swapchain.m_images.size(), m_descriptor_set_layout, m_descriptor_pool);
-	//this->create_descriptor_sets(m_swapchain.m_images.size());
-	//m_descriptor_sets.init();
-	this->create_command_buffers();
+
+	this->create_command_buffers(m_command_pool, m_swapchain);
+	this->draw_into_command_buffers(
+		m_render_pass, 
+		m_swapchain,
+		m_pipeline,
+		m_descriptor_sets, 
+		m_vertex_buffer, 
+		m_index_buffer,
+		g_indices
+	);
+
 	this->create_sync_objects();
 
 }
@@ -429,11 +439,11 @@ auto VulkanLogicalDevice::deinit() -> void {
 	vkDestroyPipeline(m_handle, m_pipeline.m_graphics_pipeline, nullptr);
 	vkDestroyPipelineLayout(m_handle, m_pipeline.m_pipeline_layout, nullptr);
 
-	vkDestroyRenderPass(m_handle, m_render_pass.m_render_pass, nullptr);
+	vkDestroyRenderPass(m_handle, m_render_pass.m_handle, nullptr);
 	for (u32 i = 0; i < m_swapchain.m_image_views.size(); i++) {
 		vkDestroyImageView(m_handle, m_swapchain.m_image_views[i], nullptr);
 	}
-	vkDestroySwapchainKHR(m_handle, m_swapchain.m_swapchain, nullptr);
+	vkDestroySwapchainKHR(m_handle, m_swapchain.m_handle, nullptr);
 	vkDestroyDevice(m_handle, nullptr);
 }
 

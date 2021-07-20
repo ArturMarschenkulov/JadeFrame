@@ -53,13 +53,11 @@ BaseApp::BaseApp(const std::string& title, const Vec2& size, const Vec2& positio
 
 
 	m_renderer.set_context(m_windows[0]);
-	//std::cout << "OPENGL end" << std::endl;
-	//::Sleep(5000);
-	//std::cout << "Vulkan start" << std::endl;
+	
 }
 auto BaseApp::start() -> void {
-	m_vulkan_renderer.set_context(m_windows[0]);
-	m_vulkan_renderer.main_loop();
+	//m_vulkan_renderer.set_context(m_windows[0]);
+	//m_vulkan_renderer.main_loop();
 
 	this->on_init();
 
@@ -70,7 +68,8 @@ auto BaseApp::start() -> void {
 
 		this->on_update();
 		if (m_current_window_p->m_window_state != Windows_Window::WINDOW_STATE::MINIMIZED) {
-			m_time_manager.calc_elapsed();
+			const f64 time_since_last_frame = m_time_manager.calc_elapsed();
+
 			m_renderer.swap_buffer(m_current_window_p->m_window_handle);
 			m_renderer.clear_background();
 			GUI_new_frame();
@@ -81,9 +80,10 @@ auto BaseApp::start() -> void {
 			const Matrix4x4& view_projection = m_camera.get_view_projection_matrix();
 			m_renderer.render(view_projection);
 
+			
 			GUI_render();
 
-			m_time_manager.frame_control();
+			m_time_manager.frame_control(time_since_last_frame);
 		}
 		this->poll_events();
 	}

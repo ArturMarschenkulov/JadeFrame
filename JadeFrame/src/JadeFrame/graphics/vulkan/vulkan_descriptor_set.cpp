@@ -11,7 +11,7 @@
 namespace JadeFrame {
 
 class VulkanLogicalDevice;
-auto VulkanDescriptorSets::init(VulkanLogicalDevice& device, u32 image_amount, const VulkanDescriptorSetLayout& descriptor_set_layout, const VulkanDescriptorPool& descriptor_pool) -> void {
+auto VulkanDescriptorSets::init(const VulkanLogicalDevice& device, u32 image_amount, const VulkanDescriptorSetLayout& descriptor_set_layout, const VulkanDescriptorPool& descriptor_pool) -> void {
 
 	VkResult result;
 

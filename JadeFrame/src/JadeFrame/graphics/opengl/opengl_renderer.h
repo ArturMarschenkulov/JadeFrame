@@ -11,6 +11,7 @@
 #include "JadeFrame/math/mat_4.h"
 #include "JadeFrame/graphics/mesh.h"
 #include "JadeFrame/graphics/shared.h"
+#include "JadeFrame/graphics/material_handle.h"
 
 #include <vector>
 #include <stack>
@@ -31,27 +32,52 @@ struct OpenGL_Material {
 	const OpenGL_Texture* m_texture = nullptr;
 	OpenGL_Shader* m_shader = nullptr;
 };
-struct Object {
-	OpenGL_Material* m_material = nullptr;
-	Mesh* m_mesh = nullptr;
 
+struct GPUDataMeshHandle {
+	enum class API {
+		UNDEFINED,
+		OPENGL,
+		VULKAN,
+	} api = API::OPENGL;
+	void* m_handle = nullptr;
+
+	mutable bool m_is_initialized = false;
+
+};
+
+struct Object {
+	Mesh* m_mesh;
+	MaterialHandle* m_material_handle;
 	Matrix4x4 m_transform;
-	OpenGL_VertexArray m_vertex_array;
+	//OpenGL_GPUMeshData m_vertex_array;
+	mutable GPUDataMeshHandle m_GPU_mesh_data;
 
 	auto set_color(const Color& color) -> void {
 		m_mesh->current_color = color;
 	}
 };
 
+struct APIMeshData {
+
+};
+
+//struct Object {
+//	Mesh* m_mesh = nullptr;
+//	Matrix4x4 m_transform;
+//
+//	OpenGL_Material* m_material = nullptr;
+//	APIMeshData m_vertex_array;
+//};
+
 struct OpenGL_RenderCommand {
 	const Matrix4x4* transform = nullptr;
 	const Mesh* mesh = nullptr;
-	const OpenGL_Material* material = nullptr;
-	const OpenGL_VertexArray* vertex_array = nullptr;
+	MaterialHandle* material_handle = nullptr;
+	const GPUDataMeshHandle* m_GPU_mesh_data = nullptr;
 };
 class OpenGL_CommandBuffer {
 public:
-	auto push(const Mesh& mesh, const OpenGL_Material& material, const Matrix4x4& tranform, const OpenGL_VertexArray& vertex_array) -> void;
+	//auto push(const Mesh& mesh, const OpenGL_Material& material, const Matrix4x4& tranform, const OpenGL_VertexArray& vertex_array) -> void;
 	std::vector<OpenGL_RenderCommand> m_render_commands;
 };
 
@@ -61,6 +87,7 @@ public:
 	virtual auto swap_buffer(HWND window_handle) const -> void override;
 	virtual auto clear_background() const -> void override;
 	virtual auto render(const Matrix4x4& view_projection) const -> void override;
+	//auto submit(const OpenGL_Object& obj) -> void;
 	auto submit(const Object& obj) -> void;
 
 	auto set_clear_color(const Color& color) -> void;
@@ -72,7 +99,7 @@ public:
 	auto set_context(const Windows_Window& window) -> void;
 
 private:
-	auto render_mesh(const OpenGL_VertexArray* buffer_data, const Mesh* mesh) const -> void;
+	auto render_mesh(const OpenGL_GPUMeshData* buffer_data, const Mesh* mesh) const -> void;
 
 private:
 	OpenGL_Context m_context;

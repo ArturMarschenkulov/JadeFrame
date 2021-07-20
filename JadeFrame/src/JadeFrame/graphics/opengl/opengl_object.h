@@ -14,34 +14,82 @@
 
 namespace JadeFrame {
 
-class GL_VertexBuffer {
+template<GLenum buffer_type>
+class GL_Buffer {
 public:
-	GL_VertexBuffer();
-	~GL_VertexBuffer();
-	GL_VertexBuffer(GL_VertexBuffer&& other) noexcept;
 
-	GL_VertexBuffer(const GL_VertexBuffer&) = delete;
-	auto operator=(const GL_VertexBuffer&)->GL_VertexBuffer & = delete;
-	auto operator=(GL_VertexBuffer&&)->GL_VertexBuffer & = delete;
+	GL_Buffer(const GL_Buffer<buffer_type>&) = delete;
+	auto operator=(const GL_Buffer<buffer_type>&)->GL_Buffer<buffer_type> & = delete;
+	auto operator=(GL_Buffer<buffer_type>&&)->GL_Buffer<buffer_type> & = delete;
 
-	auto release() -> GLuint {
-		GLuint ret = m_ID;
-		m_ID = 0;
-		return ret;
-	}
-	auto reset(GLuint ID = 0) -> void {
-		glDeleteBuffers(1, &m_ID);
-		m_ID = ID;
-	}
+	GL_Buffer();
+	GL_Buffer(GL_Buffer<buffer_type>&& other) noexcept;
+	~GL_Buffer();
+
+	auto release()->GLuint;
+	auto reset(GLuint ID = 0) -> void;
 
 	auto bind() const -> void;
 	auto unbind() const -> void;
 	auto reserve(GLuint size_in_bytes) const -> void;
-	auto send(const std::vector<f32>& data) const -> void;
+	template<typename U>
+	auto send(const std::vector<U>& data) const -> void;
 	auto update(GLuint size_in_bytes, const void* data) const -> void;
-private:
+
+//private:
 	GLuint m_ID;
 };
+
+template<GLenum buffer_type>
+GL_Buffer<buffer_type>::GL_Buffer() {
+	glCreateBuffers(1, &m_ID);
+}
+template<GLenum buffer_type>
+GL_Buffer<buffer_type>::GL_Buffer(GL_Buffer<buffer_type>&& other) noexcept : m_ID(other.release()) {
+}
+template<GLenum buffer_type>
+GL_Buffer<buffer_type>::~GL_Buffer() {
+	this->reset();
+}
+template<GLenum buffer_type>
+auto GL_Buffer<buffer_type>::release() -> GLuint {
+	GLuint ret = m_ID;
+	m_ID = 0;
+	return ret;
+}
+template<GLenum buffer_type>
+auto GL_Buffer<buffer_type>::reset(GLuint ID) -> void {
+	glDeleteBuffers(1, &m_ID);
+	m_ID = ID;
+}
+template<GLenum buffer_type>
+auto GL_Buffer<buffer_type>::bind() const -> void {
+	glBindBuffer(buffer_type, m_ID);
+}
+template<GLenum buffer_type>
+auto GL_Buffer<buffer_type>::unbind() const -> void {
+	glBindBuffer(buffer_type, 0);
+}
+template<GLenum buffer_type>
+auto GL_Buffer<buffer_type>::reserve(GLuint size_in_bytes) const -> void {
+	// if NULL is passed in as data, it only reserves size_in_bytes bytes.
+	glBufferData(buffer_type, size_in_bytes, NULL, GL_STATIC_DRAW);
+	//glNamedBufferData(m_ID, size_in_bytes, NULL, buffer_usage);
+}
+
+template<GLenum buffer_type>
+template<typename U>
+auto GL_Buffer<buffer_type>::send(const std::vector<U>& data) const -> void {
+	glBufferData(buffer_type, data.size() * sizeof(U), data.data(), GL_STATIC_DRAW);
+	//glNamedBufferData(m_ID, size_in_bytes, data, buffer_usage);
+}
+template<GLenum buffer_type>
+auto GL_Buffer<buffer_type>::update(GLuint size_in_bytes, const void* data) const -> void {
+	glBufferSubData(buffer_type, 0, size_in_bytes, data);
+	//glNamedBufferSubData(m_ID, 0, size_in_bytes, data);
+}
+
+
 class GL_VertexArray {
 public:
 	GL_VertexArray();
@@ -58,7 +106,7 @@ public:
 		return ret;
 	}
 	auto reset(GLuint ID = 0) -> void {
-		glDeleteBuffers(1, &m_ID);
+		glDeleteVertexArrays(1, &m_ID);
 		m_ID = ID;
 	}
 
@@ -68,40 +116,12 @@ private:
 	GLuint m_ID;
 };
 
-class GL_IndexBuffer {
-public:
-	GL_IndexBuffer();
-	~GL_IndexBuffer();
-	GL_IndexBuffer(GL_IndexBuffer&& other) noexcept;
-
-	GL_IndexBuffer(GL_IndexBuffer&) = delete;
-	auto operator=(const GL_IndexBuffer&)->GL_IndexBuffer & = delete;
-	auto operator=(GL_IndexBuffer&&)->GL_IndexBuffer & = delete;
-
-	auto release() -> GLuint {
-		GLuint ret = m_ID;
-		m_ID = 0;
-		return ret;
-	}
-	auto reset(GLuint ID = 0) -> void {
-		glDeleteBuffers(1, &m_ID);
-		m_ID = ID;
-	}
-
-	auto bind() const -> void;
-	auto unbind() const -> void;
-	auto reserve(GLuint size_in_bytes) const -> void;
-	auto send(const std::vector<GLuint>& data) const -> void;
-	auto update(GLuint size_in_bytes, const GLuint* data) const -> void;
-private:
-	GLuint m_ID;
-};
 
 struct GL_Shader {
 	GL_Shader() = default;
 	GL_Shader(GL_Shader&& other) noexcept;
 	GL_Shader(const GLenum type);
-	GL_Shader(const GLenum type, const std::string& source_code);
+	//GL_Shader(const GLenum type, const std::string& source_code);
 	~GL_Shader();
 
 	GL_Shader(const GL_Shader&) = delete;
@@ -113,6 +133,8 @@ struct GL_Shader {
 
 	auto set_source(const std::string& source_code) -> void;
 	auto compile() -> void;
+	auto set_binary(const std::vector<u32>& binary) -> void;
+	auto compile_binary() -> void;
 	auto get_info(GLenum pname)->GLint;
 	auto get_compile_status()->GLint;
 	auto get_info_log(GLsizei max_length)->std::string;
@@ -151,22 +173,82 @@ public:
 };
 
 
+/*
+	TEXTURE
+*/
+template<GLenum texture_type>
 struct GL_Texture {
-	GL_Texture() noexcept;
-	~GL_Texture();
-	GL_Texture(GL_Texture&& other) noexcept;
 	GL_Texture(const GL_Texture&) = delete;
 	auto operator=(const GL_Texture&) noexcept -> GL_Texture & = delete;
 	auto operator=(GL_Texture&&) noexcept -> GL_Texture & = delete;
+
+	GL_Texture() noexcept;
+	~GL_Texture();
+	GL_Texture(GL_Texture&& other) noexcept;
+
 	auto release()->GLuint;
 	auto reset(GLuint ID = 0) -> void;
-	auto bind(GLenum target) const -> void;
-	auto unbind(GLenum target) const -> void;
-	auto generate_mipmap(GLenum target) const -> void;
-	auto set_texture_parameters(GLenum target, GLenum pname, GLint param) const -> void;
-	auto set_texture_image_1D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void* pixels) const -> void;
-	auto set_texture_image_2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void* pixels) const -> void;
-	auto set_texture_image_3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void* pixels) const -> void;
+	auto bind(u32 unit) const -> void;
+	auto unbind() const -> void;
+	auto generate_mipmap() const -> void;
+	auto set_texture_parameters(GLenum pname, GLint param) const -> void;
+	auto set_texture_image_1D(GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void* pixels) const -> void;
+	auto set_texture_image_2D(GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void* pixels) const -> void;
+	auto set_texture_image_3D(GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void* pixels) const -> void;
 	GLuint m_ID;
 };
+
+
+template<GLenum texture_type>
+GL_Texture<texture_type>::GL_Texture() noexcept {
+	glCreateTextures(texture_type, 1, &m_ID);
+}
+template<GLenum texture_type>
+GL_Texture<texture_type>::~GL_Texture() {
+	this->reset();
+}
+template<GLenum texture_type>
+GL_Texture<texture_type>::GL_Texture(GL_Texture&& other) noexcept
+	: m_ID(other.release()) {
+
+}
+template<GLenum texture_type>
+auto GL_Texture<texture_type>::release() -> GLuint {
+	GLuint ret = m_ID;
+	m_ID = 0;
+	return ret;
+}template<GLenum texture_type>
+auto GL_Texture<texture_type>::reset(GLuint ID) -> void {
+	glDeleteTextures(1, &m_ID);
+	m_ID = ID;
+}
+template<GLenum texture_type>
+auto GL_Texture<texture_type>::bind(u32 unit) const -> void {
+	glActiveTexture(GL_TEXTURE0 + unit);
+	glBindTexture(texture_type, m_ID);
+}
+template<GLenum texture_type>
+auto GL_Texture<texture_type>::unbind() const -> void {
+	glBindTexture(texture_type, 0);
+}
+template<GLenum texture_type>
+auto GL_Texture<texture_type>::generate_mipmap() const -> void {
+	glGenerateMipmap(texture_type);
+}
+template<GLenum texture_type>
+auto GL_Texture<texture_type>::set_texture_parameters(GLenum pname, GLint param) const -> void {
+	glTexParameteri(texture_type, pname, param);
+}
+template<GLenum texture_type>
+auto GL_Texture<texture_type>::set_texture_image_1D(GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void* pixels) const -> void {
+	glTexImage1D(texture_type, level, internalformat, width, border, format, type, pixels);
+}
+template<GLenum texture_type>
+auto GL_Texture<texture_type>::set_texture_image_2D(GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void* pixels) const -> void {
+	glTexImage2D(texture_type, level, internalformat, width, height, border, format, type, pixels);
+}
+template<GLenum texture_type>
+auto GL_Texture<texture_type>::set_texture_image_3D(GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void* pixels) const -> void {
+	glTexImage3D(texture_type, level, internalformat, width, height, depth, border, format, type, pixels);
+}
 }

@@ -8,7 +8,7 @@
 
 namespace JadeFrame {
 
-static auto find_memory_type(const VulkanPhysicalDevice& physical_device, u32 type_filter, VkMemoryPropertyFlags properties) -> u32 {
+auto find_memory_type(const VulkanPhysicalDevice& physical_device, u32 type_filter, VkMemoryPropertyFlags properties) -> u32 {
 	const VkPhysicalDeviceMemoryProperties& mem_props = physical_device.m_memory_properties;
 	for (u32 i = 0; i < mem_props.memoryTypeCount; i++) {
 		if ((type_filter & (1 << i)) && (mem_props.memoryTypes[i].propertyFlags & properties) == properties) {

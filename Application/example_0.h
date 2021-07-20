@@ -3,6 +3,7 @@
 #include<JadeFrame/math/math.h>
 #include<JadeFrame/gui.h>
 #include<JadeFrame/utils/utils.h>
+#include<JadeFrame/graphics/material_handle.h>
 
 namespace JadeFrame {
 struct Drop {
@@ -17,8 +18,8 @@ struct Drop {
 		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 80.0f, 1.0f }) * Matrix4x4::translation_matrix({ x, y, 0.0f });
 		app->m_resources.get_mesh("rectangle").set_color({ 138_u8, 43_u8, 226_u8, 255_u8 });
 		obj.m_mesh = &app->m_resources.get_mesh("rectangle");
-		obj.m_material = &app->m_resources.get_material("flat_color_mat");
-		obj.m_vertex_array.finalize(*obj.m_mesh);
+		obj.m_material_handle = &app->m_resources.get_material_handle("flat_color_mat");
+
 	}
 
 	auto fall() -> void {
@@ -33,8 +34,6 @@ struct Drop {
 		Renderer& renderer = JadeFrameInstance::get_singleton()->m_apps[0]->m_renderer;
 		renderer.submit(obj);
 	}
-
-	Mesh mesh;
 	Object obj = {};
 	f32 x = 10;
 	f32 y = 10;
@@ -50,8 +49,6 @@ struct Example_0 : public BaseApp {
 	virtual auto on_draw() -> void override;
 
 public:
-	std::deque<Mesh> m_meshes;
-	std::vector<Object> m_objs;
 	std::deque<Drop> drops;
 };
 
@@ -72,11 +69,9 @@ auto Example_0::on_init() -> void {
 	// Load Resources
 	{
 		const char* wall_picture_path = "C:\\DEV\\Projects\\JadeFrame\\JadeFrame\\resource\\wall.jpg";
-		m_resources.set_texture("wall", OpenGL_TextureLoader::load(wall_picture_path, GL_TEXTURE_2D, GL_RGB));
-
-		m_resources.set_shader("flat_shader_0", OpenGL_Shader("flat_0"));
-
-		m_resources.set_material("flat_color_mat", "flat_shader_0", "wall");
+		m_resources.set_texture_handle("wall", wall_picture_path);
+		m_resources.set_shader_handle("flat_shader_0", ShaderHandle(GLSLCodeLoader::get_by_name("flat_0")));
+		m_resources.set_material_handle("flat_color_mat", "flat_shader_0", "wall");
 
 		Mesh rectangle_mesh;
 		rectangle_mesh.add_to_data(VertexDataFactory::make_rectangle({ 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }));

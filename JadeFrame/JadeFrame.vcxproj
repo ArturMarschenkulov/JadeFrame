@@ -22,7 +22,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{65177E85-84D8-4337-9437-8636589AE8F4}</ProjectGuid>
     <RootNamespace>JadeFrame</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -309,6 +309,7 @@
     <ClInclude Include="src\JadeFrame\graphics\d3d11\d3d11_renderer.h" />
     <ClInclude Include="src\JadeFrame\graphics\d3d12\d3d12_renderer.h" />
     <ClInclude Include="src\JadeFrame\graphics\glsl_parser.h" />
+    <ClInclude Include="src\JadeFrame\graphics\material_handle.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_buffer.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_context.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_debug.h" />
@@ -318,7 +319,7 @@
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_windows.h" />
     <ClInclude Include="src\JadeFrame\graphics\shared.h" />
     <ClInclude Include="src\JadeFrame\graphics\software\software_renderer.h" />
-    <ClInclude Include="src\JadeFrame\graphics\vulkan\to_spirv.h" />
+    <ClInclude Include="src\JadeFrame\graphics\to_spirv.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_buffer.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_command_pool.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_context.h" />
@@ -369,6 +370,7 @@
     <ClCompile Include="src\JadeFrame\font_manager.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\camera.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\glsl_parser.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\material_handle.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_buffer.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_context.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_debug.cpp" />
@@ -376,7 +378,7 @@
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_shader_loader.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_texture.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_windows.cpp" />
-    <ClCompile Include="src\JadeFrame\graphics\vulkan\to_spirv.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\to_spirv.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_buffer.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_command_pool.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_context.cpp" />

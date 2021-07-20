@@ -24,42 +24,81 @@ namespace JadeFrame {
 		uniforms
 
 */
+
+static auto get_shader_spirv_test_0() -> std::tuple<std::string, std::string> {
+	static const char* vertex_shader =
+		R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout(location = 0) in vec2 inPosition;
+layout(location = 1) in vec3 inColor;
+
+layout(location = 0) out vec3 fragColor;
+
+layout(binding = 0) uniform UniformBufferObject {
+    mat4 model;
+    mat4 view;
+    mat4 proj;
+} ubo;
+
+void main() {
+    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 0.0, 1.0);
+	fragColor = inColor;
+}
+)";
+
+	static const char* fragment_shader =
+		R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout(location = 0) in vec3 fragColor;
+
+layout(location = 0) out vec4 outColor;
+
+void main() {
+    outColor = vec4(fragColor, 1.0);
+}
+)";
+
+	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
+}
 static auto get_default_shader_flat() -> std::tuple<std::string, std::string> {
 	const GLchar* vertex_shader =
 		R"(
 #version 450 core
-//#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_separate_shader_objects : enable
+
 layout (location = 0) in vec3 v_position;
 layout (location = 1) in vec4 v_color;
-layout (location = 2) in vec2 v_texture_coord;
+//layout (location = 2) in vec2 v_texture_coord;
 
-out vec4 f_color;
-out vec2 f_texture_coord;
+layout(location = 0) out vec4 f_color;
+//layout(location = 1) out vec2 f_texture_coord;
 
-uniform mat4 u_MVP;
-uniform mat4 u_view_projection;
-uniform mat4 u_model;
+layout(std140, binding = 0)	uniform UniformBufferObject {
+    mat4 view_projection;
+    mat4 model;
+} u_ubo;
 
 void main() {
-	gl_Position = u_view_projection * u_model * vec4(v_position, 1.0);
-	f_color = v_color;
-	f_texture_coord = v_texture_coord;
+	gl_Position = u_ubo.view_projection * u_ubo.model * vec4(v_position, 1.0);
+	f_color = v_color;		
+	//f_texture_coord = v_texture_coord;
 }
 	)";
 	const GLchar* fragment_shader =
 		R"(
 #version 450 core
+#extension GL_ARB_separate_shader_objects : enable
 
-in vec4 f_color;
-in vec2 f_texture_coord;
-out vec4 o_color;
+layout (location = 0) in vec4 f_color;
+//layout (location = 1) in vec2 f_texture_coord;
 
-uniform sampler2D u_texture_0;
+layout (location = 0) out vec4 o_color;
 
 void main() {
-	
-	//o_color = mix(f_color, texture(texture_0, f_texture_coord), 0.8);
-	//o_color = texture(texture_0, f_texture_coord);
 	o_color = f_color;
 }
 	)";
@@ -242,7 +281,7 @@ void main()
 	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
 
-auto get_shader_by_name(const std::string& name) -> std::tuple<std::string, std::string> {
+auto get_glsl_code_by_name(const std::string& name) -> std::tuple<std::string, std::string> {
 	std::tuple<std::string, std::string> shader_tuple;
 	if (name == "flat_0") {
 		shader_tuple = get_default_shader_flat();
@@ -254,7 +293,28 @@ auto get_shader_by_name(const std::string& name) -> std::tuple<std::string, std:
 		shader_tuple = get_default_shader_light_server();
 	} else if (name == "light_client") {
 		shader_tuple = get_default_shader_light_client();
+	} else if (name == "spirv_test_0") {
+		shader_tuple = get_shader_spirv_test_0();
 	}
 	return shader_tuple;
+}
+auto GLSLCodeLoader::get_by_name(const std::string& name) -> GLSLCode {
+	std::tuple<std::string, std::string> shader_tuple;
+	if (name == "flat_0") {
+		shader_tuple = get_default_shader_flat();
+	} else if (name == "with_texture_0") {
+		shader_tuple = get_default_shader_with_texture();
+	} else if (name == "depth_testing_0") {
+		shader_tuple = get_default_shader_depth_testing();
+	} else if (name == "light_server") {
+		shader_tuple = get_default_shader_light_server();
+	} else if (name == "light_client") {
+		shader_tuple = get_default_shader_light_client();
+	} else if (name == "spirv_test_0") {
+		shader_tuple = get_shader_spirv_test_0();
+	}
+
+	auto [vs, fs] = shader_tuple;
+	return GLSLCode(vs, fs);
 }
 }

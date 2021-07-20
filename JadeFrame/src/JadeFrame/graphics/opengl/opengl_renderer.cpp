@@ -29,50 +29,71 @@ auto OpenGL_Renderer::swap_buffer(const HWND window_handle) const -> void {
 	::SwapBuffers(GetDC(window_handle)); // TODO: This is Windows specific. Abstract his away!
 }
 auto OpenGL_Renderer::submit(const Object& obj) -> void {
-	OpenGL_RenderCommand command = {};
-	command.mesh = obj.m_mesh;
-	command.material = obj.m_material;
-	command.transform = &obj.m_transform;
-	command.vertex_array = &obj.m_vertex_array;
+
+
+	if (obj.m_GPU_mesh_data.m_is_initialized == false) {
+
+
+		obj.m_GPU_mesh_data.m_handle = new OpenGL_GPUMeshData();
+		static_cast<OpenGL_GPUMeshData*>(obj.m_GPU_mesh_data.m_handle)->finalize(*obj.m_mesh);
+		obj.m_GPU_mesh_data.m_is_initialized = true;
+		//s->finalize(*obj.m_mesh); // NOTE: OpenGL specific
+	}
+	if (obj.m_material_handle->m_is_initialized == false) {
+		obj.m_material_handle->init();
+		obj.m_material_handle->m_is_initialized = true;
+	}
+
+
+	OpenGL_RenderCommand command = {
+		.transform = &obj.m_transform,
+		.mesh = obj.m_mesh,
+		.material_handle = obj.m_material_handle,
+		.m_GPU_mesh_data = &obj.m_GPU_mesh_data,
+	};
 	m_render_commands.push_back(command);
 }
 
-auto OpenGL_Renderer::render_mesh(const OpenGL_VertexArray* vertex_array, const Mesh* mesh) const -> void {
-	vertex_array->bind();
 
-	if (mesh->m_indices.size() > 0) {
-		GLenum mode = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
-		GLsizei count = mesh->m_indices.size();
-		GLenum type = GL_UNSIGNED_INT;
-		const void* indices = nullptr;
-		glDrawElements(mode, count, type, indices);
-	} else {
-		GLenum mode = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
-		GLint first = 0;
-		GLsizei count = mesh->m_positions.size();
-		glDrawArrays(mode, first, count);
-	}
-}
 auto OpenGL_Renderer::render(const Matrix4x4& view_projection) const -> void {
 
 	for (size_t i = 0; i < m_render_commands.size(); ++i) {
-
-		const OpenGL_Material* material = m_render_commands[i].material;
 		const Matrix4x4* transform = m_render_commands[i].transform;
 
-		material->m_shader->bind();
-		material->m_shader->set_uniform("u_view_projection", view_projection);
-		material->m_shader->set_uniform("u_model", *transform);
-		material->m_texture->bind();
+		MaterialHandle* material_handle = m_render_commands[i].material_handle;
+		OpenGL_Shader* shader = static_cast<OpenGL_Shader*>(material_handle->m_shader_handle->m_handle);
+		OpenGL_Texture* texture = static_cast<OpenGL_Texture*>(material_handle->m_texture_handle->m_handle);
+
+		shader->bind();
+		const std::vector<Matrix4x4> u = { view_projection , *transform };
+		shader->set_uniform_block("UniformBufferObject", u);
+
+		texture->bind();
 
 		const Mesh* mesh = m_render_commands[i].mesh;
-		const OpenGL_VertexArray* vertex_array = m_render_commands[i].vertex_array;
+		const OpenGL_GPUMeshData* vertex_array = static_cast<OpenGL_GPUMeshData*>(m_render_commands[i].m_GPU_mesh_data->m_handle);
 
 		this->render_mesh(vertex_array, mesh);
 	}
 	m_render_commands.clear();
 }
 
+auto OpenGL_Renderer::render_mesh(const OpenGL_GPUMeshData* vertex_array, const Mesh* mesh) const -> void {
+	vertex_array->bind();
+
+	if (mesh->m_indices.size() > 0) {
+		const GLenum mode = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
+		const GLsizei count = mesh->m_indices.size();
+		const GLenum type = GL_UNSIGNED_INT;
+		const void* indices = nullptr;
+		glDrawElements(mode, count, type, indices);
+	} else {
+		const GLenum mode = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
+		const GLint first = 0;
+		const GLsizei count = mesh->m_positions.size();
+		glDrawArrays(mode, first, count);
+	}
+}
 
 
 auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
@@ -104,15 +125,4 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
 auto OpenGL_Renderer::set_context(const Windows_Window& window_handle) -> void {
 	m_context = OpenGL_Context(window_handle);
 }
-
-auto OpenGL_CommandBuffer::push(const Mesh& mesh, const OpenGL_Material& material, const Matrix4x4& tranform, const OpenGL_VertexArray& vertex_array) -> void {
-	OpenGL_RenderCommand command = {};
-	command.mesh = &mesh;
-	command.material = &material;
-	command.transform = &tranform;
-	command.vertex_array = &vertex_array;
-
-	m_render_commands.push_back(command);
-}
-
 }
