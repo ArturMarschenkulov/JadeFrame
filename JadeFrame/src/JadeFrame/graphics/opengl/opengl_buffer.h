@@ -9,22 +9,10 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace JadeFrame {
 struct Vertex;
-
-////TODO: Consider whether to keep this wrapper
-//enum BUFFER_USAGE : GLenum {
-//	STREAM_DRAW = GL_STREAM_DRAW,
-//	STREAM_READ = GL_STREAM_READ,
-//	STREAM_COPY = GL_STREAM_COPY,
-//	STATIC_DRAW = GL_STATIC_DRAW,
-//	STATIC_READ = GL_STATIC_READ,
-//	STATIC_COPY = GL_STATIC_COPY,
-//	DYNAMIC_DRAW = GL_DYNAMIC_DRAW,
-//	DYNAMIC_READ = GL_DYNAMIC_READ,
-//	DYNAMIC_COPY = GL_DYNAMIC_COPY,
-//};
 
 enum class SHADER_TYPE {
 	NONE = 0,
@@ -61,19 +49,20 @@ public:
 
 class OpenGL_GPUMeshData {
 public:
-
-	OpenGL_GPUMeshData()
+	OpenGL_GPUMeshData(const Mesh& mesh, bool interleaved = true)
 		: m_vertex_buffer()
 		, m_vertex_array()
 		, m_index_buffer() {
-
+		this->finalize(mesh, interleaved);
 	}
 	auto bind() const -> void {
+
 		m_vertex_array.bind();	
 	}	
 	auto set_layout(const BufferLayout& buffer_layout) -> void;
-	auto finalize(const Mesh& mesh, bool interleaved = true) -> void;
 private:
+	auto finalize(const Mesh& mesh, bool interleaved = true) -> void;
+public://private:
 	GL_Buffer<GL_ARRAY_BUFFER> m_vertex_buffer;
 	GL_VertexArray m_vertex_array;
 	GL_Buffer<GL_ELEMENT_ARRAY_BUFFER> m_index_buffer;

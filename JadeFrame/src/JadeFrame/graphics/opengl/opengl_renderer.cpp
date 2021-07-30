@@ -14,11 +14,11 @@
 namespace JadeFrame {
 
 auto OpenGL_Renderer::set_clear_color(const Color& color) -> void {
-	m_context.m_cache.set_clear_color(color);
+	m_context->m_cache.set_clear_color(color);
 }
 
 auto OpenGL_Renderer::clear_background() const -> void {
-	auto bitfield = m_context.m_cache.clear_bitfield;
+	auto bitfield = m_context->m_cache.clear_bitfield;
 	glClear(bitfield);
 }
 auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void {
@@ -30,14 +30,12 @@ auto OpenGL_Renderer::swap_buffer(const HWND window_handle) const -> void {
 }
 auto OpenGL_Renderer::submit(const Object& obj) -> void {
 
-
 	if (obj.m_GPU_mesh_data.m_is_initialized == false) {
+		//obj.m_GPU_mesh_data.m_handle = new OpenGL_GPUMeshData();
+		//static_cast<OpenGL_GPUMeshData*>(obj.m_GPU_mesh_data.m_handle)->finalize(*obj.m_mesh);
 
-
-		obj.m_GPU_mesh_data.m_handle = new OpenGL_GPUMeshData();
-		static_cast<OpenGL_GPUMeshData*>(obj.m_GPU_mesh_data.m_handle)->finalize(*obj.m_mesh);
+		obj.m_GPU_mesh_data.m_handle = new OpenGL_GPUMeshData(*obj.m_mesh);
 		obj.m_GPU_mesh_data.m_is_initialized = true;
-		//s->finalize(*obj.m_mesh); // NOTE: OpenGL specific
 	}
 	if (obj.m_material_handle->m_is_initialized == false) {
 		obj.m_material_handle->init();
@@ -45,7 +43,7 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
 	}
 
 
-	OpenGL_RenderCommand command = {
+	const OpenGL_RenderCommand command = {
 		.transform = &obj.m_transform,
 		.mesh = obj.m_mesh,
 		.material_handle = obj.m_material_handle,
@@ -56,22 +54,30 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
 
 
 auto OpenGL_Renderer::render(const Matrix4x4& view_projection) const -> void {
-
 	for (size_t i = 0; i < m_render_commands.size(); ++i) {
-		const Matrix4x4* transform = m_render_commands[i].transform;
 
-		MaterialHandle* material_handle = m_render_commands[i].material_handle;
-		OpenGL_Shader* shader = static_cast<OpenGL_Shader*>(material_handle->m_shader_handle->m_handle);
-		OpenGL_Texture* texture = static_cast<OpenGL_Texture*>(material_handle->m_texture_handle->m_handle);
+		const OpenGL_GPUMeshData* vertex_array = static_cast<OpenGL_GPUMeshData*>(m_render_commands[i].m_GPU_mesh_data->m_handle);
+		vertex_array->bind();
+		vertex_array->m_vertex_array.bind();
+		vertex_array->m_vertex_buffer.bind();
+		vertex_array->m_index_buffer.bind();
 
-		shader->bind();
-		const std::vector<Matrix4x4> u = { view_projection , *transform };
-		shader->set_uniform_block("UniformBufferObject", u);
 
-		texture->bind();
+
+		OpenGL_Shader& shader = *static_cast<OpenGL_Shader*>	(m_render_commands[i].material_handle->m_shader_handle->m_handle);
+		shader.bind();
+
+		const Matrix4x4& transform = *m_render_commands[i].transform;
+		const std::vector<Matrix4x4>& u = { view_projection , transform };
+		m_context->m_uniform_buffers[0].bind();
+		m_context->m_uniform_buffers[0].send(u);
+		m_context->m_uniform_buffers[0].unbind();
+
+		OpenGL_Texture& texture = *static_cast<OpenGL_Texture*>	(m_render_commands[i].material_handle->m_texture_handle->m_handle);
+		texture.bind();
+
 
 		const Mesh* mesh = m_render_commands[i].mesh;
-		const OpenGL_GPUMeshData* vertex_array = static_cast<OpenGL_GPUMeshData*>(m_render_commands[i].m_GPU_mesh_data->m_handle);
 
 		this->render_mesh(vertex_array, mesh);
 	}
@@ -79,7 +85,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) const -> void {
 }
 
 auto OpenGL_Renderer::render_mesh(const OpenGL_GPUMeshData* vertex_array, const Mesh* mesh) const -> void {
-	vertex_array->bind();
+	//vertex_array->bind();
 
 	if (mesh->m_indices.size() > 0) {
 		const GLenum mode = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
@@ -123,6 +129,6 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
 }
 
 auto OpenGL_Renderer::set_context(const Windows_Window& window_handle) -> void {
-	m_context = OpenGL_Context(window_handle);
+	m_context = new OpenGL_Context(window_handle);
 }
 }

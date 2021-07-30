@@ -7,7 +7,7 @@
 
 #include "opengl_shader_loader.h"
 
-#include "../to_spirv.h"
+//#include "../to_spirv.h"
 #include <future>
 
 #include<array>
@@ -31,24 +31,24 @@ static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
 //
 //}
 
-OpenGL_Shader::OpenGL_Shader(const GLSLCode& code) 
+OpenGL_Shader::OpenGL_Shader(const GLSLCode& code)
 	: m_program()
 	, m_vertex_shader(GL_VERTEX_SHADER)
 	, m_fragment_shader(GL_FRAGMENT_SHADER) {
 
 	if constexpr (false) {
-		//auto [vertex_shader_code, fragment_shader_code] = get_shader_by_name("spirv_test_0");
-		std::future<std::vector<u32>> vert_shader_spirv = std::async(std::launch::async, string_to_SPIRV, code.m_vertex_shader.c_str(), 0);
-		std::future<std::vector<u32>> frag_shader_spirv = std::async(std::launch::async, string_to_SPIRV, code.m_fragment_shader.data(), 1);
+		////auto [vertex_shader_code, fragment_shader_code] = get_shader_by_name("spirv_test_0");
+		//std::future<std::vector<u32>> vert_shader_spirv = std::async(std::launch::async, string_to_SPIRV, code.m_vertex_shader.c_str(), 0);
+		//std::future<std::vector<u32>> frag_shader_spirv = std::async(std::launch::async, string_to_SPIRV, code.m_fragment_shader.data(), 1);
 
-		std::vector<u32> mvert_shader_spirv = vert_shader_spirv.get();
-		std::vector<u32> mfrag_shader_spirv = frag_shader_spirv.get();
+		//std::vector<u32> mvert_shader_spirv = vert_shader_spirv.get();
+		//std::vector<u32> mfrag_shader_spirv = frag_shader_spirv.get();
 
-		m_fragment_shader.set_binary(mfrag_shader_spirv);
-		m_fragment_shader.compile_binary();
+		//m_fragment_shader.set_binary(mfrag_shader_spirv);
+		//m_fragment_shader.compile_binary();
 
-		m_vertex_shader.set_binary(mvert_shader_spirv);
-		m_vertex_shader.compile_binary();
+		//m_vertex_shader.set_binary(mvert_shader_spirv);
+		//m_vertex_shader.compile_binary();
 
 
 	} else {
@@ -123,84 +123,6 @@ auto OpenGL_Shader::get_uniform_location(const std::string& name) const -> GLint
 	return -1;
 }
 
-
-auto OpenGL_Shader::set_uniform(const std::string& name, const i32 value) -> void {
-
-	if (m_uniforms.contains(name)) {
-		if (std::holds_alternative<i32>(m_uniforms[name].value)) {
-			m_uniforms[name].value = value;
-			i32& v = std::get<i32>(m_uniforms[name].value);
-			glUniform1i(m_uniforms[name].location, v);
-			return;
-		}
-	}
-	__debugbreak();
-}
-auto OpenGL_Shader::set_uniform(const std::string& name, const f32 value) -> void {
-	if (m_uniforms.contains(name)) {
-		if (std::holds_alternative<f32>(m_uniforms[name].value)) {
-			m_uniforms[name].value = value;
-			f32& v = std::get<f32>(m_uniforms[name].value);
-			glUniform1f(m_uniforms[name].location, v);
-			return;
-		}
-	}
-	__debugbreak();
-}
-auto OpenGL_Shader::set_uniform(const std::string& name, const Vec3& value) -> void {
-	if (m_uniforms.contains(name)) {
-		if (std::holds_alternative<Vec3>(m_uniforms[name].value)) {
-			m_uniforms[name].value = value;
-			Vec3& v = std::get<Vec3>(m_uniforms[name].value);
-			glUniform3f(m_uniforms[name].location, v.x, v.y, v.z);
-			return;
-		}
-	}
-	__debugbreak();
-}
-auto OpenGL_Shader::set_uniform(const std::string& name, const Vec4& value) -> void {
-	if (m_uniforms.contains(name)) {
-		if (std::holds_alternative<Vec4>(m_uniforms[name].value)) {
-			m_uniforms[name].value = value;
-			Vec4& v = std::get<Vec4>(m_uniforms[name].value);
-			glUniform4f(m_uniforms[name].location, v.x, v.y, v.z, v.w);
-			return;
-		}
-	}
-	__debugbreak();
-}
-auto OpenGL_Shader::set_uniform(const std::string& name, const Matrix4x4& value) -> void {
-	if (m_uniforms.contains(name)) {
-		if (std::holds_alternative<Matrix4x4>(m_uniforms[name].value)) {
-			m_uniforms[name].value = value;
-			Matrix4x4& v = std::get<Matrix4x4>(m_uniforms[name].value);
-			glUniformMatrix4fv(m_uniforms[name].location, 1, GL_FALSE, &v[0][0]);
-			return;
-		}
-	}
-	__debugbreak();
-}
-
-auto OpenGL_Shader::set_uniform_block(const std::string& name, const std::vector<Matrix4x4>& mat) -> void {
-	m_uniform_buffer.bind();
-	m_uniform_buffer.send(mat);
-	m_uniform_buffer.unbind();
-}
-
-auto OpenGL_Shader::update_uniforms() -> void {
-	for (auto& uniform : m_uniforms) {
-		GL_Variable variable = uniform.second;
-		if (std::holds_alternative<Matrix4x4>(variable.value)) {
-			Matrix4x4& v = std::get<Matrix4x4>(variable.value);
-			glUniformMatrix4fv(variable.location, 1, GL_FALSE, &v[0][0]);
-		} else if (std::holds_alternative<Vec3>(variable.value)) {
-			Vec3& v = std::get<Vec3>(variable.value);
-			glUniform3f(variable.location, v.x, v.y, v.z);
-		} else {
-			__debugbreak();
-		}
-	}
-}
 #include "opengl_object.h"
 
 auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::unordered_map<std::string, GL_Variable> {
@@ -220,15 +142,6 @@ auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::uno
 				GLint location = m_program.get_uniform_location(buffer);
 				if (location == -1) {
 
-					m_uniform_buffer.bind();
-					m_uniform_buffer.reserve(16 + 16);
-					m_uniform_buffer.unbind();
-
-					const u32 binding_point = 0;
-					//GLint index = glGetUniformBlockIndex(m_program.m_ID, buffer);
-					//glUniformBlockBinding(m_program.m_ID, index, binding_point);
-
-					glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_uniform_buffer.m_ID);
 				} else {
 					variables[i].location = location;
 				}
@@ -261,5 +174,6 @@ auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::uno
 		variable_map[variables[i].name] = variables[i];
 	}
 	return variable_map;
+
 }
 }

@@ -40,6 +40,36 @@ struct Drop {
 	f32 y_speed = 1;
 };
 
+struct Thingy {
+	Thingy() {
+		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
+		const f32 window_width = app->m_main_window_p->m_size.x;
+
+		pos.x = static_cast<f32>(get_random_number(0, window_width));
+
+		obj.m_transform = Matrix4x4::scale_matrix({ 1.0f, 1.0f, 1.0f }) * Matrix4x4::translation_matrix({ pos.x, pos.y, 0.0f });
+		app->m_resources.get_mesh("rectangle_1").set_color({ 138_u8, 43_u8, 226_u8, 255_u8 });
+		obj.m_mesh = &app->m_resources.get_mesh("rectangle_1");
+		obj.m_material_handle = &app->m_resources.get_material_handle("flat_color_mat_test_0");
+
+	}
+
+	auto update() -> void {
+		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
+		auto& im = JadeFrameInstance::get_singleton()->m_input_manager;
+		Vec2 mp = im.get_mouse_position();
+
+		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 10.0f, 1.0f }) * Matrix4x4::translation_matrix({ mp.x, mp.y, 0.0f });
+		//app->m_resources.get_mesh("rectangle").set_color({ 138_u8, 43_u8, 226_u8, 255_u8 });
+		//obj.m_mesh = &app->m_resources.get_mesh("rectangle_1");
+		//obj.m_material_handle = &app->m_resources.get_material_handle("flat_color_mat_test_0");
+	}
+
+	Object obj = {};
+	Vec2 pos;
+
+};
+
 struct Example_0 : public BaseApp {
 	Example_0(const std::string& title, const Vec2& size, const Vec2& position = { -1, -1 });
 	virtual ~Example_0() = default;
@@ -50,6 +80,7 @@ struct Example_0 : public BaseApp {
 
 public:
 	std::deque<Drop> drops;
+	std::deque<Thingy> thingies;
 };
 
 
@@ -70,12 +101,23 @@ auto Example_0::on_init() -> void {
 	{
 		const char* wall_picture_path = "C:\\DEV\\Projects\\JadeFrame\\JadeFrame\\resource\\wall.jpg";
 		m_resources.set_texture_handle("wall", wall_picture_path);
+
 		m_resources.set_shader_handle("flat_shader_0", ShaderHandle(GLSLCodeLoader::get_by_name("flat_0")));
+		m_resources.set_shader_handle("flat_shader_0_test_0", ShaderHandle(GLSLCodeLoader::get_by_name("flat_0_test_0")));
+		
 		m_resources.set_material_handle("flat_color_mat", "flat_shader_0", "wall");
+		m_resources.set_material_handle("flat_color_mat_test_0", "flat_shader_0_test_0", "wall");
 
 		Mesh rectangle_mesh;
 		rectangle_mesh.add_to_data(VertexDataFactory::make_rectangle({ 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }));
 		m_resources.set_mesh("rectangle", rectangle_mesh);
+
+		Mesh rectangle_mesh_1;
+		rectangle_mesh_1.add_to_data(VertexDataFactory::make_rectangle({ 0.0f, 0.0f, 0.0f }, { 40.0f, 10.0f, 0.0f }));
+		m_resources.set_mesh("rectangle_1", rectangle_mesh_1);
+
+
+		thingies.emplace_back();
 		for (u32 i = 0; i < 100; i++) {
 			drops.emplace_back();
 		}
@@ -84,9 +126,13 @@ auto Example_0::on_init() -> void {
 }
 auto Example_0::on_update() -> void {
 	m_camera.control();
+
+
+	thingies[0].update();
 	for (u32 i = 0; i < drops.size(); i++) {
 		drops[i].fall();
 	}
+
 	if (JadeFrameInstance::get_singleton()->m_input_manager.is_key_released(KEY::P)) {
 		//std::thread t(&Renderer::take_screenshot, &m_renderer);
 		m_renderer.take_screenshot("im.png");
@@ -95,12 +141,11 @@ auto Example_0::on_update() -> void {
 auto Example_0::on_draw() -> void {
 
 	for (u32 i = 0; i < drops.size(); i++) {
-		drops[i].show();
+		m_renderer.submit(drops[i].obj);
 	}
+	m_renderer.submit(thingies[0].obj);
 
-
-
-	draw_GUI(*this);
+	//draw_GUI(*this);
 }
 
 

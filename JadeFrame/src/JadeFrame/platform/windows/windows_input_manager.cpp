@@ -38,8 +38,8 @@ auto Windows_InputManager::key_callback(const WindowsMessage& wm) -> void {
 	bool b_is_pressed = (bit_31 == 0);
 
 	m_current_key_state[key_code] = static_cast<INPUT_STATE>(b_is_pressed);
-	ImGuiIO& io = ImGui::GetIO();
-	io.KeysDown[key_code] = b_is_pressed;
+	//ImGuiIO& io = ImGui::GetIO();
+	//io.KeysDown[key_code] = b_is_pressed;
 
 
 	//TODO: Try to extract that to somewhere else. So th
@@ -96,9 +96,9 @@ auto Windows_InputManager::char_callback(const WindowsMessage& wm) -> void {
 	//int64_t bit_29 = (lParam >> 29) & 1; // 1 == system key
 	//int64_t bit_30 = (lParam >> 30) & 1; // 1 == repeatedly pressed
 	//int64_t bit_31 = (lParam >> 31) & 1; // 0 == pressed, 1 == released
-	ImGuiIO& io = ImGui::GetIO();
+	//ImGuiIO& io = ImGui::GetIO();
 	if (wParam > 0 && wParam < 0x10000) {
-		io.AddInputCharacter((u16)wParam);
+		//io.AddInputCharacter((u16)wParam);
 	}
 
 }

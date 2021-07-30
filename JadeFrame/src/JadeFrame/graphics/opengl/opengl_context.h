@@ -3,6 +3,7 @@
 #include <string>
 #include <utility>
 #include "JadeFrame/graphics/mesh.h" // For Color
+#include "opengl_object.h" // TODO: FOr SHADER_DATA_TYPE. Maybe move?
 
 #include "JadeFrame/platform/windows/windows_window.h"
 
@@ -89,5 +90,11 @@ public:
 	i32 major_version;
 	i32 minor_version;
 	i32 num_extensions;
+
+	GLint m_max_uniform_buffer_binding_points;
+
+	std::vector<GL_Buffer<GL_UNIFORM_BUFFER>> m_uniform_buffers;
+	//GL_Buffer<GL_UNIFORM_BUFFER>* m_uniform_buffer = nullptr;
+
 };
 }

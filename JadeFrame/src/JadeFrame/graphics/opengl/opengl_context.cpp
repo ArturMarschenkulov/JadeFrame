@@ -49,6 +49,8 @@ OpenGL_Context::OpenGL_Context(const Windows_Window& window) {
 		extentenions.push_back(reinterpret_cast<char const*>(glGetStringi(GL_EXTENSIONS, i)));
 	}
 
+	glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &m_max_uniform_buffer_binding_points);
+	
 	//glGetIntegerv(GL_MAX_CLIP_DISTANCES, &max_clip_distances);
 	//glGetIntegerv(GL_MAX_DRAW_BUFFERS, &max_draw_buffers);
 	//glGetIntegerv(GL_MAX_CLIP_DISTANCES, &max_clip_distances);
@@ -58,18 +60,28 @@ OpenGL_Context::OpenGL_Context(const Windows_Window& window) {
 
 	window.m_is_graphics_api_init = true;
 	window.m_graphics_api = Windows_Window::GRAPHICS_API::OPENGL;
+
+
+	const GLuint binding_point = 0;
+
+	m_uniform_buffers.emplace_back();
+	m_uniform_buffers[0].bind();
+	m_uniform_buffers[0].reserve(2 * sizeof(Matrix4x4));
+	m_uniform_buffers[0].unbind();
+	m_uniform_buffers[0].bind_base(binding_point);
+
 }
 
 OpenGL_Context::~OpenGL_Context() {
 }
 
 auto GL_Cache::set_default() -> void {
-	set_clear_color({ 0.2f, 0.2f, 0.2f, 1.0f });
-	set_depth_test(true);
-	set_clear_bitfield(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	set_blending(true);
-	set_polygon_mode(POLYGON_FACE::FRONT_AND_BACK, POLYGON_MODE::FILL);
-	set_face_culling(false, GL_BACK);
+	this->set_clear_color({ 0.2f, 0.2f, 0.2f, 1.0f });
+	this->set_depth_test(true);
+	this->set_clear_bitfield(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	this->set_blending(true);
+	this->set_polygon_mode(POLYGON_FACE::FRONT_AND_BACK, POLYGON_MODE::FILL);
+	this->set_face_culling(false, GL_BACK);
 }
 
 auto GL_Cache::set_blending(bool enable, BLENDING_FACTOR sfactor, BLENDING_FACTOR dfactor) -> void {

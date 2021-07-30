@@ -13,6 +13,7 @@ GL_VertexArray::~GL_VertexArray() {
 GL_VertexArray::GL_VertexArray(GL_VertexArray&& other) noexcept : m_ID(other.release()) {
 }
 auto GL_VertexArray::bind() const -> void {
+	assert(m_ID != 0);
 	glBindVertexArray(m_ID);
 }
 auto GL_VertexArray::unbind() const -> void {
@@ -20,32 +21,12 @@ auto GL_VertexArray::unbind() const -> void {
 }
 
 
-GL_Shader::GL_Shader(GL_Shader&& other) noexcept : m_ID(other.release()) {
-}
+//GL_Shader::GL_Shader(GL_Shader&& other) noexcept : m_ID(other.release()) {
+//}
 GL_Shader::GL_Shader(const GLenum type)
 	: m_ID(glCreateShader(type)) {
 }
-//GL_Shader::GL_Shader(const GLenum type, const std::string& source_code)
-//	: m_ID(glCreateShader(type)) {
-//	this->set_source(source_code);
-//	this->compile();
-//
-//
-//	GLint is_compiled = GL_FALSE;
-//	glGetShaderiv(m_ID, GL_COMPILE_STATUS, &is_compiled);
-//
-//	if (is_compiled == GL_FALSE) {
-//		GLint max_length;
-//		glGetShaderiv(m_ID, GL_INFO_LOG_LENGTH, &max_length);
-//		GLchar info_log[512];
-//		glGetShaderInfoLog(m_ID, max_length, &max_length, &info_log[0]);
-//		glDeleteShader(m_ID);
-//		std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED" << info_log << std::endl;
-//	} else {
-//		//std::cout << "SUCCE::SHADER::PROGRAM::COMPILATION_SUCCEEDED" << std::endl;
-//	}
-//
-//}
+
 GL_Shader::~GL_Shader() {
 	this->reset();
 }
@@ -104,8 +85,8 @@ auto GL_Shader::get_info_log(GLsizei max_length) -> std::string {
 GL_Program::GL_Program()
 	: m_ID(glCreateProgram()) {
 }
-GL_Program::GL_Program(GL_Program&& other) noexcept : m_ID(other.release()) {
-}
+//GL_Program::GL_Program(GL_Program&& other) noexcept : m_ID(other.release()) {
+//}
 GL_Program::~GL_Program() {
 	this->reset();
 }
@@ -119,6 +100,7 @@ auto GL_Program::reset(GLuint ID) -> void {
 	m_ID = ID;
 }
 auto GL_Program::bind() const -> void {
+	assert(m_ID != 0);
 	glUseProgram(m_ID);
 }
 auto GL_Program::unbind() const -> void {
@@ -158,6 +140,12 @@ auto GL_Program::validate() const -> bool {
 		return true;
 	}
 }
+auto GL_Program::get_uniform_block_index(const char* name) const -> GLuint {
+	return glGetUniformBlockIndex(m_ID, name);
+}
+auto GL_Program::set_uniform_block_binding(GLuint index, GLuint binding_point) const -> void {
+	glUniformBlockBinding(m_ID, index, binding_point);
+}
 auto GL_Program::get_uniform_location(const std::string& name) const -> GLint {
 	GLint location = glGetUniformLocation(m_ID, name.c_str());
 	if (location == -1) {
@@ -174,6 +162,7 @@ auto GL_Program::get_attribute_location(const std::string& name) const -> GLint 
 	}
 	return location;
 }
+
 auto GL_Program::get_info(GLenum pname) const -> GLint {
 	// GL_DELETE_STATUS, GL_LINK_STATUS, GL_VALIDATE_STATUS, GL_INFO_LOG_LENGTH, GL_ATTACHED_SHADERS, GL_ACTIVE_ATTRIBUTES, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, GL_ACTIVE_UNIFORMS, GL_ACTIVE_UNIFORM_MAX_LENGTH.
 	GLint result;
@@ -187,39 +176,39 @@ auto GL_Program::get_info_log(GLsizei max_length) const -> std::string {
 	return result;
 }
 
-//----------------------------
-
-enum class BufferUsage : GLenum {
-	/** Set once by the application and used infrequently for drawing. */
-	STREAM_DRAW = GL_STREAM_DRAW,
-	STREAM_READ = GL_STREAM_READ,
-	STREAM_COPY = GL_STREAM_COPY,
-
-
-	STATIC_DRAW = GL_STATIC_DRAW,
-	STATIC_READ = GL_STATIC_READ,
-	STATIC_COPY = GL_STATIC_COPY,
-
-	DYNAMIC_DRAW = GL_DYNAMIC_DRAW,
-	DYNAMIC_READ = GL_DYNAMIC_READ,
-	DYNAMIC_COPY = GL_DYNAMIC_COPY
-
-};
-enum class TargetHint : GLenum {
-	ARRAY_BUFFER = GL_ARRAY_BUFFER,
-	ATOMIC_COUNTER_BUFFER = GL_ATOMIC_COUNTER_BUFFER,
-	COPY_READ_BUFFER = GL_COPY_READ_BUFFER,
-	COPY_WRITE_BUFFER = GL_COPY_WRITE_BUFFER,
-	DISPATCH_INDIRECT_BUFFER = GL_DISPATCH_INDIRECT_BUFFER,
-	DRAW_INDIRECT_BUFFER = GL_DRAW_INDIRECT_BUFFER,
-	ELEMENT_ARRAY_BUFFER = GL_ELEMENT_ARRAY_BUFFER,
-	PIXEL_PACK_BUFFER = GL_PIXEL_PACK_BUFFER,
-	PIXEL_UNPACK_BUFFER = GL_PIXEL_UNPACK_BUFFER,
-	SHADER_STORAGE_BUFFER = GL_SHADER_STORAGE_BUFFER,
-	TEXTURE_BUFFER = GL_TEXTURE_BUFFER,
-	TRANSFORM_FEEDBACK_BUFFER = GL_TRANSFORM_FEEDBACK_BUFFER,
-	UNIFORM_BUFFER = GL_UNIFORM_BUFFER
-};
+////----------------------------
+//
+//enum class BufferUsage : GLenum {
+//	/** Set once by the application and used infrequently for drawing. */
+//	STREAM_DRAW = GL_STREAM_DRAW,
+//	STREAM_READ = GL_STREAM_READ,
+//	STREAM_COPY = GL_STREAM_COPY,
+//
+//
+//	STATIC_DRAW = GL_STATIC_DRAW,
+//	STATIC_READ = GL_STATIC_READ,
+//	STATIC_COPY = GL_STATIC_COPY,
+//
+//	DYNAMIC_DRAW = GL_DYNAMIC_DRAW,
+//	DYNAMIC_READ = GL_DYNAMIC_READ,
+//	DYNAMIC_COPY = GL_DYNAMIC_COPY
+//
+//};
+//enum class TargetHint : GLenum {
+//	ARRAY_BUFFER = GL_ARRAY_BUFFER,
+//	ATOMIC_COUNTER_BUFFER = GL_ATOMIC_COUNTER_BUFFER,
+//	COPY_READ_BUFFER = GL_COPY_READ_BUFFER,
+//	COPY_WRITE_BUFFER = GL_COPY_WRITE_BUFFER,
+//	DISPATCH_INDIRECT_BUFFER = GL_DISPATCH_INDIRECT_BUFFER,
+//	DRAW_INDIRECT_BUFFER = GL_DRAW_INDIRECT_BUFFER,
+//	ELEMENT_ARRAY_BUFFER = GL_ELEMENT_ARRAY_BUFFER,
+//	PIXEL_PACK_BUFFER = GL_PIXEL_PACK_BUFFER,
+//	PIXEL_UNPACK_BUFFER = GL_PIXEL_UNPACK_BUFFER,
+//	SHADER_STORAGE_BUFFER = GL_SHADER_STORAGE_BUFFER,
+//	TEXTURE_BUFFER = GL_TEXTURE_BUFFER,
+//	TRANSFORM_FEEDBACK_BUFFER = GL_TRANSFORM_FEEDBACK_BUFFER,
+//	UNIFORM_BUFFER = GL_UNIFORM_BUFFER
+//};
 
 
 }	

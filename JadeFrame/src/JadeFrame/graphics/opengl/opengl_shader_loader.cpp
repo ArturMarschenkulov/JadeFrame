@@ -64,7 +64,7 @@ void main() {
 
 	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
-static auto get_default_shader_flat() -> std::tuple<std::string, std::string> {
+static auto get_default_shader_flat_0() -> std::tuple<std::string, std::string> {
 	const GLchar* vertex_shader =
 		R"(
 #version 450 core
@@ -100,6 +100,43 @@ layout (location = 0) out vec4 o_color;
 
 void main() {
 	o_color = f_color;
+}
+	)";
+
+	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
+}
+static auto get_default_shader_flat_0_test_0() -> std::tuple<std::string, std::string> {
+	const GLchar* vertex_shader =
+		R"(
+#version 450 core
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) in vec3 v_position;
+layout (location = 1) in vec4 v_color;
+
+layout(location = 0) out vec4 f_color;
+
+layout(std140, binding = 0)	uniform UniformBufferObject {
+    mat4 view_projection;
+    mat4 model;
+} u_ubo;
+
+void main() {
+	gl_Position = u_ubo.view_projection * u_ubo.model * vec4(v_position, 1.0);
+	f_color = v_color;
+}
+	)";
+	const GLchar* fragment_shader =
+		R"(
+#version 450 core
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) in vec4 f_color;
+
+layout (location = 0) out vec4 o_color;
+
+void main() {
+	o_color = vec4(1.0, 0.0, 0.0, 1.0);
 }
 	)";
 
@@ -284,7 +321,7 @@ void main()
 auto get_glsl_code_by_name(const std::string& name) -> std::tuple<std::string, std::string> {
 	std::tuple<std::string, std::string> shader_tuple;
 	if (name == "flat_0") {
-		shader_tuple = get_default_shader_flat();
+		shader_tuple = get_default_shader_flat_0();
 	} else if (name == "with_texture_0") {
 		shader_tuple = get_default_shader_with_texture();
 	} else if (name == "depth_testing_0") {
@@ -301,7 +338,9 @@ auto get_glsl_code_by_name(const std::string& name) -> std::tuple<std::string, s
 auto GLSLCodeLoader::get_by_name(const std::string& name) -> GLSLCode {
 	std::tuple<std::string, std::string> shader_tuple;
 	if (name == "flat_0") {
-		shader_tuple = get_default_shader_flat();
+		shader_tuple = get_default_shader_flat_0();
+	} else if (name == "flat_0_test_0") {
+		shader_tuple = get_default_shader_flat_0_test_0();
 	} else if (name == "with_texture_0") {
 		shader_tuple = get_default_shader_with_texture();
 	} else if (name == "depth_testing_0") {

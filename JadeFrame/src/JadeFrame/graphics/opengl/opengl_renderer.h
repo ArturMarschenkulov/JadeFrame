@@ -49,7 +49,6 @@ struct Object {
 	Mesh* m_mesh;
 	MaterialHandle* m_material_handle;
 	Matrix4x4 m_transform;
-	//OpenGL_GPUMeshData m_vertex_array;
 	mutable GPUDataMeshHandle m_GPU_mesh_data;
 
 	auto set_color(const Color& color) -> void {
@@ -102,7 +101,7 @@ private:
 	auto render_mesh(const OpenGL_GPUMeshData* buffer_data, const Mesh* mesh) const -> void;
 
 private:
-	OpenGL_Context m_context;
+	OpenGL_Context* m_context;
 	mutable std::deque<OpenGL_RenderCommand> m_render_commands;
 };
 

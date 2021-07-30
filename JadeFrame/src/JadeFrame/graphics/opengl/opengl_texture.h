@@ -8,16 +8,12 @@
 namespace JadeFrame {
 
 class OpenGL_Texture;
-class OpenGL_TextureLoader {
-public:
-	static auto load(const std::string& path, GLenum target, GLenum internalFormat)->OpenGL_Texture;
-};
-
 class OpenGL_Texture {
 public:
 	auto init(u32 width, u32 height, GLenum internalFormat, GLenum format, GLenum type, void* data) -> void;
 	auto resize(u32 width, u32 height, u32 depth) -> void;
 	auto bind() const -> void;
+	auto unbind() const -> void;
 	GL_Texture<GL_TEXTURE_2D> m_texture;
 
 	GLenum m_internal_format = GL_RGBA8;

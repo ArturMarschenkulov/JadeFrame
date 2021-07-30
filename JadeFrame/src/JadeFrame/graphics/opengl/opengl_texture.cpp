@@ -26,50 +26,6 @@ struct STBIImage {
 	unsigned char* data;
 };
 
-auto OpenGL_TextureLoader::load(const std::string& path, GLenum target, const GLenum internal_format) -> OpenGL_Texture {
-
-	STBIImage image(path);
-
-	if (image.data) {
-		GLenum format = static_cast<GLenum>(-1);
-		switch (image.num_components) {
-			case 1: format = GL_RED; break;
-			case 3: format = GL_RGB; break;
-			case 4: format = GL_RGBA; break;
-			default: __debugbreak();
-		}
-		GLenum format_internal = static_cast<GLenum>(-1);
-		switch(internal_format) {
-			case GL_RGBA: format_internal = GL_RGBA8; break;
-			case GL_RGB: format_internal = GL_RGB8; break;
-			default: __debugbreak();
-
-		}
-
-		OpenGL_Texture texture;
-		texture.m_internal_format = format_internal;
-		texture.m_format = format;
-		texture.m_width = image.width;
-		texture.m_height = image.height;
-
-		if (target == GL_TEXTURE_2D) {
-			texture.init(image.width, image.height, internal_format, format, GL_UNSIGNED_BYTE, image.data);
-		} else {
-			__debugbreak();
-		}
-
-
-
-		return texture;
-	} else {
-		std::cout << "Texture failed to load at path: " + path << std::endl;
-		//return texture;
-
-		__debugbreak();
-	}
-
-}
-
 
 
 void OpenGL_Texture::init(u32 width, u32 height, GLenum internal_format, GLenum format, GLenum type, void* data) {
@@ -133,6 +89,9 @@ auto OpenGL_Texture::resize(u32 width, u32 height, u32 depth)-> void {
 
 auto OpenGL_Texture::bind() const -> void {
 	m_texture.bind(0);
+}
+auto OpenGL_Texture::unbind() const -> void {
+	m_texture.unbind();
 }
 
 struct OGLTexture {

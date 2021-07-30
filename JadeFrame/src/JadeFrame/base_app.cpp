@@ -50,8 +50,6 @@ BaseApp::BaseApp(const std::string& title, const Vec2& size, const Vec2& positio
 	m_current_window_p = &m_windows[0];
 	m_main_window_p = &m_windows[0];
 
-
-
 	m_renderer.set_context(m_windows[0]);
 	
 }
@@ -61,7 +59,7 @@ auto BaseApp::start() -> void {
 
 	this->on_init();
 
-	GUI_init(m_current_window_p->m_window_handle);
+	//GUI_init(m_current_window_p->m_window_handle);
 
 	m_time_manager.set_FPS(60);
 	while (m_is_running) {
@@ -72,7 +70,7 @@ auto BaseApp::start() -> void {
 
 			m_renderer.swap_buffer(m_current_window_p->m_window_handle);
 			m_renderer.clear_background();
-			GUI_new_frame();
+			//GUI_new_frame();
 
 
 
@@ -81,7 +79,7 @@ auto BaseApp::start() -> void {
 			m_renderer.render(view_projection);
 
 			
-			GUI_render();
+			//GUI_render();
 
 			m_time_manager.frame_control(time_since_last_frame);
 		}

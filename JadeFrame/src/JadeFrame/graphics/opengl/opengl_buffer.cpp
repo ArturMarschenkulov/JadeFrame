@@ -95,7 +95,7 @@ auto OpenGL_GPUMeshData::set_layout(const BufferLayout& buffer_layout) -> void {
 					buffer_layout.m_stride,
 					(const void*)element.offset //reinterpret_cast<const void*>(element.offset)
 				);
-				vertex_buffer_index++;
+				
 			} break;
 			default:
 			{
@@ -103,6 +103,7 @@ auto OpenGL_GPUMeshData::set_layout(const BufferLayout& buffer_layout) -> void {
 			}
 
 		}
+		vertex_buffer_index++;
 	}
 }
 
@@ -177,8 +178,11 @@ auto OpenGL_GPUMeshData::finalize(const Mesh& mesh, bool interleaved) -> void {
 	if (mesh.m_indices.size() > 0) {
 		m_index_buffer.bind();
 		m_index_buffer.send(mesh.m_indices);
+		
 	}
 
 	m_vertex_array.unbind();
+	m_index_buffer.unbind();
+	m_vertex_buffer.unbind();
 }
 }

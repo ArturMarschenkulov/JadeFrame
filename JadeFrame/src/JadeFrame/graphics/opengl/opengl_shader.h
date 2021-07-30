@@ -47,14 +47,6 @@ private:
 public:
 	auto get_uniform_location(const std::string& name) const->GLint;
 
-	auto set_uniform(const std::string& name, const i32 value) -> void;
-	auto set_uniform(const std::string& name, const f32 value) -> void;
-	auto set_uniform(const std::string& name, const Vec3& value) -> void;
-	auto set_uniform(const std::string& name, const Vec4& value) -> void;
-	auto set_uniform(const std::string& name, const Matrix4x4& mat) -> void;
-
-	auto set_uniform_block(const std::string& name, const std::vector<Matrix4x4>& mat) -> void;
-	auto update_uniforms() -> void;
 private:
 	using GL_ValueVariant =
 		std::variant<
@@ -73,9 +65,6 @@ private:
 private:
 
 	std::unordered_map<std::string, GL_Variable> m_uniforms;
-	//std::unordered_map<std::string, GLuint> m_uniform_buffer_IDs;
-	/*GLuint m_uniform_buffer_ID;*/
-	GL_Buffer<GL_UNIFORM_BUFFER> m_uniform_buffer;
 	std::unordered_map<std::string, GL_Variable> m_attributes;
 };
 }
