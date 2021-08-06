@@ -43,23 +43,27 @@ static auto create_image_views(const VulkanLogicalDevice& device, std::vector<Vk
 	}
 	return swapchain_image_views;
 }
-auto VulkanSwapchain::init(const VulkanLogicalDevice& device) -> void {
+auto VulkanSwapchain::init(
+	const VulkanLogicalDevice& device, 
+	const VulkanPhysicalDevice& physical_device,
+	const VulkanSurface& surface
+) -> void {
 	VkResult result;
 
-	const VulkanPhysicalDevice& pd = *device.m_physical_device_p;
-	const VulkanInstance& instance = *device.m_instance_p;
+	//const VulkanPhysicalDevice& pd = *device.m_physical_device_p;
+	//const VulkanInstance& instance = *device.m_instance_p;
 
-	u32 image_count = pd.m_surface_capabilities.minImageCount + 1;
-	if (pd.m_surface_capabilities.maxImageCount > 0 && image_count > pd.m_surface_capabilities.maxImageCount) {
-		image_count = pd.m_surface_capabilities.maxImageCount;
+	u32 image_count = physical_device.m_surface_capabilities.minImageCount + 1;
+	if (physical_device.m_surface_capabilities.maxImageCount > 0 && image_count > physical_device.m_surface_capabilities.maxImageCount) {
+		image_count = physical_device.m_surface_capabilities.maxImageCount;
 	}
 
-	const VkSurfaceFormatKHR surface_format = pd.choose_swap_surface_format();
-	const VkPresentModeKHR present_mode = pd.choose_swap_present_mode();
-	const VkExtent2D extent = pd.choose_swap_extent();
+	const VkSurfaceFormatKHR surface_format = physical_device.choose_swap_surface_format();
+	const VkPresentModeKHR present_mode = physical_device.choose_swap_present_mode();
+	const VkExtent2D extent = physical_device.choose_swap_extent();
 
-	const QueueFamilyIndices& indices = instance.m_physical_device.m_queue_family_indices;
-	u32 queue_family_indices[] = {
+	const QueueFamilyIndices& indices = physical_device.m_queue_family_indices;
+	const u32 queue_family_indices[] = {
 		indices.m_graphics_family.value(),
 		indices.m_present_family.value()
 	};
@@ -68,7 +72,7 @@ auto VulkanSwapchain::init(const VulkanLogicalDevice& device) -> void {
 	create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	create_info.pNext = nullptr;
 	create_info.flags = 0;
-	create_info.surface = instance.m_surface.m_surface;
+	create_info.surface = surface.m_surface;
 	create_info.minImageCount = image_count;
 	create_info.imageFormat = surface_format.format;
 	create_info.imageColorSpace = surface_format.colorSpace;
@@ -78,7 +82,7 @@ auto VulkanSwapchain::init(const VulkanLogicalDevice& device) -> void {
 	create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	create_info.queueFamilyIndexCount = 0;
 	create_info.pQueueFamilyIndices = nullptr;
-	create_info.preTransform = pd.m_surface_capabilities.currentTransform;
+	create_info.preTransform = physical_device.m_surface_capabilities.currentTransform;
 	create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 	create_info.presentMode = present_mode;
 	create_info.clipped = VK_TRUE;

@@ -141,7 +141,7 @@ struct OGLTexture {
 	}
 
 public:
-	GL_Texture<GL_TEXTURE_2D> m_texture;
+	OGLW_Texture<GL_TEXTURE_2D> m_texture;
 	u32 m_width;
 	u32 m_height;
 	GLenum m_internal_format;

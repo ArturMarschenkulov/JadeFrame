@@ -27,44 +27,54 @@ struct WindowsMessage {
 */
 class Windows_Window {
 public:
-
-	Windows_Window(const Windows_Window&) = delete;
-	Windows_Window(Windows_Window&&) = delete;
-	auto operator=(const Windows_Window&)->Windows_Window & = delete;
-	auto operator=(Windows_Window&&)->Windows_Window & = delete;
-
-	Windows_Window();
-	Windows_Window(const std::string& title, const Vec2& size, const Vec2& position);
-	~Windows_Window();
-
-
-	auto set_title(const std::string& title) -> void;
-
-	auto recreate() const -> void;
-
-private:
-	auto init(const std::string& title, const Vec2& size, const Vec2& position) const -> void;
-	auto deinit() const -> void;
-
-public:
-	mutable HWND m_window_handle;
-
-	mutable std::string m_title;
-	mutable Vec2 m_size;
-	mutable Vec2 m_position;
-	mutable bool has_focus = true;
 	enum class WINDOW_STATE {
 		WINDOWED,
 		MINIMIZED,
 		MAXIMIZED,
-	} m_window_state;
+	};
+	struct DESC {
+		std::string title;
+		Vec2 size;
+		Vec2 position; // NOTE: -1 means randomly chosen by OS
+		//bool is_vsync;
+		WINDOW_STATE window_state = WINDOW_STATE::WINDOWED;
+	};
+	Windows_Window(const Windows_Window&) = delete;
+	Windows_Window(Windows_Window&&) = delete;
+	auto operator=(const Windows_Window&) -> Windows_Window& = delete;
+	auto operator=(Windows_Window&&) -> Windows_Window& = delete;
 
-	//TODO: Consider whether to keep it like this. This is mainly used for recraeting the window, if a graphics api switch happens.
-	mutable enum class GRAPHICS_API {
-		OPENGL,
-		VULKAN,
-	} m_graphics_api;
-	mutable bool m_is_graphics_api_init = false;
+	Windows_Window() = default;
+	Windows_Window(const Windows_Window::DESC& desc);
+	~Windows_Window();
+
+
+
+	auto set_title(const std::string& title) -> void;
+	auto get_title() const -> std::string;
+
+	auto set_size(const Vec2& size) -> void;
+	auto get_size() const -> Vec2;
+
+	auto set_position(const Vec2& position) -> void;
+	auto get_position() const -> Vec2;
+
+	auto set_window_state(const WINDOW_STATE window_state) -> void;
+	auto get_window_state() const -> WINDOW_STATE;
+
+	auto query_client_size() const -> Vec2;
+
+
+
+public:
+	mutable HWND m_window_handle;
+public:
+	std::string m_title;
+	mutable Vec2 m_size;
+	mutable Vec2 m_position;
+	mutable bool has_focus = true;
+
+	WINDOW_STATE m_window_state;
 };
 
 }

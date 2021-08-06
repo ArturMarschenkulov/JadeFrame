@@ -37,9 +37,9 @@ public:
 	auto unbind() const -> void;
 
 private:
-	GL_Program m_program;
-	GL_Shader m_vertex_shader;
-	GL_Shader m_fragment_shader;
+	OGLW_Program m_program;
+	OGLW_Shader m_vertex_shader;
+	OGLW_Shader m_fragment_shader;
 	std::string m_vertex_source;
 	std::string m_fragment_source;
 

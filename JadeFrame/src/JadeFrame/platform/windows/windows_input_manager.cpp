@@ -1,10 +1,11 @@
 #include "windows_input_manager.h"
 
 #include "JadeFrame/base_app.h"
-#include "JadeFrame/gui.h"
+//#include "JadeFrame/gui.h"
 #include <Windows.h>
 #include <windowsx.h>
 #include "windows_window.h" // for WindowMessage struct
+
 #include "JadeFrame/math/vec_2.h"
 
 #include <iostream>

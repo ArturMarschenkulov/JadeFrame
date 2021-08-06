@@ -1,7 +1,7 @@
 #pragma once
 #include "JadeFrame/defines.h"
 #include <glad/glad.h>
-#include "opengl_object.h"
+#include "opengl_wrapper.h"
 
 #include <string>
 
@@ -14,7 +14,7 @@ public:
 	auto resize(u32 width, u32 height, u32 depth) -> void;
 	auto bind() const -> void;
 	auto unbind() const -> void;
-	GL_Texture<GL_TEXTURE_2D> m_texture;
+	OGLW_Texture<GL_TEXTURE_2D> m_texture;
 
 	GLenum m_internal_format = GL_RGBA8;
 	GLenum m_format = GL_RGBA;

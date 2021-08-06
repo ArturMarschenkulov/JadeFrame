@@ -11,8 +11,8 @@ auto Vulkan_Renderer::main_loop() -> void {
 	m_context_p->main_loop();
 }
 
-auto Vulkan_Renderer::swap_buffer(HWND /*window_handle*/) const -> void {
-
+auto Vulkan_Renderer::present() const -> void {
+	m_context_p->m_instance.m_logical_device.draw_frame();
 }
 
 auto Vulkan_Renderer::clear_background() const -> void {

@@ -3,12 +3,10 @@
 #include <string>
 #include <utility>
 #include "JadeFrame/graphics/mesh.h" // For Color
-#include "opengl_object.h" // TODO: FOr SHADER_DATA_TYPE. Maybe move?
+#include "opengl_wrapper.h" // TODO: FOr SHADER_DATA_TYPE. Maybe move?
 
 #include "JadeFrame/platform/windows/windows_window.h"
 
-struct HWND__;
-typedef HWND__* HWND;
 struct HGLRC__;
 typedef HGLRC__* HGLRC;
 struct HDC__;
@@ -67,20 +65,23 @@ public:
 	bool is_face_culling;
 	GLenum face_culling_mode;
 	std::pair<POLYGON_FACE, POLYGON_MODE>  polygon_mode;
+
+public:
+	auto set_viewport(i32 x, i32 y, i32 width, i32 height) -> void;
+	Vec2 viewport[2]; // TODO: Create an appropriate "rectangle" struct!
 };
 class OpenGL_Context {
 public:
 	OpenGL_Context() = default;
 	OpenGL_Context(const Windows_Window& window);
 	~OpenGL_Context();
-
-
 public:
-	GL_Cache m_cache;
 
-	HWND m_window_handle;
-	HDC m_device_context;
+	HDC m_device_context; // NOTE: Windows specific!
 	HGLRC m_render_context;
+
+	mutable GL_Cache m_cache;
+
 
 	std::string vendor;
 	std::string renderer;
@@ -93,8 +94,6 @@ public:
 
 	GLint m_max_uniform_buffer_binding_points;
 
-	std::vector<GL_Buffer<GL_UNIFORM_BUFFER>> m_uniform_buffers;
-	//GL_Buffer<GL_UNIFORM_BUFFER>* m_uniform_buffer = nullptr;
-
+	std::vector<OGLW_Buffer<GL_UNIFORM_BUFFER>> m_uniform_buffers;
 };
 }

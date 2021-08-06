@@ -107,7 +107,7 @@ auto OpenGL_GPUMeshData::set_layout(const BufferLayout& buffer_layout) -> void {
 	}
 }
 
-static auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::vector<f32> {
+static auto convert_into_data(const Mesh& mesh, const bool interleaved, bool with_color = true) -> std::vector<f32> {
 	//assert(mesh.m_positions.size() == mesh.m_normals.size());
 	const u64 size
 		= mesh.m_positions.size() * 3
@@ -159,21 +159,21 @@ static auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::
 	return data;
 }
 
-auto OpenGL_GPUMeshData::finalize(const Mesh& mesh, bool interleaved) -> void {
+auto OpenGL_GPUMeshData::finalize(const Mesh& mesh, BufferLayout buffer_layout, bool interleaved) -> void {
 	const std::vector<f32> data = convert_into_data(mesh, interleaved);
 	m_vertex_buffer.bind();
 	m_vertex_buffer.send(data);
 
 
 	//NOTE: the layout names don't do much right now
-	const BufferLayout layout = {
-		{ SHADER_TYPE::FLOAT_3, "v_position" },
-		{ SHADER_TYPE::FLOAT_4, "v_color" },
-		{ SHADER_TYPE::FLOAT_2, "v_texture_coord" },
-		{ SHADER_TYPE::FLOAT_3, "v_normal" },
-	};
+	//const BufferLayout layout = {
+	//	{ SHADER_TYPE::FLOAT_3, "v_position" },
+	//	{ SHADER_TYPE::FLOAT_4, "v_color" },
+	//	{ SHADER_TYPE::FLOAT_2, "v_texture_coord" },
+	//	{ SHADER_TYPE::FLOAT_3, "v_normal" },
+	//};
 	m_vertex_array.bind();
-	this->set_layout(layout);
+	this->set_layout(buffer_layout);
 
 	if (mesh.m_indices.size() > 0) {
 		m_index_buffer.bind();

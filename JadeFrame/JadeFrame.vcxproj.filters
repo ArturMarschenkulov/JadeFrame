@@ -411,7 +411,7 @@
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_object.h">
+    <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_wrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_shader_loader.h">
@@ -620,7 +620,7 @@
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_shader_loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_object.cpp">
+    <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_wrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_debug.cpp">

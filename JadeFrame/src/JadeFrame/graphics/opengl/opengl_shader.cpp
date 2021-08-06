@@ -123,7 +123,7 @@ auto OpenGL_Shader::get_uniform_location(const std::string& name) const -> GLint
 	return -1;
 }
 
-#include "opengl_object.h"
+#include "opengl_wrapper.h"
 
 auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::unordered_map<std::string, GL_Variable> {
 	// variable_type = GL_ACTIVE_UNIFORMS | GL_ACTIVE_ATTRIBUTES

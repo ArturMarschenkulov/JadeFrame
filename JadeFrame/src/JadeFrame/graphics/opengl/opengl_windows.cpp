@@ -102,13 +102,9 @@ auto wgl_load() -> bool {
 		instance,
 		NULL
 	);
-	if (window_handle == NULL) {
-		__debugbreak();
-	}
+	if (window_handle == NULL) __debugbreak();
 	const HDC device_context = GetDC(window_handle);
-	if (device_context == NULL) {
-		__debugbreak();
-	}
+	if (device_context == NULL) __debugbreak();
 
 	//dummy_window.set_pixel_format();
 	PIXELFORMATDESCRIPTOR desired_pixel_format;
@@ -189,7 +185,7 @@ auto wgl_set_pixel_format(const HDC& device_context) -> void {
 }
 
 auto wgl_create_render_context(HDC device_context) -> HGLRC {
-	const i32 major_min = 4, minor_min = 6;
+	const i32 major_min = 4, minor_min = 6;	
 	i32  context_attributes[] = {
 		WGL_CONTEXT_MAJOR_VERSION_ARB, major_min,
 		WGL_CONTEXT_MINOR_VERSION_ARB, minor_min,

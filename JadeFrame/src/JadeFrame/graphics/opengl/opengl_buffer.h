@@ -1,10 +1,9 @@
 #pragma once
 #include <glad/glad.h>
 
-#include "opengl_object.h"
+#include "opengl_wrapper.h"
 
 #include "JadeFrame/graphics/mesh.h"
-#include "opengl_object.h"
 
 #include <cstdint>
 #include <string>
@@ -49,11 +48,11 @@ public:
 
 class OpenGL_GPUMeshData {
 public:
-	OpenGL_GPUMeshData(const Mesh& mesh, bool interleaved = true)
+	OpenGL_GPUMeshData(const Mesh& mesh, BufferLayout buffer_layout, bool interleaved = true)
 		: m_vertex_buffer()
 		, m_vertex_array()
 		, m_index_buffer() {
-		this->finalize(mesh, interleaved);
+		this->finalize(mesh, buffer_layout, interleaved);
 	}
 	auto bind() const -> void {
 
@@ -61,11 +60,11 @@ public:
 	}	
 	auto set_layout(const BufferLayout& buffer_layout) -> void;
 private:
-	auto finalize(const Mesh& mesh, bool interleaved = true) -> void;
+	auto finalize(const Mesh& mesh, BufferLayout buffer_layout, bool interleaved = true) -> void;
 public://private:
-	GL_Buffer<GL_ARRAY_BUFFER> m_vertex_buffer;
-	GL_VertexArray m_vertex_array;
-	GL_Buffer<GL_ELEMENT_ARRAY_BUFFER> m_index_buffer;
+	OGLW_Buffer<GL_ARRAY_BUFFER> m_vertex_buffer;
+	OGLW_VertexArray m_vertex_array;
+	OGLW_Buffer<GL_ELEMENT_ARRAY_BUFFER> m_index_buffer;
 	BufferLayout m_buffer_layout;
 };
 }

@@ -81,6 +81,7 @@ auto VertexDataFactory::make_rectangle(const Vec3& pos, const Vec3& size) -> Ver
 	vertex_data.normals[03] = { +0.0f, +0.0f, +1.0f };
 	vertex_data.normals[04] = { +0.0f, +0.0f, +1.0f };
 	vertex_data.normals[05] = { +0.0f, +0.0f, +1.0f };
+
 	return vertex_data;
 
 

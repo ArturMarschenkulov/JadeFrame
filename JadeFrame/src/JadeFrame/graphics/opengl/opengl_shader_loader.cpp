@@ -25,6 +25,45 @@ namespace JadeFrame {
 
 */
 
+
+static auto get_shader_framebuffer_test_0() {
+
+	const GLchar* vertex_shader =
+		R"(
+#version 450 core
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (location = 0) in vec3 v_position;
+layout (location = 1) in vec4 v_color;
+layout (location = 2) in vec2 v_texture_coordinate;
+layout (location = 3) in vec3 v_normal;
+
+layout(location = 0) out vec2 f_texture_coordinate;
+
+void main() {
+	gl_Position = vec4(v_position.x, v_position.y, 0.0, 1.0);
+	f_texture_coordinate = v_texture_coordinate;
+}
+	)";
+	const GLchar* fragment_shader =
+		R"(
+#version 450 core
+#extension GL_ARB_separate_shader_objects : enable
+
+
+layout(location = 0) in vec2 f_texture_coordinate;
+
+out vec4 o_color;
+
+uniform sampler2D u_screen_texture;
+
+void main() {
+	o_color = texture(u_screen_texture,  f_texture_coordinate);
+}
+	)";
+
+	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
+}
 static auto get_shader_spirv_test_0() -> std::tuple<std::string, std::string> {
 	static const char* vertex_shader =
 		R"(
@@ -351,6 +390,8 @@ auto GLSLCodeLoader::get_by_name(const std::string& name) -> GLSLCode {
 		shader_tuple = get_default_shader_light_client();
 	} else if (name == "spirv_test_0") {
 		shader_tuple = get_shader_spirv_test_0();
+	} else if (name == "framebuffer_test") {
+		shader_tuple = get_shader_framebuffer_test_0();
 	}
 
 	auto [vs, fs] = shader_tuple;

@@ -84,7 +84,7 @@ auto VulkanLogicalDevice::create_command_buffers(
 }
 
 auto VulkanLogicalDevice::draw_into_command_buffers(
-	const VulkanRenderPass& render_pass, 
+	const VulkanRenderPass& render_pass,
 	const VulkanSwapchain& swapchain,
 	const VulkanPipeline& pipeline,
 	const VulkanDescriptorSets& descriptor_sets,
@@ -104,34 +104,34 @@ auto VulkanLogicalDevice::draw_into_command_buffers(
 		};
 		result = vkBeginCommandBuffer(m_command_buffers[i], &begin_info);
 		if (result != VK_SUCCESS) __debugbreak();
-
-		const VkClearValue clear_color = { 0.0f, 0.0f, 0.0f, 1.0f };
-		const VkRenderPassBeginInfo render_pass_info = {
-			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-			.renderPass = render_pass.m_handle,
-			.framebuffer = swapchain.m_framebuffers[i],
-			.renderArea = {
-				.offset = {0, 0},
-				.extent = swapchain.m_extent
-			},
-			.clearValueCount = 1,
-			.pClearValues = &clear_color,
-		};
-
-		vkCmdBeginRenderPass(m_command_buffers[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
 		{
-			vkCmdBindPipeline(m_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_graphics_pipeline);
-			VkBuffer vertex_buffers[] = { vertex_buffer.m_buffer };
-			VkDeviceSize offsets[] = { 0 };
-			vkCmdBindVertexBuffers(m_command_buffers[i], 0, 1, vertex_buffers, offsets);
-			//vkCmdDraw(m_command_buffers[i], static_cast<u32>(g_vertices.size()), 1, 0, 0);
+			const VkClearValue clear_color = { 0.0f, 0.0f, 0.0f, 1.0f };
+			const VkRenderPassBeginInfo render_pass_info = {
+				.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+				.renderPass = render_pass.m_handle,
+				.framebuffer = swapchain.m_framebuffers[i],
+				.renderArea = {
+					.offset = {0, 0},
+					.extent = swapchain.m_extent
+				},
+				.clearValueCount = 1,
+				.pClearValues = &clear_color,
+			};
 
-			vkCmdBindIndexBuffer(m_command_buffers[i], index_buffer.m_buffer, 0, VK_INDEX_TYPE_UINT16);
-			vkCmdBindDescriptorSets(m_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_pipeline_layout, 0, 1, &descriptor_sets.m_descriptor_sets[i], 0, nullptr);
-			vkCmdDrawIndexed(m_command_buffers[i], indices.size(), 1, 0, 0, 0);
+			vkCmdBeginRenderPass(m_command_buffers[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+			{
+				vkCmdBindPipeline(m_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_graphics_pipeline);
+				VkBuffer vertex_buffers[] = { vertex_buffer.m_buffer };
+				VkDeviceSize offsets[] = { 0 };
+				vkCmdBindVertexBuffers(m_command_buffers[i], 0, 1, vertex_buffers, offsets);
+				//vkCmdDraw(m_command_buffers[i], static_cast<u32>(g_vertices.size()), 1, 0, 0);
+
+				vkCmdBindIndexBuffer(m_command_buffers[i], index_buffer.m_buffer, 0, VK_INDEX_TYPE_UINT16);
+				vkCmdBindDescriptorSets(m_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_pipeline_layout, 0, 1, &descriptor_sets.m_descriptor_sets[i], 0, nullptr);
+				vkCmdDrawIndexed(m_command_buffers[i], indices.size(), 1, 0, 0, 0);
+			}
+			vkCmdEndRenderPass(m_command_buffers[i]);
 		}
-		vkCmdEndRenderPass(m_command_buffers[i]);
-
 		result = vkEndCommandBuffer(m_command_buffers[i]);
 		if (result != VK_SUCCESS) __debugbreak();
 	}
@@ -171,6 +171,8 @@ auto VulkanLogicalDevice::create_sync_objects() -> void {
 }
 
 auto VulkanLogicalDevice::recreate_swapchain() -> void {
+
+#if 0
 	VkResult result;
 	RECT area;
 	GetClientRect(m_instance_p->m_window_handle, &area);
@@ -186,7 +188,7 @@ auto VulkanLogicalDevice::recreate_swapchain() -> void {
 	m_render_pass.deinit();
 	m_swapchain.deinit();
 
-	m_swapchain.init(*this);
+	m_swapchain.init(*this, *m_physical_device_p, m_instance_p->m_surface);
 	m_render_pass.init(*this, m_swapchain.m_image_format);
 	m_pipeline.init(*this, m_swapchain, m_descriptor_set_layout, m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
 	m_swapchain.create_framebuffers(m_render_pass.m_handle);
@@ -202,13 +204,23 @@ auto VulkanLogicalDevice::recreate_swapchain() -> void {
 
 	this->create_command_buffers(m_command_pool, m_swapchain);
 	this->draw_into_command_buffers(
-		m_render_pass, m_swapchain, m_pipeline, 
-		m_descriptor_sets, 
-		m_vertex_buffer, 
+		m_render_pass, m_swapchain, m_pipeline,
+		m_descriptor_sets,
+		m_vertex_buffer,
 		m_index_buffer,
 		g_indices
 	);
 	m_images_in_flight.resize(m_swapchain.m_images.size(), VK_NULL_HANDLE);
+#else
+	m_swapchain.deinit();
+
+
+	m_swapchain.init(*this, *m_physical_device_p, m_instance_p->m_surface);
+	m_render_pass.init(*this, m_swapchain.m_image_format);
+	m_pipeline.init(*this, m_swapchain, m_descriptor_set_layout, m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
+	m_swapchain.create_framebuffers(m_render_pass.m_handle);
+	m_images_in_flight.resize(m_swapchain.m_images.size(), VK_NULL_HANDLE);
+#endif
 }
 auto VulkanLogicalDevice::cleanup_swapchain() -> void {
 	for (auto framebuffer : m_swapchain.m_framebuffers) {
@@ -385,7 +397,7 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance) -> void {
 	m_instance_p = &instance;
 
 
-	m_swapchain.init(*this);
+	m_swapchain.init(*this, *m_physical_device_p, m_instance_p->m_surface);
 	m_render_pass.init(*this, m_swapchain.m_image_format);
 
 	m_descriptor_set_layout.init(*this);
@@ -414,11 +426,11 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance) -> void {
 
 	this->create_command_buffers(m_command_pool, m_swapchain);
 	this->draw_into_command_buffers(
-		m_render_pass, 
+		m_render_pass,
 		m_swapchain,
 		m_pipeline,
-		m_descriptor_sets, 
-		m_vertex_buffer, 
+		m_descriptor_sets,
+		m_vertex_buffer,
 		m_index_buffer,
 		g_indices
 	);

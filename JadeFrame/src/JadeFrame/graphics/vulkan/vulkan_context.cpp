@@ -60,14 +60,9 @@ static auto vulkan_get_device_type_string(const VkPhysicalDeviceType& device_typ
 
 
 Vulkan_Context::Vulkan_Context(const Windows_Window& window) {
-	if (window.m_is_graphics_api_init == true) {
-		if (window.m_graphics_api != Windows_Window::GRAPHICS_API::VULKAN) {
-			window.recreate();
-		}
-	}
 	m_window_handle = window.m_window_handle;
 	m_instance.init(window.m_window_handle);
-	window.m_graphics_api = Windows_Window::GRAPHICS_API::VULKAN;
+
 	this->main_loop();
 }
 

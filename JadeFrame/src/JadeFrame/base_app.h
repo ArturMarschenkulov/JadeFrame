@@ -8,15 +8,12 @@
 #endif
 
 #include "graphics/material_handle.h"
-
-#include <deque>
-
 #include "graphics/camera.h"
-#include <map>
 #include "graphics/opengl/opengl_renderer.h"
 #include "graphics/vulkan/vulkan_renderer.h"
 
-
+#include <deque>
+#include <map>
 
 namespace JadeFrame {
 
@@ -25,8 +22,8 @@ using SystemManager = Windows_SystemManager;
 using TimeManager = Windows_TimeManager;
 using InputManager = Windows_InputManager;
 #endif 
-using Window = Windows_Window;
-using Renderer = OpenGL_Renderer;
+//using Window = Windows_Window;
+//using Renderer = OpenGL_Renderer;
 
 /*
 	The struct JadeFrame should act more or less like the ultimate global scope of JadeFrame.
@@ -151,14 +148,14 @@ public:
 	//Window stuff
 	i32 m_window_counter = 0;
 	using WindowID = i32;
-	std::map<WindowID, Window> m_windows;
-	Window* m_main_window_p = nullptr;
-	Window* m_current_window_p = nullptr;
+	std::map<WindowID, Windows_Window> m_windows;
+	Windows_Window* m_main_window_p = nullptr;
+	Windows_Window* m_current_window_p = nullptr;
 
 
 	BaseApp* m_current_app_p = nullptr;
 
-	Renderer m_renderer;
+	OpenGL_Renderer* m_renderer;
 	Vulkan_Renderer m_vulkan_renderer;
 	Camera1 m_camera;
 

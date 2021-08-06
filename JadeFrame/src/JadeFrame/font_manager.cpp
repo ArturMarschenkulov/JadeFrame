@@ -44,7 +44,7 @@ auto FontManager::init() -> void {
 	if (error_code != 0) {
 		std::cout << "problem with FT_Load_Char" << std::endl;
 	}
-	GL_Texture<GL_TEXTURE_2D> tex;
+	OGLW_Texture<GL_TEXTURE_2D> tex;
 	tex.bind(0);
 	tex.set_texture_image_2D(
 		0,

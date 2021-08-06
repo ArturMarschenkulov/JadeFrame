@@ -9,7 +9,7 @@ namespace JadeFrame {
 struct Drop {
 	Drop() {
 		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
-		const f32 window_width = app->m_main_window_p->m_size.x;
+		const f32 window_width = app->m_main_window_p->get_size().x;
 
 		x = static_cast<f32>(get_random_number(0, window_width));
 		const f32 rando = static_cast<f32>(get_random_number(1, 30));
@@ -25,14 +25,14 @@ struct Drop {
 	auto fall() -> void {
 		y = y + y_speed;
 		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 80.0f, 1.0f }) * Matrix4x4::translation_matrix({ x, y, 0.0f });
-		const f32 window_height = JadeFrameInstance::get_singleton()->m_current_app_p->m_main_window_p->m_size.y;
+		const f32 window_height = JadeFrameInstance::get_singleton()->m_current_app_p->m_main_window_p->get_size().y;
 		if (y >= window_height) {
 			y = -100;
 		}
 	}
 	auto show() const -> void {
-		Renderer& renderer = JadeFrameInstance::get_singleton()->m_apps[0]->m_renderer;
-		renderer.submit(obj);
+		OpenGL_Renderer* renderer = JadeFrameInstance::get_singleton()->m_apps[0]->m_renderer;
+		renderer->submit(obj);
 	}
 	Object obj = {};
 	f32 x = 10;
@@ -40,10 +40,31 @@ struct Drop {
 	f32 y_speed = 1;
 };
 
+struct Checkerbox {
+	Checkerbox(f32 size, Vec2 pos) {
+		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
+		const f32 window_width = app->m_main_window_p->get_size().x;
+		x = pos.x;
+		y = pos.y;
+		obj.m_transform = Matrix4x4::scale_matrix({ size, size, 1.0f }) * Matrix4x4::translation_matrix({ pos.x, pos.y, 0.0f });
+		app->m_resources.get_mesh("rectangle").set_color({ 138_u8, 43_u8, 226_u8, 255_u8 });
+		obj.m_mesh = &app->m_resources.get_mesh("rectangle");
+		obj.m_material_handle = &app->m_resources.get_material_handle("flat_color_mat");
+
+	}
+	auto show() const -> void {
+		OpenGL_Renderer* renderer = JadeFrameInstance::get_singleton()->m_apps[0]->m_renderer;
+		renderer->submit(obj);
+	}
+	Object obj = {};
+	f32 x = 10;
+	f32 y = 10;
+};
+
 struct Thingy {
 	Thingy() {
 		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
-		const f32 window_width = app->m_main_window_p->m_size.x;
+		const f32 window_width = app->m_main_window_p->get_size().x;
 
 		pos.x = static_cast<f32>(get_random_number(0, window_width));
 
@@ -60,9 +81,6 @@ struct Thingy {
 		Vec2 mp = im.get_mouse_position();
 
 		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 10.0f, 1.0f }) * Matrix4x4::translation_matrix({ mp.x, mp.y, 0.0f });
-		//app->m_resources.get_mesh("rectangle").set_color({ 138_u8, 43_u8, 226_u8, 255_u8 });
-		//obj.m_mesh = &app->m_resources.get_mesh("rectangle_1");
-		//obj.m_material_handle = &app->m_resources.get_material_handle("flat_color_mat_test_0");
 	}
 
 	Object obj = {};
@@ -81,6 +99,7 @@ struct Example_0 : public BaseApp {
 public:
 	std::deque<Drop> drops;
 	std::deque<Thingy> thingies;
+	std::deque<Checkerbox> m_checkerbox;
 };
 
 
@@ -92,10 +111,10 @@ Example_0::Example_0(const std::string& title, const Vec2& size, const Vec2& pos
 }
 
 auto Example_0::on_init() -> void {
-	m_renderer.set_clear_color({ 230_u8, 230_u8, 250_u8, 253_u8 });
+	m_renderer->set_clear_color({ 230_u8, 230_u8, 250_u8, 253_u8 });
 
 	// Set Up Camera
-	m_camera.othographic_mode(0, m_windows[0].m_size.x, m_windows[0].m_size.y, 0, -1, 1);
+	m_camera.othographic_mode(0, m_windows[0].get_size().x, m_windows[0].get_size().y, 0, -1, 1);
 
 	// Load Resources
 	{
@@ -104,9 +123,11 @@ auto Example_0::on_init() -> void {
 
 		m_resources.set_shader_handle("flat_shader_0", ShaderHandle(GLSLCodeLoader::get_by_name("flat_0")));
 		m_resources.set_shader_handle("flat_shader_0_test_0", ShaderHandle(GLSLCodeLoader::get_by_name("flat_0_test_0")));
-		
+		m_resources.set_shader_handle("framebuffer_shader_0", ShaderHandle(GLSLCodeLoader::get_by_name("framebuffer_test")));
+
 		m_resources.set_material_handle("flat_color_mat", "flat_shader_0", "wall");
 		m_resources.set_material_handle("flat_color_mat_test_0", "flat_shader_0_test_0", "wall");
+		m_resources.set_material_handle("framebuffer_mat", "framebuffer_shader_0", "wall");
 
 		Mesh rectangle_mesh;
 		rectangle_mesh.add_to_data(VertexDataFactory::make_rectangle({ 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }));
@@ -118,11 +139,25 @@ auto Example_0::on_init() -> void {
 
 
 		thingies.emplace_back();
-		for (u32 i = 0; i < 100; i++) {
+		for (u32 i = 0; i < 2; i++) {
 			drops.emplace_back();
 		}
 
+		{
+			const i32 amount = 10;
+			const i32 size = 30;
+			for (u32 i = 0; i < amount; i++) {
+				for (u32 j = 0; j < amount; j++) {
+					if ((i + j) % 2 == 0) {
+						m_checkerbox.emplace_back(size, Vec2(i * size, j * size));
+					}
+				}
+			}
+		}
+
 	}
+
+	m_resources.get_shader_handle("framebuffer_shader_0");
 }
 auto Example_0::on_update() -> void {
 	m_camera.control();
@@ -135,15 +170,18 @@ auto Example_0::on_update() -> void {
 
 	if (JadeFrameInstance::get_singleton()->m_input_manager.is_key_released(KEY::P)) {
 		//std::thread t(&Renderer::take_screenshot, &m_renderer);
-		m_renderer.take_screenshot("im.png");
+		m_renderer->take_screenshot("im.png");
 	}
 }
 auto Example_0::on_draw() -> void {
 
 	for (u32 i = 0; i < drops.size(); i++) {
-		m_renderer.submit(drops[i].obj);
+		m_renderer->submit(drops[i].obj);
 	}
-	m_renderer.submit(thingies[0].obj);
+	for (u32 i = 0; i < m_checkerbox.size(); i++) {
+		m_renderer->submit(m_checkerbox[i].obj);
+	}
+	m_renderer->submit(thingies[0].obj);
 
 	//draw_GUI(*this);
 }

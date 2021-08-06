@@ -10,10 +10,16 @@ namespace JadeFrame {
 
 class VulkanLogicalDevice;
 class VulkanInstance;
+class VulkanPhysicalDevice;
+class VulkanSurface;
 
 class VulkanSwapchain {
 public:
-	auto init(const VulkanLogicalDevice& device) -> void;
+	auto init(
+		const VulkanLogicalDevice& device, 
+		const VulkanPhysicalDevice& physical_device,
+		const VulkanSurface& surface
+	) -> void;
 	auto deinit() -> void;
 	auto create_framebuffers(const VkRenderPass& render_pass) -> void;
 	VkSwapchainKHR m_handle = VK_NULL_HANDLE;

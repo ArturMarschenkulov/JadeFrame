@@ -102,76 +102,76 @@ auto VulkanLogicalDevice::create_image(u32 width, u32 height, VkFormat format, V
 }
 auto VulkanLogicalDevice::transition_image_layout(VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout) -> void {
 	VkCommandBuffer command_buffer = this->begin_single_time_commands();
+	{
+		VkImageMemoryBarrier barrier = {
+			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+			.oldLayout = old_layout,
+			.newLayout = new_layout,
+			.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+			.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+			.image = image,
+			.subresourceRange = {
+				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+				.baseMipLevel = 0,
+				.levelCount = 1,
+				.baseArrayLayer = 0,
+				.layerCount = 1
+			},
+		};
 
-	VkImageMemoryBarrier barrier = {
-		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-		.oldLayout = old_layout,
-		.newLayout = new_layout,
-		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-		.image = image,
-		.subresourceRange = {
-			.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-			.baseMipLevel = 0,
-			.levelCount = 1,
-			.baseArrayLayer = 0,
-			.layerCount = 1
-		},
-	};
+		VkPipelineStageFlags source_stage;
+		VkPipelineStageFlags destination_stage;
 
-	VkPipelineStageFlags source_stage;
-	VkPipelineStageFlags destination_stage;
+		if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED && new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
-	if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED && new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-		barrier.srcAccessMask = 0;
-		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		} else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-		source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-		destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-	} else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			destination_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		} else {
+			__debugbreak();
+		}
 
-		source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-		destination_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	} else {
-		__debugbreak();
+		vkCmdPipelineBarrier(
+			command_buffer,
+			source_stage, destination_stage,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier
+		);
 	}
-
-	vkCmdPipelineBarrier(
-		command_buffer,
-		source_stage, destination_stage,
-		0,
-		0, nullptr,
-		0, nullptr,
-		1, &barrier
-	);
-
 	this->end_single_time_commands(command_buffer);
 }
 auto VulkanLogicalDevice::copy_buffer_to_image(VkBuffer buffer, VkImage image, u32 width, u32 height) -> void {
 	VkCommandBuffer command_buffer = this->begin_single_time_commands();
+	{
+		const VkBufferImageCopy region = {
+			.bufferOffset = 0,
+			.bufferRowLength = 0,
+			.bufferImageHeight = 0,
+			.imageSubresource = {
+				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+				.mipLevel = 0,
+				.baseArrayLayer = 0,
+				.layerCount = 1
+			},
+			.imageOffset = { 0, 0, 0 },
+			.imageExtent = {
+				width,
+				height,
+				1
+			},
+		};
 
-	const VkBufferImageCopy region{
-		.bufferOffset = 0,
-		.bufferRowLength = 0,
-		.bufferImageHeight = 0,
-		.imageSubresource = {
-			.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-			.mipLevel = 0,
-			.baseArrayLayer = 0,
-			.layerCount = 1
-		},
-		.imageOffset = { 0, 0, 0 },
-		.imageExtent = {
-			width,
-			height,
-			1
-		},
-	};
-
-	vkCmdCopyBufferToImage(command_buffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-
+		vkCmdCopyBufferToImage(command_buffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+	}
 	this->end_single_time_commands(command_buffer);
 }
 

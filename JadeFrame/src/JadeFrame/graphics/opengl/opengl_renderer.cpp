@@ -14,19 +14,57 @@
 namespace JadeFrame {
 
 auto OpenGL_Renderer::set_clear_color(const Color& color) -> void {
-	m_context->m_cache.set_clear_color(color);
+	m_context.m_cache.set_clear_color(color);
 }
 
 auto OpenGL_Renderer::clear_background() const -> void {
-	auto bitfield = m_context->m_cache.clear_bitfield;
+	auto bitfield = m_context.m_cache.clear_bitfield;
 	glClear(bitfield);
 }
 auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void {
-	glViewport(x, y, width, height);
+	m_context.m_cache.set_viewport(x, y, width, height);
+
+	//__debugbreak();
 }
 
-auto OpenGL_Renderer::swap_buffer(const HWND window_handle) const -> void {
-	::SwapBuffers(GetDC(window_handle)); // TODO: This is Windows specific. Abstract his away!
+OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window)
+	: m_context(window) {
+
+	m_framebuffer.bind();
+
+	const Vec2 size = m_context.m_cache.viewport[1];
+	m_framebuffer_texture.bind(0);
+
+	m_framebuffer_texture.set_texture_image_2D(0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	m_framebuffer.attach_texture_2D(m_framebuffer_texture);
+
+	m_framebuffer_renderbuffer.bind();
+	m_framebuffer_renderbuffer.store(GL_DEPTH24_STENCIL8, size.x, size.y);
+	m_framebuffer.attach_renderbuffer(m_framebuffer_renderbuffer);
+
+	m_framebuffer.unbind();
+
+	const GLenum res = m_framebuffer.check_status();
+	if (res != GL_FRAMEBUFFER_COMPLETE) __debugbreak();
+
+	BufferLayout bl = {
+			{ SHADER_TYPE::FLOAT_3, "v_position" },
+			{ SHADER_TYPE::FLOAT_4, "v_color" },
+			{ SHADER_TYPE::FLOAT_2, "v_texture_coord" },
+			{ SHADER_TYPE::FLOAT_3, "v_normal" },
+	};
+	m_framebuffer_rect = new OpenGL_GPUMeshData(VertexDataFactory::make_rectangle({ -1.0f, -1.0f, 0.0f }, { 2.0f, 2.0f, 0.0f }), bl);
+
+	m_shader_handle_fb = new ShaderHandle(GLSLCodeLoader::get_by_name("framebuffer_test"));
+	m_shader_handle_fb->init();
+}
+
+auto OpenGL_Renderer::present() const -> void {
+	::SwapBuffers(m_context.m_device_context); // TODO: This is Windows specific. Abstract his away!
 }
 auto OpenGL_Renderer::submit(const Object& obj) -> void {
 
@@ -34,7 +72,13 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
 		//obj.m_GPU_mesh_data.m_handle = new OpenGL_GPUMeshData();
 		//static_cast<OpenGL_GPUMeshData*>(obj.m_GPU_mesh_data.m_handle)->finalize(*obj.m_mesh);
 
-		obj.m_GPU_mesh_data.m_handle = new OpenGL_GPUMeshData(*obj.m_mesh);
+		const BufferLayout bl = {
+			{ SHADER_TYPE::FLOAT_3, "v_position" },
+			{ SHADER_TYPE::FLOAT_4, "v_color" },
+			{ SHADER_TYPE::FLOAT_2, "v_texture_coord" },
+			{ SHADER_TYPE::FLOAT_3, "v_normal" },
+		};
+		obj.m_GPU_mesh_data.m_handle = new OpenGL_GPUMeshData(*obj.m_mesh, bl);
 		obj.m_GPU_mesh_data.m_is_initialized = true;
 	}
 	if (obj.m_material_handle->m_is_initialized == false) {
@@ -54,24 +98,22 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
 
 
 auto OpenGL_Renderer::render(const Matrix4x4& view_projection) const -> void {
+#define JF_FB 1
+#if JF_FB
+	m_framebuffer.bind();
+#endif
+
+	this->clear_background();
 	for (size_t i = 0; i < m_render_commands.size(); ++i) {
-
-		const OpenGL_GPUMeshData* vertex_array = static_cast<OpenGL_GPUMeshData*>(m_render_commands[i].m_GPU_mesh_data->m_handle);
-		vertex_array->bind();
-		vertex_array->m_vertex_array.bind();
-		vertex_array->m_vertex_buffer.bind();
-		vertex_array->m_index_buffer.bind();
-
-
 
 		OpenGL_Shader& shader = *static_cast<OpenGL_Shader*>	(m_render_commands[i].material_handle->m_shader_handle->m_handle);
 		shader.bind();
 
 		const Matrix4x4& transform = *m_render_commands[i].transform;
 		const std::vector<Matrix4x4>& u = { view_projection , transform };
-		m_context->m_uniform_buffers[0].bind();
-		m_context->m_uniform_buffers[0].send(u);
-		m_context->m_uniform_buffers[0].unbind();
+		m_context.m_uniform_buffers[0].bind();
+		m_context.m_uniform_buffers[0].send(u);
+		m_context.m_uniform_buffers[0].unbind();
 
 		OpenGL_Texture& texture = *static_cast<OpenGL_Texture*>	(m_render_commands[i].material_handle->m_texture_handle->m_handle);
 		texture.bind();
@@ -79,13 +121,23 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) const -> void {
 
 		const Mesh* mesh = m_render_commands[i].mesh;
 
+		const OpenGL_GPUMeshData* vertex_array = static_cast<OpenGL_GPUMeshData*>(m_render_commands[i].m_GPU_mesh_data->m_handle);
 		this->render_mesh(vertex_array, mesh);
 	}
+#if JF_FB
+	m_framebuffer.unbind();
+	static_cast<OpenGL_Shader*>(m_shader_handle_fb->m_handle)->bind();
+	m_framebuffer_texture.bind(0);
+	m_framebuffer_rect->m_vertex_array.bind();
+	m_context.m_cache.set_depth_test(false);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_context.m_cache.set_depth_test(true);
+#endif
 	m_render_commands.clear();
 }
 
 auto OpenGL_Renderer::render_mesh(const OpenGL_GPUMeshData* vertex_array, const Mesh* mesh) const -> void {
-	//vertex_array->bind();
+	vertex_array->bind();
 
 	if (mesh->m_indices.size() > 0) {
 		const GLenum mode = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
@@ -128,7 +180,7 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
 	t.detach();
 }
 
-auto OpenGL_Renderer::set_context(const Windows_Window& window_handle) -> void {
-	m_context = new OpenGL_Context(window_handle);
+auto OpenGL_Renderer::init(const Windows_Window& window_handle) -> void {
+
 }
 }

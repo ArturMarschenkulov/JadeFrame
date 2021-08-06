@@ -4,6 +4,7 @@
 #include "gui.h"
 
 #include <utility>
+#include <format>
 
 namespace JadeFrame {
 //**************************************************************
@@ -44,13 +45,24 @@ auto JadeFrameInstance::add(BaseApp* app) -> void {
 
 BaseApp::BaseApp(const std::string& title, const Vec2& size, const Vec2& position) {
 	m_time_manager.initialize();
-	m_windows.try_emplace(0, title, size, position);
-	//m_windows.try_emplace(1, title, size, position);
+
+	Windows_Window::DESC win_desc;
+	win_desc.title = title;
+	win_desc.size = size;
+	win_desc.position = position;
+	m_windows.try_emplace(0, win_desc);
+
+	{
+		const std::string& title = m_windows[0].get_title();
+		const Vec2& size = m_windows[0].get_position();
+		auto s = std::format("{}: {}, {}", title, size.x, size.y);
+		m_windows[0].set_title(s);
+	}
 
 	m_current_window_p = &m_windows[0];
 	m_main_window_p = &m_windows[0];
 
-	m_renderer.set_context(m_windows[0]);
+	m_renderer = new OpenGL_Renderer(m_windows[0]);
 	
 }
 auto BaseApp::start() -> void {
@@ -65,22 +77,22 @@ auto BaseApp::start() -> void {
 	while (m_is_running) {
 
 		this->on_update();
-		if (m_current_window_p->m_window_state != Windows_Window::WINDOW_STATE::MINIMIZED) {
+		if (m_current_window_p->get_window_state() != Windows_Window::WINDOW_STATE::MINIMIZED) {
 			const f64 time_since_last_frame = m_time_manager.calc_elapsed();
-
-			m_renderer.swap_buffer(m_current_window_p->m_window_handle);
-			m_renderer.clear_background();
+			m_renderer->clear_background();
 			//GUI_new_frame();
 
 
 
 			this->on_draw();
 			const Matrix4x4& view_projection = m_camera.get_view_projection_matrix();
-			m_renderer.render(view_projection);
+			m_renderer->render(view_projection);
 
 			
 			//GUI_render();
 
+
+			m_renderer->present();
 			m_time_manager.frame_control(time_since_last_frame);
 		}
 		this->poll_events();

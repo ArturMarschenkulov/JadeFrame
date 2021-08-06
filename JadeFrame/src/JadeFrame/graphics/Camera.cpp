@@ -1,10 +1,10 @@
 #include "camera.h"
 
-//#if 1 // NOTE: for camera cotrolling. Remove if we move it
+#if 1 // NOTE: for camera cotrolling. Remove if we move it
 #include "JadeFrame/base_app.h"
 #include "JadeFrame/platform/windows/windows_input_manager.h"
 #include "JadeFrame/math/math.h"
-//#endif
+#endif
 
 
 //m_camera.perspective_mode(

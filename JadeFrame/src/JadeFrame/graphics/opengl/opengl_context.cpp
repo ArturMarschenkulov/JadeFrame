@@ -6,37 +6,36 @@
 #endif
 
 namespace JadeFrame {
-OpenGL_Context::OpenGL_Context(const Windows_Window& window) {
-	if (window.m_is_graphics_api_init == true) {
-		if (window.m_graphics_api != Windows_Window::GRAPHICS_API::OPENGL) {
-			window.recreate();
-		}
-	}
 
+
+static auto init_device_context(const Windows_Window& window) -> HDC {
 	static bool is_wgl_loaded = false;
 	if (is_wgl_loaded == false) {
 		is_wgl_loaded = wgl_load();
 	}
 
-	HDC device_context = GetDC(window.m_window_handle);
+	HDC device_context = ::GetDC(window.m_window_handle);
 	if (device_context == NULL) {
 		std::cout << "GetDC(hWnd) failed! " << ::GetLastError() << std::endl;
 		__debugbreak();
 	}
+	return device_context;
+}
+
+static auto init_render_context(HDC device_context) -> HGLRC {
 	wgl_set_pixel_format(device_context);
 	HGLRC render_context = wgl_create_render_context(device_context);
-
-	m_window_handle = window.m_window_handle;
-	m_device_context = device_context;
-	m_render_context = render_context;
-
 	if (gladLoadGL() != 1) {
 		std::cout << "gladLoadGL() failed." << std::endl;
 	}
+	return render_context;
+}
+OpenGL_Context::OpenGL_Context(const Windows_Window& window)
+	: m_device_context(init_device_context(window))
+	, m_render_context(init_render_context(m_device_context)) {
 
 	set_debug_mode(true);
 	m_cache.set_default();
-
 
 	vendor = reinterpret_cast<char const*>(glGetString(GL_VENDOR));
 	renderer = reinterpret_cast<char const*>(glGetString(GL_RENDERER));
@@ -44,6 +43,9 @@ OpenGL_Context::OpenGL_Context(const Windows_Window& window) {
 	shading_language_version = reinterpret_cast<char const*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
 	glGetIntegerv(GL_MAJOR_VERSION, &major_version);
 	glGetIntegerv(GL_MINOR_VERSION, &minor_version);
+
+
+	// gather extentions
 	glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
 	for (i32 i = 0; i < num_extensions; i++) {
 		extentenions.push_back(reinterpret_cast<char const*>(glGetStringi(GL_EXTENSIONS, i)));
@@ -58,18 +60,17 @@ OpenGL_Context::OpenGL_Context(const Windows_Window& window) {
 
 	wgl_swap_interval(0); //TODO: This is windows specific. Abstract this away
 
-	window.m_is_graphics_api_init = true;
-	window.m_graphics_api = Windows_Window::GRAPHICS_API::OPENGL;
+	{
+		const GLuint binding_point = 0;
+		m_uniform_buffers.emplace_back();
+		m_uniform_buffers[0].bind();
+		m_uniform_buffers[0].reserve(2 * sizeof(Matrix4x4));
+		m_uniform_buffers[0].unbind();
+		m_uniform_buffers[0].bind_base(binding_point);
+	}
 
-
-	const GLuint binding_point = 0;
-
-	m_uniform_buffers.emplace_back();
-	m_uniform_buffers[0].bind();
-	m_uniform_buffers[0].reserve(2 * sizeof(Matrix4x4));
-	m_uniform_buffers[0].unbind();
-	m_uniform_buffers[0].bind_base(binding_point);
-
+	const Vec2& size = window.get_size();
+	m_cache.set_viewport(0, 0, size.x, size.y);
 }
 
 OpenGL_Context::~OpenGL_Context() {
@@ -144,5 +145,10 @@ auto GL_Cache::set_face_culling(bool enable, GLenum mode) -> void {
 			glDisable(GL_CULL_FACE);
 		}
 	}
+}
+auto GL_Cache::set_viewport(i32 x, i32 y, i32 width, i32 height) -> void {
+	viewport[0] = { (f32)x, (f32)y };
+	viewport[1] = { (f32)width, (f32)height };
+	glViewport(x, y, width, height);
 }
 }

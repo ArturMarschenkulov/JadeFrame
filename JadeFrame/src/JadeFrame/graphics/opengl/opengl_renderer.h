@@ -56,17 +56,6 @@ struct Object {
 	}
 };
 
-struct APIMeshData {
-
-};
-
-//struct Object {
-//	Mesh* m_mesh = nullptr;
-//	Matrix4x4 m_transform;
-//
-//	OpenGL_Material* m_material = nullptr;
-//	APIMeshData m_vertex_array;
-//};
 
 struct OpenGL_RenderCommand {
 	const Matrix4x4* transform = nullptr;
@@ -83,10 +72,14 @@ public:
 
 class OpenGL_Renderer : public IRenderer {
 public:
-	virtual auto swap_buffer(HWND window_handle) const -> void override;
+
+	OpenGL_Renderer(const Windows_Window& window);
+
+	virtual auto present() const -> void override;
 	virtual auto clear_background() const -> void override;
 	virtual auto render(const Matrix4x4& view_projection) const -> void override;
-	//auto submit(const OpenGL_Object& obj) -> void;
+
+	auto init(const Windows_Window& window) -> void;
 	auto submit(const Object& obj) -> void;
 
 	auto set_clear_color(const Color& color) -> void;
@@ -95,14 +88,25 @@ public:
 
 	auto take_screenshot(const char* filename) -> void;
 
-	auto set_context(const Windows_Window& window) -> void;
+
 
 private:
 	auto render_mesh(const OpenGL_GPUMeshData* buffer_data, const Mesh* mesh) const -> void;
 
 private:
-	OpenGL_Context* m_context;
+	OpenGL_Context m_context;
 	mutable std::deque<OpenGL_RenderCommand> m_render_commands;
-};
 
+
+	OGLW_Texture<GL_TEXTURE_2D> m_framebuffer_texture;
+	OGLW_Renderbuffer m_framebuffer_renderbuffer;
+	OGLW_Framebuffer m_framebuffer;
+
+	OpenGL_GPUMeshData* m_framebuffer_rect;
+	ShaderHandle* m_shader_handle_fb;
+	
+};
+struct RenderSystem {
+
+};
 }

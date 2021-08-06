@@ -33,7 +33,8 @@ Orthographical convention:
 	Idea: There should be three OpenGL API naming conventions.
 	"OpenGL_*" should be used for high level structs which would be common among many Graphics API and not specific to only OpenGL.
 	"OGL_*"/"OGL*" should be used for internal OpenGL stuff. "OGL_Shader" "OGLShader"
-	"GL_*" should be used for very light wrapper types of the original OpenGL objects. 
+	Consider whether there should be a difference between "OpenGL_*" and "OGL_*"
+	"OGLW_*" is used for super light weight wrapper objects for OpenGL objects. There should be minimal state.
 	Should have as little state as possible, usually mostly only the ID. Methods of these structs should only have OpenGL API calls with some helper functions. 
 		If one wants to add state, one should use compose them into "OGL*" types. For example if you want to store the source code of GLShader, add that to OGLShader/OGL_Shader.
 

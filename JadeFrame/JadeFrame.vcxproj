@@ -313,7 +313,7 @@
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_buffer.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_context.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_debug.h" />
-    <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_object.h" />
+    <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_wrapper.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_shader_loader.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_texture.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_windows.h" />
@@ -374,7 +374,7 @@
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_buffer.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_context.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_debug.cpp" />
-    <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_object.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_wrapper.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_shader_loader.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_texture.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_windows.cpp" />

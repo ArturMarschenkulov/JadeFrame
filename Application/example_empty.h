@@ -1,6 +1,6 @@
 #pragma once
 #include<JadeFrame.h>
-
+namespace JadeFrame {
 struct Example_Empty : public BaseApp {
 	Example_Empty(const std::string& title, const Vec2& size, const Vec2& position = { -1, -1 });
 	virtual ~Example_Empty() = default;
@@ -30,3 +30,4 @@ auto Example_Empty::on_draw() -> void {
 
 }
 using TestApp = Example_Empty;
+}
