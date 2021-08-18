@@ -87,11 +87,6 @@ public: // buffer stuff
 
 public: // synchro objects
 	auto create_sync_objects() -> void;
-
-	//std::vector<VkSemaphore> m_image_available_semaphores;
-	//std::vector<VkSemaphore> m_render_finished_semaphores;
-	//std::vector<VkFence> m_in_flight_fences;
-	//std::vector<VkFence> m_images_in_flight;
 	std::vector<VulkanSemaphore> m_image_available_semaphores;
 	std::vector<VulkanSemaphore> m_render_finished_semaphores;
 	std::vector<VulkanFence> m_in_flight_fences;

@@ -379,35 +379,29 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance) -> void {
 	m_physical_device_p = &instance.m_physical_device;
 	m_instance_p = &instance;
 
-
 	m_swapchain.init(*this, *m_physical_device_p, m_instance_p->m_surface);
 	m_render_pass.init(*this, m_swapchain.m_image_format);
-
-	m_descriptor_set_layout.init(*this);
-
-	m_pipeline.init(*this, m_swapchain, m_descriptor_set_layout, m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
 	m_swapchain.create_framebuffers(m_render_pass.m_handle);
-
-	m_command_pool.init(*this, *m_physical_device_p);
-
-	//this->create_texture_image("C:\\DEV\\Projects\\JadeFrame\\JadeFrame\\resource\\wall.jpg");
-	//this->create_texture_image_view();
-	//this->create_texture_sampler();
-
-
-	m_vertex_buffer.init(*this, VULKAN_BUFFER_TYPE::VERTEX, (void*)g_vertices.data(), sizeof(g_vertices[0]) * g_vertices.size());
-	m_index_buffer.init(*this, VULKAN_BUFFER_TYPE::INDEX, (void*)g_indices.data(), sizeof(g_indices[0]) * g_indices.size());
-
 
 	m_uniform_buffers.resize(m_swapchain.m_images.size(), VULKAN_BUFFER_TYPE::UNIFORM);
 	for (u32 i = 0; i < m_swapchain.m_images.size(); i++) {
 		m_uniform_buffers[i].init(*this, VULKAN_BUFFER_TYPE::UNIFORM, nullptr, sizeof(UniformBufferObject));
 	}
 
+	m_descriptor_set_layout.init(*this);
 	m_descriptor_pool.init(*this, m_swapchain);
-	m_descriptor_sets.init(*this, m_swapchain.m_images.size(), m_descriptor_set_layout, m_descriptor_pool);
+	m_descriptor_sets.init(*this, m_swapchain.m_images.size(), m_descriptor_set_layout, m_descriptor_pool, m_uniform_buffers);
 
+
+	m_command_pool.init(*this, *m_physical_device_p);
 	this->create_command_buffers(m_command_pool, m_swapchain);
+
+
+	m_pipeline.init(*this, m_swapchain, m_descriptor_set_layout, m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
+
+	m_vertex_buffer.init(*this, VULKAN_BUFFER_TYPE::VERTEX, (void*)g_vertices.data(), sizeof(g_vertices[0]) * g_vertices.size());
+	m_index_buffer.init(*this, VULKAN_BUFFER_TYPE::INDEX, (void*)g_indices.data(), sizeof(g_indices[0]) * g_indices.size());
+
 	this->draw_into_command_buffers(
 		m_render_pass,
 		m_swapchain,
@@ -419,6 +413,10 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance) -> void {
 	);
 
 	this->create_sync_objects();
+
+	//this->create_texture_image("C:\\DEV\\Projects\\JadeFrame\\JadeFrame\\resource\\wall.jpg");
+	//this->create_texture_image_view();
+	//this->create_texture_sampler();
 
 }
 

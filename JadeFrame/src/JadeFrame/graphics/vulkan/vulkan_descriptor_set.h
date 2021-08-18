@@ -15,7 +15,8 @@ public:
 		const VulkanLogicalDevice& device,
 		u32 image_amount,
 		const VulkanDescriptorSetLayout& descriptor_set_layout,
-		const VulkanDescriptorPool& descriptor_pool
+		const VulkanDescriptorPool& descriptor_pool, 
+		const std::vector<VulkanBuffer>& uniform_buffers
 	) -> void;
 	auto update(u32 image_amount, const std::vector<VulkanBuffer>& uniform_buffers) -> void;
 

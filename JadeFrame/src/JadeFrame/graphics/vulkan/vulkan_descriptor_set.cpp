@@ -12,11 +12,16 @@
 namespace JadeFrame {
 
 class VulkanLogicalDevice;
-auto VulkanDescriptorSets::init(const VulkanLogicalDevice& device, u32 image_amount, const VulkanDescriptorSetLayout& descriptor_set_layout, const VulkanDescriptorPool& descriptor_pool) -> void {
-
+auto VulkanDescriptorSets::init(
+	const VulkanLogicalDevice& device, 
+	u32 image_amount,
+	const VulkanDescriptorSetLayout& descriptor_set_layout, 
+	const VulkanDescriptorPool& descriptor_pool, 
+	const std::vector<VulkanBuffer>& uniform_buffers
+) -> void {
 	VkResult result;
 
-	std::vector<VkDescriptorSetLayout> layouts(image_amount, device.m_descriptor_set_layout.m_handle);
+	std::vector<VkDescriptorSetLayout> layouts(image_amount, descriptor_set_layout.m_handle);
 
 	const VkDescriptorSetAllocateInfo alloc_info = {
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -37,7 +42,7 @@ auto VulkanDescriptorSets::init(const VulkanLogicalDevice& device, u32 image_amo
 	//}
 	for (u32 i = 0; i < image_amount; i++) {
 		const VkDescriptorBufferInfo buffer_info = {
-			.buffer = device.m_uniform_buffers[i].m_buffer,
+			.buffer = uniform_buffers[i].m_buffer,
 			.offset = 0,
 			.range = sizeof(UniformBufferObject),
 		};
