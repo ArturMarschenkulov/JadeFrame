@@ -4,10 +4,11 @@
 namespace JadeFrame {
 
 class VulkanLogicalDevice;
+class VulkanSwapchain;
 
 class VulkanDescriptorPool {
 public:
-	auto init(const VulkanLogicalDevice& device) -> void;
+	auto init(const VulkanLogicalDevice& device, const VulkanSwapchain& swapchain) -> void;
 
 public:
 	const VulkanLogicalDevice* m_device = nullptr;

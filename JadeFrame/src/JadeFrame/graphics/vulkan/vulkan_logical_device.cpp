@@ -144,30 +144,12 @@ auto VulkanLogicalDevice::create_sync_objects() -> void {
 	m_image_available_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
 	m_render_finished_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
 	m_in_flight_fences.resize(MAX_FRAMES_IN_FLIGHT);
-	m_images_in_flight.resize(m_swapchain.m_images.size(), VK_NULL_HANDLE);
-
-	const VkSemaphoreCreateInfo semaphore_ci = {
-		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-	};
-
-	const VkFenceCreateInfo fence_ci = {
-		.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = VK_FENCE_CREATE_SIGNALED_BIT,
-	};
+	m_images_in_flight.resize(m_swapchain.m_images.size());
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		const VkResult res_0 = vkCreateSemaphore(m_handle, &semaphore_ci, nullptr, &m_image_available_semaphores[i]);
-		const VkResult res_1 = vkCreateSemaphore(m_handle, &semaphore_ci, nullptr, &m_render_finished_semaphores[i]);
-		const VkResult res_2 = vkCreateFence(m_handle, &fence_ci, nullptr, &m_in_flight_fences[i]);
-
-		if (res_0 != VK_SUCCESS ||
-			res_1 != VK_SUCCESS ||
-			res_2 != VK_SUCCESS) {
-			__debugbreak();
-		}
+		m_image_available_semaphores[i].init(this->m_handle);
+		m_render_finished_semaphores[i].init(this->m_handle);
+		m_in_flight_fences[i].init(this->m_handle);
 	}
 }
 
@@ -220,7 +202,7 @@ auto VulkanLogicalDevice::recreate_swapchain() -> void {
 	m_render_pass.init(*this, m_swapchain.m_image_format);
 	m_pipeline.init(*this, m_swapchain, m_descriptor_set_layout, m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
 	m_swapchain.create_framebuffers(m_render_pass.m_handle);
-	m_images_in_flight.resize(m_swapchain.m_images.size(), VK_NULL_HANDLE);
+	m_images_in_flight.resize(m_swapchain.m_images.size());
 #endif
 }
 auto VulkanLogicalDevice::cleanup_swapchain() -> void {
@@ -272,10 +254,10 @@ auto VulkanLogicalDevice::draw_frame() -> void {
 
 	//prepare buffers
 	u32 image_index;
-	result = vkWaitForFences(m_handle, 1, &m_in_flight_fences[m_current_frame], VK_TRUE, UINT64_MAX);
+	result = vkWaitForFences(m_handle, 1, &m_in_flight_fences[m_current_frame].m_handle, VK_TRUE, UINT64_MAX);
 	if (result != VK_SUCCESS) __debugbreak();
 	{
-		result = vkAcquireNextImageKHR(m_handle, m_swapchain.m_handle, UINT64_MAX, m_image_available_semaphores[m_current_frame], VK_NULL_HANDLE, &image_index);
+		result = vkAcquireNextImageKHR(m_handle, m_swapchain.m_handle, UINT64_MAX, m_image_available_semaphores[m_current_frame].m_handle, VK_NULL_HANDLE, &image_index);
 		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 			std::cout << "VK_ERROR_OUT_OF_DATE_KHR" << std::endl;
 			this->recreate_swapchain();
@@ -291,12 +273,12 @@ auto VulkanLogicalDevice::draw_frame() -> void {
 	this->update_uniform_buffer(image_index);
 	//~prepare buffers
 
-	if (m_images_in_flight[image_index] != VK_NULL_HANDLE) {
-		result = vkWaitForFences(m_handle, 1, &m_images_in_flight[image_index], VK_TRUE, UINT64_MAX);
+	if (m_images_in_flight[image_index].m_handle != VK_NULL_HANDLE) {
+		result = vkWaitForFences(m_handle, 1, &m_images_in_flight[image_index].m_handle, VK_TRUE, UINT64_MAX);
 		if (result != VK_SUCCESS) __debugbreak();
 	}
-	VkSemaphore wait_semaphores[] = { m_image_available_semaphores[m_current_frame] };
-	VkSemaphore signal_semaphores[] = { m_render_finished_semaphores[m_current_frame] };
+	VkSemaphore wait_semaphores[] = { m_image_available_semaphores[m_current_frame].m_handle };
+	VkSemaphore signal_semaphores[] = { m_render_finished_semaphores[m_current_frame].m_handle };
 	VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	VkSwapchainKHR swapchains[] = { m_swapchain.m_handle };
 	// swap buffers
@@ -314,10 +296,10 @@ auto VulkanLogicalDevice::draw_frame() -> void {
 			.pSignalSemaphores = signal_semaphores,
 		};
 
-		result = vkResetFences(m_handle, 1, &m_in_flight_fences[m_current_frame]);
+		result = vkResetFences(m_handle, 1, &m_in_flight_fences[m_current_frame].m_handle);
 		if (result != VK_SUCCESS) __debugbreak();
 
-		result = vkQueueSubmit(m_graphics_queue, 1, &submit_info, m_in_flight_fences[m_current_frame]);
+		result = vkQueueSubmit(m_graphics_queue, 1, &submit_info, m_in_flight_fences[m_current_frame].m_handle);
 		if (result != VK_SUCCESS) __debugbreak();
 	}
 
@@ -408,9 +390,9 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance) -> void {
 
 	m_command_pool.init(*this, *m_physical_device_p);
 
-	this->create_texture_image("C:\\DEV\\Projects\\JadeFrame\\JadeFrame\\resource\\wall.jpg");
-	this->create_texture_image_view();
-	this->create_texture_sampler();
+	//this->create_texture_image("C:\\DEV\\Projects\\JadeFrame\\JadeFrame\\resource\\wall.jpg");
+	//this->create_texture_image_view();
+	//this->create_texture_sampler();
 
 
 	m_vertex_buffer.init(*this, VULKAN_BUFFER_TYPE::VERTEX, (void*)g_vertices.data(), sizeof(g_vertices[0]) * g_vertices.size());
@@ -422,7 +404,7 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance) -> void {
 		m_uniform_buffers[i].init(*this, VULKAN_BUFFER_TYPE::UNIFORM, nullptr, sizeof(UniformBufferObject));
 	}
 
-	m_descriptor_pool.init(*this);
+	m_descriptor_pool.init(*this, m_swapchain);
 	m_descriptor_sets.init(*this, m_swapchain.m_images.size(), m_descriptor_set_layout, m_descriptor_pool);
 
 	this->create_command_buffers(m_command_pool, m_swapchain);
@@ -443,9 +425,9 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance) -> void {
 auto VulkanLogicalDevice::deinit() -> void {
 	this->cleanup_swapchain();
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		vkDestroySemaphore(m_handle, m_render_finished_semaphores[i], nullptr);
-		vkDestroySemaphore(m_handle, m_image_available_semaphores[i], nullptr);
-		vkDestroyFence(m_handle, m_in_flight_fences[i], nullptr);
+		m_render_finished_semaphores[i].deinit();
+		m_image_available_semaphores[i].deinit();
+		m_in_flight_fences[i].deinit();
 	}
 	vkDestroyCommandPool(m_handle, m_command_pool.m_handle, nullptr);
 

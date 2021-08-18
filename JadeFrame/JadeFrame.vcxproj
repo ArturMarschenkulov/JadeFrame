@@ -344,6 +344,7 @@
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_shared.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_surface.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_swapchain.h" />
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_sync_object.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_texture.h" />
     <ClInclude Include="src\JadeFrame\gui.h" />
     <ClInclude Include="src\JadeFrame\math\i128.h" />
@@ -442,6 +443,7 @@
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_render_pass.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_surface.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_swapchain.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_sync_object.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_texture.cpp" />
     <ClCompile Include="src\JadeFrame\gui.cpp" />
     <ClCompile Include="src\JadeFrame\platform\windows\windows_input_manager.cpp" />

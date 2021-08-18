@@ -5,6 +5,8 @@
 namespace JadeFrame {
 
 auto VulkanDescriptorSetLayout::init(const VulkanLogicalDevice& device) -> void {
+
+	m_device = &device;
 	VkResult result;
 
 	const VkDescriptorSetLayoutBinding ubo_layout_binding = {
@@ -25,8 +27,6 @@ auto VulkanDescriptorSetLayout::init(const VulkanLogicalDevice& device) -> void 
 		__debugbreak();
 		//throw std::runtime_error("failed to create descriptor set layout!");
 	}
-
-	m_device = &device;
 }
 auto VulkanDescriptorSetLayout::deinit() -> void {
 	vkDestroyDescriptorSetLayout(m_device->m_handle, m_handle, nullptr);

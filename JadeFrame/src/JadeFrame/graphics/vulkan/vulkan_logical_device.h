@@ -10,6 +10,7 @@
 #include "vulkan_descriptor_set_layout.h"
 #include "vulkan_descriptor_pool.h"
 #include "vulkan_descriptor_set.h"
+#include "vulkan_sync_object.h"
 
 #include "JadeFrame/math/vec_2.h"
 #include "JadeFrame/math/vec_3.h"
@@ -87,10 +88,14 @@ public: // buffer stuff
 public: // synchro objects
 	auto create_sync_objects() -> void;
 
-	std::vector<VkSemaphore> m_image_available_semaphores;
-	std::vector<VkSemaphore> m_render_finished_semaphores;
-	std::vector<VkFence> m_in_flight_fences;
-	std::vector<VkFence> m_images_in_flight;
+	//std::vector<VkSemaphore> m_image_available_semaphores;
+	//std::vector<VkSemaphore> m_render_finished_semaphores;
+	//std::vector<VkFence> m_in_flight_fences;
+	//std::vector<VkFence> m_images_in_flight;
+	std::vector<VulkanSemaphore> m_image_available_semaphores;
+	std::vector<VulkanSemaphore> m_render_finished_semaphores;
+	std::vector<VulkanFence> m_in_flight_fences;
+	std::vector<VulkanFence> m_images_in_flight;
 	size_t m_current_frame = 0;
 	bool m_framebuffer_resized = false;
 
