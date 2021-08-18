@@ -31,7 +31,7 @@ struct Drop {
 		}
 	}
 	auto show() const -> void {
-		OpenGL_Renderer* renderer = JadeFrameInstance::get_singleton()->m_apps[0]->m_renderer;
+		IRenderer* renderer = JadeFrameInstance::get_singleton()->m_apps[0]->m_renderer;
 		renderer->submit(obj);
 	}
 	Object obj = {};
@@ -53,7 +53,7 @@ struct Checkerbox {
 
 	}
 	auto show() const -> void {
-		OpenGL_Renderer* renderer = JadeFrameInstance::get_singleton()->m_apps[0]->m_renderer;
+		IRenderer* renderer = JadeFrameInstance::get_singleton()->m_apps[0]->m_renderer;
 		renderer->submit(obj);
 	}
 	Object obj = {};

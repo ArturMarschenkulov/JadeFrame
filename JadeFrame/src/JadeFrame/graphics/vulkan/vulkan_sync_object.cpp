@@ -1,8 +1,9 @@
 #include "pch.h"
 #include "vulkan_sync_object.h"
+#include "vulkan_logical_device.h"
 namespace JadeFrame {
-auto VulkanFence::init(VkDevice device) -> void {
-	m_device = device;
+auto VulkanFence::init(const VulkanLogicalDevice& device) -> void {
+	m_device = &device;
 	VkResult result;
 
 	const VkFenceCreateInfo create_info = {
@@ -11,17 +12,17 @@ auto VulkanFence::init(VkDevice device) -> void {
 		.flags = VK_FENCE_CREATE_SIGNALED_BIT,
 	};
 
-	result = vkCreateFence(device, &create_info, nullptr, &m_handle);
+	result = vkCreateFence(device.m_handle, &create_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
 }
 
 auto VulkanFence::deinit() -> void {
 
-	vkDestroyFence(m_device, m_handle, nullptr);
+	vkDestroyFence(m_device->m_handle, m_handle, nullptr);
 }
 
-auto VulkanSemaphore::init(VkDevice device) -> void {
-	m_device = device;
+auto VulkanSemaphore::init(const VulkanLogicalDevice& device) -> void {
+	m_device = &device;
 	VkResult result;
 
 	const VkSemaphoreCreateInfo create_info = {
@@ -30,13 +31,13 @@ auto VulkanSemaphore::init(VkDevice device) -> void {
 		.flags = 0,
 	};
 
-	result = vkCreateSemaphore(device, &create_info, nullptr, &m_handle);
+	result = vkCreateSemaphore(device.m_handle, &create_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
 }
 
 auto VulkanSemaphore::deinit() -> void {
 
-	vkDestroySemaphore(m_device, m_handle, nullptr);
+	vkDestroySemaphore(m_device->m_handle, m_handle, nullptr);
 }
 
 }

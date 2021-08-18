@@ -11,19 +11,13 @@
 #include "graphics/camera.h"
 #include "graphics/opengl/opengl_renderer.h"
 #include "graphics/vulkan/vulkan_renderer.h"
+#include "graphics/shared.h"
 
 #include <deque>
 #include <map>
 
 namespace JadeFrame {
 
-#if _WIN32 || _WIN64 
-using SystemManager = Windows_SystemManager;
-using TimeManager = Windows_TimeManager;
-using InputManager = Windows_InputManager;
-#endif 
-//using Window = Windows_Window;
-//using Renderer = OpenGL_Renderer;
 
 /*
 	The struct JadeFrame should act more or less like the ultimate global scope of JadeFrame.
@@ -33,6 +27,7 @@ using InputManager = Windows_InputManager;
 */
 
 class BaseApp;
+class IRenderer;
 class JadeFrameInstance {
 public:
 	JadeFrameInstance(const JadeFrameInstance&) = delete;
@@ -46,8 +41,8 @@ public:
 	static auto get_singleton()->JadeFrameInstance*;
 
 public:
-	SystemManager m_system_manager;
-	InputManager m_input_manager;
+	Windows_SystemManager m_system_manager;
+	Windows_InputManager m_input_manager;
 
 	std::deque<BaseApp*> m_apps;
 	BaseApp* m_current_app_p = nullptr;
@@ -155,13 +150,13 @@ public:
 
 	BaseApp* m_current_app_p = nullptr;
 
-	OpenGL_Renderer* m_renderer;
-	Vulkan_Renderer m_vulkan_renderer;
+	IRenderer* m_renderer;
+	//Vulkan_Renderer m_vulkan_renderer;
 	Camera1 m_camera;
 
 	bool m_is_running = true;
 
-	TimeManager m_time_manager;
+	Windows_TimeManager m_time_manager;
 
 	ResourceStorage m_resources;
 };

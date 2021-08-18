@@ -64,7 +64,7 @@ Vulkan_Context::Vulkan_Context(const Windows_Window& window) {
 	m_window_handle = window.m_window_handle;
 	m_instance.init(window.m_window_handle);
 
-	this->main_loop();
+	//this->main_loop();
 }
 
 Vulkan_Context::~Vulkan_Context() {

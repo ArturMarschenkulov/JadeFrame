@@ -12,6 +12,7 @@
 #include "JadeFrame/graphics/mesh.h"
 #include "JadeFrame/graphics/shared.h"
 #include "JadeFrame/graphics/material_handle.h"
+#include "../shared.h"
 
 #include <vector>
 #include <stack>
@@ -76,17 +77,19 @@ public:
 	OpenGL_Renderer(const Windows_Window& window);
 
 	virtual auto present() const -> void override;
-	virtual auto clear_background() const -> void override;
-	virtual auto render(const Matrix4x4& view_projection) const -> void override;
+	virtual auto clear_background() -> void override;
+	virtual auto render(const Matrix4x4& view_projection) -> void override;
 
 	auto init(const Windows_Window& window) -> void;
-	auto submit(const Object& obj) -> void;
+	virtual auto submit(const Object& obj) -> void override;
 
 	auto set_clear_color(const Color& color) -> void;
 	auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void;
 
 
-	auto take_screenshot(const char* filename) -> void;
+	virtual auto take_screenshot(const char* filename) -> void override;
+
+	virtual auto main_loop() -> void override;
 
 
 

@@ -147,9 +147,9 @@ auto VulkanLogicalDevice::create_sync_objects() -> void {
 	m_images_in_flight.resize(m_swapchain.m_images.size());
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		m_image_available_semaphores[i].init(this->m_handle);
-		m_render_finished_semaphores[i].init(this->m_handle);
-		m_in_flight_fences[i].init(this->m_handle);
+		m_image_available_semaphores[i].init(*this);
+		m_render_finished_semaphores[i].init(*this);
+		m_in_flight_fences[i].init(*this);
 	}
 }
 
@@ -379,6 +379,8 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance) -> void {
 	m_physical_device_p = &instance.m_physical_device;
 	m_instance_p = &instance;
 
+
+
 	m_swapchain.init(*this, *m_physical_device_p, m_instance_p->m_surface);
 	m_render_pass.init(*this, m_swapchain.m_image_format);
 	m_swapchain.create_framebuffers(m_render_pass.m_handle);
@@ -427,16 +429,12 @@ auto VulkanLogicalDevice::deinit() -> void {
 		m_image_available_semaphores[i].deinit();
 		m_in_flight_fences[i].deinit();
 	}
-	vkDestroyCommandPool(m_handle, m_command_pool.m_handle, nullptr);
 
-	vkDestroyPipeline(m_handle, m_pipeline.m_graphics_pipeline, nullptr);
-	vkDestroyPipelineLayout(m_handle, m_pipeline.m_pipeline_layout, nullptr);
+	m_command_pool.deinit();
+	m_pipeline.deinit();
+	m_render_pass.deinit();
+	m_swapchain.deinit();
 
-	vkDestroyRenderPass(m_handle, m_render_pass.m_handle, nullptr);
-	for (u32 i = 0; i < m_swapchain.m_image_views.size(); i++) {
-		vkDestroyImageView(m_handle, m_swapchain.m_image_views[i], nullptr);
-	}
-	vkDestroySwapchainKHR(m_handle, m_swapchain.m_handle, nullptr);
 	vkDestroyDevice(m_handle, nullptr);
 }
 

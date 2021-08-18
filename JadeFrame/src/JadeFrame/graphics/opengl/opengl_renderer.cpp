@@ -18,7 +18,7 @@ auto OpenGL_Renderer::set_clear_color(const Color& color) -> void {
 	m_context.m_cache.set_clear_color(color);
 }
 
-auto OpenGL_Renderer::clear_background() const -> void {
+auto OpenGL_Renderer::clear_background() -> void {
 	auto bitfield = m_context.m_cache.clear_bitfield;
 	glClear(bitfield);
 }
@@ -98,7 +98,7 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
 }
 
 
-auto OpenGL_Renderer::render(const Matrix4x4& view_projection) const -> void {
+auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 #define JF_FB 1
 #if JF_FB
 	m_framebuffer.bind();
@@ -179,6 +179,10 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
 	};
 	std::thread t(c, filename, width, height, data);
 	t.detach();
+}
+
+auto OpenGL_Renderer::main_loop() -> void {
+	// dummy
 }
 
 auto OpenGL_Renderer::init(const Windows_Window& window_handle) -> void {
