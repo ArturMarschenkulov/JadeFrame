@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "JadeFrame/defines.h"
 #include "opengl_windows.h"
 #include <glad/glad.h>

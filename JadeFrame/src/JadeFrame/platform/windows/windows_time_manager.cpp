@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "windows_time_manager.h"
 #include <Windows.h>
 #include <timeapi.h>

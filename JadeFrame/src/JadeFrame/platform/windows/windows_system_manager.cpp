@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "windows_system_manager.h"
 
 #include <Windows.h>

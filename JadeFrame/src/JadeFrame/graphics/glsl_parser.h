@@ -83,6 +83,8 @@ public: //Parser part
 	} m_version;
 	struct Variable {
 		std::string m_name;
+	#undef IN
+	#undef OUT
 		enum class QUALIFIER {
 			IN,
 			OUT,

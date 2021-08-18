@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "opengl_debug.h"
 #include <glad/glad.h>
 #include <string>

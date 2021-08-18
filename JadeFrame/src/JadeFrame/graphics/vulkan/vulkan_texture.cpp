@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "vulkan_texture.h"
 #include "JadeFrame/defines.h"
 

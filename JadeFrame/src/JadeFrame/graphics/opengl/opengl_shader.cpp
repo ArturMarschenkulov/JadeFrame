@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "opengl_shader.h"
 
 #include "JadeFrame/math/vec_2.h"

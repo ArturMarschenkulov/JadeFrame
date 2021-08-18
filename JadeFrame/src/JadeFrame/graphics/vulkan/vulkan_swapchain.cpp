@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "vulkan_swapchain.h"
 
 #include <Windows.h> // TODO: Try to remove it

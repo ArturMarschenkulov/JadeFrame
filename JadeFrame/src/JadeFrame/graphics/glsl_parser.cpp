@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "glsl_parser.h"
 #include <cassert>
 namespace JadeFrame {
@@ -180,7 +181,8 @@ auto GLSLParser::parse_stmt_declaration_variable(const Token& t, const Token*& c
 	}
 
 	if (TOKEN_TYPE_is_qualifier(current_ptr->type)) {
-
+	#undef IN
+	#undef OUT
 		v.m_qualifier =
 			current_ptr->type == TOKEN_TYPE::KW_IN ? Variable::QUALIFIER::IN :
 			current_ptr->type == TOKEN_TYPE::KW_OUT ? Variable::QUALIFIER::OUT :

@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "camera.h"
 
 #if 1 // NOTE: for camera cotrolling. Remove if we move it

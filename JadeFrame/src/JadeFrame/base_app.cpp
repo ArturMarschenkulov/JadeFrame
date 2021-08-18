@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "base_app.h"
 
 
@@ -62,12 +63,12 @@ BaseApp::BaseApp(const std::string& title, const Vec2& size, const Vec2& positio
 	m_current_window_p = &m_windows[0];
 	m_main_window_p = &m_windows[0];
 
-	m_renderer = new OpenGL_Renderer(m_windows[0]);
+	//m_renderer = new OpenGL_Renderer(m_windows[0]);
 	
 }
 auto BaseApp::start() -> void {
-	//m_vulkan_renderer.set_context(m_windows[0]);
-	//m_vulkan_renderer.main_loop();
+	m_vulkan_renderer.set_context(m_windows[0]);
+	m_vulkan_renderer.main_loop();
 
 	this->on_init();
 

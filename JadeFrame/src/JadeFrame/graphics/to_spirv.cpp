@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "to_spirv.h"
 
 #pragma warning(push)
