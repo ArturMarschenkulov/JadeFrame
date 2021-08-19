@@ -1,9 +1,14 @@
 #pragma once
 #include "JadeFrame/defines.h"
 #include "vulkan_context.h"
-#include "JadeFrame/platform/windows/windows_window.h"
 #include "../shared.h"
 namespace JadeFrame {
+
+class Windows_Window;
+class Object;
+class Matrix4x4;
+class Color;
+
 class Vulkan_Renderer : public IRenderer {
 public:
 	Vulkan_Renderer(const Windows_Window& window);
@@ -19,10 +24,7 @@ public:
 
 	virtual auto main_loop() -> void override;
 
-	auto set_context(const Windows_Window& window)  -> void;
-
 private:
-	//Vulkan_Context m_context;
 	Vulkan_Context m_context;
 
 

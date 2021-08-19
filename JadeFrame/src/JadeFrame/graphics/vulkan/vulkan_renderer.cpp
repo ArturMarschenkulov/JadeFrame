@@ -1,6 +1,12 @@
 #include "pch.h"
 
 #include "vulkan_renderer.h"
+#include "JadeFrame/platform/windows/windows_window.h"
+#include "../opengl/opengl_renderer.h"
+
+#include "../shared.h"
+
+
 #include <iostream>
 namespace JadeFrame {
 
@@ -11,9 +17,6 @@ Vulkan_Renderer::Vulkan_Renderer(const Windows_Window& window)
 }
 auto Vulkan_Renderer::set_clear_color(const Color& color) -> void {
 	// dummy
-}
-auto Vulkan_Renderer::set_context(const Windows_Window& window) -> void {
-	//m_context = new Vulkan_Context(window); //TODO: Consider how to handle this in a different way as this seems too unrobust
 }
 
 auto Vulkan_Renderer::main_loop() -> void {

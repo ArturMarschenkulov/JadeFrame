@@ -184,8 +184,4 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
 auto OpenGL_Renderer::main_loop() -> void {
 	// dummy
 }
-
-auto OpenGL_Renderer::init(const Windows_Window& window_handle) -> void {
-
-}
 }

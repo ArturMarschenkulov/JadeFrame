@@ -46,7 +46,8 @@ struct GPUDataMeshHandle {
 
 };
 
-struct Object {
+class Object {
+public:
 	Mesh* m_mesh;
 	MaterialHandle* m_material_handle;
 	Matrix4x4 m_transform;
@@ -80,7 +81,6 @@ public:
 	virtual auto clear_background() -> void override;
 	virtual auto render(const Matrix4x4& view_projection) -> void override;
 
-	auto init(const Windows_Window& window) -> void;
 	virtual auto submit(const Object& obj) -> void override;
 
 	auto set_clear_color(const Color& color) -> void;

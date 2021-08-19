@@ -42,12 +42,7 @@ auto VulkanLogicalDevice::create_texture_image(const std::string& path) -> void 
 		VulkanBuffer staging_buffer = { VULKAN_BUFFER_TYPE::STAGING };
 		staging_buffer.init(*this, VULKAN_BUFFER_TYPE::STAGING, nullptr, image_size);
 
-		void* mapped_data;
-		result = vkMapMemory(m_handle, staging_buffer.m_memory, 0, image_size, 0, &mapped_data);
-		if (result != VK_SUCCESS) __debugbreak();
-		memcpy(mapped_data, image.data, static_cast<size_t>(image_size));
-		vkUnmapMemory(m_handle, staging_buffer.m_memory);
-
+		void* mapped_data = staging_buffer.map_to_GPU(image.data, image_size);
 
 		this->create_image(image.width, image.height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_texture_image, m_texture_image_Memory);
 

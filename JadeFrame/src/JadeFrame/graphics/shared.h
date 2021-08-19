@@ -1,14 +1,16 @@
 #pragma once
-#include <JadeFrame/math/mat_4.h>
-#include "Mesh.h"
 #include "JadeFrame/defines.h"
+#include <JadeFrame/math/mat_4.h>
+//#include "Mesh.h"
 
 namespace JadeFrame {
 /*
 	TODO: Consider whether this is a good way and whether it is worth it to introdcue inheritance.
 		Right now this is mainly used as a sanity check such that all renderers have a common interface.
 */
+class Windows_Window;
 class Object;
+class Color;
 
 class IRenderer {
 public:

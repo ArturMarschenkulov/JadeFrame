@@ -28,7 +28,7 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, VULKAN_BUFFER_TYPE bu
 	VkResult result;
 	m_device = &device;
 #if 0
-	switch(buffer_type) {
+	switch (buffer_type) {
 		//with staging buffer
 		case VULKAN_BUFFER_TYPE::VERTEX:
 		case VULKAN_BUFFER_TYPE::INDEX:
@@ -37,11 +37,7 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, VULKAN_BUFFER_TYPE bu
 			VulkanBuffer staging_buffer = { VULKAN_BUFFER_TYPE::STAGING };
 			staging_buffer.init(device, VULKAN_BUFFER_TYPE::STAGING, nullptr, size);
 
-			void* mapped_data;
-			result = vkMapMemory(device.m_handle, staging_buffer.m_memory, 0, size, 0, &mapped_data);
-			if (result != VK_SUCCESS) __debugbreak();
-			memcpy(mapped_data, data, static_cast<size_t>(size));
-			vkUnmapMemory(device.m_handle, staging_buffer.m_memory);
+			void* mapped_data = staging_buffer.map_to_GPU(data, size);
 
 			VkBufferUsageFlags usage;
 			VkMemoryPropertyFlags properties;
@@ -148,11 +144,8 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, VULKAN_BUFFER_TYPE bu
 		VulkanBuffer staging_buffer = { VULKAN_BUFFER_TYPE::STAGING };
 		staging_buffer.init(device, VULKAN_BUFFER_TYPE::STAGING, nullptr, size);
 
-		void* mapped_data;
-		result = vkMapMemory(device.m_handle, staging_buffer.m_memory, 0, size, 0, &mapped_data);
-		if (result != VK_SUCCESS) __debugbreak();
-		memcpy(mapped_data, data, static_cast<size_t>(size));
-		vkUnmapMemory(device.m_handle, staging_buffer.m_memory);
+
+		void* mapped_data = staging_buffer.map_to_GPU(data, size);
 
 		this->create_buffer(
 			size,
@@ -181,11 +174,7 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, VULKAN_BUFFER_TYPE bu
 			VulkanBuffer staging_buffer = { VULKAN_BUFFER_TYPE::STAGING };
 			staging_buffer.init(device, VULKAN_BUFFER_TYPE::STAGING, nullptr, size);
 
-			void* mapped_data;
-			result = vkMapMemory(device.m_handle, staging_buffer.m_memory, 0, size, 0, &mapped_data);
-			if (result != VK_SUCCESS) __debugbreak();
-			memcpy(mapped_data, data, static_cast<size_t>(size));
-			vkUnmapMemory(device.m_handle, staging_buffer.m_memory);
+			void* mapped_data = staging_buffer.map_to_GPU(data, size);
 
 
 			VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
@@ -209,13 +198,7 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, VULKAN_BUFFER_TYPE bu
 			VulkanBuffer staging_buffer = { VULKAN_BUFFER_TYPE::STAGING };
 			staging_buffer.init(device, VULKAN_BUFFER_TYPE::STAGING, nullptr, size);
 
-			void* mapped_data;
-			result = vkMapMemory(device.m_handle, staging_buffer.m_memory, 0, size, 0, &mapped_data);
-			if (result != VK_SUCCESS) __debugbreak();
-			memcpy(mapped_data, data, static_cast<size_t>(size));
-			vkUnmapMemory(device.m_handle, staging_buffer.m_memory);
-
-
+			void* mapped_data = staging_buffer.map_to_GPU(data, size);
 
 			VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
 			VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -272,6 +255,17 @@ auto VulkanBuffer::deinit() -> void {
 
 	m_buffer = VK_NULL_HANDLE;
 	m_memory = VK_NULL_HANDLE;
+}
+
+auto VulkanBuffer::map_to_GPU(void* data, VkDeviceSize size) -> void* {
+	VkResult result;
+
+	void* mapped_data;
+	result = vkMapMemory(m_device->m_handle, m_memory, 0, size, 0, &mapped_data); if (result != VK_SUCCESS) __debugbreak();
+		memcpy(mapped_data, data, static_cast<size_t>(size));
+	vkUnmapMemory(m_device->m_handle, m_memory);
+
+	return mapped_data;
 }
 
 auto VulkanBuffer::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& buffer_memory) -> void {

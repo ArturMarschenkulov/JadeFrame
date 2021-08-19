@@ -243,10 +243,8 @@ auto VulkanLogicalDevice::update_uniform_buffer(u32 current_image) -> void {
 	ubo.proj = Matrix4x4(1.0f);
 	ubo.proj[1][1] *= -1;
 
-	void* mapped_data;
-	vkMapMemory(m_handle, m_uniform_buffers[current_image].m_memory, 0, sizeof(ubo), 0, &mapped_data);
-	memcpy(mapped_data, &ubo, sizeof(ubo));
-	vkUnmapMemory(m_handle, m_uniform_buffers[current_image].m_memory);
+	void* mapped_data = m_uniform_buffers[current_image].map_to_GPU(&ubo, sizeof(ubo));
+
 }
 
 auto VulkanLogicalDevice::draw_frame() -> void {
