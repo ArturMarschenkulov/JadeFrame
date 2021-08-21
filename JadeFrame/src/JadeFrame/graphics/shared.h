@@ -18,10 +18,10 @@ public:
 
 
 	virtual auto clear_background() -> void = 0;
-	virtual auto submit(const Object& obj) -> void = 0;
 
-	virtual auto present() const -> void = 0;
+	virtual auto submit(const Object& obj) -> void = 0;
 	virtual auto render(const Matrix4x4& view_projection) -> void = 0;
+	virtual auto present()  -> void = 0;
 
 	virtual auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void = 0;
 	

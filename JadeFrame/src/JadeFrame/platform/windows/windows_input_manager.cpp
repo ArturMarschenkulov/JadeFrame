@@ -47,7 +47,7 @@ auto Windows_InputManager::key_callback(const WindowsMessage& wm) -> void {
 	//TODO: Try to extract that to somewhere else. So th
 	if (m_current_key_state[static_cast<i32>(KEY::ESCAPE)] == INPUT_STATE::PRESSED) {
 		if (MessageBoxW(hwnd, L"Quit through ESC?", L"My application", MB_OKCANCEL) == IDOK) {
-			std::cout << "WinInputManager::key_callback(); WM_QUIT" << std::endl;
+			Logger::log("WinInputManager::key_callback(); WM_QUIT");
 			//__debugbreak();
 			JadeFrameInstance::get_singleton()->m_current_app_p->m_is_running = false;
 			::PostQuitMessage(0);

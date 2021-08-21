@@ -89,7 +89,7 @@ auto VulkanLogicalDevice::create_image(u32 width, u32 height, VkFormat format, V
 		.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
 		.pNext = {},
 		.allocationSize = mem_requirements.size,
-		.memoryTypeIndex = find_memory_type(*m_physical_device_p, mem_requirements.memoryTypeBits, properties),
+		.memoryTypeIndex = m_physical_device_p->find_memory_type(mem_requirements.memoryTypeBits, properties),
 	};
 	result = vkAllocateMemory(m_handle, &alloc_info, nullptr, &image_memory);
 	if (result != VK_SUCCESS) __debugbreak();

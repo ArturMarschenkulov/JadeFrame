@@ -64,7 +64,7 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window)
 	m_shader_handle_fb->init();
 }
 
-auto OpenGL_Renderer::present() const -> void {
+auto OpenGL_Renderer::present() -> void {
 	::SwapBuffers(m_context.m_device_context); // TODO: This is Windows specific. Abstract his away!
 }
 auto OpenGL_Renderer::submit(const Object& obj) -> void {
@@ -166,7 +166,7 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
 
 	char* data = (char*)malloc((size_t)(width * height * 3));
 	if (!data) {
-		std::cout << "data failed" << std::endl;
+		Logger::log("data failed");
 		return;
 	}
 

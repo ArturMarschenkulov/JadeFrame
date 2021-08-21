@@ -31,6 +31,8 @@ public:
 	auto choose_swap_surface_format() const -> VkSurfaceFormatKHR;
 	auto choose_swap_present_mode() const -> VkPresentModeKHR;
 	auto choose_swap_extent() const -> VkExtent2D;
+	auto find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32;
+
 public:
 	VulkanInstance* m_instance_p = nullptr;
 	VkPhysicalDevice m_handle;

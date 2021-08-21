@@ -9,6 +9,7 @@
 #include <set>
 #include <string>
 #include <Windows.h> // TODO: Try to remove it. Used in "choose_swap_extent()"
+#include "JadeFrame/utils/logger.h"
 
 #undef min
 #undef max
@@ -36,8 +37,9 @@ static auto print_queue_families_info(VulkanPhysicalDevice physical_device) -> v
 				str += "Protected ";
 			}
 			str += "}";
-
-			std::cout << "Queue familiy " << i << " has " << queue_families[i].queueCount << " queues capable of " << str << std::endl;
+			Logger::log("Queue family {} has {} queues capable of {}", 
+				i, queue_families[i].queueCount, str
+			);
 		}
 	}
 }
@@ -160,5 +162,14 @@ auto VulkanPhysicalDevice::choose_swap_extent() const -> VkExtent2D {
 
 		return actual_extent;
 	}
+}
+auto VulkanPhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32 {
+	const VkPhysicalDeviceMemoryProperties& mem_props = m_memory_properties;
+	for (u32 i = 0; i < mem_props.memoryTypeCount; i++) {
+		if ((type_filter & (1 << i)) && (mem_props.memoryTypes[i].propertyFlags & properties) == properties) {
+			return i;
+		}
+	}
+	throw std::runtime_error("failed to find suitable memory type!");
 }
 }

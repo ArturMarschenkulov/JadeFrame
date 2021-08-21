@@ -127,8 +127,13 @@ private:
 
 class BaseApp {
 public:
+	struct DESC {
+		std::string title;
+		Vec2 size;
+		Vec2 position = { -1, -1 };
+	};
 	BaseApp() = default;
-	BaseApp(const std::string& title, const Vec2& size, const Vec2& position = { -1, -1 });
+	BaseApp(DESC desc);
 	virtual ~BaseApp() = default;
 
 	virtual auto on_init() -> void = 0;
@@ -144,14 +149,12 @@ public:
 	i32 m_window_counter = 0;
 	using WindowID = i32;
 	std::map<WindowID, Windows_Window> m_windows;
-	Windows_Window* m_main_window_p = nullptr;
 	Windows_Window* m_current_window_p = nullptr;
 
 
 	BaseApp* m_current_app_p = nullptr;
 
-	IRenderer* m_renderer;
-	//Vulkan_Renderer m_vulkan_renderer;
+	IRenderer* m_renderer = nullptr;
 	Camera1 m_camera;
 
 	bool m_is_running = true;

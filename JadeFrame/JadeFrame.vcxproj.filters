@@ -531,6 +531,9 @@
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_sync_object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\JadeFrame\utils\logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\JadeFrame.cpp">
@@ -696,6 +699,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_sync_object.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\utils\logger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

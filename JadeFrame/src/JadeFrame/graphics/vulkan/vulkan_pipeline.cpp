@@ -92,7 +92,7 @@ auto VulkanPipeline::init(
 
 
 	//auto time_1 = tm->get_time();
-	//std::cout << "it took " << time_1 - time_0 << std::endl;
+	//Logger::log("it took ", time_1 - time_0);
 
 	const VkPipelineShaderStageCreateInfo vert_shader_stage_info = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,

@@ -77,7 +77,7 @@ public:
 
 	OpenGL_Renderer(const Windows_Window& window);
 
-	virtual auto present() const -> void override;
+	virtual auto present() -> void override;
 	virtual auto clear_background() -> void override;
 	virtual auto render(const Matrix4x4& view_projection) -> void override;
 

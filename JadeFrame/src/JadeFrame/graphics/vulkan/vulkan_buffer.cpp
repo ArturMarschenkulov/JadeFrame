@@ -9,15 +9,6 @@
 
 namespace JadeFrame {
 
-auto find_memory_type(const VulkanPhysicalDevice& physical_device, u32 type_filter, VkMemoryPropertyFlags properties) -> u32 {
-	const VkPhysicalDeviceMemoryProperties& mem_props = physical_device.m_memory_properties;
-	for (u32 i = 0; i < mem_props.memoryTypeCount; i++) {
-		if ((type_filter & (1 << i)) && (mem_props.memoryTypes[i].propertyFlags & properties) == properties) {
-			return i;
-		}
-	}
-	throw std::runtime_error("failed to find suitable memory type!");
-}
 
 
 VulkanBuffer::VulkanBuffer(const VULKAN_BUFFER_TYPE type)
@@ -292,7 +283,7 @@ auto VulkanBuffer::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, Vk
 		.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
 		.pNext = nullptr,
 		.allocationSize = mem_requirements.size,
-		.memoryTypeIndex = find_memory_type(*m_device->m_physical_device_p, mem_requirements.memoryTypeBits, properties),
+		.memoryTypeIndex = m_device->m_physical_device_p->find_memory_type(mem_requirements.memoryTypeBits, properties),
 	};
 
 	result = vkAllocateMemory(m_device->m_handle, &alloc_info, nullptr, &buffer_memory);

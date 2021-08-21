@@ -228,7 +228,7 @@ auto VulkanLogicalDevice::cleanup_swapchain() -> void {
 	vkDestroySwapchainKHR(m_handle, m_swapchain.m_handle, nullptr);
 }
 
-auto VulkanLogicalDevice::update_uniform_buffer(u32 current_image) -> void {
+auto VulkanLogicalDevice::update_uniform_buffer(u32 current_image, const Matrix4x4& view_projection) -> void {
 	static auto start_time = std::chrono::high_resolution_clock::now();
 
 	auto current_time = std::chrono::high_resolution_clock::now();
@@ -247,7 +247,7 @@ auto VulkanLogicalDevice::update_uniform_buffer(u32 current_image) -> void {
 
 }
 
-auto VulkanLogicalDevice::draw_frame() -> void {
+auto VulkanLogicalDevice::draw_frame(const Matrix4x4& view_projection) -> void {
 	VkResult result;
 
 	//prepare buffers
@@ -268,7 +268,7 @@ auto VulkanLogicalDevice::draw_frame() -> void {
 			throw std::runtime_error("failed to acquire swap chain image!");
 		}
 	}
-	this->update_uniform_buffer(image_index);
+	this->update_uniform_buffer(image_index, view_projection);
 	//~prepare buffers
 
 	if (m_images_in_flight[image_index].m_handle != VK_NULL_HANDLE) {

@@ -17,7 +17,7 @@ static auto init_device_context(const Windows_Window& window) -> HDC {
 
 	HDC device_context = ::GetDC(window.m_window_handle);
 	if (device_context == NULL) {
-		std::cout << "GetDC(hWnd) failed! " << ::GetLastError() << std::endl;
+		Logger::log("GetDC(hWnd) failed! {}", ::GetLastError());
 		__debugbreak();
 	}
 	return device_context;
@@ -27,7 +27,7 @@ static auto init_render_context(HDC device_context) -> HGLRC {
 	wgl_set_pixel_format(device_context);
 	HGLRC render_context = wgl_create_render_context(device_context);
 	if (gladLoadGL() != 1) {
-		std::cout << "gladLoadGL() failed." << std::endl;
+		Logger::log("gladLoadGL() failed.", ::GetLastError());
 	}
 	return render_context;
 }

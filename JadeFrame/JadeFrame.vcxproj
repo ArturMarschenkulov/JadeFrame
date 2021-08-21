@@ -359,6 +359,7 @@
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_shader.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_shared.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_system_manager.h" />
+    <ClInclude Include="src\JadeFrame\utils\logger.h" />
     <ClInclude Include="src\JadeFrame\utils\utils.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_message_map.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_time_manager.h" />
@@ -432,6 +433,7 @@
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_buffer.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_command_pool.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_context.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_debug.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_pool.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_set.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_set_layout.cpp" />
@@ -459,6 +461,7 @@
     <ClCompile Include="src\JadeFrame\platform\windows\windows_system_manager.cpp" />
     <ClCompile Include="src\JadeFrame\platform\windows\windows_time_manager.cpp" />
     <ClCompile Include="src\JadeFrame\platform\windows\windows_window.cpp" />
+    <ClCompile Include="src\JadeFrame\utils\logger.cpp" />
     <ClCompile Include="src\JadeFrame\utils\utils.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

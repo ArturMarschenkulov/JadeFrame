@@ -45,22 +45,38 @@ auto opengl_message_callback(u32 source, u32 type, u32 id, u32 severity, i32 len
 	}
 
 	if (0) {
-		std::cout
-			<< "GL_ERR: "
-			<< "Source: " << _source << "| "
-			<< "Type: " << _type << "| "
-			<< "ID: " << _id << "| "
-			<< "Severity: " << _severity << "| "
-			<< "Message " << message << std::endl;
+		Logger::log("GL_ERR: Source: {} | Type: {} | ID: {} | Severity {} | Message {}",
+			_source, _type, _id, _severity, message
+		);
+		//std::cout
+		//	<< "GL_ERR: "
+		//	<< "Source: " << _source << "| "
+		//	<< "Type: " << _type << "| "
+		//	<< "ID: " << _id << "| "
+		//	<< "Severity: " << _severity << "| "
+		//	<< "Message " << message 
+		//<< std::endl;
 	} else {
-		std::cout
-			<< "GL_ERR: "
-			<< "Source: " << _source << std::endl << "| "
-			<< "Type: " << _type << std::endl << "| "
-			<< "ID: " << _id << std::endl << "| "
-			<< "Severity: " << _severity << std::endl << "| "
-			<< "Message " << message << std::endl
-			<< "|-----------------------------------------|" << std::endl;
+		Logger::log(
+R"(
+GL_ERR: Source: {} 
+| Type: {} 
+| ID: {} 
+| Severity {} 
+| Message {}
+|-----------------------------------------|
+)",
+			_source, _type, _id, _severity, message
+		);
+		//std::cout
+		//	<< "GL_ERR: "
+		//	<< "Source: " << _source << std::endl << "| "
+		//	<< "Type: " << _type << std::endl << "| "
+		//	<< "ID: " << _id << std::endl << "| "
+		//	<< "Severity: " << _severity << std::endl << "| "
+		//	<< "Message " << message << std::endl
+		//	<< "|-----------------------------------------|" 
+		//<< std::endl;
 	}
 }
 

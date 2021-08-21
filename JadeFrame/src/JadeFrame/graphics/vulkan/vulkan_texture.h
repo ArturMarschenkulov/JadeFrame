@@ -22,6 +22,8 @@ public:
 	VkImageView m_handle = VK_NULL_HANDLE;
 	const VulkanLogicalDevice* m_device = nullptr;
 };
+
+
 class VulkanTexture {
 
 };

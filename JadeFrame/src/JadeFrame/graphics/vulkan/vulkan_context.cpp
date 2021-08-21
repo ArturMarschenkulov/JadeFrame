@@ -90,7 +90,7 @@ auto Vulkan_Context::main_loop() -> void {
 
 	while (true) {
 		JadeFrameInstance::get_singleton()->m_apps[0]->poll_events();
-		m_instance.m_logical_device.draw_frame();
+		m_instance.m_logical_device.draw_frame(Matrix4x4());
 	}
 	result = vkDeviceWaitIdle(m_instance.m_logical_device.m_handle);
 }

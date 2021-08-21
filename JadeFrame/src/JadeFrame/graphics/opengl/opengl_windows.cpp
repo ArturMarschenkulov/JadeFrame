@@ -70,7 +70,7 @@ auto wgl_load() -> bool {
 	//DummyWindow dummy_window;
 	const HINSTANCE instance = GetModuleHandleW(NULL);
 	if (instance == NULL) {
-		std::cout << "GetModuleHandleW(NULL) failed. " << ::GetLastError() << std::endl;
+		Logger::log("GetModuleHandleW(NULL) failed. {}", ::GetLastError());
 	}
 	const LPCWSTR window_class_name = L"OpenGL";
 
@@ -88,7 +88,7 @@ auto wgl_load() -> bool {
 	window_class.lpszMenuName = NULL;
 	window_class.lpszClassName = window_class_name;
 	if (!::RegisterClassW(&window_class)) {
-		std::cout << "RegisterClassW Failed! " << ::GetLastError() << std::endl;
+		Logger::log("RegisterClassW Failed! {}", ::GetLastError());
 	}
 
 	//dummy_window.create();
@@ -170,18 +170,18 @@ auto wgl_set_pixel_format(const HDC& device_context) -> void {
 	UINT num_formats;
 	const bool status = wglChoosePixelFormatARB(device_context, pixel_attributes, NULL, 1, &format_descriptor_ID, &num_formats);
 	if (status == false || num_formats == 0) {
-		std::cout << "wglChoosePixelFormatARB() failed. " << ::GetLastError() << std::endl;
+		Logger::log("wglChoosePixelFormatARB() failed. {}", ::GetLastError());
 		return;
 	}
 
 	PIXELFORMATDESCRIPTOR format_descriptor;
 	i32 maximum_pixel_format_index = DescribePixelFormat(device_context, format_descriptor_ID, sizeof(format_descriptor), &format_descriptor);
 	if (maximum_pixel_format_index == 0) {
-		std::cout << "DescribePixelFormat() failed. " << ::GetLastError() << std::endl;
+		Logger::log("DescribePixelFormat() failed. {}", ::GetLastError());
 	}
 	BOOL result = SetPixelFormat(device_context, format_descriptor_ID, &format_descriptor);
 	if (result == FALSE) {
-		std::cout << "SetPixelFormat() failed. " << ::GetLastError() << std::endl;
+		Logger::log("SetPixelFormat() failed. {}", ::GetLastError());
 	}
 }
 
@@ -196,12 +196,12 @@ auto wgl_create_render_context(HDC device_context) -> HGLRC {
 	};
 	const HGLRC render_context = wglCreateContextAttribsARB(device_context, 0, context_attributes);
 	if (render_context == NULL) {
-		std::cout << "wglCreateContextAttribsARB() failed. " << ::GetLastError() << std::endl;
+		Logger::log("wglCreateContextAttribsARB() failed. {}", ::GetLastError());
 		return NULL;
 	}
 	const BOOL current_succes = wglMakeCurrent(device_context, render_context);
 	if (current_succes == false) {
-		std::cout << "wglMakeCurrent() failed. " << ::GetLastError() << std::endl;
+		Logger::log("wglMakeCurrent() failed. {}", ::GetLastError());
 		return NULL;
 	}
 	return render_context;

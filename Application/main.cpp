@@ -6,8 +6,8 @@ using namespace JadeFrame;
 class App : public BaseApp {
 public:
 public:
-	App(const std::string& title, const Vec2 pos)
-		:BaseApp(title, pos) {
+	App(DESC desc)
+		: BaseApp(desc) {
 	}
 	virtual auto on_init() -> void override {
 	}
@@ -18,14 +18,16 @@ public:
 };
 
 int main() {
-	std::cout << "lll" << std::endl;
 #if 1
 	using GApp = TestApp;
 	JadeFrameInstance jade_frame;
-	std::string title = "Test";
-	float width = 1280;
-	float height = 720;
-	GApp* app = new GApp(title, { width, height });
+
+	GApp::DESC win_desc;
+	win_desc.title = "Test";
+	win_desc.size.width = 1280;
+	win_desc.size.height = 720;
+
+	GApp* app = new GApp(win_desc);
 
 	jade_frame.add(app);
 	jade_frame.run();

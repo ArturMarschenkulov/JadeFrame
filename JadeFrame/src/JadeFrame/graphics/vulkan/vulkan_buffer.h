@@ -22,8 +22,6 @@ enum class VULKAN_BUFFER_TYPE {
 	STAGING,
 };
 
-auto find_memory_type(const VulkanPhysicalDevice& physical_device, u32 type_filter, VkMemoryPropertyFlags properties) -> u32;
-
 class VulkanBuffer {
 public:
 	VulkanBuffer() = default;

@@ -9,7 +9,7 @@ namespace JadeFrame {
 struct Drop {
 	Drop() {
 		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
-		const f32 window_width = app->m_main_window_p->get_size().x;
+		const f32 window_width = app->m_current_window_p->get_size().x;
 
 		x = static_cast<f32>(get_random_number(0, window_width));
 		const f32 rando = static_cast<f32>(get_random_number(1, 30));
@@ -25,7 +25,7 @@ struct Drop {
 	auto fall() -> void {
 		y = y + y_speed;
 		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 80.0f, 1.0f }) * Matrix4x4::translation_matrix({ x, y, 0.0f });
-		const f32 window_height = JadeFrameInstance::get_singleton()->m_current_app_p->m_main_window_p->get_size().y;
+		const f32 window_height = JadeFrameInstance::get_singleton()->m_current_app_p->m_current_window_p->get_size().y;
 		if (y >= window_height) {
 			y = -100;
 		}
@@ -43,7 +43,7 @@ struct Drop {
 struct Checkerbox {
 	Checkerbox(f32 size, Vec2 pos) {
 		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
-		const f32 window_width = app->m_main_window_p->get_size().x;
+		const f32 window_width = app->m_current_window_p->get_size().x;
 		x = pos.x;
 		y = pos.y;
 		obj.m_transform = Matrix4x4::scale_matrix({ size, size, 1.0f }) * Matrix4x4::translation_matrix({ pos.x, pos.y, 0.0f });
@@ -64,7 +64,7 @@ struct Checkerbox {
 struct Thingy {
 	Thingy() {
 		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
-		const f32 window_width = app->m_main_window_p->get_size().x;
+		const f32 window_width = app->m_current_window_p->get_size().x;
 
 		pos.x = static_cast<f32>(get_random_number(0, window_width));
 
@@ -89,7 +89,7 @@ struct Thingy {
 };
 
 struct Example_0 : public BaseApp {
-	Example_0(const std::string& title, const Vec2& size, const Vec2& position = { -1, -1 });
+	Example_0(DESC desc);
 	virtual ~Example_0() = default;
 
 	virtual auto on_init() -> void override;
@@ -105,8 +105,8 @@ public:
 
 static auto draw_GUI(Example_0& app) -> void;
 
-Example_0::Example_0(const std::string& title, const Vec2& size, const Vec2& position)
-	: BaseApp(title, size, position) {
+Example_0::Example_0(DESC desc)
+	: BaseApp(desc) {
 	m_current_app_p = reinterpret_cast<Example_0*>(this);
 }
 

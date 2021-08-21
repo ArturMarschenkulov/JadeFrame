@@ -32,7 +32,7 @@ public:
 	auto init(const VulkanInstance& instance) -> void;
 	auto deinit() -> void;
 
-	auto draw_frame() -> void;
+	auto draw_frame(const Matrix4x4& view_projection) -> void;
 public:
 	const VulkanInstance* m_instance_p = nullptr;
 	VkDevice m_handle = nullptr;
@@ -57,7 +57,7 @@ public: // Descriptor set
 	//std::vector<VkDescriptorSet> m_descriptor_sets;
 	VulkanDescriptorSets m_descriptor_sets;
 
-	auto update_uniform_buffer(u32 current_image) -> void;
+	auto update_uniform_buffer(u32 current_image, const Matrix4x4& view_projection) -> void;
 
 
 public:

@@ -66,10 +66,10 @@ static auto CALLBACK window_procedure(::HWND hWnd, UINT message, WPARAM wParam, 
 
 	BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
 	if (app == nullptr) {
-		//std::cout << "WindowProced___:" << windows_message_map(win_message);
+		//Logger::log("WindowProced___: {}", windows_message_map(wm));
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	} else {
-		//std::cout << "WindowProcedure:" << windows_message_map(win_message);
+		//Logger::log("WindowProcedure: {}", windows_message_map(wm));
 	}
 
 
@@ -86,7 +86,7 @@ static auto CALLBACK window_procedure(::HWND hWnd, UINT message, WPARAM wParam, 
 		case WM_SETFOCUS:
 		case WM_KILLFOCUS:
 		{
-			//std::cout << "WindowProcedure:" << windows_message_map(win_message);
+			//Logger::log("WindowProced___: {}", windows_message_map(wm));
 			bool should_focus = message == WM_SETFOCUS ? true : false;
 			window_focus_callback(current_window, should_focus);
 		}break;
@@ -104,13 +104,12 @@ static auto CALLBACK window_procedure(::HWND hWnd, UINT message, WPARAM wParam, 
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
 		{
-			//std::cout << "WindowProcedure:" << window_message_map(message, lParam, wParam);
+			//Logger::log("WindowProcedure: {}", windows_message_map(wm));
 			input_manager.key_callback(wm);
 		}break;
 		case WM_CHAR:
 		{
-
-			//std::cout << "WindowProcedure:" << window_message_map(message, lParam, wParam);
+			//Logger::log("WindowProcedure: {}", windows_message_map(wm));
 			input_manager.char_callback(wm);
 		} break;
 		case WM_LBUTTONDOWN:
@@ -126,16 +125,16 @@ static auto CALLBACK window_procedure(::HWND hWnd, UINT message, WPARAM wParam, 
 
 		case WM_CLOSE:
 		{
-			std::cout << "WindowProcedure:" << windows_message_map(wm);
+			Logger::log("WindowProcedure: {}", windows_message_map(wm));
 
 			app->m_windows.erase(current_window_id);
 
-			std::cout << "\tLOG: Window Nr " << app->m_windows.size() << " closing" << std::endl;
+			Logger::log("\tLOG: Window Nr {} closing", app->m_windows.size());
 			if (app->m_windows.empty() == true) {
-				std::cout << "\tLOG: All Windows were closed" << std::endl;
+				Logger::log("\tLOG: All Windows were closed");
 				::PostQuitMessage(0);
 			} else if (app->m_windows.contains(0) == false) {
-				std::cout << "\tLOG: Main Window was closed thus every other as well" << std::endl;
+				Logger::log("\tLOG: Main Window was closed thus every other as well");
 				::PostQuitMessage(0);
 				app->m_is_running = false;
 			}
@@ -145,20 +144,20 @@ static auto CALLBACK window_procedure(::HWND hWnd, UINT message, WPARAM wParam, 
 		}break;
 		case WM_DESTROY:
 		{
-			std::cout << "WindowProcedure:" << windows_message_map(wm);
+			Logger::log("WindowProcedure: {}", windows_message_map(wm));
 			//::PostQuitMessage(0);
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}break;
 		case WM_QUIT:
 		{
-			std::cout << "WindowProcedure:" << windows_message_map(wm);
+			Logger::log("WindowProcedure: {}", windows_message_map(wm));
 			return DefWindowProc(hWnd, message, wParam, lParam);
 			//::PostQuitMessage(0);
 		}break;
 
 		default:
 		{
-			//std::cout << "WindowProcedure:" << window_message_map(win_message);
+			//Logger::log("WindowProced___: {}", windows_message_map(wm));
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
 	}
@@ -170,7 +169,7 @@ Windows_Window::Windows_Window(const Windows_Window::DESC& desc) {
 
 	HINSTANCE instance = GetModuleHandleW(NULL);
 	if (instance == NULL) {
-		std::cout << "GetModuleHandleW(NULL) failed! " << ::GetLastError() << std::endl;
+		Logger::log("GetModuleHandleW(NULL) failed! {}", ::GetLastError());
 	}
 	static bool is_window_class_registered = false;
 	if (is_window_class_registered == false) {
@@ -191,7 +190,7 @@ Windows_Window::Windows_Window(const Windows_Window::DESC& desc) {
 
 		ATOM res = ::RegisterClassExW(&window_class);
 		if (!res) {
-			std::cout << "Window Registration Failed! " << ::GetLastError() << std::endl;
+			Logger::log("Window Registration Failed! {}", ::GetLastError());
 			__debugbreak();
 		}
 
@@ -226,7 +225,7 @@ Windows_Window::Windows_Window(const Windows_Window::DESC& desc) {
 		lpParam
 	);
 	if (window_handle == NULL) {
-		std::cout << "win32_create_window error: " << ::GetLastError() << std::endl;
+		Logger::log("win32_create_window error: {}", ::GetLastError());
 		__debugbreak();
 	}
 

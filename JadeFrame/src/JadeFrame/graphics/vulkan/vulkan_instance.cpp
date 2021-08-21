@@ -84,7 +84,7 @@ auto VulkanInstance::setup_debug() -> void {
 	VkDebugUtilsMessengerCreateInfoEXT create_info;
 	populate_debug_messenger_create_info(create_info);
 
-	result = vkCreateDebugUtilsMessengerEXT(m_instance, &create_info, nullptr, &m_debug_messenger);
+	result = vkCreateDebugUtilsMessengerEXT_(m_instance, &create_info, nullptr, &m_debug_messenger);
 	if (result != VK_SUCCESS) __debugbreak();
 }
 
@@ -165,7 +165,7 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 
 auto VulkanInstance::deinit() -> void {
 	if (m_enable_validation_layers) {
-		vkDestroyDebugUtilsMessengerEXT(m_instance, m_debug_messenger, nullptr);
+		vkDestroyDebugUtilsMessengerEXT_(m_instance, m_debug_messenger, nullptr);
 	}
 	vkDestroySurfaceKHR(m_instance, m_surface.m_surface, nullptr);
 	vkDestroyInstance(m_instance, nullptr);

@@ -1,5 +1,5 @@
 
-
+//STD
 #include <vector>
 #include <array>
 #include <deque>
@@ -25,8 +25,10 @@
 #include <thread>
 #include <future>
 
+//Windows
+#include <Windows.h>
 
-
+//Graphics API specific
 #pragma warning(push)
 #pragma warning(disable:4006)
 #include <shaderc/shaderc.hpp>
@@ -39,4 +41,7 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <vulkan/vulkan.h>
 
-#include <Windows.h>
+//JadeFrame specific
+
+#include "JadeFrame/utils/logger.h"
+
