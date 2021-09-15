@@ -41,8 +41,8 @@ public:
 	auto init() -> void;
 
 public:
-	std::string vertex_shader;
-	std::string fragment_shader;
+	std::string vertex_shader_code;
+	std::string fragment_shader_code;
 
 
 	enum class API {

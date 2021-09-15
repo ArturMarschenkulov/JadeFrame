@@ -2,7 +2,7 @@
 #include "vulkan_swapchain.h"
 
 #include <Windows.h> // TODO: Try to remove it
-#include <iostream>
+
 
 #include "vulkan_logical_device.h"
 #include "vulkan_context.h"

@@ -2,7 +2,6 @@
 #include "JadeFrame/defines.h"
 #include "opengl_windows.h"
 #include <glad/glad.h>
-#include <iostream>
 
 #pragma comment(lib,"opengl32.lib")
 #define WGL_CONTEXT_MAJOR_VERSION_ARB           0x2091

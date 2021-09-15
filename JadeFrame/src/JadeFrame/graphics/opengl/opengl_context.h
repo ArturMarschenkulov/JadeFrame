@@ -49,7 +49,7 @@ struct GL_Cache {
 public:
 	auto set_default() -> void;
 	auto set_blending(bool enable, BLENDING_FACTOR sfactor = SRC_ALPHA, BLENDING_FACTOR dfactor = ONE_MINUS_SRC_ALPHA) -> void;
-	auto set_clear_color(const Color& color) -> void;
+	auto set_clear_color(const RGBAColor& color) -> void;
 	auto set_polygon_mode(POLYGON_FACE face, POLYGON_MODE mode) -> void;
 	auto set_clear_bitfield(const GLbitfield& bitfield) -> void;
 	auto add_clear_bitfield(const GLbitfield& bitfield) -> void;
@@ -59,7 +59,7 @@ public:
 
 public:
 	bool depth_test;
-	Color clear_color;
+	RGBAColor clear_color;
 	GLbitfield clear_bitfield;
 	bool blending;
 	bool is_face_culling;

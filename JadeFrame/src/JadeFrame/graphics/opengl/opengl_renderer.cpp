@@ -14,7 +14,7 @@
 
 namespace JadeFrame {
 
-auto OpenGL_Renderer::set_clear_color(const Color& color) -> void {
+auto OpenGL_Renderer::set_clear_color(const RGBAColor& color) -> void {
 	m_context.m_cache.set_clear_color(color);
 }
 
@@ -28,29 +28,53 @@ auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const ->
 	//__debugbreak();
 }
 
-OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window)
-	: m_context(window) {
+static auto setup_framebuffer(OGLW_Framebuffer& buffer, OGLW_Texture<GL_TEXTURE_2D>& texture, OGLW_Renderbuffer& renderbuffer) -> void {
+	buffer.bind();
 
-	m_framebuffer.bind();
+	const Vec2 size;// = m_context.m_cache.viewport[1];
+	texture.bind(0);
 
-	const Vec2 size = m_context.m_cache.viewport[1];
-	m_framebuffer_texture.bind(0);
+	texture.set_texture_image_2D(0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	texture.set_texture_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	texture.set_texture_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	texture.set_texture_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	texture.set_texture_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	buffer.attach_texture_2D(texture);
 
-	m_framebuffer_texture.set_texture_image_2D(0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	m_framebuffer.attach_texture_2D(m_framebuffer_texture);
+	renderbuffer.bind();
+	renderbuffer.store(GL_DEPTH24_STENCIL8, size.x, size.y);
+	buffer.attach_renderbuffer(renderbuffer);
 
-	m_framebuffer_renderbuffer.bind();
-	m_framebuffer_renderbuffer.store(GL_DEPTH24_STENCIL8, size.x, size.y);
-	m_framebuffer.attach_renderbuffer(m_framebuffer_renderbuffer);
+	buffer.unbind();
 
-	m_framebuffer.unbind();
-
-	const GLenum res = m_framebuffer.check_status();
+	const GLenum res = buffer.check_status();
 	if (res != GL_FRAMEBUFFER_COMPLETE) __debugbreak();
+}
+OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(window) {
+	{
+		//setup_framebuffer(m_framebuffer, m_framebuffer_texture, m_framebuffer_renderbuffer);
+
+		m_framebuffer.bind();
+
+		const Vec2 size = m_context.m_cache.viewport[1];
+		m_framebuffer_texture.bind(0);
+
+		m_framebuffer_texture.set_texture_image_2D(0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		m_framebuffer.attach_texture_2D(m_framebuffer_texture);
+
+		m_framebuffer_renderbuffer.bind();
+		m_framebuffer_renderbuffer.store(GL_DEPTH24_STENCIL8, size.x, size.y);
+		m_framebuffer.attach_renderbuffer(m_framebuffer_renderbuffer);
+
+		m_framebuffer.unbind();
+
+		const GLenum res = m_framebuffer.check_status();
+		if (res != GL_FRAMEBUFFER_COMPLETE) __debugbreak();
+	}
 
 	BufferLayout bl = {
 			{ SHADER_TYPE::FLOAT_3, "v_position" },
@@ -58,6 +82,9 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window)
 			{ SHADER_TYPE::FLOAT_2, "v_texture_coord" },
 			{ SHADER_TYPE::FLOAT_3, "v_normal" },
 	};
+
+
+
 	m_framebuffer_rect = new OpenGL_GPUMeshData(VertexDataFactory::make_rectangle({ -1.0f, -1.0f, 0.0f }, { 2.0f, 2.0f, 0.0f }), bl);
 
 	m_shader_handle_fb = new ShaderHandle(GLSLCodeLoader::get_by_name("framebuffer_test"));
@@ -70,20 +97,30 @@ auto OpenGL_Renderer::present() -> void {
 auto OpenGL_Renderer::submit(const Object& obj) -> void {
 
 	if (obj.m_GPU_mesh_data.m_is_initialized == false) {
-		//obj.m_GPU_mesh_data.m_handle = new OpenGL_GPUMeshData();
-		//static_cast<OpenGL_GPUMeshData*>(obj.m_GPU_mesh_data.m_handle)->finalize(*obj.m_mesh);
+		BufferLayout buffer_layout;
+		//In case there is no buffer layout provided use a default one
+		if (obj.m_buffer_layout.m_elements.size() == 0) {
+			const BufferLayout bl = {
+				{ SHADER_TYPE::FLOAT_3, "v_position" },
+				{ SHADER_TYPE::FLOAT_4, "v_color" },
+				{ SHADER_TYPE::FLOAT_2, "v_texture_coord" },
+				{ SHADER_TYPE::FLOAT_3, "v_normal" },
+			};
+			buffer_layout = bl;
+		} else {
+			buffer_layout = obj.m_buffer_layout;
+		}
 
-		const BufferLayout bl = {
-			{ SHADER_TYPE::FLOAT_3, "v_position" },
-			{ SHADER_TYPE::FLOAT_4, "v_color" },
-			{ SHADER_TYPE::FLOAT_2, "v_texture_coord" },
-			{ SHADER_TYPE::FLOAT_3, "v_normal" },
-		};
-		obj.m_GPU_mesh_data.m_handle = new OpenGL_GPUMeshData(*obj.m_mesh, bl);
+		obj.m_GPU_mesh_data.m_handle = new OpenGL_GPUMeshData(*obj.m_mesh, buffer_layout);
 		obj.m_GPU_mesh_data.m_is_initialized = true;
 	}
 	if (obj.m_material_handle->m_is_initialized == false) {
-		obj.m_material_handle->init();
+		//obj.m_material_handle->init();
+		obj.m_material_handle->m_shader_handle->init();
+
+		if (obj.m_material_handle->m_texture_handle != nullptr) {
+			obj.m_material_handle->m_texture_handle->init();
+		}
 		obj.m_material_handle->m_is_initialized = true;
 	}
 
@@ -99,6 +136,7 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
 
 
 auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
+
 #define JF_FB 1
 #if JF_FB
 	m_framebuffer.bind();
@@ -111,13 +149,15 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 		shader.bind();
 
 		const Matrix4x4& transform = *m_render_commands[i].transform;
-		const std::vector<Matrix4x4>& u = { view_projection , transform };
+		const std::vector<Matrix4x4>& matrices = { view_projection , transform };
 		m_context.m_uniform_buffers[0].bind();
-		m_context.m_uniform_buffers[0].send(u);
+		m_context.m_uniform_buffers[0].send(matrices);
 		m_context.m_uniform_buffers[0].unbind();
 
-		OpenGL_Texture& texture = *static_cast<OpenGL_Texture*>	(m_render_commands[i].material_handle->m_texture_handle->m_handle);
-		texture.bind();
+		if (m_render_commands[i].material_handle->m_texture_handle != nullptr) {
+			OpenGL_Texture& texture = *static_cast<OpenGL_Texture*>	(m_render_commands[i].material_handle->m_texture_handle->m_handle);
+			texture.bind();
+		}
 
 
 		const Mesh* mesh = m_render_commands[i].mesh;
@@ -134,6 +174,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	m_context.m_cache.set_depth_test(true);
 #endif
+#undef JF_FB
 	m_render_commands.clear();
 }
 
@@ -141,16 +182,18 @@ auto OpenGL_Renderer::render_mesh(const OpenGL_GPUMeshData* vertex_array, const 
 	vertex_array->bind();
 
 	if (mesh->m_indices.size() > 0) {
-		const GLenum mode = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
-		const GLsizei count = mesh->m_indices.size();
-		const GLenum type = GL_UNSIGNED_INT;
-		const void* indices = nullptr;
-		glDrawElements(mode, count, type, indices);
+		glDrawElements(
+			/*mode*/ static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES),
+			/*count*/ mesh->m_indices.size(),
+			/*type*/ GL_UNSIGNED_INT,
+			/*indices*/ nullptr
+		);
 	} else {
-		const GLenum mode = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
-		const GLint first = 0;
-		const GLsizei count = mesh->m_positions.size();
-		glDrawArrays(mode, first, count);
+		glDrawArrays(
+			/*mode*/ static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES),
+			/*first*/ 0,
+			/*count*/ mesh->m_positions.size()
+		);
 	}
 }
 

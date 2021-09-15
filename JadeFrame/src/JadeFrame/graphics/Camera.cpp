@@ -117,6 +117,11 @@ auto Camera1::perspective_mode(const Vec3& position, const f32 fov, const f32 as
 }
 
 auto Camera1::othographic_mode(f32 left, f32 right, f32 bottom, f32 top, f32 near_, f32 far_) -> void {
+	assert(left != right);
+	assert(bottom != top);
+	assert(near_ != far_);
+
+
 	m_mode = MODE::ORTHOGRAPHIC;
 	m_projection_matrix =
 		Matrix4x4::orthogonal_projection_matrix(left, right, bottom, top, near_, far_);

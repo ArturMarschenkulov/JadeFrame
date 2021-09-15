@@ -173,6 +173,7 @@
   <ItemGroup>
     <ClInclude Include="example_0.h" />
     <ClInclude Include="example_empty.h" />
+    <ClInclude Include="exmaple_rotating_primitive.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

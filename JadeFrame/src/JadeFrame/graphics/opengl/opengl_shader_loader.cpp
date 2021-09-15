@@ -71,20 +71,19 @@ static auto get_shader_spirv_test_0() -> std::tuple<std::string, std::string> {
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(location = 0) in vec2 inPosition;
-layout(location = 1) in vec3 inColor;
+layout(location = 0) in vec3 v_position;
+layout(location = 1) in vec4 v_color;
 
-layout(location = 0) out vec3 fragColor;
+layout(location = 0) out vec4 f_color;
 
-layout(binding = 0) uniform UniformBufferObject {
+layout(std140, binding = 0) uniform UniformBufferObject {
+    mat4 view_projection;
     mat4 model;
-    mat4 view;
-    mat4 proj;
-} ubo;
+} u_ubo;
 
 void main() {
-    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 0.0, 1.0);
-	fragColor = inColor;
+    gl_Position = u_ubo.view_projection * u_ubo.model * vec4(v_position, 1.0);
+	f_color = v_color;
 }
 )";
 
@@ -93,17 +92,18 @@ void main() {
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(location = 0) in vec3 fragColor;
+layout(location = 0) in vec4 f_color;
 
-layout(location = 0) out vec4 outColor;
+layout(location = 0) out vec4 o_color;
 
 void main() {
-    outColor = vec4(fragColor, 1.0);
+    o_color = f_color;
 }
 )";
 
 	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
+
 static auto get_default_shader_flat_0() -> std::tuple<std::string, std::string> {
 	const GLchar* vertex_shader =
 		R"(

@@ -7,6 +7,7 @@
 
 #include <utility>
 #include <format>
+#include <JadeFrame/utils/utils.h>
 
 namespace JadeFrame {
 //**************************************************************
@@ -45,7 +46,7 @@ auto JadeFrameInstance::add(BaseApp* app) -> void {
 //BaseApp
 //**************************************************************
 
-BaseApp::BaseApp(DESC desc) {
+BaseApp::BaseApp(const DESC& desc) {
 	m_time_manager.initialize();
 
 	Windows_Window::DESC win_desc;
@@ -56,35 +57,35 @@ BaseApp::BaseApp(DESC desc) {
 
 	m_current_window_p = &m_windows[0];
 
-	enum class API {
-		OPENGL,
-		VULKAN,
-	};
-	API api;
-	api = API::VULKAN;
+	GRAPHICS_API api = GRAPHICS_API::UNDEFINED;
+	//api = GRAPHICS_API::VULKAN;
+	api = GRAPHICS_API::OPENGL;
 
+	const std::string& title = m_current_window_p->get_title();
 	switch (api) {
-		case API::OPENGL:
+		case GRAPHICS_API::OPENGL:
 		{
 			m_renderer = new OpenGL_Renderer(m_windows[0]);
+			m_current_window_p->set_title(title + " OpenGL");
+
 		} break;
-		case API::VULKAN:
+		case GRAPHICS_API::VULKAN:
 		{
 			m_renderer = new Vulkan_Renderer(m_windows[0]);
+			m_current_window_p->set_title(title + " Vulkan");
 		} break;
 	}
 
+
 }
 auto BaseApp::start() -> void {
-	m_renderer->main_loop();
+	//m_renderer->main_loop();
 
 	this->on_init();
 
 	//GUI_init(m_current_window_p->m_window_handle);
-
 	m_time_manager.set_FPS(60);
 	while (m_is_running) {
-
 		this->on_update();
 		if (m_current_window_p->get_window_state() != Windows_Window::WINDOW_STATE::MINIMIZED) {
 			const f64 time_since_last_frame = m_time_manager.calc_elapsed();
@@ -111,7 +112,7 @@ auto BaseApp::poll_events() -> void {
 	JadeFrameInstance::get_singleton()->m_input_manager.handle_input();
 
 	//TODO: Abstract the Windows code away
-	MSG message;
+	::MSG message;
 	while (::PeekMessageW(&message, NULL, 0, 0, PM_REMOVE)) {
 		if (message.message == WM_QUIT) {
 			this->m_is_running = false;
@@ -124,5 +125,77 @@ auto BaseApp::poll_events() -> void {
 //**************************************************************
 //~BaseApp
 //**************************************************************
+
+namespace T1 {
+template <typename BaseType, typename SubType>
+static auto take_ownership(std::set<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object) -> SubType* {
+	SubType* ref = object.get();
+	object_set.emplace(std::forward<std::unique_ptr<SubType>>(object));
+	return ref;
+}
+template <typename BaseType, typename SubType>
+static auto take_ownership(std::vector<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object) -> SubType* {
+	SubType* ref = object.get();
+	object_set.emplace_back(std::forward<std::unique_ptr<SubType>>(object));
+	return ref;
+}
+template <typename BaseType, typename SubType>
+static auto take_ownership(std::list<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object) -> SubType* {
+	SubType* ref = object.get();
+	object_set.emplace_back(std::forward<std::unique_ptr<SubType>>(object));
+	return ref;
+}
+
+template<typename Left, typename Right>
+class Either {
+public:
+	Either(const Left& left) {
+		m_left = left;
+		m_is_left = true;
+	}
+	Either(const Right& right) {
+		m_right = right;
+		m_is_left = false;
+	}
+
+	//auto match() -> T {
+	//
+	//}
+private:
+	//Left m_left;
+	//Right m_right;
+	union {
+		Left m_left;
+		Right m_right;
+	};
+	bool m_is_left;
+};
+
+
+constexpr static auto hash(const char* str) -> size_t {
+	const i64 p = 131;
+	const i64 m = 4294967291; // 2^32 - 5, largest 32 bit prime
+	i64 total = 0;
+	i64 current_multiplier = 1;
+	for (i64 i = 0; str[i] != '\0'; ++i) {
+		total = (total + current_multiplier * str[i]) % m;
+		current_multiplier = (current_multiplier * p) % m;
+	}
+	return total;
+}
+
+auto foo() -> void {
+	Either<i32, f32> e = 32.0f;
+
+	auto ee = Either<i32, f32>(29);
+
+}
+
+template<typename T>
+class UniquePointer {
+
+};
+}
+
 
 }

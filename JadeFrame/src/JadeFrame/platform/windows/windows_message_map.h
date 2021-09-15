@@ -2,10 +2,23 @@
 #include <unordered_map>
 #include <string>
 
-namespace JadeFrame {
 typedef unsigned long DWORD;
 
-struct WindowsMessage;
+typedef unsigned int        UINT;
+typedef unsigned __int64	UINT_PTR;
+typedef UINT_PTR            WPARAM;
+typedef __int64				LONG_PTR;
+typedef LONG_PTR            LPARAM;
+
+namespace JadeFrame {
+
+struct WindowsMessage {
+	HWND hWnd;
+	UINT message;
+	WPARAM wParam;
+	LPARAM lParam;
+};
+
 class WindowsMessageMap {
 public:
 	WindowsMessageMap() noexcept;

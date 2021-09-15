@@ -341,6 +341,7 @@
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_pipeline.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_renderer.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_render_pass.h" />
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_shader.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_shared.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_surface.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_swapchain.h" />
@@ -443,6 +444,7 @@
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_pipeline.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_renderer.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_render_pass.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_shader.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_surface.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_swapchain.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_sync_object.cpp" />

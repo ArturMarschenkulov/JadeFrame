@@ -7,7 +7,6 @@
 
 #include "JadeFrame/base_app.h" // for the singleton
 
-#include <iostream>
 #include <tuple>
 #include <unordered_map>
 #include <cassert>
@@ -61,13 +60,13 @@ static auto window_focus_callback(Windows_Window& window, bool should_focus) {
 	window.has_focus = should_focus;
 }
 
-static auto CALLBACK window_procedure(::HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) -> LRESULT {
+static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam) -> ::LRESULT {
 	const WindowsMessage& wm = { hWnd, message, wParam, lParam };
 
 	BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
 	if (app == nullptr) {
 		//Logger::log("WindowProced___: {}", windows_message_map(wm));
-		return DefWindowProc(hWnd, message, wParam, lParam);
+		return ::DefWindowProcW(hWnd, message, wParam, lParam);
 	} else {
 		//Logger::log("WindowProcedure: {}", windows_message_map(wm));
 	}
@@ -165,16 +164,43 @@ static auto CALLBACK window_procedure(::HWND hWnd, UINT message, WPARAM wParam, 
 	return 0;       // message handled
 }
 
-Windows_Window::Windows_Window(const Windows_Window::DESC& desc) {
 
-	HINSTANCE instance = GetModuleHandleW(NULL);
-	if (instance == NULL) {
-		Logger::log("GetModuleHandleW(NULL) failed! {}", ::GetLastError());
+static auto get_style(const Windows_Window::DESC& desc) -> ::DWORD {
+	DWORD style = 0;
+
+	style |= (
+		0
+		| WS_OVERLAPPED
+		| WS_CAPTION
+		| WS_SYSMENU
+		| WS_THICKFRAME
+		| WS_MINIMIZEBOX
+		| WS_MAXIMIZEBOX
+		); // WS_OVERLAPPEDWINDOW
+
+	if (desc.visable == true) {
+		style != WS_VISIBLE;
 	}
+
+	if (desc.accept_drop_files == true) {
+		style != WM_DROPFILES;
+	}
+
+	return style;
+}
+
+//template<class T>
+//auto init_memory(T& data) -> void {
+//	static_assert(!std::is_pointer<T>::value, "'init_memory' does not allow pointer types");
+//	static_assert(std::is_pod<T>::value, "'init_memory' does only allow plain-old-data (POD)");
+//	::memset(&data, 0, sizeof(T));
+//}
+
+static auto register_class(HINSTANCE instance) -> ::WNDCLASSEX {
 	static bool is_window_class_registered = false;
 	if (is_window_class_registered == false) {
 
-		WNDCLASSEX window_class;
+		::WNDCLASSEX window_class;
 		ZeroMemory(&window_class, sizeof(window_class));
 		window_class.cbSize = sizeof(window_class);
 		window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -182,47 +208,43 @@ Windows_Window::Windows_Window(const Windows_Window::DESC& desc) {
 		window_class.cbClsExtra = 0;
 		window_class.cbWndExtra = 0;
 		window_class.hInstance = instance;
-		window_class.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+		window_class.hIcon = LoadIcon(NULL, IDI_WINLOGO); // IDI_APPLICATION
 		window_class.hCursor = LoadCursor(NULL, IDC_ARROW);
-		window_class.hbrBackground = nullptr;
+		window_class.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));//nullptr;
 		window_class.lpszMenuName = nullptr;
 		window_class.lpszClassName = L"JadeFrame";//"L"JadeFrame Window";
 
-		ATOM res = ::RegisterClassExW(&window_class);
-		if (!res) {
-			Logger::log("Window Registration Failed! {}", ::GetLastError());
-			__debugbreak();
-		}
-
+		::ATOM res = ::RegisterClassExW(&window_class);
+		if (!res) Logger::log("Window Registration Failed! {}", ::GetLastError());
 
 		is_window_class_registered = true;
+		return window_class;
 	}
+	assert(!"should not be here");
+}
 
+Windows_Window::Windows_Window(const Windows_Window::DESC& desc) {
 
-	DWORD window_ex_style = 0;
-	LPCWSTR app_window_class = L"JadeFrame";
-	LPCWSTR app_window_title = win32_convert_char_array_to_LPCWSTR(static_cast<const char*>(desc.title.c_str()));
-	DWORD window_style = WS_OVERLAPPEDWINDOW;
-	i32 window_x = (desc.position.x == -1) ? CW_USEDEFAULT : desc.position.x;
-	i32 window_y = (desc.position.y == -1) ? CW_USEDEFAULT : desc.position.y;
-	i32 window_width = static_cast<int32_t>(desc.size.x); //CW_USEDEFAULT;
-	i32 window_height = static_cast<int32_t>(desc.size.y);  //CW_USEDEFAULT;
-	HWND parent_window = NULL;
-	HMENU menu = NULL;
-	LPVOID lpParam = NULL;
-	HWND window_handle = ::CreateWindowExW(
-		window_ex_style,
-		app_window_class,
-		app_window_title,
+	::HINSTANCE instance = ::GetModuleHandleW(NULL);
+	if (instance == NULL) Logger::log("GetModuleHandleW(NULL) failed! {}", ::GetLastError());
+
+	::WNDCLASSEX wc = register_class(instance);
+
+	::DWORD window_style = get_style(desc);
+
+	::HWND window_handle = ::CreateWindowExW(
+		0, //window_ex_style,
+		L"JadeFrame", //app_window_class,
+		win32_convert_char_array_to_LPCWSTR(static_cast<const char*>(desc.title.c_str())), //app_window_title,
 		window_style,
-		window_x,
-		window_y,
-		window_width,
-		window_height,
-		parent_window,
-		menu,                     // parent window, menu
+		(desc.position.x == -1) ? CW_USEDEFAULT : desc.position.x, //window_x,
+		(desc.position.y == -1) ? CW_USEDEFAULT : desc.position.y, //window_y,
+		static_cast<int32_t>(desc.size.x), //window_width, //CW_USEDEFAULT;
+		static_cast<int32_t>(desc.size.y), //window_height, //CW_USEDEFAULT;
+		NULL, // parent_window
+		NULL, // menu
 		instance,
-		lpParam
+		NULL // lpParam
 	);
 	if (window_handle == NULL) {
 		Logger::log("win32_create_window error: {}", ::GetLastError());
@@ -233,13 +255,19 @@ Windows_Window::Windows_Window(const Windows_Window::DESC& desc) {
 	::GetClientRect(window_handle, &client_rect);
 	::RECT window_rect = { NULL };
 	::GetWindowRect(window_handle, &window_rect);
+
 	m_title = desc.title;
 	m_size = Vec2(client_rect.right, client_rect.bottom);
 	m_position = Vec2(window_rect.left, window_rect.top);
 	m_window_handle = window_handle;
-
-	::ShowWindow(window_handle, SW_SHOW);
-	//this->init(desc.title, desc.size, desc.position);
+	m_window_state = WINDOW_STATE::WINDOWED;
+	if (desc.visable == true) {
+		::ShowWindow(window_handle, SW_SHOW);
+		m_window_state = WINDOW_STATE::WINDOWED;
+	} else {
+		//::ShowWindow(window_handle, SW_SHOW);
+		//m_window_state = WINDOW_STATE::MINIMIZED;
+	}
 }
 Windows_Window::~Windows_Window() {
 	::DestroyWindow(m_window_handle);

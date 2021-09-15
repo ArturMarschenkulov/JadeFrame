@@ -8,7 +8,6 @@
 #include <cstdint>
 #include <string>
 #include <vector>
-#include <iostream>
 
 namespace JadeFrame {
 struct Vertex;
@@ -39,7 +38,9 @@ public:
 public:
 	BufferLayout() = default;
 	BufferLayout(const std::initializer_list<BufferElement>& elements);
-	auto calculate_offset_and_stride() -> void;
+	BufferLayout(const BufferLayout&) = default;
+	auto operator=(const BufferLayout&) -> BufferLayout& = default;
+	auto calculate_offset_and_stride(std::vector<BufferElement>& elements) -> void;
 
 	std::vector<BufferElement> m_elements;
 	u8 m_stride = 0;
@@ -48,19 +49,9 @@ public:
 
 class OpenGL_GPUMeshData {
 public:
-	OpenGL_GPUMeshData(const Mesh& mesh, BufferLayout buffer_layout, bool interleaved = true)
-		: m_vertex_buffer()
-		, m_vertex_array()
-		, m_index_buffer() {
-		this->finalize(mesh, buffer_layout, interleaved);
-	}
-	auto bind() const -> void {
-
-		m_vertex_array.bind();	
-	}	
+	OpenGL_GPUMeshData(const Mesh& mesh, BufferLayout buffer_layout, bool interleaved = true);
+	auto bind() const -> void;
 	auto set_layout(const BufferLayout& buffer_layout) -> void;
-private:
-	auto finalize(const Mesh& mesh, BufferLayout buffer_layout, bool interleaved = true) -> void;
 public://private:
 	OGLW_Buffer<GL_ARRAY_BUFFER> m_vertex_buffer;
 	OGLW_VertexArray m_vertex_array;

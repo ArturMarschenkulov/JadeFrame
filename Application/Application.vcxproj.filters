@@ -26,5 +26,8 @@
     <ClInclude Include="example_empty.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="exmaple_rotating_primitive.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

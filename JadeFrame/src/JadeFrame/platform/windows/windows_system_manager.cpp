@@ -5,8 +5,6 @@
 #include <winreg.h>
 #include <intrin.h> // for "__cpuid()"
 
-#include <iostream>
-
 #include "JadeFrame/utils/utils.h"
 namespace JadeFrame {
 //static auto get_primary_monitor_handle() -> HMONITOR {

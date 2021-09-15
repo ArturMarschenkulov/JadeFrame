@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "opengl_wrapper.h"
-//#include <iostream>
 
 namespace JadeFrame {
 
@@ -62,7 +61,7 @@ auto OGLW_Shader::set_binary(const std::vector<u32>& binary) -> void {
 auto OGLW_Shader::compile_binary() -> void {
 	__debugbreak();
 	glSpecializeShader(m_ID, "main", 0, nullptr, nullptr);
-	__debugbreak();	
+	__debugbreak();
 
 }
 auto OGLW_Shader::get_info(GLenum pname) -> GLint {
@@ -110,19 +109,12 @@ auto OGLW_Program::unbind() const -> void {
 auto OGLW_Program::attach(const OGLW_Shader& shader) const -> void {
 	glAttachShader(m_ID, shader.m_ID);
 }
-auto OGLW_Program::link() const -> void {
+auto OGLW_Program::link() const -> bool {
 	glLinkProgram(m_ID);
 
 	GLint is_linked = GL_FALSE;
 	glGetProgramiv(m_ID, GL_LINK_STATUS, &is_linked);
-	if (is_linked == GL_FALSE) {
-		char info_log[1024];
-		glGetProgramInfoLog(m_ID, 512, nullptr, info_log);
-		__debugbreak();
-		//std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << info_log << std::endl;
-	} else {
-		//std::cout << "SUCCE::SHADER::PROGRAM::LINKING_SUCCEEDED\n" << std::endl;
-	}
+	return is_linked == GL_TRUE ? true : false;
 }
 auto OGLW_Program::detach(const OGLW_Shader& shader) const -> void {
 	glDetachShader(m_ID, shader.m_ID);
@@ -132,16 +124,8 @@ auto OGLW_Program::validate() const -> bool {
 
 	GLint is_validated = GL_FALSE;
 	glGetProgramiv(m_ID, GL_VALIDATE_STATUS, (i32*)&is_validated);
-	if (is_validated == GL_FALSE) {
-		char info_log[1024];
-		glGetProgramInfoLog(m_ID, 512, nullptr, info_log);
-		__debugbreak();
-		//std::cout << "ERROR::SHADER::PROGRAM::VALIDATION_FAILED\n" << info_log << std::endl;
-		return false;
-	} else {
-		//std::cout << "SUCCE::SHADER::PROGRAM::VALIDATION_SUCCEEDED\n" << std::endl;
-		return true;
-	}
+	return is_validated == GL_TRUE ? true : false;
+
 }
 auto OGLW_Program::get_uniform_block_index(const char* name) const -> GLuint {
 	return glGetUniformBlockIndex(m_ID, name);
@@ -151,18 +135,10 @@ auto OGLW_Program::set_uniform_block_binding(GLuint index, GLuint binding_point)
 }
 auto OGLW_Program::get_uniform_location(const std::string& name) const -> GLint {
 	GLint location = glGetUniformLocation(m_ID, name.c_str());
-	if (location == -1) {
-		//std::cout << "Location of " << name << " can not be found" << std::endl;
-		//__debugbreak();
-	}
 	return location;
 }
 auto OGLW_Program::get_attribute_location(const std::string& name) const -> GLint {
 	GLint location = glGetAttribLocation(m_ID, name.c_str());
-	if (location == -1) {
-		//std::cout << "Location of " << name << " can not be found" << std::endl;
-		__debugbreak();
-	}
 	return location;
 }
 
@@ -172,12 +148,14 @@ auto OGLW_Program::get_info(GLenum pname) const -> GLint {
 	glGetProgramiv(m_ID, pname, &result);
 	return result;
 }
-auto OGLW_Program::get_info_log(GLsizei max_length) const -> std::string {
-	GLchar info_log[512];
-	glGetProgramInfoLog(m_ID, max_length, &max_length, &info_log[0]);
+auto OGLW_Program::get_info_log() const -> std::string {
+	const u32 N = 1024;
+
+	GLchar info_log[N];
+	glGetProgramInfoLog(m_ID, N, nullptr, info_log);
 	std::string result(info_log);
 	return result;
 }
 
 
-}	
+}

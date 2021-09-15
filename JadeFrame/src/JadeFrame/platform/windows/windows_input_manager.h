@@ -2,7 +2,6 @@
 #include "JadeFrame/defines.h"
 #include <Windows.h>
 
-#include <cstdint>
 #include <array>
 #include <queue>
 

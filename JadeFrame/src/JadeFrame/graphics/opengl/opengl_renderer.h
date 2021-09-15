@@ -49,11 +49,12 @@ struct GPUDataMeshHandle {
 class Object {
 public:
 	Mesh* m_mesh;
+	BufferLayout m_buffer_layout;
 	MaterialHandle* m_material_handle;
 	Matrix4x4 m_transform;
 	mutable GPUDataMeshHandle m_GPU_mesh_data;
 
-	auto set_color(const Color& color) -> void {
+	auto set_color(const RGBAColor& color) -> void {
 		m_mesh->current_color = color;
 	}
 };
@@ -83,7 +84,7 @@ public:
 
 	virtual auto submit(const Object& obj) -> void override;
 
-	auto set_clear_color(const Color& color) -> void;
+	auto set_clear_color(const RGBAColor& color) -> void;
 	auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void;
 
 

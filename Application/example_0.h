@@ -89,7 +89,7 @@ struct Thingy {
 };
 
 struct Example_0 : public BaseApp {
-	Example_0(DESC desc);
+	Example_0(const DESC& desc);
 	virtual ~Example_0() = default;
 
 	virtual auto on_init() -> void override;
@@ -103,11 +103,8 @@ public:
 };
 
 
-static auto draw_GUI(Example_0& app) -> void;
-
-Example_0::Example_0(DESC desc)
+Example_0::Example_0(const DESC& desc)
 	: BaseApp(desc) {
-	m_current_app_p = reinterpret_cast<Example_0*>(this);
 }
 
 auto Example_0::on_init() -> void {
@@ -187,37 +184,5 @@ auto Example_0::on_draw() -> void {
 }
 
 
-static auto draw_GUI(Example_0& app) -> void {
-	//ImGui::BeginMainMenuBar();
-
-	//ImGui::EndMainMenuBar();
-
-	//static bool show = true;
-	//ImGui::ShowDemoWindow(&show);
-
-	//static f32 posx = 0;
-	//static f32 posy = 0;
-	//static f32 posz = 0;
-	//ImGui::SliderFloat("posx", &posx, 0, app.m_current_window_p->m_size.x);
-	//ImGui::SliderFloat("posy", &posy, 0, app.m_current_window_p->m_size.y);
-	//ImGui::SliderFloat("posz", &posz, -10, 10);
-	//app.m_objs[0].m_transform = Matrix4x4::scale_matrix({ 10.0f, 80.0f, 1.0f }) * Matrix4x4::translation_matrix({ posx,  posy, posz });
-
-	f32& FPS_max = app.m_time_manager.max_FPS;
-	ImGui::SliderFloat("max FPS", &FPS_max, 0, 1000);
-	app.m_time_manager.set_FPS(FPS_max);
-
-
-	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-
-	Vec3& cam_pos = app.m_camera.m_position;
-	ImGui::SliderFloat3("cam_pos", &cam_pos.x, -100.0f, 100.0);
-
-	f32* yp[2];
-	yp[0] = &app.m_camera.m_yaw;
-	yp[1] = &app.m_camera.m_pitch;
-
-	ImGui::SliderFloat2("yaw pitch", *yp, -100.0f, 100.0f);
-}
 using TestApp = Example_0;
 }

@@ -7,20 +7,11 @@
 struct HWND__;
 typedef HWND__* HWND;
 
-typedef unsigned int        UINT;
-typedef unsigned __int64	UINT_PTR;
-typedef UINT_PTR            WPARAM;
-typedef __int64				LONG_PTR;
-typedef LONG_PTR            LPARAM;
+
 
 namespace JadeFrame {
 
-struct WindowsMessage {
-	HWND hWnd;
-	UINT message;
-	WPARAM wParam;
-	LPARAM lParam;
-};
+
 
 /*
 	TOOD: Consider whether this class should be RAII or not. Right now it is.
@@ -32,12 +23,15 @@ public:
 		MINIMIZED,
 		MAXIMIZED,
 	};
+
 	struct DESC {
 		std::string title;
 		Vec2 size;
 		Vec2 position; // NOTE: -1 means randomly chosen by OS
 		//bool is_vsync;
 		WINDOW_STATE window_state = WINDOW_STATE::WINDOWED;
+		bool visable = true;
+		bool accept_drop_files = false;
 	};
 	Windows_Window(const Windows_Window&) = delete;
 	Windows_Window(Windows_Window&&) = delete;
@@ -67,14 +61,15 @@ public:
 
 
 public:
-	mutable HWND m_window_handle;
+	HWND m_window_handle = nullptr;
 public:
-	std::string m_title;
-	mutable Vec2 m_size;
-	mutable Vec2 m_position;
-	mutable bool has_focus = true;
 
-	WINDOW_STATE m_window_state;
+	std::string m_title;
+	Vec2 m_size;
+	Vec2 m_position;
+	bool has_focus = true;
+
+	WINDOW_STATE m_window_state = WINDOW_STATE::MINIMIZED;
 };
 
 }

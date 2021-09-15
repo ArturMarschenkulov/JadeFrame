@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "vulkan_surface.h"
 
-#include <iostream>
 #include <cassert>
 
 namespace JadeFrame {

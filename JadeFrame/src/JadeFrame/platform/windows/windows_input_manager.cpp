@@ -5,11 +5,9 @@
 //#include "JadeFrame/gui.h"
 #include <Windows.h>
 #include <windowsx.h>
-#include "windows_window.h" // for WindowMessage struct
+#include "windows_message_map.h" // for WindowMessage struct
 
 #include "JadeFrame/math/vec_2.h"
-
-#include <iostream>
 
 namespace JadeFrame {
 /*

@@ -10,7 +10,25 @@ auto to_degrees(f32 radians) -> f32 {
 	//return radians * (180.0f / M_PI);
 	return radians * static_cast<f32>(57.295779513082320876798154814105);
 }
+
+static auto is_prime(u32 x) -> bool {
+	if (x >= 2) {
+		for (u32 i = 0; i <= x; i++) {
+			if (x % i == 1 || x % i == x) {
+				return true;
+			}
+		}
+	}
+	return false;
+
+	if (x < 2) return false;
+	for (u32 i = 2; i * i <= x; i++) {
+		if (x % i == 0) return false;
+	}
+	return true;
 }
+
+
 //
 //#include <cmath>
 //struct Rational {
@@ -74,7 +92,8 @@ auto to_degrees(f32 radians) -> f32 {
 //};
 
 
-namespace Test1 {
+
+
 //static auto line_closest_point(const Vec2& a, const Vec2& b, const Vec2& p) -> Vec2 {
 //    Vec2 ap = p - a;
 //    Vec2 ab_dir = b - a;

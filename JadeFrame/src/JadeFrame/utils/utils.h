@@ -17,4 +17,38 @@ auto custom_simple_hash_0(const std::string& str)->u32;
 
 auto get_random_number(i32 begin, i32 end)->i32;
 auto map_range(f64 x, f64 in_min, f64 in_max, f64 out_min, f64 out_max)->f64;
+
+
+//inline auto panic(const char* text) -> void {
+//	Logger::log(text);
+//	__debugbreak();
+//}
+
+inline auto kibi_to_byte(u64 value) -> u64 {
+	return value * 1024;
+}
+inline auto mebi_to_byte(u64 value) -> u64 {
+	return kibi_to_byte(value) * 1024;
+}
+inline auto gibi_to_byte(u64 value)-> u64 {
+	return mebi_to_byte(value) * 1024;
+}
+inline auto tebi_to_bytes(u64 value) -> u64 {
+	return gibi_to_byte(value) * 1024;
+}
+
+
+
+//auto byte_to_kibi(u64 value) -> u64 {
+//	return value * 1024;
+//}
+//auto byte_to_mebi(u64 value) -> u64 {
+//	return kibi_to_byte(value) * 1024;
+//}
+//auto byte_to_gibi(u64 value)-> u64 {
+//	return mebi_to_byte(value) * 1024;
+//}
+//auto byte_to_gibi(u64 value) -> u64 {
+//	return gibi_to_byte(value) * 1024;
+//}
 }

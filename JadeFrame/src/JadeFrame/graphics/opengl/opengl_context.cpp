@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "opengl_context.h"
 #include "opengl_debug.h"
-#include <iostream>
 #if _WIN32
 #include "opengl_windows.h"
 #endif
@@ -98,7 +97,7 @@ auto GL_Cache::set_blending(bool enable, BLENDING_FACTOR sfactor, BLENDING_FACTO
 	}
 }
 
-auto GL_Cache::set_clear_color(const Color& color) -> void {
+auto GL_Cache::set_clear_color(const RGBAColor& color) -> void {
 	if (clear_color != color) {
 		clear_color = color;
 		glClearColor(color.r, color.g, color.b, color.a);

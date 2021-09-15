@@ -62,8 +62,19 @@ OpenGL_Shader::OpenGL_Shader(const GLSLCode& code)
 
 	m_program.attach(m_vertex_shader);
 	m_program.attach(m_fragment_shader);
-	m_program.link();
-	m_program.validate();
+
+	const bool is_linked = m_program.link();
+	if (is_linked == false) {
+		std::string info_log = m_program.get_info_log();
+		Logger::log(info_log.c_str());
+	}
+
+	const bool is_validated = m_program.validate();
+	if (is_validated == false) {
+		std::string info_log = m_program.get_info_log();
+		Logger::log(info_log.c_str());
+
+	}
 
 	m_program.detach(m_vertex_shader);
 	m_program.detach(m_fragment_shader);

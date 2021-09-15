@@ -9,7 +9,6 @@
 #include "JadeFrame/math/mat_4.h"
 #include "JadeFrame/math/math.h"
 
-#include <iostream>
 #include <thread>
 #include <future>
 #include <set>
@@ -91,7 +90,8 @@ auto VulkanLogicalDevice::draw_into_command_buffers(
 	const VulkanDescriptorSets& descriptor_sets,
 	const VulkanBuffer& vertex_buffer,
 	const VulkanBuffer& index_buffer,
-	const std::vector<u16>& indices
+	const std::vector<u16>& indices,
+	const VkClearValue color_value
 ) -> void {
 
 	VkResult result;
@@ -106,7 +106,8 @@ auto VulkanLogicalDevice::draw_into_command_buffers(
 		result = vkBeginCommandBuffer(m_command_buffers[i], &begin_info);
 		if (result != VK_SUCCESS) __debugbreak();
 		{
-			const VkClearValue clear_color = { 0.0f, 0.0f, 0.0f, 1.0f };
+			//const VkClearValue clear_color = { 0.0f, 0.0f, 0.0f, 1.0f };
+			const VkClearValue clear_color = color_value;
 			const VkRenderPassBeginInfo render_pass_info = {
 				.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
 				.renderPass = render_pass.m_handle,
@@ -409,7 +410,8 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance) -> void {
 		m_descriptor_sets,
 		m_vertex_buffer,
 		m_index_buffer,
-		g_indices
+		g_indices,
+		VkClearValue{0.0f, 0.0f, 0.0f, 1.0f}
 	);
 
 	this->create_sync_objects();

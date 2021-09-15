@@ -5,7 +5,6 @@
 #include "vulkan_instance.h"
 #include "vulkan_surface.h"
 
-#include <iostream>
 #include <set>
 #include <string>
 #include <Windows.h> // TODO: Try to remove it. Used in "choose_swap_extent()"

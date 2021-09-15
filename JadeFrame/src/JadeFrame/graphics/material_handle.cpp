@@ -25,7 +25,7 @@ auto TextureHandle::init() -> void {
 		case API::OPENGL:
 		{
 			GLenum format;
-			switch(m_num_components) {
+			switch (m_num_components) {
 				case 3:
 				{
 					format = GL_RGB;
@@ -36,9 +36,8 @@ auto TextureHandle::init() -> void {
 				}break;
 				default: assert(false);
 			}
-			OpenGL_Texture* texture = new OpenGL_Texture();
+			OpenGL_Texture* texture = new OpenGL_Texture(m_width, m_height, format, format, GL_UNSIGNED_BYTE, m_data);
 			m_handle = texture;
-			texture->init(m_width, m_height, format, format, GL_UNSIGNED_BYTE, m_data);
 
 
 		}break;
@@ -49,26 +48,36 @@ auto TextureHandle::init() -> void {
 }
 
 ShaderHandle::ShaderHandle(const GLSLCode& code) {
-	vertex_shader = code.m_vertex_shader;
-	fragment_shader = code.m_fragment_shader;
+	vertex_shader_code = code.m_vertex_shader;
+	fragment_shader_code = code.m_fragment_shader;
 }
 
 auto ShaderHandle::init() -> void {
-	switch (api) {
-		case API::OPENGL:
-		{
-			m_handle = new OpenGL_Shader({ vertex_shader, fragment_shader });
-		}break;
-		case API::VULKAN:
-		{
-		}break;
+
+	if (vertex_shader_code != "" && fragment_shader_code != "") {
+		switch (api) {
+			case API::OPENGL:
+			{
+				m_handle = new OpenGL_Shader({ vertex_shader_code, fragment_shader_code });
+
+			}break;
+			case API::VULKAN:
+			{
+				//m_handle = new Vulkan_Shader({ vertex_shader_code, fragment_shader_code });
+			}break;
+		}
+	} else {
+		assert(!"There was no shader code");
 	}
 }
 
 auto MaterialHandle::init() const -> void {
 
 	m_shader_handle->init();
-	m_texture_handle->init();
+
+	if (m_texture_handle != nullptr) {
+		m_texture_handle->init();
+	}
 
 }
 

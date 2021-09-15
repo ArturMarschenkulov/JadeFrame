@@ -188,7 +188,7 @@ struct OGLW_Program {
 	auto bind() const -> void;
 	auto unbind() const -> void;
 	auto attach(const OGLW_Shader& shader) const -> void;
-	auto link() const -> void;
+	auto link() const -> bool;
 	auto detach(const OGLW_Shader& shader) const -> void;
 	auto validate() const -> bool;
 
@@ -198,7 +198,7 @@ struct OGLW_Program {
 
 	auto get_info(GLenum pname) const->GLint;
 
-	auto get_info_log(GLsizei max_length) const->std::string;
+	auto get_info_log() const->std::string;
 
 	// Introspection
 	auto get_uniform_location(const std::string& name) const->GLint;

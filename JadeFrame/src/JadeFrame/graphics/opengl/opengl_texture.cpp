@@ -5,7 +5,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
-#include <iostream>
 #include "JadeFrame/defines.h"
 
 namespace JadeFrame {
@@ -28,14 +27,13 @@ struct STBIImage {
 };
 
 
+OpenGL_Texture::OpenGL_Texture(u32 width, u32 height, GLenum internal_format, GLenum format, GLenum type, void* data)
+	: m_width(width)
+	, m_height(height)
+	, m_internal_format(internal_format)
+	, m_format(format)
+	, m_type(type) {
 
-void OpenGL_Texture::init(u32 width, u32 height, GLenum internal_format, GLenum format, GLenum type, void* data) {
-	m_width = width;
-	m_height = height;
-	m_internal_format = internal_format;
-	m_format = format;
-	m_type = type;
-	
 	m_texture.bind(0);
 
 	GLenum filter_min = GL_LINEAR;
@@ -59,11 +57,9 @@ void OpenGL_Texture::init(u32 width, u32 height, GLenum internal_format, GLenum 
 		data
 	);
 	//if (m_mipmapping) {
- 	m_texture.generate_mipmap();
+	m_texture.generate_mipmap();
 	//}
 	m_texture.unbind();
-
-
 }
 auto OpenGL_Texture::resize(u32 width, u32 height, u32 depth)-> void {
 

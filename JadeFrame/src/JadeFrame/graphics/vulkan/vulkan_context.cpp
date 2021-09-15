@@ -10,7 +10,6 @@
 
 #include "JadeFrame/defines.h"
 
-#include <iostream>
 
 #include <set>
 #include <JadeFrame/base_app.h>

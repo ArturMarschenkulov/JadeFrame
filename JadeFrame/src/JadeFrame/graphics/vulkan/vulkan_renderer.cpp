@@ -6,8 +6,6 @@
 
 #include "../shared.h"
 
-
-#include <iostream>
 namespace JadeFrame {
 
 
@@ -15,8 +13,8 @@ Vulkan_Renderer::Vulkan_Renderer(const Windows_Window& window)
 	: m_context(window) {
 
 }
-auto Vulkan_Renderer::set_clear_color(const Color& color) -> void {
-	// dummy
+auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void {
+	m_clear_color = color;
 }
 
 auto Vulkan_Renderer::main_loop() -> void {
@@ -26,6 +24,7 @@ auto Vulkan_Renderer::main_loop() -> void {
 
 
 auto Vulkan_Renderer::clear_background() -> void {
+
 }
 auto Vulkan_Renderer::submit(const Object& obj) -> void {
 

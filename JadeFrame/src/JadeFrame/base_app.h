@@ -133,7 +133,7 @@ public:
 		Vec2 position = { -1, -1 };
 	};
 	BaseApp() = default;
-	BaseApp(DESC desc);
+	BaseApp(const DESC& desc);
 	virtual ~BaseApp() = default;
 
 	virtual auto on_init() -> void = 0;
@@ -145,19 +145,16 @@ public:
 	auto poll_events() -> void;
 
 public:
+	bool m_is_running = true;
+
 	//Window stuff
 	i32 m_window_counter = 0;
 	using WindowID = i32;
 	std::map<WindowID, Windows_Window> m_windows;
 	Windows_Window* m_current_window_p = nullptr;
 
-
-	BaseApp* m_current_app_p = nullptr;
-
 	IRenderer* m_renderer = nullptr;
 	Camera1 m_camera;
-
-	bool m_is_running = true;
 
 	Windows_TimeManager m_time_manager;
 

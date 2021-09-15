@@ -4,7 +4,6 @@
 #include "vulkan_logical_device.h"
 #include "vulkan_physical_device.h"
 
-#include <iostream>
 #include "JadeFrame/math/mat_4.h"
 
 namespace JadeFrame {

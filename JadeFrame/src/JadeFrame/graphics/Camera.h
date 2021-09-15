@@ -43,8 +43,9 @@ public:
 	auto get_projection_matrix() const->Matrix4x4;
 	auto get_view_matrix() const->Matrix4x4;
 	auto get_view_projection_matrix() const->Matrix4x4;
+	auto control() -> void;
 
-public:
+private:
 	MODE m_mode;
 	Matrix4x4 m_projection_matrix = {};
 	Matrix4x4 m_view_matrix = {};
@@ -63,7 +64,6 @@ public:
 	f32 m_yaw = 0;
 	f32 m_pitch = {};
 
-	auto control() -> void;
 };
 
 class Camera0 {

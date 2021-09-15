@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "font_manager.h"
-#include <iostream>
 #include <map>
 #include <glad/glad.h>
 #include "math/vec_2.h"
@@ -25,25 +24,25 @@ auto FontManager::init() -> void {
 	FT_Library library;
 	error_code = FT_Init_FreeType(&library);
 	if (error_code != 0) {
-		std::cout << "problem with FT_Init_FreeType" << std::endl;
+		Logger::log("problem with FT_Init_FreeType");
 	}
 
 	FT_Face face;
 	error_code = FT_New_Face(library, "C:/Windows/Fonts/Arial.ttf", 0, &face);
 	if (error_code != 0) {
-		std::cout << "problem with FT_New_Face" << std::endl;
+		Logger::log("problem with FT_New_Face");
 	}
 
 	error_code = FT_Set_Pixel_Sizes(face, 0, 48);
 	if (error_code != 0) {
-		std::cout << "problem with FT_Set_Pixel_Sizes" << std::endl;
+		Logger::log("problem with FT_Set_Pixel_Sizes");
 	}
 
 
 	auto c = 'X';
 	error_code = FT_Load_Char(face, c, FT_LOAD_RENDER);
 	if (error_code != 0) {
-		std::cout << "problem with FT_Load_Char" << std::endl;
+		Logger::log("problem with FT_Load_Char");
 	}
 	OGLW_Texture<GL_TEXTURE_2D> tex;
 	tex.bind(0);
@@ -78,28 +77,27 @@ auto FontManager::init2() -> void {
 	FT_Library library;
 	error_code = FT_Init_FreeType(&library);
 	if (error_code != 0) {
-		std::cout << "problem with FT_Init_FreeType" << std::endl;
+		Logger::log("problem with FT_Init_FreeType");
 	}
 
 	FT_Face face;
 	error_code = FT_New_Face(library, "C:/Windows/Fonts/Arial.ttf", 0, &face);
 	if (error_code != 0) {
-		std::cout << "problem with FT_New_Face" << std::endl;
+		Logger::log("problem with FT_New_Face");
 	}
 
 	error_code = FT_Set_Pixel_Sizes(face, 0, 48);
 	if (error_code != 0) {
-		std::cout << "problem with FT_Set_Pixel_Sizes" << std::endl;
+		Logger::log("problem with FT_Set_Pixel_Sizes");
 	}
 
 
 	auto c = 'X';
 	error_code = FT_Load_Char(face, c, FT_LOAD_RENDER);
 	if (error_code != 0) {
-		std::cout << "problem with FT_Load_Char" << std::endl;
+		Logger::log("problem with FT_Load_Char");
 	}
-	OpenGL_Texture tex;
-	tex.init(
+	OpenGL_Texture tex(
 		face->glyph->bitmap.width,
 		face->glyph->bitmap.rows,
 		GL_RED,
