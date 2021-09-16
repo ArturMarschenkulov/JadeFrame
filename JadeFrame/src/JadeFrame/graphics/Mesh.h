@@ -62,15 +62,21 @@ struct Mesh {
 
 	RGBAColor current_color = { 0.5f, 0.5f, 0.5f, 1.0f };
 	Mesh() = default;
-	Mesh(const VertexData& vertex_data);
+	explicit Mesh(const VertexData& vertex_data);
 	auto add_to_data(const VertexData& vertex_data) -> void;
 	auto set_color(const RGBAColor color) -> void;
 };
 class VertexDataFactory {
 public:
+	struct DESC {
+		bool has_position = true; //NOTE: Probably unneccessary
+		bool has_texture_coordinates = true;
+		bool has_indices = false;
+		bool has_normals = true;
+	};
 	static auto make_line(const Vec3& pos1, const Vec3& pos2)->VertexData;
 
-	static auto make_rectangle(const Vec3& pos, const Vec3& size)->VertexData;
+	static auto make_rectangle(const Vec3& pos, const Vec3& size, const DESC desc = DESC{})->VertexData;
 	static auto make_triangle(const Vec3& pos1, const Vec3& pos2, const Vec3& pos3)->VertexData;
 	static auto make_circle(const Vec3& position, const f32 radius, const u32 numSegments)->VertexData;
 

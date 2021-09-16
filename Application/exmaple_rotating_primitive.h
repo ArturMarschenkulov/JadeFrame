@@ -29,12 +29,13 @@ auto Example_Rotating_Primitive::on_init() -> void {
 	m_camera.othographic_mode(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 
 
-	const f32 s = 0.8f;
-	VertexData vertex_data = VertexDataFactory::make_triangle(
+	const f32 s = 0.5f;
+	VertexData vertex_data;
+	vertex_data.m_positions = {
 		{ +0, +s, 0.0f },
 		{ +s, -s, 0.0f },
 		{ -s, -s, 0.0f }
-	);
+	};
 	vertex_data.m_colors = {
 		{1.0f, 0.0f, 0.0f, 1.0f},
 		{0.0f, 1.0f, 0.0f, 1.0f},

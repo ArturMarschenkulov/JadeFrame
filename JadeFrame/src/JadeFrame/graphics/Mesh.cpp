@@ -9,15 +9,13 @@ Mesh::Mesh(const VertexData& vertex_data) {
 auto Mesh::add_to_data(const VertexData& vertex_data) -> void {
 
 	m_positions.resize(vertex_data.m_positions.size());
-	m_colors.resize(vertex_data.m_positions.size());
+	m_colors.resize(vertex_data.m_colors.size());
 	m_tex_coords.resize(vertex_data.m_texture_coordinates.size());
 
 	for (size_t i = 0; i < vertex_data.m_positions.size(); i++) {
 		m_positions[i] = vertex_data.m_positions[i];
 		if (vertex_data.m_colors.size() > 0) {
 			m_colors[i] = vertex_data.m_colors[i];//current_color;
-		} else {
-			m_colors[i] = current_color;
 		}
 		if (vertex_data.m_texture_coordinates.size() > 0) {
 			m_tex_coords[i] = vertex_data.m_texture_coordinates[i];
@@ -63,7 +61,7 @@ auto VertexDataFactory::make_line(const Vec3& pos1, const Vec3& pos2) -> VertexD
 	return vertex_data;
 }
 
-auto VertexDataFactory::make_rectangle(const Vec3& pos, const Vec3& size) -> VertexData {
+auto VertexDataFactory::make_rectangle(const Vec3& pos, const Vec3& size, const DESC desc) -> VertexData {
 	VertexData vertex_data;
 	vertex_data.m_positions.resize(6);
 	vertex_data.m_positions[00] = { pos.x			, pos.y			, pos.z };
@@ -73,45 +71,35 @@ auto VertexDataFactory::make_rectangle(const Vec3& pos, const Vec3& size) -> Ver
 	vertex_data.m_positions[04] = { pos.x			, pos.y			, pos.z };
 	vertex_data.m_positions[05] = { pos.x			, pos.y + size.y, pos.z };
 
-	vertex_data.m_texture_coordinates.resize(6);
-	vertex_data.m_texture_coordinates[00] = { +0.0f, +0.0f };
-	vertex_data.m_texture_coordinates[01] = { +1.0f, +1.0f };
-	vertex_data.m_texture_coordinates[02] = { +1.0f, +0.0f };
-	vertex_data.m_texture_coordinates[03] = { +1.0f, +1.0f };
-	vertex_data.m_texture_coordinates[04] = { +0.0f, +0.0f };
-	vertex_data.m_texture_coordinates[05] = { +0.0f, +1.0f };
+	if (desc.has_texture_coordinates == true) {
+		vertex_data.m_texture_coordinates.resize(6);
+		vertex_data.m_texture_coordinates[00] = { +0.0f, +0.0f };
+		vertex_data.m_texture_coordinates[01] = { +1.0f, +1.0f };
+		vertex_data.m_texture_coordinates[02] = { +1.0f, +0.0f };
+		vertex_data.m_texture_coordinates[03] = { +1.0f, +1.0f };
+		vertex_data.m_texture_coordinates[04] = { +0.0f, +0.0f };
+		vertex_data.m_texture_coordinates[05] = { +0.0f, +1.0f };
+	}
 
-	vertex_data.m_normals.resize(6);
-	vertex_data.m_normals[00] = { +0.0f, +0.0f, +1.0f };
-	vertex_data.m_normals[01] = { +0.0f, +0.0f, +1.0f };
-	vertex_data.m_normals[02] = { +0.0f, +0.0f, +1.0f };
-	vertex_data.m_normals[03] = { +0.0f, +0.0f, +1.0f };
-	vertex_data.m_normals[04] = { +0.0f, +0.0f, +1.0f };
-	vertex_data.m_normals[05] = { +0.0f, +0.0f, +1.0f };
+	if (desc.has_normals == true) {
+		vertex_data.m_normals.resize(6);
+		vertex_data.m_normals[00] = { +0.0f, +0.0f, +1.0f };
+		vertex_data.m_normals[01] = { +0.0f, +0.0f, +1.0f };
+		vertex_data.m_normals[02] = { +0.0f, +0.0f, +1.0f };
+		vertex_data.m_normals[03] = { +0.0f, +0.0f, +1.0f };
+		vertex_data.m_normals[04] = { +0.0f, +0.0f, +1.0f };
+		vertex_data.m_normals[05] = { +0.0f, +0.0f, +1.0f };
+	}
+
+	if (desc.has_indices == true) {
+		vertex_data.m_indices.reserve(6);
+		vertex_data.m_indices = {
+			0, 1, 3,
+			1, 2, 3
+		};
+	}
 
 	return vertex_data;
-
-
-	//VertexData vertex_data;
-	//vertex_data.m_positions.resize(4);
-	//vertex_data.m_positions[0] = Vec3{ pos.x, pos.y, pos.z };
-	//vertex_data.m_positions[1] = Vec3{ pos.x + size.x, pos.y, pos.z };
-	//vertex_data.m_positions[2] = Vec3{ pos.x + size.x, pos.y + size.y, pos.z };
-	//vertex_data.m_positions[3] = Vec3{ pos.x, pos.y + size.y, pos.z };
-
-	//vertex_data.m_texture_coordinates.resize(4);
-	//vertex_data.m_texture_coordinates[0] = { 1.0, 1.0 };
-	//vertex_data.m_texture_coordinates[1] = { 1.0, 0.0 };
-	//vertex_data.m_texture_coordinates[2] = { 0.0, 0.0 };
-	//vertex_data.m_texture_coordinates[3] = { 0.0, 1.0 };
-
-
-	//vertex_data.indices.reserve(6);
-	//vertex_data.indices = {
-	//	0, 1, 3,
-	//	1, 2, 3
-	//};
-	//return vertex_data;
 }
 
 auto VertexDataFactory::make_triangle(const Vec3& pos1, const Vec3& pos2, const Vec3& pos3) -> VertexData {

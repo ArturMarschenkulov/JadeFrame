@@ -76,16 +76,21 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(windo
 		if (res != GL_FRAMEBUFFER_COMPLETE) __debugbreak();
 	}
 
-	BufferLayout bl = {
+	BufferLayout layout = {
 			{ SHADER_TYPE::FLOAT_3, "v_position" },
-			{ SHADER_TYPE::FLOAT_4, "v_color" },
-			{ SHADER_TYPE::FLOAT_2, "v_texture_coord" },
-			{ SHADER_TYPE::FLOAT_3, "v_normal" },
+			{ SHADER_TYPE::FLOAT_2, "v_texture_coordinates" }
 	};
 
-
-
-	m_framebuffer_rect = new OpenGL_GPUMeshData(VertexDataFactory::make_rectangle({ -1.0f, -1.0f, 0.0f }, { 2.0f, 2.0f, 0.0f }), bl);
+	VertexDataFactory::DESC vdf_desc;
+	vdf_desc.has_normals = false;
+	VertexData vertex_data = VertexDataFactory::make_rectangle(
+		{ -1.0f, -1.0f, 0.0f }, { 2.0f, 2.0f, 0.0f }, 
+		vdf_desc
+	);
+	m_framebuffer_rect = new OpenGL_GPUMeshData(
+		Mesh(vertex_data),
+		layout
+	);
 
 	m_shader_handle_fb = new ShaderHandle(GLSLCodeLoader::get_by_name("framebuffer_test"));
 	m_shader_handle_fb->init();
