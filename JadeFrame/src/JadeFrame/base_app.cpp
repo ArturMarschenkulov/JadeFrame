@@ -58,8 +58,8 @@ BaseApp::BaseApp(const DESC& desc) {
 	m_current_window_p = &m_windows[0];
 
 	GRAPHICS_API api = GRAPHICS_API::UNDEFINED;
-	//api = GRAPHICS_API::VULKAN;
-	api = GRAPHICS_API::OPENGL;
+	api = GRAPHICS_API::VULKAN;
+	//api = GRAPHICS_API::OPENGL;
 
 	const std::string& title = m_current_window_p->get_title();
 	switch (api) {
@@ -79,16 +79,16 @@ BaseApp::BaseApp(const DESC& desc) {
 
 }
 auto BaseApp::start() -> void {
-	//m_renderer->main_loop();
+	m_renderer->main_loop();
 
 	this->on_init();
 
 	//GUI_init(m_current_window_p->m_window_handle);
 	m_time_manager.set_FPS(60);
 	while (m_is_running) {
+		const f64 time_since_last_frame = m_time_manager.calc_elapsed();
 		this->on_update();
 		if (m_current_window_p->get_window_state() != Windows_Window::WINDOW_STATE::MINIMIZED) {
-			const f64 time_since_last_frame = m_time_manager.calc_elapsed();
 			m_renderer->clear_background();
 			//GUI_new_frame();
 
@@ -103,9 +103,9 @@ auto BaseApp::start() -> void {
 
 
 			m_renderer->present();
-			m_time_manager.frame_control(time_since_last_frame);
 		}
 		this->poll_events();
+		m_time_manager.frame_control(time_since_last_frame);
 	}
 }
 auto BaseApp::poll_events() -> void {

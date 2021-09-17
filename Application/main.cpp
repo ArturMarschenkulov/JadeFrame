@@ -30,8 +30,8 @@ int main() {
 
 	GApp::DESC win_desc;
 	win_desc.title = "Test";
-	win_desc.size.width = 1280;
-	win_desc.size.height = 720;
+	win_desc.size.width = 800;// = 1280;
+	win_desc.size.height = 800;// = 720;
 
 	GApp* app = new GApp(win_desc);
 

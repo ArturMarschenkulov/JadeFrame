@@ -329,6 +329,7 @@
     <ClInclude Include="src\JadeFrame\graphics\software\software_renderer.h" />
     <ClInclude Include="src\JadeFrame\graphics\to_spirv.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_buffer.h" />
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_command_buffers.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_command_pool.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_context.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_debug.h" />
@@ -360,6 +361,7 @@
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_shader.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_shared.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_system_manager.h" />
+    <ClInclude Include="src\JadeFrame\utils\dynamic_array.h" />
     <ClInclude Include="src\JadeFrame\utils\logger.h" />
     <ClInclude Include="src\JadeFrame\utils\utils.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_message_map.h" />
@@ -430,8 +432,10 @@
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_shader_loader.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_texture.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_windows.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\shared.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\to_spirv.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_buffer.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_command_buffers.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_command_pool.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_context.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_debug.cpp" />

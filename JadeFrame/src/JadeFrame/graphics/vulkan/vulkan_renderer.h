@@ -10,6 +10,13 @@ class Object;
 class Matrix4x4;
 class RGBAColor;
 
+//struct Vulkan_RenderCommand {
+//	const Matrix4x4* transform = nullptr;
+//	const Mesh* mesh = nullptr;
+//	MaterialHandle* material_handle = nullptr;
+//	const GPUDataMeshHandle* m_GPU_mesh_data = nullptr;
+//};
+
 class Vulkan_Renderer : public IRenderer {
 public:
 	Vulkan_Renderer(const Windows_Window& window);
@@ -27,6 +34,7 @@ public:
 
 private:
 	Vulkan_Context m_context;
+	//mutable std::deque<Vulkan_RenderCommand> m_render_commands;
 
 private: //NOTE: probably temporary
 	Matrix4x4 m_view_projection;

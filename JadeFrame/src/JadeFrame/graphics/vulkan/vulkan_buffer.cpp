@@ -252,7 +252,7 @@ auto VulkanBuffer::map_to_GPU(void* data, VkDeviceSize size) -> void* {
 
 	void* mapped_data;
 	result = vkMapMemory(m_device->m_handle, m_memory, 0, size, 0, &mapped_data); if (result != VK_SUCCESS) __debugbreak();
-		memcpy(mapped_data, data, static_cast<size_t>(size));
+	memcpy(mapped_data, data, static_cast<size_t>(size));
 	vkUnmapMemory(m_device->m_handle, m_memory);
 
 	return mapped_data;
@@ -294,38 +294,18 @@ auto VulkanBuffer::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, Vk
 auto VulkanBuffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size) -> void {
 	VkResult result;
 
-	const VkCommandBufferAllocateInfo alloc_info = {
-		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-		.pNext = {},
-		.commandPool = m_device->m_command_pool.m_handle,
-		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-		.commandBufferCount = 1,
-	};
-
-	VkCommandBuffer command_buffer;
-	result = vkAllocateCommandBuffers(m_device->m_handle, &alloc_info, &command_buffer);
-	if (result != VK_SUCCESS) __debugbreak();
-
-	VkCommandBufferBeginInfo begin_info = {
-		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-		.pNext = {},
-		.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-		.pInheritanceInfo = {},
-	};
-
-	result = vkBeginCommandBuffer(command_buffer, &begin_info);
-	if (result != VK_SUCCESS) __debugbreak();
-
-	const VkBufferCopy copy_region = {
-		.srcOffset = 0,
-		.dstOffset = 0,
-		.size = size,
-	};
-	vkCmdCopyBuffer(command_buffer, src_buffer, dst_buffer, 1, &copy_region);
-
-	result = vkEndCommandBuffer(command_buffer);
-	if (result != VK_SUCCESS) __debugbreak();
-
+	VulkanCommandBuffers command_buffer_;
+	command_buffer_.init(*m_device, m_device->m_command_pool, 1);
+	command_buffer_.begin_end_scope(0,
+		[&]() {
+			const VkBufferCopy copy_region = {
+				.srcOffset = 0,
+				.dstOffset = 0,
+				.size = size,
+			};
+			vkCmdCopyBuffer(command_buffer_.m_handles[0], src_buffer, dst_buffer, 1, &copy_region);
+		}
+	);
 	const VkSubmitInfo submit_info = {
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
 		.pNext = {},
@@ -333,7 +313,7 @@ auto VulkanBuffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDevic
 		.pWaitSemaphores = {},
 		.pWaitDstStageMask = {},
 		.commandBufferCount = 1,
-		.pCommandBuffers = &command_buffer,
+		.pCommandBuffers = &command_buffer_.m_handles[0],
 		.signalSemaphoreCount = {},
 		.pSignalSemaphores = {},
 	};
@@ -343,6 +323,20 @@ auto VulkanBuffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDevic
 	result = vkQueueWaitIdle(m_device->m_graphics_queue);
 	if (result != VK_SUCCESS) __debugbreak();
 
-	vkFreeCommandBuffers(m_device->m_handle, m_device->m_command_pool.m_handle, 1, &command_buffer);
+	command_buffer_.deinit();
+
+}
+Vulkan_GPUMeshData::Vulkan_GPUMeshData(const VulkanLogicalDevice& device, const Mesh& mesh, BufferLayout buffer_layout, bool interleaved) {
+	const std::vector<f32> data = convert_into_data(mesh, interleaved);
+
+	m_vertex_buffer.init(device, VULKAN_BUFFER_TYPE::VERTEX, (void*)data.data(), data.size());
+	if (mesh.m_indices.size() > 0) {
+		m_index_buffer.init(device, VULKAN_BUFFER_TYPE::INDEX, (void*)mesh.m_indices.data(), mesh.m_indices.size());
+	}
+
+}
+auto Vulkan_GPUMeshData::bind() const -> void {
+}
+auto Vulkan_GPUMeshData::set_layout(const BufferLayout& buffer_layout) -> void {
 }
 }

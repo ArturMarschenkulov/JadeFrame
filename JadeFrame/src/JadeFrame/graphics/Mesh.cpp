@@ -7,7 +7,6 @@ Mesh::Mesh(const VertexData& vertex_data) {
 }
 
 auto Mesh::add_to_data(const VertexData& vertex_data) -> void {
-
 	m_positions.resize(vertex_data.m_positions.size());
 	m_colors.resize(vertex_data.m_colors.size());
 	m_tex_coords.resize(vertex_data.m_texture_coordinates.size());

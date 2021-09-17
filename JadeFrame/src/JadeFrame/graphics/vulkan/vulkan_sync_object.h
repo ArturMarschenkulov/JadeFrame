@@ -10,6 +10,8 @@ class VulkanFence {
 public:
 	auto init(const VulkanLogicalDevice& device) -> void;
 	auto deinit() -> void;
+	auto wait_for_fences() -> void;
+	auto reset() -> void;
 
 	VkFence m_handle = VK_NULL_HANDLE;
 	const VulkanLogicalDevice* m_device = nullptr;

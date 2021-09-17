@@ -66,6 +66,63 @@ struct Mesh {
 	auto add_to_data(const VertexData& vertex_data) -> void;
 	auto set_color(const RGBAColor color) -> void;
 };
+
+
+inline auto convert_into_data(const Mesh& mesh, const bool interleaved, bool with_color = true) -> std::vector<f32> {
+	//assert(mesh.m_positions.size() == mesh.m_normals.size());
+	const u64 size
+		= mesh.m_positions.size() * 3
+		+ mesh.m_colors.size() * 4
+		+ mesh.m_tex_coords.size() * 2
+		+ mesh.m_normals.size() * 3;
+
+	std::vector<f32> data;
+	data.reserve(size);
+	if (interleaved == true) {
+		for (size_t i = 0; i < mesh.m_positions.size(); i++) {
+			data.push_back(mesh.m_positions[i].x);
+			data.push_back(mesh.m_positions[i].y);
+			data.push_back(mesh.m_positions[i].z);
+			if (mesh.m_colors.size()) {
+				data.push_back(mesh.m_colors[i].r);
+				data.push_back(mesh.m_colors[i].g);
+				data.push_back(mesh.m_colors[i].b);
+				data.push_back(mesh.m_colors[i].a);
+			}
+			if (mesh.m_tex_coords.size()) {
+				data.push_back(mesh.m_tex_coords[i].x);
+				data.push_back(mesh.m_tex_coords[i].y);
+			}
+			if (mesh.m_normals.size()) {
+				data.push_back(mesh.m_normals[i].x);
+				data.push_back(mesh.m_normals[i].y);
+				data.push_back(mesh.m_normals[i].z);
+			}
+		}
+	} else {
+
+		__debugbreak();
+		for (size_t i = 0; i < mesh.m_positions.size(); i++) {
+			data.push_back(mesh.m_positions[i].x);
+			data.push_back(mesh.m_positions[i].y);
+			data.push_back(mesh.m_positions[i].z);
+		}
+		for (size_t i = 0; i < mesh.m_colors.size(); i++) {
+			data.push_back(mesh.m_colors[i].r);
+			data.push_back(mesh.m_colors[i].g);
+			data.push_back(mesh.m_colors[i].b);
+			data.push_back(mesh.m_colors[i].a);
+		}
+		for (size_t i = 0; i < mesh.m_tex_coords.size(); i++) {
+			data.push_back(mesh.m_tex_coords[i].x);
+			data.push_back(mesh.m_tex_coords[i].y);
+		}
+	}
+
+	return data;
+}
+
+
 class VertexDataFactory {
 public:
 	struct DESC {

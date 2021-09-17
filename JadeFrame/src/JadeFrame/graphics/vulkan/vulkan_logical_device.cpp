@@ -65,24 +65,6 @@ struct Meshhh {
 static Meshhh g_mesh;
 
 
-auto VulkanLogicalDevice::create_command_buffers(
-	const VulkanCommandPool& command_pool,
-	const VulkanSwapchain& swapchain) -> void {
-
-	VkResult result;
-	m_command_buffers.resize(swapchain.m_framebuffers.size());
-
-	const VkCommandBufferAllocateInfo alloc_info = {
-		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-		.pNext = nullptr,
-		.commandPool = command_pool.m_handle,
-		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-		.commandBufferCount = static_cast<u32>(m_command_buffers.size()),
-	};
-	result = vkAllocateCommandBuffers(m_handle, &alloc_info, m_command_buffers.data());
-	if (result != VK_SUCCESS) __debugbreak();
-}
-
 auto VulkanLogicalDevice::draw_into_command_buffers(
 	const VulkanRenderPass& render_pass,
 	const VulkanSwapchain& swapchain,
@@ -96,46 +78,39 @@ auto VulkanLogicalDevice::draw_into_command_buffers(
 
 	VkResult result;
 
-	for (size_t i = 0; i < m_command_buffers.size(); i++) {
-		const VkCommandBufferBeginInfo begin_info = {
-			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-			.pNext = nullptr,
-			.flags = 0,
-			.pInheritanceInfo = nullptr,
-		};
-		result = vkBeginCommandBuffer(m_command_buffers[i], &begin_info);
-		if (result != VK_SUCCESS) __debugbreak();
-		{
-			//const VkClearValue clear_color = { 0.0f, 0.0f, 0.0f, 1.0f };
-			const VkClearValue clear_color = color_value;
-			const VkRenderPassBeginInfo render_pass_info = {
-				.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-				.renderPass = render_pass.m_handle,
-				.framebuffer = swapchain.m_framebuffers[i],
-				.renderArea = {
-					.offset = {0, 0},
-					.extent = swapchain.m_extent
-				},
-				.clearValueCount = 1,
-				.pClearValues = &clear_color,
-			};
+	for (size_t i = 0; i < m_command_buffers.m_handles.size(); i++) {
 
-			vkCmdBeginRenderPass(m_command_buffers[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
-			{
-				vkCmdBindPipeline(m_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_graphics_pipeline);
-				VkBuffer vertex_buffers[] = { vertex_buffer.m_buffer };
-				VkDeviceSize offsets[] = { 0 };
-				vkCmdBindVertexBuffers(m_command_buffers[i], 0, 1, vertex_buffers, offsets);
-				//vkCmdDraw(m_command_buffers[i], static_cast<u32>(g_vertices.size()), 1, 0, 0);
+		m_command_buffers.begin_end_scope(i,
+			[&]() {
+				//const VkClearValue clear_color = { 0.0f, 0.0f, 0.0f, 1.0f };
+				const VkClearValue clear_color = color_value;
+				const VkRenderPassBeginInfo render_pass_info = {
+					.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+					.renderPass = render_pass.m_handle,
+					.framebuffer = swapchain.m_framebuffers[i],
+					.renderArea = {
+						.offset = {0, 0},
+						.extent = swapchain.m_extent
+					},
+					.clearValueCount = 1,
+					.pClearValues = &clear_color,
+				};
 
-				vkCmdBindIndexBuffer(m_command_buffers[i], index_buffer.m_buffer, 0, VK_INDEX_TYPE_UINT16);
-				vkCmdBindDescriptorSets(m_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_pipeline_layout, 0, 1, &descriptor_sets.m_descriptor_sets[i], 0, nullptr);
-				vkCmdDrawIndexed(m_command_buffers[i], indices.size(), 1, 0, 0, 0);
+				vkCmdBeginRenderPass(m_command_buffers.m_handles[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+				{
+					vkCmdBindPipeline(m_command_buffers.m_handles[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_graphics_pipeline);
+					VkBuffer vertex_buffers[] = { vertex_buffer.m_buffer };
+					VkDeviceSize offsets[] = { 0 };
+					vkCmdBindVertexBuffers(m_command_buffers.m_handles[i], 0, 1, vertex_buffers, offsets);
+					//vkCmdDraw(m_command_buffers[i], static_cast<u32>(g_vertices.size()), 1, 0, 0);
+
+					vkCmdBindIndexBuffer(m_command_buffers.m_handles[i], index_buffer.m_buffer, 0, VK_INDEX_TYPE_UINT16);
+					vkCmdBindDescriptorSets(m_command_buffers.m_handles[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_pipeline_layout, 0, 1, &descriptor_sets.m_descriptor_sets[i], 0, nullptr);
+					vkCmdDrawIndexed(m_command_buffers.m_handles[i], indices.size(), 1, 0, 0, 0);
+				}
+				vkCmdEndRenderPass(m_command_buffers.m_handles[i]);
 			}
-			vkCmdEndRenderPass(m_command_buffers[i]);
-		}
-		result = vkEndCommandBuffer(m_command_buffers[i]);
-		if (result != VK_SUCCESS) __debugbreak();
+		);
 	}
 }
 
@@ -205,13 +180,13 @@ auto VulkanLogicalDevice::recreate_swapchain() -> void {
 	m_swapchain.create_framebuffers(m_render_pass.m_handle);
 	m_images_in_flight.resize(m_swapchain.m_images.size());
 #endif
-}
+	}
 auto VulkanLogicalDevice::cleanup_swapchain() -> void {
 	for (auto framebuffer : m_swapchain.m_framebuffers) {
 		vkDestroyFramebuffer(m_handle, framebuffer, nullptr);
 	}
 
-	vkFreeCommandBuffers(m_handle, m_command_pool.m_handle, static_cast<uint32_t>(m_command_buffers.size()), m_command_buffers.data());
+	m_command_buffers.deinit();
 
 	vkDestroyPipeline(m_handle, m_pipeline.m_graphics_pipeline, nullptr);
 	vkDestroyPipelineLayout(m_handle, m_pipeline.m_pipeline_layout, nullptr);
@@ -240,9 +215,11 @@ auto VulkanLogicalDevice::update_uniform_buffer(u32 current_image, const Matrix4
 		time * to_radians(90.0f),
 		Vec3(0.0f, 0.0f, 1.0f)
 	);
-	ubo.view = Matrix4x4(1.0f);
-	ubo.proj = Matrix4x4(1.0f);
-	ubo.proj[1][1] *= -1;
+	Matrix4x4 view(1.0f);
+	Matrix4x4 proj(1.0f);
+	proj[1][1] *= -1;
+
+	ubo.view_projection = view * proj;
 
 	void* mapped_data = m_uniform_buffers[current_image].map_to_GPU(&ubo, sizeof(ubo));
 
@@ -253,8 +230,8 @@ auto VulkanLogicalDevice::draw_frame(const Matrix4x4& view_projection) -> void {
 
 	//prepare buffers
 	u32 image_index;
-	result = vkWaitForFences(m_handle, 1, &m_in_flight_fences[m_current_frame].m_handle, VK_TRUE, UINT64_MAX);
-	if (result != VK_SUCCESS) __debugbreak();
+	m_in_flight_fences[m_current_frame].wait_for_fences();
+
 	{
 		result = vkAcquireNextImageKHR(m_handle, m_swapchain.m_handle, UINT64_MAX, m_image_available_semaphores[m_current_frame].m_handle, VK_NULL_HANDLE, &image_index);
 		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -273,8 +250,7 @@ auto VulkanLogicalDevice::draw_frame(const Matrix4x4& view_projection) -> void {
 	//~prepare buffers
 
 	if (m_images_in_flight[image_index].m_handle != VK_NULL_HANDLE) {
-		result = vkWaitForFences(m_handle, 1, &m_images_in_flight[image_index].m_handle, VK_TRUE, UINT64_MAX);
-		if (result != VK_SUCCESS) __debugbreak();
+		m_images_in_flight[image_index].wait_for_fences();
 	}
 	VkSemaphore wait_semaphores[] = { m_image_available_semaphores[m_current_frame].m_handle };
 	VkSemaphore signal_semaphores[] = { m_render_finished_semaphores[m_current_frame].m_handle };
@@ -290,13 +266,11 @@ auto VulkanLogicalDevice::draw_frame(const Matrix4x4& view_projection) -> void {
 			.pWaitSemaphores = wait_semaphores,
 			.pWaitDstStageMask = wait_stages,
 			.commandBufferCount = 1,
-			.pCommandBuffers = &m_command_buffers[image_index],
+			.pCommandBuffers = &m_command_buffers.m_handles[image_index],
 			.signalSemaphoreCount = 1,
 			.pSignalSemaphores = signal_semaphores,
 		};
-
-		result = vkResetFences(m_handle, 1, &m_in_flight_fences[m_current_frame].m_handle);
-		if (result != VK_SUCCESS) __debugbreak();
+		m_in_flight_fences[m_current_frame].reset();
 
 		result = vkQueueSubmit(m_graphics_queue, 1, &submit_info, m_in_flight_fences[m_current_frame].m_handle);
 		if (result != VK_SUCCESS) __debugbreak();
@@ -395,13 +369,18 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance) -> void {
 
 
 	m_command_pool.init(*this, *m_physical_device_p);
-	this->create_command_buffers(m_command_pool, m_swapchain);
+	m_command_buffers.init(*this, m_command_pool, m_swapchain.m_framebuffers.size());
+
+	this->create_sync_objects();
 
 
-	m_pipeline.init(*this, m_swapchain, m_descriptor_set_layout, m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
+
+
 
 	m_vertex_buffer.init(*this, VULKAN_BUFFER_TYPE::VERTEX, (void*)g_vertices.data(), sizeof(g_vertices[0]) * g_vertices.size());
 	m_index_buffer.init(*this, VULKAN_BUFFER_TYPE::INDEX, (void*)g_indices.data(), sizeof(g_indices[0]) * g_indices.size());
+
+	m_pipeline.init(*this, m_swapchain, m_descriptor_set_layout, m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
 
 	this->draw_into_command_buffers(
 		m_render_pass,
@@ -411,10 +390,10 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance) -> void {
 		m_vertex_buffer,
 		m_index_buffer,
 		g_indices,
-		VkClearValue{0.0f, 0.0f, 0.0f, 1.0f}
+		VkClearValue{ 0.0f, 0.5f, 0.0f, 1.0f }
 	);
 
-	this->create_sync_objects();
+
 
 	//this->create_texture_image("C:\\DEV\\Projects\\JadeFrame\\JadeFrame\\resource\\wall.jpg");
 	//this->create_texture_image_view();

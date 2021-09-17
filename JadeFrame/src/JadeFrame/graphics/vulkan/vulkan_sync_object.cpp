@@ -21,6 +21,19 @@ auto VulkanFence::deinit() -> void {
 	vkDestroyFence(m_device->m_handle, m_handle, nullptr);
 }
 
+auto VulkanFence::wait_for_fences() -> void {
+	VkResult result;
+	result = vkWaitForFences(m_device->m_handle, 1, &m_handle, VK_TRUE, UINT64_MAX);
+	if (result != VK_SUCCESS) __debugbreak();
+
+}
+
+auto VulkanFence::reset() -> void {
+	VkResult result;
+	result = vkResetFences(m_device->m_handle, 1, &m_handle);
+	if (result != VK_SUCCESS) __debugbreak();
+}
+
 auto VulkanSemaphore::init(const VulkanLogicalDevice& device) -> void {
 	m_device = &device;
 	VkResult result;

@@ -84,7 +84,7 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(windo
 	VertexDataFactory::DESC vdf_desc;
 	vdf_desc.has_normals = false;
 	VertexData vertex_data = VertexDataFactory::make_rectangle(
-		{ -1.0f, -1.0f, 0.0f }, { 2.0f, 2.0f, 0.0f }, 
+		{ -1.0f, -1.0f, 0.0f }, { 2.0f, 2.0f, 0.0f },
 		vdf_desc
 	);
 	m_framebuffer_rect = new OpenGL_GPUMeshData(
@@ -153,11 +153,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 		OpenGL_Shader& shader = *static_cast<OpenGL_Shader*>	(m_render_commands[i].material_handle->m_shader_handle->m_handle);
 		shader.bind();
 
-		const Matrix4x4& transform = *m_render_commands[i].transform;
-		const std::vector<Matrix4x4>& matrices = { view_projection , transform };
-		m_context.m_uniform_buffers[0].bind();
-		m_context.m_uniform_buffers[0].send(matrices);
-		m_context.m_uniform_buffers[0].unbind();
+
 
 		if (m_render_commands[i].material_handle->m_texture_handle != nullptr) {
 			OpenGL_Texture& texture = *static_cast<OpenGL_Texture*>	(m_render_commands[i].material_handle->m_texture_handle->m_handle);
@@ -169,6 +165,13 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
 		const OpenGL_GPUMeshData* vertex_array = static_cast<OpenGL_GPUMeshData*>(m_render_commands[i].m_GPU_mesh_data->m_handle);
 		this->render_mesh(vertex_array, mesh);
+		{
+			const Matrix4x4& transform = *m_render_commands[i].transform;
+			const std::vector<Matrix4x4>& matrices = { view_projection , transform };
+			m_context.m_uniform_buffers[0].bind();
+			m_context.m_uniform_buffers[0].send(matrices);
+			m_context.m_uniform_buffers[0].unbind();
+		}
 	}
 #if JF_FB
 	m_framebuffer.unbind();

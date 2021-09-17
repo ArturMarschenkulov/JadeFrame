@@ -11,6 +11,7 @@
 #include "vulkan_descriptor_pool.h"
 #include "vulkan_descriptor_set.h"
 #include "vulkan_sync_object.h"
+#include "vulkan_command_buffers.h"
 
 #include "JadeFrame/math/vec_2.h"
 #include "JadeFrame/math/vec_3.h"
@@ -79,7 +80,8 @@ public:
 		const VkClearValue color_value
 	) -> void;
 
-	std::vector<VkCommandBuffer> m_command_buffers;
+	VulkanCommandBuffers m_command_buffers;
+	//std::vector<VkCommandBuffer> m_command_buffers;
 
 public: // buffer stuff
 	VulkanBuffer m_vertex_buffer = { VULKAN_BUFFER_TYPE::VERTEX };

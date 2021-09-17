@@ -176,7 +176,7 @@ auto VulkanLogicalDevice::begin_single_time_commands() -> VkCommandBuffer {
 	VkResult result;
 	const VkCommandBufferAllocateInfo alloc_info{
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-		.pNext = {},
+		.pNext = nullptr,
 		.commandPool = m_command_pool.m_handle,
 		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
 		.commandBufferCount = 1,

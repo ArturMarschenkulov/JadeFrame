@@ -2,6 +2,8 @@
 #include <vulkan/vulkan.h>
 
 #include "vulkan_shared.h"
+#include "../shared.h"
+#include "../mesh.h"
 
 #include "JadeFrame/defines.h"
 #include "JadeFrame/math/vec_2.h"
@@ -44,4 +46,17 @@ public:
 	const VulkanLogicalDevice* m_device = nullptr;
 
 };
+
+
+class Vulkan_GPUMeshData {
+public:
+	Vulkan_GPUMeshData(const VulkanLogicalDevice& device, const Mesh& mesh, BufferLayout buffer_layout, bool interleaved = true);
+	auto bind() const -> void;
+	auto set_layout(const BufferLayout& buffer_layout) -> void;
+public:
+	VulkanBuffer m_vertex_buffer = VULKAN_BUFFER_TYPE::VERTEX;
+	VulkanBuffer m_index_buffer = VULKAN_BUFFER_TYPE::INDEX;
+	BufferLayout m_buffer_layout;
+};
+
 }

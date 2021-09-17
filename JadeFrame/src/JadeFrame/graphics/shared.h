@@ -4,10 +4,7 @@
 //#include "Mesh.h"
 
 namespace JadeFrame {
-/*
-	TODO: Consider whether this is a good way and whether it is worth it to introdcue inheritance.
-		Right now, inheritance should be mainly used as a sanity check such that all renderers have a common interface.
-*/
+
 class Windows_Window;
 class Object;
 class RGBAColor;
@@ -23,7 +20,10 @@ enum class GRAPHICS_API {
 	SOFTWARE,
 	TERMINAL,
 };
-
+/*
+	TODO: Consider whether this is a good way and whether it is worth it to introdcue inheritance.
+		Right now, inheritance should be mainly used as a sanity check such that all renderers have a common interface.
+*/
 class IRenderer {
 public: // client stuff
 	virtual auto submit(const Object& obj) -> void = 0;
@@ -64,4 +64,55 @@ public: // more internal stuff
 //	f32 m_point_size;
 //	f32 m_line_width;
 //};
+enum class SHADER_TYPE {
+	NONE = 0,
+	FLOAT, FLOAT_2, FLOAT_3, FLOAT_4,
+	MAT_3, MAT_4,
+	INT, INT_2, INT_3, INT_4,
+	BOOL,
+	SAMPLER_1D, SAMPLER_2D, SAMPLER_3D, SAMPLER_CUBE,
+}; 
+inline auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
+	u32 result;
+	switch (type) {
+		case SHADER_TYPE::FLOAT:	result = 4; break;
+		case SHADER_TYPE::FLOAT_2:	result = 4 * 2; break;
+		case SHADER_TYPE::FLOAT_3:	result = 4 * 3; break;
+		case SHADER_TYPE::FLOAT_4:	result = 4 * 4; break;
+		case SHADER_TYPE::MAT_3:	result = 4 * 3 * 3; break;
+		case SHADER_TYPE::MAT_4:	result = 4 * 4 * 4; break;
+		case SHADER_TYPE::INT:		result = 4; break;
+		case SHADER_TYPE::INT_2:	result = 4 * 2; break;
+		case SHADER_TYPE::INT_3:	result = 4 * 3; break;
+		case SHADER_TYPE::INT_4:	result = 4 * 4; break;
+		case SHADER_TYPE::BOOL:	result = 1; break;
+		default: __debugbreak(); result = 0; break;
+	}
+	return result;
+}
+
+
+class BufferLayout {
+public:
+	struct BufferElement {
+		std::string name;
+		SHADER_TYPE type;
+		u32 size;
+		size_t offset;
+		bool normalized;
+
+		BufferElement(SHADER_TYPE type, const std::string& name, bool normalized = false);
+	};
+
+public:
+	BufferLayout() = default;
+	BufferLayout(const std::initializer_list<BufferElement>& elements);
+	BufferLayout(const BufferLayout&) = default;
+	auto operator=(const BufferLayout&)->BufferLayout & = default;
+	auto calculate_offset_and_stride(std::vector<BufferElement>& elements) -> void;
+
+	std::vector<BufferElement> m_elements;
+	u8 m_stride = 0;
+
+};
 }
