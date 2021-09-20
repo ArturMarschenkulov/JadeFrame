@@ -40,25 +40,25 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
 			0, 1, 2,
 			2, 3, 0,
 		};
-		VulkanBuffer m_vertex_buffer = { VULKAN_BUFFER_TYPE::VERTEX };
-		VulkanBuffer m_index_buffer = { VULKAN_BUFFER_TYPE::INDEX };
+		VulkanBuffer vertex_buffer = { VULKAN_BUFFER_TYPE::VERTEX };
+		VulkanBuffer index_buffer = { VULKAN_BUFFER_TYPE::INDEX };
 		VulkanLogicalDevice& ld = m_context.m_instance.m_logical_device;
 
-		m_vertex_buffer.init(ld, VULKAN_BUFFER_TYPE::VERTEX, (void*)vertices.data(), sizeof(vertices[0]) * vertices.size());
-		m_index_buffer.init(ld, VULKAN_BUFFER_TYPE::INDEX, (void*)indices.data(), sizeof(indices[0]) * indices.size());
+		vertex_buffer.init(ld, VULKAN_BUFFER_TYPE::VERTEX, (void*)vertices.data(), sizeof(vertices[0]) * vertices.size());
+		index_buffer.init(ld, VULKAN_BUFFER_TYPE::INDEX, (void*)indices.data(), sizeof(indices[0]) * indices.size());
 
-		VulkanPipeline m_pipeline;
-		m_pipeline.init(ld, ld.m_swapchain.m_extent, ld.m_descriptor_set_layout, ld.m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
+		VulkanPipeline pipeline;
+		pipeline.init(ld, ld.m_swapchain.m_extent, ld.m_descriptor_set_layout, ld.m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
 
 
 		const auto& c = m_clear_color;
-		ld.draw_into_command_buffers(
+		ld.m_command_buffers.draw_into(
 			ld.m_render_pass,
 			ld.m_swapchain,
-			m_pipeline,
+			pipeline,
 			ld.m_descriptor_sets,
-			m_vertex_buffer,
-			m_index_buffer,
+			vertex_buffer,
+			index_buffer,
 			indices,
 			VkClearValue{ c.r, c.b, c.g, c.a }
 		);

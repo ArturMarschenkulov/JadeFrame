@@ -12,6 +12,7 @@
 namespace JadeFrame {
 
 class VulkanLogicalDevice;
+
 auto VulkanDescriptorSets::init(
 	const VulkanLogicalDevice& device, 
 	u32 image_amount,
@@ -20,7 +21,7 @@ auto VulkanDescriptorSets::init(
 	const std::vector<VulkanBuffer>& uniform_buffers
 ) -> void {
 	VkResult result;
-
+	m_device = &device;
 	std::vector<VkDescriptorSetLayout> layouts(image_amount, descriptor_set_layout.m_handle);
 
 	const VkDescriptorSetAllocateInfo alloc_info = {
@@ -40,50 +41,52 @@ auto VulkanDescriptorSets::init(
 	//for(u32 i = 0; i < image_amount; i++) {
 	//	this->update(image_amount, device.m_uniform_buffers);
 	//}
-	for (u32 i = 0; i < image_amount; i++) {
-		const VkDescriptorBufferInfo buffer_info = {
-			.buffer = uniform_buffers[i].m_buffer,
-			.offset = 0,
-			.range = sizeof(UniformBufferObject),
-		};
+	//for (u32 i = 0; i < m_descriptor_sets.size(); i++) {
+	//	const VkDescriptorBufferInfo buffer_info = {
+	//		.buffer = uniform_buffers[i].m_buffer,
+	//		.offset = 0,
+	//		.range = sizeof(UniformBufferObject),
+	//	};
 
-		const VkWriteDescriptorSet descriptor_write = {
-			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.pNext = nullptr,
-			.dstSet = m_descriptor_sets[i],
-			.dstBinding = 0,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			.pImageInfo = nullptr,
-			.pBufferInfo = &buffer_info,
-			.pTexelBufferView = nullptr,
-		};
+	//	const VkWriteDescriptorSet descriptor_write = {
+	//		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+	//		.pNext = nullptr,
+	//		.dstSet = m_descriptor_sets[i],
+	//		.dstBinding = 0,
+	//		.dstArrayElement = 0,
+	//		.descriptorCount = 1,
+	//		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+	//		.pImageInfo = nullptr,
+	//		.pBufferInfo = &buffer_info,
+	//		.pTexelBufferView = nullptr,
+	//	};
 
-		vkUpdateDescriptorSets(device.m_handle, 1, &descriptor_write, 0, nullptr);
-	}
+	//	vkUpdateDescriptorSets(device.m_handle, 1, &descriptor_write, 0, nullptr);
+	//}
 
 }
 
-auto VulkanDescriptorSets::update(u32 image_amount, const std::vector<VulkanBuffer>& uniform_buffers) -> void {
-	VkDescriptorBufferInfo buffer_info = {};
-	buffer_info.buffer = uniform_buffers[image_amount].m_buffer;
-	buffer_info.offset = 0;
-	buffer_info.range = sizeof(UniformBufferObject);
+auto VulkanDescriptorSets::update(const std::vector<VulkanBuffer>& uniform_buffers) -> void {
+	for (u32 i = 0; i < m_descriptor_sets.size(); i++) {
+		VkDescriptorBufferInfo buffer_info = {};
+		buffer_info.buffer = uniform_buffers[i].m_buffer;
+		buffer_info.offset = 0;
+		buffer_info.range = sizeof(UniformBufferObject);
 
-	VkWriteDescriptorSet descriptor_write = {};
-	descriptor_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptor_write.pNext = nullptr;
-	descriptor_write.dstSet = m_descriptor_sets[image_amount];
-	descriptor_write.dstBinding = 0;
-	descriptor_write.dstArrayElement = 0;
-	descriptor_write.descriptorCount = 1;
-	descriptor_write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descriptor_write.pImageInfo = nullptr;
-	descriptor_write.pBufferInfo = &buffer_info;
-	descriptor_write.pTexelBufferView = nullptr;
+		VkWriteDescriptorSet descriptor_write = {};
+		descriptor_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptor_write.pNext = nullptr;
+		descriptor_write.dstSet = m_descriptor_sets[i];
+		descriptor_write.dstBinding = 0;
+		descriptor_write.dstArrayElement = 0;
+		descriptor_write.descriptorCount = 1;
+		descriptor_write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptor_write.pImageInfo = nullptr;
+		descriptor_write.pBufferInfo = &buffer_info;
+		descriptor_write.pTexelBufferView = nullptr;
 
-	vkUpdateDescriptorSets(m_device->m_handle, 1, &descriptor_write, 0, nullptr);
+		vkUpdateDescriptorSets(m_device->m_handle, 1, &descriptor_write, 0, nullptr);
+	}
 }
 
 }

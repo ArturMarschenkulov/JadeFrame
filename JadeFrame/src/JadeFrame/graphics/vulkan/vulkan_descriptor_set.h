@@ -18,7 +18,7 @@ public:
 		const VulkanDescriptorPool& descriptor_pool, 
 		const std::vector<VulkanBuffer>& uniform_buffers
 	) -> void;
-	auto update(u32 image_amount, const std::vector<VulkanBuffer>& uniform_buffers) -> void;
+	auto update(const std::vector<VulkanBuffer>& uniform_buffers) -> void;
 
 	const VulkanLogicalDevice* m_device = nullptr;
 	std::vector<VkDescriptorSet> m_descriptor_sets;

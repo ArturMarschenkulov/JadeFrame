@@ -73,17 +73,6 @@ public:
 	VulkanCommandPool m_command_pool;
 
 public:
-	auto draw_into_command_buffers(
-		const VulkanRenderPass& render_pass,
-		const VulkanSwapchain& swapchain,
-		const VulkanPipeline& pipeline,
-		const VulkanDescriptorSets& descriptor_sets,
-		const VulkanBuffer& vertex_buffer,
-		const VulkanBuffer& index_buffer,
-		const std::vector<u16>& indices,
-		const VkClearValue color_value
-	) -> void;
-
 	VulkanCommandBuffers m_command_buffers;
 
 

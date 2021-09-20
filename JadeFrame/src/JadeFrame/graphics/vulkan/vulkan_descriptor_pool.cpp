@@ -8,6 +8,7 @@
 namespace JadeFrame {
 
 auto VulkanDescriptorPool::init(const VulkanLogicalDevice& device, const VulkanSwapchain& swapchain) -> void {
+	m_device = &device;
 	VkResult result;
 	const VkDescriptorPoolSize pool_size = {
 		.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -25,6 +26,12 @@ auto VulkanDescriptorPool::init(const VulkanLogicalDevice& device, const VulkanS
 
 	result = vkCreateDescriptorPool(device.m_handle, &pool_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
+}
+
+auto VulkanDescriptorPool::allocate_descriptor_sets(u32 image_amount, const VulkanDescriptorSetLayout& descriptor_set_layout, const std::vector<VulkanBuffer>& uniform_buffers) -> VulkanDescriptorSets {
+	VulkanDescriptorSets descriptor_sets;
+	descriptor_sets.init(*m_device, image_amount, descriptor_set_layout, *this, uniform_buffers);
+	return descriptor_sets;
 }
 
 }

@@ -25,4 +25,25 @@ auto VulkanCommandPool::init(const VulkanLogicalDevice& device, const VulkanPhys
 auto VulkanCommandPool::deinit() -> void {
 	vkDestroyCommandPool(m_device->m_handle, m_handle, nullptr);
 }
+auto VulkanCommandPool::allocate_command_buffers(u32 amount) -> VulkanCommandBuffers {
+	VulkanCommandBuffers command_buffers;
+	command_buffers.init(*m_device, *this, amount);
+	return command_buffers;
+	//VkResult result;
+	//m_device = &device;
+	//m_command_pool = &command_pool;
+	//m_handles.resize(amount);
+
+	//const VkCommandBufferAllocateInfo alloc_info = {
+	//	.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+	//	.pNext = nullptr,
+	//	.commandPool = command_pool.m_handle,
+	//	.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+	//	.commandBufferCount = static_cast<u32>(m_handles.size()),
+	//};
+	//result = vkAllocateCommandBuffers(device.m_handle, &alloc_info, m_handles.data());
+	//if (result != VK_SUCCESS) __debugbreak();
+
+	//return VulkanCommandBuffer();
+}
 }
