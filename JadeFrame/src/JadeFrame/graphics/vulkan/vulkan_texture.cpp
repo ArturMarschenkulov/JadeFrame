@@ -211,9 +211,9 @@ auto VulkanLogicalDevice::end_single_time_commands(VkCommandBuffer command_buffe
 		.pCommandBuffers = &command_buffer,
 	};
 
-	result = vkQueueSubmit(m_graphics_queue, 1, &submit_info, VK_NULL_HANDLE);
+	result = vkQueueSubmit(m_graphics_queue.m_handle, 1, &submit_info, VK_NULL_HANDLE);
 	if (result != VK_SUCCESS) __debugbreak();
-	result = vkQueueWaitIdle(m_graphics_queue);
+	result = vkQueueWaitIdle(m_graphics_queue.m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
 
 	vkFreeCommandBuffers(m_handle, m_command_pool.m_handle, 1, &command_buffer);

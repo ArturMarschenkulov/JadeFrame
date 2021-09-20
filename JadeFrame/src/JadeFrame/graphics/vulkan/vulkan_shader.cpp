@@ -7,10 +7,10 @@ namespace JadeFrame {
 Vulkan_Shader::Vulkan_Shader(const VulkanLogicalDevice& device, const GLSLCode& code) {
 	m_device = &device;
 	m_pipeline.init(
-		*m_device, 
-		m_device->m_swapchain, 
-		m_device->m_descriptor_set_layout,
-		m_device->m_render_pass, 
+		device, 
+		device.m_swapchain.m_extent, 
+		device.m_descriptor_set_layout,
+		device.m_render_pass, 
 		code
 	);
 

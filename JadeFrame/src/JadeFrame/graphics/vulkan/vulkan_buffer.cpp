@@ -294,16 +294,16 @@ auto VulkanBuffer::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, Vk
 auto VulkanBuffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size) -> void {
 	VkResult result;
 
-	VulkanCommandBuffers command_buffer_;
-	command_buffer_.init(*m_device, m_device->m_command_pool, 1);
-	command_buffer_.begin_end_scope(0,
+	VulkanCommandBuffers command_buffer;
+	command_buffer.init(*m_device, m_device->m_command_pool, 1);
+	command_buffer.record(0,
 		[&]() {
 			const VkBufferCopy copy_region = {
 				.srcOffset = 0,
 				.dstOffset = 0,
 				.size = size,
 			};
-			vkCmdCopyBuffer(command_buffer_.m_handles[0], src_buffer, dst_buffer, 1, &copy_region);
+			vkCmdCopyBuffer(command_buffer.m_handles[0], src_buffer, dst_buffer, 1, &copy_region);
 		}
 	);
 	const VkSubmitInfo submit_info = {
@@ -313,17 +313,17 @@ auto VulkanBuffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDevic
 		.pWaitSemaphores = {},
 		.pWaitDstStageMask = {},
 		.commandBufferCount = 1,
-		.pCommandBuffers = &command_buffer_.m_handles[0],
+		.pCommandBuffers = &command_buffer.m_handles[0],
 		.signalSemaphoreCount = {},
 		.pSignalSemaphores = {},
 	};
 
-	result = vkQueueSubmit(m_device->m_graphics_queue, 1, &submit_info, VK_NULL_HANDLE);
+	result = vkQueueSubmit(m_device->m_graphics_queue.m_handle, 1, &submit_info, VK_NULL_HANDLE);
 	if (result != VK_SUCCESS) __debugbreak();
-	result = vkQueueWaitIdle(m_device->m_graphics_queue);
+	result = vkQueueWaitIdle(m_device->m_graphics_queue.m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
 
-	command_buffer_.deinit();
+	command_buffer.deinit();
 
 }
 Vulkan_GPUMeshData::Vulkan_GPUMeshData(const VulkanLogicalDevice& device, const Mesh& mesh, BufferLayout buffer_layout, bool interleaved) {

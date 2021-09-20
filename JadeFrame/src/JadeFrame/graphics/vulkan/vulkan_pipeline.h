@@ -18,7 +18,7 @@ class VulkanPipeline {
 public:
 	auto init(
 		const VulkanLogicalDevice& device, 
-		const VulkanSwapchain& swapchain, 
+		const VkExtent2D& extend,
 		const VulkanDescriptorSetLayout& descriptor_layout, 
 		const VulkanRenderPass& render_pass,
 		const GLSLCode& code

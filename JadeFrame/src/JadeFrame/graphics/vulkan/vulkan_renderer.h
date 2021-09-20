@@ -1,7 +1,9 @@
 #pragma once
 #include "JadeFrame/defines.h"
-#include "../Mesh.h"
+#include "../mesh.h"
 #include "vulkan_context.h"
+
+#include "../material_handle.h"
 #include "../shared.h"
 namespace JadeFrame {
 
@@ -10,12 +12,12 @@ class Object;
 class Matrix4x4;
 class RGBAColor;
 
-//struct Vulkan_RenderCommand {
-//	const Matrix4x4* transform = nullptr;
-//	const Mesh* mesh = nullptr;
-//	MaterialHandle* material_handle = nullptr;
-//	const GPUDataMeshHandle* m_GPU_mesh_data = nullptr;
-//};
+struct Vulkan_RenderCommand {
+	const Matrix4x4* transform = nullptr;
+	const Mesh* mesh = nullptr;
+	MaterialHandle* material_handle = nullptr;
+	const GPUDataMeshHandle* m_GPU_mesh_data = nullptr;
+};
 
 class Vulkan_Renderer : public IRenderer {
 public:
@@ -34,7 +36,7 @@ public:
 
 private:
 	Vulkan_Context m_context;
-	//mutable std::deque<Vulkan_RenderCommand> m_render_commands;
+	mutable std::deque<Vulkan_RenderCommand> m_render_commands;
 
 private: //NOTE: probably temporary
 	Matrix4x4 m_view_projection;

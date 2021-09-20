@@ -34,17 +34,7 @@ struct OpenGL_Material {
 	OpenGL_Shader* m_shader = nullptr;
 };
 
-struct GPUDataMeshHandle {
-	enum class API {
-		UNDEFINED,
-		OPENGL,
-		VULKAN,
-	} api = API::OPENGL;
-	void* m_handle = nullptr;
 
-	mutable bool m_is_initialized = false;
-
-};
 
 class Object {
 public:

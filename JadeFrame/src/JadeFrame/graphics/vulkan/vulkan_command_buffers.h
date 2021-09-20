@@ -18,7 +18,10 @@ public:
 	) -> void;
 	auto deinit() -> void;
 
-	auto begin_end_scope(size_t index, std::function<void()> func) -> void;
+	auto record(size_t index, std::function<void()> func) -> void;
+
+
+	//auto bind_pipeline(size_t index) -> void;
 
 public:
 	std::vector<VkCommandBuffer> m_handles;

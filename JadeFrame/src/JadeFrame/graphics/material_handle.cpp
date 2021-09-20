@@ -21,8 +21,8 @@ TextureHandle::~TextureHandle() {
 auto TextureHandle::init() -> void {
 
 
-	switch (api) {
-		case API::OPENGL:
+	switch (m_api) {
+		case GRAPHICS_API::OPENGL:
 		{
 			GLenum format;
 			switch (m_num_components) {
@@ -41,7 +41,7 @@ auto TextureHandle::init() -> void {
 
 
 		}break;
-		case API::VULKAN:
+		case GRAPHICS_API::VULKAN:
 		{
 		}break;
 	}

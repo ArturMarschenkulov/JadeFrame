@@ -79,10 +79,10 @@ BaseApp::BaseApp(const DESC& desc) {
 
 }
 auto BaseApp::start() -> void {
-	m_renderer->main_loop();
+
 
 	this->on_init();
-
+	//m_renderer->main_loop();
 	//GUI_init(m_current_window_p->m_window_handle);
 	m_time_manager.set_FPS(60);
 	while (m_is_running) {

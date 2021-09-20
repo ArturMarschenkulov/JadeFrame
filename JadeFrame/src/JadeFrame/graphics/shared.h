@@ -20,6 +20,15 @@ enum class GRAPHICS_API {
 	SOFTWARE,
 	TERMINAL,
 };
+
+
+struct GPUDataMeshHandle {
+	GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
+	void* m_handle = nullptr;
+
+	mutable bool m_is_initialized = false;
+};
+
 /*
 	TODO: Consider whether this is a good way and whether it is worth it to introdcue inheritance.
 		Right now, inheritance should be mainly used as a sanity check such that all renderers have a common interface.

@@ -31,7 +31,7 @@ auto VulkanCommandBuffers::deinit() -> void {
 
 }
 
-auto VulkanCommandBuffers::begin_end_scope(size_t index, std::function<void()> func) -> void {
+auto VulkanCommandBuffers::record(size_t index, std::function<void()> func) -> void {
 	VkResult result;
 	const VkCommandBufferBeginInfo begin_info = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,

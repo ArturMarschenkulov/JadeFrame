@@ -6,6 +6,7 @@
 
 #include "vulkan_logical_device.h"
 #include "vulkan_context.h"
+#include "vulkan_sync_object.h"
 
 #undef min
 #undef max
@@ -152,6 +153,13 @@ auto VulkanSwapchain::create_framebuffers(const VkRenderPass& render_pass) -> vo
 		result = vkCreateFramebuffer(m_device->m_handle, &framebuffer_info, nullptr, &m_framebuffers[i]);
 		if (result != VK_SUCCESS) __debugbreak();
 	}
+}
+
+auto VulkanSwapchain::acquire_next_image(const VulkanSemaphore& semaphore, VkResult& result) -> u32 {
+	u32 image_index;
+	result = vkAcquireNextImageKHR(m_device->m_handle, m_handle, UINT64_MAX, semaphore.m_handle, VK_NULL_HANDLE, &image_index);
+	return image_index;
+
 }
 
 }

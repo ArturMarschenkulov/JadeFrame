@@ -121,7 +121,9 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
 	}
 	if (obj.m_material_handle->m_is_initialized == false) {
 		//obj.m_material_handle->init();
+		obj.m_material_handle->m_shader_handle->api = ShaderHandle::API::OPENGL;
 		obj.m_material_handle->m_shader_handle->init();
+		//obj.m_material_handle->m_shader_handle->m_handle = new OpenGL_Shader();
 
 		if (obj.m_material_handle->m_texture_handle != nullptr) {
 			obj.m_material_handle->m_texture_handle->init();

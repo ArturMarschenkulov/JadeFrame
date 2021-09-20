@@ -159,7 +159,7 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 			__debugbreak();
 		}
 	}
-	m_logical_device.init(*this);
+	m_logical_device.init(*this, m_physical_device);
 }
 
 auto VulkanInstance::deinit() -> void {

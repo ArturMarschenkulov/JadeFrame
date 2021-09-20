@@ -340,6 +340,7 @@
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_logical_device.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_physical_device.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_pipeline.h" />
+    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_queue.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_renderer.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_render_pass.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_shader.h" />
@@ -446,6 +447,7 @@
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_logical_device.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_physical_device.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_pipeline.cpp" />
+    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_queue.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_renderer.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_render_pass.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_shader.cpp" />

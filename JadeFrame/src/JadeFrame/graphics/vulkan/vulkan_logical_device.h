@@ -12,6 +12,7 @@
 #include "vulkan_descriptor_set.h"
 #include "vulkan_sync_object.h"
 #include "vulkan_command_buffers.h"
+#include "vulkan_queue.h"
 
 #include "JadeFrame/math/vec_2.h"
 #include "JadeFrame/math/vec_3.h"
@@ -30,7 +31,7 @@ class VulkanBuffer;
 class VulkanLogicalDevice {
 private:
 public:
-	auto init(const VulkanInstance& instance) -> void;
+	auto init(const VulkanInstance& instance, const VulkanPhysicalDevice& physical_device) -> void;
 	auto deinit() -> void;
 
 	auto draw_frame(const Matrix4x4& view_projection) -> void;
@@ -38,8 +39,8 @@ public:
 	const VulkanInstance* m_instance_p = nullptr;
 	VkDevice m_handle = nullptr;
 	const VulkanPhysicalDevice* m_physical_device_p = nullptr;
-	VkQueue m_graphics_queue = nullptr;
-	VkQueue m_present_queue = nullptr;
+	VulkanQueue m_graphics_queue;
+	VulkanQueue m_present_queue;
 
 public: // Swapchain stuff
 	auto recreate_swapchain() -> void;
@@ -59,35 +60,6 @@ public: // Descriptor set
 	VulkanDescriptorSets m_descriptor_sets;
 
 	auto update_uniform_buffer(u32 current_image, const Matrix4x4& view_projection) -> void;
-
-
-public:
-	VulkanPipeline m_pipeline;
-
-public:
-	VulkanCommandPool m_command_pool;
-
-public:
-	auto create_command_buffers(const VulkanCommandPool& command_pool, const VulkanSwapchain& swapchain) -> void;
-	auto draw_into_command_buffers(
-		const VulkanRenderPass& render_pass, 
-		const VulkanSwapchain& swapchain, 
-		const VulkanPipeline& pipeline, 
-		const VulkanDescriptorSets& descriptor_sets, 
-		const VulkanBuffer& vertex_buffer,
-		const VulkanBuffer& index_buffer,
-		const std::vector<u16>& indices,
-		const VkClearValue color_value
-	) -> void;
-
-	VulkanCommandBuffers m_command_buffers;
-	//std::vector<VkCommandBuffer> m_command_buffers;
-
-public: // buffer stuff
-	VulkanBuffer m_vertex_buffer = { VULKAN_BUFFER_TYPE::VERTEX };
-	VulkanBuffer m_index_buffer = { VULKAN_BUFFER_TYPE::INDEX };
-	std::vector<VulkanBuffer> m_uniform_buffers = { VULKAN_BUFFER_TYPE::UNIFORM };
-
 public: // synchro objects
 	auto create_sync_objects() -> void;
 	std::vector<VulkanSemaphore> m_image_available_semaphores;
@@ -96,6 +68,31 @@ public: // synchro objects
 	std::vector<VulkanFence> m_images_in_flight;
 	size_t m_current_frame = 0;
 	bool m_framebuffer_resized = false;
+
+public:
+	VulkanCommandPool m_command_pool;
+
+public:
+	auto draw_into_command_buffers(
+		const VulkanRenderPass& render_pass,
+		const VulkanSwapchain& swapchain,
+		const VulkanPipeline& pipeline,
+		const VulkanDescriptorSets& descriptor_sets,
+		const VulkanBuffer& vertex_buffer,
+		const VulkanBuffer& index_buffer,
+		const std::vector<u16>& indices,
+		const VkClearValue color_value
+	) -> void;
+
+	VulkanCommandBuffers m_command_buffers;
+
+
+public:
+	VulkanPipeline m_pipeline;
+public: // buffer stuff
+	VulkanBuffer m_vertex_buffer = { VULKAN_BUFFER_TYPE::VERTEX };
+	VulkanBuffer m_index_buffer = { VULKAN_BUFFER_TYPE::INDEX };
+	std::vector<VulkanBuffer> m_uniform_buffers = { VULKAN_BUFFER_TYPE::UNIFORM };
 
 public: // texture stuff
 	auto create_texture_image(const std::string& path) -> void;
@@ -107,7 +104,7 @@ public: // texture stuff
 	VkImage m_texture_image;
 	VkDeviceMemory m_texture_image_Memory;
 
-	auto create_image_view(VkImage image, VkFormat format) -> VkImageView;
+	auto create_image_view(VkImage image, VkFormat format)->VkImageView;
 	auto create_texture_image_view() -> void;
 	auto create_texture_sampler() -> void;
 

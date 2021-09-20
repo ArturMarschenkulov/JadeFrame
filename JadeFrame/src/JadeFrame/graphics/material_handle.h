@@ -2,7 +2,7 @@
 #include "JadeFrame/defines.h"
 
 #include "opengl/opengl_shader_loader.h"
-
+#include "shared.h"
 #include <string>
 
 namespace JadeFrame {
@@ -27,11 +27,7 @@ public:
 	i32 m_height;
 	i32 m_num_components;
 
-	enum class API {
-		UNDEFINED,
-		OPENGL,
-		VULKAN,
-	} api = API::OPENGL;
+	GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
 	void* m_handle = nullptr;
 };
 struct ShaderHandle {

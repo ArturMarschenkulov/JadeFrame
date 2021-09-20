@@ -67,7 +67,7 @@ static auto create_shader_module_from_spirv(VkDevice device, const std::vector<u
 
 auto VulkanPipeline::init(
 	const VulkanLogicalDevice& device, 
-	const VulkanSwapchain& swapchain,
+	const VkExtent2D& extent,
 	const VulkanDescriptorSetLayout& descriptor_set_layout,
 	const VulkanRenderPass& render_pass,
 	const GLSLCode& code) -> void {
@@ -143,15 +143,15 @@ auto VulkanPipeline::init(
 	const VkViewport viewport = {
 		.x = 0.0f,
 		.y = 0.0f,
-		.width = static_cast<f32>(swapchain.m_extent.width),
-		.height = static_cast<f32>(swapchain.m_extent.height),
+		.width = static_cast<f32>(extent.width),
+		.height = static_cast<f32>(extent.height),
 		.minDepth = 0.0f,
 		.maxDepth = 1.0f,
 	};
 
 	const VkRect2D scissor = {
 		.offset = { 0, 0 },
-		.extent = swapchain.m_extent,
+		.extent = extent,
 	};
 
 	const VkPipelineViewportStateCreateInfo viewport_state = {
