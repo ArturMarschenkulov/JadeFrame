@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 #include "JadeFrame/defines.h"
+#include "../shared.h"
 
 #include <thread>
 #include <future>
@@ -21,7 +22,7 @@ public:
 		const VkExtent2D& extend,
 		const VulkanDescriptorSetLayout& descriptor_layout, 
 		const VulkanRenderPass& render_pass,
-		const GLSLCode& code
+		const ShadingCode& code
 	) -> void;
 	auto deinit() -> void;
 

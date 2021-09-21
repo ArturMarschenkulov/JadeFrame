@@ -21,9 +21,9 @@ class Vec4;
 class Matrix4x4;
 class OpenGL_Shader;
 
-class OpenGL_Shader {
+class OpenGL_Shader : public IShader {
 public:
-	OpenGL_Shader(const GLSLCode& code);
+	OpenGL_Shader(const DESC& desc);
 
 	OpenGL_Shader() = default;
 	OpenGL_Shader(OpenGL_Shader&&) noexcept = default;

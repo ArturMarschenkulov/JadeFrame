@@ -1,6 +1,7 @@
 #pragma once
 #include "JadeFrame/defines.h"
 #include <JadeFrame/math/mat_4.h>
+//#include "opengl/opengl_shader_loader.h"
 //#include "Mesh.h"
 
 namespace JadeFrame {
@@ -8,6 +9,7 @@ namespace JadeFrame {
 class Windows_Window;
 class Object;
 class RGBAColor;
+
 
 
 enum class GRAPHICS_API {
@@ -19,6 +21,17 @@ enum class GRAPHICS_API {
 	METAL,
 	SOFTWARE,
 	TERMINAL,
+};
+enum class SHADING_LANGUAGE {
+	GLSL,
+	SPIRV,
+	HLSL
+};
+
+struct ShadingCode {
+	SHADING_LANGUAGE shading_language;
+	std::string m_vertex_shader;
+	std::string m_fragment_shader;
 };
 
 
@@ -49,6 +62,17 @@ public: // more internal stuff
 	virtual auto present()  -> void = 0;
 };
 
+
+class IShader {
+public:
+
+	struct DESC {
+		SHADING_LANGUAGE shading_language;
+		ShadingCode code;
+		//GLSLCode code;
+	};
+public:
+};
 
 //
 //struct RasterizerState {

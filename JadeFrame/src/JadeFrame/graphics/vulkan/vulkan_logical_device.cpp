@@ -120,7 +120,8 @@ auto VulkanLogicalDevice::recreate_swapchain() -> void {
 
 	m_swapchain.init(*this, *m_physical_device_p, m_instance_p->m_surface);
 	m_render_pass.init(*this, m_swapchain.m_image_format);
-	m_pipeline.init(*this, m_swapchain.m_extent, m_descriptor_set_layout, m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
+	const auto& c = GLSLCodeLoader::get_by_name("spirv_test_0");
+	m_pipeline.init(*this, m_swapchain.m_extent, m_descriptor_set_layout, m_render_pass, { SHADING_LANGUAGE::GLSL,  c.m_vertex_shader, c.m_fragment_shader });
 	m_swapchain.create_framebuffers(m_render_pass.m_handle);
 	m_images_in_flight.resize(m_swapchain.m_images.size());
 #endif
@@ -308,51 +309,13 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 
 	m_descriptor_set_layout.init(*this);
 	m_descriptor_pool.init(*this, m_swapchain);
-	m_descriptor_sets = m_descriptor_pool.allocate_descriptor_sets(m_swapchain.m_images.size(), m_descriptor_set_layout, m_uniform_buffers);
+	m_descriptor_sets = m_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout, m_swapchain.m_images.size());
 	m_descriptor_sets.update(m_uniform_buffers);
 
-	m_command_pool.init(*this, *m_physical_device_p);
+	m_command_pool.init(*this, m_physical_device_p->m_queue_family_indices);
 	m_command_buffers = m_command_pool.allocate_command_buffers(m_swapchain.m_framebuffers.size());
 
 	this->create_sync_objects();
-
-
-
-
-	if constexpr(false) {
-
-		const std::vector<VVertex> vertices = {
-			{{-0.5f, -0.5f}, {+1.0f, +0.0f, +0.0f}},
-			{{+0.5f, -0.5f}, {+0.0f, +1.0f, +0.0f}},
-			{{+0.5f, +0.5f}, {+0.0f, +0.0f, +1.0f}},
-
-			{{-0.5f, +0.5f}, {+1.0f, +1.0f, +1.0f}},
-		};
-		const std::vector<u16> indices = {
-			0, 1, 2,
-			2, 3, 0,
-		};
-
-		m_vertex_buffer.init(*this, VULKAN_BUFFER_TYPE::VERTEX, (void*)vertices.data(), sizeof(vertices[0]) * vertices.size());
-		m_index_buffer.init(*this, VULKAN_BUFFER_TYPE::INDEX, (void*)indices.data(), sizeof(indices[0]) * indices.size());
-
-		m_pipeline.init(*this, m_swapchain.m_extent, m_descriptor_set_layout, m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
-
-		m_command_buffers.draw_into(
-			m_render_pass,
-			m_swapchain,
-			m_pipeline,
-			m_descriptor_sets,
-			m_vertex_buffer,
-			m_index_buffer,
-			indices,
-			VkClearValue{ 0.0f, 0.5f, 0.0f, 1.0f }
-		);
-
-		//this->create_texture_image("C:\\DEV\\Projects\\JadeFrame\\JadeFrame\\resource\\wall.jpg");
-		//this->create_texture_image_view();
-		//this->create_texture_sampler();
-	}
 
 }
 

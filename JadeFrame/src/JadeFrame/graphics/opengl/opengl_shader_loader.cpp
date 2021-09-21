@@ -395,25 +395,7 @@ void main()
 
 	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
-
-auto get_glsl_code_by_name(const std::string& name) -> std::tuple<std::string, std::string> {
-	std::tuple<std::string, std::string> shader_tuple;
-	if (name == "flat_0") {
-		shader_tuple = get_default_shader_flat_0();
-	} else if (name == "with_texture_0") {
-		shader_tuple = get_default_shader_with_texture();
-	} else if (name == "depth_testing_0") {
-		shader_tuple = get_default_shader_depth_testing();
-	} else if (name == "light_server") {
-		shader_tuple = get_default_shader_light_server();
-	} else if (name == "light_client") {
-		shader_tuple = get_default_shader_light_client();
-	} else if (name == "spirv_test_0") {
-		shader_tuple = get_shader_spirv_test_0();
-	}
-	return shader_tuple;
-}
-auto GLSLCodeLoader::get_by_name(const std::string& name) -> GLSLCode {
+auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
 	std::tuple<std::string, std::string> shader_tuple;
 	if (name == "flat_0") {
 		shader_tuple = get_default_shader_flat_0();
@@ -434,6 +416,6 @@ auto GLSLCodeLoader::get_by_name(const std::string& name) -> GLSLCode {
 	}
 
 	auto [vs, fs] = shader_tuple;
-	return GLSLCode(vs, fs);
+	return ShadingCode{ SHADING_LANGUAGE::GLSL, vs, fs };
 }
 }

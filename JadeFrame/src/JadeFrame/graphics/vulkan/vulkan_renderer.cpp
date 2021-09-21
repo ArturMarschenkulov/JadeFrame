@@ -2,6 +2,7 @@
 
 #include "vulkan_renderer.h"
 #include "JadeFrame/platform/windows/windows_window.h"
+#include "vulkan_shader.h"
 #include "../opengl/opengl_renderer.h"
 
 #include "../shared.h"
@@ -48,7 +49,8 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
 		index_buffer.init(ld, VULKAN_BUFFER_TYPE::INDEX, (void*)indices.data(), sizeof(indices[0]) * indices.size());
 
 		VulkanPipeline pipeline;
-		pipeline.init(ld, ld.m_swapchain.m_extent, ld.m_descriptor_set_layout, ld.m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
+		const auto& co = GLSLCodeLoader::get_by_name("spirv_test_0");
+		pipeline.init(ld, ld.m_swapchain.m_extent, ld.m_descriptor_set_layout, ld.m_render_pass, { SHADING_LANGUAGE::GLSL, co.m_vertex_shader, co.m_fragment_shader });
 
 
 		const auto& c = m_clear_color;
@@ -65,7 +67,7 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
 
 		temp_bool = true;
 	}
-	if(obj.m_GPU_mesh_data.m_is_initialized == false) {
+	if (obj.m_GPU_mesh_data.m_is_initialized == false) {
 		BufferLayout buffer_layout;
 		//In case there is no buffer layout provided use a default one
 		if (obj.m_buffer_layout.m_elements.size() == 0) {
@@ -84,10 +86,14 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
 		obj.m_GPU_mesh_data.m_is_initialized = true;
 	}
 	if (obj.m_material_handle->m_is_initialized == false) {
-		//obj.m_material_handle->init();
 		obj.m_material_handle->m_shader_handle->api = ShaderHandle::API::VULKAN;
-		obj.m_material_handle->m_shader_handle->init();
-		//obj.m_material_handle->m_shader_handle->m_handle = new Vulkan_Shader();
+		//obj.m_material_handle->m_shader_handle->init();
+		const VulkanLogicalDevice& ld = m_context.m_instance.m_logical_device;
+		auto sh = obj.m_material_handle->m_shader_handle;
+
+		Vulkan_Shader::DESC shader_desc;
+		shader_desc.code = sh->m_code;//{ SHADING_LANGUAGE::GLSL, sh->m_code.m_vertex_shader, sh->m_code.m_fragment_shader };
+		//obj.m_material_handle->m_shader_handle->m_handle = new Vulkan_Shader(ld, shader_desc);
 
 		if (obj.m_material_handle->m_texture_handle != nullptr) {
 			obj.m_material_handle->m_texture_handle->init();

@@ -70,7 +70,7 @@ auto VulkanPipeline::init(
 	const VkExtent2D& extent,
 	const VulkanDescriptorSetLayout& descriptor_set_layout,
 	const VulkanRenderPass& render_pass,
-	const GLSLCode& code) -> void {
+	const ShadingCode& code) -> void {
 
 	VkResult result;
 	//auto tm = &JadeFrame::get_singleton()->m_apps[0]->m_time_manager;

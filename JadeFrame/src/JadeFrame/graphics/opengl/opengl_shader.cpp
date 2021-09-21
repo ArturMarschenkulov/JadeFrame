@@ -32,7 +32,8 @@ static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
 //
 //}
 
-OpenGL_Shader::OpenGL_Shader(const GLSLCode& code)
+
+OpenGL_Shader::OpenGL_Shader(const DESC& desc)
 	: m_program()
 	, m_vertex_shader(GL_VERTEX_SHADER)
 	, m_fragment_shader(GL_FRAGMENT_SHADER) {
@@ -53,10 +54,10 @@ OpenGL_Shader::OpenGL_Shader(const GLSLCode& code)
 
 
 	} else {
-		m_vertex_shader.set_source(code.m_vertex_shader);
+		m_vertex_shader.set_source(desc.code.m_vertex_shader);
 		m_vertex_shader.compile();
 
-		m_fragment_shader.set_source(code.m_fragment_shader);
+		m_fragment_shader.set_source(desc.code.m_fragment_shader);
 		m_fragment_shader.compile();
 	}
 
@@ -82,8 +83,8 @@ OpenGL_Shader::OpenGL_Shader(const GLSLCode& code)
 
 
 
-	m_vertex_source = code.m_vertex_shader;
-	m_fragment_source = code.m_fragment_shader;
+	m_vertex_source = desc.code.m_vertex_shader;
+	m_fragment_source = desc.code.m_fragment_shader;
 	m_uniforms = this->query_uniforms(GL_ACTIVE_UNIFORMS);
 	m_attributes = this->query_uniforms(GL_ACTIVE_ATTRIBUTES);
 
@@ -92,8 +93,8 @@ OpenGL_Shader::OpenGL_Shader(const GLSLCode& code)
 	if constexpr (false) {
 
 		GLSLParser parser;
-		parser.parse(code.m_vertex_shader);
-		parser.parse(code.m_fragment_shader);
+		parser.parse(desc.code.m_vertex_shader);
+		parser.parse(desc.code.m_fragment_shader);
 		// Check whether m_uniforms and m_attributes are all contained in parser.
 		for (auto uniform = m_uniforms.begin(); uniform != m_uniforms.end(); uniform++) {
 			bool exists = false;

@@ -33,13 +33,11 @@ public:
 struct ShaderHandle {
 public:
 	ShaderHandle() = default;
-	ShaderHandle(const GLSLCode& code);
+	ShaderHandle(const ShadingCode& shading_code);
 	auto init() -> void;
 
 public:
-	std::string vertex_shader_code;
-	std::string fragment_shader_code;
-
+	ShadingCode m_code;
 
 	enum class API {
 		UNDEFINED,

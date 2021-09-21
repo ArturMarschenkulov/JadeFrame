@@ -54,12 +54,16 @@ public:
 public: // Descriptor set
 	VulkanDescriptorSetLayout m_descriptor_set_layout;
 	VulkanDescriptorPool m_descriptor_pool;
-
-	//auto create_descriptor_sets(u32 image_amount) -> void;
-	//std::vector<VkDescriptorSet> m_descriptor_sets;
 	VulkanDescriptorSets m_descriptor_sets;
 
+public:
 	auto update_uniform_buffer(u32 current_image, const Matrix4x4& view_projection) -> void;
+	std::vector<VulkanBuffer> m_uniform_buffers = { VULKAN_BUFFER_TYPE::UNIFORM };
+
+public:
+	VulkanCommandPool m_command_pool;
+	VulkanCommandBuffers m_command_buffers;
+
 public: // synchro objects
 	auto create_sync_objects() -> void;
 	std::vector<VulkanSemaphore> m_image_available_semaphores;
@@ -69,19 +73,12 @@ public: // synchro objects
 	size_t m_current_frame = 0;
 	bool m_framebuffer_resized = false;
 
-public:
-	VulkanCommandPool m_command_pool;
-
-public:
-	VulkanCommandBuffers m_command_buffers;
-
 
 public:
 	VulkanPipeline m_pipeline;
 public: // buffer stuff
 	VulkanBuffer m_vertex_buffer = { VULKAN_BUFFER_TYPE::VERTEX };
 	VulkanBuffer m_index_buffer = { VULKAN_BUFFER_TYPE::INDEX };
-	std::vector<VulkanBuffer> m_uniform_buffers = { VULKAN_BUFFER_TYPE::UNIFORM };
 
 public: // texture stuff
 	auto create_texture_image(const std::string& path) -> void;

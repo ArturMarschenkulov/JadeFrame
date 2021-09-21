@@ -16,8 +16,8 @@ namespace JadeFrame {
 static auto create_image_views(const VulkanLogicalDevice& device, std::vector<VkImage>& swapchain_images, VkFormat image_format) -> std::vector<VkImageView> {
 	VkResult result;
 
-	std::vector<VkImageView> swapchain_image_views;
-	swapchain_image_views.resize(swapchain_images.size());
+	std::vector<VkImageView> image_views;
+	image_views.resize(swapchain_images.size());
 
 	for (size_t i = 0; i < swapchain_images.size(); i++) {
 		VkImageViewCreateInfo create_info = {
@@ -40,10 +40,10 @@ static auto create_image_views(const VulkanLogicalDevice& device, std::vector<Vk
 			}
 		};
 
-		result = vkCreateImageView(device.m_handle, &create_info, nullptr, &swapchain_image_views[i]);
+		result = vkCreateImageView(device.m_handle, &create_info, nullptr, &image_views[i]);
 		if (result != VK_SUCCESS) __debugbreak();
 	}
-	return swapchain_image_views;
+	return image_views;
 }
 auto VulkanSwapchain::init(
 	const VulkanLogicalDevice& device, 
@@ -51,9 +51,6 @@ auto VulkanSwapchain::init(
 	const VulkanSurface& surface
 ) -> void {
 	VkResult result;
-
-	//const VulkanPhysicalDevice& pd = *device.m_physical_device_p;
-	//const VulkanInstance& instance = *device.m_instance_p;
 
 	u32 image_count = physical_device.m_surface_capabilities.minImageCount + 1;
 	if (physical_device.m_surface_capabilities.maxImageCount > 0 && image_count > physical_device.m_surface_capabilities.maxImageCount) {
@@ -96,20 +93,20 @@ auto VulkanSwapchain::init(
 	} else {
 		create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	}
-
-
-
 	result = vkCreateSwapchainKHR(device.m_handle, &create_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
+
+
 
 	result = vkGetSwapchainImagesKHR(device.m_handle, m_handle, &image_count, nullptr);
 	m_images.resize(image_count);
 	result = vkGetSwapchainImagesKHR(device.m_handle, m_handle, &image_count, m_images.data());
 	if (VK_SUCCESS != result) __debugbreak();
 
+	m_image_views = create_image_views(device, m_images, surface_format.format);
+
 	m_image_format = surface_format.format;
 	m_extent = extent;
-	m_image_views = create_image_views(device, m_images, surface_format.format);
 
 	m_device = &device;
 

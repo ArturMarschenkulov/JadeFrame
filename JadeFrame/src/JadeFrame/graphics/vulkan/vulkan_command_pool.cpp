@@ -5,10 +5,10 @@
 
 namespace JadeFrame {
 
-auto VulkanCommandPool::init(const VulkanLogicalDevice& device, const VulkanPhysicalDevice& physical_device) -> void {
+auto VulkanCommandPool::init(const VulkanLogicalDevice& device, const QueueFamilyIndices& queue_family_indices) -> void {
 	m_device = &device;
 	VkResult result;
-	QueueFamilyIndices queue_family_indices = physical_device.m_queue_family_indices;
+	//QueueFamilyIndices queue_family_indices = physical_device.m_queue_family_indices;
 
 	const VkCommandPoolCreateInfo pool_info = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,

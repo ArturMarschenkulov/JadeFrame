@@ -17,8 +17,7 @@ auto VulkanDescriptorSets::init(
 	const VulkanLogicalDevice& device, 
 	u32 image_amount,
 	const VulkanDescriptorSetLayout& descriptor_set_layout, 
-	const VulkanDescriptorPool& descriptor_pool, 
-	const std::vector<VulkanBuffer>& uniform_buffers
+	const VulkanDescriptorPool& descriptor_pool
 ) -> void {
 	VkResult result;
 	m_device = &device;
@@ -37,33 +36,6 @@ auto VulkanDescriptorSets::init(
 	//__debugbreak();
 	result = vkAllocateDescriptorSets(device.m_handle, &alloc_info, m_descriptor_sets.data());
 	if (result != VK_SUCCESS) __debugbreak();
-
-	//for(u32 i = 0; i < image_amount; i++) {
-	//	this->update(image_amount, device.m_uniform_buffers);
-	//}
-	//for (u32 i = 0; i < m_descriptor_sets.size(); i++) {
-	//	const VkDescriptorBufferInfo buffer_info = {
-	//		.buffer = uniform_buffers[i].m_buffer,
-	//		.offset = 0,
-	//		.range = sizeof(UniformBufferObject),
-	//	};
-
-	//	const VkWriteDescriptorSet descriptor_write = {
-	//		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-	//		.pNext = nullptr,
-	//		.dstSet = m_descriptor_sets[i],
-	//		.dstBinding = 0,
-	//		.dstArrayElement = 0,
-	//		.descriptorCount = 1,
-	//		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-	//		.pImageInfo = nullptr,
-	//		.pBufferInfo = &buffer_info,
-	//		.pTexelBufferView = nullptr,
-	//	};
-
-	//	vkUpdateDescriptorSets(device.m_handle, 1, &descriptor_write, 0, nullptr);
-	//}
-
 }
 
 auto VulkanDescriptorSets::update(const std::vector<VulkanBuffer>& uniform_buffers) -> void {

@@ -60,9 +60,7 @@ auto Example_Rotating_Primitive::on_init() -> void {
 		{ SHADER_TYPE::FLOAT_4, "v_color" },
 	};
 
-
-	GLSLCode glsl_code = GLSLCodeLoader::get_by_name("spirv_test_0");
-	m_material.m_shader_handle = new ShaderHandle(glsl_code);
+	m_material.m_shader_handle = new ShaderHandle(GLSLCodeLoader::get_by_name("spirv_test_0"));
 	m_material.m_texture_handle = nullptr;
 
 	m_obj.m_material_handle = &m_material;

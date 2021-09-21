@@ -28,9 +28,9 @@ auto VulkanDescriptorPool::init(const VulkanLogicalDevice& device, const VulkanS
 	if (result != VK_SUCCESS) __debugbreak();
 }
 
-auto VulkanDescriptorPool::allocate_descriptor_sets(u32 image_amount, const VulkanDescriptorSetLayout& descriptor_set_layout, const std::vector<VulkanBuffer>& uniform_buffers) -> VulkanDescriptorSets {
+auto VulkanDescriptorPool::allocate_descriptor_sets(const VulkanDescriptorSetLayout& descriptor_set_layout, u32 image_amount) -> VulkanDescriptorSets {
 	VulkanDescriptorSets descriptor_sets;
-	descriptor_sets.init(*m_device, image_amount, descriptor_set_layout, *this, uniform_buffers);
+	descriptor_sets.init(*m_device, image_amount, descriptor_set_layout, *this);
 	return descriptor_sets;
 }
 

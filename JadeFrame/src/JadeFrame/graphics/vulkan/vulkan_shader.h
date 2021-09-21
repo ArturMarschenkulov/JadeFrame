@@ -1,12 +1,15 @@
 #pragma once 
+#include "../shared.h"
 #include "../opengl/opengl_shader_loader.h"
 #include "vulkan_pipeline.h"
 
 namespace JadeFrame {
 class VulkanLogicalDevice;
-class Vulkan_Shader {
+class Vulkan_Shader : public IShader {
+//private:
+//	Vulkan_Shader(const VulkanLogicalDevice& device, const GLSLCode& code);
 public:
-	Vulkan_Shader(const VulkanLogicalDevice& device, const GLSLCode& code);
+	Vulkan_Shader(const VulkanLogicalDevice& device, const DESC& desc);
 
 	Vulkan_Shader() = default;
 	Vulkan_Shader(Vulkan_Shader&&) noexcept = default;

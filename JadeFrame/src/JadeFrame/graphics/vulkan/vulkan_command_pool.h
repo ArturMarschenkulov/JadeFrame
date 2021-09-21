@@ -5,13 +5,13 @@
 
 namespace JadeFrame {
 
-class VulkanPhysicalDevice;
+class QueueFamilyIndices;
 class VulkanLogicalDevice;
 class VulkanCommandBuffers;
 
 class VulkanCommandPool {
 public:
-	auto init(const VulkanLogicalDevice& device, const VulkanPhysicalDevice& physical_device) -> void;
+	auto init(const VulkanLogicalDevice& device, const QueueFamilyIndices& queue_family_indices) -> void;
 	auto deinit() -> void;
 
 	auto allocate_command_buffers(u32 amount = 1) -> VulkanCommandBuffers;

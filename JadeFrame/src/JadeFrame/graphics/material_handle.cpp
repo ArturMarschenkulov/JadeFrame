@@ -47,18 +47,19 @@ auto TextureHandle::init() -> void {
 	}
 }
 
-ShaderHandle::ShaderHandle(const GLSLCode& code) {
-	vertex_shader_code = code.m_vertex_shader;
-	fragment_shader_code = code.m_fragment_shader;
+ShaderHandle::ShaderHandle(const ShadingCode& code) {
+	m_code = code;
 }
 
 auto ShaderHandle::init() -> void {
 
-	if (vertex_shader_code != "" && fragment_shader_code != "") {
+	if (m_code.m_vertex_shader != "" && m_code.m_fragment_shader != "") {
 		switch (api) {
 			case API::OPENGL:
 			{
-				m_handle = new OpenGL_Shader({ vertex_shader_code, fragment_shader_code });
+				OpenGL_Shader::DESC shader_desc;
+				shader_desc.code = { SHADING_LANGUAGE::GLSL, m_code.m_vertex_shader, m_code.m_fragment_shader };
+				m_handle = new OpenGL_Shader(shader_desc);
 
 			}break;
 			case API::VULKAN:
