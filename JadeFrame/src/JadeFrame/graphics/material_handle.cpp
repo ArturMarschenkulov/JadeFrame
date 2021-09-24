@@ -44,11 +44,13 @@ auto TextureHandle::init() -> void {
 		case GRAPHICS_API::VULKAN:
 		{
 		}break;
+		default: __debugbreak();
 	}
 }
 
-ShaderHandle::ShaderHandle(const ShadingCode& code) {
-	m_code = code;
+ShaderHandle::ShaderHandle(const DESC& desc) {
+	m_code = desc.shading_code;
+	m_vertex_format = desc.vertex_format;
 }
 
 auto ShaderHandle::init() -> void {
@@ -58,7 +60,7 @@ auto ShaderHandle::init() -> void {
 			case API::OPENGL:
 			{
 				OpenGL_Shader::DESC shader_desc;
-				shader_desc.code = { SHADING_LANGUAGE::GLSL, m_code.m_vertex_shader, m_code.m_fragment_shader };
+				shader_desc.code = m_code;
 				m_handle = new OpenGL_Shader(shader_desc);
 
 			}break;

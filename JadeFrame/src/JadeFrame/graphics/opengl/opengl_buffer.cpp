@@ -44,7 +44,7 @@ static auto SHADER_TYPE_get_component_count(const SHADER_TYPE type) -> u32 {
 
 
 
-OpenGL_GPUMeshData::OpenGL_GPUMeshData(const Mesh& mesh, BufferLayout buffer_layout, bool interleaved)
+OpenGL_GPUMeshData::OpenGL_GPUMeshData(const Mesh& mesh, VertexFormat vertex_format, bool interleaved)
 	: m_vertex_buffer()
 	, m_vertex_array()
 	, m_index_buffer() {
@@ -55,7 +55,7 @@ OpenGL_GPUMeshData::OpenGL_GPUMeshData(const Mesh& mesh, BufferLayout buffer_lay
 	m_vertex_buffer.send(data);
 
 	m_vertex_array.bind();
-	this->set_layout(buffer_layout);
+	this->set_layout(vertex_format);
 
 	if (mesh.m_indices.size() > 0) {
 		m_index_buffer.bind();
@@ -72,14 +72,14 @@ auto OpenGL_GPUMeshData::bind() const -> void {
 	m_vertex_array.bind();
 }
 
-auto OpenGL_GPUMeshData::set_layout(const BufferLayout& buffer_layout) -> void {
-	m_buffer_layout = buffer_layout;
+auto OpenGL_GPUMeshData::set_layout(const VertexFormat& vertex_format) -> void {
+	m_vertex_format = vertex_format;
 
 	i32 vertex_buffer_index = 0;
-	for (size_t i = 0; i != buffer_layout.m_elements.size(); i++) {
-		const BufferLayout::BufferElement& element = buffer_layout.m_elements[i];
+	for (size_t i = 0; i != vertex_format.m_attributes.size(); i++) {
+		const VertexAttribute& attribute = vertex_format.m_attributes[i];
 
-		switch (element.type) {
+		switch (attribute.type) {
 			case SHADER_TYPE::FLOAT:
 			case SHADER_TYPE::FLOAT_2:
 			case SHADER_TYPE::FLOAT_3:
@@ -89,11 +89,11 @@ auto OpenGL_GPUMeshData::set_layout(const BufferLayout& buffer_layout) -> void {
 				//glEnableVertexArrayAttrib(m_ID, vertex_buffer_index);
 				glVertexAttribPointer(
 					vertex_buffer_index,
-					SHADER_TYPE_get_component_count(element.type), //element.get_component_count(),
-					SHADER_TYPE_to_openGL_type(element.type),
-					element.normalized ? GL_TRUE : GL_FALSE,
-					buffer_layout.m_stride,
-					(const void*)element.offset //reinterpret_cast<const void*>(element.offset)
+					SHADER_TYPE_get_component_count(attribute.type), //element.get_component_count(),
+					SHADER_TYPE_to_openGL_type(attribute.type),
+					attribute.normalized ? GL_TRUE : GL_FALSE,
+					vertex_format.m_stride,
+					(const void*)attribute.offset //reinterpret_cast<const void*>(element.offset)
 				);
 				
 			} break;

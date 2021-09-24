@@ -2,7 +2,7 @@
 #include "JadeFrame/defines.h"
 
 #include "opengl/opengl_shader_loader.h"
-#include "shared.h"
+#include "graphics_shared.h"
 #include <string>
 
 namespace JadeFrame {
@@ -32,12 +32,17 @@ public:
 };
 struct ShaderHandle {
 public:
+	struct DESC {
+		ShadingCode shading_code;
+		VertexFormat vertex_format;
+	};
 	ShaderHandle() = default;
-	ShaderHandle(const ShadingCode& shading_code);
+	ShaderHandle(const DESC& desc);
 	auto init() -> void;
 
 public:
 	ShadingCode m_code;
+	VertexFormat m_vertex_format;
 
 	enum class API {
 		UNDEFINED,

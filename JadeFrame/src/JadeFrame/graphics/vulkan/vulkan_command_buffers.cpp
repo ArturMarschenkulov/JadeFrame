@@ -63,7 +63,7 @@ auto VulkanCommandBuffers::draw_into(
 	const VulkanDescriptorSets& descriptor_sets, 
 	const VulkanBuffer& vertex_buffer, 
 	const VulkanBuffer& index_buffer, 
-	const std::vector<u16>& indices, 
+	const std::vector<u32>& indices, 
 	const VkClearValue color_value
 ) -> void {
 	VkResult result;
@@ -94,9 +94,14 @@ auto VulkanCommandBuffers::draw_into(
 					vkCmdBindVertexBuffers(m_handles[i], 0, 1, vertex_buffers, offsets);
 					//vkCmdDraw(m_command_buffers[i], static_cast<u32>(g_vertices.size()), 1, 0, 0);
 
-					vkCmdBindIndexBuffer(m_handles[i], index_buffer.m_buffer, 0, VK_INDEX_TYPE_UINT16);
+					vkCmdBindIndexBuffer(m_handles[i], index_buffer.m_buffer, 0, VK_INDEX_TYPE_UINT32);
 					vkCmdBindDescriptorSets(m_handles[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_pipeline_layout, 0, 1, &descriptor_sets.m_descriptor_sets[i], 0, nullptr);
 					vkCmdDrawIndexed(m_handles[i], indices.size(), 1, 0, 0, 0);
+					if(indices.size() > 0) {
+					
+					} else {
+						//vkCmdDraw(m_handles[i], static_cast<u32>(g_vertices.size()), 1, 0, 0);
+					}
 				}
 				vkCmdEndRenderPass(m_handles[i]);
 			}

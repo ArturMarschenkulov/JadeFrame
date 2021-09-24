@@ -1,5 +1,5 @@
 #pragma once
-#include "../shared.h"
+#include "../graphics_shared.h"
 #include <tuple>
 #include <string>
 

@@ -31,7 +31,7 @@ public:
 		const VulkanDescriptorSets& descriptor_sets,
 		const VulkanBuffer& vertex_buffer,
 		const VulkanBuffer& index_buffer,
-		const std::vector<u16>& indices,
+		const std::vector<u32>& indices,
 		const VkClearValue color_value
 	) -> void;
 

@@ -326,7 +326,7 @@ auto VulkanBuffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDevic
 	command_buffer.deinit();
 
 }
-Vulkan_GPUMeshData::Vulkan_GPUMeshData(const VulkanLogicalDevice& device, const Mesh& mesh, BufferLayout buffer_layout, bool interleaved) {
+Vulkan_GPUMeshData::Vulkan_GPUMeshData(const VulkanLogicalDevice& device, const Mesh& mesh, VertexFormat vertex_format, bool interleaved) {
 	const std::vector<f32> data = convert_into_data(mesh, interleaved);
 
 	m_vertex_buffer.init(device, VULKAN_BUFFER_TYPE::VERTEX, (void*)data.data(), data.size());
@@ -337,6 +337,6 @@ Vulkan_GPUMeshData::Vulkan_GPUMeshData(const VulkanLogicalDevice& device, const 
 }
 auto Vulkan_GPUMeshData::bind() const -> void {
 }
-auto Vulkan_GPUMeshData::set_layout(const BufferLayout& buffer_layout) -> void {
+auto Vulkan_GPUMeshData::set_layout(const VertexFormat& vertex_format) -> void {
 }
 }

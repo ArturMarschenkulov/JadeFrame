@@ -63,16 +63,7 @@ public: // more internal stuff
 };
 
 
-class IShader {
-public:
 
-	struct DESC {
-		SHADING_LANGUAGE shading_language;
-		ShadingCode code;
-		//GLSLCode code;
-	};
-public:
-};
 
 //
 //struct RasterizerState {
@@ -124,28 +115,40 @@ inline auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
 	return result;
 }
 
+struct VertexAttribute {
+	std::string name;
+	SHADER_TYPE type;
+	u32 size;
+	size_t offset;
+	bool normalized;
 
-class BufferLayout {
+	VertexAttribute(const std::string& name, SHADER_TYPE type, bool normalized = false);
+};
+
+class VertexFormat {
 public:
-	struct BufferElement {
-		std::string name;
-		SHADER_TYPE type;
-		u32 size;
-		size_t offset;
-		bool normalized;
 
-		BufferElement(SHADER_TYPE type, const std::string& name, bool normalized = false);
-	};
 
 public:
-	BufferLayout() = default;
-	BufferLayout(const std::initializer_list<BufferElement>& elements);
-	BufferLayout(const BufferLayout&) = default;
-	auto operator=(const BufferLayout&)->BufferLayout & = default;
-	auto calculate_offset_and_stride(std::vector<BufferElement>& elements) -> void;
+	VertexFormat() = default;
+	VertexFormat(const std::initializer_list<VertexAttribute>& attributes);
+	VertexFormat(const VertexFormat&) = default;
+	auto operator=(const VertexFormat&)->VertexFormat & = default;
+	auto calculate_offset_and_stride(std::vector<VertexAttribute>& attributes) -> void;
 
-	std::vector<BufferElement> m_elements;
+	std::vector<VertexAttribute> m_attributes;
 	u8 m_stride = 0;
 
+};
+
+class IShader {
+public:
+
+	struct DESC {
+		SHADING_LANGUAGE shading_language;
+		ShadingCode code;
+		VertexFormat buffer_layout;
+	};
+public:
 };
 }

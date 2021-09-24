@@ -14,7 +14,7 @@ auto Mesh::add_to_data(const VertexData& vertex_data) -> void {
 	for (size_t i = 0; i < vertex_data.m_positions.size(); i++) {
 		m_positions[i] = vertex_data.m_positions[i];
 		if (vertex_data.m_colors.size() > 0) {
-			m_colors[i] = vertex_data.m_colors[i];//current_color;
+			m_colors[i] = vertex_data.m_colors[i];
 		}
 		if (vertex_data.m_texture_coordinates.size() > 0) {
 			m_tex_coords[i] = vertex_data.m_texture_coordinates[i];
@@ -32,15 +32,6 @@ auto Mesh::add_to_data(const VertexData& vertex_data) -> void {
 		m_indices[i] = vertex_data.m_indices[i];
 	}
 
-}
-
-auto Mesh::set_color(const RGBAColor color) -> void {
-	if (current_color != color) {
-		current_color = color;
-		for (size_t i = 0; i < m_positions.size(); i++) {
-			m_colors[i] = current_color;
-		}
-	}
 }
 
 auto VertexDataFactory::make_line(const Vec3& pos1, const Vec3& pos2) -> VertexData {

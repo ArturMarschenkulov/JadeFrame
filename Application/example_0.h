@@ -16,7 +16,11 @@ struct Drop {
 		y_speed = static_cast<f32>(map_range(rando, 1, 30, 1, 3));
 
 		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 80.0f, 1.0f }) * Matrix4x4::translation_matrix({ x, y, 0.0f });
-		app->m_resources.get_mesh("rectangle").set_color({ 138_u8, 43_u8, 226_u8, 255_u8 });
+		Mesh& m = app->m_resources.get_mesh("rectangle");
+		for (auto& position : m.m_positions) {
+			m.m_colors.push_back({ 138_u8, 43_u8, 226_u8, 255_u8 });
+		}
+		//set_color({ 138_u8, 43_u8, 226_u8, 255_u8 });
 		obj.m_mesh = &app->m_resources.get_mesh("rectangle");
 		obj.m_material_handle = &app->m_resources.get_material_handle("flat_color_mat");
 
@@ -47,7 +51,10 @@ struct Checkerbox {
 		x = pos.x;
 		y = pos.y;
 		obj.m_transform = Matrix4x4::scale_matrix({ size, size, 1.0f }) * Matrix4x4::translation_matrix({ pos.x, pos.y, 0.0f });
-		app->m_resources.get_mesh("rectangle").set_color({ 138_u8, 43_u8, 226_u8, 255_u8 });
+		Mesh& m = app->m_resources.get_mesh("rectangle");// .set_color({ 138_u8, 43_u8, 226_u8, 255_u8 });
+		for (auto& position : m.m_positions) {
+			m.m_colors.push_back({ 138_u8, 43_u8, 226_u8, 255_u8 });
+		}
 		obj.m_mesh = &app->m_resources.get_mesh("rectangle");
 		obj.m_material_handle = &app->m_resources.get_material_handle("flat_color_mat");
 
@@ -69,7 +76,10 @@ struct Thingy {
 		pos.x = static_cast<f32>(get_random_number(0, window_width));
 
 		obj.m_transform = Matrix4x4::scale_matrix({ 1.0f, 1.0f, 1.0f }) * Matrix4x4::translation_matrix({ pos.x, pos.y, 0.0f });
-		app->m_resources.get_mesh("rectangle_1").set_color({ 138_u8, 43_u8, 226_u8, 255_u8 });
+		Mesh& m = app->m_resources.get_mesh("rectangle_1");// .set_color({ 138_u8, 43_u8, 226_u8, 255_u8 });
+		for (auto& position : m.m_positions) {
+			m.m_colors.push_back({ 138_u8, 43_u8, 226_u8, 255_u8 });
+		}
 		obj.m_mesh = &app->m_resources.get_mesh("rectangle_1");
 		obj.m_material_handle = &app->m_resources.get_material_handle("flat_color_mat_test_0");
 
@@ -117,10 +127,15 @@ auto Example_0::on_init() -> void {
 	{
 		const char* wall_picture_path = "C:\\DEV\\Projects\\JadeFrame\\JadeFrame\\resource\\wall.jpg";
 		m_resources.set_texture_handle("wall", wall_picture_path);
-
-		m_resources.set_shader_handle("flat_shader_0", ShaderHandle(GLSLCodeLoader::get_by_name("flat_0")));
-		m_resources.set_shader_handle("flat_shader_0_test_0", ShaderHandle(GLSLCodeLoader::get_by_name("flat_0_test_0")));
-		m_resources.set_shader_handle("framebuffer_shader_0", ShaderHandle(GLSLCodeLoader::get_by_name("framebuffer_test")));
+		ShaderHandle::DESC sh_0;
+		sh_0.shading_code = GLSLCodeLoader::get_by_name("flat_0");
+		m_resources.set_shader_handle("flat_shader_0", ShaderHandle(sh_0));
+		ShaderHandle::DESC sh_1;
+		sh_1.shading_code = GLSLCodeLoader::get_by_name("flat_0");
+		m_resources.set_shader_handle("flat_shader_0_test_0", ShaderHandle(sh_1));
+		ShaderHandle::DESC sh_2;
+		sh_2.shading_code = GLSLCodeLoader::get_by_name("flat_0");
+		m_resources.set_shader_handle("framebuffer_shader_0", ShaderHandle(sh_2));
 
 		m_resources.set_material_handle("flat_color_mat", "flat_shader_0", "wall");
 		m_resources.set_material_handle("flat_color_mat_test_0", "flat_shader_0_test_0", "wall");

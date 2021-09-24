@@ -450,7 +450,7 @@
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_surface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\shared.h">
+    <ClInclude Include="src\JadeFrame\graphics\graphics_shared.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_shared.h">
@@ -722,7 +722,7 @@
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\shared.cpp">
+    <ClCompile Include="src\JadeFrame\graphics\graphics_shared.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_command_buffers.cpp">

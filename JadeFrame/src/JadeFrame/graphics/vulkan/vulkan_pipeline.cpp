@@ -70,7 +70,8 @@ auto VulkanPipeline::init(
 	const VkExtent2D& extent,
 	const VulkanDescriptorSetLayout& descriptor_set_layout,
 	const VulkanRenderPass& render_pass,
-	const ShadingCode& code) -> void {
+	const ShadingCode& code,
+	const VertexFormat& vertex_format) -> void {
 
 	VkResult result;
 	//auto tm = &JadeFrame::get_singleton()->m_apps[0]->m_time_manager;
@@ -119,8 +120,15 @@ auto VulkanPipeline::init(
 		frag_shader_stage_info,
 	};
 
-	VkVertexInputBindingDescription binding_description = VVertex::get_binding_description();
-	std::array<VkVertexInputAttributeDescription, 2> attribute_descriptions = VVertex::get_attribute_descriptions();
+
+	//VertexFormat vf = {
+	//	{"v_position", SHADER_TYPE::FLOAT_2 },
+	//	{"v_color", SHADER_TYPE::FLOAT_3 },
+	//};
+	VkVertexInputBindingDescription binding_description = get_binding_description(vertex_format);
+	std::vector<VkVertexInputAttributeDescription> attribute_descriptions = get_attribute_descriptions(vertex_format);
+	//VkVertexInputBindingDescription binding_description = VVertex::get_binding_description();
+	//std::array<VkVertexInputAttributeDescription, 2> attribute_descriptions = VVertex::get_attribute_descriptions();
 
 	const VkPipelineVertexInputStateCreateInfo vertex_input_info = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -128,7 +136,7 @@ auto VulkanPipeline::init(
 		.flags = 0,
 		.vertexBindingDescriptionCount = 1,
 		.pVertexBindingDescriptions = &binding_description,
-		.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size()),
+		.vertexAttributeDescriptionCount = static_cast<u32>(attribute_descriptions.size()),
 		.pVertexAttributeDescriptions = attribute_descriptions.data(),
 	};
 

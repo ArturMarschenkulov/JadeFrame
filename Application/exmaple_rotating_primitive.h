@@ -55,12 +55,14 @@ auto Example_Rotating_Primitive::on_init() -> void {
 	m_mesh.add_to_data(vertex_data);
 	m_obj.m_mesh = &m_mesh;
 
-	m_obj.m_buffer_layout = BufferLayout{
-		{ SHADER_TYPE::FLOAT_3, "v_position" },
-		{ SHADER_TYPE::FLOAT_4, "v_color" },
+	m_obj.m_vertex_format = VertexFormat{
+		{ "v_position", SHADER_TYPE::FLOAT_3 },
+		{ "v_color", SHADER_TYPE::FLOAT_4 },
 	};
-
-	m_material.m_shader_handle = new ShaderHandle(GLSLCodeLoader::get_by_name("spirv_test_0"));
+	ShaderHandle::DESC shader_handle_desc;
+	shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("spirv_test_0");
+	shader_handle_desc.vertex_format = m_obj.m_vertex_format;
+	m_material.m_shader_handle = new ShaderHandle(shader_handle_desc);
 	m_material.m_texture_handle = nullptr;
 
 	m_obj.m_material_handle = &m_material;

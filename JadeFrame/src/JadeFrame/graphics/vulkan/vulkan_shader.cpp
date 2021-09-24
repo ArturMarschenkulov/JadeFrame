@@ -23,7 +23,8 @@ Vulkan_Shader::Vulkan_Shader(const VulkanLogicalDevice& device, const DESC& desc
 		device.m_swapchain.m_extent,
 		device.m_descriptor_set_layout,
 		device.m_render_pass,
-		desc.code
+		desc.code,
+		desc.buffer_layout
 	);
 }
 

@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "base_app.h"
-#include "graphics/shared.h"
+#include "graphics/graphics_shared.h"
 
 
 #include "gui.h"

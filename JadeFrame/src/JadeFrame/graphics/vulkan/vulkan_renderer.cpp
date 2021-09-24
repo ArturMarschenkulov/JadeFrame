@@ -5,7 +5,7 @@
 #include "vulkan_shader.h"
 #include "../opengl/opengl_renderer.h"
 
-#include "../shared.h"
+#include "../graphics_shared.h"
 
 namespace JadeFrame {
 
@@ -37,20 +37,52 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
 
 			{{-0.5f, +0.5f}, {+1.0f, +1.0f, +1.0f}},
 		};
-		const std::vector<u16> indices = {
+		const std::vector<u32> indices = {
 			0, 1, 2,
 			2, 3, 0,
 		};
+
+		
+		const f32 s = 0.5f;
+		VertexData vertex_data;
+		vertex_data.m_positions = {
+			{ -s, -s, 0.0f },
+			{ +s, -s, 0.0f },
+			{ +s, +s, 0.0f },
+			{ -s, +s, 0.0f }
+		};
+
+		vertex_data.m_colors = {
+			{ 1.0f, 0.0f, 0.0f, 1.0f },
+			{ 0.0f, 1.0f, 0.0f, 1.0f },
+			{ 0.0f, 0.0f, 1.0f, 1.0f },
+			{ 1.0f, 1.0f, 1.0f, 1.0f }
+		};
+
+		vertex_data.m_indices = {
+			0, 1, 2,
+			2, 3, 0
+		};
+
+		//Mesh mesh;
+		//mesh.add_to_data(vertex_data);
+		//convert_into_data(mesh, true);
+
 		VulkanBuffer vertex_buffer = { VULKAN_BUFFER_TYPE::VERTEX };
 		VulkanBuffer index_buffer = { VULKAN_BUFFER_TYPE::INDEX };
 		VulkanLogicalDevice& ld = m_context.m_instance.m_logical_device;
 
-		vertex_buffer.init(ld, VULKAN_BUFFER_TYPE::VERTEX, (void*)vertices.data(), sizeof(vertices[0]) * vertices.size());
-		index_buffer.init(ld, VULKAN_BUFFER_TYPE::INDEX, (void*)indices.data(), sizeof(indices[0]) * indices.size());
 
+		vertex_buffer.init(ld, VULKAN_BUFFER_TYPE::VERTEX, (void*)vertices.data(), sizeof(vertices[0]) * vertices.size());
+		index_buffer.init(ld, VULKAN_BUFFER_TYPE::INDEX, (void*)vertex_data.m_indices.data(), sizeof(vertex_data.m_indices[0]) * vertex_data.m_indices.size());
+
+
+		VertexFormat vf = {
+			{ "v_position", SHADER_TYPE::FLOAT_2 },
+			{ "v_color", SHADER_TYPE::FLOAT_3 },
+		};
 		VulkanPipeline pipeline;
-		const auto& co = GLSLCodeLoader::get_by_name("spirv_test_0");
-		pipeline.init(ld, ld.m_swapchain.m_extent, ld.m_descriptor_set_layout, ld.m_render_pass, { SHADING_LANGUAGE::GLSL, co.m_vertex_shader, co.m_fragment_shader });
+		pipeline.init(ld, ld.m_swapchain.m_extent, ld.m_descriptor_set_layout, ld.m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"), vf);
 
 
 		const auto& c = m_clear_color;
@@ -68,32 +100,33 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
 		temp_bool = true;
 	}
 	if (obj.m_GPU_mesh_data.m_is_initialized == false) {
-		BufferLayout buffer_layout;
+		VertexFormat vertex_format;
 		//In case there is no buffer layout provided use a default one
-		if (obj.m_buffer_layout.m_elements.size() == 0) {
-			const BufferLayout bl = {
-				{ SHADER_TYPE::FLOAT_3, "v_position" },
-				{ SHADER_TYPE::FLOAT_4, "v_color" },
-				{ SHADER_TYPE::FLOAT_2, "v_texture_coord" },
-				{ SHADER_TYPE::FLOAT_3, "v_normal" },
+		if (obj.m_vertex_format.m_attributes.size() == 0) {
+			const VertexFormat vf = {
+				{ "v_position", SHADER_TYPE::FLOAT_3 },
+				{ "v_color", SHADER_TYPE::FLOAT_4 },
+				{ "v_texture_coord", SHADER_TYPE::FLOAT_2 },
+				{ "v_normal", SHADER_TYPE::FLOAT_3 },
 			};
-			buffer_layout = bl;
+			vertex_format = vf;
 		} else {
-			buffer_layout = obj.m_buffer_layout;
+			vertex_format = obj.m_vertex_format;
 		}
 
-		obj.m_GPU_mesh_data.m_handle = new Vulkan_GPUMeshData(m_context.m_instance.m_logical_device, *obj.m_mesh, buffer_layout);
+		obj.m_GPU_mesh_data.m_handle = new Vulkan_GPUMeshData(m_context.m_instance.m_logical_device, *obj.m_mesh, vertex_format);
 		obj.m_GPU_mesh_data.m_is_initialized = true;
 	}
 	if (obj.m_material_handle->m_is_initialized == false) {
 		obj.m_material_handle->m_shader_handle->api = ShaderHandle::API::VULKAN;
 		//obj.m_material_handle->m_shader_handle->init();
 		const VulkanLogicalDevice& ld = m_context.m_instance.m_logical_device;
-		auto sh = obj.m_material_handle->m_shader_handle;
+		ShaderHandle* sh = obj.m_material_handle->m_shader_handle;
 
 		Vulkan_Shader::DESC shader_desc;
-		shader_desc.code = sh->m_code;//{ SHADING_LANGUAGE::GLSL, sh->m_code.m_vertex_shader, sh->m_code.m_fragment_shader };
-		//obj.m_material_handle->m_shader_handle->m_handle = new Vulkan_Shader(ld, shader_desc);
+		shader_desc.code = sh->m_code;
+		shader_desc.buffer_layout = sh->m_vertex_format;
+		obj.m_material_handle->m_shader_handle->m_handle = new Vulkan_Shader(ld, shader_desc);
 
 		if (obj.m_material_handle->m_texture_handle != nullptr) {
 			obj.m_material_handle->m_texture_handle->init();
@@ -113,10 +146,29 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 	m_view_projection = view_projection;
 	auto& device = m_context.m_instance.m_logical_device;
 
-	//device.draw_into_command_buffers()
+	for (size_t i = 0; i < m_render_commands.size(); i++) {
+		VulkanLogicalDevice& ld = m_context.m_instance.m_logical_device;
+		Vulkan_Shader& shader = *static_cast<Vulkan_Shader*>(m_render_commands[i].material_handle->m_shader_handle->m_handle);
+		Vulkan_GPUMeshData& gpu = *static_cast<Vulkan_GPUMeshData*>(m_render_commands[i].m_GPU_mesh_data->m_handle);
+		auto mesh = m_render_commands[i].mesh;
+
+		//const auto& c = m_clear_color;
+		//ld.m_command_buffers.draw_into(
+		//	ld.m_render_pass,
+		//	ld.m_swapchain,
+		//	shader.m_pipeline,
+		//	ld.m_descriptor_sets,
+		//	gpu.m_vertex_buffer,
+		//	gpu.m_index_buffer,
+		//	mesh->m_indices,
+		//	VkClearValue{ c.r, c.b, c.g, c.a }
+		//);
+	}
+
+	//device.draw_into_command_buffers();
 }
 auto Vulkan_Renderer::present() -> void {
-	m_context.m_instance.m_logical_device.draw_frame(m_view_projection);
+	m_context.m_instance.m_logical_device.present_frame(m_view_projection);
 }
 
 auto Vulkan_Renderer::set_viewport(u32 /*x*/, u32 /*y*/, u32 /*width*/, u32 /*height*/) const -> void {

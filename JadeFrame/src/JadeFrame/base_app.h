@@ -11,7 +11,7 @@
 #include "graphics/camera.h"
 #include "graphics/opengl/opengl_renderer.h"
 #include "graphics/vulkan/vulkan_renderer.h"
-#include "graphics/shared.h"
+#include "graphics/graphics_shared.h"
 
 #include <deque>
 #include <map>

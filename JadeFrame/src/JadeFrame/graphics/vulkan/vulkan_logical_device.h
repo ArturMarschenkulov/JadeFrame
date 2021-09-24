@@ -34,7 +34,7 @@ public:
 	auto init(const VulkanInstance& instance, const VulkanPhysicalDevice& physical_device) -> void;
 	auto deinit() -> void;
 
-	auto draw_frame(const Matrix4x4& view_projection) -> void;
+	auto present_frame(const Matrix4x4& view_projection) -> void;
 public:
 	const VulkanInstance* m_instance_p = nullptr;
 	VkDevice m_handle = nullptr;

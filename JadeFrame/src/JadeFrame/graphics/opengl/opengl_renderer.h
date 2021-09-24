@@ -10,9 +10,9 @@
 #include "JadeFrame/math/vec_2.h"
 #include "JadeFrame/math/mat_4.h"
 #include "JadeFrame/graphics/mesh.h"
-#include "JadeFrame/graphics/shared.h"
+#include "JadeFrame/graphics/graphics_shared.h"
 #include "JadeFrame/graphics/material_handle.h"
-#include "../shared.h"
+#include "../graphics_shared.h"
 
 #include <vector>
 #include <stack>
@@ -39,13 +39,13 @@ struct OpenGL_Material {
 class Object {
 public:
 	Mesh* m_mesh;
-	BufferLayout m_buffer_layout;
+	VertexFormat m_vertex_format;// m_buffer_layout;
 	MaterialHandle* m_material_handle;
 	Matrix4x4 m_transform;
 	mutable GPUDataMeshHandle m_GPU_mesh_data;
 
 	auto set_color(const RGBAColor& color) -> void {
-		m_mesh->current_color = color;
+		//m_mesh->current_color = color;
 	}
 };
 

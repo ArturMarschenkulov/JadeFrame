@@ -1,5 +1,5 @@
 #pragma once 
-#include "../shared.h"
+#include "../graphics_shared.h"
 #include "../opengl/opengl_shader_loader.h"
 #include "vulkan_pipeline.h"
 

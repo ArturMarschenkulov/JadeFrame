@@ -76,9 +76,9 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(windo
 		if (res != GL_FRAMEBUFFER_COMPLETE) __debugbreak();
 	}
 
-	BufferLayout layout = {
-			{ SHADER_TYPE::FLOAT_3, "v_position" },
-			{ SHADER_TYPE::FLOAT_2, "v_texture_coordinates" }
+	VertexFormat layout = {
+			{ "v_position", SHADER_TYPE::FLOAT_3 },
+			{ "v_texture_coordinates", SHADER_TYPE::FLOAT_2 }
 	};
 
 	VertexDataFactory::DESC vdf_desc;
@@ -91,8 +91,10 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(windo
 		Mesh(vertex_data),
 		layout
 	);
-
-	m_shader_handle_fb = new ShaderHandle(GLSLCodeLoader::get_by_name("framebuffer_test"));
+	ShaderHandle::DESC shader_handle_desc;
+	shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
+	shader_handle_desc.vertex_format = layout;
+	m_shader_handle_fb = new ShaderHandle(shader_handle_desc);
 	m_shader_handle_fb->init();
 }
 
@@ -102,21 +104,21 @@ auto OpenGL_Renderer::present() -> void {
 auto OpenGL_Renderer::submit(const Object& obj) -> void {
 
 	if (obj.m_GPU_mesh_data.m_is_initialized == false) {
-		BufferLayout buffer_layout;
+		VertexFormat vertex_format;
 		//In case there is no buffer layout provided use a default one
-		if (obj.m_buffer_layout.m_elements.size() == 0) {
-			const BufferLayout bl = {
-				{ SHADER_TYPE::FLOAT_3, "v_position" },
-				{ SHADER_TYPE::FLOAT_4, "v_color" },
-				{ SHADER_TYPE::FLOAT_2, "v_texture_coord" },
-				{ SHADER_TYPE::FLOAT_3, "v_normal" },
+		if (obj.m_vertex_format.m_attributes.size() == 0) {
+			const VertexFormat vf = {
+				{ "v_position", SHADER_TYPE::FLOAT_3  },
+				{ "v_color", SHADER_TYPE::FLOAT_4 },
+				{ "v_texture_coord", SHADER_TYPE::FLOAT_2 },
+				{ "v_normal", SHADER_TYPE::FLOAT_3 },
 			};
-			buffer_layout = bl;
+			vertex_format = vf;
 		} else {
-			buffer_layout = obj.m_buffer_layout;
+			vertex_format = obj.m_vertex_format;
 		}
 
-		obj.m_GPU_mesh_data.m_handle = new OpenGL_GPUMeshData(*obj.m_mesh, buffer_layout);
+		obj.m_GPU_mesh_data.m_handle = new OpenGL_GPUMeshData(*obj.m_mesh, vertex_format);
 		obj.m_GPU_mesh_data.m_is_initialized = true;
 	}
 	if (obj.m_material_handle->m_is_initialized == false) {
@@ -126,6 +128,7 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
 		//obj.m_material_handle->m_shader_handle->m_handle = new OpenGL_Shader();
 
 		if (obj.m_material_handle->m_texture_handle != nullptr) {
+			obj.m_material_handle->m_texture_handle->m_api = GRAPHICS_API::OPENGL;
 			obj.m_material_handle->m_texture_handle->init();
 		}
 		obj.m_material_handle->m_is_initialized = true;

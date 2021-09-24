@@ -60,11 +60,9 @@ struct Mesh {
 	std::vector<Vec3> m_normals;
 	std::vector<u32> m_indices;
 
-	RGBAColor current_color = { 0.5f, 0.5f, 0.5f, 1.0f };
 	Mesh() = default;
 	explicit Mesh(const VertexData& vertex_data);
 	auto add_to_data(const VertexData& vertex_data) -> void;
-	auto set_color(const RGBAColor color) -> void;
 };
 
 
