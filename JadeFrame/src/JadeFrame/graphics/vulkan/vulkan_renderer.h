@@ -14,7 +14,7 @@ class RGBAColor;
 
 struct Vulkan_RenderCommand {
 	const Matrix4x4* transform = nullptr;
-	const Mesh* mesh = nullptr;
+	const VertexData* vertex_data = nullptr;
 	MaterialHandle* material_handle = nullptr;
 	const GPUDataMeshHandle* m_GPU_mesh_data = nullptr;
 };

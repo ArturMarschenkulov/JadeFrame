@@ -2,37 +2,37 @@
 #include "mesh.h"
 namespace JadeFrame {
 
-Mesh::Mesh(const VertexData& vertex_data) {
-	this->add_to_data(vertex_data);
-}
+//Mesh::Mesh(const VertexData& vertex_data) {
+//	this->add_to_data(vertex_data);
+//}
 
-auto Mesh::add_to_data(const VertexData& vertex_data) -> void {
-	m_positions.resize(vertex_data.m_positions.size());
-	m_colors.resize(vertex_data.m_colors.size());
-	m_tex_coords.resize(vertex_data.m_texture_coordinates.size());
-
-	for (size_t i = 0; i < vertex_data.m_positions.size(); i++) {
-		m_positions[i] = vertex_data.m_positions[i];
-		if (vertex_data.m_colors.size() > 0) {
-			m_colors[i] = vertex_data.m_colors[i];
-		}
-		if (vertex_data.m_texture_coordinates.size() > 0) {
-			m_tex_coords[i] = vertex_data.m_texture_coordinates[i];
-		}
-	}
-
-	m_normals.resize(vertex_data.m_normals.size());
-	for (size_t i = 0; i < vertex_data.m_normals.size(); i++) {
-		m_normals[i] = vertex_data.m_normals[i];
-	}
-
-
-	m_indices.resize(vertex_data.m_indices.size());
-	for (size_t i = 0; i < vertex_data.m_indices.size(); i++) {
-		m_indices[i] = vertex_data.m_indices[i];
-	}
-
-}
+//auto Mesh::add_to_data(const VertexData& vertex_data) -> void {
+//	m_positions.resize(vertex_data.m_positions.size());
+//	m_colors.resize(vertex_data.m_colors.size());
+//	m_tex_coords.resize(vertex_data.m_texture_coordinates.size());
+//
+//	for (size_t i = 0; i < vertex_data.m_positions.size(); i++) {
+//		m_positions[i] = vertex_data.m_positions[i];
+//		if (vertex_data.m_colors.size() > 0) {
+//			m_colors[i] = vertex_data.m_colors[i];
+//		}
+//		if (vertex_data.m_texture_coordinates.size() > 0) {
+//			m_tex_coords[i] = vertex_data.m_texture_coordinates[i];
+//		}
+//	}
+//
+//	m_normals.resize(vertex_data.m_normals.size());
+//	for (size_t i = 0; i < vertex_data.m_normals.size(); i++) {
+//		m_normals[i] = vertex_data.m_normals[i];
+//	}
+//
+//
+//	m_indices.resize(vertex_data.m_indices.size());
+//	for (size_t i = 0; i < vertex_data.m_indices.size(); i++) {
+//		m_indices[i] = vertex_data.m_indices[i];
+//	}
+//
+//}
 
 auto VertexDataFactory::make_line(const Vec3& pos1, const Vec3& pos2) -> VertexData {
 	VertexData vertex_data;

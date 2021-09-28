@@ -44,22 +44,22 @@ static auto SHADER_TYPE_get_component_count(const SHADER_TYPE type) -> u32 {
 
 
 
-OpenGL_GPUMeshData::OpenGL_GPUMeshData(const Mesh& mesh, VertexFormat vertex_format, bool interleaved)
+OpenGL_GPUMeshData::OpenGL_GPUMeshData(const VertexData& vertex_data, VertexFormat vertex_format, bool interleaved)
 	: m_vertex_buffer()
 	, m_vertex_array()
 	, m_index_buffer() {
 
 
-	const std::vector<f32> data = convert_into_data(mesh, interleaved);
+	const std::vector<f32> data = convert_into_data(vertex_data, interleaved);
 	m_vertex_buffer.bind();
 	m_vertex_buffer.send(data);
 
 	m_vertex_array.bind();
 	this->set_layout(vertex_format);
 
-	if (mesh.m_indices.size() > 0) {
+	if (vertex_data.m_indices.size() > 0) {
 		m_index_buffer.bind();
-		m_index_buffer.send(mesh.m_indices);
+		m_index_buffer.send(vertex_data.m_indices);
 
 	}
 	m_vertex_array.unbind();

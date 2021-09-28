@@ -45,7 +45,7 @@ enum class POLYGON_MODE : GLenum {
 
 
 
-struct GL_Cache {
+struct GL_State {
 public:
 	auto set_default() -> void;
 	auto set_blending(bool enable, BLENDING_FACTOR sfactor = SRC_ALPHA, BLENDING_FACTOR dfactor = ONE_MINUS_SRC_ALPHA) -> void;
@@ -80,7 +80,7 @@ public:
 	HDC m_device_context; // NOTE: Windows specific!
 	HGLRC m_render_context;
 
-	mutable GL_Cache m_cache;
+	mutable GL_State m_state;
 
 
 	std::string vendor;

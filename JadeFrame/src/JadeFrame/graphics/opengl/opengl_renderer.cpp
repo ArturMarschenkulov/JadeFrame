@@ -15,15 +15,15 @@
 namespace JadeFrame {
 
 auto OpenGL_Renderer::set_clear_color(const RGBAColor& color) -> void {
-	m_context.m_cache.set_clear_color(color);
+	m_context.m_state.set_clear_color(color);
 }
 
 auto OpenGL_Renderer::clear_background() -> void {
-	auto bitfield = m_context.m_cache.clear_bitfield;
+	GLbitfield bitfield = m_context.m_state.clear_bitfield;
 	glClear(bitfield);
 }
 auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void {
-	m_context.m_cache.set_viewport(x, y, width, height);
+	m_context.m_state.set_viewport(x, y, width, height);
 
 	//__debugbreak();
 }
@@ -56,7 +56,7 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(windo
 
 		m_framebuffer.bind();
 
-		const Vec2 size = m_context.m_cache.viewport[1];
+		const Vec2 size = m_context.m_state.viewport[1];
 		m_framebuffer_texture.bind(0);
 
 		m_framebuffer_texture.set_texture_image_2D(0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -76,10 +76,7 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(windo
 		if (res != GL_FRAMEBUFFER_COMPLETE) __debugbreak();
 	}
 
-	VertexFormat layout = {
-			{ "v_position", SHADER_TYPE::FLOAT_3 },
-			{ "v_texture_coordinates", SHADER_TYPE::FLOAT_2 }
-	};
+
 
 	VertexDataFactory::DESC vdf_desc;
 	vdf_desc.has_normals = false;
@@ -87,10 +84,16 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(windo
 		{ -1.0f, -1.0f, 0.0f }, { 2.0f, 2.0f, 0.0f },
 		vdf_desc
 	);
+
+	VertexFormat layout = {
+		{ "v_position", SHADER_TYPE::FLOAT_3 },
+		{ "v_texture_coordinates", SHADER_TYPE::FLOAT_2 }
+	};
 	m_framebuffer_rect = new OpenGL_GPUMeshData(
-		Mesh(vertex_data),
+		vertex_data,
 		layout
 	);
+
 	ShaderHandle::DESC shader_handle_desc;
 	shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
 	shader_handle_desc.vertex_format = layout;
@@ -118,7 +121,7 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
 			vertex_format = obj.m_vertex_format;
 		}
 
-		obj.m_GPU_mesh_data.m_handle = new OpenGL_GPUMeshData(*obj.m_mesh, vertex_format);
+		obj.m_GPU_mesh_data.m_handle = new OpenGL_GPUMeshData(*obj.m_vertex_data, vertex_format);
 		obj.m_GPU_mesh_data.m_is_initialized = true;
 	}
 	if (obj.m_material_handle->m_is_initialized == false) {
@@ -137,7 +140,7 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
 
 	const OpenGL_RenderCommand command = {
 		.transform = &obj.m_transform,
-		.mesh = obj.m_mesh,
+		.vertex_data = obj.m_vertex_data,
 		.material_handle = obj.m_material_handle,
 		.m_GPU_mesh_data = &obj.m_GPU_mesh_data,
 	};
@@ -166,7 +169,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 		}
 
 
-		const Mesh* mesh = m_render_commands[i].mesh;
+		const VertexData* mesh = m_render_commands[i].vertex_data;
 
 		const OpenGL_GPUMeshData* vertex_array = static_cast<OpenGL_GPUMeshData*>(m_render_commands[i].m_GPU_mesh_data->m_handle);
 		this->render_mesh(vertex_array, mesh);
@@ -183,21 +186,22 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 	static_cast<OpenGL_Shader*>(m_shader_handle_fb->m_handle)->bind();
 	m_framebuffer_texture.bind(0);
 	m_framebuffer_rect->m_vertex_array.bind();
-	m_context.m_cache.set_depth_test(false);
+	GL_State old_state = m_context.m_state;
+	m_context.m_state.set_depth_test(false);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
-	m_context.m_cache.set_depth_test(true);
+	m_context.m_state.set_depth_test(true);
 #endif
 #undef JF_FB
 	m_render_commands.clear();
 }
 
-auto OpenGL_Renderer::render_mesh(const OpenGL_GPUMeshData* vertex_array, const Mesh* mesh) const -> void {
+auto OpenGL_Renderer::render_mesh(const OpenGL_GPUMeshData* vertex_array, const VertexData* vertex_data) const -> void {
 	vertex_array->bind();
 
-	if (mesh->m_indices.size() > 0) {
+	if (vertex_data->m_indices.size() > 0) {
 		glDrawElements(
 			/*mode*/ static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES),
-			/*count*/ mesh->m_indices.size(),
+			/*count*/ vertex_data->m_indices.size(),
 			/*type*/ GL_UNSIGNED_INT,
 			/*indices*/ nullptr
 		);
@@ -205,7 +209,7 @@ auto OpenGL_Renderer::render_mesh(const OpenGL_GPUMeshData* vertex_array, const 
 		glDrawArrays(
 			/*mode*/ static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES),
 			/*first*/ 0,
-			/*count*/ mesh->m_positions.size()
+			/*count*/ vertex_data->m_positions.size()
 		);
 	}
 }

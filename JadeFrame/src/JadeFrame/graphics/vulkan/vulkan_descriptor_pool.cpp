@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "vulkan_descriptor_pool.h"
 #include "vulkan_logical_device.h"
+#include "vulkan_physical_device.h"
 #include "vulkan_swapchain.h"
 
 #include "JadeFrame/defines.h"
@@ -28,10 +29,31 @@ auto VulkanDescriptorPool::init(const VulkanLogicalDevice& device, const VulkanS
 	if (result != VK_SUCCESS) __debugbreak();
 }
 
-auto VulkanDescriptorPool::allocate_descriptor_sets(const VulkanDescriptorSetLayout& descriptor_set_layout, u32 image_amount) -> VulkanDescriptorSets {
-	VulkanDescriptorSets descriptor_sets;
-	descriptor_sets.init(*m_device, image_amount, descriptor_set_layout, *this);
-	return descriptor_sets;
-}
 
+
+auto VulkanDescriptorPool::allocate_descriptor_sets(const VulkanDescriptorSetLayout& descriptor_set_layout, u32 amount) -> std::vector<VulkanDescriptorSet> {
+	VkResult result;
+	//m_device = &device;
+	std::vector<VkDescriptorSetLayout> layouts(amount, descriptor_set_layout.m_handle);
+
+	const VkDescriptorSetAllocateInfo alloc_info = {
+		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+		.pNext = nullptr,
+		.descriptorPool = m_handle,
+		.descriptorSetCount = static_cast<u32>(amount),
+		.pSetLayouts = layouts.data(),
+	};
+	std::vector<VkDescriptorSet> handles(amount);
+	assert(m_device->m_physical_device_p->m_properties.limits.maxBoundDescriptorSets > handles.size());
+	result = vkAllocateDescriptorSets(m_device->m_handle, &alloc_info, handles.data());
+	if (result != VK_SUCCESS) __debugbreak();
+
+	std::vector<VulkanDescriptorSet> descriptor_sets(handles.size());
+	for (u32 i = 0; i < descriptor_sets.size(); i++) {
+		descriptor_sets[i].m_handle = handles[i];
+		descriptor_sets[i].m_device = m_device;
+	}
+	return descriptor_sets;
+
+}
 }

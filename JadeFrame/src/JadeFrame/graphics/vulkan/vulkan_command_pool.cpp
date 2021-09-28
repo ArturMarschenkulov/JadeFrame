@@ -2,6 +2,7 @@
 #include "vulkan_command_pool.h"
 #include "vulkan_physical_device.h"
 #include "vulkan_logical_device.h"
+#include "vulkan_command_buffers.h"
 
 namespace JadeFrame {
 
@@ -25,25 +26,33 @@ auto VulkanCommandPool::init(const VulkanLogicalDevice& device, const QueueFamil
 auto VulkanCommandPool::deinit() -> void {
 	vkDestroyCommandPool(m_device->m_handle, m_handle, nullptr);
 }
-auto VulkanCommandPool::allocate_command_buffers(u32 amount) -> VulkanCommandBuffers {
-	VulkanCommandBuffers command_buffers;
-	command_buffers.init(*m_device, *this, amount);
+
+auto VulkanCommandPool::allocate_command_buffers(u32 amount) const -> std::vector<VulkanCommandBuffer> {
+	VkResult result;
+
+	std::vector<VkCommandBuffer> handles(amount);
+	const VkCommandBufferAllocateInfo alloc_info = {
+		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+		.pNext = nullptr,
+		.commandPool = m_handle,
+		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+		.commandBufferCount = static_cast<u32>(handles.size()),
+	};
+	result = vkAllocateCommandBuffers(m_device->m_handle, &alloc_info, handles.data());
+	if (result != VK_SUCCESS) __debugbreak();
+
+
+	std::vector<VulkanCommandBuffer> command_buffers(handles.size());
+	for(u32 i = 0; i < command_buffers.size(); i++) {
+		command_buffers[i].m_handle = handles[i];
+		command_buffers[i].m_device = m_device;
+		command_buffers[i].m_command_pool = this;
+	}
 	return command_buffers;
-	//VkResult result;
-	//m_device = &device;
-	//m_command_pool = &command_pool;
-	//m_handles.resize(amount);
-
-	//const VkCommandBufferAllocateInfo alloc_info = {
-	//	.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-	//	.pNext = nullptr,
-	//	.commandPool = command_pool.m_handle,
-	//	.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-	//	.commandBufferCount = static_cast<u32>(m_handles.size()),
-	//};
-	//result = vkAllocateCommandBuffers(device.m_handle, &alloc_info, m_handles.data());
-	//if (result != VK_SUCCESS) __debugbreak();
-
-	//return VulkanCommandBuffer();
+}
+auto VulkanCommandPool::free_command_buffers(const std::vector<VulkanCommandBuffer>& command_buffers) const -> void {
+	for (u32 i = 0; i < command_buffers.size(); i++) {
+		vkFreeCommandBuffers(m_device->m_handle, m_handle, 1, &command_buffers[i].m_handle);
+	}
 }
 }

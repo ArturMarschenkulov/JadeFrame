@@ -1,7 +1,8 @@
 #pragma once
 #include <vulkan/vulkan.h>
-#include <functional>
 #include "JadeFrame/defines.h"
+
+#include <vector>
 
 
 namespace JadeFrame {
@@ -10,36 +11,32 @@ class VulkanLogicalDevice;
 class VulkanCommandPool;
 class VulkanSwapchain;
 class VulkanRenderPass;
-class VulkanDescriptorSets;
+class VulkanDescriptorSet;
 class VulkanBuffer;
 class VulkanPipeline;
 
-class VulkanCommandBuffers {
+class VulkanCommandBuffer {
 public:
-	auto init(
-		const VulkanLogicalDevice& device,
-		const VulkanCommandPool& command_pool,
-		const size_t amount = 1
-	) -> void;
-	auto deinit() -> void;
+	auto record_begin() -> void;
+	auto record_end() -> void;
+	auto render_pass_begin(u32 framebuffer_index, const VulkanRenderPass& render_pass, const VulkanSwapchain& swapchain, VkClearValue color) -> void;
+	auto render_pass_end() -> void;
 
-	auto record(size_t index, std::function<void()> func) -> void;
 	auto draw_into(
+		size_t index,
 		const VulkanRenderPass& render_pass,
 		const VulkanSwapchain& swapchain,
 		const VulkanPipeline& pipeline,
-		const VulkanDescriptorSets& descriptor_sets,
-		const VulkanBuffer& vertex_buffer,
-		const VulkanBuffer& index_buffer,
-		const std::vector<u32>& indices,
+		const std::vector<VulkanDescriptorSet>& descriptor_sets,
+		const Vulkan_GPUMeshData& gpu_data,
+		const VertexData& vertex_data,
 		const VkClearValue color_value
 	) -> void;
 
-
-	//auto bind_pipeline(size_t index) -> void;
+	auto reset() -> void;
 
 public:
-	std::vector<VkCommandBuffer> m_handles;
+	VkCommandBuffer m_handle;
 	const VulkanLogicalDevice* m_device = nullptr;
 	const VulkanCommandPool* m_command_pool = nullptr;
 };

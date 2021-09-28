@@ -14,6 +14,11 @@ namespace JadeFrame {
 auto to_radians(f32 degrees)->f32;
 auto to_degrees(f32 radians)->f32;
 
+template <typename T>
+auto is_power_of_two(T value) -> bool {
+	return ((value & (value - 1)) == (T)0);
+}
+
 }
 
 //#include <type_traits>

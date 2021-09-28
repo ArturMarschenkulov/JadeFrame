@@ -7,6 +7,7 @@ auto VulkanQueue::submit(const VkSubmitInfo& submit_info) const -> void {
 	result = vkQueueSubmit(m_handle, 1, &submit_info, VK_NULL_HANDLE);
 	if (result != VK_SUCCESS) __debugbreak();
 }
+
 auto VulkanQueue::wait_idle() const -> void {
 	VkResult result;
 	result = vkQueueWaitIdle(m_handle);

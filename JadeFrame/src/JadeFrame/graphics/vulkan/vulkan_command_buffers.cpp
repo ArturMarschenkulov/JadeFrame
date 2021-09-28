@@ -8,33 +8,8 @@
 #include "vulkan_descriptor_set.h"
 
 namespace JadeFrame {
-auto VulkanCommandBuffers::init(
-	const VulkanLogicalDevice& device,
-	const VulkanCommandPool& command_pool,
-	const size_t amount
-) -> void {
-	VkResult result;
-	m_device = &device;
-	m_command_pool = &command_pool;
-	m_handles.resize(amount);
 
-	const VkCommandBufferAllocateInfo alloc_info = {
-		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-		.pNext = nullptr,
-		.commandPool = command_pool.m_handle,
-		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-		.commandBufferCount = static_cast<u32>(m_handles.size()),
-	};
-	result = vkAllocateCommandBuffers(device.m_handle, &alloc_info, m_handles.data());
-	if (result != VK_SUCCESS) __debugbreak();
-}
-
-auto VulkanCommandBuffers::deinit() -> void {
-	vkFreeCommandBuffers(m_device->m_handle, m_command_pool->m_handle, static_cast<uint32_t>(m_handles.size()), m_handles.data());
-
-}
-
-auto VulkanCommandBuffers::record(size_t index, std::function<void()> func) -> void {
+auto VulkanCommandBuffer::record_begin() -> void {
 	VkResult result;
 	const VkCommandBufferBeginInfo begin_info = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -43,70 +18,76 @@ auto VulkanCommandBuffers::record(size_t index, std::function<void()> func) -> v
 		.pInheritanceInfo = {},
 	};
 
-	result = vkBeginCommandBuffer(m_handles[index], &begin_info);
+	result = vkBeginCommandBuffer(m_handle, &begin_info);
 	if (result != VK_SUCCESS) __debugbreak();
-
-	func();
-
-
-	result = vkEndCommandBuffer(m_handles[index]);
-	if (result != VK_SUCCESS) __debugbreak();
-
-
-
 }
 
-auto VulkanCommandBuffers::draw_into(
+auto VulkanCommandBuffer::record_end() -> void {
+	VkResult result;
+	result = vkEndCommandBuffer(m_handle);
+	if (result != VK_SUCCESS) __debugbreak();
+}
+
+auto VulkanCommandBuffer::render_pass_begin(u32 framebuffer_index, const VulkanRenderPass& render_pass, const VulkanSwapchain& swapchain, VkClearValue clear_color) -> void {
+	const VkRenderPassBeginInfo render_pass_info = {
+		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+		.renderPass = render_pass.m_handle,
+		.framebuffer = swapchain.m_framebuffers[framebuffer_index],
+		.renderArea = {
+			.offset = {0, 0},
+			.extent = swapchain.m_extent
+		},
+		.clearValueCount = 1,
+		.pClearValues = &clear_color,
+	};
+
+	vkCmdBeginRenderPass(m_handle, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+}
+
+auto VulkanCommandBuffer::render_pass_end() -> void {
+	vkCmdEndRenderPass(m_handle);
+}
+
+auto VulkanCommandBuffer::draw_into(
+	size_t index, 
 	const VulkanRenderPass& render_pass, 
 	const VulkanSwapchain& swapchain, 
 	const VulkanPipeline& pipeline, 
-	const VulkanDescriptorSets& descriptor_sets, 
-	const VulkanBuffer& vertex_buffer, 
-	const VulkanBuffer& index_buffer, 
-	const std::vector<u32>& indices, 
+	const std::vector<VulkanDescriptorSet>& descriptor_sets, 
+	const Vulkan_GPUMeshData& gpu_data, 
+	const VertexData& vertex_data, 
 	const VkClearValue color_value
 ) -> void {
-	VkResult result;
 
-	for (size_t i = 0; i < m_handles.size(); i++) {
+	this->record_begin();
+	{
+		this->render_pass_begin(index, render_pass, swapchain, color_value);
+		{
+			vkCmdBindPipeline(m_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_graphics_pipeline);
+			VkBuffer vertex_buffers[] = { gpu_data.m_vertex_buffer.m_buffer };
+			VkDeviceSize offsets[] = { 0 };
+			vkCmdBindVertexBuffers(m_handle, 0, 1, vertex_buffers, offsets);
+			vkCmdBindDescriptorSets(m_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_pipeline_layout, 0, 1, &descriptor_sets[index].m_handle, 0, nullptr);
 
-		this->record(i,
-			[&]() {
-				//const VkClearValue clear_color = { 0.0f, 0.0f, 0.0f, 1.0f };
-				const VkClearValue clear_color = color_value;
-				const VkRenderPassBeginInfo render_pass_info = {
-					.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-					.renderPass = render_pass.m_handle,
-					.framebuffer = swapchain.m_framebuffers[i],
-					.renderArea = {
-						.offset = {0, 0},
-						.extent = swapchain.m_extent
-					},
-					.clearValueCount = 1,
-					.pClearValues = &clear_color,
-				};
-
-				vkCmdBeginRenderPass(m_handles[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
-				{
-					vkCmdBindPipeline(m_handles[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_graphics_pipeline);
-					VkBuffer vertex_buffers[] = { vertex_buffer.m_buffer };
-					VkDeviceSize offsets[] = { 0 };
-					vkCmdBindVertexBuffers(m_handles[i], 0, 1, vertex_buffers, offsets);
-					//vkCmdDraw(m_command_buffers[i], static_cast<u32>(g_vertices.size()), 1, 0, 0);
-
-					vkCmdBindIndexBuffer(m_handles[i], index_buffer.m_buffer, 0, VK_INDEX_TYPE_UINT32);
-					vkCmdBindDescriptorSets(m_handles[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_pipeline_layout, 0, 1, &descriptor_sets.m_descriptor_sets[i], 0, nullptr);
-					vkCmdDrawIndexed(m_handles[i], indices.size(), 1, 0, 0, 0);
-					if(indices.size() > 0) {
-					
-					} else {
-						//vkCmdDraw(m_handles[i], static_cast<u32>(g_vertices.size()), 1, 0, 0);
-					}
-				}
-				vkCmdEndRenderPass(m_handles[i]);
+			if (vertex_data.m_indices.size() > 0) {
+				vkCmdBindIndexBuffer(m_handle, gpu_data.m_index_buffer.m_buffer, 0, VK_INDEX_TYPE_UINT32);
+				vkCmdDrawIndexed(m_handle, vertex_data.m_indices.size(), 1, 0, 0, 0);
+			} else {
+				vkCmdDraw(m_handle, static_cast<u32>(vertex_data.m_positions.size()), 1, 0, 0);
 			}
-		);
+		}
+		this->render_pass_end();
 	}
+	this->record_end();
+
+}
+
+auto VulkanCommandBuffer::reset() -> void {
+	VkResult result;
+	VkCommandBufferResetFlags flags = {};
+
+	result = vkResetCommandBuffer(m_handle, flags);
+	if (result != VK_SUCCESS) __debugbreak();
 }
 
 }

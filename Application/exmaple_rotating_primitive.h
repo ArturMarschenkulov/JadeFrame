@@ -16,7 +16,7 @@ struct Example_Rotating_Primitive : public BaseApp {
 
 public:
 	Object m_obj;
-	Mesh m_mesh;
+	VertexData m_vertex_data;
 	MaterialHandle m_material;
 };
 
@@ -31,7 +31,7 @@ auto Example_Rotating_Primitive::on_init() -> void {
 
 
 	const f32 s = 0.5f;
-	VertexData vertex_data;
+	VertexData* vertex_data = new VertexData();
 	auto pos_v1 = std::vector<Vec3>{
 		{ +0, +s, 0.0f },
 		{ +s, -s, 0.0f },
@@ -45,15 +45,14 @@ auto Example_Rotating_Primitive::on_init() -> void {
 
 
 
-	vertex_data.m_positions = pos_v2;
-	vertex_data.m_colors = {
+	vertex_data->m_positions = pos_v2;
+	vertex_data->m_colors = {
 		{1.0f, 0.0f, 0.0f, 1.0f},
 		{0.0f, 1.0f, 0.0f, 1.0f},
-		{0.0f, 0.0f, 1.0f, 1.0f},
+		{0.0f, 1.0f, 1.0f, 1.0f},
 	};
 
-	m_mesh.add_to_data(vertex_data);
-	m_obj.m_mesh = &m_mesh;
+	m_obj.m_vertex_data = vertex_data;
 
 	m_obj.m_vertex_format = VertexFormat{
 		{ "v_position", SHADER_TYPE::FLOAT_3 },

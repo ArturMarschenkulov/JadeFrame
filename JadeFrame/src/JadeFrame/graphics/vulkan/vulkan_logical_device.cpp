@@ -54,25 +54,6 @@ static Meshhh g_mesh;
 
 
 
-
-
-
-auto VulkanLogicalDevice::create_sync_objects() -> void {
-	m_image_available_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
-	m_render_finished_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
-	m_in_flight_fences.resize(MAX_FRAMES_IN_FLIGHT);
-	m_images_in_flight.resize(m_swapchain.m_images.size());
-
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		m_image_available_semaphores[i].init(*this);
-		m_render_finished_semaphores[i].init(*this);
-		m_in_flight_fences[i].init(*this);
-	}
-	for (size_t i = 0; i < m_swapchain.m_images.size(); i++) {
-		m_images_in_flight[i].init(*this);
-	}
-}
-
 auto VulkanLogicalDevice::recreate_swapchain() -> void {
 	__debugbreak();
 #if 0
@@ -129,7 +110,7 @@ auto VulkanLogicalDevice::cleanup_swapchain() -> void {
 		vkDestroyFramebuffer(m_handle, framebuffer, nullptr);
 	}
 
-	m_command_buffers.deinit();
+	//m_command_buffers.deinit();
 
 	vkDestroyPipeline(m_handle, m_pipeline.m_graphics_pipeline, nullptr);
 	vkDestroyPipelineLayout(m_handle, m_pipeline.m_pipeline_layout, nullptr);
@@ -174,6 +155,7 @@ auto VulkanLogicalDevice::present_frame(const Matrix4x4& view_projection) -> voi
 	m_in_flight_fences[m_current_frame].wait_for_fences();
 	//prepare buffers
 	u32 image_index = m_swapchain.acquire_next_image(m_image_available_semaphores[m_current_frame], result);
+	m_present_image_index = image_index;
 	{
 		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 			std::cout << "VK_ERROR_OUT_OF_DATE_KHR" << std::endl;
@@ -211,12 +193,13 @@ auto VulkanLogicalDevice::present_frame(const Matrix4x4& view_projection) -> voi
 		.pWaitSemaphores = wait_semaphores.data(),
 		.pWaitDstStageMask = wait_stages,
 		.commandBufferCount = 1,
-		.pCommandBuffers = &m_command_buffers.m_handles[image_index],
+		.pCommandBuffers = &m_command_buffers[image_index].m_handle,
 		.signalSemaphoreCount = signal_semaphores.size(),
 		.pSignalSemaphores = signal_semaphores.data(),
 	};
 	result = vkQueueSubmit(m_graphics_queue.m_handle, 1, &submit_info, m_in_flight_fences[m_current_frame].m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
+
 
 	std::array<VkSwapchainKHR, 1> swapchains = { m_swapchain.m_handle };
 	const VkPresentInfoKHR present_info = {
@@ -295,25 +278,44 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	m_instance_p = &instance;
 
 
-
+	// Swapchain stuff
 	m_swapchain.init(*this, *m_physical_device_p, m_instance_p->m_surface);
 	m_render_pass.init(*this, m_swapchain.m_image_format);
 	m_swapchain.create_framebuffers(m_render_pass.m_handle);
+	const u32 swapchain_image_amount = m_swapchain.m_images.size();
 
-	m_uniform_buffers.resize(m_swapchain.m_images.size(), VULKAN_BUFFER_TYPE::UNIFORM);
-	for (u32 i = 0; i < m_swapchain.m_images.size(); i++) {
+	// Uniform stuff
+	m_uniform_buffers.resize(swapchain_image_amount, VULKAN_BUFFER_TYPE::UNIFORM);
+	for (u32 i = 0; i < swapchain_image_amount; i++) {
 		m_uniform_buffers[i].init(*this, VULKAN_BUFFER_TYPE::UNIFORM, nullptr, sizeof(UniformBufferObject));
 	}
 
+	// Descriptor stuff
 	m_descriptor_set_layout.init(*this);
 	m_descriptor_pool.init(*this, m_swapchain);
-	m_descriptor_sets = m_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout, m_swapchain.m_images.size());
-	m_descriptor_sets.update(m_uniform_buffers);
+	m_descriptor_sets = m_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout, swapchain_image_amount);
+	for (u32 i = 0; i < m_descriptor_sets.size(); i++) {
+		m_descriptor_sets[i].update(m_uniform_buffers[i]);
+	}
 
+	// Commad Buffer stuff
 	m_command_pool.init(*this, m_physical_device_p->m_queue_family_indices);
 	m_command_buffers = m_command_pool.allocate_command_buffers(m_swapchain.m_framebuffers.size());
 
-	this->create_sync_objects();
+	// Sync objects stuff
+	m_image_available_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
+	m_render_finished_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
+	m_in_flight_fences.resize(MAX_FRAMES_IN_FLIGHT);
+	m_images_in_flight.resize(swapchain_image_amount);
+
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		m_image_available_semaphores[i].init(*this);
+		m_render_finished_semaphores[i].init(*this);
+		m_in_flight_fences[i].init(*this);
+	}
+	for (size_t i = 0; i < swapchain_image_amount; i++) {
+		m_images_in_flight[i].init(*this);
+	}
 
 }
 

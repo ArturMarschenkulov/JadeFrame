@@ -38,21 +38,17 @@ struct OpenGL_Material {
 
 class Object {
 public:
-	Mesh* m_mesh;
-	VertexFormat m_vertex_format;// m_buffer_layout;
+	VertexData* m_vertex_data;
+	VertexFormat m_vertex_format;
 	MaterialHandle* m_material_handle;
 	Matrix4x4 m_transform;
 	mutable GPUDataMeshHandle m_GPU_mesh_data;
-
-	auto set_color(const RGBAColor& color) -> void {
-		//m_mesh->current_color = color;
-	}
 };
 
 
 struct OpenGL_RenderCommand {
 	const Matrix4x4* transform = nullptr;
-	const Mesh* mesh = nullptr;
+	const VertexData* vertex_data = nullptr;
 	MaterialHandle* material_handle = nullptr;
 	const GPUDataMeshHandle* m_GPU_mesh_data = nullptr;
 };
@@ -85,13 +81,15 @@ public:
 
 
 private:
-	auto render_mesh(const OpenGL_GPUMeshData* buffer_data, const Mesh* mesh) const -> void;
+	auto render_mesh(const OpenGL_GPUMeshData* buffer_data, const VertexData* vertex_data) const -> void;
 
 private:
 	OpenGL_Context m_context;
 	mutable std::deque<OpenGL_RenderCommand> m_render_commands;
 
 
+
+	Object m_fb;
 	OGLW_Texture<GL_TEXTURE_2D> m_framebuffer_texture;
 	OGLW_Renderbuffer m_framebuffer_renderbuffer;
 	OGLW_Framebuffer m_framebuffer;

@@ -35,7 +35,7 @@ OpenGL_Context::OpenGL_Context(const Windows_Window& window)
 	, m_render_context(init_render_context(m_device_context)) {
 
 	set_debug_mode(true);
-	m_cache.set_default();
+	m_state.set_default();
 
 	vendor = reinterpret_cast<char const*>(glGetString(GL_VENDOR));
 	renderer = reinterpret_cast<char const*>(glGetString(GL_RENDERER));
@@ -70,13 +70,13 @@ OpenGL_Context::OpenGL_Context(const Windows_Window& window)
 	}
 
 	const Vec2& size = window.get_size();
-	m_cache.set_viewport(0, 0, size.x, size.y);
+	m_state.set_viewport(0, 0, size.x, size.y);
 }
 
 OpenGL_Context::~OpenGL_Context() {
 }
 
-auto GL_Cache::set_default() -> void {
+auto GL_State::set_default() -> void {
 	this->set_clear_color({ 0.2f, 0.2f, 0.2f, 1.0f });
 	this->set_depth_test(true);
 	this->set_clear_bitfield(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -85,7 +85,7 @@ auto GL_Cache::set_default() -> void {
 	this->set_face_culling(false, GL_BACK);
 }
 
-auto GL_Cache::set_blending(bool enable, BLENDING_FACTOR sfactor, BLENDING_FACTOR dfactor) -> void {
+auto GL_State::set_blending(bool enable, BLENDING_FACTOR sfactor, BLENDING_FACTOR dfactor) -> void {
 	if (blending != enable) {
 		blending = enable;
 		if (enable) {
@@ -97,14 +97,14 @@ auto GL_Cache::set_blending(bool enable, BLENDING_FACTOR sfactor, BLENDING_FACTO
 	}
 }
 
-auto GL_Cache::set_clear_color(const RGBAColor& color) -> void {
+auto GL_State::set_clear_color(const RGBAColor& color) -> void {
 	if (clear_color != color) {
 		clear_color = color;
 		glClearColor(color.r, color.g, color.b, color.a);
 	}
 }
 
-auto GL_Cache::set_polygon_mode(POLYGON_FACE face, POLYGON_MODE mode) -> void {
+auto GL_State::set_polygon_mode(POLYGON_FACE face, POLYGON_MODE mode) -> void {
 	if ((polygon_mode.first != face) || (polygon_mode.second != mode)) {
 		polygon_mode = { face, mode };
 
@@ -112,19 +112,19 @@ auto GL_Cache::set_polygon_mode(POLYGON_FACE face, POLYGON_MODE mode) -> void {
 	}
 }
 
-auto GL_Cache::set_clear_bitfield(const GLbitfield& bitfield) -> void {
+auto GL_State::set_clear_bitfield(const GLbitfield& bitfield) -> void {
 	clear_bitfield = bitfield;
 }
 
-auto GL_Cache::add_clear_bitfield(const GLbitfield& bitfield) -> void {
+auto GL_State::add_clear_bitfield(const GLbitfield& bitfield) -> void {
 	clear_bitfield |= (1 << bitfield);
 }
 
-auto GL_Cache::remove_clear_bitfield(const GLbitfield& bitfield) -> void {
+auto GL_State::remove_clear_bitfield(const GLbitfield& bitfield) -> void {
 	clear_bitfield &= ~(1 << bitfield);
 }
 
-auto GL_Cache::set_depth_test(bool enable) -> void {
+auto GL_State::set_depth_test(bool enable) -> void {
 	if (depth_test != enable) {
 		depth_test = enable;
 		if (enable) {
@@ -135,7 +135,7 @@ auto GL_Cache::set_depth_test(bool enable) -> void {
 	}
 }
 
-auto GL_Cache::set_face_culling(bool enable, GLenum mode) -> void {
+auto GL_State::set_face_culling(bool enable, GLenum mode) -> void {
 	if (is_face_culling != enable) {
 		is_face_culling = enable;
 		if (enable) {
@@ -146,7 +146,7 @@ auto GL_Cache::set_face_culling(bool enable, GLenum mode) -> void {
 		}
 	}
 }
-auto GL_Cache::set_viewport(i32 x, i32 y, i32 width, i32 height) -> void {
+auto GL_State::set_viewport(i32 x, i32 y, i32 width, i32 height) -> void {
 	viewport[0] = { (f32)x, (f32)y };
 	viewport[1] = { (f32)width, (f32)height };
 	glViewport(x, y, width, height);

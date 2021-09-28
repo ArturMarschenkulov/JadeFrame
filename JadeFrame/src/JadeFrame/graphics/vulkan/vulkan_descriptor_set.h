@@ -9,18 +9,12 @@ class VulkanLogicalDevice;
 class VulkanDescriptorSetLayout;
 class VulkanDescriptorPool;
 class VulkanBuffer;
-class VulkanDescriptorSets {
+
+class VulkanDescriptorSet {
 public:
-	auto init(
-		const VulkanLogicalDevice& device,
-		u32 image_amount,
-		const VulkanDescriptorSetLayout& descriptor_set_layout,
-		const VulkanDescriptorPool& descriptor_pool
-	) -> void;
-	auto update(const std::vector<VulkanBuffer>& uniform_buffers) -> void;
-
+	auto update(const VulkanBuffer& uniform_buffer) -> void;
+public:
+	VkDescriptorSet m_handle;
 	const VulkanLogicalDevice* m_device = nullptr;
-	std::vector<VkDescriptorSet> m_descriptor_sets;
 };
-
 }

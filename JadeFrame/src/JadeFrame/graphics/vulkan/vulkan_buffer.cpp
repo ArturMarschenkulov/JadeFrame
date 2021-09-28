@@ -251,7 +251,8 @@ auto VulkanBuffer::map_to_GPU(void* data, VkDeviceSize size) -> void* {
 	VkResult result;
 
 	void* mapped_data;
-	result = vkMapMemory(m_device->m_handle, m_memory, 0, size, 0, &mapped_data); if (result != VK_SUCCESS) __debugbreak();
+	result = vkMapMemory(m_device->m_handle, m_memory, 0, size, 0, &mapped_data); 
+	if (result != VK_SUCCESS) __debugbreak();
 	memcpy(mapped_data, data, static_cast<size_t>(size));
 	vkUnmapMemory(m_device->m_handle, m_memory);
 
@@ -294,18 +295,21 @@ auto VulkanBuffer::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, Vk
 auto VulkanBuffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size) -> void {
 	VkResult result;
 
-	VulkanCommandBuffers command_buffer;
-	command_buffer.init(*m_device, m_device->m_command_pool, 1);
-	command_buffer.record(0,
-		[&]() {
-			const VkBufferCopy copy_region = {
-				.srcOffset = 0,
-				.dstOffset = 0,
-				.size = size,
-			};
-			vkCmdCopyBuffer(command_buffer.m_handles[0], src_buffer, dst_buffer, 1, &copy_region);
-		}
-	);
+
+	const VulkanCommandPool& cp = m_device->m_command_pool;
+	std::vector<VulkanCommandBuffer> command_buffer = cp.allocate_command_buffers(1);
+
+	command_buffer[0].record_begin();
+	{
+		const VkBufferCopy copy_region = {
+			.srcOffset = 0,
+			.dstOffset = 0,
+			.size = size,
+		};
+		vkCmdCopyBuffer(command_buffer[0].m_handle, src_buffer, dst_buffer, 1, &copy_region);
+	}
+	command_buffer[0].record_end();
+
 	const VkSubmitInfo submit_info = {
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
 		.pNext = {},
@@ -313,7 +317,7 @@ auto VulkanBuffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDevic
 		.pWaitSemaphores = {},
 		.pWaitDstStageMask = {},
 		.commandBufferCount = 1,
-		.pCommandBuffers = &command_buffer.m_handles[0],
+		.pCommandBuffers = &command_buffer[0].m_handle,
 		.signalSemaphoreCount = {},
 		.pSignalSemaphores = {},
 	};
@@ -323,15 +327,15 @@ auto VulkanBuffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDevic
 	result = vkQueueWaitIdle(m_device->m_graphics_queue.m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
 
-	command_buffer.deinit();
+	cp.free_command_buffers(command_buffer);
 
 }
-Vulkan_GPUMeshData::Vulkan_GPUMeshData(const VulkanLogicalDevice& device, const Mesh& mesh, VertexFormat vertex_format, bool interleaved) {
-	const std::vector<f32> data = convert_into_data(mesh, interleaved);
+Vulkan_GPUMeshData::Vulkan_GPUMeshData(const VulkanLogicalDevice& device, const VertexData& vertex_data, const VertexFormat& vertex_format, bool interleaved) {
+	const std::vector<f32> data = convert_into_data(vertex_data, interleaved);
 
-	m_vertex_buffer.init(device, VULKAN_BUFFER_TYPE::VERTEX, (void*)data.data(), data.size());
-	if (mesh.m_indices.size() > 0) {
-		m_index_buffer.init(device, VULKAN_BUFFER_TYPE::INDEX, (void*)mesh.m_indices.data(), mesh.m_indices.size());
+	m_vertex_buffer.init(device, VULKAN_BUFFER_TYPE::VERTEX, (void*)data.data(), sizeof(data[0]) * data.size());
+	if (vertex_data.m_indices.size() > 0) {
+		m_index_buffer.init(device, VULKAN_BUFFER_TYPE::INDEX, (void*)vertex_data.m_indices.data(), sizeof(vertex_data.m_indices[0]) * vertex_data.m_indices.size());
 	}
 
 }

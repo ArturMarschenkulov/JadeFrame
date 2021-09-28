@@ -107,10 +107,10 @@ public:
 		return m_material_handles.at(name);
 	}
 
-	auto set_mesh(const std::string& name, const Mesh& mesh) -> void {
-		m_meshes.emplace(name, std::move(mesh));
+	auto set_mesh(const std::string& name, const VertexData& vertex_data) -> void {
+		m_meshes.emplace(name, std::move(vertex_data));
 	}
-	auto get_mesh(const std::string& name) -> Mesh& {
+	auto get_mesh(const std::string& name) -> VertexData& {
 		if (m_meshes.contains(name)) {
 			return m_meshes.at(name);
 		}
@@ -121,7 +121,7 @@ private:
 	std::unordered_map<std::string, ShaderHandle> m_shader_handles;
 	std::unordered_map<std::string, TextureHandle> m_texture_handles;
 	std::unordered_map<std::string, MaterialHandle> m_material_handles;
-	std::unordered_map<std::string, Mesh> m_meshes;
+	std::unordered_map<std::string, VertexData> m_meshes;
 };
 
 

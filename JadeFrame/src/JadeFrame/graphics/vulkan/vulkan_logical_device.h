@@ -54,7 +54,7 @@ public:
 public: // Descriptor set
 	VulkanDescriptorSetLayout m_descriptor_set_layout;
 	VulkanDescriptorPool m_descriptor_pool;
-	VulkanDescriptorSets m_descriptor_sets;
+	std::vector< VulkanDescriptorSet> m_descriptor_sets;
 
 public:
 	auto update_uniform_buffer(u32 current_image, const Matrix4x4& view_projection) -> void;
@@ -62,18 +62,24 @@ public:
 
 public:
 	VulkanCommandPool m_command_pool;
-	VulkanCommandBuffers m_command_buffers;
+	std::vector<VulkanCommandBuffer> m_command_buffers;
+
 
 public: // synchro objects
-	auto create_sync_objects() -> void;
 	std::vector<VulkanSemaphore> m_image_available_semaphores;
 	std::vector<VulkanSemaphore> m_render_finished_semaphores;
 	std::vector<VulkanFence> m_in_flight_fences;
 	std::vector<VulkanFence> m_images_in_flight;
+
+public: // Misc
+	u32 m_present_image_index = 0;
 	size_t m_current_frame = 0;
 	bool m_framebuffer_resized = false;
 
 
+
+
+	// To be removed
 public:
 	VulkanPipeline m_pipeline;
 public: // buffer stuff

@@ -6,6 +6,7 @@
 namespace JadeFrame {
 
 auto VulkanRenderPass::init(const VulkanLogicalDevice& device, VkFormat image_format) -> void {
+	m_device = &device;
 	VkResult result;
 
 	const VkAttachmentDescription color_attachment = {
@@ -53,7 +54,6 @@ auto VulkanRenderPass::init(const VulkanLogicalDevice& device, VkFormat image_fo
 	result = vkCreateRenderPass(device.m_handle, &render_pass_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
 
-	m_device = &device;
 }
 auto VulkanRenderPass::deinit() -> void {
 	vkDestroyRenderPass(m_device->m_handle, m_handle, nullptr);

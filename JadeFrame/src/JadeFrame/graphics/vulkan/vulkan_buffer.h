@@ -50,7 +50,7 @@ public:
 
 class Vulkan_GPUMeshData {
 public:
-	Vulkan_GPUMeshData(const VulkanLogicalDevice& device, const Mesh& mesh, VertexFormat vertex_format, bool interleaved = true);
+	Vulkan_GPUMeshData(const VulkanLogicalDevice& device, const VertexData& vertex_data, const VertexFormat& vertex_format, bool interleaved = true);
 	auto bind() const -> void;
 	auto set_layout(const VertexFormat& vertex_format) -> void;
 public:

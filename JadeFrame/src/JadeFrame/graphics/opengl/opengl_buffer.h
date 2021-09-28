@@ -15,7 +15,7 @@ struct Vertex;
 
 class OpenGL_GPUMeshData {
 public:
-	OpenGL_GPUMeshData(const Mesh& mesh, VertexFormat vertex_format, bool interleaved = true);
+	OpenGL_GPUMeshData(const VertexData& vertex_data, VertexFormat vertex_format, bool interleaved = true);
 	auto bind() const -> void;
 	auto set_layout(const VertexFormat& vertex_format) -> void;
 public://private:
