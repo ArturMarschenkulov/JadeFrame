@@ -57,7 +57,7 @@ public: // Descriptor set
 	std::vector< VulkanDescriptorSet> m_descriptor_sets;
 
 public:
-	auto update_uniform_buffer(u32 current_image, const Matrix4x4& view_projection) -> void;
+	auto update_uniform_buffer(VulkanBuffer& uniform_buffer, const Matrix4x4& view_projection) -> void;
 	std::vector<VulkanBuffer> m_uniform_buffers = { VULKAN_BUFFER_TYPE::UNIFORM };
 
 public:

@@ -56,54 +56,14 @@ static Meshhh g_mesh;
 
 auto VulkanLogicalDevice::recreate_swapchain() -> void {
 	__debugbreak();
-#if 0
-	VkResult result;
-	RECT area;
-	GetClientRect(m_instance_p->m_window_handle, &area);
-	i32 width = area.right;
-	i32 height = area.bottom;
-
-
-	for (size_t i = 0; i < m_swapchain.m_images.size(); i++) {
-		m_uniform_buffers[i].deinit();
-	}
-	m_command_pool.deinit();
-	m_pipeline.deinit();
-	m_render_pass.deinit();
-	m_swapchain.deinit();
-
-	m_swapchain.init(*this, *m_physical_device_p, m_instance_p->m_surface);
-	m_render_pass.init(*this, m_swapchain.m_image_format);
-	m_pipeline.init(*this, m_swapchain, m_descriptor_set_layout, m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
-	m_swapchain.create_framebuffers(m_render_pass.m_handle);
-
-
-	m_command_pool.init(*this, *m_physical_device_p);
-
-	for (u32 i = 0; i < m_swapchain.m_images.size(); i++) {
-		m_uniform_buffers[i].init(*this, VULKAN_BUFFER_TYPE::UNIFORM, nullptr, sizeof(UniformBufferObject));
-	}
-	m_descriptor_pool.init(*this);
-	m_descriptor_sets.init(*this, m_swapchain.m_images.size(), m_descriptor_set_layout, m_descriptor_pool);
-
-	this->create_command_buffers(m_command_pool, m_swapchain);
-	this->draw_into_command_buffers(
-		m_render_pass, m_swapchain, m_pipeline,
-		m_descriptor_sets,
-		m_vertex_buffer,
-		m_index_buffer,
-		g_indices
-	);
-	m_images_in_flight.resize(m_swapchain.m_images.size(), VK_NULL_HANDLE);
-#else
 	m_swapchain.deinit();
 
 	m_swapchain.init(*this, *m_physical_device_p, m_instance_p->m_surface);
 	m_render_pass.init(*this, m_swapchain.m_image_format);
 	//m_pipeline.init(*this, m_swapchain.m_extent, m_descriptor_set_layout, m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
-	m_swapchain.create_framebuffers(m_render_pass.m_handle);
+	m_swapchain.create_framebuffers(m_render_pass);
 	m_images_in_flight.resize(m_swapchain.m_images.size());
-#endif
+
 }
 auto VulkanLogicalDevice::cleanup_swapchain() -> void {
 	for (auto framebuffer : m_swapchain.m_framebuffers) {
@@ -128,7 +88,8 @@ auto VulkanLogicalDevice::cleanup_swapchain() -> void {
 	vkDestroySwapchainKHR(m_handle, m_swapchain.m_handle, nullptr);
 }
 
-auto VulkanLogicalDevice::update_uniform_buffer(u32 current_image, const Matrix4x4& view_projection) -> void {
+auto VulkanLogicalDevice::update_uniform_buffer(VulkanBuffer& uniform_buffer, const Matrix4x4& view_projection) -> void {
+	assert(uniform_buffer.m_type == VULKAN_BUFFER_TYPE::UNIFORM);
 	static auto start_time = std::chrono::high_resolution_clock::now();
 
 	auto current_time = std::chrono::high_resolution_clock::now();
@@ -145,7 +106,7 @@ auto VulkanLogicalDevice::update_uniform_buffer(u32 current_image, const Matrix4
 
 	ubo.view_projection = view * proj;
 
-	void* mapped_data = m_uniform_buffers[current_image].map_to_GPU(&ubo, sizeof(ubo));
+	void* mapped_data = uniform_buffer.map_to_GPU(&ubo, sizeof(ubo));
 
 }
 
@@ -154,7 +115,7 @@ auto VulkanLogicalDevice::present_frame(const Matrix4x4& view_projection) -> voi
 
 	m_in_flight_fences[m_current_frame].wait_for_fences();
 	//prepare buffers
-	u32 image_index = m_swapchain.acquire_next_image(m_image_available_semaphores[m_current_frame], result);
+	u32 image_index = m_swapchain.acquire_next_image(&m_image_available_semaphores[m_current_frame], nullptr, result);
 	m_present_image_index = image_index;
 	{
 		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -170,7 +131,7 @@ auto VulkanLogicalDevice::present_frame(const Matrix4x4& view_projection) -> voi
 		}
 	}
 
-	this->update_uniform_buffer(image_index, view_projection);
+	this->update_uniform_buffer(m_uniform_buffers[image_index], view_projection);
 	//~prepare buffers
 
 	if (m_images_in_flight[image_index].m_handle != VK_NULL_HANDLE) {
@@ -278,10 +239,11 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	m_instance_p = &instance;
 
 
+
+	m_render_pass.init(*this, m_physical_device_p->choose_swap_surface_format().format);
 	// Swapchain stuff
 	m_swapchain.init(*this, *m_physical_device_p, m_instance_p->m_surface);
-	m_render_pass.init(*this, m_swapchain.m_image_format);
-	m_swapchain.create_framebuffers(m_render_pass.m_handle);
+	m_swapchain.create_framebuffers(m_render_pass);
 	const u32 swapchain_image_amount = m_swapchain.m_images.size();
 
 	// Uniform stuff

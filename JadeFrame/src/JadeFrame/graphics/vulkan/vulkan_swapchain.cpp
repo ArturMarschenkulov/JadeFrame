@@ -6,6 +6,7 @@
 
 #include "vulkan_logical_device.h"
 #include "vulkan_context.h"
+#include "vulkan_render_pass.h"
 #include "vulkan_sync_object.h"
 
 #undef min
@@ -50,6 +51,7 @@ auto VulkanSwapchain::init(
 	const VulkanPhysicalDevice& physical_device,
 	const VulkanSurface& surface
 ) -> void {
+	m_device = &device;
 	VkResult result;
 
 	u32 image_count = physical_device.m_surface_capabilities.minImageCount + 1;
@@ -107,9 +109,6 @@ auto VulkanSwapchain::init(
 
 	m_image_format = surface_format.format;
 	m_extent = extent;
-
-	m_device = &device;
-
 }
 
 auto VulkanSwapchain::deinit() -> void {
@@ -126,7 +125,7 @@ auto VulkanSwapchain::deinit() -> void {
 	m_width = 0;
 }
 
-auto VulkanSwapchain::create_framebuffers(const VkRenderPass& render_pass) -> void {
+auto VulkanSwapchain::create_framebuffers(const VulkanRenderPass& render_pass) -> void {
 	VkResult result;
 
 	m_framebuffers.resize(m_image_views.size());
@@ -140,7 +139,7 @@ auto VulkanSwapchain::create_framebuffers(const VkRenderPass& render_pass) -> vo
 		framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebuffer_info.pNext = nullptr;
 		framebuffer_info.flags = 0;
-		framebuffer_info.renderPass = render_pass;
+		framebuffer_info.renderPass = render_pass.m_handle;
 		framebuffer_info.attachmentCount = 1;
 		framebuffer_info.pAttachments = attachments;
 		framebuffer_info.width = m_extent.width;
@@ -152,9 +151,16 @@ auto VulkanSwapchain::create_framebuffers(const VkRenderPass& render_pass) -> vo
 	}
 }
 
-auto VulkanSwapchain::acquire_next_image(const VulkanSemaphore& semaphore, VkResult& result) -> u32 {
+auto VulkanSwapchain::acquire_next_image(const VulkanSemaphore* semaphore, const VulkanFence* fence, VkResult& out_result) -> u32 {
 	u32 image_index;
-	result = vkAcquireNextImageKHR(m_device->m_handle, m_handle, UINT64_MAX, semaphore.m_handle, VK_NULL_HANDLE, &image_index);
+	out_result = vkAcquireNextImageKHR(
+		m_device->m_handle, 
+		m_handle, 
+		UINT64_MAX, 
+		semaphore == nullptr ? VK_NULL_HANDLE : semaphore->m_handle,
+		fence == nullptr ? VK_NULL_HANDLE : fence->m_handle, 
+		&image_index
+	);
 	return image_index;
 
 }

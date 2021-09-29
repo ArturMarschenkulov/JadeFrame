@@ -13,6 +13,8 @@ class VulkanInstance;
 class VulkanPhysicalDevice;
 class VulkanSurface;
 class VulkanSemaphore;
+class VulkanFence;
+class VulkanRenderPass;
 
 class VulkanSwapchain {
 public:
@@ -22,9 +24,9 @@ public:
 		const VulkanSurface& surface
 	) -> void;
 	auto deinit() -> void;
-	auto create_framebuffers(const VkRenderPass& render_pass) -> void;
+	auto create_framebuffers(const VulkanRenderPass& render_pass) -> void;
 
-	auto acquire_next_image(const VulkanSemaphore& semaphore, VkResult& result) -> u32;
+	auto acquire_next_image(const VulkanSemaphore* semaphore, const VulkanFence* fence, VkResult& result) -> u32;
 public:
 	VkSwapchainKHR m_handle = VK_NULL_HANDLE;
 	const VulkanLogicalDevice* m_device = nullptr;
