@@ -42,6 +42,34 @@ static auto print_queue_families_info(VulkanPhysicalDevice physical_device) -> v
 		}
 	}
 }
+
+static auto query_surface_support_details(const VulkanSurface& surface, const VulkanPhysicalDevice& physical_device) ->SurfaceSupportDetails {
+	VkResult result;
+	SurfaceSupportDetails surface_support_details;
+	u32 count = 0;
+
+	result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device.m_handle, surface.m_handle, &surface_support_details.m_capabilities);
+	
+
+
+	result = vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device.m_handle, surface.m_handle, &count, nullptr);
+	if (VK_SUCCESS != result || (count == 0)) __debugbreak();
+
+	surface_support_details.m_formats.resize(count);
+	result = vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device.m_handle, surface.m_handle, &count, surface_support_details.m_formats.data());
+	if (VK_SUCCESS != result) __debugbreak();
+
+
+
+	result = vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device.m_handle, surface.m_handle, &count, nullptr);
+	if (VK_SUCCESS != result || (count == 0)) __debugbreak();
+
+	surface_support_details.m_present_modes.resize(count);
+	result = vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device.m_handle, surface.m_handle, &count, surface_support_details.m_present_modes.data());
+	if (VK_SUCCESS != result) __debugbreak();
+
+	return surface_support_details;
+}
 auto VulkanPhysicalDevice::init(VulkanInstance& instance, const VulkanSurface& surface) -> void {
 	m_instance_p = &instance;
 	VkResult result;
@@ -49,38 +77,21 @@ auto VulkanPhysicalDevice::init(VulkanInstance& instance, const VulkanSurface& s
 	vkGetPhysicalDeviceFeatures(m_handle, &m_features);
 	vkGetPhysicalDeviceMemoryProperties(m_handle, &m_memory_properties);
 
-	result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_surface, &m_surface_capabilities);
+
+	m_surface_support_details = query_surface_support_details(surface, *this);
+
 	{ // Query Queue Family Properties
-		u32 queue_family_count = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &queue_family_count, nullptr);
-		m_queue_family_properties.resize(queue_family_count);
-		vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &queue_family_count, m_queue_family_properties.data());
+		u32 count = 0;
+		vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, nullptr);
+		m_queue_family_properties.resize(count);
+		vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, m_queue_family_properties.data());
 	}
 	{ // Query_extension_properties
-		u32 extension_count = 0;
-		result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &extension_count, nullptr);
-		m_extension_properties.resize(extension_count);
-		result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &extension_count, m_extension_properties.data());
+		u32 count = 0;
+		result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, nullptr);
+		m_extension_properties.resize(count);
+		result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, m_extension_properties.data());
 		if (VK_SUCCESS != result) __debugbreak();
-	}
-	{ // Query Surface Formats
-		u32 format_count;
-		result = vkGetPhysicalDeviceSurfaceFormatsKHR(m_handle, surface.m_surface, &format_count, nullptr);
-		if (VK_SUCCESS != result || (format_count == 0)) __debugbreak();
-
-		m_surface_formats.resize(format_count);
-		result = vkGetPhysicalDeviceSurfaceFormatsKHR(m_handle, surface.m_surface, &format_count, m_surface_formats.data());
-		if (VK_SUCCESS != result) __debugbreak();
-	}
-	{ // Query Surface Present Modes
-		u32 present_modes_count;
-		result = vkGetPhysicalDeviceSurfacePresentModesKHR(m_handle, surface.m_surface, &present_modes_count, nullptr);
-		if (VK_SUCCESS != result || (present_modes_count == 0)) __debugbreak();
-
-		m_present_modes.resize(present_modes_count);
-		result = vkGetPhysicalDeviceSurfacePresentModesKHR(m_handle, surface.m_surface, &present_modes_count, m_present_modes.data());
-		if (VK_SUCCESS != result) __debugbreak();
-
 	}
 	m_extension_support = this->check_extension_support(m_device_extensions);
 	m_queue_family_indices = this->find_queue_families(surface);
@@ -105,7 +116,7 @@ auto VulkanPhysicalDevice::find_queue_families(VulkanSurface surface) -> QueueFa
 		}
 		VkBool32 present_support = false;
 
-		result = vkGetPhysicalDeviceSurfaceSupportKHR(m_handle, i, surface.m_surface, &present_support);
+		result = vkGetPhysicalDeviceSurfaceSupportKHR(m_handle, i, surface.m_handle, &present_support);
 		if (result != VK_SUCCESS) __debugbreak();
 
 
@@ -120,18 +131,18 @@ auto VulkanPhysicalDevice::find_queue_families(VulkanSurface surface) -> QueueFa
 }
 auto VulkanPhysicalDevice::choose_swap_surface_format() const -> VkSurfaceFormatKHR {
 	
-	for (u32 i = 0; i < m_surface_formats.size(); i++) {
-		if (m_surface_formats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
-			m_surface_formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-			return m_surface_formats[i];
+	for (u32 i = 0; i < m_surface_support_details.m_formats.size(); i++) {
+		if (m_surface_support_details.m_formats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
+			m_surface_support_details.m_formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+			return m_surface_support_details.m_formats[i];
 		}
 	}
-	return m_surface_formats[0];
+	return m_surface_support_details.m_formats[0];
 }
 auto VulkanPhysicalDevice::choose_swap_present_mode() const -> VkPresentModeKHR {
-	for (u32 i = 0; i < m_present_modes.size(); i++) {
-		if (m_present_modes[i] == VK_PRESENT_MODE_MAILBOX_KHR) {
-			return m_present_modes[i];
+	for (u32 i = 0; i < m_surface_support_details.m_present_modes.size(); i++) {
+		if (m_surface_support_details.m_present_modes[i] == VK_PRESENT_MODE_MAILBOX_KHR) {
+			return m_surface_support_details.m_present_modes[i];
 		}
 	}
 	return VK_PRESENT_MODE_FIFO_KHR;
@@ -139,7 +150,7 @@ auto VulkanPhysicalDevice::choose_swap_present_mode() const -> VkPresentModeKHR 
 auto VulkanPhysicalDevice::choose_swap_extent() const -> VkExtent2D {
 	//vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_surface, &m_surface_capabilities);
 	if (false/*m_surface_capabilities.currentExtent.width != UINT32_MAX*/) {
-		return m_surface_capabilities.currentExtent;
+		return m_surface_support_details.m_capabilities.currentExtent;
 	} else {
 		RECT area;
 		GetClientRect(m_instance_p->m_window_handle, &area);

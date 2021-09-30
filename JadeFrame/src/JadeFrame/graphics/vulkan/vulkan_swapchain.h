@@ -2,6 +2,7 @@
 #include <vulkan/vulkan.h>
 
 #include "JadeFrame/defines.h"
+#include "vulkan_texture.h"
 
 #include <vector>
 
@@ -15,6 +16,27 @@ class VulkanSurface;
 class VulkanSemaphore;
 class VulkanFence;
 class VulkanRenderPass;
+class VulkanImageView;
+
+
+class VulkanFramebuffer {
+public:
+	auto init(
+		const VulkanLogicalDevice& device,
+		const VulkanImageView& image_view,
+		const VulkanRenderPass& render_pass,
+		VkExtent2D extent
+	) -> void;
+	auto deinit() -> void;
+public:
+	VkFramebuffer m_handle;
+	const VulkanLogicalDevice* m_device = nullptr;
+	const VulkanImageView* m_image_view = nullptr;
+	const VulkanRenderPass* m_render_pass = nullptr;
+	//const VulkanSwapchain* m_swapchain = nullptr;
+
+};
+
 
 class VulkanSwapchain {
 public:
@@ -31,11 +53,14 @@ public:
 	VkSwapchainKHR m_handle = VK_NULL_HANDLE;
 	const VulkanLogicalDevice* m_device = nullptr;
 
-	std::vector<VkImage> m_images;
-	std::vector<VkImageView> m_image_views;
+	std::vector<VulkanImage> m_images;
+	std::vector<VulkanImageView> m_image_views;
+
 	VkFormat m_image_format;
 	VkExtent2D m_extent;
-	std::vector<VkFramebuffer> m_framebuffers;
+	//std::vector<VkFramebuffer> m_framebuffers;
+	std::vector<VulkanFramebuffer> m_framebuffers;
+
 
 	u32 m_width = 0;
 	u32 m_height = 0;

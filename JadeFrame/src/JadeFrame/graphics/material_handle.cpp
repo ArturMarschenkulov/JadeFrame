@@ -56,18 +56,19 @@ ShaderHandle::ShaderHandle(const DESC& desc) {
 auto ShaderHandle::init() -> void {
 
 	if (m_code.m_vertex_shader != "" && m_code.m_fragment_shader != "") {
-		switch (api) {
-			case API::OPENGL:
+		switch (m_api) {
+			case GRAPHICS_API::OPENGL:
 			{
 				OpenGL_Shader::DESC shader_desc;
 				shader_desc.code = m_code;
 				m_handle = new OpenGL_Shader(shader_desc);
 
 			}break;
-			case API::VULKAN:
+			case GRAPHICS_API::VULKAN:
 			{
 				//m_handle = new Vulkan_Shader({ vertex_shader_code, fragment_shader_code });
 			}break;
+			default: __debugbreak();
 		}
 	} else {
 		assert(!"There was no shader code");

@@ -52,20 +52,6 @@ public:
 	std::vector<u32> m_indices;
 };
 
-
-//struct Mesh {
-//	std::vector<Vec3>	m_positions;
-//	std::vector<RGBAColor>	m_colors;
-//	std::vector<Vec2>	m_tex_coords;
-//	std::vector<Vec3> m_normals;
-//	std::vector<u32> m_indices;
-//
-//	Mesh() = default;
-//	explicit Mesh(const VertexData& vertex_data);
-//	auto add_to_data(const VertexData& vertex_data) -> void;
-//};
-
-
 inline auto convert_into_data(const VertexData& vertex_data, const bool interleaved, bool with_color = true) -> std::vector<f32> {
 	//assert(mesh.m_positions.size() == mesh.m_normals.size());
 	const u64 size

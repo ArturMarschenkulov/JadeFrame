@@ -15,7 +15,7 @@ auto VulkanSurface::init(VkInstance instance, HWND window_handle) -> void {
 		.hwnd = window_handle,
 	};
 
-	result = vkCreateWin32SurfaceKHR(instance, &create_info, nullptr, &m_surface);
+	result = vkCreateWin32SurfaceKHR(instance, &create_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) {
 		__debugbreak();
 		throw std::runtime_error("failed to create window surface!");

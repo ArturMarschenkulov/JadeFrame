@@ -16,6 +16,7 @@ struct Example_Rotating_Primitive : public BaseApp {
 
 public:
 	Object m_obj;
+	Object m_obj_2;
 	VertexData m_vertex_data;
 	MaterialHandle m_material;
 };
@@ -49,7 +50,7 @@ auto Example_Rotating_Primitive::on_init() -> void {
 	vertex_data->m_colors = {
 		{1.0f, 0.0f, 0.0f, 1.0f},
 		{0.0f, 1.0f, 0.0f, 1.0f},
-		{0.0f, 1.0f, 1.0f, 1.0f},
+		{0.0f, 0.0f, 1.0f, 1.0f},
 	};
 
 	m_obj.m_vertex_data = vertex_data;
@@ -66,6 +67,24 @@ auto Example_Rotating_Primitive::on_init() -> void {
 
 	m_obj.m_material_handle = &m_material;
 
+	VertexData* vertex_data_2 = new VertexData();
+	vertex_data_2->m_positions = std::vector<Vec3>{
+		{ -s, +s + 0.1f, 0.0f },
+		{ +s, +s, 0.0f },
+		{ -s, -s, 0.0f }
+	};
+	vertex_data_2->m_colors = {
+		{1.0f, 0.0f, 0.0f, 1.0f},
+		{0.0f, 1.0f, 0.0f, 1.0f},
+		{0.0f, 0.0f, 1.0f, 1.0f},
+	};
+	m_obj_2.m_material_handle = &m_material;
+	m_obj_2.m_vertex_data = vertex_data_2;
+	m_obj_2.m_vertex_format = VertexFormat{
+		{ "v_position", SHADER_TYPE::FLOAT_3 },
+		{ "v_color", SHADER_TYPE::FLOAT_4 },
+	};
+
 
 }
 auto Example_Rotating_Primitive::on_update() -> void {
@@ -81,6 +100,11 @@ auto Example_Rotating_Primitive::on_draw() -> void {
 		time * to_radians(90.0f),
 		Vec3(0.0f, 0.0f, 1.0f)
 	);
+	m_obj_2.m_transform = Matrix4x4::rotation_matrix(
+		time * to_radians(-90.0f),
+		Vec3(0.0f, 0.0f, 1.0f)
+	);
+	m_renderer->submit(m_obj_2);
 	m_renderer->submit(m_obj);
 }
 using TestApp = Example_Rotating_Primitive;

@@ -14,12 +14,13 @@ class VulkanRenderPass;
 class VulkanDescriptorSet;
 class VulkanBuffer;
 class VulkanPipeline;
+class VulkanFramebuffer;
 
 class VulkanCommandBuffer {
 public:
 	auto record_begin() -> void;
 	auto record_end() -> void;
-	auto render_pass_begin(u32 framebuffer_index, const VulkanRenderPass& render_pass, const VulkanSwapchain& swapchain, VkClearValue color) -> void;
+	auto render_pass_begin(const VulkanFramebuffer& framebuffer, const VulkanRenderPass& render_pass, const VulkanSwapchain& swapchain, VkClearValue color) -> void;
 	auto render_pass_end() -> void;
 
 	auto draw_into(

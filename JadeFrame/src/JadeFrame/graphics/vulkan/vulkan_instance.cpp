@@ -25,10 +25,10 @@ auto VulkanInstance::check_validation_layer_support(const std::vector<VkLayerPro
 
 static auto is_device_suitable(VulkanPhysicalDevice physical_device) -> bool {
 	bool swapchain_adequate = false;
-	if (physical_device.m_extension_support) {
+	if (physical_device.m_extension_support == true) {
 		swapchain_adequate =
-			!physical_device.m_surface_formats.empty() &&
-			!physical_device.m_present_modes.empty()
+			!physical_device.m_surface_support_details.m_formats.empty() &&
+			!physical_device.m_surface_support_details.m_present_modes.empty()
 			;
 	}
 	return
@@ -166,7 +166,7 @@ auto VulkanInstance::deinit() -> void {
 	if (m_enable_validation_layers) {
 		vkDestroyDebugUtilsMessengerEXT_(m_instance, m_debug_messenger, nullptr);
 	}
-	vkDestroySurfaceKHR(m_instance, m_surface.m_surface, nullptr);
+	vkDestroySurfaceKHR(m_instance, m_surface.m_handle, nullptr);
 	vkDestroyInstance(m_instance, nullptr);
 }
 }

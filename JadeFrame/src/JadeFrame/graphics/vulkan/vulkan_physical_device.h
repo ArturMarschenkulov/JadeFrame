@@ -21,6 +21,11 @@ struct QueueFamilyIndices {
 	}
 
 };
+struct SurfaceSupportDetails {
+	VkSurfaceCapabilitiesKHR        m_capabilities;
+	std::vector<VkSurfaceFormatKHR> m_formats;
+	std::vector<VkPresentModeKHR>   m_present_modes;
+};
 class VulkanInstance;
 class VulkanPhysicalDevice {
 private:
@@ -47,8 +52,9 @@ public:
 
 	bool m_extension_support;
 	QueueFamilyIndices m_queue_family_indices;
-	VkSurfaceCapabilitiesKHR m_surface_capabilities;
-	std::vector<VkSurfaceFormatKHR> m_surface_formats;
-	std::vector<VkPresentModeKHR> m_present_modes;
+	SurfaceSupportDetails m_surface_support_details;
+	//VkSurfaceCapabilitiesKHR m_surface_capabilities;
+	//std::vector<VkSurfaceFormatKHR> m_surface_formats;
+	//std::vector<VkPresentModeKHR> m_present_modes;
 };
 }

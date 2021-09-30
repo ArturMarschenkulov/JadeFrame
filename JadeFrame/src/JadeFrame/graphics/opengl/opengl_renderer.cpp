@@ -98,6 +98,7 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(windo
 	shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
 	shader_handle_desc.vertex_format = layout;
 	m_shader_handle_fb = new ShaderHandle(shader_handle_desc);
+	m_shader_handle_fb->m_api = GRAPHICS_API::OPENGL;
 	m_shader_handle_fb->init();
 }
 
@@ -126,7 +127,7 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
 	}
 	if (obj.m_material_handle->m_is_initialized == false) {
 		//obj.m_material_handle->init();
-		obj.m_material_handle->m_shader_handle->api = ShaderHandle::API::OPENGL;
+		obj.m_material_handle->m_shader_handle->m_api = GRAPHICS_API::OPENGL;
 		obj.m_material_handle->m_shader_handle->init();
 		//obj.m_material_handle->m_shader_handle->m_handle = new OpenGL_Shader();
 

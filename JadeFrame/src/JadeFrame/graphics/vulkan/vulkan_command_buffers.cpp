@@ -28,11 +28,11 @@ auto VulkanCommandBuffer::record_end() -> void {
 	if (result != VK_SUCCESS) __debugbreak();
 }
 
-auto VulkanCommandBuffer::render_pass_begin(u32 framebuffer_index, const VulkanRenderPass& render_pass, const VulkanSwapchain& swapchain, VkClearValue clear_color) -> void {
+auto VulkanCommandBuffer::render_pass_begin(const VulkanFramebuffer& framebuffer, const VulkanRenderPass& render_pass, const VulkanSwapchain& swapchain, VkClearValue clear_color) -> void {
 	const VkRenderPassBeginInfo render_pass_info = {
 		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
 		.renderPass = render_pass.m_handle,
-		.framebuffer = swapchain.m_framebuffers[framebuffer_index],
+		.framebuffer = framebuffer.m_handle,
 		.renderArea = {
 			.offset = {0, 0},
 			.extent = swapchain.m_extent
@@ -61,7 +61,7 @@ auto VulkanCommandBuffer::draw_into(
 
 	this->record_begin();
 	{
-		this->render_pass_begin(index, render_pass, swapchain, color_value);
+		this->render_pass_begin(swapchain.m_framebuffers[index], render_pass, swapchain, color_value);
 		{
 			vkCmdBindPipeline(m_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_graphics_pipeline);
 			VkBuffer vertex_buffers[] = { gpu_data.m_vertex_buffer.m_buffer };

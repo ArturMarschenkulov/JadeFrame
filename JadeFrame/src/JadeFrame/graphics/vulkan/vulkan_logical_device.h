@@ -58,6 +58,7 @@ public: // Descriptor set
 
 public:
 	auto update_uniform_buffer(VulkanBuffer& uniform_buffer, const Matrix4x4& view_projection) -> void;
+	auto update_ubo(const Matrix4x4& view_projection) -> UniformBufferObject;
 	std::vector<VulkanBuffer> m_uniform_buffers = { VULKAN_BUFFER_TYPE::UNIFORM };
 
 public:
@@ -79,13 +80,13 @@ public: // Misc
 
 
 
-	// To be removed
-public:
-	VulkanPipeline m_pipeline;
-public: // buffer stuff
-	VulkanBuffer m_vertex_buffer = { VULKAN_BUFFER_TYPE::VERTEX };
-	VulkanBuffer m_index_buffer = { VULKAN_BUFFER_TYPE::INDEX };
-
+//	// To be removed
+//public:
+//	VulkanPipeline m_pipeline;
+//public: // buffer stuff
+//	VulkanBuffer m_vertex_buffer = { VULKAN_BUFFER_TYPE::VERTEX };
+//	VulkanBuffer m_index_buffer = { VULKAN_BUFFER_TYPE::INDEX };
+//
 public: // texture stuff
 	auto create_texture_image(const std::string& path) -> void;
 	auto create_image(u32 width, u32 height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) -> void;

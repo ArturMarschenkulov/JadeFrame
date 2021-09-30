@@ -11,6 +11,6 @@ private:
 public:
 	auto init(VkInstance instance, HWND window_handle) -> void;
 public:
-	VkSurfaceKHR m_surface;
+	VkSurfaceKHR m_handle;
 };
 }

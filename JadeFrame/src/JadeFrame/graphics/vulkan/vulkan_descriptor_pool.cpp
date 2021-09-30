@@ -8,19 +8,19 @@
 
 namespace JadeFrame {
 
-auto VulkanDescriptorPool::init(const VulkanLogicalDevice& device, const VulkanSwapchain& swapchain) -> void {
+auto VulkanDescriptorPool::init(const VulkanLogicalDevice& device, u32 amount) -> void {
 	m_device = &device;
 	VkResult result;
 	const VkDescriptorPoolSize pool_size = {
 		.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-		.descriptorCount = static_cast<u32>(swapchain.m_images.size()),
+		.descriptorCount = amount,
 	};
 
 	const VkDescriptorPoolCreateInfo pool_info = {
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
 		.pNext = {},
 		.flags = {},
-		.maxSets = static_cast<u32>(swapchain.m_images.size()),
+		.maxSets = amount,
 		.poolSizeCount = 1,
 		.pPoolSizes = &pool_size,
 	};

@@ -66,26 +66,39 @@ auto VulkanLogicalDevice::recreate_swapchain() -> void {
 
 }
 auto VulkanLogicalDevice::cleanup_swapchain() -> void {
-	for (auto framebuffer : m_swapchain.m_framebuffers) {
-		vkDestroyFramebuffer(m_handle, framebuffer, nullptr);
-	}
+
 
 	//m_command_buffers.deinit();
-
-	vkDestroyPipeline(m_handle, m_pipeline.m_graphics_pipeline, nullptr);
-	vkDestroyPipelineLayout(m_handle, m_pipeline.m_pipeline_layout, nullptr);
 	vkDestroyRenderPass(m_handle, m_render_pass.m_handle, nullptr);
 
-	for (auto image_view : m_swapchain.m_image_views) {
-		vkDestroyImageView(m_handle, image_view, nullptr);
-	}
+
 
 	for (size_t i = 0; i < m_swapchain.m_images.size(); i++) {
 		vkDestroyBuffer(m_handle, m_uniform_buffers[i].m_buffer, nullptr);
 		vkFreeMemory(m_handle, m_uniform_buffers[i].m_memory, nullptr);
 	}
 
+	m_swapchain.deinit();
 	vkDestroySwapchainKHR(m_handle, m_swapchain.m_handle, nullptr);
+}
+
+auto VulkanLogicalDevice::update_ubo(const Matrix4x4& view_projection) -> UniformBufferObject {
+	static auto start_time = std::chrono::high_resolution_clock::now();
+
+	auto current_time = std::chrono::high_resolution_clock::now();
+	f32 time = std::chrono::duration<f32, std::chrono::seconds::period>(current_time - start_time).count();
+
+	UniformBufferObject ubo = {};
+	ubo.model = Matrix4x4::rotation_matrix(
+		time * to_radians(90.0f),
+		Vec3(0.0f, 0.0f, 1.0f)
+	);
+	Matrix4x4 view(1.0f);
+	Matrix4x4 proj(1.0f);
+	proj[1][1] *= -1;
+
+	ubo.view_projection = view * proj;
+	return ubo;
 }
 
 auto VulkanLogicalDevice::update_uniform_buffer(VulkanBuffer& uniform_buffer, const Matrix4x4& view_projection) -> void {
@@ -116,8 +129,7 @@ auto VulkanLogicalDevice::present_frame(const Matrix4x4& view_projection) -> voi
 	m_in_flight_fences[m_current_frame].wait_for_fences();
 	//prepare buffers
 	u32 image_index = m_swapchain.acquire_next_image(&m_image_available_semaphores[m_current_frame], nullptr, result);
-	m_present_image_index = image_index;
-	{
+	if (result != VK_SUCCESS) {
 		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 			std::cout << "VK_ERROR_OUT_OF_DATE_KHR" << std::endl;
 			this->recreate_swapchain();
@@ -125,7 +137,6 @@ auto VulkanLogicalDevice::present_frame(const Matrix4x4& view_projection) -> voi
 		} else if (result == VK_SUBOPTIMAL_KHR) {
 			std::cout << "VK_SUBOPTIMAL_KHR" << std::endl;
 			//this->recreate_swapchain();
-		} else if (result == VK_SUCCESS) {
 		} else {
 			throw std::runtime_error("failed to acquire swap chain image!");
 		}
@@ -240,9 +251,10 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 
 
 
-	m_render_pass.init(*this, m_physical_device_p->choose_swap_surface_format().format);
+
 	// Swapchain stuff
 	m_swapchain.init(*this, *m_physical_device_p, m_instance_p->m_surface);
+	m_render_pass.init(*this, m_swapchain.m_image_format);
 	m_swapchain.create_framebuffers(m_render_pass);
 	const u32 swapchain_image_amount = m_swapchain.m_images.size();
 
@@ -254,7 +266,7 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 
 	// Descriptor stuff
 	m_descriptor_set_layout.init(*this);
-	m_descriptor_pool.init(*this, m_swapchain);
+	m_descriptor_pool.init(*this, swapchain_image_amount);
 	m_descriptor_sets = m_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout, swapchain_image_amount);
 	for (u32 i = 0; i < m_descriptor_sets.size(); i++) {
 		m_descriptor_sets[i].update(m_uniform_buffers[i]);
@@ -290,7 +302,6 @@ auto VulkanLogicalDevice::deinit() -> void {
 	}
 
 	m_command_pool.deinit();
-	m_pipeline.deinit();
 	m_render_pass.deinit();
 	m_swapchain.deinit();
 

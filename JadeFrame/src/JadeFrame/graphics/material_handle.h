@@ -44,11 +44,7 @@ public:
 	ShadingCode m_code;
 	VertexFormat m_vertex_format;
 
-	enum class API {
-		UNDEFINED,
-		OPENGL,
-		VULKAN,
-	} api = API::OPENGL;
+	GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
 	void* m_handle = nullptr;
 };
 struct MaterialHandle {

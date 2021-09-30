@@ -44,9 +44,17 @@ auto VulkanLogicalDevice::create_texture_image(const std::string& path) -> void 
 
 		void* mapped_data = staging_buffer.map_to_GPU(image.data, image_size);
 
-		this->create_image(image.width, image.height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_texture_image, m_texture_image_Memory);
+		this->create_image(
+			image.width, image.height, 
+			VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, 
+			VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
+			m_texture_image, m_texture_image_Memory
+		);
 
-		this->transition_image_layout(m_texture_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		this->transition_image_layout(
+			m_texture_image, 
+			VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 		this->copy_buffer_to_image(staging_buffer.m_buffer, m_texture_image, static_cast<uint32_t>(image.width), static_cast<uint32_t>(image.height));
 		this->transition_image_layout(m_texture_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
@@ -98,6 +106,7 @@ auto VulkanLogicalDevice::create_image(u32 width, u32 height, VkFormat format, V
 	if (result != VK_SUCCESS) __debugbreak();
 }
 auto VulkanLogicalDevice::transition_image_layout(VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout) -> void {
+	//VulkanCommandBuffer command_buffer_ = m_command_pool.allocate_command_buffers(1)[0];
 	VkCommandBuffer command_buffer = this->begin_single_time_commands();
 	{
 		VkImageMemoryBarrier barrier = {
@@ -274,13 +283,53 @@ auto VulkanLogicalDevice::create_texture_sampler() -> void {
 	if (result != VK_SUCCESS) __debugbreak();
 }
 
-auto VulkanImage::init(const VulkanLogicalDevice& device) -> void {
+auto VulkanImage::init(const VulkanLogicalDevice& device, VkImage image) -> void {
+	m_device = &device;
+	m_handle = image;
+	m_source = SOURCE::SWAPCHAIN;
 }
 auto VulkanImage::deinit() -> void {
+	switch(m_source) {
+		case SOURCE::REGULAR:
+		{
+			__debugbreak();
+		}break;
+		case SOURCE::SWAPCHAIN:
+		{
+
+		}break;
+		default: __debugbreak();
+	}
 }
 
-auto VulkanImageView::init(const VulkanLogicalDevice& device) -> void {
+auto VulkanImageView::init(const VulkanLogicalDevice& device, const VulkanImage& image, VkFormat format) -> void {
+	m_device = &device;
+	m_image = &image;
+	VkResult result;
+	VkImageViewCreateInfo create_info = {
+		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+		.image = image.m_handle,
+		.viewType = VK_IMAGE_VIEW_TYPE_2D,
+		.format = format,
+		.components = {
+			.r = VK_COMPONENT_SWIZZLE_R,
+			.g = VK_COMPONENT_SWIZZLE_G,
+			.b = VK_COMPONENT_SWIZZLE_B,
+			.a = VK_COMPONENT_SWIZZLE_A,
+		},
+		.subresourceRange = {
+			.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+			.baseMipLevel = 0,
+			.levelCount = 1,
+			.baseArrayLayer = 0,
+			.layerCount = 1,
+		}
+	};
+
+	result = vkCreateImageView(device.m_handle, &create_info, nullptr, &m_handle);
+	if (result != VK_SUCCESS) __debugbreak();
 }
 auto VulkanImageView::deinit() -> void {
+	vkDestroyImageView(m_device->m_handle, m_handle, nullptr);
 }
 }
