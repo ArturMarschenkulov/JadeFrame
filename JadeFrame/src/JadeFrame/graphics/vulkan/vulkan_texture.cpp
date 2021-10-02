@@ -55,7 +55,7 @@ auto VulkanLogicalDevice::create_texture_image(const std::string& path) -> void 
 		this->transition_image_layout(
 			m_texture_image, 
 			VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		this->copy_buffer_to_image(staging_buffer.m_buffer, m_texture_image, static_cast<uint32_t>(image.width), static_cast<uint32_t>(image.height));
+		this->copy_buffer_to_image(staging_buffer.m_handle, m_texture_image, static_cast<uint32_t>(image.width), static_cast<uint32_t>(image.height));
 		this->transition_image_layout(m_texture_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		staging_buffer.deinit();

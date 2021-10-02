@@ -12,9 +12,15 @@ class VulkanBuffer;
 
 class VulkanDescriptorSet {
 public:
-	auto update(const VulkanBuffer& uniform_buffer) -> void;
+	auto update() -> void;
+	auto add_uniform_buffer(
+		const VulkanBuffer& buffer,
+		VkDeviceSize offset,
+		u32 binding
+	) -> void;
 public:
 	VkDescriptorSet m_handle;
 	const VulkanLogicalDevice* m_device = nullptr;
+	std::vector<VkDescriptorBufferInfo> m_descriptor_buffer_infos;
 };
 }

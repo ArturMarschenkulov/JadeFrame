@@ -74,9 +74,9 @@ auto Example_Rotating_Primitive::on_init() -> void {
 		{ -s, -s, 0.0f }
 	};
 	vertex_data_2->m_colors = {
-		{1.0f, 0.0f, 0.0f, 1.0f},
-		{0.0f, 1.0f, 0.0f, 1.0f},
-		{0.0f, 0.0f, 1.0f, 1.0f},
+		{1.0f, 1.0f, 0.0f, 1.0f},
+		{1.0f, 1.0f, 0.0f, 1.0f},
+		{0.0f, 0.0f, 0.0f, 1.0f},
 	};
 	m_obj_2.m_material_handle = &m_material;
 	m_obj_2.m_vertex_data = vertex_data_2;
@@ -101,9 +101,11 @@ auto Example_Rotating_Primitive::on_draw() -> void {
 		Vec3(0.0f, 0.0f, 1.0f)
 	);
 	m_obj_2.m_transform = Matrix4x4::rotation_matrix(
-		time * to_radians(-90.0f),
+		time * to_radians(45.0f),
 		Vec3(0.0f, 0.0f, 1.0f)
 	);
+
+
 	m_renderer->submit(m_obj_2);
 	m_renderer->submit(m_obj);
 }

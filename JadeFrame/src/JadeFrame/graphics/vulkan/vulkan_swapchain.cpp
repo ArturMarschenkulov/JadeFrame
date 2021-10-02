@@ -98,15 +98,16 @@ auto VulkanSwapchain::init(
 ) -> void {
 	m_device = &device;
 	VkResult result;
+	const SurfaceSupportDetails& surface_details = physical_device.m_surface_support_details;
 
-	u32 image_count = physical_device.m_surface_support_details.m_capabilities.minImageCount + 1;
-	if (physical_device.m_surface_support_details.m_capabilities.maxImageCount > 0 && image_count > physical_device.m_surface_support_details.m_capabilities.maxImageCount) {
-		image_count = physical_device.m_surface_support_details.m_capabilities.maxImageCount;
+	u32 image_count = surface_details.m_capabilities.minImageCount + 1;
+	if (surface_details.m_capabilities.maxImageCount > 0 && image_count > surface_details.m_capabilities.maxImageCount) {
+		image_count = surface_details.m_capabilities.maxImageCount;
 	}
 
-	const VkSurfaceFormatKHR surface_format = choose_surface_format(physical_device.m_surface_support_details.m_formats);
-	const VkPresentModeKHR present_mode = choose_present_mode(physical_device.m_surface_support_details.m_present_modes);
-	const VkExtent2D extent = choose_extent(physical_device.m_surface_support_details.m_capabilities, *this);
+	const VkSurfaceFormatKHR surface_format = choose_surface_format(surface_details.m_formats);
+	const VkPresentModeKHR present_mode = choose_present_mode(surface_details.m_present_modes);
+	const VkExtent2D extent = choose_extent(surface_details.m_capabilities, *this);
 	m_image_format = surface_format.format;
 	m_extent = extent;
 
@@ -211,7 +212,7 @@ auto VulkanFramebuffer::init(
 	m_image_view = &image_view;
 	m_render_pass = &render_pass;
 	VkResult result;
-	VkImageView attachments[] = {
+	std::array<VkImageView, 1> attachments = {
 		image_view.m_handle
 	};
 
@@ -220,8 +221,8 @@ auto VulkanFramebuffer::init(
 	framebuffer_info.pNext = nullptr;
 	framebuffer_info.flags = 0;
 	framebuffer_info.renderPass = render_pass.m_handle;
-	framebuffer_info.attachmentCount = 1;
-	framebuffer_info.pAttachments = attachments;
+	framebuffer_info.attachmentCount = attachments.size();
+	framebuffer_info.pAttachments = attachments.data();
 	framebuffer_info.width = extent.width;
 	framebuffer_info.height = extent.height;
 	framebuffer_info.layers = 1;

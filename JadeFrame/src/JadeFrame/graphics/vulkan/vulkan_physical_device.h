@@ -33,9 +33,9 @@ public:
 	auto init(VulkanInstance& instance, const VulkanSurface& surface) -> void;
 	auto check_extension_support(const std::vector<const char*>& extensions) -> bool;
 	auto find_queue_families(VulkanSurface surface)->QueueFamilyIndices;
-	auto choose_swap_surface_format() const -> VkSurfaceFormatKHR;
-	auto choose_swap_present_mode() const -> VkPresentModeKHR;
-	auto choose_swap_extent() const -> VkExtent2D;
+	//auto choose_swap_surface_format() const -> VkSurfaceFormatKHR;
+	//auto choose_swap_present_mode() const -> VkPresentModeKHR;
+	//auto choose_swap_extent() const -> VkExtent2D;
 	auto find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32;
 
 public:

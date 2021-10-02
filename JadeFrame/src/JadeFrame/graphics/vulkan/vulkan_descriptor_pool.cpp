@@ -19,7 +19,7 @@ auto VulkanDescriptorPool::init(const VulkanLogicalDevice& device, u32 amount) -
 	const VkDescriptorPoolCreateInfo pool_info = {
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
 		.pNext = {},
-		.flags = {},
+		.flags = 0,
 		.maxSets = amount,
 		.poolSizeCount = 1,
 		.pPoolSizes = &pool_size,
@@ -27,6 +27,10 @@ auto VulkanDescriptorPool::init(const VulkanLogicalDevice& device, u32 amount) -
 
 	result = vkCreateDescriptorPool(device.m_handle, &pool_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
+}
+
+auto VulkanDescriptorPool::deinit() -> void {
+	vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr);
 }
 
 
@@ -44,7 +48,7 @@ auto VulkanDescriptorPool::allocate_descriptor_sets(const VulkanDescriptorSetLay
 		.pSetLayouts = layouts.data(),
 	};
 	std::vector<VkDescriptorSet> handles(amount);
-	assert(m_device->m_physical_device_p->m_properties.limits.maxBoundDescriptorSets > handles.size());
+	//assert(m_device->m_physical_device_p->m_properties.limits.maxBoundDescriptorSets > handles.size());
 	result = vkAllocateDescriptorSets(m_device->m_handle, &alloc_info, handles.data());
 	if (result != VK_SUCCESS) __debugbreak();
 

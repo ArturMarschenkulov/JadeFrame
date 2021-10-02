@@ -11,6 +11,7 @@ class VulkanSwapchain;
 class VulkanDescriptorPool {
 public:
 	auto init(const VulkanLogicalDevice& device, u32 amount) -> void;
+	auto deinit() -> void;
 
 	auto allocate_descriptor_sets(const VulkanDescriptorSetLayout& descriptor_set_layout, u32 image_amount) -> std::vector<VulkanDescriptorSet>;
 

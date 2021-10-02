@@ -50,6 +50,9 @@ auto VulkanCommandPool::allocate_command_buffers(u32 amount) const -> std::vecto
 	}
 	return command_buffers;
 }
+auto VulkanCommandPool::allocate_command_buffer() const -> VulkanCommandBuffer {
+	return this->allocate_command_buffers(1)[0];
+}
 auto VulkanCommandPool::free_command_buffers(const std::vector<VulkanCommandBuffer>& command_buffers) const -> void {
 	for (u32 i = 0; i < command_buffers.size(); i++) {
 		vkFreeCommandBuffers(m_device->m_handle, m_handle, 1, &command_buffers[i].m_handle);

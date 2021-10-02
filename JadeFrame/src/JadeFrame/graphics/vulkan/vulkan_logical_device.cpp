@@ -74,7 +74,7 @@ auto VulkanLogicalDevice::cleanup_swapchain() -> void {
 
 
 	for (size_t i = 0; i < m_swapchain.m_images.size(); i++) {
-		vkDestroyBuffer(m_handle, m_uniform_buffers[i].m_buffer, nullptr);
+		vkDestroyBuffer(m_handle, m_uniform_buffers[i].m_handle, nullptr);
 		vkFreeMemory(m_handle, m_uniform_buffers[i].m_memory, nullptr);
 	}
 
@@ -265,11 +265,15 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	}
 
 	// Descriptor stuff
+	m_descriptor_set_layout.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
 	m_descriptor_set_layout.init(*this);
+
 	m_descriptor_pool.init(*this, swapchain_image_amount);
+
 	m_descriptor_sets = m_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout, swapchain_image_amount);
 	for (u32 i = 0; i < m_descriptor_sets.size(); i++) {
-		m_descriptor_sets[i].update(m_uniform_buffers[i]);
+		m_descriptor_sets[i].add_uniform_buffer(m_uniform_buffers[i], 0, 0);
+		m_descriptor_sets[i].update();
 	}
 
 	// Commad Buffer stuff

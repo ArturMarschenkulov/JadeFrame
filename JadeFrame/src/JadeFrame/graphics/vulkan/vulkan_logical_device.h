@@ -54,7 +54,7 @@ public:
 public: // Descriptor set
 	VulkanDescriptorSetLayout m_descriptor_set_layout;
 	VulkanDescriptorPool m_descriptor_pool;
-	std::vector< VulkanDescriptorSet> m_descriptor_sets;
+	std::vector<VulkanDescriptorSet> m_descriptor_sets;
 
 public:
 	auto update_uniform_buffer(VulkanBuffer& uniform_buffer, const Matrix4x4& view_projection) -> void;

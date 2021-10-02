@@ -64,13 +64,13 @@ auto VulkanCommandBuffer::draw_into(
 		this->render_pass_begin(swapchain.m_framebuffers[index], render_pass, swapchain, color_value);
 		{
 			vkCmdBindPipeline(m_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_graphics_pipeline);
-			VkBuffer vertex_buffers[] = { gpu_data.m_vertex_buffer.m_buffer };
+			VkBuffer vertex_buffers[] = { gpu_data.m_vertex_buffer.m_handle };
 			VkDeviceSize offsets[] = { 0 };
 			vkCmdBindVertexBuffers(m_handle, 0, 1, vertex_buffers, offsets);
 			vkCmdBindDescriptorSets(m_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.m_pipeline_layout, 0, 1, &descriptor_sets[index].m_handle, 0, nullptr);
 
 			if (vertex_data.m_indices.size() > 0) {
-				vkCmdBindIndexBuffer(m_handle, gpu_data.m_index_buffer.m_buffer, 0, VK_INDEX_TYPE_UINT32);
+				vkCmdBindIndexBuffer(m_handle, gpu_data.m_index_buffer.m_handle, 0, VK_INDEX_TYPE_UINT32);
 				vkCmdDrawIndexed(m_handle, vertex_data.m_indices.size(), 1, 0, 0, 0);
 			} else {
 				vkCmdDraw(m_handle, static_cast<u32>(vertex_data.m_positions.size()), 1, 0, 0);

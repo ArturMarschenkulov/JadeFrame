@@ -17,6 +17,7 @@ VulkanBuffer::VulkanBuffer(const VULKAN_BUFFER_TYPE type)
 auto VulkanBuffer::init(const VulkanLogicalDevice& device, VULKAN_BUFFER_TYPE buffer_type, void* data, size_t size) -> void {
 	VkResult result;
 	m_device = &device;
+	m_size = size;
 #if 0
 	switch (buffer_type) {
 		//with staging buffer
@@ -141,17 +142,17 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, VULKAN_BUFFER_TYPE bu
 			size,
 			usage,
 			properties,
-			m_buffer,
+			m_handle,
 			m_memory
 		);
-		this->copy_buffer(staging_buffer.m_buffer, m_buffer, size);
+		this->copy_buffer(staging_buffer.m_handle, m_handle, size);
 		staging_buffer.deinit();
 	} else {
 		this->create_buffer(
 			size,
 			usage,
 			properties,
-			m_buffer,
+			m_handle,
 			m_memory
 		);
 	}
@@ -240,10 +241,10 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, VULKAN_BUFFER_TYPE bu
 
 
 auto VulkanBuffer::deinit() -> void {
-	vkDestroyBuffer(m_device->m_handle, m_buffer, nullptr);
+	vkDestroyBuffer(m_device->m_handle, m_handle, nullptr);
 	vkFreeMemory(m_device->m_handle, m_memory, nullptr);
 
-	m_buffer = VK_NULL_HANDLE;
+	m_handle = VK_NULL_HANDLE;
 	m_memory = VK_NULL_HANDLE;
 }
 

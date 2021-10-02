@@ -14,6 +14,7 @@ public:
 	auto deinit() -> void;
 
 	auto allocate_command_buffers(u32 amount) const -> std::vector<VulkanCommandBuffer>;
+	auto allocate_command_buffer() const -> VulkanCommandBuffer;
 	auto free_command_buffers(const std::vector<VulkanCommandBuffer>& command_buffers) const -> void;
 public:
 	const VulkanLogicalDevice* m_device = nullptr;

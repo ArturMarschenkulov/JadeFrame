@@ -38,9 +38,9 @@ private:
 public:
 	const VULKAN_BUFFER_TYPE m_type = VULKAN_BUFFER_TYPE::UNINIT;
 	//	VkBufferUsageFlags m_usage = 0;
-	//	VkDeviceSize m_buffer_size = 0;
+	VkDeviceSize m_size = 0;
 
-	VkBuffer m_buffer = VK_NULL_HANDLE;
+	VkBuffer m_handle = VK_NULL_HANDLE;
 	VkDeviceMemory m_memory = VK_NULL_HANDLE;
 
 	const VulkanLogicalDevice* m_device = nullptr;
