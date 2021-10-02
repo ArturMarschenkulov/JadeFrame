@@ -55,12 +55,11 @@ static Meshhh g_mesh;
 
 
 auto VulkanLogicalDevice::recreate_swapchain() -> void {
-	__debugbreak();
+	m_render_pass.deinit();
 	m_swapchain.deinit();
 
 	m_swapchain.init(*this, *m_physical_device_p, m_instance_p->m_surface);
 	m_render_pass.init(*this, m_swapchain.m_image_format);
-	//m_pipeline.init(*this, m_swapchain.m_extent, m_descriptor_set_layout, m_render_pass, GLSLCodeLoader::get_by_name("spirv_test_0"));
 	m_swapchain.create_framebuffers(m_render_pass);
 	m_images_in_flight.resize(m_swapchain.m_images.size());
 

@@ -330,12 +330,9 @@
     <ClInclude Include="src\JadeFrame\graphics\to_spirv.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_buffer.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_command_buffers.h" />
-    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_command_pool.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_context.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_debug.h" />
-    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_pool.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_set.h" />
-    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_set_layout.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_instance.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_logical_device.h" />
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_physical_device.h" />
@@ -437,12 +434,9 @@
     <ClCompile Include="src\JadeFrame\graphics\to_spirv.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_buffer.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_command_buffers.cpp" />
-    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_command_pool.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_context.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_debug.cpp" />
-    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_pool.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_set.cpp" />
-    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_set_layout.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_instance.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_logical_device.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_physical_device.cpp" />

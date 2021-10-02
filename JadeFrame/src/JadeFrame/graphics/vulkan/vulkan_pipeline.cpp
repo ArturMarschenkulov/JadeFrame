@@ -2,7 +2,7 @@
 #include "vulkan_pipeline.h"
 #include "vulkan_logical_device.h"
 #include "vulkan_swapchain.h"
-#include "vulkan_descriptor_set_layout.h"
+#include "vulkan_descriptor_set.h"
 #include "vulkan_render_pass.h"
 
 #include "../to_spirv.h"

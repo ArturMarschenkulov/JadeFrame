@@ -15,6 +15,7 @@ class VulkanDescriptorSet;
 class VulkanBuffer;
 class VulkanPipeline;
 class VulkanFramebuffer;
+class QueueFamilyIndices;
 
 class VulkanCommandBuffer {
 public:
@@ -40,5 +41,18 @@ public:
 	VkCommandBuffer m_handle;
 	const VulkanLogicalDevice* m_device = nullptr;
 	const VulkanCommandPool* m_command_pool = nullptr;
+};
+
+class VulkanCommandPool {
+public:
+	auto init(const VulkanLogicalDevice& device, const QueueFamilyIndices& queue_family_indices) -> void;
+	auto deinit() -> void;
+
+	auto allocate_command_buffers(u32 amount) const->std::vector<VulkanCommandBuffer>;
+	auto allocate_command_buffer() const->VulkanCommandBuffer;
+	auto free_command_buffers(const std::vector<VulkanCommandBuffer>& command_buffers) const -> void;
+public:
+	const VulkanLogicalDevice* m_device = nullptr;
+	VkCommandPool m_handle = VK_NULL_HANDLE;
 };
 }
