@@ -54,9 +54,9 @@ public: // Descriptor set
 	std::vector<VulkanDescriptorSet> m_descriptor_sets;
 
 public:
-	auto update_uniform_buffer(VulkanBuffer& uniform_buffer, const Matrix4x4& view_projection) -> void;
-	auto update_ubo(const Matrix4x4& view_projection) -> UniformBufferObject;
-	std::vector<VulkanBuffer> m_uniform_buffers = { VULKAN_BUFFER_TYPE::UNIFORM };
+	//auto update_uniform_buffer(VulkanBuffer& uniform_buffer, const Matrix4x4& view_projection) -> void;
+	//auto update_ubo(const Matrix4x4& view_projection) -> UniformBufferObject;
+	std::vector<VulkanBuffer> m_uniform_buffers = { VulkanBuffer::TYPE::UNIFORM };
 
 public:
 	VulkanCommandPool m_command_pool;

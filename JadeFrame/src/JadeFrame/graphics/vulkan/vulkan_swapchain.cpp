@@ -14,38 +14,6 @@
 
 namespace JadeFrame {
 
-static auto create_image_views(const VulkanLogicalDevice& device, std::vector<VkImage>& images, VkFormat format) -> std::vector<VkImageView> {
-	VkResult result;
-
-	std::vector<VkImageView> image_views;
-	image_views.resize(images.size());
-
-	for (size_t i = 0; i < images.size(); i++) {
-		VkImageViewCreateInfo create_info = {
-			.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-			.image = images[i],
-			.viewType = VK_IMAGE_VIEW_TYPE_2D,
-			.format = format,
-			.components = {
-				.r = VK_COMPONENT_SWIZZLE_R,
-				.g = VK_COMPONENT_SWIZZLE_G,
-				.b = VK_COMPONENT_SWIZZLE_B,
-				.a = VK_COMPONENT_SWIZZLE_A,
-			},
-			.subresourceRange = {
-				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-				.baseMipLevel = 0,
-				.levelCount = 1,
-				.baseArrayLayer = 0,
-				.layerCount = 1,
-			}
-		};
-
-		result = vkCreateImageView(device.m_handle, &create_info, nullptr, &image_views[i]);
-		if (result != VK_SUCCESS) __debugbreak();
-	}
-	return image_views;
-}
 static auto choose_surface_format(const std::vector<VkSurfaceFormatKHR>& available_surface_formats) ->VkSurfaceFormatKHR {
 	for (u32 i = 0; i < available_surface_formats.size(); i++) {
 		if (available_surface_formats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
@@ -57,12 +25,20 @@ static auto choose_surface_format(const std::vector<VkSurfaceFormatKHR>& availab
 
 }
 static auto choose_present_mode(const std::vector<VkPresentModeKHR>& available_surface_formats) -> VkPresentModeKHR {
+	std::array<VkPresentModeKHR, 3> mode_ranks = {
+		VK_PRESENT_MODE_FIFO_KHR, 
+		VK_PRESENT_MODE_MAILBOX_KHR,
+		VK_PRESENT_MODE_IMMEDIATE_KHR
+	};
 	for (u32 i = 0; i < available_surface_formats.size(); i++) {
-		if (available_surface_formats[i] == VK_PRESENT_MODE_MAILBOX_KHR) {
-			return available_surface_formats[i];
+		for(u32 j = 0; j < mode_ranks.size(); j++) {
+			if(available_surface_formats[i] == mode_ranks[j]) {
+				const VkPresentModeKHR best_mode = available_surface_formats[i];
+				return best_mode;
+			}
 		}
 	}
-	return VK_PRESENT_MODE_FIFO_KHR;
+	assert(!"Should not reach here!");
 }
 static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities, const VulkanSwapchain& swapchain) -> VkExtent2D {
 		//vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_surface, &m_surface_capabilities);
@@ -151,6 +127,7 @@ auto VulkanSwapchain::init(
 
 	std::vector<VkImage> images;
 	result = vkGetSwapchainImagesKHR(device.m_handle, m_handle, &image_count, nullptr);
+	if (VK_SUCCESS != result) __debugbreak();
 	images.resize(image_count);
 	result = vkGetSwapchainImagesKHR(device.m_handle, m_handle, &image_count, images.data());
 	if (VK_SUCCESS != result) __debugbreak();
@@ -175,9 +152,6 @@ auto VulkanSwapchain::deinit() -> void {
 	}
 
 	vkDestroySwapchainKHR(m_device->m_handle, m_handle, nullptr);
-
-	m_height = 0;
-	m_width = 0;
 }
 
 auto VulkanSwapchain::create_framebuffers(const VulkanRenderPass& render_pass) -> void {

@@ -95,12 +95,11 @@ auto VulkanCommandBuffer::reset() -> void {
 auto VulkanCommandPool::init(const VulkanLogicalDevice& device, const QueueFamilyIndices& queue_family_indices) -> void {
 	m_device = &device;
 	VkResult result;
-	//QueueFamilyIndices queue_family_indices = physical_device.m_queue_family_indices;
 
 	const VkCommandPoolCreateInfo pool_info = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
 		.pNext = nullptr,
-		.flags = 0, // Optional
+		.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, // Optional
 		.queueFamilyIndex = queue_family_indices.m_graphics_family.value(),
 	};
 

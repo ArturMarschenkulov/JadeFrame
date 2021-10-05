@@ -51,6 +51,7 @@ public:
 	auto deinit() -> void;
 
 	auto allocate_descriptor_sets(const VulkanDescriptorSetLayout& descriptor_set_layout, u32 image_amount)->std::vector<VulkanDescriptorSet>;
+	auto free_descriptor_sets(const std::vector<VulkanDescriptorSet>& descriptor_sets) -> void;
 
 public:
 	const VulkanLogicalDevice* m_device = nullptr;

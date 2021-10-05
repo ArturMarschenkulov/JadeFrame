@@ -51,7 +51,7 @@ auto VertexDataFactory::make_line(const Vec3& pos1, const Vec3& pos2) -> VertexD
 	return vertex_data;
 }
 
-auto VertexDataFactory::make_rectangle(const Vec3& pos, const Vec3& size, const DESC desc) -> VertexData {
+auto VertexDataFactory::make_rectangle(const Vec3& pos, const Vec3& size, const Desc desc) -> VertexData {
 	VertexData vertex_data;
 	vertex_data.m_positions.resize(6);
 	vertex_data.m_positions[00] = { pos.x			, pos.y			, pos.z };

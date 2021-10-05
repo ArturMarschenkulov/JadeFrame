@@ -116,11 +116,15 @@ layout(location = 0) out vec4 f_color;
 
 layout(std140, binding = 0) uniform UniformBufferObject {
     mat4 view_projection;
-    mat4 model;
+    //mat4 model;
 } u_ubo;
 
+layout(push_constant) uniform PushConstants {
+	mat4 model_matrix;
+} push_conts;
+
 void main() {
-    gl_Position = u_ubo.view_projection * u_ubo.model * vec4(v_position, 1.0);
+    gl_Position = u_ubo.view_projection * push_conts.model_matrix * vec4(v_position, 1.0);
 	f_color = v_color;
 }
 )";

@@ -10,120 +10,44 @@ namespace JadeFrame {
 
 
 
-VulkanBuffer::VulkanBuffer(const VULKAN_BUFFER_TYPE type)
+VulkanBuffer::VulkanBuffer(const VulkanBuffer::TYPE type)
 	: m_type(type) {
 }
 
-auto VulkanBuffer::init(const VulkanLogicalDevice& device, VULKAN_BUFFER_TYPE buffer_type, void* data, size_t size) -> void {
+auto VulkanBuffer::init(const VulkanLogicalDevice& device, VulkanBuffer::TYPE buffer_type, void* data, size_t size) -> void {
 	VkResult result;
 	m_device = &device;
 	m_size = size;
-#if 0
-	switch (buffer_type) {
-		//with staging buffer
-		case VULKAN_BUFFER_TYPE::VERTEX:
-		case VULKAN_BUFFER_TYPE::INDEX:
-		{
 
-			VulkanBuffer staging_buffer = { VULKAN_BUFFER_TYPE::STAGING };
-			staging_buffer.init(device, VULKAN_BUFFER_TYPE::STAGING, nullptr, size);
-
-			void* mapped_data = staging_buffer.map_to_GPU(data, size);
-
-			VkBufferUsageFlags usage;
-			VkMemoryPropertyFlags properties;
-
-			switch (buffer_type) {
-				case VULKAN_BUFFER_TYPE::VERTEX:
-				{
-					if (m_type != VULKAN_BUFFER_TYPE::VERTEX) __debugbreak();
-
-					usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-					properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-				}break;
-				case VULKAN_BUFFER_TYPE::INDEX:
-				{
-					if (m_type != VULKAN_BUFFER_TYPE::INDEX) __debugbreak();
-
-					usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-					properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-				}break;
-				default: __debugbreak();
-			}
-
-			this->create_buffer(
-				size,
-				usage,
-				properties,
-				m_buffer,
-				m_memory
-			);
-			this->copy_buffer(staging_buffer.m_buffer, m_buffer, size);
-			staging_buffer.deinit();
-		} break;
-		// without staging buffer
-		case VULKAN_BUFFER_TYPE::UNIFORM:
-		case VULKAN_BUFFER_TYPE::STAGING:
-		{
-
-			VkBufferUsageFlags usage;
-			VkMemoryPropertyFlags properties;
-
-			switch (buffer_type) {
-				case VULKAN_BUFFER_TYPE::UNIFORM:
-				{
-					if (m_type != VULKAN_BUFFER_TYPE::UNIFORM) __debugbreak();
-					usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-					properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-				}break;
-				case VULKAN_BUFFER_TYPE::STAGING:
-				{
-					if (m_type != VULKAN_BUFFER_TYPE::STAGING) __debugbreak();
-					usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-					properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-				}break;
-				default: __debugbreak();
-			}
-
-			this->create_buffer(
-				size,
-				usage,
-				properties,
-				m_buffer,
-				m_memory
-			);
-		} break;
-	}
-#elif 1
 	bool b_with_staging_buffer;
 	VkBufferUsageFlags usage;
 	VkMemoryPropertyFlags properties;
 
 	switch (buffer_type) {
-		case VULKAN_BUFFER_TYPE::VERTEX:
+		case VulkanBuffer::TYPE::VERTEX:
 		{
-			if (m_type != VULKAN_BUFFER_TYPE::VERTEX) __debugbreak();
+			if (m_type != VulkanBuffer::TYPE::VERTEX) __debugbreak();
 			b_with_staging_buffer = true;
 			usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 			properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 		}break;
-		case VULKAN_BUFFER_TYPE::INDEX:
+		case  VulkanBuffer::TYPE::INDEX:
 		{
-			if (m_type != VULKAN_BUFFER_TYPE::INDEX) __debugbreak();
+			if (m_type != VulkanBuffer::TYPE::INDEX) __debugbreak();
 			b_with_staging_buffer = true;
 			usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
 			properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 		}break;
-		case VULKAN_BUFFER_TYPE::UNIFORM:
+		case  VulkanBuffer::TYPE::UNIFORM:
 		{
-			if (m_type != VULKAN_BUFFER_TYPE::UNIFORM) __debugbreak();
+			if (m_type != VulkanBuffer::TYPE::UNIFORM) __debugbreak();
 			b_with_staging_buffer = false;
 			usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 			properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 		}break;
-		case VULKAN_BUFFER_TYPE::STAGING:
+		case  VulkanBuffer::TYPE::STAGING:
 		{
-			if (m_type != VULKAN_BUFFER_TYPE::STAGING) __debugbreak();
+			if (m_type != VulkanBuffer::TYPE::STAGING) __debugbreak();
 			b_with_staging_buffer = false;
 			usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 			properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
@@ -131,9 +55,9 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, VULKAN_BUFFER_TYPE bu
 		default: __debugbreak(); break;
 	}
 
-	if (b_with_staging_buffer) {
-		VulkanBuffer staging_buffer = { VULKAN_BUFFER_TYPE::STAGING };
-		staging_buffer.init(device, VULKAN_BUFFER_TYPE::STAGING, nullptr, size);
+	if (b_with_staging_buffer == true) {
+		VulkanBuffer staging_buffer = { VulkanBuffer::TYPE::STAGING };
+		staging_buffer.init(device, VulkanBuffer::TYPE::STAGING, nullptr, size);
 
 
 		void* mapped_data = staging_buffer.map_to_GPU(data, size);
@@ -148,6 +72,7 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, VULKAN_BUFFER_TYPE bu
 		this->copy_buffer(staging_buffer.m_handle, m_handle, size);
 		staging_buffer.deinit();
 	} else {
+		assert(data == nullptr);
 		this->create_buffer(
 			size,
 			usage,
@@ -156,87 +81,6 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, VULKAN_BUFFER_TYPE bu
 			m_memory
 		);
 	}
-#else
-	switch (buffer_type) {
-		case VULKAN_BUFFER_TYPE::VERTEX:
-		{
-			if (m_type != VULKAN_BUFFER_TYPE::VERTEX) __debugbreak();
-
-			VulkanBuffer staging_buffer = { VULKAN_BUFFER_TYPE::STAGING };
-			staging_buffer.init(device, VULKAN_BUFFER_TYPE::STAGING, nullptr, size);
-
-			void* mapped_data = staging_buffer.map_to_GPU(data, size);
-
-
-			VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-			VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-			this->create_buffer(
-				size,
-				usage,
-				properties,
-				m_buffer,
-				m_memory
-			);
-			this->copy_buffer(staging_buffer.m_buffer, m_buffer, size);
-			staging_buffer.deinit();
-
-		}break;
-		case VULKAN_BUFFER_TYPE::INDEX:
-		{
-			if (m_type != VULKAN_BUFFER_TYPE::INDEX) __debugbreak();
-
-
-			VulkanBuffer staging_buffer = { VULKAN_BUFFER_TYPE::STAGING };
-			staging_buffer.init(device, VULKAN_BUFFER_TYPE::STAGING, nullptr, size);
-
-			void* mapped_data = staging_buffer.map_to_GPU(data, size);
-
-			VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-			VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-
-			this->create_buffer(
-				size,
-				usage,
-				properties,
-				m_buffer,
-				m_memory
-			);
-			this->copy_buffer(staging_buffer.m_buffer, m_buffer, size);
-			staging_buffer.deinit();
-		}break;
-		case VULKAN_BUFFER_TYPE::UNIFORM:
-		{
-			if (m_type != VULKAN_BUFFER_TYPE::UNIFORM) __debugbreak();
-
-			VkBufferUsageFlags usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-			VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-			this->create_buffer(
-				size,
-				usage,
-				properties,
-				m_buffer,
-				m_memory
-			);
-
-		}break;
-		case VULKAN_BUFFER_TYPE::STAGING:
-		{
-			if (m_type != VULKAN_BUFFER_TYPE::STAGING) __debugbreak();
-			b_with_staging_buffer = false;
-
-			VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-			VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-			this->create_buffer(
-				size,
-				usage,
-				properties,
-				m_buffer,
-				m_memory
-			);
-		}break;
-		default: __debugbreak(); break;
-	}
-#endif
 }
 
 
@@ -252,12 +96,19 @@ auto VulkanBuffer::map_to_GPU(void* data, VkDeviceSize size) -> void* {
 	VkResult result;
 
 	void* mapped_data;
-	result = vkMapMemory(m_device->m_handle, m_memory, 0, size, 0, &mapped_data); 
+	result = vkMapMemory(m_device->m_handle, m_memory, 0, size, 0, &mapped_data);
 	if (result != VK_SUCCESS) __debugbreak();
 	memcpy(mapped_data, data, static_cast<size_t>(size));
 	vkUnmapMemory(m_device->m_handle, m_memory);
 
 	return mapped_data;
+}
+
+auto VulkanBuffer::resize(size_t size) -> void {
+	if (size == m_size) return;
+
+	this->deinit();
+	this->init(*m_device, m_type, nullptr, size);
 }
 
 auto VulkanBuffer::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& buffer_memory) -> void {
@@ -273,7 +124,6 @@ auto VulkanBuffer::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, Vk
 		.queueFamilyIndexCount = 0,
 		.pQueueFamilyIndices = nullptr,
 	};
-
 	result = vkCreateBuffer(m_device->m_handle, &buffer_info, nullptr, &buffer);
 	if (result != VK_SUCCESS) __debugbreak();
 
@@ -334,9 +184,9 @@ auto VulkanBuffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDevic
 Vulkan_GPUMeshData::Vulkan_GPUMeshData(const VulkanLogicalDevice& device, const VertexData& vertex_data, const VertexFormat& vertex_format, bool interleaved) {
 	const std::vector<f32> data = convert_into_data(vertex_data, interleaved);
 
-	m_vertex_buffer.init(device, VULKAN_BUFFER_TYPE::VERTEX, (void*)data.data(), sizeof(data[0]) * data.size());
+	m_vertex_buffer.init(device, VulkanBuffer::TYPE::VERTEX, (void*)data.data(), sizeof(data[0]) * data.size());
 	if (vertex_data.m_indices.size() > 0) {
-		m_index_buffer.init(device, VULKAN_BUFFER_TYPE::INDEX, (void*)vertex_data.m_indices.data(), sizeof(vertex_data.m_indices[0]) * vertex_data.m_indices.size());
+		m_index_buffer.init(device, VulkanBuffer::TYPE::INDEX, (void*)vertex_data.m_indices.data(), sizeof(vertex_data.m_indices[0]) * vertex_data.m_indices.size());
 	}
 
 }

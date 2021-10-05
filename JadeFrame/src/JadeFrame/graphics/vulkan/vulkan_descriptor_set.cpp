@@ -41,10 +41,11 @@ auto VulkanDescriptorSet::update() -> void {
 auto VulkanDescriptorSet::add_uniform_buffer(const VulkanBuffer& buffer, VkDeviceSize offset, u32 binding) -> void {
 	//if (m_handle != VK_NULL_HANDLE) __debugbreak();
 
-	VkDescriptorBufferInfo dbi = {};
-	dbi.buffer = buffer.m_handle;
-	dbi.offset = offset;
-	dbi.range = buffer.m_size;
+	VkDescriptorBufferInfo dbi = {
+		.buffer = buffer.m_handle,
+		.offset = offset,
+		.range = buffer.m_size,
+	};
 
 	m_descriptor_buffer_infos.push_back(dbi);
 
@@ -95,8 +96,8 @@ auto VulkanDescriptorPool::init(const VulkanLogicalDevice& device, u32 amount) -
 
 	const VkDescriptorPoolCreateInfo pool_info = {
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-		.pNext = {},
-		.flags = 0,
+		.pNext = nullptr,
+		.flags = 0 /* | VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT*/ ,
 		.maxSets = amount,
 		.poolSizeCount = 1,
 		.pPoolSizes = &pool_size,
@@ -136,6 +137,16 @@ auto VulkanDescriptorPool::allocate_descriptor_sets(const VulkanDescriptorSetLay
 	}
 	return descriptor_sets;
 
+}
+
+auto VulkanDescriptorPool::free_descriptor_sets(const std::vector<VulkanDescriptorSet>& descriptor_sets) -> void {
+	//for(u32 i = 0; i < descriptor_sets.size(); i++) {
+	//	VkResult result;
+	//	result = vkFreeDescriptorSets(m_device->m_handle, m_handle, 1, &descriptor_sets[i].m_handle);
+	//	if (result != VK_SUCCESS) __debugbreak();
+	//}
+	vkResetDescriptorPool(m_device->m_handle, m_handle, 0);
+	//vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr);
 }
 
 }

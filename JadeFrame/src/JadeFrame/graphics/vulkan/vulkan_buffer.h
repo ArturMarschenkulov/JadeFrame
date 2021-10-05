@@ -16,27 +16,35 @@ namespace JadeFrame {
 class VulkanLogicalDevice;
 class VulkanPhysicalDevice;
 
-enum class VULKAN_BUFFER_TYPE {
-	UNINIT, // TODO: find ways to remove it
-	VERTEX,
-	INDEX,
-	UNIFORM,
-	STAGING,
-};
+//enum class VULKAN_BUFFER_TYPE {
+//	UNINIT, // TODO: find ways to remove it
+//	VERTEX,
+//	INDEX,
+//	UNIFORM,
+//	STAGING,
+//};
 
 class VulkanBuffer {
 public:
+	enum TYPE {
+		UNINIT, // TODO: find ways to remove it
+		VERTEX,
+		INDEX,
+		UNIFORM,
+		STAGING
+	};
 	VulkanBuffer() = default;
-	VulkanBuffer(const VULKAN_BUFFER_TYPE type);
-	auto init(const VulkanLogicalDevice& device, VULKAN_BUFFER_TYPE buffer_type, void* data, size_t size) -> void;
+	VulkanBuffer(const VulkanBuffer::TYPE type);
+	auto init(const VulkanLogicalDevice& device, VulkanBuffer::TYPE buffer_type, void* data, size_t size) -> void;
 	auto deinit() -> void;
 	auto map_to_GPU(void* data, VkDeviceSize size) -> void*;
+	auto resize(size_t size) -> void;
 private:
 	auto create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& buffer_memory) -> void;
 	auto copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size) -> void;
 
 public:
-	const VULKAN_BUFFER_TYPE m_type = VULKAN_BUFFER_TYPE::UNINIT;
+	const VulkanBuffer::TYPE m_type = VulkanBuffer::TYPE::UNINIT;
 	//	VkBufferUsageFlags m_usage = 0;
 	VkDeviceSize m_size = 0;
 
@@ -54,8 +62,8 @@ public:
 	auto bind() const -> void;
 	auto set_layout(const VertexFormat& vertex_format) -> void;
 public:
-	VulkanBuffer m_vertex_buffer = VULKAN_BUFFER_TYPE::VERTEX;
-	VulkanBuffer m_index_buffer = VULKAN_BUFFER_TYPE::INDEX;
+	VulkanBuffer m_vertex_buffer = VulkanBuffer::TYPE::VERTEX;
+	VulkanBuffer m_index_buffer = VulkanBuffer::TYPE::INDEX;
 	VertexFormat m_vertex_format;
 };
 

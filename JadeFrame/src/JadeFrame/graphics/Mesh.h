@@ -109,7 +109,7 @@ inline auto convert_into_data(const VertexData& vertex_data, const bool interlea
 
 class VertexDataFactory {
 public:
-	struct DESC {
+	struct Desc {
 		bool has_position = true; //NOTE: Probably unneccessary
 		bool has_texture_coordinates = true;
 		bool has_indices = false;
@@ -117,7 +117,7 @@ public:
 	};
 	static auto make_line(const Vec3& pos1, const Vec3& pos2)->VertexData;
 
-	static auto make_rectangle(const Vec3& pos, const Vec3& size, const DESC desc = DESC{})->VertexData;
+	static auto make_rectangle(const Vec3& pos, const Vec3& size, const Desc desc = Desc{})->VertexData;
 	static auto make_triangle(const Vec3& pos1, const Vec3& pos2, const Vec3& pos3)->VertexData;
 	static auto make_circle(const Vec3& position, const f32 radius, const u32 numSegments)->VertexData;
 

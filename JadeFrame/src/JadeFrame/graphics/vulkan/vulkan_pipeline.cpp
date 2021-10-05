@@ -6,6 +6,10 @@
 #include "vulkan_render_pass.h"
 
 #include "../to_spirv.h"
+#include "extern/SPIRV-Cross/spirv_glsl.hpp"
+#include "extern/SPIRV-Cross/spirv_hlsl.hpp"
+#include "extern/SPIRV-Cross/spirv_msl.hpp"
+
 
 #include <array>
 
@@ -66,7 +70,7 @@ static auto create_shader_module_from_spirv(VkDevice device, const std::vector<u
 
 
 auto VulkanPipeline::init(
-	const VulkanLogicalDevice& device, 
+	const VulkanLogicalDevice& device,
 	const VkExtent2D& extent,
 	const VulkanDescriptorSetLayout& descriptor_set_layout,
 	const VulkanRenderPass& render_pass,
@@ -74,9 +78,6 @@ auto VulkanPipeline::init(
 	const VertexFormat& vertex_format) -> void {
 
 	VkResult result;
-	//auto tm = &JadeFrame::get_singleton()->m_apps[0]->m_time_manager;
-	//auto time_0 = tm->get_time();
-
 	if (m_is_compiled == false) {
 		std::future<std::vector<u32>> vert_shader_spirv = std::async(std::launch::async, string_to_SPIRV, code.m_vertex_shader.c_str(), 0);
 		std::future<std::vector<u32>> frag_shader_spirv = std::async(std::launch::async, string_to_SPIRV, code.m_fragment_shader.c_str(), 1);
@@ -84,16 +85,52 @@ auto VulkanPipeline::init(
 		m_vert_shader_spirv = vert_shader_spirv.get();
 		m_frag_shader_spirv = frag_shader_spirv.get();
 
+		
+		std::cout << "|-------------GLSL-------------|" << std::endl;
+		std::cout << spirv_cross::CompilerGLSL(m_vert_shader_spirv).compile() << std::endl;
+		std::cout << spirv_cross::CompilerGLSL(m_frag_shader_spirv).compile() << std::endl;
+		std::cout << "|-------------HLSL-------------|" << std::endl;
+		std::cout << spirv_cross::CompilerHLSL(m_vert_shader_spirv).compile() << std::endl;
+		std::cout << spirv_cross::CompilerHLSL(m_frag_shader_spirv).compile() << std::endl;
+		std::cout << "|-------------MSL--------------|" << std::endl;
+		std::cout << spirv_cross::CompilerMSL(m_vert_shader_spirv).compile() << std::endl;
+		std::cout << spirv_cross::CompilerMSL(m_frag_shader_spirv).compile() << std::endl;
+		std::cout << "|------------------------------|" << std::endl;
+
 		m_is_compiled = true;
+	}
+
+
+	{
+		std::vector cs = { m_vert_shader_spirv, m_frag_shader_spirv };
+
+
+		spirv_cross::CompilerGLSL compiler(m_vert_shader_spirv);
+		spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+
+		for (const spirv_cross::Resource& resource : resources.push_constant_buffers) {
+			const std::string& buffer_name = resource.name;
+			const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.base_type_id);
+			u32 buffer_size = (u32)compiler.get_declared_struct_size(buffer_type);
+			u32 member_count = uint32_t(buffer_type.member_types.size());
+			u32 buffer_offset = 0;
+			if (m_push_constant_ranges.size() != 0) {
+				buffer_offset = m_push_constant_ranges.back().offset + m_push_constant_ranges.back().size;
+			}
+			PushConstantRange& push_constant_range = m_push_constant_ranges.emplace_back();
+			push_constant_range.shader_stage = VK_SHADER_STAGE_VERTEX_BIT;
+			push_constant_range.size = buffer_size - buffer_offset;
+			push_constant_range.offset = buffer_offset;
+
+
+		}
+
 	}
 
 	VkShaderModule vert_shader_module = create_shader_module_from_spirv(device.m_handle, m_vert_shader_spirv);
 	VkShaderModule frag_shader_module = create_shader_module_from_spirv(device.m_handle, m_frag_shader_spirv);
 
 
-
-	//auto time_1 = tm->get_time();
-	//Logger::log("it took ", time_1 - time_0);
 
 	const VkPipelineShaderStageCreateInfo vert_shader_stage_info = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -104,7 +141,6 @@ auto VulkanPipeline::init(
 		.pName = "main",
 		.pSpecializationInfo = nullptr,
 	};
-
 	const VkPipelineShaderStageCreateInfo frag_shader_stage_info = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
 		.pNext = nullptr,
@@ -114,21 +150,13 @@ auto VulkanPipeline::init(
 		.pName = "main",
 		.pSpecializationInfo = nullptr,
 	};
-
 	VkPipelineShaderStageCreateInfo shader_stages[] = {
 		vert_shader_stage_info,
 		frag_shader_stage_info,
 	};
 
-
-	//VertexFormat vf = {
-	//	{"v_position", SHADER_TYPE::FLOAT_2 },
-	//	{"v_color", SHADER_TYPE::FLOAT_3 },
-	//};
 	VkVertexInputBindingDescription binding_description = get_binding_description(vertex_format);
 	std::vector<VkVertexInputAttributeDescription> attribute_descriptions = get_attribute_descriptions(vertex_format);
-	//VkVertexInputBindingDescription binding_description = VVertex::get_binding_description();
-	//std::array<VkVertexInputAttributeDescription, 2> attribute_descriptions = VVertex::get_attribute_descriptions();
 
 	const VkPipelineVertexInputStateCreateInfo vertex_input_info = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -164,6 +192,8 @@ auto VulkanPipeline::init(
 
 	const VkPipelineViewportStateCreateInfo viewport_state = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+		.pNext = nullptr,
+		.flags = 0,
 		.viewportCount = 1,
 		.pViewports = &viewport,
 		.scissorCount = 1,
@@ -172,8 +202,8 @@ auto VulkanPipeline::init(
 
 	const VkPipelineRasterizationStateCreateInfo rasterizer = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-		.pNext = {},
-		.flags = {},
+		.pNext = nullptr,
+		.flags = 0,
 		.depthClampEnable = VK_FALSE,
 		.rasterizerDiscardEnable = VK_FALSE,
 		.polygonMode = VK_POLYGON_MODE_FILL,
@@ -211,8 +241,8 @@ auto VulkanPipeline::init(
 
 	const VkPipelineColorBlendStateCreateInfo color_blending = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-		.pNext = {},
-		.flags = {},
+		.pNext = nullptr,
+		.flags = 0,
 		.logicOpEnable = VK_FALSE,
 		.logicOp = VK_LOGIC_OP_COPY,
 		.attachmentCount = 1,
@@ -220,13 +250,22 @@ auto VulkanPipeline::init(
 		.blendConstants = {0.0f, 0.0f, 0.0f, 0.0f},
 	};
 
+	std::vector<VkPushConstantRange> vulkan_push_constant_ranges(m_push_constant_ranges.size());
+	for (u32 i = 0; i < m_push_constant_ranges.size(); i++) {
+		const PushConstantRange& push_constant_range = m_push_constant_ranges[i];
+		VkPushConstantRange& vulkan_push_constant_range = vulkan_push_constant_ranges[i];
+
+		vulkan_push_constant_range.stageFlags = push_constant_range.shader_stage;
+		vulkan_push_constant_range.offset = push_constant_range.offset;
+		vulkan_push_constant_range.size = push_constant_range.size;
+	}
 	const VkPipelineLayoutCreateInfo pipeline_layout_info = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
 		.pNext = nullptr,
 		.setLayoutCount = 1,
 		.pSetLayouts = &descriptor_set_layout.m_handle,
-		.pushConstantRangeCount = 0,
-		.pPushConstantRanges = {},
+		.pushConstantRangeCount = (u32)vulkan_push_constant_ranges.size(),
+		.pPushConstantRanges = vulkan_push_constant_ranges.data(),
 	};
 
 	result = vkCreatePipelineLayout(device.m_handle, &pipeline_layout_info, nullptr, &m_pipeline_layout);
@@ -268,8 +307,7 @@ auto VulkanPipeline::deinit() -> void {
 }
 
 auto VulkanPipeline::operator=(const VulkanPipeline& o) {
-	//m_vert_shader_spirv = std::move(o.m_vert_shader_spirv);
-	//m_frag_shader_spirv = o.m_frag_shader_spirv;
+	__debugbreak();
 }
 
 }

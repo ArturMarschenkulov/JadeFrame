@@ -42,11 +42,11 @@ static auto window_resize_callback(Windows_Window& window, const WindowsMessage&
 	auto& renderer = JadeFrameInstance::get_singleton()->m_current_app_p->m_renderer;
 	renderer->set_viewport(0, 0, size.width, size.height);
 
-	static i32 rrr = 1;
-	if (rrr % 20 == 0) {
-		__debugbreak();
-	}
-	rrr++;
+	//static i32 rrr = 1;
+	//if (rrr % 20 == 0) {
+	//	__debugbreak();
+	//}
+	//rrr++;
 
 }
 static auto window_move_callback(Windows_Window& window, const WindowsMessage& wm) -> void {
@@ -165,7 +165,7 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
 }
 
 
-static auto get_style(const Windows_Window::DESC& desc) -> ::DWORD {
+static auto get_style(const Windows_Window::Desc& desc) -> ::DWORD {
 	DWORD style = 0;
 
 	style |= (
@@ -188,13 +188,6 @@ static auto get_style(const Windows_Window::DESC& desc) -> ::DWORD {
 
 	return style;
 }
-
-//template<class T>
-//auto init_memory(T& data) -> void {
-//	static_assert(!std::is_pointer<T>::value, "'init_memory' does not allow pointer types");
-//	static_assert(std::is_pod<T>::value, "'init_memory' does only allow plain-old-data (POD)");
-//	::memset(&data, 0, sizeof(T));
-//}
 
 static auto register_class(HINSTANCE instance) -> ::WNDCLASSEX {
 	static bool is_window_class_registered = false;
@@ -223,7 +216,7 @@ static auto register_class(HINSTANCE instance) -> ::WNDCLASSEX {
 	assert(!"should not be here");
 }
 
-Windows_Window::Windows_Window(const Windows_Window::DESC& desc) {
+Windows_Window::Windows_Window(const Windows_Window::Desc& desc) {
 
 	::HINSTANCE instance = ::GetModuleHandleW(NULL);
 	if (instance == NULL) Logger::log("GetModuleHandleW(NULL) failed! {}", ::GetLastError());

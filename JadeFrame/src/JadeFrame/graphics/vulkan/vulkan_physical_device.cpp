@@ -79,13 +79,14 @@ auto VulkanPhysicalDevice::init(VulkanInstance& instance, const VulkanSurface& s
 
 
 	m_surface_support_details = query_surface_support_details(surface, *this);
-
 	{ // Query Queue Family Properties
 		u32 count = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, nullptr);
 		m_queue_family_properties.resize(count);
 		vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, m_queue_family_properties.data());
 	}
+	m_queue_family_indices = this->find_queue_families(surface);
+
 	{ // Query_extension_properties
 		u32 count = 0;
 		result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, nullptr);
@@ -94,7 +95,7 @@ auto VulkanPhysicalDevice::init(VulkanInstance& instance, const VulkanSurface& s
 		if (VK_SUCCESS != result) __debugbreak();
 	}
 	m_extension_support = this->check_extension_support(m_device_extensions);
-	m_queue_family_indices = this->find_queue_families(surface);
+
 	print_queue_families_info(*this);
 }
 
@@ -129,50 +130,6 @@ auto VulkanPhysicalDevice::find_queue_families(VulkanSurface surface) -> QueueFa
 	}
 	return indices;
 }
-//auto VulkanPhysicalDevice::choose_swap_surface_format() const -> VkSurfaceFormatKHR {
-//	
-//	for (u32 i = 0; i < m_surface_support_details.m_formats.size(); i++) {
-//		if (m_surface_support_details.m_formats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
-//			m_surface_support_details.m_formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-//			return m_surface_support_details.m_formats[i];
-//		}
-//	}
-//	return m_surface_support_details.m_formats[0];
-//}
-//auto VulkanPhysicalDevice::choose_swap_present_mode() const -> VkPresentModeKHR {
-//	for (u32 i = 0; i < m_surface_support_details.m_present_modes.size(); i++) {
-//		if (m_surface_support_details.m_present_modes[i] == VK_PRESENT_MODE_MAILBOX_KHR) {
-//			return m_surface_support_details.m_present_modes[i];
-//		}
-//	}
-//	return VK_PRESENT_MODE_FIFO_KHR;
-//}
-//auto VulkanPhysicalDevice::choose_swap_extent() const -> VkExtent2D {
-//	//vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_surface, &m_surface_capabilities);
-//	if (false/*m_surface_capabilities.currentExtent.width != UINT32_MAX*/) {
-//		return m_surface_support_details.m_capabilities.currentExtent;
-//	} else {
-//		RECT area;
-//		GetClientRect(m_instance_p->m_window_handle, &area);
-//		i32 width = area.right;
-//		i32 height = area.bottom;
-//		//glfwGetFramebufferSize(window, &width, &height);
-//
-//		VkExtent2D actual_extent = {
-//			static_cast<u32>(width),
-//			static_cast<u32>(height)
-//		};
-//
-//		//actual_extent.width = std::max(m_surface_capabilities.minImageExtent.width, std::min(m_surface_capabilities.maxImageExtent.width, actual_extent.width));
-//		//actual_extent.height = std::max(m_surface_capabilities.minImageExtent.height, std::min(m_surface_capabilities.maxImageExtent.height, actual_extent.height));
-//
-//
-//		//actual_extent.width = std::clamp(actual_extent.width, m_surface_capabilities.minImageExtent.width, m_surface_capabilities.maxImageExtent.width);
-//		//actual_extent.height = std::clamp(actual_extent.height, m_surface_capabilities.minImageExtent.height, m_surface_capabilities.maxImageExtent.height);
-//
-//		return actual_extent;
-//	}
-//}
 auto VulkanPhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32 {
 	const VkPhysicalDeviceMemoryProperties& mem_props = m_memory_properties;
 	for (u32 i = 0; i < mem_props.memoryTypeCount; i++) {

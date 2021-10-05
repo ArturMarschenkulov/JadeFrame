@@ -81,46 +81,46 @@ auto VulkanLogicalDevice::cleanup_swapchain() -> void {
 	vkDestroySwapchainKHR(m_handle, m_swapchain.m_handle, nullptr);
 }
 
-auto VulkanLogicalDevice::update_ubo(const Matrix4x4& view_projection) -> UniformBufferObject {
-	static auto start_time = std::chrono::high_resolution_clock::now();
+//auto VulkanLogicalDevice::update_ubo(const Matrix4x4& view_projection) -> UniformBufferObject {
+//	static auto start_time = std::chrono::high_resolution_clock::now();
+//
+//	auto current_time = std::chrono::high_resolution_clock::now();
+//	f32 time = std::chrono::duration<f32, std::chrono::seconds::period>(current_time - start_time).count();
+//
+//	UniformBufferObject ubo = {};
+//	ubo.model = Matrix4x4::rotation_matrix(
+//		time * to_radians(90.0f),
+//		Vec3(0.0f, 0.0f, 1.0f)
+//	);
+//	Matrix4x4 view(1.0f);
+//	Matrix4x4 proj(1.0f);
+//	proj[1][1] *= -1;
+//
+//	ubo.view_projection = view * proj;
+//	return ubo;
+//}
 
-	auto current_time = std::chrono::high_resolution_clock::now();
-	f32 time = std::chrono::duration<f32, std::chrono::seconds::period>(current_time - start_time).count();
-
-	UniformBufferObject ubo = {};
-	ubo.model = Matrix4x4::rotation_matrix(
-		time * to_radians(90.0f),
-		Vec3(0.0f, 0.0f, 1.0f)
-	);
-	Matrix4x4 view(1.0f);
-	Matrix4x4 proj(1.0f);
-	proj[1][1] *= -1;
-
-	ubo.view_projection = view * proj;
-	return ubo;
-}
-
-auto VulkanLogicalDevice::update_uniform_buffer(VulkanBuffer& uniform_buffer, const Matrix4x4& view_projection) -> void {
-	assert(uniform_buffer.m_type == VULKAN_BUFFER_TYPE::UNIFORM);
-	static auto start_time = std::chrono::high_resolution_clock::now();
-
-	auto current_time = std::chrono::high_resolution_clock::now();
-	f32 time = std::chrono::duration<f32, std::chrono::seconds::period>(current_time - start_time).count();
-
-	UniformBufferObject ubo = {};
-	ubo.model = Matrix4x4::rotation_matrix(
-		time * to_radians(90.0f),
-		Vec3(0.0f, 0.0f, 1.0f)
-	);
-	Matrix4x4 view(1.0f);
-	Matrix4x4 proj(1.0f);
-	proj[1][1] *= -1;
-
-	ubo.view_projection = view * proj;
-
-	void* mapped_data = uniform_buffer.map_to_GPU(&ubo, sizeof(ubo));
-
-}
+//auto VulkanLogicalDevice::update_uniform_buffer(VulkanBuffer& uniform_buffer, const Matrix4x4& view_projection) -> void {
+//	assert(uniform_buffer.m_type == VulkanBuffer::TYPE::UNIFORM);
+//	static auto start_time = std::chrono::high_resolution_clock::now();
+//
+//	auto current_time = std::chrono::high_resolution_clock::now();
+//	f32 time = std::chrono::duration<f32, std::chrono::seconds::period>(current_time - start_time).count();
+//
+//	UniformBufferObject ubo = {};
+//	ubo.model = Matrix4x4::rotation_matrix(
+//		time * to_radians(90.0f),
+//		Vec3(0.0f, 0.0f, 1.0f)
+//	);
+//	Matrix4x4 view(1.0f);
+//	Matrix4x4 proj(1.0f);
+//	proj[1][1] *= -1;
+//
+//	ubo.view_projection = view * proj;
+//
+//	void* mapped_data = uniform_buffer.map_to_GPU(&ubo, sizeof(ubo));
+//
+//}
 
 auto VulkanLogicalDevice::present_frame(const Matrix4x4& view_projection) -> void {
 	VkResult result;
@@ -141,7 +141,7 @@ auto VulkanLogicalDevice::present_frame(const Matrix4x4& view_projection) -> voi
 		}
 	}
 
-	this->update_uniform_buffer(m_uniform_buffers[image_index], view_projection);
+	//this->update_uniform_buffer(m_uniform_buffers[image_index], view_projection);
 	//~prepare buffers
 
 	if (m_images_in_flight[image_index].m_handle != VK_NULL_HANDLE) {
@@ -258,9 +258,9 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	const u32 swapchain_image_amount = m_swapchain.m_images.size();
 
 	// Uniform stuff
-	m_uniform_buffers.resize(swapchain_image_amount, VULKAN_BUFFER_TYPE::UNIFORM);
+	m_uniform_buffers.resize(swapchain_image_amount, VulkanBuffer::TYPE::UNIFORM);
 	for (u32 i = 0; i < swapchain_image_amount; i++) {
-		m_uniform_buffers[i].init(*this, VULKAN_BUFFER_TYPE::UNIFORM, nullptr, sizeof(UniformBufferObject));
+		m_uniform_buffers[i].init(*this, VulkanBuffer::TYPE::UNIFORM, nullptr, sizeof(UniformBufferObject));
 	}
 
 	// Descriptor stuff

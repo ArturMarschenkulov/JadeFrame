@@ -131,7 +131,7 @@ struct VVertex2 {
 };
 struct UniformBufferObject {
 	Matrix4x4 view_projection;
-	Matrix4x4 model;
+	//Matrix4x4 model;
 };
 
 struct UniformBufferObject_bkp {

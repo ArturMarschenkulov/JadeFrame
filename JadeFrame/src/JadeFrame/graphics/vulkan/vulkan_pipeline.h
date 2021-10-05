@@ -33,15 +33,17 @@ public:
 	VkPipeline m_graphics_pipeline;
 	const VulkanLogicalDevice* m_device = nullptr;
 
-	//VkShaderModule m_vert_shader_module = VK_NULL_HANDLE;
-	//VkShaderModule m_frag_shader_module = VK_NULL_HANDLE;
-
-	//std::future<std::vector<u32>> m_vert_shader_spirv;
-	//std::future<std::vector<u32>> m_frag_shader_spirv;
-
 	std::vector<u32> m_vert_shader_spirv;
 	std::vector<u32> m_frag_shader_spirv;
 
 	bool m_is_compiled = false;
+
+	// Reflect
+	struct PushConstantRange {
+		VkShaderStageFlagBits shader_stage = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+		u32 offset = 0;
+		u32 size = 0;
+	};
+	std::vector<PushConstantRange> m_push_constant_ranges;
 };
 }

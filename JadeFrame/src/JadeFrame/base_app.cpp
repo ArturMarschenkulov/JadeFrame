@@ -49,7 +49,7 @@ auto JadeFrameInstance::add(BaseApp* app) -> void {
 BaseApp::BaseApp(const DESC& desc) {
 	m_time_manager.initialize();
 
-	Windows_Window::DESC win_desc;
+	Windows_Window::Desc win_desc;
 	win_desc.title = desc.title;
 	win_desc.size = desc.size;
 	win_desc.position = desc.position;
@@ -146,6 +146,13 @@ static auto take_ownership(std::list<std::unique_ptr<BaseType>>& object_set, std
 	return ref;
 }
 
+//template<class T>
+//auto init_memory(T& data) -> void {
+//	static_assert(!std::is_pointer<T>::value, "'init_memory' does not allow pointer types");
+//	static_assert(std::is_pod<T>::value, "'init_memory' does only allow plain-old-data (POD)");
+//	::memset(&data, 0, sizeof(T));
+//}
+
 template<typename Left, typename Right>
 class Either {
 public:
@@ -169,6 +176,135 @@ private:
 		Right m_right;
 	};
 	bool m_is_left;
+};
+
+struct Error {
+	std::error_code type;
+	//VkResult vk_result = VK_SUCCESS; // optional error value if a vulkan call failed
+};
+template<typename T>
+class Result {
+public:
+	Result(const T& value)
+		: m_value{ value }
+		, m_init{ true } {}
+
+	Result(T&& value)
+		: m_value{ std::move(value) }
+		, m_init{ true } {}
+
+	Result(Error error)
+		: m_error{ error }
+		, m_init{ false } {}
+
+	Result(std::error_code error_code, VkResult result = VK_SUCCESS)
+		: m_error{ error_code, result }
+		, m_init{ false } {}
+
+	~Result() {
+		destroy();
+	}
+	Result(Result const& expected)
+		: m_init(expected.m_init) {
+		if (m_init)
+			new (&m_value) T{ expected.m_value };
+		else
+			m_error = expected.m_error;
+	}
+	Result(Result&& expected) : m_init(expected.m_init) {
+		if (m_init)
+			new (&m_value) T{ std::move(expected.m_value) };
+		else
+			m_error = std::move(expected.m_error);
+		expected.destroy();
+	}
+
+	Result& operator= (const T& expect) {
+		destroy();
+		m_init = true;
+		new (&m_value) T{ expect };
+		return *this;
+	}
+	Result& operator= (T&& expect) {
+		destroy();
+		m_init = true;
+		new (&m_value) T{ std::move(expect) };
+		return *this;
+	}
+	Result& operator= (const Error& error) {
+		destroy();
+		m_init = false;
+		m_error = error;
+		return *this;
+	}
+	Result& operator= (Error&& error) {
+		destroy();
+		m_init = false;
+		m_error = error;
+		return *this;
+	}
+	// clang-format off
+	const T* operator-> () const {
+		assert(m_init); 
+		return &m_value;
+	}
+	T* operator-> () {
+		assert(m_init); 
+		return &m_value;
+	}
+	const T& operator* () const& {
+		assert(m_init);	
+		return m_value;
+	}
+	T& operator* ()& {
+		assert(m_init); 
+		return m_value;
+	}
+	T&& operator* ()&& {
+		assert(m_init); 
+		return std::move(m_value);
+	}
+	const T& value() const& {
+		assert(m_init); 
+		return m_value;
+	}
+	T& value()& {
+		assert(m_init); 
+		return m_value;
+	}
+	const T&& value() const&& {
+		assert(m_init); 
+		return std::move(m_value);
+	}
+	T&& value()&& {
+		assert(m_init);
+		return std::move(m_value);
+	}
+
+	std::error_code error() const {
+		assert(!m_init); 
+		return m_error.type;
+	}
+	// clang-format on
+
+
+	bool has_value() const {
+		return m_init;
+	}
+	explicit operator bool() const {
+		return m_init;
+	}
+
+
+private:
+	void destroy() {
+		if (m_init) m_value.~T();
+	}
+	union {
+		T m_value;
+		Error m_error;
+	};
+	bool m_init;
 };
 
 

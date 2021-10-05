@@ -78,7 +78,7 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(windo
 
 
 
-	VertexDataFactory::DESC vdf_desc;
+	VertexDataFactory::Desc vdf_desc;
 	vdf_desc.has_normals = false;
 	VertexData vertex_data = VertexDataFactory::make_rectangle(
 		{ -1.0f, -1.0f, 0.0f }, { 2.0f, 2.0f, 0.0f },

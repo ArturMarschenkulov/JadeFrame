@@ -24,7 +24,7 @@ public:
 		MAXIMIZED,
 	};
 
-	struct DESC {
+	struct Desc {
 		std::string title;
 		Vec2 size;
 		Vec2 position; // NOTE: -1 means randomly chosen by OS
@@ -39,7 +39,7 @@ public:
 	auto operator=(Windows_Window&&) -> Windows_Window& = delete;
 
 	Windows_Window() = default;
-	Windows_Window(const Windows_Window::DESC& desc);
+	Windows_Window(const Windows_Window::Desc& desc);
 	~Windows_Window();
 
 
@@ -70,6 +70,7 @@ public:
 	bool has_focus = true;
 
 	WINDOW_STATE m_window_state = WINDOW_STATE::MINIMIZED;
+
 };
 
 }

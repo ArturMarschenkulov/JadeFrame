@@ -58,11 +58,6 @@ public:
 
 	VkFormat m_image_format;
 	VkExtent2D m_extent;
-	//std::vector<VkFramebuffer> m_framebuffers;
 	std::vector<VulkanFramebuffer> m_framebuffers;
-
-
-	u32 m_width = 0;
-	u32 m_height = 0;
 };
 }
