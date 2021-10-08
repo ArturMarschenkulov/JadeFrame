@@ -3,6 +3,7 @@
 #include "vulkan_logical_device.h"
 #include "vulkan_physical_device.h"
 #include "vulkan_buffer.h"
+#include "JadeFrame/utils/utils.h"
 
 #include <vector>
 #include <cassert>
@@ -10,13 +11,11 @@
 namespace JadeFrame {
 
 class VulkanLogicalDevice;
-
+/*---------------------------
+	Descriptor Set
+---------------------------*/
 auto VulkanDescriptorSet::update() -> void {
-	//VkDescriptorBufferInfo buffer_info = {
-	//	.buffer = uniform_buffer.m_buffer,
-	//	.offset = 0,
-	//	.range = sizeof(UniformBufferObject),
-	//};
+
 
 	std::vector< VkWriteDescriptorSet> write_descriptor_sets;
 	for (u32 i = 0; i < m_descriptor_buffer_infos.size(); i++) {
@@ -39,8 +38,10 @@ auto VulkanDescriptorSet::update() -> void {
 }
 
 auto VulkanDescriptorSet::add_uniform_buffer(const VulkanBuffer& buffer, VkDeviceSize offset, u32 binding) -> void {
-	//if (m_handle != VK_NULL_HANDLE) __debugbreak();
-
+	//NOTE: Vulkan Spec only guarantees 16K addressable space, while on most Desktop platforms it's 64K
+	if(buffer.m_size > from_kibibyte(16)) {
+		__debugbreak();
+	}
 	VkDescriptorBufferInfo dbi = {
 		.buffer = buffer.m_handle,
 		.offset = offset,
@@ -49,6 +50,22 @@ auto VulkanDescriptorSet::add_uniform_buffer(const VulkanBuffer& buffer, VkDevic
 
 	m_descriptor_buffer_infos.push_back(dbi);
 
+}
+
+/*---------------------------
+	Descriptor Set Layout
+---------------------------*/
+
+auto VulkanDescriptorSetLayout::add_binding(u32 binding, VkDescriptorType descriptor_type, u32 descriptor_count, VkShaderStageFlags stage_flags, const VkSampler* p_immutable_samplers) -> void {
+	if (m_handle != VK_NULL_HANDLE) __debugbreak();
+	const VkDescriptorSetLayoutBinding dslb = {
+		.binding = binding,
+		.descriptorType = descriptor_type,
+		.descriptorCount = descriptor_count,
+		.stageFlags = stage_flags,
+		.pImmutableSamplers = p_immutable_samplers
+	};
+	m_bindings.push_back(dslb);
 }
 
 auto VulkanDescriptorSetLayout::init(const VulkanLogicalDevice& device) -> void {
@@ -74,34 +91,37 @@ auto VulkanDescriptorSetLayout::deinit() -> void {
 	vkDestroyDescriptorSetLayout(m_device->m_handle, m_handle, nullptr);
 }
 
-auto VulkanDescriptorSetLayout::add_binding(u32 binding, VkDescriptorType descriptor_type, u32 descriptor_count, VkShaderStageFlags stage_flags, const VkSampler* p_immutable_samplers) -> void {
+/*---------------------------
+	Descriptor Pool
+---------------------------*/
+auto VulkanDescriptorPool::add_pool_size(const VkDescriptorPoolSize& pool_size) -> void {
 	if (m_handle != VK_NULL_HANDLE) __debugbreak();
-	const VkDescriptorSetLayoutBinding dslb = {
-		.binding = binding,
-		.descriptorType = descriptor_type,
-		.descriptorCount = descriptor_count,
-		.stageFlags = stage_flags,
-		.pImmutableSamplers = p_immutable_samplers
-	};
-	m_bindings.push_back(dslb);
+
+	if (!(pool_size.descriptorCount > 0)) __debugbreak();
+
+	m_pool_sizes.push_back(pool_size);
+}
+auto VulkanDescriptorPool::set_pool_sizes(const std::vector<VkDescriptorPoolSize>& pool_sizes) -> void {
+	if (m_handle != VK_NULL_HANDLE) __debugbreak();
+	m_pool_sizes.reserve(pool_sizes.size());
+	for (u32 i = 0; i < pool_sizes.size(); i++) {
+		this->add_pool_size(pool_sizes[i]);
+	}
 }
 
 auto VulkanDescriptorPool::init(const VulkanLogicalDevice& device, u32 amount) -> void {
 	m_device = &device;
 	VkResult result;
-	const VkDescriptorPoolSize pool_size = {
-		.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-		.descriptorCount = amount,
-	};
-
 	const VkDescriptorPoolCreateInfo pool_info = {
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
 		.pNext = nullptr,
 		.flags = 0 /* | VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT*/ ,
 		.maxSets = amount,
-		.poolSizeCount = 1,
-		.pPoolSizes = &pool_size,
+		.poolSizeCount = static_cast<u32>(m_pool_sizes.size()),
+		.pPoolSizes = m_pool_sizes.data(),
 	};
+	if (!(pool_info.maxSets > 0)) __debugbreak();
+	if (!(pool_info.poolSizeCount > 0)) __debugbreak();
 
 	result = vkCreateDescriptorPool(device.m_handle, &pool_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
@@ -110,6 +130,10 @@ auto VulkanDescriptorPool::init(const VulkanLogicalDevice& device, u32 amount) -
 auto VulkanDescriptorPool::deinit() -> void {
 	vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr);
 }
+
+
+
+
 
 
 
@@ -139,14 +163,27 @@ auto VulkanDescriptorPool::allocate_descriptor_sets(const VulkanDescriptorSetLay
 
 }
 
+auto VulkanDescriptorPool::allocate_descriptor_set(const VulkanDescriptorSetLayout& descriptor_set_layout) -> VulkanDescriptorSet {
+	return this->allocate_descriptor_sets(descriptor_set_layout, 1)[0];
+}
+
 auto VulkanDescriptorPool::free_descriptor_sets(const std::vector<VulkanDescriptorSet>& descriptor_sets) -> void {
 	//for(u32 i = 0; i < descriptor_sets.size(); i++) {
 	//	VkResult result;
 	//	result = vkFreeDescriptorSets(m_device->m_handle, m_handle, 1, &descriptor_sets[i].m_handle);
 	//	if (result != VK_SUCCESS) __debugbreak();
 	//}
-	vkResetDescriptorPool(m_device->m_handle, m_handle, 0);
-	//vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr);
+	//VkResult result;
+	//result = vkResetDescriptorPool(m_device->m_handle, m_handle, 0);
+	//if (result != VK_SUCCESS) __debugbreak();
+	vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr);
+
+}
+
+auto VulkanDescriptorPool::free_descriptor_set(const VulkanDescriptorSet& descriptor_set) -> void {
+	VkResult result;
+	result = vkFreeDescriptorSets(m_device->m_handle, m_handle, 1, &descriptor_set.m_handle);
+	if (result != VK_SUCCESS) __debugbreak();
 }
 
 }

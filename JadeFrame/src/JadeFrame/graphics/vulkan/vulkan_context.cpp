@@ -62,38 +62,12 @@ static auto vulkan_get_device_type_string(const VkPhysicalDeviceType& device_typ
 Vulkan_Context::Vulkan_Context(const Windows_Window& window) {
 	m_window_handle = window.m_window_handle;
 	m_instance.init(window.m_window_handle);
-
-	//this->main_loop();
 }
 
 Vulkan_Context::~Vulkan_Context() {
 	m_instance.m_logical_device.deinit();
 	m_instance.deinit();
 }
-
-
-auto Vulkan_Context::main_loop() -> void {
-	VkResult result;
-
-	const std::vector<VVertex> vertices = {
-		{{-0.5f, -0.5f}, {+1.0f, +0.0f, +0.0f}},
-		{{+0.5f, -0.5f}, {+0.0f, +1.0f, +0.0f}},
-		{{+0.5f, +0.5f}, {+0.0f, +0.0f, +1.0f}},
-
-		{{-0.5f, +0.5f}, {+1.0f, +1.0f, +1.0f}},
-	};
-	const std::vector<u16> indices = {
-		0, 1, 2,
-		2, 3, 0,
-	};
-
-	while (true) {
-		JadeFrameInstance::get_singleton()->m_apps[0]->poll_events();
-		m_instance.m_logical_device.present_frame(Matrix4x4());
-	}
-	result = vkDeviceWaitIdle(m_instance.m_logical_device.m_handle);
-}
-
 
 
 

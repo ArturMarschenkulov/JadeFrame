@@ -27,11 +27,22 @@ enum class SHADING_LANGUAGE {
 	SPIRV,
 	HLSL
 };
+enum class SHADER_STAGE {
+	VERTEX,
+	FRAGMET, //PIXEL
+	GEOMETRY,
+	TESSELATION,
+	COMPUTE,
+};
 
 struct ShadingCode {
 	SHADING_LANGUAGE shading_language;
 	std::string m_vertex_shader;
 	std::string m_fragment_shader;
+};
+
+struct ShaderModule {
+	SHADING_LANGUAGE shading_language;
 };
 
 
@@ -53,7 +64,6 @@ public: // client stuff
 	
 	virtual auto take_screenshot(const char* filename) -> void = 0;
 
-	virtual auto main_loop() -> void = 0;
 
 public: // more internal stuff
 	virtual auto set_clear_color(const RGBAColor& color) -> void = 0;

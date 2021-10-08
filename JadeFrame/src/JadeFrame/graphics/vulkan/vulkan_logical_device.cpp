@@ -35,25 +35,6 @@ static auto VkResult_to_string(VkResult x) {
 	return str;
 }
 
-
-struct Meshhh {
-	std::vector<VVertex> m_vertices = {
-		{{-0.5f, -0.5f}, {+1.0f, +0.0f, +0.0f}},
-		{{+0.5f, -0.5f}, {+0.0f, +1.0f, +0.0f}},
-		{{+0.5f, +0.5f}, {+0.0f, +0.0f, +1.0f}},
-
-		{{-0.5f, +0.5f}, {+1.0f, +1.0f, +1.0f}},
-	};
-	std::vector<u16> m_indices = {
-		0, 1, 2,
-		2, 3, 0,
-	};
-};
-
-static Meshhh g_mesh;
-
-
-
 auto VulkanLogicalDevice::recreate_swapchain() -> void {
 	m_render_pass.deinit();
 	m_swapchain.deinit();
@@ -81,136 +62,19 @@ auto VulkanLogicalDevice::cleanup_swapchain() -> void {
 	vkDestroySwapchainKHR(m_handle, m_swapchain.m_handle, nullptr);
 }
 
-//auto VulkanLogicalDevice::update_ubo(const Matrix4x4& view_projection) -> UniformBufferObject {
-//	static auto start_time = std::chrono::high_resolution_clock::now();
-//
-//	auto current_time = std::chrono::high_resolution_clock::now();
-//	f32 time = std::chrono::duration<f32, std::chrono::seconds::period>(current_time - start_time).count();
-//
-//	UniformBufferObject ubo = {};
-//	ubo.model = Matrix4x4::rotation_matrix(
-//		time * to_radians(90.0f),
-//		Vec3(0.0f, 0.0f, 1.0f)
-//	);
-//	Matrix4x4 view(1.0f);
-//	Matrix4x4 proj(1.0f);
-//	proj[1][1] *= -1;
-//
-//	ubo.view_projection = view * proj;
-//	return ubo;
-//}
-
-//auto VulkanLogicalDevice::update_uniform_buffer(VulkanBuffer& uniform_buffer, const Matrix4x4& view_projection) -> void {
-//	assert(uniform_buffer.m_type == VulkanBuffer::TYPE::UNIFORM);
-//	static auto start_time = std::chrono::high_resolution_clock::now();
-//
-//	auto current_time = std::chrono::high_resolution_clock::now();
-//	f32 time = std::chrono::duration<f32, std::chrono::seconds::period>(current_time - start_time).count();
-//
-//	UniformBufferObject ubo = {};
-//	ubo.model = Matrix4x4::rotation_matrix(
-//		time * to_radians(90.0f),
-//		Vec3(0.0f, 0.0f, 1.0f)
-//	);
-//	Matrix4x4 view(1.0f);
-//	Matrix4x4 proj(1.0f);
-//	proj[1][1] *= -1;
-//
-//	ubo.view_projection = view * proj;
-//
-//	void* mapped_data = uniform_buffer.map_to_GPU(&ubo, sizeof(ubo));
-//
-//}
-
-auto VulkanLogicalDevice::present_frame(const Matrix4x4& view_projection) -> void {
-	VkResult result;
-
-	m_in_flight_fences[m_current_frame].wait_for_fences();
-	//prepare buffers
-	u32 image_index = m_swapchain.acquire_next_image(&m_image_available_semaphores[m_current_frame], nullptr, result);
-	if (result != VK_SUCCESS) {
-		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-			std::cout << "VK_ERROR_OUT_OF_DATE_KHR" << std::endl;
-			this->recreate_swapchain();
-			return;
-		} else if (result == VK_SUBOPTIMAL_KHR) {
-			std::cout << "VK_SUBOPTIMAL_KHR" << std::endl;
-			//this->recreate_swapchain();
-		} else {
-			throw std::runtime_error("failed to acquire swap chain image!");
-		}
-	}
-
-	//this->update_uniform_buffer(m_uniform_buffers[image_index], view_projection);
-	//~prepare buffers
-
-	if (m_images_in_flight[image_index].m_handle != VK_NULL_HANDLE) {
-		m_images_in_flight[image_index].wait_for_fences();
-	}
-	m_images_in_flight[image_index].m_handle = m_in_flight_fences[m_current_frame].m_handle;
-
-
-	// present
-	std::array<VkSemaphore, 1> wait_semaphores = { m_image_available_semaphores[m_current_frame].m_handle };
-	std::array<VkSemaphore, 1> signal_semaphores = { m_render_finished_semaphores[m_current_frame].m_handle };
-	VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-
-	m_in_flight_fences[m_current_frame].reset();
-
-	const VkSubmitInfo submit_info = {
-		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-		.pNext = nullptr,
-		.waitSemaphoreCount = wait_semaphores.size(),
-		.pWaitSemaphores = wait_semaphores.data(),
-		.pWaitDstStageMask = wait_stages,
-		.commandBufferCount = 1,
-		.pCommandBuffers = &m_command_buffers[image_index].m_handle,
-		.signalSemaphoreCount = signal_semaphores.size(),
-		.pSignalSemaphores = signal_semaphores.data(),
-	};
-	result = vkQueueSubmit(m_graphics_queue.m_handle, 1, &submit_info, m_in_flight_fences[m_current_frame].m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
-
-
-	std::array<VkSwapchainKHR, 1> swapchains = { m_swapchain.m_handle };
-	const VkPresentInfoKHR present_info = {
-		.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-		.pNext = nullptr,
-		.waitSemaphoreCount = signal_semaphores.size(),
-		.pWaitSemaphores = signal_semaphores.data(),
-		.swapchainCount = swapchains.size(),
-		.pSwapchains = swapchains.data(),
-		.pImageIndices = &image_index,
-		.pResults = nullptr,
-	};
-	result = vkQueuePresentKHR(m_present_queue.m_handle, &present_info);
-	{
-		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_framebuffer_resized) {
-			m_framebuffer_resized = false;
-			std::cout << "recreate because of vkQueuePresentKHR" << std::endl;
-			//__debugbreak();
-			this->recreate_swapchain();
-		} else if (result != VK_SUCCESS) {
-			std::cout << "failed to present swap chain image!" << std::endl;
-			__debugbreak();
-		}
-	}
-
-	m_current_frame = (m_current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
-
-	//~swap buffer
-}
-
 auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysicalDevice& physical_device) -> void {
+	m_physical_device_p = &physical_device;
+	m_instance_p = &instance;
+
 	VkResult  result;
-	
+
 	const QueueFamilyIndices& indices = physical_device.m_queue_family_indices;
 
 	std::set<u32> unique_queue_families = {
 		indices.m_graphics_family.value(),
 		indices.m_present_family.value()
 	};
-	
+
 	constexpr f32 queue_priority = 1.0_f32;
 	std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
 	for (u32 queue_familiy : unique_queue_families) {
@@ -242,13 +106,8 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	result = vkCreateDevice(physical_device.m_handle, &create_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
 
-	vkGetDeviceQueue(m_handle, indices.m_graphics_family.value(), 0, &m_graphics_queue.m_handle);
-	vkGetDeviceQueue(m_handle, indices.m_present_family.value(), 0, &m_present_queue.m_handle);
-
-	m_physical_device_p = &physical_device;
-	m_instance_p = &instance;
-
-
+	m_graphics_queue = this->query_queue(indices.m_graphics_family.value(), 0);
+	m_present_queue = this->query_queue(indices.m_present_family.value(), 0);
 
 
 	// Swapchain stuff
@@ -267,6 +126,7 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	m_descriptor_set_layout.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
 	m_descriptor_set_layout.init(*this);
 
+	m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, swapchain_image_amount });
 	m_descriptor_pool.init(*this, swapchain_image_amount);
 
 	m_descriptor_sets = m_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout, swapchain_image_amount);
@@ -276,7 +136,7 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	}
 
 	// Commad Buffer stuff
-	m_command_pool.init(*this, m_physical_device_p->m_queue_family_indices);
+	m_command_pool.init(*this, m_physical_device_p->m_queue_family_indices.m_graphics_family.value());
 	m_command_buffers = m_command_pool.allocate_command_buffers(m_swapchain.m_framebuffers.size());
 
 	// Sync objects stuff
@@ -297,6 +157,7 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 }
 
 auto VulkanLogicalDevice::deinit() -> void {
+	VkResult result;
 	this->cleanup_swapchain();
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		m_render_finished_semaphores[i].deinit();
@@ -307,8 +168,14 @@ auto VulkanLogicalDevice::deinit() -> void {
 	m_command_pool.deinit();
 	m_render_pass.deinit();
 	m_swapchain.deinit();
-
+	result = vkDeviceWaitIdle(m_handle);
 	vkDestroyDevice(m_handle, nullptr);
+}
+
+auto VulkanLogicalDevice::query_queue(u32 queue_family_index, u32 queue_index) -> VulkanQueue {
+	VulkanQueue queue;
+	vkGetDeviceQueue(m_handle, queue_family_index, queue_index, &queue.m_handle);
+	return queue;
 }
 
 }

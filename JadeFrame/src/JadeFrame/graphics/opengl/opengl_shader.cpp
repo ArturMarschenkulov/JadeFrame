@@ -15,6 +15,7 @@
 #include<tuple>
 #include <JadeFrame/graphics/glsl_parser.h>
 #include <cassert>
+#include <JadeFrame/graphics/to_spirv.h>
 
 namespace JadeFrame {
 static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
@@ -37,22 +38,25 @@ OpenGL_Shader::OpenGL_Shader(const DESC& desc)
 	: m_program()
 	, m_vertex_shader(GL_VERTEX_SHADER)
 	, m_fragment_shader(GL_FRAGMENT_SHADER) {
-
+	m_vertex_source = desc.code.m_vertex_shader;
+	m_fragment_source = desc.code.m_fragment_shader;
 	if constexpr (false) {
-		////auto [vertex_shader_code, fragment_shader_code] = get_shader_by_name("spirv_test_0");
-		//std::future<std::vector<u32>> vert_shader_spirv = std::async(std::launch::async, string_to_SPIRV, code.m_vertex_shader.c_str(), 0);
-		//std::future<std::vector<u32>> frag_shader_spirv = std::async(std::launch::async, string_to_SPIRV, code.m_fragment_shader.data(), 1);
+		
+		std::future<std::vector<u32>> vert_shader_spirv = std::async(std::launch::async, string_to_SPIRV, m_vertex_source.c_str(), 0);
+		std::future<std::vector<u32>> frag_shader_spirv = std::async(std::launch::async, string_to_SPIRV, m_fragment_source.c_str(), 1);
 
-		//std::vector<u32> mvert_shader_spirv = vert_shader_spirv.get();
-		//std::vector<u32> mfrag_shader_spirv = frag_shader_spirv.get();
-
-		//m_fragment_shader.set_binary(mfrag_shader_spirv);
-		//m_fragment_shader.compile_binary();
-
-		//m_vertex_shader.set_binary(mvert_shader_spirv);
-		//m_vertex_shader.compile_binary();
+		std::vector<u32> mvert_shader_spirv = vert_shader_spirv.get();
+		std::vector<u32> mfrag_shader_spirv = frag_shader_spirv.get();
 
 
+		//NOTE: On some machines the drives won't allow it!!
+		m_fragment_shader.set_binary(mfrag_shader_spirv);
+		m_fragment_shader.compile_binary();
+
+		m_vertex_shader.set_binary(mvert_shader_spirv);
+		m_vertex_shader.compile_binary();
+
+		//__debugbreak();
 	} else {
 		m_vertex_shader.set_source(desc.code.m_vertex_shader);
 		m_vertex_shader.compile();
@@ -83,8 +87,7 @@ OpenGL_Shader::OpenGL_Shader(const DESC& desc)
 
 
 
-	m_vertex_source = desc.code.m_vertex_shader;
-	m_fragment_source = desc.code.m_fragment_shader;
+
 	m_uniforms = this->query_uniforms(GL_ACTIVE_UNIFORMS);
 	m_attributes = this->query_uniforms(GL_ACTIVE_ATTRIBUTES);
 

@@ -54,25 +54,25 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(windo
 	{
 		//setup_framebuffer(m_framebuffer, m_framebuffer_texture, m_framebuffer_renderbuffer);
 
-		m_framebuffer.bind();
+		fb.m_framebuffer.bind();
 
 		const Vec2 size = m_context.m_state.viewport[1];
-		m_framebuffer_texture.bind(0);
+		fb.m_framebuffer_texture.bind(0);
 
-		m_framebuffer_texture.set_texture_image_2D(0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-		m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		m_framebuffer.attach_texture_2D(m_framebuffer_texture);
+		fb.m_framebuffer_texture.set_texture_image_2D(0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		fb.m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		fb.m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		fb.m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		fb.m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		fb.m_framebuffer.attach_texture_2D(fb.m_framebuffer_texture);
 
-		m_framebuffer_renderbuffer.bind();
-		m_framebuffer_renderbuffer.store(GL_DEPTH24_STENCIL8, size.x, size.y);
-		m_framebuffer.attach_renderbuffer(m_framebuffer_renderbuffer);
+		fb.m_framebuffer_renderbuffer.bind();
+		fb.m_framebuffer_renderbuffer.store(GL_DEPTH24_STENCIL8, size.x, size.y);
+		fb.m_framebuffer.attach_renderbuffer(fb.m_framebuffer_renderbuffer);
 
-		m_framebuffer.unbind();
+		fb.m_framebuffer.unbind();
 
-		const GLenum res = m_framebuffer.check_status();
+		const GLenum res = fb.m_framebuffer.check_status();
 		if (res != GL_FRAMEBUFFER_COMPLETE) __debugbreak();
 	}
 
@@ -89,7 +89,7 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(windo
 		{ "v_position", SHADER_TYPE::FLOAT_3 },
 		{ "v_texture_coordinates", SHADER_TYPE::FLOAT_2 }
 	};
-	m_framebuffer_rect = new OpenGL_GPUMeshData(
+	fb.m_framebuffer_rect = new OpenGL_GPUMeshData(
 		vertex_data,
 		layout
 	);
@@ -97,9 +97,9 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(windo
 	ShaderHandle::DESC shader_handle_desc;
 	shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
 	shader_handle_desc.vertex_format = layout;
-	m_shader_handle_fb = new ShaderHandle(shader_handle_desc);
-	m_shader_handle_fb->m_api = GRAPHICS_API::OPENGL;
-	m_shader_handle_fb->init();
+	fb.m_shader_handle_fb = new ShaderHandle(shader_handle_desc);
+	fb.m_shader_handle_fb->m_api = GRAPHICS_API::OPENGL;
+	fb.m_shader_handle_fb->init();
 }
 
 auto OpenGL_Renderer::present() -> void {
@@ -153,7 +153,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
 #define JF_FB 1
 #if JF_FB
-	m_framebuffer.bind();
+	fb.m_framebuffer.bind();
 #endif
 
 	this->clear_background();
@@ -183,10 +183,10 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 		}
 	}
 #if JF_FB
-	m_framebuffer.unbind();
-	static_cast<OpenGL_Shader*>(m_shader_handle_fb->m_handle)->bind();
-	m_framebuffer_texture.bind(0);
-	m_framebuffer_rect->m_vertex_array.bind();
+	fb.m_framebuffer.unbind();
+	static_cast<OpenGL_Shader*>(fb.m_shader_handle_fb->m_handle)->bind();
+	fb.m_framebuffer_texture.bind(0);
+	fb.m_framebuffer_rect->m_vertex_array.bind();
 	GL_State old_state = m_context.m_state;
 	m_context.m_state.set_depth_test(false);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -242,7 +242,4 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
 	t.detach();
 }
 
-auto OpenGL_Renderer::main_loop() -> void {
-	// dummy
-}
 }

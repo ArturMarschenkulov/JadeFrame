@@ -2,9 +2,11 @@
 #include <vulkan/vulkan.h>
 
 namespace JadeFrame {
+class VulkanFence;
+
 class VulkanQueue {
 public:
-	auto submit(const VkSubmitInfo& submit_info) const -> void;
+	auto submit(const VkSubmitInfo& submit_info, const VulkanFence* p_fence) const -> void;
 	auto submit(const VkCommandBuffer& cmd_buffer, const std::array<VkSemaphore, 1>& wait_semaphores, const std::array<VkSemaphore, 1>& signal_semaphore) -> void;
 	auto wait_idle() const -> void;
 	auto present(VkPresentInfoKHR info, VkResult& result) const -> void;

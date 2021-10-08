@@ -18,10 +18,6 @@ auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void {
 	m_clear_color = color;
 }
 
-auto Vulkan_Renderer::main_loop() -> void {
-	m_context.main_loop();
-}
-
 
 
 auto Vulkan_Renderer::clear_background() -> void {
@@ -163,8 +159,10 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 		.signalSemaphoreCount = signal_semaphores.size(),
 		.pSignalSemaphores = signal_semaphores.data(),
 	};
-	result = vkQueueSubmit(d.m_graphics_queue.m_handle, 1, &submit_info, d.m_in_flight_fences[d.m_current_frame].m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
+	//result = vkQueueSubmit(d.m_graphics_queue.m_handle, 1, &submit_info, d.m_in_flight_fences[d.m_current_frame].m_handle);
+	//if (result != VK_SUCCESS) __debugbreak();
+	d.m_graphics_queue.submit(submit_info, &d.m_in_flight_fences[d.m_current_frame]);
+
 
 	m_render_commands.clear();
 }
@@ -202,47 +200,7 @@ auto Vulkan_Renderer::present() -> void {
 
 	//ld.present_frame(m_view_projection);
 }
-auto Vulkan_Renderer::render_2(const Matrix4x4& view_projection) -> void {
-	m_view_projection = view_projection;
-	VulkanLogicalDevice& ld = m_context.m_instance.m_logical_device;
 
-	//for (u32 i = 0; i < ld.m_command_buffers.size(); i++) {
-	//	ld.m_command_buffers[i].reset();
-	//}
-
-	for (size_t i = 0; i < m_render_commands.size(); i++) {
-		VkResult res;
-		//ld.m_swapchain.acquire_next_image(nullptr, nullptr, res);
-		Vulkan_Shader* shader = static_cast<Vulkan_Shader*>(m_render_commands[i].material_handle->m_shader_handle->m_handle);
-		Vulkan_GPUMeshData* gpu = static_cast<Vulkan_GPUMeshData*>(m_render_commands[i].m_GPU_mesh_data->m_handle);
-		const VertexData& vertex_data = *m_render_commands[i].vertex_data;
-
-
-
-		const Matrix4x4& transform = *m_render_commands[i].transform;
-		const std::vector<Matrix4x4>& matrices = { view_projection , transform };
-
-		const auto& c = m_clear_color;
-		for (u32 i = 0; i < ld.m_command_buffers.size(); i++) {
-			ld.m_command_buffers[i].draw_into(i,
-				ld.m_render_pass,
-				ld.m_swapchain,
-				shader->m_pipeline,
-				ld.m_descriptor_sets,
-				*gpu,
-				vertex_data,
-				VkClearValue{ c.r, c.b, c.g, c.a }
-			);
-		}
-
-	}
-
-	m_render_commands.clear();
-}
-auto Vulkan_Renderer::present_2() -> void {
-	VulkanLogicalDevice& ld = m_context.m_instance.m_logical_device;
-	ld.present_frame(m_view_projection);
-}
 
 auto Vulkan_Renderer::set_viewport(u32 /*x*/, u32 /*y*/, u32 /*width*/, u32 /*height*/) const -> void {
 

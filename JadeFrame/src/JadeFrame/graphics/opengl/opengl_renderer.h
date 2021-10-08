@@ -76,7 +76,6 @@ public:
 
 	virtual auto take_screenshot(const char* filename) -> void override;
 
-	virtual auto main_loop() -> void override;
 
 
 
@@ -87,15 +86,16 @@ private:
 	OpenGL_Context m_context;
 	mutable std::deque<OpenGL_RenderCommand> m_render_commands;
 
+	struct FB {
+		Object m_fb;
+		OGLW_Texture<GL_TEXTURE_2D> m_framebuffer_texture;
+		OGLW_Renderbuffer m_framebuffer_renderbuffer;
+		OGLW_Framebuffer m_framebuffer;
+		OpenGL_GPUMeshData* m_framebuffer_rect;
+		ShaderHandle* m_shader_handle_fb;
+	} fb;
 
 
-	Object m_fb;
-	OGLW_Texture<GL_TEXTURE_2D> m_framebuffer_texture;
-	OGLW_Renderbuffer m_framebuffer_renderbuffer;
-	OGLW_Framebuffer m_framebuffer;
-
-	OpenGL_GPUMeshData* m_framebuffer_rect;
-	ShaderHandle* m_shader_handle_fb;
 	
 };
 struct RenderSystem {

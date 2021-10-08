@@ -49,12 +49,18 @@ class VulkanDescriptorPool {
 public:
 	auto init(const VulkanLogicalDevice& device, u32 amount) -> void;
 	auto deinit() -> void;
+	
+	auto add_pool_size(const VkDescriptorPoolSize& pool_size) -> void;
+	auto set_pool_sizes(const std::vector<VkDescriptorPoolSize>& pool_sizes) -> void;
 
-	auto allocate_descriptor_sets(const VulkanDescriptorSetLayout& descriptor_set_layout, u32 image_amount)->std::vector<VulkanDescriptorSet>;
+	auto allocate_descriptor_sets(const VulkanDescriptorSetLayout& descriptor_set_layout, u32 image_amount) -> std::vector<VulkanDescriptorSet>;
+	auto allocate_descriptor_set(const VulkanDescriptorSetLayout& descriptor_set_layout) -> VulkanDescriptorSet;
 	auto free_descriptor_sets(const std::vector<VulkanDescriptorSet>& descriptor_sets) -> void;
+	auto free_descriptor_set(const VulkanDescriptorSet& descriptor_sets) -> void;
 
 public:
 	const VulkanLogicalDevice* m_device = nullptr;
 	VkDescriptorPool m_handle = VK_NULL_HANDLE;
+	std::vector<VkDescriptorPoolSize> m_pool_sizes;
 };
 }

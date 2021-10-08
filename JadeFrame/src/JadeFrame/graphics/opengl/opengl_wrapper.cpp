@@ -61,7 +61,7 @@ auto OGLW_Shader::set_binary(const std::vector<u32>& binary) -> void {
 auto OGLW_Shader::compile_binary() -> void {
 	__debugbreak();
 	glSpecializeShader(m_ID, "main", 0, nullptr, nullptr);
-	__debugbreak();
+	//__debugbreak();
 
 }
 auto OGLW_Shader::get_info(GLenum pname) -> GLint {

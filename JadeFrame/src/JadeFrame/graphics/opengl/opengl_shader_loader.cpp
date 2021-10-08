@@ -52,9 +52,9 @@ void main() {
 
 layout(location = 0) in vec2 f_texture_coordinate;
 
-out vec4 o_color;
+layout(location = 0) out vec4 o_color;
 
-uniform sampler2D u_screen_texture;
+layout(binding = 0) uniform sampler2D u_screen_texture;
 
 void main() {
 	o_color = texture(u_screen_texture,  f_texture_coordinate);
@@ -125,6 +125,8 @@ layout(push_constant) uniform PushConstants {
 
 void main() {
     gl_Position = u_ubo.view_projection * push_conts.model_matrix * vec4(v_position, 1.0);
+    //gl_Position = u_ubo.view_projection * u_ubo.model * vec4(v_position, 1.0);
+
 	f_color = v_color;
 }
 )";

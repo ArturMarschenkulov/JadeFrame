@@ -43,9 +43,10 @@ public:
 	const VulkanCommandPool* m_command_pool = nullptr;
 };
 
+using QueueFamilyIndex = u32;
 class VulkanCommandPool {
 public:
-	auto init(const VulkanLogicalDevice& device, const QueueFamilyIndices& queue_family_indices) -> void;
+	auto init(const VulkanLogicalDevice& device, const QueueFamilyIndex& queue_family_index) -> void;
 	auto deinit() -> void;
 
 	auto allocate_command_buffers(u32 amount) const->std::vector<VulkanCommandBuffer>;

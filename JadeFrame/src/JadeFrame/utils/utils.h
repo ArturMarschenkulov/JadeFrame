@@ -24,17 +24,18 @@ auto map_range(f64 x, f64 in_min, f64 in_max, f64 out_min, f64 out_max)->f64;
 //	__debugbreak();
 //}
 
-inline auto kibi_to_byte(u64 value) -> u64 {
+
+inline auto from_kibibyte(u64 value) -> u64 {
 	return value * 1024;
 }
-inline auto mebi_to_byte(u64 value) -> u64 {
-	return kibi_to_byte(value) * 1024;
+inline auto from_mebibyte(u64 value) -> u64 {
+	return from_kibibyte(value) * 1024;
 }
-inline auto gibi_to_byte(u64 value)-> u64 {
-	return mebi_to_byte(value) * 1024;
+inline auto from_gibibyte(u64 value)-> u64 {
+	return from_mebibyte(value) * 1024;
 }
-inline auto tebi_to_bytes(u64 value) -> u64 {
-	return gibi_to_byte(value) * 1024;
+inline auto from_tebibyte(u64 value) -> u64 {
+	return from_gibibyte(value) * 1024;
 }
 
 

@@ -31,7 +31,8 @@ public:
 	auto init(const VulkanInstance& instance, const VulkanPhysicalDevice& physical_device) -> void;
 	auto deinit() -> void;
 
-	auto present_frame(const Matrix4x4& view_projection) -> void;
+	auto query_queue(u32 queue_family_index, u32 queue_index) -> VulkanQueue;
+
 public:
 	const VulkanInstance* m_instance_p = nullptr;
 	VkDevice m_handle = nullptr;
@@ -54,8 +55,6 @@ public: // Descriptor set
 	std::vector<VulkanDescriptorSet> m_descriptor_sets;
 
 public:
-	//auto update_uniform_buffer(VulkanBuffer& uniform_buffer, const Matrix4x4& view_projection) -> void;
-	//auto update_ubo(const Matrix4x4& view_projection) -> UniformBufferObject;
 	std::vector<VulkanBuffer> m_uniform_buffers = { VulkanBuffer::TYPE::UNIFORM };
 
 public:

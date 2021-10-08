@@ -16,41 +16,6 @@
 
 namespace JadeFrame {
 
-static const char* vs_ =
-R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout(location = 0) in vec2 inPosition;
-layout(location = 1) in vec3 inColor;
-
-layout(location = 0) out vec3 fragColor;
-
-layout(binding = 0) uniform UniformBufferObject {
-    mat4 model;
-    mat4 view;
-    mat4 proj;
-} ubo;
-
-void main() {
-    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 0.0, 1.0);
-	fragColor = inColor;
-}
-)";
-
-static const char* fs_ =
-R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout(location = 0) in vec3 fragColor;
-
-layout(location = 0) out vec4 outColor;
-
-void main() {
-    outColor = vec4(fragColor, 1.0);
-}
-)";
 
 static auto create_shader_module_from_spirv(VkDevice device, const std::vector<u32>& spirv) -> VkShaderModule {
 	VkResult result;
@@ -85,17 +50,23 @@ auto VulkanPipeline::init(
 		m_vert_shader_spirv = vert_shader_spirv.get();
 		m_frag_shader_spirv = frag_shader_spirv.get();
 
-		
-		std::cout << "|-------------GLSL-------------|" << std::endl;
-		std::cout << spirv_cross::CompilerGLSL(m_vert_shader_spirv).compile() << std::endl;
-		std::cout << spirv_cross::CompilerGLSL(m_frag_shader_spirv).compile() << std::endl;
-		std::cout << "|-------------HLSL-------------|" << std::endl;
-		std::cout << spirv_cross::CompilerHLSL(m_vert_shader_spirv).compile() << std::endl;
-		std::cout << spirv_cross::CompilerHLSL(m_frag_shader_spirv).compile() << std::endl;
-		std::cout << "|-------------MSL--------------|" << std::endl;
-		std::cout << spirv_cross::CompilerMSL(m_vert_shader_spirv).compile() << std::endl;
-		std::cout << spirv_cross::CompilerMSL(m_frag_shader_spirv).compile() << std::endl;
-		std::cout << "|------------------------------|" << std::endl;
+		//std::cout << "|-------------GLSL-------------|" << std::endl;
+		if(false)
+		{
+			auto comp_glsl = spirv_cross::CompilerGLSL(m_vert_shader_spirv);
+			auto ops = comp_glsl.get_common_options(); 
+			ops.vulkan_semantics = true;
+			comp_glsl.set_common_options(ops);
+			std::cout << comp_glsl.compile() << std::endl;
+			std::cout << spirv_cross::CompilerGLSL(m_frag_shader_spirv).compile() << std::endl;
+		}
+		//std::cout << "|-------------HLSL-------------|" << std::endl;
+		//std::cout << spirv_cross::CompilerHLSL(m_vert_shader_spirv).compile() << std::endl;
+		//std::cout << spirv_cross::CompilerHLSL(m_frag_shader_spirv).compile() << std::endl;
+		//std::cout << "|-------------MSL--------------|" << std::endl;
+		//std::cout << spirv_cross::CompilerMSL(m_vert_shader_spirv).compile() << std::endl;
+		//std::cout << spirv_cross::CompilerMSL(m_frag_shader_spirv).compile() << std::endl;
+		//std::cout << "|------------------------------|" << std::endl;
 
 		m_is_compiled = true;
 	}
@@ -155,8 +126,8 @@ auto VulkanPipeline::init(
 		frag_shader_stage_info,
 	};
 
-	VkVertexInputBindingDescription binding_description = get_binding_description(vertex_format);
-	std::vector<VkVertexInputAttributeDescription> attribute_descriptions = get_attribute_descriptions(vertex_format);
+	const VkVertexInputBindingDescription binding_description = get_binding_description(vertex_format);
+	const std::vector<VkVertexInputAttributeDescription> attribute_descriptions = get_attribute_descriptions(vertex_format);
 
 	const VkPipelineVertexInputStateCreateInfo vertex_input_info = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,

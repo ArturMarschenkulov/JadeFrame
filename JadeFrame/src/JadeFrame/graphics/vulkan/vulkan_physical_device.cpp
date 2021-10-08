@@ -43,7 +43,7 @@ static auto print_queue_families_info(VulkanPhysicalDevice physical_device) -> v
 	}
 }
 
-static auto query_surface_support_details(const VulkanSurface& surface, const VulkanPhysicalDevice& physical_device) ->SurfaceSupportDetails {
+static auto query_surface_support_details(const VulkanPhysicalDevice& physical_device, const VulkanSurface& surface) ->SurfaceSupportDetails {
 	VkResult result;
 	SurfaceSupportDetails surface_support_details;
 	u32 count = 0;
@@ -70,6 +70,10 @@ static auto query_surface_support_details(const VulkanSurface& surface, const Vu
 
 	return surface_support_details;
 }
+//template<typename Flag>
+//auto decode_bitmask(const Flag&) -> std::vector<Flag> {
+//
+//}
 auto VulkanPhysicalDevice::init(VulkanInstance& instance, const VulkanSurface& surface) -> void {
 	m_instance_p = &instance;
 	VkResult result;
@@ -77,15 +81,11 @@ auto VulkanPhysicalDevice::init(VulkanInstance& instance, const VulkanSurface& s
 	vkGetPhysicalDeviceFeatures(m_handle, &m_features);
 	vkGetPhysicalDeviceMemoryProperties(m_handle, &m_memory_properties);
 
+	m_surface_support_details = query_surface_support_details(*this, surface);
 
-	m_surface_support_details = query_surface_support_details(surface, *this);
-	{ // Query Queue Family Properties
-		u32 count = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, nullptr);
-		m_queue_family_properties.resize(count);
-		vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, m_queue_family_properties.data());
-	}
-	m_queue_family_indices = this->find_queue_families(surface);
+	m_queue_families = this->query_queue_families(surface);
+	m_queue_family_indices = this->find_queue_families(m_queue_families);
+	print_queue_families_info(*this);
 
 	{ // Query_extension_properties
 		u32 count = 0;
@@ -96,7 +96,6 @@ auto VulkanPhysicalDevice::init(VulkanInstance& instance, const VulkanSurface& s
 	}
 	m_extension_support = this->check_extension_support(m_device_extensions);
 
-	print_queue_families_info(*this);
 }
 
 auto VulkanPhysicalDevice::check_extension_support(const std::vector<const char*>& extensions) -> bool {
@@ -107,22 +106,21 @@ auto VulkanPhysicalDevice::check_extension_support(const std::vector<const char*
 	return required_extensions.empty();
 }
 
-auto VulkanPhysicalDevice::find_queue_families(VulkanSurface surface) -> QueueFamilyIndices {
+
+auto VulkanPhysicalDevice::find_queue_families(const std::vector<VulkanQueueFamily>& queue_families) -> QueueFamilyIndices {
 	VkResult result;
 
 	QueueFamilyIndices indices;
-	for (u32 i = 0; i < m_queue_family_properties.size(); i++) {
-		if (m_queue_family_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-			indices.m_graphics_family = i;
+	for (u32 i = 0; i < queue_families.size(); i++) {
+		if (queue_families[i].m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+			indices.m_graphics_family = queue_families[i].m_index;
 		}
 		VkBool32 present_support = false;
-
-		result = vkGetPhysicalDeviceSurfaceSupportKHR(m_handle, i, surface.m_handle, &present_support);
-		if (result != VK_SUCCESS) __debugbreak();
+		present_support = queue_families[i].m_present_support;
 
 
 		if (present_support) {
-			indices.m_present_family = i;
+			indices.m_present_family = queue_families[i].m_index;
 		}
 		if (indices.is_complete()) {
 			break;
@@ -138,5 +136,24 @@ auto VulkanPhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFla
 		}
 	}
 	throw std::runtime_error("failed to find suitable memory type!");
+}
+auto VulkanPhysicalDevice::query_queue_families(const VulkanSurface& surface) -> std::vector<VulkanQueueFamily> {
+	u32 count = 0;
+
+	vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, nullptr);
+	
+	std::vector<VkQueueFamilyProperties> queue_family_properties;
+	queue_family_properties.resize(count);
+	vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, queue_family_properties.data());
+
+	std::vector<VulkanQueueFamily> families;
+	families.resize(count);
+	for(u32 i = 0; i < count; i++) {
+		families[i].m_index = i;
+		families[i].m_properties = queue_family_properties[i];
+		vkGetPhysicalDeviceSurfaceSupportKHR(m_handle, families[i].m_index, surface.m_handle, &families[i].m_present_support);
+	}
+
+	return families;
 }
 }
