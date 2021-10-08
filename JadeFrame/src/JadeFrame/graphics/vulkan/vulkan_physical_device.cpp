@@ -15,29 +15,31 @@
 
 namespace JadeFrame {
 
-static auto print_queue_families_info(VulkanPhysicalDevice physical_device) -> void {
-	auto& queue_families = physical_device.m_queue_family_properties;
+static auto print_queue_families_info(std::vector<VulkanQueueFamily> queue_families) -> void {
 	{
 		for (u32 i = 0; i < queue_families.size(); i++) {
 			std::string str = "{ ";
-			if (queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+			if (queue_families[i].m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
 				str += "Graphics ";
 			}
-			if (queue_families[i].queueFlags & VK_QUEUE_COMPUTE_BIT) {
+			if (queue_families[i].m_properties.queueFlags & VK_QUEUE_COMPUTE_BIT) {
 				str += "Compute ";
 			}
-			if (queue_families[i].queueFlags & VK_QUEUE_TRANSFER_BIT) {
+			if (queue_families[i].m_properties.queueFlags & VK_QUEUE_TRANSFER_BIT) {
 				str += "Transfer ";
 			}
-			if (queue_families[i].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) {
+			if (queue_families[i].m_properties.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) {
 				str += "SparseBinding ";
 			}
-			if (queue_families[i].queueFlags & VK_QUEUE_PROTECTED_BIT) {
+			if (queue_families[i].m_properties.queueFlags & VK_QUEUE_PROTECTED_BIT) {
 				str += "Protected ";
+			}
+			if(queue_families[i].m_present_support == true) {
+				str += "Present";
 			}
 			str += "}";
 			Logger::log("Queue family {} has {} queues capable of {}", 
-				i, queue_families[i].queueCount, str
+				i, queue_families[i].m_properties.queueCount, str
 			);
 		}
 	}
@@ -85,7 +87,7 @@ auto VulkanPhysicalDevice::init(VulkanInstance& instance, const VulkanSurface& s
 
 	m_queue_families = this->query_queue_families(surface);
 	m_queue_family_indices = this->find_queue_families(m_queue_families);
-	print_queue_families_info(*this);
+	print_queue_families_info(m_queue_families);
 
 	{ // Query_extension_properties
 		u32 count = 0;
