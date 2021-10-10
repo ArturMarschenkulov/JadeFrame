@@ -30,9 +30,13 @@ public:
 public:
 	VkDescriptorSet m_handle;
 	const VulkanLogicalDevice* m_device = nullptr;
-	std::vector<VulkanDescriptor> m_descriptors;
+	
+	//Descriptor data. The same index means the same descriptor
+	std::vector<VkDescriptorBufferInfo> m_infos;
+	std::vector<VkDescriptorType> m_types;
+	std::vector<VkShaderStageFlags> m_stage_flags;
+	std::vector<u32> m_bindings;
 	std::vector<VkDescriptorSetLayoutBinding> m_layout_bindings;
-	//std::unordered_map<u32, VkDescriptorSetLayoutBinding> m_binding_map;
 };
 
 class VulkanDescriptorSetLayout {
@@ -58,11 +62,11 @@ class VulkanDescriptorPool {
 public:
 	auto init(const VulkanLogicalDevice& device, u32 max_sets) -> void;
 	auto deinit() -> void;
-	
+
 	auto add_pool_size(const VkDescriptorPoolSize& pool_size) -> void;
 
-	auto allocate_descriptor_sets(const VulkanDescriptorSetLayout& descriptor_set_layout, u32 image_amount) -> std::vector<VulkanDescriptorSet>;
-	auto allocate_descriptor_set(const VulkanDescriptorSetLayout& descriptor_set_layout) -> VulkanDescriptorSet;
+	auto allocate_descriptor_sets(const VulkanDescriptorSetLayout& descriptor_set_layout, u32 image_amount)->std::vector<VulkanDescriptorSet>;
+	auto allocate_descriptor_set(const VulkanDescriptorSetLayout& descriptor_set_layout)->VulkanDescriptorSet;
 	auto free_descriptor_sets(const std::vector<VulkanDescriptorSet>& descriptor_sets) -> void;
 	auto free_descriptor_set(const VulkanDescriptorSet& descriptor_sets) -> void;
 

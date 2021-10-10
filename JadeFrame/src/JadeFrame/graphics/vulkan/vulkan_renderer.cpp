@@ -75,7 +75,9 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
 auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 	m_view_projection = view_projection;
 	VulkanLogicalDevice& d = m_context.m_instance.m_logical_device;
-
+	//for (u32 i = 0; i < d.m_command_buffers.size(); i++) {
+	//	d.m_command_buffers[i].reset();
+	//}
 
 	VkResult result;
 	d.m_in_flight_fences[d.m_current_frame].wait_for_fences();
