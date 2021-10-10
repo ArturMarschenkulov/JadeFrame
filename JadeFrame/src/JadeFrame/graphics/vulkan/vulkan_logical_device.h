@@ -50,19 +50,13 @@ public:
 	VulkanRenderPass m_render_pass;
 
 public: // Descriptor set
-	VulkanDescriptorSetLayout m_descriptor_set_layout;
-	//VulkanDescriptorPool m_descriptor_pool;
-	std::vector<VulkanDescriptorSet> m_descriptor_sets;
 
-	VulkanDescriptorSetLayout m_dsl;
-	VulkanDescriptorPool m_descriptor_pool;
-	std::vector<VulkanDescriptorSet> m_ds;
+	VulkanDescriptorPool m_main_descriptor_pool;
+	VulkanDescriptorSetLayout m_descriptor_set_layout_0;
+
+	std::vector<VulkanDescriptorSet> m_descriptor_sets;
 	VulkanBuffer m_ub_cam = { VulkanBuffer::TYPE::UNIFORM };
 	VulkanBuffer m_ub_tran = { VulkanBuffer::TYPE::UNIFORM };
-
-
-public:
-	std::vector<VulkanBuffer> m_uniform_buffers = { VulkanBuffer::TYPE::UNIFORM };
 
 public:
 	VulkanCommandPool m_command_pool;
@@ -84,12 +78,6 @@ public: // Misc
 
 
 //	// To be removed
-//public:
-//	VulkanPipeline m_pipeline;
-//public: // buffer stuff
-//	VulkanBuffer m_vertex_buffer = { VULKAN_BUFFER_TYPE::VERTEX };
-//	VulkanBuffer m_index_buffer = { VULKAN_BUFFER_TYPE::INDEX };
-//
 public: // texture stuff
 	auto create_texture_image(const std::string& path) -> void;
 	auto create_image(u32 width, u32 height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) -> void;

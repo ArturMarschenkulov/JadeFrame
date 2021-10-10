@@ -27,7 +27,6 @@ public:
 
 	virtual auto submit(const Object& obj) -> void override;
 	virtual auto render(const Matrix4x4& view_projection) -> void override;
-	auto render_2(const Matrix4x4& view_projection) -> void;
 	virtual auto present()  -> void override;
 	virtual auto clear_background() -> void override;
 	virtual auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void override;

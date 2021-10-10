@@ -47,17 +47,8 @@ auto VulkanDescriptorSet::add_uniform_buffer(const VulkanBuffer& buffer, u32 bin
 }
 auto VulkanDescriptorSet::update() -> void {
 
-	//TODO: Look whether there is a better way to extract that
-	//std::vector<VkDescriptorBufferInfo> dbi;
-	//dbi.resize(m_descriptors.size());
-	//for (u32 i = 0; i < m_descriptors.size(); i++) {
-	//	dbi[i] = m_descriptors[i].info;
-	//}
-
 	std::vector<VkWriteDescriptorSet> wdss;
 	wdss.reserve(m_infos.size());
-
-
 	for (u32 i = 0; i < m_infos.size(); i++) {
 
 		const VkWriteDescriptorSet wds = {
@@ -153,7 +144,6 @@ auto VulkanDescriptorPool::deinit() -> void {
 
 auto VulkanDescriptorPool::allocate_descriptor_sets(const VulkanDescriptorSetLayout& descriptor_set_layout, u32 amount) -> std::vector<VulkanDescriptorSet> {
 	VkResult result;
-	//m_device = &device;
 	std::vector<VkDescriptorSetLayout> layouts(amount, descriptor_set_layout.m_handle);
 
 	const VkDescriptorSetAllocateInfo alloc_info = {
@@ -173,14 +163,6 @@ auto VulkanDescriptorPool::allocate_descriptor_sets(const VulkanDescriptorSetLay
 		VulkanDescriptorSet& set = descriptor_sets[i];
 		set.m_handle = handles[i];
 		set.m_device = m_device;
-
-		//set.m_descriptors.resize(descriptor_set_layout.m_bindings.size());
-		//for (u32 j = 0; j < descriptor_set_layout.m_bindings.size(); j++) {
-		//	set.m_descriptors[j].binding = descriptor_set_layout.m_bindings[j].binding;
-		//	//set.m_descriptors[j].info = descriptor_set_layout.m_bindings[j].;
-		//	set.m_descriptors[j].stage_flags = descriptor_set_layout.m_bindings[j].stageFlags;
-		//	set.m_descriptors[j].type = descriptor_set_layout.m_bindings[j].descriptorType;
-		//}
 
 		set.m_bindings.resize(descriptor_set_layout.m_bindings.size());
 		set.m_types.resize(set.m_bindings.size());

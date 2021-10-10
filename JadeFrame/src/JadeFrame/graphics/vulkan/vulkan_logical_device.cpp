@@ -20,7 +20,7 @@ static const i32 MAX_FRAMES_IN_FLIGHT = 2;
 static auto VkResult_to_string(VkResult x) {
 	std::string str;
 #define JF_SET_ENUM_STRING(str, name) case name: str = #name
-	
+
 	switch (x) {
 		JF_SET_ENUM_STRING(str, VK_SUCCESS); break;
 		JF_SET_ENUM_STRING(str, VK_NOT_READY); break;
@@ -49,15 +49,7 @@ auto VulkanLogicalDevice::recreate_swapchain() -> void {
 auto VulkanLogicalDevice::cleanup_swapchain() -> void {
 
 
-	//m_command_buffers.deinit();
 	vkDestroyRenderPass(m_handle, m_render_pass.m_handle, nullptr);
-
-
-
-	for (size_t i = 0; i < m_swapchain.m_images.size(); i++) {
-		vkDestroyBuffer(m_handle, m_uniform_buffers[i].m_handle, nullptr);
-		vkFreeMemory(m_handle, m_uniform_buffers[i].m_memory, nullptr);
-	}
 
 	m_swapchain.deinit();
 	vkDestroySwapchainKHR(m_handle, m_swapchain.m_handle, nullptr);
@@ -118,52 +110,33 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	const u32 swapchain_image_amount = m_swapchain.m_images.size();
 
 	// Uniform stuff
-	m_uniform_buffers.resize(swapchain_image_amount, VulkanBuffer::TYPE::UNIFORM);
-	for (u32 i = 0; i < swapchain_image_amount; i++) {
-		m_uniform_buffers[i].init(*this, VulkanBuffer::TYPE::UNIFORM, nullptr, sizeof(UniformBufferObject));
-	}
-
-	// Descriptor stuff
-	//m_descriptor_set_layout.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
-	//m_descriptor_set_layout.init(*this);
-
-	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, swapchain_image_amount });
-	//m_descriptor_pool.init(*this, swapchain_image_amount);
-
-	//m_descriptor_sets = m_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout, swapchain_image_amount);
-	//for (u32 i = 0; i < m_descriptor_sets.size(); i++) {
-	//	m_descriptor_sets[i].add_uniform_buffer(m_uniform_buffers[i], 0, 0, sizeof(UniformBufferObject));
-	//	m_descriptor_sets[i].update();
-	//}
 
 	const i32 num_objects = 300;
 
 	m_ub_cam.init(*this, VulkanBuffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
-	m_ub_tran.init(*this, VulkanBuffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+	m_ub_tran.init(*this, VulkanBuffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4) * num_objects);
 
 	u32 descriptor_count = 1000;
-	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptor_count });
-	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, descriptor_count });
-	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, descriptor_count });
-	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, descriptor_count });
-	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, descriptor_count });
-	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, descriptor_count });
-	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptor_count });
-	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_SAMPLER, descriptor_count });
-	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, descriptor_count });
-	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, descriptor_count });
-	m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 });
-	m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 });
-	m_descriptor_pool.init(*this, 1);
+	m_main_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptor_count });
+	m_main_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, descriptor_count });
+	m_main_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, descriptor_count });
+	m_main_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, descriptor_count });
+	m_main_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, descriptor_count });
+	m_main_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, descriptor_count });
+	m_main_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptor_count });
+	m_main_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_SAMPLER, descriptor_count });
+	m_main_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, descriptor_count });
+	m_main_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, descriptor_count });
+	m_main_descriptor_pool.init(*this, 1);
 
-	m_dsl.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
-	m_dsl.add_binding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
-	m_dsl.init(*this);
+	m_descriptor_set_layout_0.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
+	m_descriptor_set_layout_0.add_binding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_VERTEX_BIT);
+	m_descriptor_set_layout_0.init(*this);
 
-	m_ds = m_descriptor_pool.allocate_descriptor_sets(m_dsl, 1);
-	m_ds[0].add_uniform_buffer(m_ub_cam, 0, 0, sizeof(Matrix4x4));
-	m_ds[0].add_uniform_buffer(m_ub_tran, 1, 0, sizeof(Matrix4x4));
-	m_ds[0].update();
+	m_descriptor_sets = m_main_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout_0, 1);
+	m_descriptor_sets[0].add_uniform_buffer(m_ub_cam, 0, 0, sizeof(Matrix4x4));
+	m_descriptor_sets[0].add_uniform_buffer(m_ub_tran, 1, 0, sizeof(Matrix4x4) * num_objects);
+	m_descriptor_sets[0].update();
 
 
 	// Commad Buffer stuff
