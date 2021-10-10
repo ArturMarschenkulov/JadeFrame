@@ -8,10 +8,10 @@
 namespace JadeFrame {
 
 auto VulkanInstance::check_validation_layer_support(const std::vector<VkLayerProperties>& available_layers) -> bool {
-	for (u32 i = 0; i < m_validation_layers.size(); i++) {
+	for (u32 i = 0; i < m_desired_layer_names.size(); i++) {
 		bool layer_found = false;
 		for (u32 j = 0; j < available_layers.size(); j++) {
-			if (strcmp(m_validation_layers[i], available_layers[j].layerName) == 0) {
+			if (strcmp(m_desired_layer_names[i], available_layers[j].layerName) == 0) {
 				layer_found = true;
 				break;
 			}
@@ -51,30 +51,36 @@ auto VulkanInstance::query_layers() -> std::vector<VkLayerProperties> {
 }
 
 auto VulkanInstance::query_extensions() -> std::vector<VkExtensionProperties> {
+	VkResult result;
+
 	u32 extension_count = 0;
-	vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
-	//std::vector<VkExtensionProperties> m_extensions;
-	m_extensions.resize(extension_count);
-	vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, m_extensions.data());
-	return m_extensions;
+	result = vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
+	if (result != VK_SUCCESS) __debugbreak();
+
+	std::vector<VkExtensionProperties> extensions;
+	extensions.resize(extension_count);
+	vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data());
+	if (result != VK_SUCCESS) __debugbreak();
+
+	return extensions;
 }
 
 auto VulkanInstance::query_physical_devices() -> std::vector<VulkanPhysicalDevice> {
 	u32 device_count = 0;
 	vkEnumeratePhysicalDevices(m_instance, &device_count, nullptr);
-	if (device_count == 0) {
-		//throw std::runtime_error("failed to find GPUs with Vulkan support!");
-	}
-	std::vector<VkPhysicalDevice> physical_devices;
-	physical_devices.resize(device_count);
+	if (device_count == 0) __debugbreak();
 
-	vkEnumeratePhysicalDevices(m_instance, &device_count, physical_devices.data());
-	std::vector<VulkanPhysicalDevice> physical_devices_2;
-	physical_devices_2.resize(device_count);
-	for (u32 i = 0; i < physical_devices_2.size(); i++) {
-		physical_devices_2[i].m_handle = physical_devices[i];
+	std::vector<VkPhysicalDevice> phys_devices;
+	phys_devices.resize(device_count);
+	vkEnumeratePhysicalDevices(m_instance, &device_count, phys_devices.data());
+
+
+	std::vector<VulkanPhysicalDevice> physical_devices;
+	physical_devices.resize(device_count);
+	for (u32 i = 0; i < physical_devices.size(); i++) {
+		physical_devices[i].m_handle = phys_devices[i];
 	}
-	return physical_devices_2;
+	return physical_devices;
 }
 
 auto VulkanInstance::setup_debug() -> void {
@@ -91,47 +97,51 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 	VkResult result;
 	m_window_handle = window_handle;
 
-	m_layers = this->query_layers();
-	m_extensions = this->query_extensions();
-	m_extension_names.resize(m_extensions.size());
-	for (u32 i = 0; i < m_extensions.size(); i++) {
-		m_extension_names[i] = m_extensions[i].extensionName;
-	}
-	for (u32 i = 0; i < m_extensions.size(); i++) {
-		m_extension_names[i] = m_extensions[i].extensionName;
-	}
+	m_available_layers = this->query_layers();
+	m_available_extensions = this->query_extensions();
 
-	if (m_enable_validation_layers && !check_validation_layer_support(m_layers)) {
+
+	if (m_enable_validation_layers && !check_validation_layer_support(m_available_layers)) {
 		throw std::runtime_error("validation layers requested, but not available!");
 	}
 
 
 	const VkApplicationInfo app_info = {
 		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-		.pNext = {},
+		.pNext = nullptr,
 		.pApplicationName = "Hello Triangle",
 		.applicationVersion = VK_MAKE_VERSION(1, 0, 0),
-		.pEngineName = "No Engine",
+		.pEngineName = "JadeFrame",
 		.engineVersion = VK_MAKE_VERSION(1, 0, 0),
 		.apiVersion = VK_API_VERSION_1_2,
 	};
 
 
+	std::vector<const char*> layer_names;
+	layer_names.resize(m_available_layers.size());
+	for (u32 i = 0; i < m_available_layers.size(); i++) {
+		layer_names[i] = m_available_layers[i].layerName;
+	}
+	std::vector<const char*> extension_names;
+	extension_names.resize(m_available_extensions.size());
+	for (u32 i = 0; i < m_available_extensions.size(); i++) {
+		extension_names[i] = m_available_extensions[i].extensionName;
+	}
 	VkInstanceCreateInfo create_info = {
 		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-		.pNext = {},
-		.flags = {},
+		.pNext = nullptr,
+		.flags = 0,
 		.pApplicationInfo = &app_info,
-		.enabledLayerCount = {},
-		.ppEnabledLayerNames = {},
-		.enabledExtensionCount = static_cast<u32>(m_extensions.size()),
-		.ppEnabledExtensionNames = m_extension_names.data(),
+		.enabledLayerCount = static_cast<u32>(m_available_layers.size()),
+		.ppEnabledLayerNames = layer_names.data(),
+		.enabledExtensionCount = static_cast<u32>(m_available_extensions.size()),
+		.ppEnabledExtensionNames = extension_names.data(),
 	};
 
 	VkDebugUtilsMessengerCreateInfoEXT debug_create_info;
 	if (m_enable_validation_layers) {
-		create_info.enabledLayerCount = static_cast<u32>(m_validation_layers.size());
-		create_info.ppEnabledLayerNames = m_validation_layers.data();
+		create_info.enabledLayerCount = static_cast<u32>(m_desired_layer_names.size());
+		create_info.ppEnabledLayerNames = m_desired_layer_names.data();
 
 		populate_debug_messenger_create_info(debug_create_info);
 		create_info.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debug_create_info;
@@ -145,20 +155,19 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 
 	this->setup_debug();
 	m_surface.init(m_instance, window_handle);
-	{
-		m_physical_devices = this->query_physical_devices();
-		for (u32 i = 0; i < m_physical_devices.size(); i++) {
-			m_physical_devices[i].init(*this, m_surface);
-		}
-		for (u32 i = 0; i < m_physical_devices.size(); i++) {
-			if (is_device_suitable(m_physical_devices[i])) {
-				m_physical_device = m_physical_devices[i];
-			}
-		}
-		if (m_physical_device.m_handle == VK_NULL_HANDLE) {
-			__debugbreak();
+
+
+
+	m_physical_devices = this->query_physical_devices();
+	for (u32 i = 0; i < m_physical_devices.size(); i++) {
+		m_physical_devices[i].init(*this, m_surface);
+	}
+	for (u32 i = 0; i < m_physical_devices.size(); i++) {
+		if (is_device_suitable(m_physical_devices[i])) {
+			m_physical_device = m_physical_devices[i];
 		}
 	}
+
 	m_logical_device.init(*this, m_physical_device);
 }
 

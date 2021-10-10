@@ -37,7 +37,7 @@ public:
 	VulkanBuffer(const VulkanBuffer::TYPE type);
 	auto init(const VulkanLogicalDevice& device, VulkanBuffer::TYPE buffer_type, void* data, size_t size) -> void;
 	auto deinit() -> void;
-	auto map_to_GPU(void* data, VkDeviceSize size) -> void*;
+	auto map_to_GPU(void* data, VkDeviceSize offset, VkDeviceSize size) -> void*;
 	auto resize(size_t size) -> void;
 private:
 	auto create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& buffer_memory) -> void;

@@ -60,7 +60,7 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, VulkanBuffer::TYPE bu
 		staging_buffer.init(device, VulkanBuffer::TYPE::STAGING, nullptr, size);
 
 
-		void* mapped_data = staging_buffer.map_to_GPU(data, size);
+		void* mapped_data = staging_buffer.map_to_GPU(data, 0, size);
 
 		this->create_buffer(
 			size,
@@ -92,11 +92,11 @@ auto VulkanBuffer::deinit() -> void {
 	m_memory = VK_NULL_HANDLE;
 }
 
-auto VulkanBuffer::map_to_GPU(void* data, VkDeviceSize size) -> void* {
+auto VulkanBuffer::map_to_GPU(void* data, VkDeviceSize offset, VkDeviceSize size) -> void* {
 	VkResult result;
 
 	void* mapped_data;
-	result = vkMapMemory(m_device->m_handle, m_memory, 0, size, 0, &mapped_data);
+	result = vkMapMemory(m_device->m_handle, m_memory, offset, size, 0, &mapped_data);
 	if (result != VK_SUCCESS) __debugbreak();
 	memcpy(mapped_data, data, static_cast<size_t>(size));
 	vkUnmapMemory(m_device->m_handle, m_memory);

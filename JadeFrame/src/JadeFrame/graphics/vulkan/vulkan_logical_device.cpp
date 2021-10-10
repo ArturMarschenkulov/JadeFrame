@@ -4,8 +4,6 @@
 #include "vulkan_instance.h"
 #include "vulkan_buffer.h"
 
-#include <Windows.h> // TODO: Try to remove it. This is used in "recreate_swapchain()"
-
 #include "JadeFrame/math/mat_4.h"
 #include "JadeFrame/math/math.h"
 
@@ -21,18 +19,21 @@ static const i32 MAX_FRAMES_IN_FLIGHT = 2;
 
 static auto VkResult_to_string(VkResult x) {
 	std::string str;
+#define JF_SET_ENUM_STRING(str, name) case name: str = #name
+	
 	switch (x) {
-		case VK_SUCCESS: str = "VK_SUCCESS"; break;
-		case VK_NOT_READY: str = "VK_NOT_READY"; break;
-		case VK_TIMEOUT: str = "VK_TIMEOUT"; break;
-		case VK_EVENT_SET: str = "VK_EVENT_SET"; break;
-		case VK_EVENT_RESET: str = "VK_EVENT_RESET"; break;
-		case VK_INCOMPLETE: str = "VK_INCOMPLETE"; break;
-		case VK_SUBOPTIMAL_KHR: str = "VK_SUBOPTIMAL_KHR"; break;
-		case VK_ERROR_OUT_OF_DATE_KHR: str = "VK_ERROR_OUT_OF_DATE_KHR"; break;
+		JF_SET_ENUM_STRING(str, VK_SUCCESS); break;
+		JF_SET_ENUM_STRING(str, VK_NOT_READY); break;
+		JF_SET_ENUM_STRING(str, VK_TIMEOUT); break;
+		JF_SET_ENUM_STRING(str, VK_EVENT_SET); break;
+		JF_SET_ENUM_STRING(str, VK_EVENT_RESET); break;
+		JF_SET_ENUM_STRING(str, VK_INCOMPLETE); break;
+		JF_SET_ENUM_STRING(str, VK_SUBOPTIMAL_KHR); break;
+		JF_SET_ENUM_STRING(str, VK_ERROR_OUT_OF_DATE_KHR); break;
 		default: __debugbreak(); str = ""; break;
 	}
 	return str;
+#undef JF_SET_ENUM_STRING
 }
 
 auto VulkanLogicalDevice::recreate_swapchain() -> void {
@@ -80,8 +81,8 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	for (u32 queue_familiy : unique_queue_families) {
 		const VkDeviceQueueCreateInfo queue_create_info = {
 			.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-			.pNext = {},
-			.flags = {},
+			.pNext = nullptr,
+			.flags = 0,
 			.queueFamilyIndex = queue_familiy,
 			.queueCount = 1,
 			.pQueuePriorities = &queue_priority,
@@ -92,12 +93,12 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	const VkPhysicalDeviceFeatures devices_features = {};
 	const VkDeviceCreateInfo create_info = {
 		.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-		.pNext = {},
-		.flags = {},
+		.pNext = nullptr,
+		.flags = 0,
 		.queueCreateInfoCount = static_cast<u32>(queue_create_infos.size()),
 		.pQueueCreateInfos = queue_create_infos.data(),
-		.enabledLayerCount = instance.m_enable_validation_layers ? static_cast<uint32_t>(instance.m_validation_layers.size()) : 0,
-		.ppEnabledLayerNames = instance.m_enable_validation_layers ? instance.m_validation_layers.data() : nullptr,
+		.enabledLayerCount = instance.m_enable_validation_layers ? static_cast<uint32_t>(instance.m_desired_layer_names.size()) : 0,
+		.ppEnabledLayerNames = instance.m_enable_validation_layers ? instance.m_desired_layer_names.data() : nullptr,
 		.enabledExtensionCount = static_cast<u32>(instance.m_physical_device.m_device_extensions.size()),
 		.ppEnabledExtensionNames = physical_device.m_device_extensions.data(),
 		.pEnabledFeatures = &devices_features,
@@ -123,17 +124,47 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	}
 
 	// Descriptor stuff
-	m_descriptor_set_layout.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
-	m_descriptor_set_layout.init(*this);
+	//m_descriptor_set_layout.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
+	//m_descriptor_set_layout.init(*this);
 
-	m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, swapchain_image_amount });
-	m_descriptor_pool.init(*this, swapchain_image_amount);
+	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, swapchain_image_amount });
+	//m_descriptor_pool.init(*this, swapchain_image_amount);
 
-	m_descriptor_sets = m_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout, swapchain_image_amount);
-	for (u32 i = 0; i < m_descriptor_sets.size(); i++) {
-		m_descriptor_sets[i].add_uniform_buffer(m_uniform_buffers[i], 0, 0);
-		m_descriptor_sets[i].update();
-	}
+	//m_descriptor_sets = m_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout, swapchain_image_amount);
+	//for (u32 i = 0; i < m_descriptor_sets.size(); i++) {
+	//	m_descriptor_sets[i].add_uniform_buffer(m_uniform_buffers[i], 0, 0, sizeof(UniformBufferObject));
+	//	m_descriptor_sets[i].update();
+	//}
+
+	const i32 num_objects = 300;
+
+	m_ub_cam.init(*this, VulkanBuffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+	m_ub_tran.init(*this, VulkanBuffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+
+	u32 descriptor_count = 1000;
+	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptor_count });
+	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, descriptor_count });
+	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, descriptor_count });
+	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, descriptor_count });
+	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, descriptor_count });
+	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, descriptor_count });
+	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptor_count });
+	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_SAMPLER, descriptor_count });
+	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, descriptor_count });
+	//m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, descriptor_count });
+	m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 });
+	m_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 });
+	m_descriptor_pool.init(*this, 1);
+
+	m_dsl.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
+	m_dsl.add_binding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
+	m_dsl.init(*this);
+
+	m_ds = m_descriptor_pool.allocate_descriptor_sets(m_dsl, 1);
+	m_ds[0].add_uniform_buffer(m_ub_cam, 0, 0, sizeof(Matrix4x4));
+	m_ds[0].add_uniform_buffer(m_ub_tran, 1, 0, sizeof(Matrix4x4));
+	m_ds[0].update();
+
 
 	// Commad Buffer stuff
 	m_command_pool.init(*this, m_physical_device_p->m_queue_family_indices.m_graphics_family.value());

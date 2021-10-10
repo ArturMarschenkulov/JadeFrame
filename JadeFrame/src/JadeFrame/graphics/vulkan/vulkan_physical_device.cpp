@@ -16,33 +16,33 @@
 namespace JadeFrame {
 
 static auto print_queue_families_info(std::vector<VulkanQueueFamily> queue_families) -> void {
-	{
-		for (u32 i = 0; i < queue_families.size(); i++) {
-			std::string str = "{ ";
-			if (queue_families[i].m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-				str += "Graphics ";
-			}
-			if (queue_families[i].m_properties.queueFlags & VK_QUEUE_COMPUTE_BIT) {
-				str += "Compute ";
-			}
-			if (queue_families[i].m_properties.queueFlags & VK_QUEUE_TRANSFER_BIT) {
-				str += "Transfer ";
-			}
-			if (queue_families[i].m_properties.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) {
-				str += "SparseBinding ";
-			}
-			if (queue_families[i].m_properties.queueFlags & VK_QUEUE_PROTECTED_BIT) {
-				str += "Protected ";
-			}
-			if(queue_families[i].m_present_support == true) {
-				str += "Present";
-			}
-			str += "}";
-			Logger::log("Queue family {} has {} queues capable of {}", 
-				i, queue_families[i].m_properties.queueCount, str
-			);
+
+	for (u32 i = 0; i < queue_families.size(); i++) {
+		std::string str = "{ ";
+		if (queue_families[i].m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+			str += "Graphics ";
 		}
+		if (queue_families[i].m_properties.queueFlags & VK_QUEUE_COMPUTE_BIT) {
+			str += "Compute ";
+		}
+		if (queue_families[i].m_properties.queueFlags & VK_QUEUE_TRANSFER_BIT) {
+			str += "Transfer ";
+		}
+		if (queue_families[i].m_properties.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) {
+			str += "SparseBinding ";
+		}
+		if (queue_families[i].m_properties.queueFlags & VK_QUEUE_PROTECTED_BIT) {
+			str += "Protected ";
+		}
+		if (queue_families[i].m_present_support == true) {
+			str += "Present ";
+		}
+		str += "}";
+		Logger::log(Logger::LEVEL::INFO, "Queue family {} has {} queues capable of {}",
+			i, queue_families[i].m_properties.queueCount, str
+		);
 	}
+
 }
 
 static auto query_surface_support_details(const VulkanPhysicalDevice& physical_device, const VulkanSurface& surface) ->SurfaceSupportDetails {
@@ -51,7 +51,7 @@ static auto query_surface_support_details(const VulkanPhysicalDevice& physical_d
 	u32 count = 0;
 
 	result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device.m_handle, surface.m_handle, &surface_support_details.m_capabilities);
-	
+
 
 
 	result = vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device.m_handle, surface.m_handle, &count, nullptr);
@@ -143,14 +143,14 @@ auto VulkanPhysicalDevice::query_queue_families(const VulkanSurface& surface) ->
 	u32 count = 0;
 
 	vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, nullptr);
-	
+
 	std::vector<VkQueueFamilyProperties> queue_family_properties;
 	queue_family_properties.resize(count);
 	vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, queue_family_properties.data());
 
 	std::vector<VulkanQueueFamily> families;
 	families.resize(count);
-	for(u32 i = 0; i < count; i++) {
+	for (u32 i = 0; i < count; i++) {
 		families[i].m_index = i;
 		families[i].m_properties = queue_family_properties[i];
 		vkGetPhysicalDeviceSurfaceSupportKHR(m_handle, families[i].m_index, surface.m_handle, &families[i].m_present_support);

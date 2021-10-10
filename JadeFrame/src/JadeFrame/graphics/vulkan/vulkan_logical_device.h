@@ -51,8 +51,15 @@ public:
 
 public: // Descriptor set
 	VulkanDescriptorSetLayout m_descriptor_set_layout;
-	VulkanDescriptorPool m_descriptor_pool;
+	//VulkanDescriptorPool m_descriptor_pool;
 	std::vector<VulkanDescriptorSet> m_descriptor_sets;
+
+	VulkanDescriptorSetLayout m_dsl;
+	VulkanDescriptorPool m_descriptor_pool;
+	std::vector<VulkanDescriptorSet> m_ds;
+	VulkanBuffer m_ub_cam = { VulkanBuffer::TYPE::UNIFORM };
+	VulkanBuffer m_ub_tran = { VulkanBuffer::TYPE::UNIFORM };
+
 
 public:
 	std::vector<VulkanBuffer> m_uniform_buffers = { VulkanBuffer::TYPE::UNIFORM };

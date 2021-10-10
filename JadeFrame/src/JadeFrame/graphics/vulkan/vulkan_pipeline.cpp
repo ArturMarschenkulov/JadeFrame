@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "vulkan_pipeline.h"
 #include "vulkan_logical_device.h"
+#include "vulkan_physical_device.h"
 #include "vulkan_swapchain.h"
 #include "vulkan_descriptor_set.h"
 #include "vulkan_render_pass.h"
@@ -41,7 +42,7 @@ auto VulkanPipeline::init(
 	const VulkanRenderPass& render_pass,
 	const ShadingCode& code,
 	const VertexFormat& vertex_format) -> void {
-
+	m_device = &device;
 	VkResult result;
 	if (m_is_compiled == false) {
 		std::future<std::vector<u32>> vert_shader_spirv = std::async(std::launch::async, string_to_SPIRV, code.m_vertex_shader.c_str(), 0);
@@ -75,10 +76,20 @@ auto VulkanPipeline::init(
 	{
 		std::vector cs = { m_vert_shader_spirv, m_frag_shader_spirv };
 
-
 		spirv_cross::CompilerGLSL compiler(m_vert_shader_spirv);
 		spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
+
+		for(const spirv_cross::Resource& resource : resources.uniform_buffers) {
+			const const std::string& name = resource.name;
+			const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.base_type_id);
+			i32 member_count = (u32)buffer_type.member_types.size();
+			u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+			u32 descriptor_set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+			u32 size = (u32)compiler.get_declared_struct_size(buffer_type);
+		}
+
+		//
 		for (const spirv_cross::Resource& resource : resources.push_constant_buffers) {
 			const std::string& buffer_name = resource.name;
 			const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.base_type_id);
@@ -235,10 +246,9 @@ auto VulkanPipeline::init(
 		.pNext = nullptr,
 		.setLayoutCount = 1,
 		.pSetLayouts = &descriptor_set_layout.m_handle,
-		.pushConstantRangeCount = (u32)vulkan_push_constant_ranges.size(),
+		.pushConstantRangeCount = static_cast<u32>(vulkan_push_constant_ranges.size()),
 		.pPushConstantRanges = vulkan_push_constant_ranges.data(),
 	};
-
 	result = vkCreatePipelineLayout(device.m_handle, &pipeline_layout_info, nullptr, &m_pipeline_layout);
 	if (result != VK_SUCCESS) __debugbreak();
 

@@ -42,7 +42,7 @@ auto VulkanLogicalDevice::create_texture_image(const std::string& path) -> void 
 		VulkanBuffer staging_buffer = { VulkanBuffer::TYPE::STAGING };
 		staging_buffer.init(*this, VulkanBuffer::TYPE::STAGING, nullptr, image_size);
 
-		void* mapped_data = staging_buffer.map_to_GPU(image.data, image_size);
+		void* mapped_data = staging_buffer.map_to_GPU(image.data, 0, image_size);
 
 		this->create_image(
 			image.width, image.height, 

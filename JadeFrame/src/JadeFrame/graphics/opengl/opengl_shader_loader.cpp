@@ -114,18 +114,24 @@ layout(location = 1) in vec4 v_color;
 
 layout(location = 0) out vec4 f_color;
 
-layout(std140, binding = 0) uniform UniformBufferObject {
+layout(std140, set = 0, binding = 0) uniform Camera {
     mat4 view_projection;
     //mat4 model;
-} u_ubo;
+} u_camera;
+layout(std140, set = 0, binding = 1) uniform Transform {
+	mat4 model;
+} u_transform;
 
-layout(push_constant) uniform PushConstants {
-	mat4 model_matrix;
-} push_conts;
+
+
+//layout(push_constant) uniform PushConstants {
+//	mat4 model_matrix;
+//} push_conts;
 
 void main() {
-    gl_Position = u_ubo.view_projection * push_conts.model_matrix * vec4(v_position, 1.0);
-    //gl_Position = u_ubo.view_projection * u_ubo.model * vec4(v_position, 1.0);
+    //gl_Position = u_camera.view_projection * push_conts.model_matrix * vec4(v_position, 1.0);
+	gl_Position = u_camera.view_projection * u_transform.model * vec4(v_position, 1.0);
+    //gl_Position = u_camera.view_projection * u_camera.model * vec4(v_position, 1.0);
 
 	f_color = v_color;
 }

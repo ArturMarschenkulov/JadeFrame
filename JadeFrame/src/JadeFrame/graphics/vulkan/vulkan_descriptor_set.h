@@ -11,19 +11,28 @@ class VulkanDescriptorPool;
 class VulkanBuffer;
 
 
+struct VulkanDescriptor {
+	VkDescriptorBufferInfo info;
+	VkDescriptorType type;
+	VkShaderStageFlags stage_flags;
+	u32 binding;
+};
 
 class VulkanDescriptorSet {
 public:
 	auto update() -> void;
 	auto add_uniform_buffer(
 		const VulkanBuffer& buffer,
+		u32 binding,
 		VkDeviceSize offset,
-		u32 binding
+		VkDeviceSize range
 	) -> void;
 public:
 	VkDescriptorSet m_handle;
 	const VulkanLogicalDevice* m_device = nullptr;
-	std::vector<VkDescriptorBufferInfo> m_descriptor_buffer_infos;
+	std::vector<VulkanDescriptor> m_descriptors;
+	std::vector<VkDescriptorSetLayoutBinding> m_layout_bindings;
+	//std::unordered_map<u32, VkDescriptorSetLayoutBinding> m_binding_map;
 };
 
 class VulkanDescriptorSetLayout {
@@ -47,11 +56,10 @@ public:
 
 class VulkanDescriptorPool {
 public:
-	auto init(const VulkanLogicalDevice& device, u32 amount) -> void;
+	auto init(const VulkanLogicalDevice& device, u32 max_sets) -> void;
 	auto deinit() -> void;
 	
 	auto add_pool_size(const VkDescriptorPoolSize& pool_size) -> void;
-	auto set_pool_sizes(const std::vector<VkDescriptorPoolSize>& pool_sizes) -> void;
 
 	auto allocate_descriptor_sets(const VulkanDescriptorSetLayout& descriptor_set_layout, u32 image_amount) -> std::vector<VulkanDescriptorSet>;
 	auto allocate_descriptor_set(const VulkanDescriptorSetLayout& descriptor_set_layout) -> VulkanDescriptorSet;

@@ -25,10 +25,11 @@ public:
 	VkInstance m_instance;
 	HWND m_window_handle;
 
-	std::vector<VkLayerProperties> m_layers;
+	std::vector<VkLayerProperties> m_available_layers;
+	const std::vector<const char*> m_desired_layer_names = { "VK_LAYER_KHRONOS_validation" };
+	//std::vector<VkLayerProperties> m_desired_layers;
 
-	std::vector<VkExtensionProperties> m_extensions;
-	std::vector<const char*> m_extension_names;
+	std::vector<VkExtensionProperties> m_available_extensions;
 
 	VkDebugUtilsMessengerEXT m_debug_messenger;
 #ifdef NDEBUG
@@ -36,7 +37,6 @@ public:
 #else
 	const bool m_enable_validation_layers = true;
 #endif
-	const std::vector<const char*> m_validation_layers;
 
 	std::vector<VulkanPhysicalDevice> m_physical_devices;
 	VulkanPhysicalDevice m_physical_device;

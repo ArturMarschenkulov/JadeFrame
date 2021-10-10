@@ -65,4 +65,6 @@ constexpr auto operator"" _f64(long double x) -> f64 {
 	return static_cast<f64>(x);
 }
 
+//#define JF_ASSERT(expr, text) (Logger::log(LEVEL::ERR, text), __debugbreak())
+
 }
