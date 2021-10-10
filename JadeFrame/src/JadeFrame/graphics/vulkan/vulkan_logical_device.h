@@ -9,7 +9,6 @@
 #include "vulkan_descriptor_set.h"
 #include "vulkan_sync_object.h"
 #include "vulkan_command_buffers.h"
-#include "vulkan_queue.h"
 
 #include "JadeFrame/math/vec_2.h"
 #include "JadeFrame/math/vec_3.h"
@@ -24,6 +23,19 @@ class VulkanInstance;
 class VulkanPhysicalDevice;
 class VulkanPipeline;
 class VulkanBuffer;
+
+class VulkanQueue {
+public:
+	auto submit(const VkSubmitInfo& submit_info, const VulkanFence* p_fence) const -> void;
+	auto submit(const VkCommandBuffer& cmd_buffer, const std::array<VkSemaphore, 1>& wait_semaphores, const std::array<VkSemaphore, 1>& signal_semaphore) -> void;
+	auto wait_idle() const -> void;
+	auto present(VkPresentInfoKHR info, VkResult& result) const -> void;
+public:
+	VkQueue m_handle = VK_NULL_HANDLE;
+};
+
+
+
 
 class VulkanLogicalDevice {
 private:

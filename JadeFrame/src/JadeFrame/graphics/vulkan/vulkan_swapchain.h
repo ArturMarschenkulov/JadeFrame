@@ -2,7 +2,7 @@
 #include <vulkan/vulkan.h>
 
 #include "JadeFrame/defines.h"
-#include "vulkan_texture.h"
+#include "vulkan_buffer.h"
 
 #include <vector>
 

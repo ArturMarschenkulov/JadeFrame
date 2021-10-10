@@ -501,16 +501,10 @@
     <ClInclude Include="src\extern\shaderc\visibility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_instance.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\JadeFrame\graphics\to_spirv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_set.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\JadeFrame\graphics\material_handle.h">
@@ -532,9 +526,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_command_buffers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\extern\SPIRV-Cross\spirv_glsl.hpp">
@@ -725,16 +716,10 @@
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_instance.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\JadeFrame\graphics\to_spirv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_descriptor_set.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\JadeFrame\graphics\material_handle.cpp">
@@ -759,9 +744,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_command_buffers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_queue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\extern\SPIRV-Cross\spirv_glsl.cpp">

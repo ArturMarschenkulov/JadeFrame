@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "vulkan_logical_device.h"
 #include "vulkan_physical_device.h"
-#include "vulkan_instance.h"
+#include "vulkan_context.h"
 #include "vulkan_buffer.h"
 
 #include "JadeFrame/math/mat_4.h"
@@ -35,6 +35,46 @@ static auto VkResult_to_string(VkResult x) {
 	return str;
 #undef JF_SET_ENUM_STRING
 }
+
+/*---------------------------
+	Queue
+---------------------------*/
+auto VulkanQueue::submit(const VkSubmitInfo& submit_info, const VulkanFence* p_fence) const -> void {
+	VkResult result;
+	result = vkQueueSubmit(m_handle, 1, &submit_info, p_fence->m_handle);
+	if (result != VK_SUCCESS) __debugbreak();
+}
+auto VulkanQueue::submit(const VkCommandBuffer& cmd_buffer, const std::array<VkSemaphore, 1>& wait_semaphores, const std::array<VkSemaphore, 1>& signal_semaphores) -> void {
+	VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	const VkSubmitInfo submit_info = {
+		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+		.pNext = nullptr,
+		.waitSemaphoreCount = (uint32_t)wait_semaphores.size(),
+		.pWaitSemaphores = wait_semaphores.data(),
+		.pWaitDstStageMask = wait_stages,
+		.commandBufferCount = 1,
+		.pCommandBuffers = &cmd_buffer,
+		.signalSemaphoreCount = (uint32_t)signal_semaphores.size(),
+		.pSignalSemaphores = signal_semaphores.data(),
+	};
+	/*this->submit(submit_info);*/
+	VkResult result;
+	result = vkQueueSubmit(m_handle, 1, &submit_info, VK_NULL_HANDLE);
+	if (result != VK_SUCCESS) __debugbreak();
+}
+auto VulkanQueue::wait_idle() const -> void {
+	VkResult result;
+	result = vkQueueWaitIdle(m_handle);
+	if (result != VK_SUCCESS) __debugbreak();
+}
+auto VulkanQueue::present(VkPresentInfoKHR info, VkResult& result) const -> void {
+	result = vkQueuePresentKHR(m_handle, &info);
+	if (result != VK_SUCCESS) __debugbreak();
+}
+
+/*---------------------------
+	Logical Device
+---------------------------*/
 
 auto VulkanLogicalDevice::recreate_swapchain() -> void {
 	m_render_pass.deinit();
