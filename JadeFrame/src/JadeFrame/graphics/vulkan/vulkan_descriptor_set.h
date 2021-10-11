@@ -26,6 +26,10 @@ public:
 		u32 binding,
 		VkDeviceSize offset,
 		VkDeviceSize range
+	) -> void;	
+	auto readd_uniform_buffer(
+		u32 binding,
+		const VulkanBuffer& buffer
 	) -> void;
 public:
 	VkDescriptorSet m_handle;

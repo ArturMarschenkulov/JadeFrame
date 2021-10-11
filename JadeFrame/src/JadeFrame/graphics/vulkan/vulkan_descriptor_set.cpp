@@ -45,6 +45,20 @@ auto VulkanDescriptorSet::add_uniform_buffer(const VulkanBuffer& buffer, u32 bin
 	if (found == false) __debugbreak();
 
 }
+auto VulkanDescriptorSet::readd_uniform_buffer(u32 binding, const VulkanBuffer& buffer) -> void {
+	//VulkanDescriptor d = {
+	//	.info = {
+	//		.buffer = buffer.m_handle,
+	//		.offset = m_infos[binding].offset,
+	//		.range = m_infos[binding].range,
+	//	},
+	//	.binding = binding,
+	//};
+
+	//m_infos[binding] = d.info;
+	m_infos[binding].buffer = buffer.m_handle;
+
+}
 auto VulkanDescriptorSet::update() -> void {
 
 	std::vector<VkWriteDescriptorSet> wdss;

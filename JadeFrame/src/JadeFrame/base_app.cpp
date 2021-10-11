@@ -10,6 +10,14 @@
 #include <JadeFrame/utils/utils.h>
 
 namespace JadeFrame {
+
+template<class T>
+requires std::same_as<T, bool>
+auto init_memory(T& data) -> void {
+	static_assert(!std::is_pointer<T>::value, "'init_memory' does not allow pointer types");
+	static_assert(std::is_pod<T>::value, "'init_memory' does only allow plain-old-data (POD)");
+	::memset(&data, 0, sizeof(T));
+}
 //**************************************************************
 //JadeFrame
 //**************************************************************
@@ -19,6 +27,7 @@ auto JadeFrameInstance::get_singleton() -> JadeFrameInstance* {
 }
 JadeFrameInstance::JadeFrameInstance() {
 	Logger::log("JadeFrame is starting...");
+
 
 	if (m_singleton == nullptr) {
 		m_singleton = this;
@@ -146,12 +155,7 @@ static auto take_ownership(std::list<std::unique_ptr<BaseType>>& object_set, std
 	return ref;
 }
 
-//template<class T>
-//auto init_memory(T& data) -> void {
-//	static_assert(!std::is_pointer<T>::value, "'init_memory' does not allow pointer types");
-//	static_assert(std::is_pod<T>::value, "'init_memory' does only allow plain-old-data (POD)");
-//	::memset(&data, 0, sizeof(T));
-//}
+
 
 template<typename Left, typename Right>
 class Either {

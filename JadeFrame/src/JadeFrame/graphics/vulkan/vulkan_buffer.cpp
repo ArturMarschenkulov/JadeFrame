@@ -105,6 +105,7 @@ auto VulkanBuffer::map_to_GPU(void* data, VkDeviceSize offset, VkDeviceSize size
 }
 
 auto VulkanBuffer::resize(size_t size) -> void {
+	assert(m_type == TYPE::UNIFORM);
 	if (size == m_size) return;
 
 	this->deinit();

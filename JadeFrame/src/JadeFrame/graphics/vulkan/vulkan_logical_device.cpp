@@ -151,7 +151,7 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 
 	// Uniform stuff
 
-	const i32 num_objects = 300;
+	const i32 num_objects = 1;
 
 	m_ub_cam.init(*this, VulkanBuffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
 	m_ub_tran.init(*this, VulkanBuffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4) * num_objects);
@@ -175,7 +175,7 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 
 	m_descriptor_sets = m_main_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout_0, 1);
 	m_descriptor_sets[0].add_uniform_buffer(m_ub_cam, 0, 0, sizeof(Matrix4x4));
-	m_descriptor_sets[0].add_uniform_buffer(m_ub_tran, 1, 0, sizeof(Matrix4x4) * num_objects);
+	m_descriptor_sets[0].add_uniform_buffer(m_ub_tran, 1, 0, sizeof(Matrix4x4));
 	m_descriptor_sets[0].update();
 
 

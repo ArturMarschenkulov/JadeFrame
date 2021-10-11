@@ -122,6 +122,18 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 			if(min_ubo_alignment > 0) {
 				block_size = (block_size + min_ubo_alignment - 1) & ~(min_ubo_alignment - 1);
 			}
+
+
+			//Update ubo buffer and descriptor set when the amount of render commands changes
+			if(m_render_commands.size() * sizeof(Matrix4x4) != d.m_ub_tran.m_size) {
+				d.m_ub_tran.resize(m_render_commands.size() * sizeof(Matrix4x4));
+				d.m_descriptor_sets[0].readd_uniform_buffer(1, d.m_ub_tran);
+				d.m_descriptor_sets[0].update();
+
+			}
+
+
+
 			u32 draw_call = 0;
 			for (size_t i = 0; i < m_render_commands.size(); i++) {
 				const u32 offset = block_size * i;

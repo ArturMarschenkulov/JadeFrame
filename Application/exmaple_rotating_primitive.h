@@ -108,6 +108,7 @@ auto Example_Rotating_Primitive::on_draw() -> void {
 
 	m_renderer->submit(m_obj_2);
 	m_renderer->submit(m_obj);
+	m_renderer->submit(m_obj);
 }
 using TestApp = Example_Rotating_Primitive;
 
