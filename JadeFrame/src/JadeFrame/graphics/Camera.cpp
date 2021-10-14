@@ -18,7 +18,7 @@
 
 namespace JadeFrame {
 
-auto Camera::perspective(const Vec3& pos, const f32 fovy, const f32 aspect, const f32 zNear, const f32 zFar) -> void {
+auto Camera::perspective(const v3& pos, const f32 fovy, const f32 aspect, const f32 zNear, const f32 zFar) -> void {
 
 	m_projection_matrix = Matrix4x4::perspective_projection_matrix(fovy, aspect, zNear, zFar);
 	m_position = pos;
@@ -37,7 +37,7 @@ auto Camera::perspective(const Vec3& pos, const f32 fovy, const f32 aspect, cons
 	m_zNear = zNear;
 	m_zFar = zFar;
 
-	Vec3 front;
+	v3 front;
 	front.x = cos(to_radians(m_yaw)) * cos(to_radians(m_pitch));
 	front.y = sin(to_radians(m_pitch));
 	front.z = sin(to_radians(m_yaw)) * cos(to_radians(m_pitch));
@@ -84,7 +84,7 @@ auto Camera::control() -> void {
 
 
 
-	Vec3 front;
+	v3 front;
 	front.x = cos(to_radians(m_yaw)) * cos(to_radians(m_pitch));
 	front.y = sin(to_radians(m_pitch));
 	front.z = sin(to_radians(m_yaw)) * cos(to_radians(m_pitch));
@@ -101,7 +101,7 @@ auto Camera::get_projection_matrix() const -> Matrix4x4 {
 	return m_projection_matrix;
 }
 
-auto Camera1::perspective_mode(const Vec3& position, const f32 fov, const f32 aspect, const f32 zNear, const f32 zFar) -> void {
+auto Camera1::perspective_mode(const v3& position, const f32 fov, const f32 aspect, const f32 zNear, const f32 zFar) -> void {
 	m_mode = MODE::PERSPECTIVE;
 	// probably move to constructor
 	m_position = position;
@@ -170,7 +170,7 @@ auto Camera1::control() -> void {
 		//if (m_pitch < -89.0f)
 		//	m_pitch = -89.0f;
 
-		Vec3 front;
+		v3 front;
 		front.x = cos(to_radians(m_yaw)) * cos(to_radians(m_pitch));
 		front.y = sin(to_radians(m_pitch));
 		front.z = sin(to_radians(m_yaw)) * cos(to_radians(m_pitch));

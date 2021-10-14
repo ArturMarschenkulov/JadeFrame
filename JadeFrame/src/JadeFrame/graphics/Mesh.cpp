@@ -34,7 +34,7 @@ namespace JadeFrame {
 //
 //}
 
-auto VertexDataFactory::make_line(const Vec3& pos1, const Vec3& pos2) -> VertexData {
+auto VertexDataFactory::make_line(const v3& pos1, const v3& pos2) -> VertexData {
 	VertexData vertex_data;
 	vertex_data.m_positions.resize(2);
 	vertex_data.m_positions[0] = pos1;
@@ -51,7 +51,7 @@ auto VertexDataFactory::make_line(const Vec3& pos1, const Vec3& pos2) -> VertexD
 	return vertex_data;
 }
 
-auto VertexDataFactory::make_rectangle(const Vec3& pos, const Vec3& size, const Desc desc) -> VertexData {
+auto VertexDataFactory::make_rectangle(const v3& pos, const v3& size, const Desc desc) -> VertexData {
 	VertexData vertex_data;
 	vertex_data.m_positions.resize(6);
 	vertex_data.m_positions[00] = { pos.x			, pos.y			, pos.z };
@@ -92,12 +92,12 @@ auto VertexDataFactory::make_rectangle(const Vec3& pos, const Vec3& size, const 
 	return vertex_data;
 }
 
-auto VertexDataFactory::make_triangle(const Vec3& pos1, const Vec3& pos2, const Vec3& pos3) -> VertexData {
+auto VertexDataFactory::make_triangle(const v3& pos1, const v3& pos2, const v3& pos3) -> VertexData {
 	VertexData vertex_data;
 	vertex_data.m_positions.resize(3);
-	vertex_data.m_positions[0] = Vec3{ pos1.x, pos1.y, pos1.z };
-	vertex_data.m_positions[1] = Vec3{ pos2.x, pos2.y, pos2.z };
-	vertex_data.m_positions[2] = Vec3{ pos3.x, pos3.y, pos3.z };
+	vertex_data.m_positions[0] = v3{ pos1.x, pos1.y, pos1.z };
+	vertex_data.m_positions[1] = v3{ pos2.x, pos2.y, pos2.z };
+	vertex_data.m_positions[2] = v3{ pos3.x, pos3.y, pos3.z };
 
 	//vertex_data.m_indices.reserve(3);
 	//vertex_data.m_indices = {
@@ -106,7 +106,7 @@ auto VertexDataFactory::make_triangle(const Vec3& pos1, const Vec3& pos2, const 
 	return vertex_data;
 }
 
-auto VertexDataFactory::make_circle(const Vec3& position, const f32 radius, const u32 numSegments) -> VertexData {
+auto VertexDataFactory::make_circle(const v3& position, const f32 radius, const u32 numSegments) -> VertexData {
 	const f32 theta = 2.0f * 3.1415926f / f32(numSegments);//get the current angle 
 	const f32 cos = cosf(theta);//calculate the x component 
 	const f32 sin = sinf(theta);//calculate the y component 
@@ -118,7 +118,7 @@ auto VertexDataFactory::make_circle(const Vec3& position, const f32 radius, cons
 	f32 x = radius;
 	f32 y = 0;
 	for (u32 i = 1; i < numSegments + 1; i++) {
-		vertex_data.m_positions[i] = Vec3{ x + position.x, y + position.y, position.z };//output vertex 
+		vertex_data.m_positions[i] = v3{ x + position.x, y + position.y, position.z };//output vertex 
 
 		const f32 t = x;
 		x = cos * x - sin * y;
@@ -138,7 +138,7 @@ auto VertexDataFactory::make_circle(const Vec3& position, const f32 radius, cons
 	return vertex_data;
 }
 
-auto VertexDataFactory::make_cube(const Vec3& pos, const Vec3& size) -> VertexData {
+auto VertexDataFactory::make_cube(const v3& pos, const v3& size) -> VertexData {
 	VertexData vertex_data;
 
 	vertex_data.m_positions.resize(36);

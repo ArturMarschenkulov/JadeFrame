@@ -10,7 +10,10 @@ class VulkanSurface {
 private:
 public:
 	auto init(VkInstance instance, HWND window_handle) -> void;
+	auto deinit() -> void;
 public:
-	VkSurfaceKHR m_handle;
+	VkSurfaceKHR m_handle = VK_NULL_HANDLE;
+	HWND m_window_handle = nullptr;
+	VkInstance m_instance = nullptr;
 };
 }

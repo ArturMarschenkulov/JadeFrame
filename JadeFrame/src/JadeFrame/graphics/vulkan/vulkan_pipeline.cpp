@@ -4,7 +4,6 @@
 #include "vulkan_physical_device.h"
 #include "vulkan_swapchain.h"
 #include "vulkan_descriptor_set.h"
-#include "vulkan_render_pass.h"
 
 #include "../to_spirv.h"
 #include "extern/SPIRV-Cross/spirv_glsl.hpp"
@@ -43,6 +42,9 @@ auto VulkanPipeline::init(
 	const ShadingCode& code,
 	const VertexFormat& vertex_format) -> void {
 	m_device = &device;
+	m_render_pass = &render_pass;
+	m_descriptor_set_layout = &descriptor_set_layout;
+
 	VkResult result;
 	if (m_is_compiled == false) {
 		std::future<std::vector<u32>> vert_shader_spirv = std::async(std::launch::async, string_to_SPIRV, code.m_vertex_shader.c_str(), 0);
@@ -158,11 +160,12 @@ auto VulkanPipeline::init(
 		.primitiveRestartEnable = VK_FALSE,
 	};
 
+	//NOTE: For OpenGL compatibility. make .height *= -1 and .y += .height
 	const VkViewport viewport = {
 		.x = 0.0f,
-		.y = 0.0f,
+		.y = static_cast<f32>(extent.height),
 		.width = static_cast<f32>(extent.width),
-		.height = static_cast<f32>(extent.height),
+		.height = -static_cast<f32>(extent.height),
 		.minDepth = 0.0f,
 		.maxDepth = 1.0f,
 	};
@@ -249,7 +252,7 @@ auto VulkanPipeline::init(
 		.pushConstantRangeCount = static_cast<u32>(vulkan_push_constant_ranges.size()),
 		.pPushConstantRanges = vulkan_push_constant_ranges.data(),
 	};
-	result = vkCreatePipelineLayout(device.m_handle, &pipeline_layout_info, nullptr, &m_pipeline_layout);
+	result = vkCreatePipelineLayout(device.m_handle, &pipeline_layout_info, nullptr, &m_layout);
 	if (result != VK_SUCCESS) __debugbreak();
 
 	const VkGraphicsPipelineCreateInfo pipeline_info = {
@@ -267,14 +270,14 @@ auto VulkanPipeline::init(
 		.pDepthStencilState = {},
 		.pColorBlendState = &color_blending,
 		.pDynamicState = {},
-		.layout = m_pipeline_layout,
+		.layout = m_layout,
 		.renderPass = render_pass.m_handle,
 		.subpass = 0,
 		.basePipelineHandle = VK_NULL_HANDLE,
 		.basePipelineIndex = {},
 	};
 
-	result = vkCreateGraphicsPipelines(device.m_handle, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_graphics_pipeline);
+	result = vkCreateGraphicsPipelines(device.m_handle, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
 
 	vkDestroyShaderModule(device.m_handle, frag_shader_module, nullptr);
@@ -283,8 +286,8 @@ auto VulkanPipeline::init(
 }
 
 auto VulkanPipeline::deinit() -> void {
-	vkDestroyPipeline(m_device->m_handle, m_graphics_pipeline, nullptr);
-	vkDestroyPipelineLayout(m_device->m_handle, m_pipeline_layout, nullptr);
+	vkDestroyPipeline(m_device->m_handle, m_handle, nullptr);
+	vkDestroyPipelineLayout(m_device->m_handle, m_layout, nullptr);
 }
 
 auto VulkanPipeline::operator=(const VulkanPipeline& o) {

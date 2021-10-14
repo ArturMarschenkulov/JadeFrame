@@ -35,12 +35,7 @@ public:
 	VkDescriptorSet m_handle;
 	const VulkanLogicalDevice* m_device = nullptr;
 	
-	//Descriptor data. The same index means the same descriptor
-	std::vector<VkDescriptorBufferInfo> m_infos;
-	std::vector<VkDescriptorType> m_types;
-	std::vector<VkShaderStageFlags> m_stage_flags;
-	std::vector<u32> m_bindings;
-	std::vector<VkDescriptorSetLayoutBinding> m_layout_bindings;
+	std::vector<VulkanDescriptor> m_descriptors;
 };
 
 class VulkanDescriptorSetLayout {

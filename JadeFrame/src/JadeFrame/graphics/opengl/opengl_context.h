@@ -68,7 +68,7 @@ public:
 
 public:
 	auto set_viewport(i32 x, i32 y, i32 width, i32 height) -> void;
-	Vec2 viewport[2]; // TODO: Create an appropriate "rectangle" struct!
+	v2 viewport[2]; // TODO: Create an appropriate "rectangle" struct!
 };
 class OpenGL_Context {
 public:

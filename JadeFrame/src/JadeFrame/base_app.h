@@ -7,6 +7,7 @@
 #include "platform/windows/windows_system_manager.h"
 #endif
 
+#include "JadeFrame/math/vec.h"
 #include "graphics/material_handle.h"
 #include "graphics/camera.h"
 #include "graphics/opengl/opengl_renderer.h"
@@ -129,8 +130,8 @@ class BaseApp {
 public:
 	struct DESC {
 		std::string title;
-		Vec2 size;
-		Vec2 position = { -1, -1 };
+		v2 size;
+		v2 position = v2{ -1.0f, -1.0f };
 	};
 	BaseApp() = default;
 	BaseApp(const DESC& desc);

@@ -1,5 +1,6 @@
 #pragma once
 #include "JadeFrame/defines.h"
+#include "JadeFrame/math/vec.h"
 #include <Windows.h>
 
 #include <array>
@@ -8,8 +9,6 @@
 namespace JadeFrame {
 
 struct WindowsMessage;
-class Vec2;
-
 enum class INPUT_STATE {
 	RELEASED,
 	PRESSED
@@ -147,11 +146,11 @@ public:
 	auto is_button_up(const BUTTON button) const -> bool;
 	auto is_button_pressed(const BUTTON button) const -> bool;
 	auto is_button_released(const BUTTON button) const -> bool;
-	auto get_mouse_position() const->Vec2;
+	auto get_mouse_position() const->v2;
 
 	static std::array<INPUT_STATE, 3> m_current_mouse_button_state;
 	static std::array<INPUT_STATE, 3> m_previous_mouse_button_state;
-	static Vec2 m_mouse_posiition;
+	static v2 m_mouse_posiition;
 };
 
 }

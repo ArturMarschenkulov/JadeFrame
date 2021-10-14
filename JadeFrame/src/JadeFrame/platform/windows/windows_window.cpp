@@ -36,9 +36,9 @@ static auto window_resize_callback(Windows_Window& window, const WindowsMessage&
 	}
 
 
-	window.set_size(Vec2(LOWORD(wm.lParam), HIWORD(wm.lParam)));
+	window.set_size(v2(LOWORD(wm.lParam), HIWORD(wm.lParam)));
 
-	const Vec2& size = window.get_size();
+	const v2& size = window.get_size();
 	auto& renderer = JadeFrameInstance::get_singleton()->m_current_app_p->m_renderer;
 	renderer->set_viewport(0, 0, size.width, size.height);
 
@@ -53,7 +53,7 @@ static auto window_move_callback(Windows_Window& window, const WindowsMessage& w
 	//NOTE: wParam is not used
 
 
-	window.set_position(Vec2(LOWORD(wm.lParam), HIWORD(wm.lParam)));
+	window.set_position(v2(LOWORD(wm.lParam), HIWORD(wm.lParam)));
 
 }
 static auto window_focus_callback(Windows_Window& window, bool should_focus) {
@@ -250,8 +250,8 @@ Windows_Window::Windows_Window(const Windows_Window::Desc& desc) {
 	::GetWindowRect(window_handle, &window_rect);
 
 	m_title = desc.title;
-	m_size = Vec2(client_rect.right, client_rect.bottom);
-	m_position = Vec2(window_rect.left, window_rect.top);
+	m_size = v2(client_rect.right, client_rect.bottom);
+	m_position = v2(window_rect.left, window_rect.top);
 	m_window_handle = window_handle;
 	m_window_state = WINDOW_STATE::WINDOWED;
 	if (desc.visable == true) {
@@ -275,19 +275,19 @@ auto Windows_Window::get_title() const -> std::string {
 	return m_title;
 }
 
-auto Windows_Window::set_size(const Vec2& size) -> void {
+auto Windows_Window::set_size(const v2& size) -> void {
 	m_size = size;
 }
 
-auto Windows_Window::get_size() const -> Vec2 {
+auto Windows_Window::get_size() const -> const v2& {
 	return m_size;
 }
 
-auto Windows_Window::set_position(const Vec2& position) -> void {
+auto Windows_Window::set_position(const v2& position) -> void {
 	m_position = position;
 }
 
-auto Windows_Window::get_position() const -> Vec2 {
+auto Windows_Window::get_position() const -> const v2& {
 	return m_position;
 }
 
@@ -299,10 +299,10 @@ auto Windows_Window::get_window_state() const -> WINDOW_STATE {
 	return m_window_state;
 }
 
-auto Windows_Window::query_client_size() const-> Vec2 {
+auto Windows_Window::query_client_size() const-> v2 {
 	::RECT rect = { NULL };
 	::GetClientRect(m_window_handle, &rect);
-	return Vec2(rect.right, rect.bottom);
+	return v2(rect.right, rect.bottom);
 }
 
 }

@@ -25,7 +25,8 @@ static auto init_device_context(const Windows_Window& window) -> HDC {
 static auto init_render_context(HDC device_context) -> HGLRC {
 	wgl_set_pixel_format(device_context);
 	HGLRC render_context = wgl_create_render_context(device_context);
-	if (gladLoadGL() != 1) {
+	i32 result = gladLoadGL();
+	if (result != 1) {
 		Logger::log("gladLoadGL() failed.", ::GetLastError());
 	}
 	return render_context;
@@ -61,15 +62,22 @@ OpenGL_Context::OpenGL_Context(const Windows_Window& window)
 	wgl_swap_interval(0); //TODO: This is windows specific. Abstract this away
 
 	{
-		const GLuint binding_point = 0;
+		const GLuint binding_point_0 = 0;
 		m_uniform_buffers.emplace_back();
 		m_uniform_buffers[0].bind();
-		m_uniform_buffers[0].reserve(2 * sizeof(Matrix4x4));
+		m_uniform_buffers[0].reserve(1 * sizeof(Matrix4x4));
 		m_uniform_buffers[0].unbind();
-		m_uniform_buffers[0].bind_base(binding_point);
+		m_uniform_buffers[0].bind_base(binding_point_0);
+
+		const GLuint binding_point_1 = 1;
+		m_uniform_buffers.emplace_back();
+		m_uniform_buffers[1].bind();
+		m_uniform_buffers[1].reserve(1 * sizeof(Matrix4x4));
+		m_uniform_buffers[1].unbind();
+		m_uniform_buffers[1].bind_base(binding_point_1);
 	}
 
-	const Vec2& size = window.get_size();
+	const v2& size = window.get_size();
 	m_state.set_viewport(0, 0, size.x, size.y);
 }
 

@@ -8,6 +8,7 @@
 #include <utility>
 #include <format>
 #include <JadeFrame/utils/utils.h>
+#include "JadeFrame/math/vec.h"
 
 namespace JadeFrame {
 
@@ -88,6 +89,13 @@ BaseApp::BaseApp(const DESC& desc) {
 
 }
 auto BaseApp::start() -> void {
+
+	v3 v_0 = { 1, 2, 3 };
+	v3 v_1 = { 3, 2, 1 };
+
+	v3 v_3 = v_0 + v_1;
+
+
 
 
 	this->on_init();
@@ -249,35 +257,35 @@ public:
 	}
 	// clang-format off
 	const T* operator-> () const {
-		assert(m_init); 
+		assert(m_init);
 		return &m_value;
 	}
 	T* operator-> () {
-		assert(m_init); 
+		assert(m_init);
 		return &m_value;
 	}
 	const T& operator* () const& {
-		assert(m_init);	
+		assert(m_init);
 		return m_value;
 	}
 	T& operator* ()& {
-		assert(m_init); 
+		assert(m_init);
 		return m_value;
 	}
 	T&& operator* ()&& {
-		assert(m_init); 
+		assert(m_init);
 		return std::move(m_value);
 	}
 	const T& value() const& {
-		assert(m_init); 
+		assert(m_init);
 		return m_value;
 	}
 	T& value()& {
-		assert(m_init); 
+		assert(m_init);
 		return m_value;
 	}
 	const T&& value() const&& {
-		assert(m_init); 
+		assert(m_init);
 		return std::move(m_value);
 	}
 	T&& value()&& {
@@ -286,7 +294,7 @@ public:
 	}
 
 	std::error_code error() const {
-		assert(!m_init); 
+		assert(!m_init);
 		return m_error.type;
 	}
 	// clang-format on

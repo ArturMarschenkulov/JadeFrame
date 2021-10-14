@@ -60,7 +60,7 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, VulkanBuffer::TYPE bu
 		staging_buffer.init(device, VulkanBuffer::TYPE::STAGING, nullptr, size);
 
 
-		void* mapped_data = staging_buffer.map_to_GPU(data, 0, size);
+		/*void* mapped_data = */staging_buffer.send(data, 0, size);
 
 		this->create_buffer(
 			size,
@@ -92,7 +92,7 @@ auto VulkanBuffer::deinit() -> void {
 	m_memory = VK_NULL_HANDLE;
 }
 
-auto VulkanBuffer::map_to_GPU(void* data, VkDeviceSize offset, VkDeviceSize size) -> void* {
+auto VulkanBuffer::send(void* data, VkDeviceSize offset, VkDeviceSize size) -> void {
 	VkResult result;
 
 	void* mapped_data;
@@ -100,8 +100,6 @@ auto VulkanBuffer::map_to_GPU(void* data, VkDeviceSize offset, VkDeviceSize size
 	if (result != VK_SUCCESS) __debugbreak();
 	memcpy(mapped_data, data, static_cast<size_t>(size));
 	vkUnmapMemory(m_device->m_handle, m_memory);
-
-	return mapped_data;
 }
 
 auto VulkanBuffer::resize(size_t size) -> void {
@@ -135,7 +133,7 @@ auto VulkanBuffer::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, Vk
 		.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
 		.pNext = nullptr,
 		.allocationSize = mem_requirements.size,
-		.memoryTypeIndex = m_device->m_physical_device_p->find_memory_type(mem_requirements.memoryTypeBits, properties),
+		.memoryTypeIndex = m_device->m_physical_device->find_memory_type(mem_requirements.memoryTypeBits, properties),
 	};
 
 	result = vkAllocateMemory(m_device->m_handle, &alloc_info, nullptr, &buffer_memory);
@@ -226,7 +224,7 @@ auto VulkanLogicalDevice::create_texture_image(const std::string& path) -> void 
 		VulkanBuffer staging_buffer = { VulkanBuffer::TYPE::STAGING };
 		staging_buffer.init(*this, VulkanBuffer::TYPE::STAGING, nullptr, image_size);
 
-		void* mapped_data = staging_buffer.map_to_GPU(image.data, 0, image_size);
+		staging_buffer.send(image.data, 0, image_size);
 
 		this->create_image(
 			image.width, image.height,
@@ -281,7 +279,7 @@ auto VulkanLogicalDevice::create_image(u32 width, u32 height, VkFormat format, V
 		.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
 		.pNext = {},
 		.allocationSize = mem_requirements.size,
-		.memoryTypeIndex = m_physical_device_p->find_memory_type(mem_requirements.memoryTypeBits, properties),
+		.memoryTypeIndex = m_physical_device->find_memory_type(mem_requirements.memoryTypeBits, properties),
 	};
 	result = vkAllocateMemory(m_handle, &alloc_info, nullptr, &image_memory);
 	if (result != VK_SUCCESS) __debugbreak();
@@ -455,7 +453,7 @@ auto VulkanLogicalDevice::create_texture_sampler() -> void {
 		.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
 		.mipLodBias = {},
 		.anisotropyEnable = VK_TRUE,
-		.maxAnisotropy = m_physical_device_p->m_properties.limits.maxSamplerAnisotropy,
+		.maxAnisotropy = m_physical_device->m_properties.limits.maxSamplerAnisotropy,
 		.compareEnable = VK_FALSE,
 		.compareOp = VK_COMPARE_OP_ALWAYS,
 		.minLod = {},

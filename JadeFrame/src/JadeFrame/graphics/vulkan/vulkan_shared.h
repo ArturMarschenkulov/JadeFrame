@@ -2,8 +2,6 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <array>
-#include "JadeFrame/math/vec_2.h"
-#include "JadeFrame/math/vec_3.h"
 #include "JadeFrame/math/mat_4.h"
 #include "../Mesh.h"
 #include "../graphics_shared.h"

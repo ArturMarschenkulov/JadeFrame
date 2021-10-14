@@ -7,8 +7,6 @@
 #include <windowsx.h>
 #include "windows_message_map.h" // for WindowMessage struct
 
-#include "JadeFrame/math/vec_2.h"
-
 namespace JadeFrame {
 /*
 	KEY INPUT
@@ -133,7 +131,7 @@ auto Windows_InputManager::is_key_released(const KEY key) -> bool {
 std::array<INPUT_STATE, 3> Windows_InputManager::m_current_mouse_button_state = {};
 std::array<INPUT_STATE, 3> Windows_InputManager::m_previous_mouse_button_state = {};
 
-Vec2 Windows_InputManager::m_mouse_posiition{};
+v2 Windows_InputManager::m_mouse_posiition{};
 static auto convert_buttons_from_JF_to_imgui(BUTTON button) -> i32 {
 	i32 result;
 	switch (button) {
@@ -243,7 +241,7 @@ auto Windows_InputManager::is_button_released(const BUTTON button) const -> bool
 	return (is_current_changed && is_current_released) ? true : false;
 }
 
-auto Windows_InputManager::get_mouse_position() const -> Vec2 {
+auto Windows_InputManager::get_mouse_position() const -> v2 {
 	return m_mouse_posiition;
 }
 

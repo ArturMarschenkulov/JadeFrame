@@ -25,6 +25,9 @@
 #include <thread>
 #include <future>
 
+#include <type_traits>
+#include <concepts>
+
 //Windows
 #include <Windows.h>
 

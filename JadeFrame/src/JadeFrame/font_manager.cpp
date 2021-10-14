@@ -2,7 +2,7 @@
 #include "font_manager.h"
 #include <map>
 #include <glad/glad.h>
-#include "math/vec_2.h"
+#include "math/vec.h"
 #include "freetype/include/ft2build.h"
 
 #include "graphics/opengl/opengl_texture.h"
@@ -14,8 +14,8 @@ namespace JadeFrame {
 auto FontManager::init() -> void {
 	struct Character {
 		GLuint TextureID;  // ID handle of the glyph texture
-		Vec2 Size;       // Size of glyph
-		Vec2 Bearing;    // Offset from baseline to left/top of glyph
+		v2 Size;       // Size of glyph
+		v2 Bearing;    // Offset from baseline to left/top of glyph
 		GLuint Advance;    // Offset to advance to next glyph
 	};
 	std::map<GLchar, Character> character_map;
@@ -67,8 +67,8 @@ auto FontManager::init() -> void {
 auto FontManager::init2() -> void {
 	struct Character {
 		GLuint TextureID;  // ID handle of the glyph texture
-		Vec2 Size;       // Size of glyph
-		Vec2 Bearing;    // Offset from baseline to left/top of glyph
+		v2 Size;       // Size of glyph
+		v2 Bearing;    // Offset from baseline to left/top of glyph
 		GLuint Advance;    // Offset to advance to next glyph
 	};
 	std::map<GLchar, Character> character_map;

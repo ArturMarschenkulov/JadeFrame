@@ -4,8 +4,7 @@
 #include "opengl_shader_loader.h"
 
 #include "JadeFrame/math/mat_4.h"
-#include "JadeFrame/math/vec_2.h"
-#include "JadeFrame/math/vec_3.h"
+#include "JadeFrame/math/vec.h"
 
 #include <vector>
 #include <string>
@@ -15,9 +14,6 @@
 #include <queue>
 
 namespace JadeFrame {
-class Vec2;
-class Vec3;
-class Vec4;
 class Matrix4x4;
 class OpenGL_Shader;
 
@@ -50,7 +46,7 @@ private:
 	using GL_ValueVariant =
 		std::variant<
 		i32, f32,
-		Vec2, Vec3, Vec4,
+		v2, v3, v4,
 		Matrix4x4
 		>;
 	struct GL_Variable {

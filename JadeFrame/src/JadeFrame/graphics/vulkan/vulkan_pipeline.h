@@ -10,7 +10,6 @@
 
 namespace JadeFrame {
 class VulkanLogicalDevice;
-class VulkanSwapchain;
 class VulkanDescriptorSetLayout;
 class VulkanRenderPass;
 
@@ -29,9 +28,11 @@ public:
 
 	auto operator=(const VulkanPipeline& pipeline);
 public:
-	VkPipelineLayout m_pipeline_layout;
-	VkPipeline m_graphics_pipeline;
+	VkPipeline m_handle;
+	VkPipelineLayout m_layout;
 	const VulkanLogicalDevice* m_device = nullptr;
+	const VulkanRenderPass* m_render_pass = nullptr;
+	const VulkanDescriptorSetLayout* m_descriptor_set_layout = nullptr;
 
 	std::vector<u32> m_vert_shader_spirv;
 	std::vector<u32> m_frag_shader_spirv;

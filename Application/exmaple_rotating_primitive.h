@@ -33,12 +33,12 @@ auto Example_Rotating_Primitive::on_init() -> void {
 
 	const f32 s = 0.5f;
 	VertexData* vertex_data = new VertexData();
-	auto pos_v1 = std::vector<Vec3>{
+	auto pos_v1 = std::vector<v3>{
 		{ +0, +s, 0.0f },
 		{ +s, -s, 0.0f },
 		{ -s, -s, 0.0f }
 	};
-	auto pos_v2 = std::vector<Vec3>{
+	auto pos_v2 = std::vector<v3>{
 		{ -s, +s, 0.0f },
 		{ +s, +s, 0.0f },
 		{ -s, -s, 0.0f }
@@ -68,7 +68,7 @@ auto Example_Rotating_Primitive::on_init() -> void {
 	m_obj.m_material_handle = &m_material;
 
 	VertexData* vertex_data_2 = new VertexData();
-	vertex_data_2->m_positions = std::vector<Vec3>{
+	vertex_data_2->m_positions = std::vector<v3>{
 		{ -s, +s + 0.1f, 0.0f },
 		{ +s, +s, 0.0f },
 		{ -s, -s, 0.0f }
@@ -98,16 +98,15 @@ auto Example_Rotating_Primitive::on_draw() -> void {
 
 	m_obj.m_transform = Matrix4x4::rotation_matrix(
 		time * to_radians(90.0f),
-		Vec3(0.0f, 0.0f, 1.0f)
+		v3(0.0f, 0.0f, 1.0f)
 	);
 	m_obj_2.m_transform = Matrix4x4::rotation_matrix(
 		time * to_radians(45.0f),
-		Vec3(0.0f, 0.0f, 1.0f)
+		v3(0.0f, 0.0f, 1.0f)
 	);
 
 
 	m_renderer->submit(m_obj_2);
-	m_renderer->submit(m_obj);
 	m_renderer->submit(m_obj);
 }
 using TestApp = Example_Rotating_Primitive;

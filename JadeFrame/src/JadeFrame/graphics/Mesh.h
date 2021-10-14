@@ -1,6 +1,5 @@
 #pragma once
-#include "JadeFrame/math/vec_2.h"
-#include "JadeFrame/math/vec_3.h"
+#include "JadeFrame/math/vec.h"
 #include "JadeFrame/math/mat_4.h"
 
 #include <vector>
@@ -36,18 +35,18 @@ public:
 
 
 struct Vertex {
-	Vec3 position;
+	v3 position;
 	RGBAColor color;
-	Vec2 tex_coord;
+	v2 tex_coord;
 };
 
-struct v3f32;
+//struct v3f32;
 class VertexData {
 public:
-	std::vector<Vec3> m_positions;
+	std::vector<v3> m_positions;
 	std::vector<RGBAColor> m_colors;
-	std::vector<Vec2> m_texture_coordinates;
-	std::vector<Vec3> m_normals;
+	std::vector<v2> m_texture_coordinates;
+	std::vector<v3> m_normals;
 
 	std::vector<u32> m_indices;
 };
@@ -115,12 +114,12 @@ public:
 		bool has_indices = false;
 		bool has_normals = true;
 	};
-	static auto make_line(const Vec3& pos1, const Vec3& pos2)->VertexData;
+	static auto make_line(const v3& pos1, const v3& pos2)->VertexData;
 
-	static auto make_rectangle(const Vec3& pos, const Vec3& size, const Desc desc = Desc{})->VertexData;
-	static auto make_triangle(const Vec3& pos1, const Vec3& pos2, const Vec3& pos3)->VertexData;
-	static auto make_circle(const Vec3& position, const f32 radius, const u32 numSegments)->VertexData;
+	static auto make_rectangle(const v3& pos, const v3& size, const Desc desc = Desc{})->VertexData;
+	static auto make_triangle(const v3& pos1, const v3& pos2, const v3& pos3)->VertexData;
+	static auto make_circle(const v3& position, const f32 radius, const u32 numSegments)->VertexData;
 
-	static auto make_cube(const Vec3& pos, const Vec3& size)->VertexData;
+	static auto make_cube(const v3& pos, const v3& size)->VertexData;
 };
 }

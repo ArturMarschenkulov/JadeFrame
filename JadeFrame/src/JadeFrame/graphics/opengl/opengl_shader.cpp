@@ -1,9 +1,6 @@
 #include "pch.h"
 #include "opengl_shader.h"
 
-#include "JadeFrame/math/vec_2.h"
-#include "JadeFrame/math/vec_3.h"
-#include "JadeFrame/math/vec_4.h"
 #include "JadeFrame/math/mat_4.h"
 
 #include "opengl_shader_loader.h"
@@ -178,9 +175,9 @@ auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::uno
 			switch (variables[i].type) {
 				case SHADER_TYPE::SAMPLER_2D: value_init = i32(); break;
 				case SHADER_TYPE::FLOAT: value_init = f32(); break;
-				case SHADER_TYPE::FLOAT_2: value_init = Vec2(); break;
-				case SHADER_TYPE::FLOAT_3: value_init = Vec3(); break;
-				case SHADER_TYPE::FLOAT_4: value_init = Vec4(); break;
+				case SHADER_TYPE::FLOAT_2: value_init = v2(); break;
+				case SHADER_TYPE::FLOAT_3: value_init = v3(); break;
+				case SHADER_TYPE::FLOAT_4: value_init = v4(); break;
 				case SHADER_TYPE::MAT_4: value_init = Matrix4x4(); break;
 				default: __debugbreak(); break;
 			}

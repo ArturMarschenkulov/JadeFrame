@@ -3,15 +3,12 @@
 #include <vulkan/vulkan.h>
 #include "vulkan_shared.h"
 #include "vulkan_swapchain.h"
-#include "vulkan_render_pass.h"
 #include "vulkan_pipeline.h"
 #include "vulkan_buffer.h"
 #include "vulkan_descriptor_set.h"
 #include "vulkan_sync_object.h"
 #include "vulkan_command_buffers.h"
 
-#include "JadeFrame/math/vec_2.h"
-#include "JadeFrame/math/vec_3.h"
 
 #include "JadeFrame/defines.h"
 
@@ -27,11 +24,14 @@ class VulkanBuffer;
 class VulkanQueue {
 public:
 	auto submit(const VkSubmitInfo& submit_info, const VulkanFence* p_fence) const -> void;
-	auto submit(const VkCommandBuffer& cmd_buffer, const std::array<VkSemaphore, 1>& wait_semaphores, const std::array<VkSemaphore, 1>& signal_semaphore) -> void;
+	auto submit(const VulkanCommandBuffer& cmd_buffer, const VulkanSemaphore* wait_semaphore, const VulkanSemaphore* signal_semaphore, const VulkanFence* p_fence) -> void;
 	auto wait_idle() const -> void;
 	auto present(VkPresentInfoKHR info, VkResult& result) const -> void;
+	auto present(const u32& index, const VulkanSwapchain& swapchain, const VulkanSemaphore* result, VkResult* out_result) const -> void;
 public:
 	VkQueue m_handle = VK_NULL_HANDLE;
+	//const VulkanQueueFamily* = nullptr;
+
 };
 
 
@@ -46,9 +46,10 @@ public:
 	auto query_queue(u32 queue_family_index, u32 queue_index) -> VulkanQueue;
 
 public:
-	const VulkanInstance* m_instance_p = nullptr;
-	VkDevice m_handle = nullptr;
-	const VulkanPhysicalDevice* m_physical_device_p = nullptr;
+	VkDevice m_handle = VK_NULL_HANDLE;
+	const VulkanInstance* m_instance = nullptr;
+	const VulkanPhysicalDevice* m_physical_device = nullptr;
+
 	VulkanQueue m_graphics_queue;
 	VulkanQueue m_present_queue;
 
@@ -57,9 +58,7 @@ public: // Swapchain stuff
 	auto cleanup_swapchain() -> void;
 
 	VulkanSwapchain m_swapchain;
-
-public:
-	VulkanRenderPass m_render_pass;
+	//VulkanRenderPass m_render_pass;
 
 public: // Descriptor set
 

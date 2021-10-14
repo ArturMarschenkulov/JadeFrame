@@ -31,7 +31,7 @@ auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const ->
 static auto setup_framebuffer(OGLW_Framebuffer& buffer, OGLW_Texture<GL_TEXTURE_2D>& texture, OGLW_Renderbuffer& renderbuffer) -> void {
 	buffer.bind();
 
-	const Vec2 size;// = m_context.m_cache.viewport[1];
+	const v2 size;// = m_context.m_cache.viewport[1];
 	texture.bind(0);
 
 	texture.set_texture_image_2D(0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -56,7 +56,7 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(windo
 
 		fb.m_framebuffer.bind();
 
-		const Vec2 size = m_context.m_state.viewport[1];
+		const v2 size = m_context.m_state.viewport[1];
 		fb.m_framebuffer_texture.bind(0);
 
 		fb.m_framebuffer_texture.set_texture_image_2D(0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -157,39 +157,43 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 #endif
 
 	this->clear_background();
+
+	m_context.m_uniform_buffers[0].bind();
+	m_context.m_uniform_buffers[0].send({ view_projection });
+	m_context.m_uniform_buffers[0].unbind();
+
 	for (size_t i = 0; i < m_render_commands.size(); ++i) {
 
 		OpenGL_Shader& shader = *static_cast<OpenGL_Shader*>	(m_render_commands[i].material_handle->m_shader_handle->m_handle);
+		const VertexData* mesh = m_render_commands[i].vertex_data;
+		const OpenGL_GPUMeshData* vertex_array = static_cast<OpenGL_GPUMeshData*>(m_render_commands[i].m_GPU_mesh_data->m_handle);
+
 		shader.bind();
-
-
-
 		if (m_render_commands[i].material_handle->m_texture_handle != nullptr) {
 			OpenGL_Texture& texture = *static_cast<OpenGL_Texture*>	(m_render_commands[i].material_handle->m_texture_handle->m_handle);
 			texture.bind();
 		}
 
-
-		const VertexData* mesh = m_render_commands[i].vertex_data;
-
-		const OpenGL_GPUMeshData* vertex_array = static_cast<OpenGL_GPUMeshData*>(m_render_commands[i].m_GPU_mesh_data->m_handle);
 		this->render_mesh(vertex_array, mesh);
-		{
-			const Matrix4x4& transform = *m_render_commands[i].transform;
-			const std::vector<Matrix4x4>& matrices = { view_projection , transform };
-			m_context.m_uniform_buffers[0].bind();
-			m_context.m_uniform_buffers[0].send(matrices);
-			m_context.m_uniform_buffers[0].unbind();
-		}
+
+		const Matrix4x4& transform = *m_render_commands[i].transform;
+		m_context.m_uniform_buffers[1].bind();
+		m_context.m_uniform_buffers[1].send({ transform });
+		m_context.m_uniform_buffers[1].unbind();
+
 	}
 #if JF_FB
 	fb.m_framebuffer.unbind();
-	static_cast<OpenGL_Shader*>(fb.m_shader_handle_fb->m_handle)->bind();
-	fb.m_framebuffer_texture.bind(0);
-	fb.m_framebuffer_rect->m_vertex_array.bind();
 	GL_State old_state = m_context.m_state;
 	m_context.m_state.set_depth_test(false);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	{
+
+		static_cast<OpenGL_Shader*>(fb.m_shader_handle_fb->m_handle)->bind();
+		fb.m_framebuffer_texture.bind(0);
+		fb.m_framebuffer_rect->m_vertex_array.bind();
+
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
 	m_context.m_state.set_depth_test(true);
 #endif
 #undef JF_FB

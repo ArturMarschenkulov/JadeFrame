@@ -13,10 +13,11 @@ Engines:
 	Handmade Hero, CrystalSpace3D, 
 	Juce, Banshee Engine, NoahGameFrame, 
 	olcConsoleGameEngine
-	FlaxEngine, Spartan
+	FlaxEngine, SpartanEngine, McEngine,
+	limonEngine, horde3d, HorizonEngine
 
 Frameworks:
-	SFML, Cell, MagnumEngine, Hazel/Sparky, raylib
+	SFML, Cell, MagnumEngine, Hazel/Sparky, raylib, toy, cinder
 
 Orthographical convention:
 	variables and functions in snake case (my_variable, my_function())

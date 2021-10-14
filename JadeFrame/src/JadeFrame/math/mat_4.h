@@ -3,6 +3,7 @@
 
 #include "vec_4.h"
 #include "vec_3.h"
+#include "vec.h"
 
 #include <vector>
 #include <array>
@@ -42,11 +43,11 @@ public:
 public: // static methods for matrices
 	constexpr static auto orthogonal_projection_matrix(f32 left, f32 right, f32 buttom, f32 top, f32 near, f32 far)noexcept ->Matrix4x4;
 	/*constexpr*/ static auto perspective_projection_matrix(f32 fovy, f32 aspect, f32 near, f32 far)noexcept ->Matrix4x4;
-	constexpr static auto translation_matrix(const Vec3& trans)noexcept ->Matrix4x4;
-	/*constexpr*/ static auto rotation_matrix(f32 angle, const Vec3& axis) noexcept ->Matrix4x4;
-	/*constexpr*/ static auto scale_matrix(const Vec3& scale) noexcept -> Matrix4x4;
+	constexpr static auto translation_matrix(const v3& trans)noexcept ->Matrix4x4;
+	/*constexpr*/ static auto rotation_matrix(f32 angle, const v3& axis) noexcept ->Matrix4x4;
+	/*constexpr*/ static auto scale_matrix(const v3& scale) noexcept -> Matrix4x4;
 	constexpr static auto shear_matrix()noexcept ->Matrix4x4;
-	constexpr static auto look_at_matrix(const Vec3& camera, Vec3 object, Vec3 up)noexcept ->Matrix4x4;
+	constexpr static auto look_at_matrix(const v3& camera, const v3& object, const v3& up)noexcept ->Matrix4x4;
 
 public:
 	constexpr auto get_determinant() const->f32;
@@ -155,14 +156,14 @@ inline /*constexpr*/ auto Matrix4x4::perspective_projection_matrix(f32 fovy, f32
 	result.el[3][2] = -(2 * zFar * zNear) / (zFar - zNear);
 	return result;
 }
-inline constexpr auto Matrix4x4::translation_matrix(const Vec3& trans) noexcept -> Matrix4x4 {
+inline constexpr auto Matrix4x4::translation_matrix(const v3& trans) noexcept -> Matrix4x4 {
 	Matrix4x4 result(1.0f);
 	result.el[3][0] = trans.x;
 	result.el[3][1] = trans.y;
 	result.el[3][2] = trans.z;
 	return result;
 }
-inline /*constexpr*/ auto Matrix4x4::rotation_matrix(f32 angle, const Vec3& axis) noexcept -> Matrix4x4 {
+inline /*constexpr*/ auto Matrix4x4::rotation_matrix(f32 angle, const v3& axis) noexcept -> Matrix4x4 {
 	const f32 c = static_cast<f32>(cos(angle));
 	const f32 omc = 1 - c;
 	const f32 s = static_cast<f32>(sin(angle));
@@ -181,7 +182,7 @@ inline /*constexpr*/ auto Matrix4x4::rotation_matrix(f32 angle, const Vec3& axis
 	result.el[2][2] = axis.z * axis.z * omc + c;
 	return result;
 }
-inline /*constexpr*/ auto Matrix4x4::scale_matrix(const Vec3& scale) noexcept -> Matrix4x4 {
+inline /*constexpr*/ auto Matrix4x4::scale_matrix(const v3& scale) noexcept -> Matrix4x4 {
 	Matrix4x4 result(1.0f);
 	result.el[0][0] = scale.x;
 	result.el[1][1] = scale.y;
@@ -189,10 +190,10 @@ inline /*constexpr*/ auto Matrix4x4::scale_matrix(const Vec3& scale) noexcept ->
 	return result;
 }
 
-inline constexpr auto Matrix4x4::look_at_matrix(const Vec3& eye, Vec3 center, Vec3 up) noexcept -> Matrix4x4 {
-	Vec3 const f((center - eye).get_normal());
-	Vec3 const s(f.cross(up).get_normal());
-	Vec3 const u(s.cross(f));
+inline constexpr auto Matrix4x4::look_at_matrix(const v3& eye, const v3& center, const v3& up) noexcept -> Matrix4x4 {
+	v3 const f((center - eye).get_normal());
+	v3 const s(f.cross(up).get_normal());
+	v3 const u(s.cross(f));
 
 	Matrix4x4 result(1);
 	result[0][0] = s.x;

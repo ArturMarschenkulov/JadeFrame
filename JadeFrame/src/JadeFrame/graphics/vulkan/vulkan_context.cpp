@@ -144,14 +144,14 @@ auto VulkanInstance::setup_debug() -> void {
 }
 
 auto VulkanInstance::init(HWND window_handle) -> void {
+	//m_window_handle = window_handle;
+
 	VkResult result;
-	m_window_handle = window_handle;
 
 	m_available_layers = this->query_layers();
 	m_available_extensions = this->query_extensions();
 
-
-	if (m_enable_validation_layers && !check_validation_layer_support(m_available_layers)) {
+	if (m_enable_validation_layers && !this->check_validation_layer_support(m_available_layers)) {
 		throw std::runtime_error("validation layers requested, but not available!");
 	}
 
@@ -188,11 +188,12 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 		.ppEnabledExtensionNames = extension_names.data(),
 	};
 
-	VkDebugUtilsMessengerCreateInfoEXT debug_create_info;
+	
 	if (m_enable_validation_layers) {
 		create_info.enabledLayerCount = static_cast<u32>(m_desired_layer_names.size());
 		create_info.ppEnabledLayerNames = m_desired_layer_names.data();
 
+		VkDebugUtilsMessengerCreateInfoEXT debug_create_info;
 		populate_debug_messenger_create_info(debug_create_info);
 		create_info.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debug_create_info;
 	} else {
@@ -202,8 +203,15 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 
 	result = vkCreateInstance(&create_info, nullptr, &m_instance);
 	if (result != VK_SUCCESS) __debugbreak();
+	
+	if (m_enable_validation_layers) {
+		VkDebugUtilsMessengerCreateInfoEXT create_info;
+		populate_debug_messenger_create_info(create_info);
 
-	this->setup_debug();
+		result = vkCreateDebugUtilsMessengerEXT_(m_instance, &create_info, nullptr, &m_debug_messenger);
+		if (result != VK_SUCCESS) __debugbreak();
+	}
+
 	m_surface.init(m_instance, window_handle);
 
 
@@ -225,7 +233,7 @@ auto VulkanInstance::deinit() -> void {
 	if (m_enable_validation_layers) {
 		vkDestroyDebugUtilsMessengerEXT_(m_instance, m_debug_messenger, nullptr);
 	}
-	vkDestroySurfaceKHR(m_instance, m_surface.m_handle, nullptr);
+	m_surface.deinit();
 	vkDestroyInstance(m_instance, nullptr);
 }
 

@@ -480,9 +480,6 @@
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_swapchain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_render_pass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -577,6 +574,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\extern\SPIRV-Cross\spirv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JadeFrame\math\vec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -710,9 +710,6 @@
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_swapchain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_render_pass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\JadeFrame\graphics\vulkan\vulkan_buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -777,6 +774,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\extern\SPIRV-Cross\spirv_cpp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JadeFrame\math\vec.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

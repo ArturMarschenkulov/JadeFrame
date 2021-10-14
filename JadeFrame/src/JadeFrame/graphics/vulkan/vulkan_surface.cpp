@@ -5,6 +5,8 @@
 
 namespace JadeFrame {
 auto VulkanSurface::init(VkInstance instance, HWND window_handle) -> void {
+	m_window_handle = window_handle;
+
 	VkResult result;
 
 	const VkWin32SurfaceCreateInfoKHR create_info = {
@@ -21,4 +23,12 @@ auto VulkanSurface::init(VkInstance instance, HWND window_handle) -> void {
 		throw std::runtime_error("failed to create window surface!");
 	}
 }
+
+auto VulkanSurface::deinit() -> void {
+	vkDestroySurfaceKHR(m_instance, m_handle, nullptr);
+}
+
+
+
+
 }

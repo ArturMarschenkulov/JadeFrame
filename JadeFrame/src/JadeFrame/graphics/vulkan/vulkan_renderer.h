@@ -39,8 +39,6 @@ private:
 	mutable std::deque<Vulkan_RenderCommand> m_render_commands;
 
 private: //NOTE: probably temporary
-	Matrix4x4 m_view_projection;
-
 	RGBAColor m_clear_color;
 
 

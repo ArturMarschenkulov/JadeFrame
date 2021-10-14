@@ -34,7 +34,10 @@ public:
 	auto unbind() const -> void;
 	auto reserve(GLuint size_in_bytes) const -> void;
 	template<typename U>
+	auto send(const std::initializer_list<U>& data) const -> void;
+	template<typename U>
 	auto send(const std::vector<U>& data) const -> void;
+
 	auto update(GLuint size_in_bytes, const void* data) const -> void;
 
 	auto bind_base(GLuint index) const -> void;
@@ -89,6 +92,12 @@ auto OGLW_Buffer<buffer_type>::reserve(GLuint size_in_bytes) const -> void {
 	glNamedBufferData(m_ID, size_in_bytes, NULL, GL_STATIC_DRAW);
 }
 
+template<GLenum buffer_type>
+template<typename U>
+auto OGLW_Buffer<buffer_type>::send(const std::initializer_list<U>& data) const -> void {
+	//glBufferData(buffer_type, data.size() * sizeof(U), data.data(), GL_STATIC_DRAW);
+	glNamedBufferData(m_ID, data.size() * sizeof(U), data.begin(), GL_STATIC_DRAW);
+}
 template<GLenum buffer_type>
 template<typename U>
 auto OGLW_Buffer<buffer_type>::send(const std::vector<U>& data) const -> void {

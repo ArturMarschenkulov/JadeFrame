@@ -44,22 +44,22 @@ auto VulkanQueue::submit(const VkSubmitInfo& submit_info, const VulkanFence* p_f
 	result = vkQueueSubmit(m_handle, 1, &submit_info, p_fence->m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
 }
-auto VulkanQueue::submit(const VkCommandBuffer& cmd_buffer, const std::array<VkSemaphore, 1>& wait_semaphores, const std::array<VkSemaphore, 1>& signal_semaphores) -> void {
+auto VulkanQueue::submit(const VulkanCommandBuffer& cmd_buffer, const VulkanSemaphore* wait_semaphore, const VulkanSemaphore* signal_semaphore, const VulkanFence* fence) -> void {
 	VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	const VkSubmitInfo submit_info = {
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
 		.pNext = nullptr,
-		.waitSemaphoreCount = (uint32_t)wait_semaphores.size(),
-		.pWaitSemaphores = wait_semaphores.data(),
+		.waitSemaphoreCount = 1,
+		.pWaitSemaphores = &wait_semaphore->m_handle,
 		.pWaitDstStageMask = wait_stages,
 		.commandBufferCount = 1,
-		.pCommandBuffers = &cmd_buffer,
-		.signalSemaphoreCount = (uint32_t)signal_semaphores.size(),
-		.pSignalSemaphores = signal_semaphores.data(),
+		.pCommandBuffers = &cmd_buffer.m_handle,
+		.signalSemaphoreCount = 1,
+		.pSignalSemaphores = &signal_semaphore->m_handle,
 	};
 	/*this->submit(submit_info);*/
 	VkResult result;
-	result = vkQueueSubmit(m_handle, 1, &submit_info, VK_NULL_HANDLE);
+	result = vkQueueSubmit(m_handle, 1, &submit_info, fence->m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
 }
 auto VulkanQueue::wait_idle() const -> void {
@@ -72,32 +72,54 @@ auto VulkanQueue::present(VkPresentInfoKHR info, VkResult& result) const -> void
 	if (result != VK_SUCCESS) __debugbreak();
 }
 
+auto VulkanQueue::present(const u32& index, const VulkanSwapchain& swapchain, const VulkanSemaphore* semaphore, VkResult* out_result) const -> void {
+	VkResult result;
+
+	const VkPresentInfoKHR info = {
+		.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+		.pNext = nullptr,
+		.waitSemaphoreCount = 1,
+		.pWaitSemaphores = &semaphore->m_handle,
+		.swapchainCount = 1,
+		.pSwapchains = &swapchain.m_handle,
+		.pImageIndices = &index,
+		.pResults = nullptr,
+	};
+
+	*out_result = vkQueuePresentKHR(m_handle, &info);
+	//if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR /*|| d.m_framebuffer_resized*/) {
+	//	/*d.m_framebuffer_resized = false;*/
+	//	std::cout << "recreate because of vkQueuePresentKHR" << std::endl;
+	//	//__debugbreak();
+	//	//d.recreate_swapchain();
+	//	this->recreate();
+	//} else if (result != VK_SUCCESS) {
+	//	std::cout << "failed to present swap chain image!" << std::endl;
+	//	__debugbreak();
+	//}
+}
+
 /*---------------------------
 	Logical Device
 ---------------------------*/
 
 auto VulkanLogicalDevice::recreate_swapchain() -> void {
-	m_render_pass.deinit();
+	vkDeviceWaitIdle(m_handle);
 	m_swapchain.deinit();
 
-	m_swapchain.init(*this, *m_physical_device_p, m_instance_p->m_surface);
-	m_render_pass.init(*this, m_swapchain.m_image_format);
-	m_swapchain.create_framebuffers(m_render_pass);
+	m_swapchain.init(*this, m_instance->m_surface);
 	m_images_in_flight.resize(m_swapchain.m_images.size());
 
 }
 auto VulkanLogicalDevice::cleanup_swapchain() -> void {
 
-
-	vkDestroyRenderPass(m_handle, m_render_pass.m_handle, nullptr);
-
+	//m_render_pass.deinit();
 	m_swapchain.deinit();
-	vkDestroySwapchainKHR(m_handle, m_swapchain.m_handle, nullptr);
 }
 
 auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysicalDevice& physical_device) -> void {
-	m_physical_device_p = &physical_device;
-	m_instance_p = &instance;
+	m_physical_device = &physical_device;
+	m_instance = &instance;
 
 	VkResult  result;
 
@@ -144,9 +166,9 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 
 
 	// Swapchain stuff
-	m_swapchain.init(*this, *m_physical_device_p, m_instance_p->m_surface);
-	m_render_pass.init(*this, m_swapchain.m_image_format);
-	m_swapchain.create_framebuffers(m_render_pass);
+	m_swapchain.init(*this, m_instance->m_surface);
+	//m_render_pass.init(*this, m_swapchain.m_image_format);
+	//m_swapchain.create_framebuffers(m_render_pass);
 	const u32 swapchain_image_amount = m_swapchain.m_images.size();
 
 	// Uniform stuff
@@ -180,7 +202,7 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 
 
 	// Commad Buffer stuff
-	m_command_pool.init(*this, m_physical_device_p->m_queue_family_indices.m_graphics_family.value());
+	m_command_pool.init(*this, m_physical_device->m_queue_family_indices.m_graphics_family.value());
 	m_command_buffers = m_command_pool.allocate_command_buffers(m_swapchain.m_framebuffers.size());
 
 	// Sync objects stuff
@@ -210,7 +232,7 @@ auto VulkanLogicalDevice::deinit() -> void {
 	}
 
 	m_command_pool.deinit();
-	m_render_pass.deinit();
+	//m_render_pass.deinit();
 	m_swapchain.deinit();
 	result = vkDeviceWaitIdle(m_handle);
 	vkDestroyDevice(m_handle, nullptr);
