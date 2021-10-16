@@ -85,10 +85,10 @@ auto VulkanPipeline::init(
 		for(const spirv_cross::Resource& resource : resources.uniform_buffers) {
 			const const std::string& name = resource.name;
 			const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.base_type_id);
-			i32 member_count = (u32)buffer_type.member_types.size();
+			i32 member_count = static_cast<u32>(buffer_type.member_types.size());
 			u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
 			u32 descriptor_set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-			u32 size = (u32)compiler.get_declared_struct_size(buffer_type);
+			u32 size = static_cast<u32>(compiler.get_declared_struct_size(buffer_type));
 		}
 
 		//

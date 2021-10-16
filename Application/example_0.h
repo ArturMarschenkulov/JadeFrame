@@ -88,7 +88,7 @@ struct Thingy {
 	auto update() -> void {
 		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
 		auto& im = JadeFrameInstance::get_singleton()->m_input_manager;
-		Vec2 mp = im.get_mouse_position();
+		v2 mp = im.get_mouse_position();
 
 		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 10.0f, 1.0f }) * Matrix4x4::translation_matrix({ mp.x, mp.y, 0.0f });
 	}

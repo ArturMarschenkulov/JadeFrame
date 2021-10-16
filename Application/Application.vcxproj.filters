@@ -29,5 +29,8 @@
     <ClInclude Include="exmaple_rotating_primitive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="example_texture_quad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

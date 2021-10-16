@@ -50,7 +50,7 @@ auto Windows_TimeManager::frame_control(f64 delta_time) -> void {
 	time.frame = /*time.update*/delta_time + time.draw;
 
 	if (time.frame < time.target) {
-		::Sleep((u32)(f32(time.target - time.frame) * 1000.0f));
+		::Sleep(static_cast<u32>((time.target - time.frame) * 1000.0));
 		time.current = this->get_time();
 		f64 time_wait = time.current - time.previous;
 		time.previous = time.current;

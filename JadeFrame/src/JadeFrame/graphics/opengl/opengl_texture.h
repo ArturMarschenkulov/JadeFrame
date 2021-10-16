@@ -2,6 +2,7 @@
 #include "JadeFrame/defines.h"
 #include <glad/glad.h>
 #include "opengl_wrapper.h"
+#include "JadeFrame/math/vec.h"
 
 #include <string>
 
@@ -10,7 +11,7 @@ namespace JadeFrame {
 class OpenGL_Texture;
 class OpenGL_Texture {
 public:
-	OpenGL_Texture(u32 width, u32 height, GLenum internal_format, GLenum format, GLenum type, void* data);
+	OpenGL_Texture(void* data, v2u32 size, GLenum internal_format, GLenum format, GLenum type);
 	auto resize(u32 width, u32 height, u32 depth) -> void;
 	auto bind() const -> void;
 	auto unbind() const -> void;
@@ -22,8 +23,9 @@ public:
 	const GLenum m_format;
 	const GLenum m_type;
 
-	const GLuint m_width;
-	const GLuint m_height;
+	const v2u32 m_size;
+	//const GLuint m_width;
+	//const GLuint m_height;
 };
 
 }

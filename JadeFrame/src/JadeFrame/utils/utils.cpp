@@ -38,7 +38,7 @@ auto custom_simple_hash_0(const std::string& str) -> u32 {
 static bool is_srand = false;
 auto get_random_number(i32 begin, i32 end)-> i32 {
 	if (is_srand == false) {
-		srand((u32)time(0));
+		srand(static_cast<u32>(time(0)));
 		is_srand = true;
 	}
 	return (rand() % end) + begin;

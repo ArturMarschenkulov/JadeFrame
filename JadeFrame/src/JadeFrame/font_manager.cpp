@@ -98,12 +98,11 @@ auto FontManager::init2() -> void {
 		Logger::log("problem with FT_Load_Char");
 	}
 	OpenGL_Texture tex(
-		face->glyph->bitmap.width,
-		face->glyph->bitmap.rows,
+		face->glyph->bitmap.buffer,
+		{ face->glyph->bitmap.width, face->glyph->bitmap.rows },
 		GL_RED,
 		GL_RED,
-		GL_UNSIGNED_BYTE,
-		face->glyph->bitmap.buffer
+		GL_UNSIGNED_BYTE
 	);
 }
 }

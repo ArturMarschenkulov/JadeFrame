@@ -71,11 +71,13 @@ public:
 		REGULAR,
 		SWAPCHAIN
 	};
+	auto init(const VulkanLogicalDevice& device, const v2u32& extent, VkFormat format, VkImageUsageFlags usage) -> void;
 	auto init(const VulkanLogicalDevice& device, VkImage image) -> void;
 	auto deinit() -> void;
 
 	VkImage m_handle = VK_NULL_HANDLE;
 	const VulkanLogicalDevice* m_device = nullptr;
+	VkDeviceMemory m_memory;
 	SOURCE m_source;
 };
 
@@ -90,8 +92,15 @@ public:
 };
 
 
-class VulkanTexture {
+class Vulkan_Texture {
+public:
+	auto init(const VulkanLogicalDevice& device, void* data, v2u32 size, VkFormat);
+	auto deinit() -> void;
 
+	auto transition_layout(const VulkanImage& image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout) -> void;
+	auto copy_buffer_to_image(const VulkanBuffer buffer, const VulkanImage image, v2u32 size) -> void;
+public:
+	const VulkanLogicalDevice* m_device;
 };
 
 }

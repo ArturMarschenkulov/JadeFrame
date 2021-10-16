@@ -27,9 +27,8 @@ struct STBIImage {
 };
 
 
-OpenGL_Texture::OpenGL_Texture(u32 width, u32 height, GLenum internal_format, GLenum format, GLenum type, void* data)
-	: m_width(width)
-	, m_height(height)
+OpenGL_Texture::OpenGL_Texture(void* data, v2u32 size, GLenum internal_format, GLenum format, GLenum type)
+	: m_size(size)
 	, m_internal_format(internal_format)
 	, m_format(format)
 	, m_type(type) {
@@ -49,8 +48,8 @@ OpenGL_Texture::OpenGL_Texture(u32 width, u32 height, GLenum internal_format, GL
 	m_texture.set_texture_image_2D(
 		0,
 		internal_format,
-		width,
-		height,
+		size.width,
+		size.height,
 		0,
 		format,
 		type,

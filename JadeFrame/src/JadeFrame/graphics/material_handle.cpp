@@ -11,7 +11,7 @@ TextureHandle::TextureHandle(const std::string& path) {
 	// flip textures on their y coordinate while loading
 	stbi_set_flip_vertically_on_load(true);
 	//i32 width, height, num_components;
-	m_data = stbi_load(path.c_str(), &m_width, &m_height, &m_num_components, 4);
+	m_data = stbi_load(path.c_str(), &m_size.width, &m_size.height, &m_num_components, 4);
 }
 
 TextureHandle::~TextureHandle() {
@@ -36,13 +36,18 @@ auto TextureHandle::init() -> void {
 				}break;
 				default: assert(false);
 			}
-			OpenGL_Texture* texture = new OpenGL_Texture(m_width, m_height, format, format, GL_UNSIGNED_BYTE, m_data);
+			OpenGL_Texture* texture = new OpenGL_Texture(
+				m_data, 
+				{ static_cast<u32>(m_size.width), static_cast<u32>(m_size.height) }, 
+				format, format, GL_UNSIGNED_BYTE
+			);
 			m_handle = texture;
 
 
 		}break;
 		case GRAPHICS_API::VULKAN:
 		{
+			//Vulkan_Texture* texture = new Vulkan_Texture();
 		}break;
 		default: __debugbreak();
 	}

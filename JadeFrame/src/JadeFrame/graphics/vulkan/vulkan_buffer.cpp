@@ -58,9 +58,7 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, VulkanBuffer::TYPE bu
 	if (b_with_staging_buffer == true) {
 		VulkanBuffer staging_buffer = { VulkanBuffer::TYPE::STAGING };
 		staging_buffer.init(device, VulkanBuffer::TYPE::STAGING, nullptr, size);
-
-
-		/*void* mapped_data = */staging_buffer.send(data, 0, size);
+		staging_buffer.send(data, 0, size);
 
 		this->create_buffer(
 			size,
@@ -227,35 +225,43 @@ auto VulkanLogicalDevice::create_texture_image(const std::string& path) -> void 
 		staging_buffer.send(image.data, 0, image_size);
 
 		this->create_image(
-			image.width, image.height,
+			{ static_cast<u32>(image.width), static_cast<u32>(image.height) },
 			VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
 			VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			m_texture_image, m_texture_image_Memory
+			m_texture_image.m_handle, m_texture_image_Memory
 		);
 
-		this->transition_image_layout(
-			m_texture_image,
-			VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		this->copy_buffer_to_image(staging_buffer.m_handle, m_texture_image, static_cast<uint32_t>(image.width), static_cast<uint32_t>(image.height));
-		this->transition_image_layout(m_texture_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		//this->transition_image_layout(
+		//	m_texture_image.m_handle,
+		//	VK_FORMAT_R8G8B8A8_SRGB, 
+		//	VK_IMAGE_LAYOUT_UNDEFINED, 
+		//	VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+		//);
+		//this->copy_buffer_to_image(staging_buffer.m_handle, m_texture_image.m_handle, static_cast<uint32_t>(image.width), static_cast<uint32_t>(image.height));
+		//this->transition_image_layout(
+		//	m_texture_image.m_handle,
+		//	VK_FORMAT_R8G8B8A8_SRGB, 
+		//	VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
+		//	VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+		//);
 
 		staging_buffer.deinit();
 	} else {
 		__debugbreak();
 	}
 }
-auto VulkanLogicalDevice::create_image(u32 width, u32 height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& image_memory) -> void {
+auto VulkanLogicalDevice::create_image(v2u32 size, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& image_memory) -> void {
 	VkResult result;
 	const VkImageCreateInfo image_info = {
 		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-		.pNext = {},
-		.flags = {},
+		.pNext = nullptr,
+		.flags = 0,
 		.imageType = VK_IMAGE_TYPE_2D,
 		.format = format,
 		.extent = {
-			.width = width,
-			.height = height,
+			.width = size.width,
+			.height = size.height,
 			.depth = 1
 		},
 		.mipLevels = 1,
@@ -264,8 +270,8 @@ auto VulkanLogicalDevice::create_image(u32 width, u32 height, VkFormat format, V
 		.tiling = tiling,
 		.usage = usage,
 		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-		.queueFamilyIndexCount = {},
-		.pQueueFamilyIndices = {},
+		.queueFamilyIndexCount = 0,
+		.pQueueFamilyIndices = nullptr,
 		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 	};
 	result = vkCreateImage(m_handle, &image_info, nullptr, &image);
@@ -277,7 +283,7 @@ auto VulkanLogicalDevice::create_image(u32 width, u32 height, VkFormat format, V
 
 	VkMemoryAllocateInfo alloc_info = {
 		.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-		.pNext = {},
+		.pNext = nullptr,
 		.allocationSize = mem_requirements.size,
 		.memoryTypeIndex = m_physical_device->find_memory_type(mem_requirements.memoryTypeBits, properties),
 	};
@@ -287,156 +293,13 @@ auto VulkanLogicalDevice::create_image(u32 width, u32 height, VkFormat format, V
 	result = vkBindImageMemory(m_handle, image, image_memory, 0);
 	if (result != VK_SUCCESS) __debugbreak();
 }
-auto VulkanLogicalDevice::transition_image_layout(VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout) -> void {
-	//VulkanCommandBuffer command_buffer_ = m_command_pool.allocate_command_buffers(1)[0];
-	VkCommandBuffer command_buffer = this->begin_single_time_commands();
-	{
-		VkImageMemoryBarrier barrier = {
-			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-			.oldLayout = old_layout,
-			.newLayout = new_layout,
-			.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-			.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-			.image = image,
-			.subresourceRange = {
-				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-				.baseMipLevel = 0,
-				.levelCount = 1,
-				.baseArrayLayer = 0,
-				.layerCount = 1
-			},
-		};
 
-		VkPipelineStageFlags source_stage;
-		VkPipelineStageFlags destination_stage;
-
-		if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED && new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-			barrier.srcAccessMask = 0;
-			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-			source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-			destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-		} else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-			source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-			destination_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-		} else {
-			__debugbreak();
-		}
-
-		vkCmdPipelineBarrier(
-			command_buffer,
-			source_stage, destination_stage,
-			0,
-			0, nullptr,
-			0, nullptr,
-			1, &barrier
-		);
-	}
-	this->end_single_time_commands(command_buffer);
-}
-auto VulkanLogicalDevice::copy_buffer_to_image(VkBuffer buffer, VkImage image, u32 width, u32 height) -> void {
-	VkCommandBuffer command_buffer = this->begin_single_time_commands();
-	{
-		const VkBufferImageCopy region = {
-			.bufferOffset = 0,
-			.bufferRowLength = 0,
-			.bufferImageHeight = 0,
-			.imageSubresource = {
-				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-				.mipLevel = 0,
-				.baseArrayLayer = 0,
-				.layerCount = 1
-			},
-			.imageOffset = { 0, 0, 0 },
-			.imageExtent = {
-				width,
-				height,
-				1
-			},
-		};
-
-		vkCmdCopyBufferToImage(command_buffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-	}
-	this->end_single_time_commands(command_buffer);
-}
-
-auto VulkanLogicalDevice::begin_single_time_commands() -> VkCommandBuffer {
-	VkResult result;
-	const VkCommandBufferAllocateInfo alloc_info{
-		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-		.pNext = nullptr,
-		.commandPool = m_command_pool.m_handle,
-		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-		.commandBufferCount = 1,
-	};
-
-	VkCommandBuffer command_buffer;
-	result = vkAllocateCommandBuffers(m_handle, &alloc_info, &command_buffer);
-	if (result != VK_SUCCESS) __debugbreak();
-
-	const VkCommandBufferBeginInfo begin_info = {
-		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-		.pNext = {},
-		.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-		.pInheritanceInfo = {},
-	};
-
-	result = vkBeginCommandBuffer(command_buffer, &begin_info);
-	if (result != VK_SUCCESS) __debugbreak();
-
-	return command_buffer;
-}
-
-auto VulkanLogicalDevice::end_single_time_commands(VkCommandBuffer command_buffer) -> void {
-	VkResult result;
-
-	result = vkEndCommandBuffer(command_buffer);
-	if (result != VK_SUCCESS) __debugbreak();
-
-	const VkSubmitInfo submit_info = {
-		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-		.commandBufferCount = 1,
-		.pCommandBuffers = &command_buffer,
-	};
-
-	result = vkQueueSubmit(m_graphics_queue.m_handle, 1, &submit_info, VK_NULL_HANDLE);
-	if (result != VK_SUCCESS) __debugbreak();
-	result = vkQueueWaitIdle(m_graphics_queue.m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
-
-	vkFreeCommandBuffers(m_handle, m_command_pool.m_handle, 1, &command_buffer);
-}
 
 auto VulkanLogicalDevice::create_texture_image_view() -> void {
-	m_texture_image_view = this->create_image_view(m_texture_image, VK_FORMAT_R8G8B8A8_SRGB);
+	//m_texture_image_view = this->create_image_view(m_texture_image, VK_FORMAT_R8G8B8A8_SRGB);
+	m_texture_image_view.init(*this, m_texture_image, VK_FORMAT_R8G8B8A8_SRGB);
 }
 
-auto VulkanLogicalDevice::create_image_view(VkImage image, VkFormat format) -> VkImageView {
-	VkResult result;
-
-	const VkImageViewCreateInfo view_info = {
-		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-		.image = image,
-		.viewType = VK_IMAGE_VIEW_TYPE_2D,
-		.format = format,
-		.subresourceRange = {
-			.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-			.baseMipLevel = 0,
-			.levelCount = 1,
-			.baseArrayLayer = 0,
-			.layerCount = 1,
-		},
-	};
-
-	VkImageView image_view;
-	result = vkCreateImageView(m_handle, &view_info, nullptr, &image_view);
-	if (result != VK_SUCCESS) __debugbreak();
-
-	return image_view;
-}
 
 auto VulkanLogicalDevice::create_texture_sampler() -> void {
 	VkResult result;
@@ -465,6 +328,52 @@ auto VulkanLogicalDevice::create_texture_sampler() -> void {
 	if (result != VK_SUCCESS) __debugbreak();
 }
 
+auto VulkanImage::init(const VulkanLogicalDevice& device, const v2u32& size, VkFormat format, VkImageUsageFlags usage) -> void {
+	m_device = &device;
+	m_source = SOURCE::REGULAR;
+
+	VkResult result;
+	const VkImageCreateInfo image_info = {
+		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+		.pNext = nullptr,
+		.flags = 0,
+		.imageType = VK_IMAGE_TYPE_2D,
+		.format = format,
+		.extent = {
+			.width = size.width,
+			.height = size.height,
+			.depth = 1
+		},
+		.mipLevels = 1,
+		.arrayLayers = 1,
+		.samples = VK_SAMPLE_COUNT_1_BIT,
+		.tiling = VK_IMAGE_TILING_OPTIMAL,
+		.usage = usage,
+		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+		.queueFamilyIndexCount = 0,
+		.pQueueFamilyIndices = nullptr,
+		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+	};
+
+	result = vkCreateImage(device.m_handle, &image_info, nullptr, &m_handle);
+	if (result != VK_SUCCESS) __debugbreak();
+
+	VkMemoryRequirements mem_requirements;
+	vkGetImageMemoryRequirements(device.m_handle, m_handle, &mem_requirements);
+
+	VkMemoryAllocateInfo alloc_info = {
+		.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+		.pNext = nullptr,
+		.allocationSize = mem_requirements.size,
+		.memoryTypeIndex = device.m_physical_device->find_memory_type(mem_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),
+	};
+
+	result = vkAllocateMemory(device.m_handle, &alloc_info, nullptr, &m_memory);
+	if (result != VK_SUCCESS) __debugbreak();
+
+	result = vkBindImageMemory(device.m_handle, m_handle, m_memory, 0);
+	if (result != VK_SUCCESS) __debugbreak();
+}
 auto VulkanImage::init(const VulkanLogicalDevice& device, VkImage image) -> void {
 	m_device = &device;
 	m_handle = image;
@@ -513,5 +422,127 @@ auto VulkanImageView::init(const VulkanLogicalDevice& device, const VulkanImage&
 }
 auto VulkanImageView::deinit() -> void {
 	vkDestroyImageView(m_device->m_handle, m_handle, nullptr);
+}
+auto Vulkan_Texture::init(const VulkanLogicalDevice& device, void* data, v2u32 size, VkFormat format) {
+
+
+	VkDeviceSize image_size = size.width * size.height * 3/*image.num_components*/;
+	VulkanBuffer staging_buffer = { VulkanBuffer::TYPE::STAGING };
+	staging_buffer.init(device, VulkanBuffer::TYPE::STAGING, nullptr, image_size);
+	staging_buffer.send(data, 0, image_size);
+
+	VulkanImage image;
+	image.init(device, size, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+
+	this->transition_layout(image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	this->copy_buffer_to_image(staging_buffer, image, size);
+	this->transition_layout(image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+	staging_buffer.deinit();
+}
+auto Vulkan_Texture::deinit() -> void {
+}
+auto Vulkan_Texture::transition_layout(const VulkanImage& image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout) -> void {
+	const VulkanLogicalDevice& d = *m_device;
+
+	auto cb = d.m_command_pool.allocate_command_buffers(1);
+	cb[0].record_begin();
+	{
+		VkImageMemoryBarrier barrier = {
+			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+			.oldLayout = old_layout,
+			.newLayout = new_layout,
+			.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+			.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+			.image = image.m_handle,
+			.subresourceRange = {
+				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+				.baseMipLevel = 0,
+				.levelCount = 1,
+				.baseArrayLayer = 0,
+				.layerCount = 1
+			},
+		};
+
+		VkPipelineStageFlags source_stage;
+		VkPipelineStageFlags destination_stage;
+
+		if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED && new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+			source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		} else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+			source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			destination_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		} else {
+			__debugbreak();
+		}
+
+		vkCmdPipelineBarrier(
+			cb[0].m_handle,
+			source_stage, destination_stage,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier
+		);
+	}
+	cb[0].record_end();
+
+	const VkSubmitInfo submit_info = {
+		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+		.commandBufferCount = 1,
+		.pCommandBuffers = &cb[0].m_handle,
+	};
+	d.m_graphics_queue.submit(submit_info, VK_NULL_HANDLE);
+	d.m_graphics_queue.wait_idle();
+
+	d.m_command_pool.free_command_buffers(cb);
+
+}
+auto Vulkan_Texture::copy_buffer_to_image(const VulkanBuffer buffer, const VulkanImage image, v2u32 size) -> void {
+	const VulkanLogicalDevice& d = *m_device;
+
+	auto cb = d.m_command_pool.allocate_command_buffers(1);
+	cb[0].record_begin();
+	{
+		const VkBufferImageCopy region = {
+	.bufferOffset = 0,
+	.bufferRowLength = 0,
+	.bufferImageHeight = 0,
+	.imageSubresource = {
+		.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+		.mipLevel = 0,
+		.baseArrayLayer = 0,
+		.layerCount = 1
+	},
+	.imageOffset = { 0, 0, 0 },
+	.imageExtent = {
+		size.width,
+		size.height,
+		1
+	},
+		};
+
+		vkCmdCopyBufferToImage(cb[0].m_handle, buffer.m_handle, image.m_handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+	}
+	cb[0].record_end();
+
+	const VkSubmitInfo submit_info = {
+		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+		.commandBufferCount = 1,
+		.pCommandBuffers = &cb[0].m_handle,
+	};
+	d.m_graphics_queue.submit(submit_info, VK_NULL_HANDLE);
+	d.m_graphics_queue.wait_idle();
+
+	d.m_command_pool.free_command_buffers(cb);
+
+
 }
 }

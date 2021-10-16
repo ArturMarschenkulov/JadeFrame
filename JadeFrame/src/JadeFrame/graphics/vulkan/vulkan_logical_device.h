@@ -91,19 +91,18 @@ public: // Misc
 //	// To be removed
 public: // texture stuff
 	auto create_texture_image(const std::string& path) -> void;
-	auto create_image(u32 width, u32 height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) -> void;
-	auto transition_image_layout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) -> void;
-	auto copy_buffer_to_image(VkBuffer buffer, VkImage image, u32 width, u32 height) -> void;
-	auto begin_single_time_commands()->VkCommandBuffer;
-	auto end_single_time_commands(VkCommandBuffer command_buffer) -> void;
-	VkImage m_texture_image;
+	auto create_image(v2u32 size, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) -> void;
+	//auto copy_buffer_to_image(VkBuffer buffer, VkImage image, u32 width, u32 height) -> void;
+	VulkanImage m_texture_image;
+	//VkImage m_texture_image;
 	VkDeviceMemory m_texture_image_Memory;
 
-	auto create_image_view(VkImage image, VkFormat format)->VkImageView;
+	//auto create_image_view(VkImage image, VkFormat format)->VkImageView;
 	auto create_texture_image_view() -> void;
 	auto create_texture_sampler() -> void;
 
-	VkImageView m_texture_image_view;
+	VulkanImageView m_texture_image_view;
+	//VkImageView m_texture_image_view;
 	VkSampler m_texture_sampler;
 };
 }

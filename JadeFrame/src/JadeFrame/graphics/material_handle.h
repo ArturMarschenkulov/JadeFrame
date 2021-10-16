@@ -23,8 +23,7 @@ public:
 	auto init() -> void;
 public:
 	u8* m_data;
-	i32 m_width;
-	i32 m_height;
+	v2i32 m_size;
 	i32 m_num_components;
 
 	GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;

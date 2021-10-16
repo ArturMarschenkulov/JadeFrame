@@ -90,13 +90,6 @@ BaseApp::BaseApp(const DESC& desc) {
 }
 auto BaseApp::start() -> void {
 
-	v3 v_0 = { 1, 2, 3 };
-	v3 v_1 = { 3, 2, 1 };
-
-	v3 v_3 = v_0 + v_1;
-
-
-
 
 	this->on_init();
 	//m_renderer->main_loop();
@@ -162,8 +155,6 @@ static auto take_ownership(std::list<std::unique_ptr<BaseType>>& object_set, std
 	object_set.emplace_back(std::forward<std::unique_ptr<SubType>>(object));
 	return ref;
 }
-
-
 
 template<typename Left, typename Right>
 class Either {

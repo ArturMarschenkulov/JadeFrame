@@ -26,8 +26,8 @@ public:
 
 	struct Desc {
 		std::string title;
-		v2 size;
-		v2 position; // NOTE: -1 means randomly chosen by OS
+		v2u32 size;
+		v2u32 position; // NOTE: -1 means randomly chosen by OS
 		//bool is_vsync;
 		WINDOW_STATE window_state = WINDOW_STATE::WINDOWED;
 		bool visable = true;
