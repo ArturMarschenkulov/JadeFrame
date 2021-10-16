@@ -91,7 +91,12 @@ public:
 	const VulkanImage* m_image = nullptr;
 };
 
-
+class VulkanSampler {
+public:
+public:
+	VkSampler m_handle;
+	const VulkanLogicalDevice* m_device;
+};
 class Vulkan_Texture {
 public:
 	auto init(const VulkanLogicalDevice& device, void* data, v2u32 size, VkFormat);

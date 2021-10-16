@@ -450,6 +450,8 @@ auto Vulkan_Texture::transition_layout(const VulkanImage& image, VkFormat format
 	{
 		VkImageMemoryBarrier barrier = {
 			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+			.srcAccessMask = 0,
+			.dstAccessMask = 0,
 			.oldLayout = old_layout,
 			.newLayout = new_layout,
 			.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
@@ -512,21 +514,21 @@ auto Vulkan_Texture::copy_buffer_to_image(const VulkanBuffer buffer, const Vulka
 	cb[0].record_begin();
 	{
 		const VkBufferImageCopy region = {
-	.bufferOffset = 0,
-	.bufferRowLength = 0,
-	.bufferImageHeight = 0,
-	.imageSubresource = {
-		.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-		.mipLevel = 0,
-		.baseArrayLayer = 0,
-		.layerCount = 1
-	},
-	.imageOffset = { 0, 0, 0 },
-	.imageExtent = {
-		size.width,
-		size.height,
-		1
-	},
+			.bufferOffset = 0,
+			.bufferRowLength = 0,
+			.bufferImageHeight = 0,
+			.imageSubresource = {
+				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+				.mipLevel = 0,
+				.baseArrayLayer = 0,
+				.layerCount = 1
+			},
+			.imageOffset = { 0, 0, 0 },
+			.imageExtent = {
+				size.width,
+				size.height,
+				1
+			},
 		};
 
 		vkCmdCopyBufferToImage(cb[0].m_handle, buffer.m_handle, image.m_handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
