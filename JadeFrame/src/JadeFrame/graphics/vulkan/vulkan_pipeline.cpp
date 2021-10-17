@@ -21,8 +21,8 @@ static auto create_shader_module_from_spirv(VkDevice device, const std::vector<u
 	VkResult result;
 	const VkShaderModuleCreateInfo create_info = {
 		.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-		.pNext = {},
-		.flags = {},
+		.pNext = nullptr,
+		.flags = 0,
 		.codeSize = spirv.size() * 4, // NOTE: It has to be multiplied by 4!
 		.pCode = spirv.data(),
 	};
@@ -54,10 +54,9 @@ auto VulkanPipeline::init(
 		m_frag_shader_spirv = frag_shader_spirv.get();
 
 		//std::cout << "|-------------GLSL-------------|" << std::endl;
-		if(false)
-		{
+		if (false) {
 			auto comp_glsl = spirv_cross::CompilerGLSL(m_vert_shader_spirv);
-			auto ops = comp_glsl.get_common_options(); 
+			auto ops = comp_glsl.get_common_options();
 			ops.vulkan_semantics = true;
 			comp_glsl.set_common_options(ops);
 			std::cout << comp_glsl.compile() << std::endl;
@@ -78,35 +77,107 @@ auto VulkanPipeline::init(
 	{
 		std::vector cs = { m_vert_shader_spirv, m_frag_shader_spirv };
 
-		spirv_cross::CompilerGLSL compiler(m_vert_shader_spirv);
-		spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+		for (u32 i = 0; i < cs.size(); i++) {
+			spirv_cross::Compiler compiler(cs[i]);
+			spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
 
-		for(const spirv_cross::Resource& resource : resources.uniform_buffers) {
-			const const std::string& name = resource.name;
-			const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.base_type_id);
-			i32 member_count = static_cast<u32>(buffer_type.member_types.size());
-			u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-			u32 descriptor_set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-			u32 size = static_cast<u32>(compiler.get_declared_struct_size(buffer_type));
-		}
 
-		//
-		for (const spirv_cross::Resource& resource : resources.push_constant_buffers) {
-			const std::string& buffer_name = resource.name;
-			const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.base_type_id);
-			u32 buffer_size = (u32)compiler.get_declared_struct_size(buffer_type);
-			u32 member_count = uint32_t(buffer_type.member_types.size());
-			u32 buffer_offset = 0;
-			if (m_push_constant_ranges.size() != 0) {
-				buffer_offset = m_push_constant_ranges.back().offset + m_push_constant_ranges.back().size;
+
+
+			for (const spirv_cross::Resource& resource : resources.uniform_buffers) {
+				const const std::string& name = resource.name;
+				Logger::log("uniform_buffers {}", name);
 			}
-			PushConstantRange& push_constant_range = m_push_constant_ranges.emplace_back();
-			push_constant_range.shader_stage = VK_SHADER_STAGE_VERTEX_BIT;
-			push_constant_range.size = buffer_size - buffer_offset;
-			push_constant_range.offset = buffer_offset;
+			for (const spirv_cross::Resource& resource : resources.storage_buffers) {
+				const const std::string& name = resource.name;
+				Logger::log("storage_buffers {}", name);
+			}
+			for (const spirv_cross::Resource& resource : resources.stage_inputs) {
+				const const std::string& name = resource.name;
+				Logger::log("stage_inputs {}", name);
+			}
+			for (const spirv_cross::Resource& resource : resources.stage_outputs) {
+				const const std::string& name = resource.name;
+				Logger::log("stage_outputs {}", name);
+			}
+			for (const spirv_cross::Resource& resource : resources.subpass_inputs) {
+				const const std::string& name = resource.name;
+				Logger::log("subpass_inputs {}", name);
+			}
+			for (const spirv_cross::Resource& resource : resources.storage_images) {
+				const const std::string& name = resource.name;
+				Logger::log("storage_images {}", name);
+			}
+			for (const spirv_cross::Resource& resource : resources.sampled_images) {
+				const const std::string& name = resource.name;
+				Logger::log("sampled_images {}", name);
+			}
+			for (const spirv_cross::Resource& resource : resources.atomic_counters) {
+				const const std::string& name = resource.name;
+				Logger::log("atomic_counters {}", name);
+			}
+			for (const spirv_cross::Resource& resource : resources.acceleration_structures) {
+				const const std::string& name = resource.name;
+				Logger::log("acceleration_structures {}", name);
+			}
+			for (const spirv_cross::Resource& resource : resources.push_constant_buffers) {
+				const const std::string& name = resource.name;
+				Logger::log("push_constant_buffers {}", name);
+			}
+			for (const spirv_cross::Resource& resource : resources.separate_images) {
+				const const std::string& name = resource.name;
+				Logger::log("separate_images {}", name);
+			}
+			for (const spirv_cross::Resource& resource : resources.separate_samplers) {
+				const const std::string& name = resource.name;
+				Logger::log("separate_samplers {}", name);
+			}
+
+			for (const spirv_cross::BuiltInResource& resource : resources.builtin_inputs) {
+				const const std::string& name = resource.resource.name;
+				Logger::log("builtin_inputs {}", name);
+			}
+			for (const spirv_cross::BuiltInResource& resource : resources.builtin_outputs) {
+				const const std::string& name = resource.resource.name;
+				Logger::log("builtin_outputs {}", name);
+			}
 
 
+			for (const spirv_cross::Resource& resource : resources.uniform_buffers) {
+				const const std::string& name = resource.name;
+				const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.base_type_id);
+				i32 member_count = static_cast<u32>(buffer_type.member_types.size());
+				u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+				u32 descriptor_set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+				u32 size = static_cast<u32>(compiler.get_declared_struct_size(buffer_type));
+			}
+
+			for (const spirv_cross::Resource& resource : resources.sampled_images) {
+				const const std::string& name = resource.name;
+				const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.base_type_id);
+				i32 member_count = static_cast<u32>(buffer_type.member_types.size());
+				u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+				u32 descriptor_set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+				u32 size = static_cast<u32>(compiler.get_declared_struct_size(buffer_type));
+			}
+
+			//
+			for (const spirv_cross::Resource& resource : resources.push_constant_buffers) {
+				__debugbreak();
+				const std::string& buffer_name = resource.name;
+				const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.base_type_id);
+				u32 buffer_size = (u32)compiler.get_declared_struct_size(buffer_type);
+				u32 member_count = uint32_t(buffer_type.member_types.size());
+				u32 buffer_offset = 0;
+				if (m_push_constant_ranges.size() != 0) {
+					buffer_offset = m_push_constant_ranges.back().offset + m_push_constant_ranges.back().size;
+				}
+				PushConstantRange& push_constant_range = m_push_constant_ranges.emplace_back();
+				push_constant_range.shader_stage = VK_SHADER_STAGE_VERTEX_BIT;
+				push_constant_range.size = buffer_size - buffer_offset;
+				push_constant_range.offset = buffer_offset;
+			}
 		}
 
 	}

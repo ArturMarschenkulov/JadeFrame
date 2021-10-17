@@ -48,7 +48,7 @@ auto Example_Texture_Quad::on_init() -> void {
 	};
 
 	ShaderHandle::DESC shader_handle_desc;
-	shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("spirv_test_0");
+	shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("with_texture_0");
 	shader_handle_desc.vertex_format = m_obj.m_vertex_format;
 	m_material.m_shader_handle = new ShaderHandle(shader_handle_desc);
 	m_material.m_texture_handle = new TextureHandle("C:\\DEV\\Projects\\JadeFrame\\JadeFrame\\resource\\wall.jpg");

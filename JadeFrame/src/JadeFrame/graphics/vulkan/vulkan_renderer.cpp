@@ -107,7 +107,11 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
 			const size_t min_ubo_alignment = m_context.m_instance.m_physical_device.m_properties.limits.minUniformBufferOffsetAlignment;
 			const size_t block_size = sizeof(Matrix4x4);
-			const size_t aligned_block_size = min_ubo_alignment > 0 ? (block_size + min_ubo_alignment - 1) & ~(min_ubo_alignment - 1) : block_size;
+			const size_t aligned_block_size 
+				= min_ubo_alignment > 0 
+				? (block_size + min_ubo_alignment - 1) & ~(min_ubo_alignment - 1) 
+				: block_size
+			;
 
 			//Update ubo buffer and descriptor set when the amount of render commands changes
 			if (m_render_commands.size() * aligned_block_size != d.m_ub_tran.m_size) {
