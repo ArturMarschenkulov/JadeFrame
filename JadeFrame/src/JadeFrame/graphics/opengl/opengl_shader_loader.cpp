@@ -352,6 +352,13 @@ auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
 	}
 
 	auto [vs, fs] = shader_tuple;
-	return ShadingCode{ SHADING_LANGUAGE::GLSL, vs, fs };
+	ShadingCode code;
+	code.m_shading_language = SHADING_LANGUAGE::GLSL;
+	code.m_modules.resize(2);
+	code.m_modules[0].m_stage = SHADER_STAGE::VERTEX;
+	code.m_modules[0].m_code = vs;
+	code.m_modules[1].m_stage = SHADER_STAGE::FRAGMENT;
+	code.m_modules[1].m_code = fs;
+	return code;
 }
 }

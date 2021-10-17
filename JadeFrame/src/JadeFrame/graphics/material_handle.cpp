@@ -37,8 +37,8 @@ auto TextureHandle::init() -> void {
 				default: assert(false);
 			}
 			OpenGL_Texture* texture = new OpenGL_Texture(
-				m_data, 
-				{ static_cast<u32>(m_size.width), static_cast<u32>(m_size.height) }, 
+				m_data,
+				{ static_cast<u32>(m_size.width), static_cast<u32>(m_size.height) },
 				format, format, GL_UNSIGNED_BYTE
 			);
 			m_handle = texture;
@@ -60,23 +60,28 @@ ShaderHandle::ShaderHandle(const DESC& desc) {
 
 auto ShaderHandle::init() -> void {
 
-	if (m_code.m_vertex_shader != "" && m_code.m_fragment_shader != "") {
-		switch (m_api) {
-			case GRAPHICS_API::OPENGL:
-			{
-				OpenGL_Shader::DESC shader_desc;
-				shader_desc.code = m_code;
-				m_handle = new OpenGL_Shader(shader_desc);
-
-			}break;
-			case GRAPHICS_API::VULKAN:
-			{
-				//m_handle = new Vulkan_Shader({ vertex_shader_code, fragment_shader_code });
-			}break;
-			default: __debugbreak();
+	for (auto& m : m_code.m_modules) {
+		if ((m.m_stage == SHADER_STAGE::VERTEX) || (m.m_stage == SHADER_STAGE::FRAGMENT)) {
+			if(std::holds_alternative<std::string>(m.m_code) || std::holds_alternative<std::vector<u32>>(m.m_code)) {
+				if(std::get<std::string>(m.m_code).empty() || std::get<std::vector<u32>>(m.m_code).empty()) {
+					__debugbreak();
+				}
+			}
 		}
-	} else {
-		assert(!"There was no shader code");
+	}
+	switch (m_api) {
+		case GRAPHICS_API::OPENGL:
+		{
+			OpenGL_Shader::DESC shader_desc;
+			shader_desc.code = m_code;
+			m_handle = new OpenGL_Shader(shader_desc);
+
+		}break;
+		case GRAPHICS_API::VULKAN:
+		{
+			//m_handle = new Vulkan_Shader({ vertex_shader_code, fragment_shader_code });
+		}break;
+		default: __debugbreak();
 	}
 }
 

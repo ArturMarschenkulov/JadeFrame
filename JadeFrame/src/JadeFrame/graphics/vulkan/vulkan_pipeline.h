@@ -34,8 +34,9 @@ public:
 	const VulkanRenderPass* m_render_pass = nullptr;
 	const VulkanDescriptorSetLayout* m_descriptor_set_layout = nullptr;
 
-	std::vector<u32> m_vert_shader_spirv;
-	std::vector<u32> m_frag_shader_spirv;
+	//std::vector<u32> m_vert_shader_spirv;
+	//std::vector<u32> m_frag_shader_spirv;
+	ShadingCode m_code;
 
 	bool m_is_compiled = false;
 

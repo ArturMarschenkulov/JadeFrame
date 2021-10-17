@@ -5,14 +5,13 @@
 
 #include "opengl_shader_loader.h"
 
-//#include "../to_spirv.h"
+#include "../graphics_shared.h"
 #include <future>
 
 #include<array>
 #include<tuple>
 #include <JadeFrame/graphics/glsl_parser.h>
 #include <cassert>
-#include <JadeFrame/graphics/to_spirv.h>
 
 namespace JadeFrame {
 static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
@@ -35,12 +34,15 @@ OpenGL_Shader::OpenGL_Shader(const DESC& desc)
 	: m_program()
 	, m_vertex_shader(GL_VERTEX_SHADER)
 	, m_fragment_shader(GL_FRAGMENT_SHADER) {
-	m_vertex_source = desc.code.m_vertex_shader;
-	m_fragment_source = desc.code.m_fragment_shader;
+
+	auto vertex_shader = std::get<std::string>(desc.code.m_modules[0].m_code);
+	auto fragment_shader = std::get<std::string>(desc.code.m_modules[1].m_code);
+	m_vertex_source = vertex_shader;
+	m_fragment_source = fragment_shader;
 	if constexpr (false) {
 		
-		std::future<std::vector<u32>> vert_shader_spirv = std::async(std::launch::async, string_to_SPIRV, m_vertex_source.c_str(), 0);
-		std::future<std::vector<u32>> frag_shader_spirv = std::async(std::launch::async, string_to_SPIRV, m_fragment_source.c_str(), 1);
+		std::future<std::vector<u32>> vert_shader_spirv = std::async(std::launch::async, string_to_SPIRV, m_vertex_source.c_str(), desc.code.m_modules[0].m_stage);
+		std::future<std::vector<u32>> frag_shader_spirv = std::async(std::launch::async, string_to_SPIRV, m_fragment_source.c_str(), desc.code.m_modules[1].m_stage);
 
 		std::vector<u32> mvert_shader_spirv = vert_shader_spirv.get();
 		std::vector<u32> mfrag_shader_spirv = frag_shader_spirv.get();
@@ -55,10 +57,10 @@ OpenGL_Shader::OpenGL_Shader(const DESC& desc)
 
 		//__debugbreak();
 	} else {
-		m_vertex_shader.set_source(desc.code.m_vertex_shader);
+		m_vertex_shader.set_source(vertex_shader);
 		m_vertex_shader.compile();
 
-		m_fragment_shader.set_source(desc.code.m_fragment_shader);
+		m_fragment_shader.set_source(fragment_shader);
 		m_fragment_shader.compile();
 	}
 
@@ -93,8 +95,8 @@ OpenGL_Shader::OpenGL_Shader(const DESC& desc)
 	if constexpr (false) {
 
 		GLSLParser parser;
-		parser.parse(desc.code.m_vertex_shader);
-		parser.parse(desc.code.m_fragment_shader);
+		//parser.parse(desc.code.m_vertex_shader);
+		//parser.parse(desc.code.m_fragment_shader);
 		// Check whether m_uniforms and m_attributes are all contained in parser.
 		for (auto uniform = m_uniforms.begin(); uniform != m_uniforms.end(); uniform++) {
 			bool exists = false;

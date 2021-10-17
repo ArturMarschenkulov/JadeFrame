@@ -5,7 +5,6 @@
 #include "vulkan_swapchain.h"
 #include "vulkan_descriptor_set.h"
 
-#include "../to_spirv.h"
 #include "extern/SPIRV-Cross/spirv_glsl.hpp"
 #include "extern/SPIRV-Cross/spirv_hlsl.hpp"
 #include "extern/SPIRV-Cross/spirv_msl.hpp"
@@ -33,7 +32,82 @@ static auto create_shader_module_from_spirv(VkDevice device, const std::vector<u
 	return shader_module;
 }
 
+static auto debug_print_resources(const spirv_cross::ShaderResources& resources) -> void {
 
+	for (const spirv_cross::Resource& resource : resources.uniform_buffers) {
+		const const std::string& name = resource.name;
+		Logger::log("uniform_buffers {}", name);
+	}
+	for (const spirv_cross::Resource& resource : resources.storage_buffers) {
+		const const std::string& name = resource.name;
+		Logger::log("storage_buffers {}", name);
+	}
+	for (const spirv_cross::Resource& resource : resources.stage_inputs) {
+		const const std::string& name = resource.name;
+		Logger::log("stage_inputs {}", name);
+	}
+	for (const spirv_cross::Resource& resource : resources.stage_outputs) {
+		const const std::string& name = resource.name;
+		Logger::log("stage_outputs {}", name);
+	}
+	for (const spirv_cross::Resource& resource : resources.subpass_inputs) {
+		const const std::string& name = resource.name;
+		Logger::log("subpass_inputs {}", name);
+	}
+	for (const spirv_cross::Resource& resource : resources.storage_images) {
+		const const std::string& name = resource.name;
+		Logger::log("storage_images {}", name);
+	}
+	for (const spirv_cross::Resource& resource : resources.sampled_images) {
+		const const std::string& name = resource.name;
+		Logger::log("sampled_images {}", name);
+	}
+	for (const spirv_cross::Resource& resource : resources.atomic_counters) {
+		const const std::string& name = resource.name;
+		Logger::log("atomic_counters {}", name);
+	}
+	for (const spirv_cross::Resource& resource : resources.acceleration_structures) {
+		const const std::string& name = resource.name;
+		Logger::log("acceleration_structures {}", name);
+	}
+	for (const spirv_cross::Resource& resource : resources.push_constant_buffers) {
+		const const std::string& name = resource.name;
+		Logger::log("push_constant_buffers {}", name);
+	}
+	for (const spirv_cross::Resource& resource : resources.separate_images) {
+		const const std::string& name = resource.name;
+		Logger::log("separate_images {}", name);
+	}
+	for (const spirv_cross::Resource& resource : resources.separate_samplers) {
+		const const std::string& name = resource.name;
+		Logger::log("separate_samplers {}", name);
+	}
+
+	for (const spirv_cross::BuiltInResource& resource : resources.builtin_inputs) {
+		const const std::string& name = resource.resource.name;
+		Logger::log("builtin_inputs {}", name);
+	}
+	for (const spirv_cross::BuiltInResource& resource : resources.builtin_outputs) {
+		const const std::string& name = resource.resource.name;
+		Logger::log("builtin_outputs {}", name);
+	}
+}
+
+static auto from_SHADER_STAGE(SHADER_STAGE stage) -> VkShaderStageFlagBits {
+	VkShaderStageFlagBits result;
+	switch(stage) {
+		case SHADER_STAGE::VERTEX:
+		{
+			result = VK_SHADER_STAGE_VERTEX_BIT;
+		} break;
+		case SHADER_STAGE::FRAGMENT:
+		{
+			result = VK_SHADER_STAGE_FRAGMENT_BIT;
+		} break;
+		default: __debugbreak();
+	}
+	return result;
+}
 auto VulkanPipeline::init(
 	const VulkanLogicalDevice& device,
 	const VkExtent2D& extent,
@@ -46,102 +120,32 @@ auto VulkanPipeline::init(
 	m_descriptor_set_layout = &descriptor_set_layout;
 
 	VkResult result;
-	if (m_is_compiled == false) {
-		std::future<std::vector<u32>> vert_shader_spirv = std::async(std::launch::async, string_to_SPIRV, code.m_vertex_shader.c_str(), 0);
-		std::future<std::vector<u32>> frag_shader_spirv = std::async(std::launch::async, string_to_SPIRV, code.m_fragment_shader.c_str(), 1);
 
-		m_vert_shader_spirv = vert_shader_spirv.get();
-		m_frag_shader_spirv = frag_shader_spirv.get();
-
-		//std::cout << "|-------------GLSL-------------|" << std::endl;
-		if (false) {
-			auto comp_glsl = spirv_cross::CompilerGLSL(m_vert_shader_spirv);
-			auto ops = comp_glsl.get_common_options();
-			ops.vulkan_semantics = true;
-			comp_glsl.set_common_options(ops);
-			std::cout << comp_glsl.compile() << std::endl;
-			std::cout << spirv_cross::CompilerGLSL(m_frag_shader_spirv).compile() << std::endl;
-		}
-		//std::cout << "|-------------HLSL-------------|" << std::endl;
-		//std::cout << spirv_cross::CompilerHLSL(m_vert_shader_spirv).compile() << std::endl;
-		//std::cout << spirv_cross::CompilerHLSL(m_frag_shader_spirv).compile() << std::endl;
-		//std::cout << "|-------------MSL--------------|" << std::endl;
-		//std::cout << spirv_cross::CompilerMSL(m_vert_shader_spirv).compile() << std::endl;
-		//std::cout << spirv_cross::CompilerMSL(m_frag_shader_spirv).compile() << std::endl;
-		//std::cout << "|------------------------------|" << std::endl;
-
-		m_is_compiled = true;
+	std::vector<std::future<std::vector<u32>>> spirvs;
+	spirvs.resize(code.m_modules.size());
+	for (u32 i = 0; i < code.m_modules.size(); i++) {
+		const std::string& str = std::get<std::string>(code.m_modules[i].m_code);
+		spirvs[i] = std::async(std::launch::async, string_to_SPIRV, str, code.m_modules[i].m_stage);
 	}
+
+	m_code.m_modules.resize(spirvs.size());
+	m_code.m_modules[0].m_stage = SHADER_STAGE::VERTEX;
+	m_code.m_modules[0].m_code = spirvs[0].get();
+	m_code.m_modules[1].m_stage = SHADER_STAGE::FRAGMENT;
+	m_code.m_modules[1].m_code = spirvs[1].get();
 
 
 	{
-		std::vector cs = { m_vert_shader_spirv, m_frag_shader_spirv };
+		//std::vector cs = { m_vert_shader_spirv, m_frag_shader_spirv };
 
-		for (u32 i = 0; i < cs.size(); i++) {
-			spirv_cross::Compiler compiler(cs[i]);
+		for (u32 i = 0; i < m_code.m_modules.size(); i++) {
+			auto& current_module = m_code.m_modules[i];
+			auto& current_module_code = std::get<std::vector<u32>>(current_module.m_code);
+			spirv_cross::Compiler compiler(current_module_code);
 			spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
+			debug_print_resources(resources);
 
-
-
-
-			for (const spirv_cross::Resource& resource : resources.uniform_buffers) {
-				const const std::string& name = resource.name;
-				Logger::log("uniform_buffers {}", name);
-			}
-			for (const spirv_cross::Resource& resource : resources.storage_buffers) {
-				const const std::string& name = resource.name;
-				Logger::log("storage_buffers {}", name);
-			}
-			for (const spirv_cross::Resource& resource : resources.stage_inputs) {
-				const const std::string& name = resource.name;
-				Logger::log("stage_inputs {}", name);
-			}
-			for (const spirv_cross::Resource& resource : resources.stage_outputs) {
-				const const std::string& name = resource.name;
-				Logger::log("stage_outputs {}", name);
-			}
-			for (const spirv_cross::Resource& resource : resources.subpass_inputs) {
-				const const std::string& name = resource.name;
-				Logger::log("subpass_inputs {}", name);
-			}
-			for (const spirv_cross::Resource& resource : resources.storage_images) {
-				const const std::string& name = resource.name;
-				Logger::log("storage_images {}", name);
-			}
-			for (const spirv_cross::Resource& resource : resources.sampled_images) {
-				const const std::string& name = resource.name;
-				Logger::log("sampled_images {}", name);
-			}
-			for (const spirv_cross::Resource& resource : resources.atomic_counters) {
-				const const std::string& name = resource.name;
-				Logger::log("atomic_counters {}", name);
-			}
-			for (const spirv_cross::Resource& resource : resources.acceleration_structures) {
-				const const std::string& name = resource.name;
-				Logger::log("acceleration_structures {}", name);
-			}
-			for (const spirv_cross::Resource& resource : resources.push_constant_buffers) {
-				const const std::string& name = resource.name;
-				Logger::log("push_constant_buffers {}", name);
-			}
-			for (const spirv_cross::Resource& resource : resources.separate_images) {
-				const const std::string& name = resource.name;
-				Logger::log("separate_images {}", name);
-			}
-			for (const spirv_cross::Resource& resource : resources.separate_samplers) {
-				const const std::string& name = resource.name;
-				Logger::log("separate_samplers {}", name);
-			}
-
-			for (const spirv_cross::BuiltInResource& resource : resources.builtin_inputs) {
-				const const std::string& name = resource.resource.name;
-				Logger::log("builtin_inputs {}", name);
-			}
-			for (const spirv_cross::BuiltInResource& resource : resources.builtin_outputs) {
-				const const std::string& name = resource.resource.name;
-				Logger::log("builtin_outputs {}", name);
-			}
 
 
 			for (const spirv_cross::Resource& resource : resources.uniform_buffers) {
@@ -182,33 +186,20 @@ auto VulkanPipeline::init(
 
 	}
 
-	VkShaderModule vert_shader_module = create_shader_module_from_spirv(device.m_handle, m_vert_shader_spirv);
-	VkShaderModule frag_shader_module = create_shader_module_from_spirv(device.m_handle, m_frag_shader_spirv);
-
-
-
-	const VkPipelineShaderStageCreateInfo vert_shader_stage_info = {
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.stage = VK_SHADER_STAGE_VERTEX_BIT,
-		.module = vert_shader_module,
-		.pName = "main",
-		.pSpecializationInfo = nullptr,
-	};
-	const VkPipelineShaderStageCreateInfo frag_shader_stage_info = {
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-		.module = frag_shader_module,
-		.pName = "main",
-		.pSpecializationInfo = nullptr,
-	};
-	VkPipelineShaderStageCreateInfo shader_stages[] = {
-		vert_shader_stage_info,
-		frag_shader_stage_info,
-	};
+	std::vector< VkPipelineShaderStageCreateInfo> shader_stages;
+	shader_stages.resize(m_code.m_modules.size());
+	for(u32 i = 0; i < shader_stages.size(); i++) {
+		const VkPipelineShaderStageCreateInfo stage_info = {
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+			.pNext = nullptr,
+			.flags = 0,
+			.stage = from_SHADER_STAGE(m_code.m_modules[i].m_stage),
+			.module = create_shader_module_from_spirv(device.m_handle, std::get<std::vector<u32>>(m_code.m_modules[i].m_code)),
+			.pName = "main",
+			.pSpecializationInfo = nullptr,
+		};
+		shader_stages[i] = stage_info;
+	}
 
 	const VkVertexInputBindingDescription binding_description = get_binding_description(vertex_format);
 	const std::vector<VkVertexInputAttributeDescription> attribute_descriptions = get_attribute_descriptions(vertex_format);
@@ -274,14 +265,14 @@ auto VulkanPipeline::init(
 
 	const VkPipelineMultisampleStateCreateInfo multisampling = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-		.pNext = {},
-		.flags = {},
+		.pNext = nullptr,
+		.flags = 0,
 		.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
 		.sampleShadingEnable = VK_FALSE,
-		.minSampleShading = {},
-		.pSampleMask = {},
-		.alphaToCoverageEnable = {},
-		.alphaToOneEnable = {},
+		.minSampleShading = 0,
+		.pSampleMask = nullptr,
+		.alphaToCoverageEnable = 0,
+		.alphaToOneEnable = 0,
 	};
 
 	const VkPipelineColorBlendAttachmentState color_blend_attachment = {
@@ -328,31 +319,31 @@ auto VulkanPipeline::init(
 
 	const VkGraphicsPipelineCreateInfo pipeline_info = {
 		.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-		.pNext = {},
-		.flags = {},
-		.stageCount = 2,
-		.pStages = shader_stages,
+		.pNext = nullptr,
+		.flags = 0,
+		.stageCount = static_cast<u32>(shader_stages.size()),
+		.pStages = shader_stages.data(),
 		.pVertexInputState = &vertex_input_info,
 		.pInputAssemblyState = &input_assembly,
-		.pTessellationState = {},
+		.pTessellationState = nullptr,
 		.pViewportState = &viewport_state,
 		.pRasterizationState = &rasterizer,
 		.pMultisampleState = &multisampling,
-		.pDepthStencilState = {},
+		.pDepthStencilState = nullptr,
 		.pColorBlendState = &color_blending,
-		.pDynamicState = {},
+		.pDynamicState = nullptr,
 		.layout = m_layout,
 		.renderPass = render_pass.m_handle,
 		.subpass = 0,
 		.basePipelineHandle = VK_NULL_HANDLE,
-		.basePipelineIndex = {},
+		.basePipelineIndex = 0,
 	};
 
 	result = vkCreateGraphicsPipelines(device.m_handle, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
 
-	vkDestroyShaderModule(device.m_handle, frag_shader_module, nullptr);
-	vkDestroyShaderModule(device.m_handle, vert_shader_module, nullptr);
+	//vkDestroyShaderModule(device.m_handle, frag_shader_module, nullptr);
+	//vkDestroyShaderModule(device.m_handle, vert_shader_module, nullptr);
 	m_device = &device;
 }
 

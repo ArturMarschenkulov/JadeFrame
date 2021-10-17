@@ -1,6 +1,7 @@
 #pragma once
 #include "JadeFrame/defines.h"
 #include <JadeFrame/math/mat_4.h>
+#include <variant>
 //#include "opengl/opengl_shader_loader.h"
 //#include "Mesh.h"
 
@@ -23,22 +24,28 @@ enum class GRAPHICS_API {
 	TERMINAL,
 };
 enum class SHADING_LANGUAGE {
+	//High level
 	GLSL,
-	SPIRV,
-	HLSL
+	HLSL,
+	//Low level
+	SPIRV
 };
 enum class SHADER_STAGE {
 	VERTEX,
-	FRAGMET, //PIXEL
+	FRAGMENT, //PIXEL
 	GEOMETRY,
 	TESSELATION,
 	COMPUTE,
 };
 
 struct ShadingCode {
-	SHADING_LANGUAGE shading_language;
-	std::string m_vertex_shader;
-	std::string m_fragment_shader;
+	struct Module {
+		using Code = std::variant<std::string, std::vector<u32>>;
+		Code m_code;
+		SHADER_STAGE m_stage;
+	};
+	SHADING_LANGUAGE m_shading_language;
+	std::vector<Module> m_modules;
 };
 
 struct ShaderModule {
@@ -52,6 +59,7 @@ struct GPUDataMeshHandle {
 
 	mutable bool m_is_initialized = false;
 };
+
 
 /*
 	TODO: Consider whether this is a good way and whether it is worth it to introdcue inheritance.
@@ -161,4 +169,6 @@ public:
 	};
 public:
 };
+
+auto string_to_SPIRV(const std::string& code, SHADER_STAGE i)->std::vector<u32>;
 }
