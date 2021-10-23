@@ -5,6 +5,7 @@
 #include "vulkan_pipeline.h"
 #include "vulkan_descriptor_set.h"
 #include "vulkan_physical_device.h"
+#include "JadeFrame/utils/assert.h"
 
 namespace JadeFrame {
 
@@ -18,13 +19,13 @@ auto VulkanCommandBuffer::record_begin() -> void {
 	};
 
 	result = vkBeginCommandBuffer(m_handle, &begin_info);
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 }
 
 auto VulkanCommandBuffer::record_end() -> void {
 	VkResult result;
 	result = vkEndCommandBuffer(m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 }
 
 auto VulkanCommandBuffer::render_pass_begin(const VulkanFramebuffer& framebuffer, const VulkanRenderPass& render_pass, const VkExtent2D& extent, VkClearValue clear_color) -> void {
@@ -53,7 +54,7 @@ auto VulkanCommandBuffer::reset() -> void {
 	VkCommandBufferResetFlags flags = {};
 
 	result = vkResetCommandBuffer(m_handle, flags);
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 }
 
 
@@ -70,7 +71,7 @@ auto VulkanCommandPool::init(const VulkanLogicalDevice& device, const QueueFamil
 	};
 
 	result = vkCreateCommandPool(device.m_handle, &pool_info, nullptr, &m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 
 }
 
@@ -90,7 +91,7 @@ auto VulkanCommandPool::allocate_command_buffers(u32 amount) const -> std::vecto
 		.commandBufferCount = static_cast<u32>(handles.size()),
 	};
 	result = vkAllocateCommandBuffers(m_device->m_handle, &alloc_info, handles.data());
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 
 
 	std::vector<VulkanCommandBuffer> command_buffers(handles.size());

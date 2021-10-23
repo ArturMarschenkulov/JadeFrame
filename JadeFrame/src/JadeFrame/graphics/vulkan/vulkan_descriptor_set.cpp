@@ -4,6 +4,7 @@
 #include "vulkan_physical_device.h"
 #include "vulkan_buffer.h"
 #include "JadeFrame/utils/utils.h"
+#include "JadeFrame/utils/assert.h"
 
 #include <vector>
 #include <cassert>
@@ -17,13 +18,9 @@ class VulkanLogicalDevice;
 	Descriptor Set
 ---------------------------*/
 auto VulkanDescriptorSet::add_uniform_buffer(const VulkanBuffer& buffer, u32 binding, VkDeviceSize offset, VkDeviceSize range) -> void {
-	//NOTE: Vulkan Spec only guarantees 16K addressable space, while on most Desktop platforms it's 64K
-	if (buffer.m_size > from_kibibyte(64)) {
-		__debugbreak();
-	}
-
+	JF_ASSERT(buffer.m_size < from_kibibyte(64), "Guaranteed only between 16K and 64K");
 	VulkanDescriptor d = {
-		.info = {
+		.bufer_info = {
 			.buffer = buffer.m_handle,
 			.offset = offset,
 			.range = range,
@@ -31,9 +28,10 @@ auto VulkanDescriptorSet::add_uniform_buffer(const VulkanBuffer& buffer, u32 bin
 		.binding = binding,
 	};
 
-	if (!(d.info.offset < buffer.m_size)) __debugbreak();
-	if (d.info.range != VK_WHOLE_SIZE && !(d.info.range > 0)) __debugbreak();
-	if (d.info.range != VK_WHOLE_SIZE && !(d.info.range <= buffer.m_size - d.info.offset)) __debugbreak();
+
+	JF_ASSERT(d.bufer_info.offset < buffer.m_size, "");
+	JF_ASSERT(d.bufer_info.range != VK_WHOLE_SIZE && d.bufer_info.range > 0, "");
+	JF_ASSERT(d.bufer_info.range != VK_WHOLE_SIZE && d.bufer_info.range <= buffer.m_size - d.bufer_info.offset, "");
 
 	//Find according to binding.
 	//TODO: Maybe find a better way
@@ -41,19 +39,18 @@ auto VulkanDescriptorSet::add_uniform_buffer(const VulkanBuffer& buffer, u32 bin
 	for (u32 i = 0; i < m_descriptors.size(); i++) {
 		if (m_descriptors[i].binding == d.binding) {
 			found = true;
-			m_descriptors[i].info = d.info;
+			m_descriptors[i].bufer_info = d.bufer_info;
 			//infos[i] = d.info;
 		}
 	}
-
-	if (found == false) __debugbreak();
+	JF_ASSERT(found == true, "");
 
 }
 auto VulkanDescriptorSet::readd_uniform_buffer(u32 binding, const VulkanBuffer& buffer) -> void {
 
 	for (u32 i = 0;; i++) {
 		if (m_descriptors[i].binding == binding) {
-			m_descriptors[binding].info.buffer = buffer.m_handle;
+			m_descriptors[binding].bufer_info.buffer = buffer.m_handle;
 			return;
 		}
 	}
@@ -65,7 +62,7 @@ auto VulkanDescriptorSet::update() -> void {
 	std::vector<VkDescriptorBufferInfo> infos;
 	infos.resize(m_descriptors.size());
 	for (u32 i = 0; i < m_descriptors.size(); i++) {
-		infos[i] = m_descriptors[i].info;
+		infos[i] = m_descriptors[i].bufer_info;
 	}
 
 	std::vector<VkWriteDescriptorSet> wdss;
@@ -98,7 +95,7 @@ auto VulkanDescriptorSet::update() -> void {
 ---------------------------*/
 
 auto VulkanDescriptorSetLayout::add_binding(u32 binding, VkDescriptorType descriptor_type, u32 descriptor_count, VkShaderStageFlags stage_flags, const VkSampler* p_immutable_samplers) -> void {
-	if (m_handle != VK_NULL_HANDLE) __debugbreak();
+	JF_ASSERT(m_handle == VK_NULL_HANDLE);
 	const VkDescriptorSetLayoutBinding dslb = {
 		.binding = binding,
 		.descriptorType = descriptor_type,
@@ -134,9 +131,8 @@ auto VulkanDescriptorSetLayout::deinit() -> void {
 	Descriptor Pool
 ---------------------------*/
 auto VulkanDescriptorPool::add_pool_size(const VkDescriptorPoolSize& pool_size) -> void {
-	if (m_handle != VK_NULL_HANDLE) __debugbreak();
-
-	if (!(pool_size.descriptorCount > 0)) __debugbreak();
+	JF_ASSERT(m_handle == VK_NULL_HANDLE);
+	JF_ASSERT(pool_size.descriptorCount > 0);
 
 	m_pool_sizes.push_back(pool_size);
 }
@@ -153,8 +149,8 @@ auto VulkanDescriptorPool::init(const VulkanLogicalDevice& device, u32 max_sets)
 		.poolSizeCount = static_cast<u32>(m_pool_sizes.size()),
 		.pPoolSizes = m_pool_sizes.data(),
 	};
-	if (!(pool_info.maxSets > 0)) __debugbreak();
-	if (!(pool_info.poolSizeCount > 0)) __debugbreak();
+	JF_ASSERT(pool_info.maxSets > 0, "");
+	JF_ASSERT(pool_info.poolSizeCount > 0, "");
 
 	result = vkCreateDescriptorPool(device.m_handle, &pool_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) __debugbreak();

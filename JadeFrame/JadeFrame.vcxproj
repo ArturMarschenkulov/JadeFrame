@@ -360,18 +360,17 @@
     <ClInclude Include="src\JadeFrame\graphics\vulkan\vulkan_sync_object.h" />
     <ClInclude Include="src\JadeFrame\gui.h" />
     <ClInclude Include="src\JadeFrame\math\i128.h" />
+    <ClInclude Include="src\JadeFrame\math\mat.h" />
     <ClInclude Include="src\JadeFrame\math\vec.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_input_manager.h" />
     <ClInclude Include="src\JadeFrame\math\mat_4.h" />
     <ClInclude Include="src\JadeFrame\math\math.h" />
-    <ClInclude Include="src\JadeFrame\math\vec_2.h" />
-    <ClInclude Include="src\JadeFrame\math\vec_3.h" />
-    <ClInclude Include="src\JadeFrame\math\vec_4.h" />
     <ClInclude Include="src\JadeFrame\graphics\mesh.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_renderer.h" />
     <ClInclude Include="src\JadeFrame\graphics\opengl\opengl_shader.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_shared.h" />
     <ClInclude Include="src\JadeFrame\platform\windows\windows_system_manager.h" />
+    <ClInclude Include="src\JadeFrame\utils\assert.h" />
     <ClInclude Include="src\JadeFrame\utils\dynamic_array.h" />
     <ClInclude Include="src\JadeFrame\utils\logger.h" />
     <ClInclude Include="src\JadeFrame\utils\utils.h" />
@@ -528,9 +527,6 @@
     <ClCompile Include="src\JadeFrame\platform\windows\windows_input_manager.cpp" />
     <ClCompile Include="src\JadeFrame\math\mat_4.cpp" />
     <ClCompile Include="src\JadeFrame\math\math.cpp" />
-    <ClCompile Include="src\JadeFrame\math\vec_2.cpp" />
-    <ClCompile Include="src\JadeFrame\math\vec_3.cpp" />
-    <ClCompile Include="src\JadeFrame\math\vec_4.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\mesh.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_renderer.cpp" />
     <ClCompile Include="src\JadeFrame\graphics\opengl\opengl_shader.cpp" />
@@ -551,9 +547,6 @@
     <Image Include="resource\awesomeface.png" />
     <Image Include="resource\container.jpg" />
     <Image Include="resource\wall.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="src\JadeFrame\math\vec3.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

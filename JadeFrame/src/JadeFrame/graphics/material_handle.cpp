@@ -2,6 +2,7 @@
 #include "material_handle.h"
 #include "opengl/opengl_shader.h"
 #include "opengl/opengl_texture.h"
+#include "vulkan/vulkan_buffer.h"
 #include "stb/stb_image.h"
 #include <cassert>
 
@@ -47,7 +48,8 @@ auto TextureHandle::init() -> void {
 		}break;
 		case GRAPHICS_API::VULKAN:
 		{
-			//Vulkan_Texture* texture = new Vulkan_Texture();
+	/*		Vulkan_Texture* texture = new Vulkan_Texture();
+			texture->init();*/
 		}break;
 		default: __debugbreak();
 	}
@@ -60,15 +62,15 @@ ShaderHandle::ShaderHandle(const DESC& desc) {
 
 auto ShaderHandle::init() -> void {
 
-	for (auto& m : m_code.m_modules) {
-		if ((m.m_stage == SHADER_STAGE::VERTEX) || (m.m_stage == SHADER_STAGE::FRAGMENT)) {
-			if(std::holds_alternative<std::string>(m.m_code) || std::holds_alternative<std::vector<u32>>(m.m_code)) {
-				if(std::get<std::string>(m.m_code).empty() || std::get<std::vector<u32>>(m.m_code).empty()) {
-					__debugbreak();
-				}
-			}
-		}
-	}
+	//for (auto& m : m_code.m_modules) {
+	//	if ((m.m_stage == SHADER_STAGE::VERTEX) || (m.m_stage == SHADER_STAGE::FRAGMENT)) {
+	//		if(std::holds_alternative<std::string>(m.m_code) || std::holds_alternative<std::vector<u32>>(m.m_code)) {
+	//			if(std::get<std::string>(m.m_code).empty() || std::get<std::vector<u32>>(m.m_code).empty()) {
+	//				__debugbreak();
+	//			}
+	//		}
+	//	}
+	//}
 	switch (m_api) {
 		case GRAPHICS_API::OPENGL:
 		{

@@ -95,7 +95,7 @@ static auto debug_print_resources(const spirv_cross::ShaderResources& resources)
 
 static auto from_SHADER_STAGE(SHADER_STAGE stage) -> VkShaderStageFlagBits {
 	VkShaderStageFlagBits result;
-	switch(stage) {
+	switch (stage) {
 		case SHADER_STAGE::VERTEX:
 		{
 			result = VK_SHADER_STAGE_VERTEX_BIT;
@@ -108,6 +108,21 @@ static auto from_SHADER_STAGE(SHADER_STAGE stage) -> VkShaderStageFlagBits {
 	}
 	return result;
 }
+
+struct UB {
+	std::string name;
+	u32 binding;
+	u32 set;
+	u32 size;
+};
+static std::map<u32, UB> s_uniform_buffers;
+static std::map<u32, std::map<u32, VulkanDescriptor>> s_descriptors;
+static std::map<u32, std::map<i32, f32>> ss;
+
+static auto add_uniform_buffer(const std::map<u32, UB>& map, const UB& uniform) {
+	ss.contains(2_u32);
+}
+
 auto VulkanPipeline::init(
 	const VulkanLogicalDevice& device,
 	const VkExtent2D& extent,
@@ -155,15 +170,47 @@ auto VulkanPipeline::init(
 				u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
 				u32 descriptor_set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
 				u32 size = static_cast<u32>(compiler.get_declared_struct_size(buffer_type));
+
+				const UB ub = {
+					.name = name,
+					.binding = binding,
+					.set = descriptor_set,
+					.size = size,
+				};
+
+				if (s_uniform_buffers.contains(ub.binding) == false) {
+					s_uniform_buffers.insert({ ub.binding, ub });
+				} else {
+					//__debugbreak();
+				}
+
+				VulkanDescriptor vd = {};
+				//if (false == s_descriptors.contains(ub.set)) 
+				{
+					if (false == s_descriptors[ub.set].contains(ub.binding)) {
+						s_descriptors[ub.set][ub.binding] = vd;
+						Logger::log("{}.{}", ub.set, ub.binding);
+					}
+				}
 			}
 
 			for (const spirv_cross::Resource& resource : resources.sampled_images) {
 				const const std::string& name = resource.name;
-				const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.base_type_id);
+				const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
+				const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
 				i32 member_count = static_cast<u32>(buffer_type.member_types.size());
 				u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
 				u32 descriptor_set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-				u32 size = static_cast<u32>(compiler.get_declared_struct_size(buffer_type));
+
+				u32 dimension = base_type.image.dim;
+				u32 array_size = buffer_type.array[0];
+
+				if (array_size == 0) {
+					array_size = 1;
+				} else {
+					__debugbreak();
+				}
+				//__debugbreak();
 			}
 
 			//
@@ -186,9 +233,9 @@ auto VulkanPipeline::init(
 
 	}
 
-	std::vector< VkPipelineShaderStageCreateInfo> shader_stages;
+	std::vector<VkPipelineShaderStageCreateInfo> shader_stages;
 	shader_stages.resize(m_code.m_modules.size());
-	for(u32 i = 0; i < shader_stages.size(); i++) {
+	for (u32 i = 0; i < shader_stages.size(); i++) {
 		const VkPipelineShaderStageCreateInfo stage_info = {
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
 			.pNext = nullptr,

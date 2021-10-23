@@ -2,9 +2,7 @@
 #undef min
 #undef max
 #include "mat_4.h"
-#include "vec_4.h"
-#include "vec_3.h"
-#include "vec_2.h"
+#include "vec.h"
 #include "JadeFrame/defines.h"
 
 #define M_PI 3.14159265359f

@@ -1,8 +1,5 @@
 #pragma once
 #include "JadeFrame/defines.h"
-
-#include "vec_4.h"
-#include "vec_3.h"
 #include "vec.h"
 
 #include <vector>
@@ -31,8 +28,6 @@ class Matrix4x4 {
 public:
 	constexpr Matrix4x4() noexcept;
 	constexpr Matrix4x4(const f32 diagonal) noexcept;
-	constexpr Matrix4x4(const v4& col1, const v4& col2, const v4& col3, const v4& col4) noexcept;
-	constexpr Matrix4x4(const Matrix4x4& mat) noexcept;
 
 	constexpr auto operator=(const Matrix4x4& mat) noexcept ->Matrix4x4&;
 	constexpr auto operator[](const u32 index) noexcept -> std::array<f32, 4>&; // for writing
@@ -64,7 +59,7 @@ public:
 private:
 	union {
 		std::array<std::array<f32, 4>, 4> el;
-		std::array<f32, 4> colVec;
+		//std::array<f32, 4> colVec;
 	};
 };
 
@@ -72,29 +67,23 @@ private:
 // IMPLEMENTATION
 
 inline constexpr Matrix4x4::Matrix4x4() noexcept
-	:el() {
+	: el() {
 
-	el[0][0] = 1.0f; el[1][0] = 0.0f; el[2][0] = 0.0f; el[3][0] = 0.0f;
-	el[0][1] = 0.0f; el[1][1] = 1.0f; el[2][1] = 0.0f; el[3][1] = 0.0f;
-	el[0][2] = 0.0f; el[1][2] = 0.0f; el[2][2] = 1.0f; el[3][2] = 0.0f;
-	el[0][3] = 0.0f; el[1][3] = 0.0f; el[2][3] = 0.0f; el[3][3] = 1.0f;
+	//el[0][0] = 1.0f; el[1][0] = 0.0f; el[2][0] = 0.0f; el[3][0] = 0.0f;
+	//el[0][1] = 0.0f; el[1][1] = 1.0f; el[2][1] = 0.0f; el[3][1] = 0.0f;
+	//el[0][2] = 0.0f; el[1][2] = 0.0f; el[2][2] = 1.0f; el[3][2] = 0.0f;
+	//el[0][3] = 0.0f; el[1][3] = 0.0f; el[2][3] = 0.0f; el[3][3] = 1.0f;
 }
-inline constexpr Matrix4x4::Matrix4x4(const f32 digo) noexcept {
-	el[0][0] = digo; el[1][0] = 0.0f; el[2][0] = 0.0f; el[3][0] = 0.0f;
-	el[0][1] = 0.0f; el[1][1] = digo; el[2][1] = 0.0f; el[3][1] = 0.0f;
-	el[0][2] = 0.0f; el[1][2] = 0.0f; el[2][2] = digo; el[3][2] = 0.0f;
-	el[0][3] = 0.0f; el[1][3] = 0.0f; el[2][3] = 0.0f; el[3][3] = digo;
-}
-inline constexpr Matrix4x4::Matrix4x4(const v4& col0, const v4& col1, const v4& col2, const v4& col3) noexcept {
-	el[0][0] = col0.x; el[1][0] = col1.x; el[2][0] = col2.x; el[3][0] = col3.x;
-	el[0][1] = col0.y; el[1][1] = col1.y; el[2][1] = col2.y; el[3][1] = col3.y;
-	el[0][2] = col0.z; el[1][2] = col1.z; el[2][2] = col2.z; el[3][2] = col3.z;
-	el[0][3] = col0.w; el[1][3] = col1.w; el[2][3] = col2.w; el[3][3] = col3.w;
+inline constexpr Matrix4x4::Matrix4x4(const f32 digo) noexcept 
+	: el() {
+	for(u32 i = 0; i < 4; i++) {
+		el[i][i] = digo;
+	}
 }
 
-inline constexpr Matrix4x4::Matrix4x4(const Matrix4x4& mat) noexcept {
-	*this = mat;
-}
+//inline constexpr Matrix4x4::Matrix4x4(const Matrix4x4& mat) noexcept {
+//	*this = mat;
+//}
 
 inline constexpr auto Matrix4x4::operator=(const Matrix4x4& mat) noexcept -> Matrix4x4& {
 	for (u32 col = 0; col < 4; col++) {

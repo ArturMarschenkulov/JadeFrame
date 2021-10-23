@@ -45,7 +45,7 @@ struct Drop {
 };
 
 struct Checkerbox {
-	Checkerbox(f32 size, Vec2 pos) {
+	Checkerbox(f32 size, v2 pos) {
 		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
 		const f32 window_width = app->m_current_window_p->get_size().x;
 		x = pos.x;
@@ -88,13 +88,13 @@ struct Thingy {
 	auto update() -> void {
 		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
 		auto& im = JadeFrameInstance::get_singleton()->m_input_manager;
-		v2 mp = im.get_mouse_position();
+		const v2 mp = im.get_mouse_position();
 
 		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 10.0f, 1.0f }) * Matrix4x4::translation_matrix({ mp.x, mp.y, 0.0f });
 	}
 
 	Object obj = {};
-	Vec2 pos;
+	v2 pos;
 
 };
 
@@ -159,7 +159,7 @@ auto Example_0::on_init() -> void {
 			for (u32 i = 0; i < amount; i++) {
 				for (u32 j = 0; j < amount; j++) {
 					if ((i + j) % 2 == 0) {
-						m_checkerbox.emplace_back(size, Vec2(i * size, j * size));
+						m_checkerbox.emplace_back(size, v2(i * size, j * size));
 					}
 				}
 			}

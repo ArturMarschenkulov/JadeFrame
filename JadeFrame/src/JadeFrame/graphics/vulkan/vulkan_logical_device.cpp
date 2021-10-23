@@ -6,6 +6,7 @@
 
 #include "JadeFrame/math/mat_4.h"
 #include "JadeFrame/math/math.h"
+#include "JadeFrame/utils/assert.h"
 
 #include <thread>
 #include <future>
@@ -178,6 +179,8 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	m_ub_cam.init(*this, VulkanBuffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
 	m_ub_tran.init(*this, VulkanBuffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4) * num_objects);
 
+
+	// Create main descriptor pool, which should have all kinds of types. In the future maybe make it more specific.
 	u32 descriptor_count = 1000;
 	m_main_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptor_count });
 	m_main_descriptor_pool.add_pool_size({ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, descriptor_count });
@@ -193,6 +196,7 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 
 	m_descriptor_set_layout_0.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
 	m_descriptor_set_layout_0.add_binding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_VERTEX_BIT);
+	//m_descriptor_set_layout_0.add_binding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_ALL);
 	m_descriptor_set_layout_0.init(*this);
 
 	m_descriptor_sets = m_main_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout_0, 1);

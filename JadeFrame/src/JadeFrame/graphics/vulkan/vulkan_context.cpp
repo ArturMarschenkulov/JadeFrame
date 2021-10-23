@@ -13,6 +13,7 @@
 
 #include <set>
 #include <JadeFrame/base_app.h>
+#include "JadeFrame/utils/assert.h"
 
 namespace JadeFrame {
 
@@ -52,7 +53,7 @@ static auto vulkan_get_device_type_string(const VkPhysicalDeviceType& device_typ
 		case VK_PHYSICAL_DEVICE_TYPE_CPU:
 			result = "VK_PHYSICAL_DEVICE_TYPE_CPU"; break;
 		case VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM:
-			__debugbreak();
+			JF_ASSERT(false, "");
 			result = ""; break;
 	}
 	return result;
@@ -148,6 +149,15 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 
 	VkResult result;
 
+	VkValidationFeatureEnableEXT enables[] = { VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT };
+	VkValidationFeaturesEXT features = {};
+	features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+	features.enabledValidationFeatureCount = 1;
+	features.pEnabledValidationFeatures = enables;
+
+	//VkInstanceCreateInfo info = {};
+	//info.pNext = &features;
+
 	m_available_layers = this->query_layers();
 	m_available_extensions = this->query_extensions();
 
@@ -158,7 +168,7 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 
 	const VkApplicationInfo app_info = {
 		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-		.pNext = nullptr,
+		.pNext = &features,
 		.pApplicationName = "Hello Triangle",
 		.applicationVersion = VK_MAKE_VERSION(1, 0, 0),
 		.pEngineName = "JadeFrame",

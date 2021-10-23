@@ -5,6 +5,7 @@
 #include "vulkan_physical_device.h"
 
 #include "JadeFrame/math/mat_4.h"
+#include "JadeFrame/utils/assert.h"
 
 namespace JadeFrame {
 
@@ -26,33 +27,34 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, VulkanBuffer::TYPE bu
 	switch (buffer_type) {
 		case VulkanBuffer::TYPE::VERTEX:
 		{
-			if (m_type != VulkanBuffer::TYPE::VERTEX) __debugbreak();
+			JF_ASSERT(m_type == VulkanBuffer::TYPE::VERTEX, "");
 			b_with_staging_buffer = true;
 			usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 			properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 		}break;
 		case  VulkanBuffer::TYPE::INDEX:
 		{
-			if (m_type != VulkanBuffer::TYPE::INDEX) __debugbreak();
+			JF_ASSERT(m_type == VulkanBuffer::TYPE::INDEX, "");
+			if (m_type != VulkanBuffer::TYPE::INDEX) JF_ASSERT(false, "");
 			b_with_staging_buffer = true;
 			usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
 			properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 		}break;
 		case  VulkanBuffer::TYPE::UNIFORM:
 		{
-			if (m_type != VulkanBuffer::TYPE::UNIFORM) __debugbreak();
+			JF_ASSERT(m_type == VulkanBuffer::TYPE::UNIFORM, "");
 			b_with_staging_buffer = false;
 			usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 			properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 		}break;
 		case  VulkanBuffer::TYPE::STAGING:
 		{
-			if (m_type != VulkanBuffer::TYPE::STAGING) __debugbreak();
+			JF_ASSERT(m_type == VulkanBuffer::TYPE::STAGING, "");
 			b_with_staging_buffer = false;
 			usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 			properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 		}break;
-		default: __debugbreak(); break;
+		default: JF_ASSERT(false, ""); break;
 	}
 
 	if (b_with_staging_buffer == true) {
@@ -95,7 +97,7 @@ auto VulkanBuffer::send(void* data, VkDeviceSize offset, VkDeviceSize size) -> v
 
 	void* mapped_data;
 	result = vkMapMemory(m_device->m_handle, m_memory, offset, size, 0, &mapped_data);
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 	memcpy(mapped_data, data, static_cast<size_t>(size));
 	vkUnmapMemory(m_device->m_handle, m_memory);
 }
@@ -122,7 +124,7 @@ auto VulkanBuffer::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, Vk
 		.pQueueFamilyIndices = nullptr,
 	};
 	result = vkCreateBuffer(m_device->m_handle, &buffer_info, nullptr, &buffer);
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 
 	VkMemoryRequirements mem_requirements;
 	vkGetBufferMemoryRequirements(m_device->m_handle, buffer, &mem_requirements);
@@ -135,7 +137,7 @@ auto VulkanBuffer::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, Vk
 	};
 
 	result = vkAllocateMemory(m_device->m_handle, &alloc_info, nullptr, &buffer_memory);
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 
 	result = vkBindBufferMemory(m_device->m_handle, buffer, buffer_memory, 0);
 }
@@ -171,9 +173,9 @@ auto VulkanBuffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDevic
 	};
 
 	result = vkQueueSubmit(m_device->m_graphics_queue.m_handle, 1, &submit_info, VK_NULL_HANDLE);
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 	result = vkQueueWaitIdle(m_device->m_graphics_queue.m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 
 	cp.free_command_buffers(command_buffer);
 
@@ -248,7 +250,7 @@ auto VulkanLogicalDevice::create_texture_image(const std::string& path) -> void 
 
 		staging_buffer.deinit();
 	} else {
-		__debugbreak();
+		JF_ASSERT(false, "");
 	}
 }
 auto VulkanLogicalDevice::create_image(v2u32 size, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& image_memory) -> void {
@@ -275,7 +277,7 @@ auto VulkanLogicalDevice::create_image(v2u32 size, VkFormat format, VkImageTilin
 		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 	};
 	result = vkCreateImage(m_handle, &image_info, nullptr, &image);
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 
 
 	VkMemoryRequirements mem_requirements;
@@ -288,10 +290,10 @@ auto VulkanLogicalDevice::create_image(v2u32 size, VkFormat format, VkImageTilin
 		.memoryTypeIndex = m_physical_device->find_memory_type(mem_requirements.memoryTypeBits, properties),
 	};
 	result = vkAllocateMemory(m_handle, &alloc_info, nullptr, &image_memory);
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 
 	result = vkBindImageMemory(m_handle, image, image_memory, 0);
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 }
 
 
@@ -306,26 +308,26 @@ auto VulkanLogicalDevice::create_texture_sampler() -> void {
 
 	const VkSamplerCreateInfo samplerInfo = {
 		.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-		.pNext = {},
-		.flags = {},
+		.pNext = nullptr,
+		.flags = 0,
 		.magFilter = VK_FILTER_LINEAR,
 		.minFilter = VK_FILTER_LINEAR,
 		.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
 		.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
 		.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
 		.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-		.mipLodBias = {},
+		.mipLodBias = 0.0f,
 		.anisotropyEnable = VK_TRUE,
 		.maxAnisotropy = m_physical_device->m_properties.limits.maxSamplerAnisotropy,
 		.compareEnable = VK_FALSE,
 		.compareOp = VK_COMPARE_OP_ALWAYS,
-		.minLod = {},
-		.maxLod = {},
+		.minLod = 0.0f,
+		.maxLod = 0.0f,
 		.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
 		.unnormalizedCoordinates = VK_FALSE,
 	};
 	result = vkCreateSampler(m_handle, &samplerInfo, nullptr, &m_texture_sampler);
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 }
 
 auto VulkanImage::init(const VulkanLogicalDevice& device, const v2u32& size, VkFormat format, VkImageUsageFlags usage) -> void {
@@ -356,7 +358,7 @@ auto VulkanImage::init(const VulkanLogicalDevice& device, const v2u32& size, VkF
 	};
 
 	result = vkCreateImage(device.m_handle, &image_info, nullptr, &m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 
 	VkMemoryRequirements mem_requirements;
 	vkGetImageMemoryRequirements(device.m_handle, m_handle, &mem_requirements);
@@ -369,10 +371,10 @@ auto VulkanImage::init(const VulkanLogicalDevice& device, const v2u32& size, VkF
 	};
 
 	result = vkAllocateMemory(device.m_handle, &alloc_info, nullptr, &m_memory);
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 
 	result = vkBindImageMemory(device.m_handle, m_handle, m_memory, 0);
-	if (result != VK_SUCCESS) __debugbreak();
+	JF_ASSERT(result == VK_SUCCESS);
 }
 auto VulkanImage::init(const VulkanLogicalDevice& device, VkImage image) -> void {
 	m_device = &device;
@@ -383,13 +385,13 @@ auto VulkanImage::deinit() -> void {
 	switch (m_source) {
 		case SOURCE::REGULAR:
 		{
-			__debugbreak();
+			JF_ASSERT(false, "");
 		}break;
 		case SOURCE::SWAPCHAIN:
 		{
 
 		}break;
-		default: __debugbreak();
+		default: JF_ASSERT(false, "");
 	}
 }
 
@@ -423,22 +425,65 @@ auto VulkanImageView::init(const VulkanLogicalDevice& device, const VulkanImage&
 auto VulkanImageView::deinit() -> void {
 	vkDestroyImageView(m_device->m_handle, m_handle, nullptr);
 }
-auto Vulkan_Texture::init(const VulkanLogicalDevice& device, void* data, v2u32 size, VkFormat format) {
 
+/*---------------------------
+	Sampler
+---------------------------*/
+
+auto VulkanSampler::init(const VulkanLogicalDevice& device) -> void {
+	m_device = &device;
+	VkResult result;
+
+	const VkSamplerCreateInfo samplerInfo = {
+		.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+		.pNext = nullptr,
+		.flags = 0,
+		.magFilter = VK_FILTER_LINEAR,
+		.minFilter = VK_FILTER_LINEAR,
+		.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+		.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		.mipLodBias = 0.0f,
+		.anisotropyEnable = VK_TRUE,
+		.maxAnisotropy = device.m_physical_device->m_properties.limits.maxSamplerAnisotropy,
+		.compareEnable = VK_FALSE,
+		.compareOp = VK_COMPARE_OP_ALWAYS,
+		.minLod = 0.0f,
+		.maxLod = 0.0f,
+		.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+		.unnormalizedCoordinates = VK_FALSE,
+	};
+	result = vkCreateSampler(device.m_handle, &samplerInfo, nullptr, &m_handle);
+	if (result != VK_SUCCESS) __debugbreak();
+}
+
+auto VulkanSampler::deinit() -> void {
+}
+
+/*---------------------------
+	Texture
+---------------------------*/
+
+
+auto Vulkan_Texture::init(const VulkanLogicalDevice& device, void* data, v2u32 size, VkFormat format) -> void {
+	m_device = &device;
 
 	VkDeviceSize image_size = size.width * size.height * 3/*image.num_components*/;
 	VulkanBuffer staging_buffer = { VulkanBuffer::TYPE::STAGING };
 	staging_buffer.init(device, VulkanBuffer::TYPE::STAGING, nullptr, image_size);
 	staging_buffer.send(data, 0, image_size);
 
-	VulkanImage image;
-	image.init(device, size, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+	//VulkanImage image;
+	m_image.init(device, size, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
-	this->transition_layout(image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-	this->copy_buffer_to_image(staging_buffer, image, size);
-	this->transition_layout(image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	this->transition_layout(m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	this->copy_buffer_to_image(staging_buffer, m_image, size);
+	this->transition_layout(m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	staging_buffer.deinit();
+
+	m_sampler.init(device);
 }
 auto Vulkan_Texture::deinit() -> void {
 }
@@ -446,6 +491,7 @@ auto Vulkan_Texture::transition_layout(const VulkanImage& image, VkFormat format
 	const VulkanLogicalDevice& d = *m_device;
 
 	auto cb = d.m_command_pool.allocate_command_buffers(1);
+
 	cb[0].record_begin();
 	{
 		VkImageMemoryBarrier barrier = {
@@ -547,4 +593,5 @@ auto Vulkan_Texture::copy_buffer_to_image(const VulkanBuffer buffer, const Vulka
 
 
 }
+
 }

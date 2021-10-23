@@ -11,12 +11,27 @@ class VulkanDescriptorPool;
 class VulkanBuffer;
 
 
+
 struct VulkanDescriptor {
-	VkDescriptorBufferInfo info;
+	union {
+		VkDescriptorBufferInfo bufer_info;
+		VkDescriptorImageInfo image_info;
+	};
 	VkDescriptorType type;
 	VkShaderStageFlags stage_flags;
 	u32 binding;
 };
+static auto is_image(VulkanDescriptor d) -> bool {
+	switch (d.type) {
+		case VK_DESCRIPTOR_TYPE_SAMPLER:
+		case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+		case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+		case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+		case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT: return true; break;
+			//case VK_DESCRIPTOR_TYPE_SAMPLER:
+		default: return false;
+	}
+}
 
 class VulkanDescriptorSet {
 public:
@@ -26,7 +41,7 @@ public:
 		u32 binding,
 		VkDeviceSize offset,
 		VkDeviceSize range
-	) -> void;	
+	) -> void;
 	auto readd_uniform_buffer(
 		u32 binding,
 		const VulkanBuffer& buffer
@@ -34,7 +49,7 @@ public:
 public:
 	VkDescriptorSet m_handle;
 	const VulkanLogicalDevice* m_device = nullptr;
-	
+
 	std::vector<VulkanDescriptor> m_descriptors;
 };
 

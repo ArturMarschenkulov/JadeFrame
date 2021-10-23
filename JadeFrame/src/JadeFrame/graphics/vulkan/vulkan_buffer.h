@@ -91,21 +91,26 @@ public:
 	const VulkanImage* m_image = nullptr;
 };
 
+
 class VulkanSampler {
 public:
+	auto init(const VulkanLogicalDevice& device) -> void;
+	auto deinit() -> void;
 public:
 	VkSampler m_handle;
 	const VulkanLogicalDevice* m_device;
 };
 class Vulkan_Texture {
 public:
-	auto init(const VulkanLogicalDevice& device, void* data, v2u32 size, VkFormat);
+	auto init(const VulkanLogicalDevice& device, void* data, v2u32 size, VkFormat) -> void;
 	auto deinit() -> void;
 
 	auto transition_layout(const VulkanImage& image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout) -> void;
 	auto copy_buffer_to_image(const VulkanBuffer buffer, const VulkanImage image, v2u32 size) -> void;
 public:
+	VulkanImage m_image;
 	const VulkanLogicalDevice* m_device;
+	VulkanSampler m_sampler;
 };
 
 }

@@ -13,7 +13,7 @@ Vulkan_Shader::Vulkan_Shader(const VulkanLogicalDevice& device, const DESC& desc
 		device.m_descriptor_set_layout_0,
 		device.m_swapchain.m_render_pass,
 		desc.code,
-		desc.buffer_layout
+		desc.vertex_format
 	);
 }
 

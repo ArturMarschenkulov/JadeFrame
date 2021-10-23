@@ -90,7 +90,6 @@ BaseApp::BaseApp(const DESC& desc) {
 }
 auto BaseApp::start() -> void {
 
-
 	this->on_init();
 	//m_renderer->main_loop();
 	//GUI_init(m_current_window_p->m_window_handle);

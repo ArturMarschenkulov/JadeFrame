@@ -2,8 +2,7 @@
 #include "JadeFrame/defines.h"
 #include <JadeFrame/math/mat_4.h>
 #include <variant>
-//#include "opengl/opengl_shader_loader.h"
-//#include "Mesh.h"
+
 
 namespace JadeFrame {
 
@@ -165,7 +164,7 @@ public:
 	struct DESC {
 		SHADING_LANGUAGE shading_language;
 		ShadingCode code;
-		VertexFormat buffer_layout;
+		VertexFormat vertex_format;
 	};
 public:
 };
