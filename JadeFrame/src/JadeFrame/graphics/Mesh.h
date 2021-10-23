@@ -51,7 +51,7 @@ public:
 	std::vector<u32> m_indices;
 };
 
-inline auto convert_into_data(const VertexData& vertex_data, const bool interleaved, bool with_color = true) -> std::vector<f32> {
+inline auto convert_into_data(const VertexData& vertex_data, const bool interleaved) -> std::vector<f32> {
 	//assert(mesh.m_positions.size() == mesh.m_normals.size());
 	const u64 size
 		= vertex_data.m_positions.size() * 3
@@ -116,7 +116,7 @@ public:
 	};
 	static auto make_line(const v3& pos1, const v3& pos2)->VertexData;
 
-	static auto make_rectangle(const v3& pos, const v3& size, const Desc desc = Desc{})->VertexData;
+	static auto make_rectangle(const v3& pos, const v3& size, const Desc desc = Desc{ true, true, false, true })->VertexData;
 	static auto make_triangle(const v3& pos1, const v3& pos2, const v3& pos3)->VertexData;
 	static auto make_circle(const v3& position, const f32 radius, const u32 numSegments)->VertexData;
 

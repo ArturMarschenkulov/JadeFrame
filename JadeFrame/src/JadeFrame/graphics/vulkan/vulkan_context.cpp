@@ -168,7 +168,7 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 
 	const VkApplicationInfo app_info = {
 		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-		.pNext = &features,
+		.pNext = nullptr,
 		.pApplicationName = "Hello Triangle",
 		.applicationVersion = VK_MAKE_VERSION(1, 0, 0),
 		.pEngineName = "JadeFrame",
@@ -215,10 +215,10 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 	if (result != VK_SUCCESS) __debugbreak();
 	
 	if (m_enable_validation_layers) {
-		VkDebugUtilsMessengerCreateInfoEXT create_info;
-		populate_debug_messenger_create_info(create_info);
+		VkDebugUtilsMessengerCreateInfoEXT info;
+		populate_debug_messenger_create_info(info);
 
-		result = vkCreateDebugUtilsMessengerEXT_(m_instance, &create_info, nullptr, &m_debug_messenger);
+		result = vkCreateDebugUtilsMessengerEXT_(m_instance, &info, nullptr, &m_debug_messenger);
 		if (result != VK_SUCCESS) __debugbreak();
 	}
 

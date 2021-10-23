@@ -56,10 +56,10 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(windo
 
 		fb.m_framebuffer.bind();
 
-		const v2 size = m_context.m_state.viewport[1];
+		const v2u32 size = m_context.m_state.viewport[1];
 		fb.m_framebuffer_texture.bind(0);
 
-		fb.m_framebuffer_texture.set_texture_image_2D(0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		fb.m_framebuffer_texture.set_texture_image_2D(0, GL_RGB, static_cast<i32>(size.x), static_cast<i32>(size.y), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 		fb.m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		fb.m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		fb.m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

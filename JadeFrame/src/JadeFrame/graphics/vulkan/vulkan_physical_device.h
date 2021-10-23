@@ -12,7 +12,8 @@ namespace JadeFrame {
 class VulkanSurface;
 
 using QueueFamilyIndex = u32;
-struct QueueFamilyIndices {
+class QueueFamilyIndices {
+public:
 	std::optional<QueueFamilyIndex> m_graphics_family;
 	std::optional<QueueFamilyIndex> m_present_family;
 	auto is_complete() -> bool {

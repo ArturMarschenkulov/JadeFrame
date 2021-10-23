@@ -60,7 +60,7 @@ OpenGL_Texture::OpenGL_Texture(void* data, v2u32 size, GLenum internal_format, G
 	//}
 	m_texture.unbind();
 }
-auto OpenGL_Texture::resize(u32 width, u32 height, u32 depth)-> void {
+auto OpenGL_Texture::resize(u32 width, u32 height, u32 /*depth*/)-> void {
 
 	m_texture.bind(0);
 	assert(width > 0 && height > 0);

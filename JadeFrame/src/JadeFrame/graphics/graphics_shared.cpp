@@ -53,7 +53,7 @@ auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage) -> std::vector
 	options.SetWarningsAsErrors();
 	options.SetGenerateDebugInfo();
 	const bool optimize = false;
-	if (optimize == true) {
+	if constexpr (optimize == true) {
 		options.SetOptimizationLevel(shaderc_optimization_level_size);
 	}
 	shc::Compiler compiler;

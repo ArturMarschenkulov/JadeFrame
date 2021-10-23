@@ -21,7 +21,7 @@ struct VulkanDescriptor {
 	VkShaderStageFlags stage_flags;
 	u32 binding;
 };
-static auto is_image(VulkanDescriptor d) -> bool {
+inline auto is_image(VulkanDescriptor d) -> bool {
 	switch (d.type) {
 		case VK_DESCRIPTOR_TYPE_SAMPLER:
 		case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:

@@ -16,7 +16,7 @@ VulkanBuffer::VulkanBuffer(const VulkanBuffer::TYPE type)
 }
 
 auto VulkanBuffer::init(const VulkanLogicalDevice& device, VulkanBuffer::TYPE buffer_type, void* data, size_t size) -> void {
-	VkResult result;
+	/*VkResult result;*/
 	m_device = &device;
 	m_size = size;
 
@@ -97,7 +97,7 @@ auto VulkanBuffer::send(void* data, VkDeviceSize offset, VkDeviceSize size) -> v
 
 	void* mapped_data;
 	result = vkMapMemory(m_device->m_handle, m_memory, offset, size, 0, &mapped_data);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 	memcpy(mapped_data, data, static_cast<size_t>(size));
 	vkUnmapMemory(m_device->m_handle, m_memory);
 }
@@ -124,7 +124,7 @@ auto VulkanBuffer::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, Vk
 		.pQueueFamilyIndices = nullptr,
 	};
 	result = vkCreateBuffer(m_device->m_handle, &buffer_info, nullptr, &buffer);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 
 	VkMemoryRequirements mem_requirements;
 	vkGetBufferMemoryRequirements(m_device->m_handle, buffer, &mem_requirements);
@@ -137,7 +137,7 @@ auto VulkanBuffer::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, Vk
 	};
 
 	result = vkAllocateMemory(m_device->m_handle, &alloc_info, nullptr, &buffer_memory);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 
 	result = vkBindBufferMemory(m_device->m_handle, buffer, buffer_memory, 0);
 }
@@ -173,14 +173,14 @@ auto VulkanBuffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDevic
 	};
 
 	result = vkQueueSubmit(m_device->m_graphics_queue.m_handle, 1, &submit_info, VK_NULL_HANDLE);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 	result = vkQueueWaitIdle(m_device->m_graphics_queue.m_handle);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 
 	cp.free_command_buffers(command_buffer);
 
 }
-Vulkan_GPUMeshData::Vulkan_GPUMeshData(const VulkanLogicalDevice& device, const VertexData& vertex_data, const VertexFormat& vertex_format, bool interleaved) {
+Vulkan_GPUMeshData::Vulkan_GPUMeshData(const VulkanLogicalDevice& device, const VertexData& vertex_data, const VertexFormat& /*vertex_format*/, bool interleaved) {
 	const std::vector<f32> data = convert_into_data(vertex_data, interleaved);
 
 	m_vertex_buffer.init(device, VulkanBuffer::TYPE::VERTEX, (void*)data.data(), sizeof(data[0]) * data.size());
@@ -191,7 +191,7 @@ Vulkan_GPUMeshData::Vulkan_GPUMeshData(const VulkanLogicalDevice& device, const 
 }
 auto Vulkan_GPUMeshData::bind() const -> void {
 }
-auto Vulkan_GPUMeshData::set_layout(const VertexFormat& vertex_format) -> void {
+auto Vulkan_GPUMeshData::set_layout(const VertexFormat& /*vertex_format*/) -> void {
 }
 
 #include "stb/stb_image.h"
@@ -213,7 +213,7 @@ struct STBIImage {
 };
 
 auto VulkanLogicalDevice::create_texture_image(const std::string& path) -> void {
-	VkResult result;
+	/*VkResult result;*/
 
 	STBIImage image(path);
 
@@ -277,7 +277,7 @@ auto VulkanLogicalDevice::create_image(v2u32 size, VkFormat format, VkImageTilin
 		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 	};
 	result = vkCreateImage(m_handle, &image_info, nullptr, &image);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 
 
 	VkMemoryRequirements mem_requirements;
@@ -290,10 +290,10 @@ auto VulkanLogicalDevice::create_image(v2u32 size, VkFormat format, VkImageTilin
 		.memoryTypeIndex = m_physical_device->find_memory_type(mem_requirements.memoryTypeBits, properties),
 	};
 	result = vkAllocateMemory(m_handle, &alloc_info, nullptr, &image_memory);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 
 	result = vkBindImageMemory(m_handle, image, image_memory, 0);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 }
 
 
@@ -327,7 +327,7 @@ auto VulkanLogicalDevice::create_texture_sampler() -> void {
 		.unnormalizedCoordinates = VK_FALSE,
 	};
 	result = vkCreateSampler(m_handle, &samplerInfo, nullptr, &m_texture_sampler);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 }
 
 auto VulkanImage::init(const VulkanLogicalDevice& device, const v2u32& size, VkFormat format, VkImageUsageFlags usage) -> void {
@@ -358,7 +358,7 @@ auto VulkanImage::init(const VulkanLogicalDevice& device, const v2u32& size, VkF
 	};
 
 	result = vkCreateImage(device.m_handle, &image_info, nullptr, &m_handle);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 
 	VkMemoryRequirements mem_requirements;
 	vkGetImageMemoryRequirements(device.m_handle, m_handle, &mem_requirements);
@@ -371,10 +371,10 @@ auto VulkanImage::init(const VulkanLogicalDevice& device, const v2u32& size, VkF
 	};
 
 	result = vkAllocateMemory(device.m_handle, &alloc_info, nullptr, &m_memory);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 
 	result = vkBindImageMemory(device.m_handle, m_handle, m_memory, 0);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 }
 auto VulkanImage::init(const VulkanLogicalDevice& device, VkImage image) -> void {
 	m_device = &device;
@@ -487,7 +487,7 @@ auto Vulkan_Texture::init(const VulkanLogicalDevice& device, void* data, v2u32 s
 }
 auto Vulkan_Texture::deinit() -> void {
 }
-auto Vulkan_Texture::transition_layout(const VulkanImage& image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout) -> void {
+auto Vulkan_Texture::transition_layout(const VulkanImage& image, VkFormat /*format*/, VkImageLayout old_layout, VkImageLayout new_layout) -> void {
 	const VulkanLogicalDevice& d = *m_device;
 
 	auto cb = d.m_command_pool.allocate_command_buffers(1);

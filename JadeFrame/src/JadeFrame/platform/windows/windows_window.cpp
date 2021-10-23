@@ -36,9 +36,9 @@ static auto window_resize_callback(Windows_Window& window, const WindowsMessage&
 	}
 
 
-	window.set_size(v2(LOWORD(wm.lParam), HIWORD(wm.lParam)));
+	window.set_size(v2u32(LOWORD(wm.lParam), HIWORD(wm.lParam)));
 
-	const v2& size = window.get_size();
+	const v2u32& size = window.get_size();
 	auto& renderer = JadeFrameInstance::get_singleton()->m_current_app_p->m_renderer;
 	renderer->set_viewport(0, 0, size.width, size.height);
 
@@ -53,7 +53,7 @@ static auto window_move_callback(Windows_Window& window, const WindowsMessage& w
 	//NOTE: wParam is not used
 
 
-	window.set_position(v2(LOWORD(wm.lParam), HIWORD(wm.lParam)));
+	window.set_position(v2u32(LOWORD(wm.lParam), HIWORD(wm.lParam)));
 
 }
 static auto window_focus_callback(Windows_Window& window, bool should_focus) {
@@ -250,8 +250,8 @@ Windows_Window::Windows_Window(const Windows_Window::Desc& desc) {
 	::GetWindowRect(window_handle, &window_rect);
 
 	m_title = desc.title;
-	m_size = v2(client_rect.right, client_rect.bottom);
-	m_position = v2(window_rect.left, window_rect.top);
+	m_size = v2u32(client_rect.right, client_rect.bottom);
+	m_position = v2u32(window_rect.left, window_rect.top);
 	m_window_handle = window_handle;
 	m_window_state = WINDOW_STATE::WINDOWED;
 	if (desc.visable == true) {
@@ -275,19 +275,19 @@ auto Windows_Window::get_title() const -> std::string {
 	return m_title;
 }
 
-auto Windows_Window::set_size(const v2& size) -> void {
+auto Windows_Window::set_size(const v2u32& size) -> void {
 	m_size = size;
 }
 
-auto Windows_Window::get_size() const -> const v2& {
+auto Windows_Window::get_size() const -> const v2u32& {
 	return m_size;
 }
 
-auto Windows_Window::set_position(const v2& position) -> void {
+auto Windows_Window::set_position(const v2u32& position) -> void {
 	m_position = position;
 }
 
-auto Windows_Window::get_position() const -> const v2& {
+auto Windows_Window::get_position() const -> const v2u32& {
 	return m_position;
 }
 

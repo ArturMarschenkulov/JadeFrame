@@ -131,7 +131,7 @@ public:
 	struct DESC {
 		std::string title;
 		v2u32 size;
-		v2u32 position = { -1.0f, -1.0f };
+		v2u32 position = { 0, 0};
 	};
 	BaseApp() = default;
 	BaseApp(const DESC& desc);

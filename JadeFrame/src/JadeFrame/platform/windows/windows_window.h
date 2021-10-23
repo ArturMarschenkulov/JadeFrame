@@ -47,11 +47,11 @@ public:
 	auto set_title(const std::string& title) -> void;
 	auto get_title() const -> std::string;
 
-	auto set_size(const v2& size) -> void;
-	auto get_size() const -> const v2&;
+	auto set_size(const v2u32& size) -> void;
+	auto get_size() const -> const v2u32&;
 
-	auto set_position(const v2& position) -> void;
-	auto get_position() const -> const v2&;
+	auto set_position(const v2u32& position) -> void;
+	auto get_position() const -> const v2u32&;
 
 	auto set_window_state(const WINDOW_STATE window_state) -> void;
 	auto get_window_state() const -> WINDOW_STATE;
@@ -65,8 +65,8 @@ public:
 public:
 
 	std::string m_title;
-	v2 m_size;
-	v2 m_position;
+	v2u32 m_size;
+	v2u32 m_position;
 	bool has_focus = true;
 
 	WINDOW_STATE m_window_state = WINDOW_STATE::MINIMIZED;

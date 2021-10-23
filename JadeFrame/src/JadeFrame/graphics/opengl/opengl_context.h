@@ -67,8 +67,8 @@ public:
 	std::pair<POLYGON_FACE, POLYGON_MODE>  polygon_mode;
 
 public:
-	auto set_viewport(i32 x, i32 y, i32 width, i32 height) -> void;
-	v2 viewport[2]; // TODO: Create an appropriate "rectangle" struct!
+	auto set_viewport(u32 x, u32 y, u32 width, u32 height) -> void;
+	v2u32 viewport[2]; // TODO: Create an appropriate "rectangle" struct!
 };
 class OpenGL_Context {
 public:

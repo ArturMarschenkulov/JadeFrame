@@ -74,7 +74,7 @@ auto VulkanQueue::present(VkPresentInfoKHR info, VkResult& result) const -> void
 }
 
 auto VulkanQueue::present(const u32& index, const VulkanSwapchain& swapchain, const VulkanSemaphore* semaphore, VkResult* out_result) const -> void {
-	VkResult result;
+	/*VkResult result;*/
 
 	const VkPresentInfoKHR info = {
 		.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -170,7 +170,7 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	m_swapchain.init(*this, m_instance->m_surface);
 	//m_render_pass.init(*this, m_swapchain.m_image_format);
 	//m_swapchain.create_framebuffers(m_render_pass);
-	const u32 swapchain_image_amount = m_swapchain.m_images.size();
+	const u32 swapchain_image_amount = static_cast<u32>(m_swapchain.m_images.size());
 
 	// Uniform stuff
 
@@ -207,7 +207,7 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 
 	// Commad Buffer stuff
 	m_command_pool.init(*this, m_physical_device->m_queue_family_indices.m_graphics_family.value());
-	m_command_buffers = m_command_pool.allocate_command_buffers(m_swapchain.m_framebuffers.size());
+	m_command_buffers = m_command_pool.allocate_command_buffers(static_cast<u32>(m_swapchain.m_framebuffers.size()));
 
 	// Sync objects stuff
 	m_image_available_semaphores.resize(MAX_FRAMES_IN_FLIGHT);

@@ -19,13 +19,13 @@ auto VulkanCommandBuffer::record_begin() -> void {
 	};
 
 	result = vkBeginCommandBuffer(m_handle, &begin_info);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 }
 
 auto VulkanCommandBuffer::record_end() -> void {
 	VkResult result;
 	result = vkEndCommandBuffer(m_handle);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 }
 
 auto VulkanCommandBuffer::render_pass_begin(const VulkanFramebuffer& framebuffer, const VulkanRenderPass& render_pass, const VkExtent2D& extent, VkClearValue clear_color) -> void {
@@ -54,7 +54,7 @@ auto VulkanCommandBuffer::reset() -> void {
 	VkCommandBufferResetFlags flags = {};
 
 	result = vkResetCommandBuffer(m_handle, flags);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 }
 
 
@@ -71,7 +71,7 @@ auto VulkanCommandPool::init(const VulkanLogicalDevice& device, const QueueFamil
 	};
 
 	result = vkCreateCommandPool(device.m_handle, &pool_info, nullptr, &m_handle);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 
 }
 
@@ -91,7 +91,7 @@ auto VulkanCommandPool::allocate_command_buffers(u32 amount) const -> std::vecto
 		.commandBufferCount = static_cast<u32>(handles.size()),
 	};
 	result = vkAllocateCommandBuffers(m_device->m_handle, &alloc_info, handles.data());
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 
 
 	std::vector<VulkanCommandBuffer> command_buffers(handles.size());

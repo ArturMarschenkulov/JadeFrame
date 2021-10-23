@@ -154,7 +154,7 @@ public:
 	auto calculate_offset_and_stride(std::vector<VertexAttribute>& attributes) -> void;
 
 	std::vector<VertexAttribute> m_attributes;
-	u8 m_stride = 0;
+	u32 m_stride = 0;
 
 };
 

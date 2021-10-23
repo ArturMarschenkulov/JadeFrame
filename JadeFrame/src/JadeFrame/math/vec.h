@@ -5,7 +5,7 @@
 #include <cmath>
 
 namespace JadeFrame {
-
+#pragma warning(disable : 4201)
 template <class T>
 concept scalar = std::is_scalar_v<T>;
 
@@ -22,10 +22,14 @@ public:
 	constexpr VectorT() noexcept {
 		std::memset(el, 0, N);
 	}
-	constexpr VectorT(const T args...) noexcept {
-		static_assert(sizeof...(args) == N);
-		for (u32 i = 0; sizeof...(args); i++) {
-			el[i] = args[i];
+	//template<typename ...Args>
+	template<class...T2, typename std::enable_if<sizeof...(T2) == N, int>::type = 0>
+	constexpr VectorT(const T2&... args) noexcept {
+		static_assert(sizeof...(T2) == N);
+
+		const std::array<T, N>& arr = {args...};
+		for (u32 i = 0; i < sizeof...(T2); i++) {
+			el[i] = arr[i];
 		}
 	}
 
@@ -453,5 +457,5 @@ using v4i64 = VectorT<4, i64>;
 using v2 = v2f32;
 using v3 = v3f32;
 using v4 = v4f32;
-
+#pragma warning(default : 4201)
 }

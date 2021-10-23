@@ -35,60 +35,60 @@ static auto create_shader_module_from_spirv(VkDevice device, const std::vector<u
 static auto debug_print_resources(const spirv_cross::ShaderResources& resources) -> void {
 
 	for (const spirv_cross::Resource& resource : resources.uniform_buffers) {
-		const const std::string& name = resource.name;
+		const std::string& name = resource.name;
 		Logger::log("uniform_buffers {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.storage_buffers) {
-		const const std::string& name = resource.name;
+		const std::string& name = resource.name;
 		Logger::log("storage_buffers {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.stage_inputs) {
-		const const std::string& name = resource.name;
+		const std::string& name = resource.name;
 		Logger::log("stage_inputs {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.stage_outputs) {
-		const const std::string& name = resource.name;
+		const std::string& name = resource.name;
 		Logger::log("stage_outputs {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.subpass_inputs) {
-		const const std::string& name = resource.name;
+		const std::string& name = resource.name;
 		Logger::log("subpass_inputs {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.storage_images) {
-		const const std::string& name = resource.name;
+		const std::string& name = resource.name;
 		Logger::log("storage_images {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.sampled_images) {
-		const const std::string& name = resource.name;
+		const std::string& name = resource.name;
 		Logger::log("sampled_images {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.atomic_counters) {
-		const const std::string& name = resource.name;
+		const std::string& name = resource.name;
 		Logger::log("atomic_counters {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.acceleration_structures) {
-		const const std::string& name = resource.name;
+		const std::string& name = resource.name;
 		Logger::log("acceleration_structures {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.push_constant_buffers) {
-		const const std::string& name = resource.name;
+		const std::string& name = resource.name;
 		Logger::log("push_constant_buffers {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.separate_images) {
-		const const std::string& name = resource.name;
+		const std::string& name = resource.name;
 		Logger::log("separate_images {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.separate_samplers) {
-		const const std::string& name = resource.name;
+		const std::string& name = resource.name;
 		Logger::log("separate_samplers {}", name);
 	}
 
 	for (const spirv_cross::BuiltInResource& resource : resources.builtin_inputs) {
-		const const std::string& name = resource.resource.name;
+		const std::string& name = resource.resource.name;
 		Logger::log("builtin_inputs {}", name);
 	}
 	for (const spirv_cross::BuiltInResource& resource : resources.builtin_outputs) {
-		const const std::string& name = resource.resource.name;
+		const std::string& name = resource.resource.name;
 		Logger::log("builtin_outputs {}", name);
 	}
 }
@@ -119,9 +119,6 @@ static std::map<u32, UB> s_uniform_buffers;
 static std::map<u32, std::map<u32, VulkanDescriptor>> s_descriptors;
 static std::map<u32, std::map<i32, f32>> ss;
 
-static auto add_uniform_buffer(const std::map<u32, UB>& map, const UB& uniform) {
-	ss.contains(2_u32);
-}
 
 auto VulkanPipeline::init(
 	const VulkanLogicalDevice& device,

@@ -271,7 +271,7 @@ auto OGLW_Texture<texture_type>::reset(GLuint ID) -> void {
 	m_ID = ID;
 }
 template<GLenum texture_type>
-auto OGLW_Texture<texture_type>::bind(u32 unit) const -> void {
+auto OGLW_Texture<texture_type>::bind(u32 /*unit*/) const -> void {
 	//glActiveTexture(GL_TEXTURE0 + unit);
 	glBindTexture(texture_type, m_ID);
 }

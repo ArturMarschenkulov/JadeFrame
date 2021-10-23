@@ -77,7 +77,7 @@ OpenGL_Context::OpenGL_Context(const Windows_Window& window)
 		m_uniform_buffers[1].bind_base(binding_point_1);
 	}
 
-	const v2& size = window.get_size();
+	const v2u32& size = window.get_size();
 	m_state.set_viewport(0, 0, size.x, size.y);
 }
 
@@ -154,9 +154,9 @@ auto GL_State::set_face_culling(bool enable, GLenum mode) -> void {
 		}
 	}
 }
-auto GL_State::set_viewport(i32 x, i32 y, i32 width, i32 height) -> void {
-	viewport[0] = { (f32)x, (f32)y };
-	viewport[1] = { (f32)width, (f32)height };
+auto GL_State::set_viewport(u32 x, u32 y, u32 width, u32 height) -> void {
+	viewport[0] = { x, y };
+	viewport[1] = { width, height };
 	glViewport(x, y, width, height);
 }
 }

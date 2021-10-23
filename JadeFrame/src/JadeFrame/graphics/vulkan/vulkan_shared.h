@@ -65,7 +65,7 @@ inline auto get_attribute_descriptions(const VertexFormat& vertex_format) -> std
 		attribute_description.binding = 0;
 		attribute_description.location = i;
 		attribute_description.format = SHADER_TYPE_to_VkFormat(vertex_format.m_attributes[i].type);
-		attribute_description.offset = vertex_format.m_attributes[i].offset;
+		attribute_description.offset = static_cast<u32>(vertex_format.m_attributes[i].offset);
 		attribute_descriptions.push_back(attribute_description);
 	}
 

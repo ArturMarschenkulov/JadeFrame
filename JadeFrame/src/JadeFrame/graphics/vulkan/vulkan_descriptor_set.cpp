@@ -84,7 +84,7 @@ auto VulkanDescriptorSet::update() -> void {
 		wdss.push_back(wds);
 	}
 
-	vkUpdateDescriptorSets(m_device->m_handle, wdss.size(), wdss.data(), 0, nullptr);
+	vkUpdateDescriptorSets(m_device->m_handle, static_cast<u32>(wdss.size()), wdss.data(), 0, nullptr);
 
 }
 
@@ -95,7 +95,7 @@ auto VulkanDescriptorSet::update() -> void {
 ---------------------------*/
 
 auto VulkanDescriptorSetLayout::add_binding(u32 binding, VkDescriptorType descriptor_type, u32 descriptor_count, VkShaderStageFlags stage_flags, const VkSampler* p_immutable_samplers) -> void {
-	JF_ASSERT(m_handle == VK_NULL_HANDLE);
+	JF_ASSERT(m_handle == VK_NULL_HANDLE, "");
 	const VkDescriptorSetLayoutBinding dslb = {
 		.binding = binding,
 		.descriptorType = descriptor_type,
@@ -131,8 +131,8 @@ auto VulkanDescriptorSetLayout::deinit() -> void {
 	Descriptor Pool
 ---------------------------*/
 auto VulkanDescriptorPool::add_pool_size(const VkDescriptorPoolSize& pool_size) -> void {
-	JF_ASSERT(m_handle == VK_NULL_HANDLE);
-	JF_ASSERT(pool_size.descriptorCount > 0);
+	JF_ASSERT(m_handle == VK_NULL_HANDLE, "");
+	JF_ASSERT(pool_size.descriptorCount > 0, "");
 
 	m_pool_sizes.push_back(pool_size);
 }
@@ -198,7 +198,7 @@ auto VulkanDescriptorPool::allocate_descriptor_set(const VulkanDescriptorSetLayo
 	return this->allocate_descriptor_sets(descriptor_set_layout, 1)[0];
 }
 
-auto VulkanDescriptorPool::free_descriptor_sets(const std::vector<VulkanDescriptorSet>& descriptor_sets) -> void {
+auto VulkanDescriptorPool::free_descriptor_sets(const std::vector<VulkanDescriptorSet>& /*descriptor_sets*/) -> void {
 	//for(u32 i = 0; i < descriptor_sets.size(); i++) {
 	//	VkResult result;
 	//	result = vkFreeDescriptorSets(m_device->m_handle, m_handle, 1, &descriptor_sets[i].m_handle);
