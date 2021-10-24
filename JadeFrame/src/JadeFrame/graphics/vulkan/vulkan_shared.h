@@ -5,6 +5,7 @@
 #include "JadeFrame/math/mat_4.h"
 #include "../Mesh.h"
 #include "../graphics_shared.h"
+#include "JadeFrame/utils/assert.h"
 
 //TODO: Look whether this file is needed. This is file was mainly created as a quick fix for some globals
 
@@ -30,10 +31,11 @@ inline auto get_binding_description(const VertexFormat& vertex_format) -> VkVert
 		stride += attribute.size;
 	}
 
-	VkVertexInputBindingDescription binding_description = {};
-	binding_description.binding = 0;
-	binding_description.stride = stride;
-	binding_description.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+	const VkVertexInputBindingDescription binding_description = {
+		.binding = 0,
+		.stride = stride,
+		.inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+	};
 	return binding_description;
 };
 inline auto SHADER_TYPE_to_VkFormat(const SHADER_TYPE& shader_type) ->VkFormat {
@@ -52,7 +54,7 @@ inline auto SHADER_TYPE_to_VkFormat(const SHADER_TYPE& shader_type) ->VkFormat {
 		{
 			result = VK_FORMAT_R32G32B32A32_SFLOAT;
 		} break;
-		default: __debugbreak();
+		default: JF_ASSERT(false, "not implemented yet!");
 	}
 
 	return result;
@@ -60,13 +62,12 @@ inline auto SHADER_TYPE_to_VkFormat(const SHADER_TYPE& shader_type) ->VkFormat {
 
 inline auto get_attribute_descriptions(const VertexFormat& vertex_format) -> std::vector<VkVertexInputAttributeDescription> {
 	std::vector<VkVertexInputAttributeDescription> attribute_descriptions;
+	attribute_descriptions.resize(vertex_format.m_attributes.size());
 	for(u32 i = 0; i < vertex_format.m_attributes.size(); i++) {
-		VkVertexInputAttributeDescription attribute_description;
-		attribute_description.binding = 0;
-		attribute_description.location = i;
-		attribute_description.format = SHADER_TYPE_to_VkFormat(vertex_format.m_attributes[i].type);
-		attribute_description.offset = static_cast<u32>(vertex_format.m_attributes[i].offset);
-		attribute_descriptions.push_back(attribute_description);
+		attribute_descriptions[i].binding = 0;
+		attribute_descriptions[i].location = i;
+		attribute_descriptions[i].format = SHADER_TYPE_to_VkFormat(vertex_format.m_attributes[i].type);
+		attribute_descriptions[i].offset = static_cast<u32>(vertex_format.m_attributes[i].offset);
 	}
 
 	return attribute_descriptions;

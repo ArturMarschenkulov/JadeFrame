@@ -9,6 +9,8 @@
 #include "extern/SPIRV-Cross/spirv_hlsl.hpp"
 #include "extern/SPIRV-Cross/spirv_msl.hpp"
 
+#include "JadeFrame/utils/assert.h"
+
 
 #include <array>
 
@@ -109,16 +111,140 @@ static auto from_SHADER_STAGE(SHADER_STAGE stage) -> VkShaderStageFlagBits {
 	return result;
 }
 
-struct UB {
-	std::string name;
-	u32 binding;
-	u32 set;
-	u32 size;
-};
-static std::map<u32, UB> s_uniform_buffers;
-static std::map<u32, std::map<u32, VulkanDescriptor>> s_descriptors;
-static std::map<u32, std::map<i32, f32>> ss;
 
+struct ReflectedCode {
+	struct Input {
+		std::string name;
+		u32 location;
+		u32 size; //in bytes
+		SHADER_TYPE type;
+	};
+	struct UniformBuffer {
+		std::string name;
+		u32 size;
+		u32 binding;
+	};
+	struct Module {
+		SHADER_STAGE m_stage;
+
+		std::vector<Input> m_inputs;
+		std::vector<UniformBuffer> m_uniform_buffers;
+		std::vector<VkPushConstantRange> m_push_constant_ranges;
+	};
+	std::vector<Module> m_modules;
+};
+
+static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 columns) -> SHADER_TYPE {
+	SHADER_TYPE result = SHADER_TYPE::NONE;
+	if (columns == 1) {
+		switch (type.basetype) {
+			case spirv_cross::SPIRType::Float:
+			{
+
+				SHADER_TYPE arr[] = { SHADER_TYPE::FLOAT , SHADER_TYPE::FLOAT_2, SHADER_TYPE::FLOAT_3, SHADER_TYPE::FLOAT_4 };
+				if (rows < 5) {
+					result = arr[rows - 1];
+				} else {
+					JF_ASSERT(false, "this should not be reached!");
+				}
+
+			} break;
+			default: JF_ASSERT(false, "this should not be reached!");
+		}
+	} else {
+		JF_ASSERT(false, "not implemented yet!");
+	}
+	return result;
+}
+static auto reflect(const ShadingCode& code) -> ReflectedCode {
+	ReflectedCode result;
+	result.m_modules.resize(code.m_modules.size());
+	for (u32 i = 0; i < code.m_modules.size(); i++) {
+		auto& current_module = code.m_modules[i];
+		auto& current_module_code = std::get<std::vector<u32>>(current_module.m_code);
+		auto& current_result_module = result.m_modules[i];
+
+		spirv_cross::Compiler compiler(current_module_code);
+		spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+
+		debug_print_resources(resources);
+
+		result.m_modules[i].m_inputs.resize(resources.stage_inputs.size());
+		for (u32 j = 0; j < resources.stage_inputs.size(); j++) {
+			const spirv_cross::Resource& resource = resources.stage_inputs[j];
+
+			const std::string& name = resource.name;
+
+			const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
+			const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
+			i32 member_count = static_cast<u32>(buffer_type.member_types.size());
+			u32 location = compiler.get_decoration(resource.id, spv::DecorationLocation);
+			u32 size = (buffer_type.width / 8) * buffer_type.vecsize * buffer_type.columns;
+
+
+			std::vector<ReflectedCode::Input>& inputs = current_result_module.m_inputs;
+			inputs[j].name = name;
+			inputs[j].location = location;
+			inputs[j].size = size;
+			inputs[j].type = to_SHADER_TYPE(buffer_type, buffer_type.vecsize, buffer_type.columns);
+		}
+
+		result.m_modules[i].m_uniform_buffers.resize(resources.uniform_buffers.size());
+		for (u32 j = 0; j < resources.uniform_buffers.size(); j++) {
+			const spirv_cross::Resource& resource = resources.uniform_buffers[j];
+
+			const std::string& name = resource.name;
+			const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.base_type_id);
+			i32 member_count = static_cast<u32>(buffer_type.member_types.size());
+			u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+			u32 descriptor_set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+			u32 size = static_cast<u32>(compiler.get_declared_struct_size(buffer_type));
+
+			std::vector<ReflectedCode::UniformBuffer>& uniform_buffers = current_result_module.m_uniform_buffers;
+			uniform_buffers[j].binding = binding;
+			uniform_buffers[j].name = name;
+			uniform_buffers[j].size = size;
+		}
+
+
+		for (const spirv_cross::Resource& resource : resources.sampled_images) {
+			const std::string& name = resource.name;
+			const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
+			const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
+			i32 member_count = static_cast<u32>(buffer_type.member_types.size());
+			u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+			u32 descriptor_set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+
+			u32 dimension = base_type.image.dim;
+			u32 array_size = buffer_type.array[0];
+
+			if (array_size == 0) {
+				array_size = 1;
+			} else {
+				__debugbreak();
+			}
+			//__debugbreak();
+		}
+
+		result.m_modules[i].m_push_constant_ranges.resize(resources.push_constant_buffers.size());
+		for (u32 j = 0; j < resources.push_constant_buffers.size(); j++) {
+			const spirv_cross::Resource& resource = resources.push_constant_buffers[j];
+
+			const std::string& buffer_name = resource.name;
+			const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.base_type_id);
+			u32 buffer_size = (u32)compiler.get_declared_struct_size(buffer_type);
+			u32 member_count = uint32_t(buffer_type.member_types.size());
+			u32 buffer_offset = 0;
+
+			std::vector<VkPushConstantRange>& push_constant_ranges = current_result_module.m_push_constant_ranges;
+			push_constant_ranges[j].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+			push_constant_ranges[j].size = buffer_size - buffer_offset;
+			push_constant_ranges[j].offset = buffer_offset;
+		}
+	}
+
+	return result;
+}
 
 auto VulkanPipeline::init(
 	const VulkanLogicalDevice& device,
@@ -132,103 +258,21 @@ auto VulkanPipeline::init(
 	m_descriptor_set_layout = &descriptor_set_layout;
 
 	VkResult result;
-
-	std::vector<std::future<std::vector<u32>>> spirvs;
-	spirvs.resize(code.m_modules.size());
-	for (u32 i = 0; i < code.m_modules.size(); i++) {
-		const std::string& str = std::get<std::string>(code.m_modules[i].m_code);
-		spirvs[i] = std::async(std::launch::async, string_to_SPIRV, str, code.m_modules[i].m_stage);
-	}
-
-	m_code.m_modules.resize(spirvs.size());
-	m_code.m_modules[0].m_stage = SHADER_STAGE::VERTEX;
-	m_code.m_modules[0].m_code = spirvs[0].get();
-	m_code.m_modules[1].m_stage = SHADER_STAGE::FRAGMENT;
-	m_code.m_modules[1].m_code = spirvs[1].get();
-
-
 	{
-		//std::vector cs = { m_vert_shader_spirv, m_frag_shader_spirv };
-
-		for (u32 i = 0; i < m_code.m_modules.size(); i++) {
-			auto& current_module = m_code.m_modules[i];
-			auto& current_module_code = std::get<std::vector<u32>>(current_module.m_code);
-			spirv_cross::Compiler compiler(current_module_code);
-			spirv_cross::ShaderResources resources = compiler.get_shader_resources();
-
-			debug_print_resources(resources);
-
-
-
-			for (const spirv_cross::Resource& resource : resources.uniform_buffers) {
-				const const std::string& name = resource.name;
-				const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.base_type_id);
-				i32 member_count = static_cast<u32>(buffer_type.member_types.size());
-				u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-				u32 descriptor_set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-				u32 size = static_cast<u32>(compiler.get_declared_struct_size(buffer_type));
-
-				const UB ub = {
-					.name = name,
-					.binding = binding,
-					.set = descriptor_set,
-					.size = size,
-				};
-
-				if (s_uniform_buffers.contains(ub.binding) == false) {
-					s_uniform_buffers.insert({ ub.binding, ub });
-				} else {
-					//__debugbreak();
-				}
-
-				VulkanDescriptor vd = {};
-				//if (false == s_descriptors.contains(ub.set)) 
-				{
-					if (false == s_descriptors[ub.set].contains(ub.binding)) {
-						s_descriptors[ub.set][ub.binding] = vd;
-						Logger::log("{}.{}", ub.set, ub.binding);
-					}
-				}
-			}
-
-			for (const spirv_cross::Resource& resource : resources.sampled_images) {
-				const const std::string& name = resource.name;
-				const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
-				const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
-				i32 member_count = static_cast<u32>(buffer_type.member_types.size());
-				u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-				u32 descriptor_set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-
-				u32 dimension = base_type.image.dim;
-				u32 array_size = buffer_type.array[0];
-
-				if (array_size == 0) {
-					array_size = 1;
-				} else {
-					__debugbreak();
-				}
-				//__debugbreak();
-			}
-
-			//
-			for (const spirv_cross::Resource& resource : resources.push_constant_buffers) {
-				__debugbreak();
-				const std::string& buffer_name = resource.name;
-				const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.base_type_id);
-				u32 buffer_size = (u32)compiler.get_declared_struct_size(buffer_type);
-				u32 member_count = uint32_t(buffer_type.member_types.size());
-				u32 buffer_offset = 0;
-				if (m_push_constant_ranges.size() != 0) {
-					buffer_offset = m_push_constant_ranges.back().offset + m_push_constant_ranges.back().size;
-				}
-				PushConstantRange& push_constant_range = m_push_constant_ranges.emplace_back();
-				push_constant_range.shader_stage = VK_SHADER_STAGE_VERTEX_BIT;
-				push_constant_range.size = buffer_size - buffer_offset;
-				push_constant_range.offset = buffer_offset;
-			}
+		std::vector<std::future<std::vector<u32>>> spirvs;
+		spirvs.resize(code.m_modules.size());
+		for (u32 i = 0; i < code.m_modules.size(); i++) {
+			const std::string& str = std::get<std::string>(code.m_modules[i].m_code);
+			spirvs[i] = std::async(std::launch::async, string_to_SPIRV, str, code.m_modules[i].m_stage);
 		}
-
+		m_code.m_modules.resize(spirvs.size());
+		for (u32 i = 0; i < m_code.m_modules.size(); i++) {
+			m_code.m_modules[i].m_stage = code.m_modules[i].m_stage;
+			m_code.m_modules[i].m_code = spirvs[i].get();
+		}
 	}
+
+	const ReflectedCode reflected_code = reflect(m_code);
 
 	std::vector<VkPipelineShaderStageCreateInfo> shader_stages;
 	shader_stages.resize(m_code.m_modules.size());
@@ -386,8 +430,10 @@ auto VulkanPipeline::init(
 	result = vkCreateGraphicsPipelines(device.m_handle, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
 
-	//vkDestroyShaderModule(device.m_handle, frag_shader_module, nullptr);
-	//vkDestroyShaderModule(device.m_handle, vert_shader_module, nullptr);
+	for (u32 i = 0; i < shader_stages.size(); i++) {
+		vkDestroyShaderModule(device.m_handle, shader_stages[i].module, nullptr);
+	}
+
 	m_device = &device;
 }
 

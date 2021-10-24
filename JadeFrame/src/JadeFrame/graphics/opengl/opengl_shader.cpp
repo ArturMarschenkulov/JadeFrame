@@ -10,7 +10,6 @@
 
 #include<array>
 #include<tuple>
-#include <JadeFrame/graphics/glsl_parser.h>
 #include <cassert>
 
 namespace JadeFrame {
@@ -89,38 +88,6 @@ OpenGL_Shader::OpenGL_Shader(const DESC& desc)
 
 	m_uniforms = this->query_uniforms(GL_ACTIVE_UNIFORMS);
 	m_attributes = this->query_uniforms(GL_ACTIVE_ATTRIBUTES);
-
-
-
-	if constexpr (false) {
-
-		GLSLParser parser;
-		//parser.parse(desc.code.m_vertex_shader);
-		//parser.parse(desc.code.m_fragment_shader);
-		// Check whether m_uniforms and m_attributes are all contained in parser.
-		for (auto uniform = m_uniforms.begin(); uniform != m_uniforms.end(); uniform++) {
-			bool exists = false;
-			for (u32 j = 0; j < parser.m_variables.size(); j++) {
-				const GLSLParser::Variable& parser_variable = parser.m_variables[j];
-				const std::string& uniform_name = uniform->first;
-				if (uniform_name == parser_variable.m_name) {
-					exists = true;
-				}
-			}
-			if (exists == false) __debugbreak();
-		}
-		for (auto attribute = m_attributes.begin(); attribute != m_attributes.end(); attribute++) {
-			bool exists = false;
-			for (u32 j = 0; j < parser.m_variables.size(); j++) {
-				const GLSLParser::Variable& parser_variable = parser.m_variables[j];
-				const std::string& uniform_name = attribute->first;
-				if (uniform_name == parser_variable.m_name) {
-					exists = true;
-				}
-			}
-			if (exists == false) __debugbreak();
-		}
-	}
 }
 
 auto OpenGL_Shader::bind() const -> void {
