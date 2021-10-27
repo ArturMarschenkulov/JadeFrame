@@ -125,8 +125,7 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	VkResult  result;
 
 	const QueueFamilyIndices& indices = physical_device.m_queue_family_indices;
-
-	std::set<u32> unique_queue_families = {
+	const std::set<u32> unique_queue_families = {
 		indices.m_graphics_family.value(),
 		indices.m_present_family.value()
 	};
@@ -162,22 +161,22 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	result = vkCreateDevice(physical_device.m_handle, &create_info, nullptr, &m_handle);
 	if (result != VK_SUCCESS) __debugbreak();
 
+
+
+
+
 	m_graphics_queue = this->query_queue(indices.m_graphics_family.value(), 0);
 	m_present_queue = this->query_queue(indices.m_present_family.value(), 0);
 
 
 	// Swapchain stuff
 	m_swapchain.init(*this, m_instance->m_surface);
-	//m_render_pass.init(*this, m_swapchain.m_image_format);
-	//m_swapchain.create_framebuffers(m_render_pass);
 	const u32 swapchain_image_amount = static_cast<u32>(m_swapchain.m_images.size());
 
 	// Uniform stuff
 
-	const i32 num_objects = 1;
-
 	m_ub_cam.init(*this, VulkanBuffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
-	m_ub_tran.init(*this, VulkanBuffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4) * num_objects);
+	m_ub_tran.init(*this, VulkanBuffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
 
 
 	// Create main descriptor pool, which should have all kinds of types. In the future maybe make it more specific.
@@ -197,12 +196,23 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	m_descriptor_set_layout_0.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
 	m_descriptor_set_layout_0.add_binding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_VERTEX_BIT);
 	//m_descriptor_set_layout_0.add_binding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_ALL);
+
+
+
+	Logger::info("maxBoundDescriptorSets: {}", m_physical_device->m_properties.limits.maxBoundDescriptorSets);
+	JF_ASSERT(m_physical_device->m_properties.limits.maxBoundDescriptorSets >= 4, "");
+
+	VulkanDescriptorSetLayout per_frame_layout;
+	VulkanDescriptorSetLayout per_pass_layout;
+	VulkanDescriptorSetLayout per_material_layout;
+	VulkanDescriptorSetLayout per_object_layout;
+
 	m_descriptor_set_layout_0.init(*this);
 
 	m_descriptor_sets = m_main_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout_0, 1);
 	m_descriptor_sets[0].add_uniform_buffer(m_ub_cam, 0, 0, sizeof(Matrix4x4));
 	m_descriptor_sets[0].add_uniform_buffer(m_ub_tran, 1, 0, sizeof(Matrix4x4));
-	m_descriptor_sets[0].update();
+	m_descriptor_sets[0].update();	
 
 
 	// Commad Buffer stuff

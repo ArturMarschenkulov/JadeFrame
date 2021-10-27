@@ -19,6 +19,59 @@ auto init_memory(T& data) -> void {
 	static_assert(std::is_pod<T>::value, "'init_memory' does only allow plain-old-data (POD)");
 	::memset(&data, 0, sizeof(T));
 }
+
+
+class RenderCommandQueue {
+public:
+	typedef void(*RenderCommandFn)(void*);
+	RenderCommandQueue() {
+		const auto buffer_size = 10 * 1024 * 1024;
+		m_command_buffer = new u8[buffer_size];
+		m_command_buffer_ptr = m_command_buffer;
+		std::memset(m_command_buffer, 0, buffer_size);
+	}
+	~RenderCommandQueue() {
+		delete[] m_command_buffer;
+	}
+	auto allocate(RenderCommandFn func, u32 size) {
+		// TODO: alignment
+		*(RenderCommandFn*)m_command_buffer_ptr = func;
+		m_command_buffer_ptr += sizeof(RenderCommandFn);
+
+		*(u32*)m_command_buffer_ptr = size;
+		m_command_buffer_ptr += sizeof(u32);
+
+		void* memory = m_command_buffer_ptr;
+		m_command_buffer_ptr += size;
+
+		m_command_count++;
+		return memory;
+	}
+	auto execute() -> void {
+
+		u8* buffer = m_command_buffer;
+
+		for (uint32_t i = 0; i < m_command_count; i++) {
+			RenderCommandFn function = *(RenderCommandFn*)buffer;
+			buffer += sizeof(RenderCommandFn);
+
+			u32 size = *(u32*)buffer;
+			buffer += sizeof(u32);
+			function(buffer);
+			buffer += size;
+		}
+
+		m_command_buffer_ptr = m_command_buffer;
+		m_command_count = 0;
+	}
+private:
+	u8* m_command_buffer;
+	u8* m_command_buffer_ptr;
+	u32 m_command_count = 0;
+};
+
+
+
 //**************************************************************
 //JadeFrame
 //**************************************************************
@@ -26,9 +79,30 @@ JadeFrameInstance* JadeFrameInstance::m_singleton = nullptr;
 auto JadeFrameInstance::get_singleton() -> JadeFrameInstance* {
 	return m_singleton;
 }
-JadeFrameInstance::JadeFrameInstance() {
-	Logger::log("JadeFrame is starting...");
 
+template<typename FuncT>
+static auto submit(FuncT&& func) -> void {
+	RenderCommandQueue rcq;
+	auto render_cmd = [](void* ptr) {
+		FuncT* p_func = (FuncT*)ptr;
+		(*p_func)();
+
+
+		p_func->~FuncT();
+	};
+	auto storage_buffer = rcq.allocate(render_cmd, sizeof(func));
+	new(storage_buffer) FuncT(std::forward<FuncT>(func));
+
+
+
+
+	//__debugbreak();
+	rcq.execute();
+	//__debugbreak();
+}
+
+JadeFrameInstance::JadeFrameInstance() {
+	Logger::info("JadeFrame is starting...");
 
 	if (m_singleton == nullptr) {
 		m_singleton = this;
@@ -136,6 +210,7 @@ auto BaseApp::poll_events() -> void {
 //**************************************************************
 
 namespace T1 {
+
 template <typename BaseType, typename SubType>
 static auto take_ownership(std::set<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object) -> SubType* {
 	SubType* ref = object.get();

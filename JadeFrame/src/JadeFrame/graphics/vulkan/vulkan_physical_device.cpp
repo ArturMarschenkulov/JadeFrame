@@ -37,7 +37,7 @@ static auto print_queue_families_info(std::vector<VulkanQueueFamily> queue_famil
 			str += "Present ";
 		}
 		str += "}";
-		Logger::log(Logger::LEVEL::INFO, "Queue family {} has {} queues capable of {}",
+		Logger::info("Queue family {} has {} queues capable of {}",
 			i, queue_families[i].m_properties.queueCount, str
 		);
 	}

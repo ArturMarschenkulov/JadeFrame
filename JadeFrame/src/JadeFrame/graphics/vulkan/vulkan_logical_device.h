@@ -60,6 +60,8 @@ public: // Swapchain stuff
 	VulkanSwapchain m_swapchain;
 	//VulkanRenderPass m_render_pass;
 
+
+	//TODO: Move the descriptor stuff to the shader code
 public: // Descriptor set
 
 	VulkanDescriptorPool m_main_descriptor_pool;

@@ -24,25 +24,25 @@ auto FontManager::init() -> void {
 	FT_Library library;
 	error_code = FT_Init_FreeType(&library);
 	if (error_code != 0) {
-		Logger::log("problem with FT_Init_FreeType");
+		Logger::err("problem with FT_Init_FreeType");
 	}
 
 	FT_Face face;
 	error_code = FT_New_Face(library, "C:/Windows/Fonts/Arial.ttf", 0, &face);
 	if (error_code != 0) {
-		Logger::log("problem with FT_New_Face");
+		Logger::err("problem with FT_New_Face");
 	}
 
 	error_code = FT_Set_Pixel_Sizes(face, 0, 48);
 	if (error_code != 0) {
-		Logger::log("problem with FT_Set_Pixel_Sizes");
+		Logger::err("problem with FT_Set_Pixel_Sizes");
 	}
 
 
 	auto c = 'X';
 	error_code = FT_Load_Char(face, c, FT_LOAD_RENDER);
 	if (error_code != 0) {
-		Logger::log("problem with FT_Load_Char");
+		Logger::err("problem with FT_Load_Char");
 	}
 	OGLW_Texture<GL_TEXTURE_2D> tex;
 	tex.bind(0);
@@ -77,25 +77,25 @@ auto FontManager::init2() -> void {
 	FT_Library library;
 	error_code = FT_Init_FreeType(&library);
 	if (error_code != 0) {
-		Logger::log("problem with FT_Init_FreeType");
+		Logger::err("problem with FT_Init_FreeType");
 	}
 
 	FT_Face face;
 	error_code = FT_New_Face(library, "C:/Windows/Fonts/Arial.ttf", 0, &face);
 	if (error_code != 0) {
-		Logger::log("problem with FT_New_Face");
+		Logger::err("problem with FT_New_Face");
 	}
 
 	error_code = FT_Set_Pixel_Sizes(face, 0, 48);
 	if (error_code != 0) {
-		Logger::log("problem with FT_Set_Pixel_Sizes");
+		Logger::err("problem with FT_Set_Pixel_Sizes");
 	}
 
 
 	auto c = 'X';
 	error_code = FT_Load_Char(face, c, FT_LOAD_RENDER);
 	if (error_code != 0) {
-		Logger::log("problem with FT_Load_Char");
+		Logger::err("problem with FT_Load_Char");
 	}
 	OpenGL_Texture tex(
 		face->glyph->bitmap.buffer,

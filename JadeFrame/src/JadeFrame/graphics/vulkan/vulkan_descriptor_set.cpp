@@ -105,6 +105,13 @@ auto VulkanDescriptorSetLayout::add_binding(u32 binding, VkDescriptorType descri
 	};
 	if (dslb.descriptorType == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT && !(dslb.descriptorCount % 4 == 0)) __debugbreak();
 	m_bindings.push_back(dslb);
+
+	switch (descriptor_type) {
+		case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+			m_dynamic_count++; break;
+		default:;
+	}
 }
 
 auto VulkanDescriptorSetLayout::init(const VulkanLogicalDevice& device) -> void {
@@ -182,7 +189,7 @@ auto VulkanDescriptorPool::allocate_descriptor_sets(const VulkanDescriptorSetLay
 		set.m_handle = handles[i];
 		set.m_device = m_device;
 
-
+		sets[i].m_layout = &descriptor_set_layout;
 		set.m_descriptors.resize(descriptor_set_layout.m_bindings.size());
 		for (u32 j = 0; j < descriptor_set_layout.m_bindings.size(); j++) {
 			set.m_descriptors[j].binding = descriptor_set_layout.m_bindings[j].binding;

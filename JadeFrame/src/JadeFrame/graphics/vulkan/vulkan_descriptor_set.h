@@ -49,8 +49,11 @@ public:
 public:
 	VkDescriptorSet m_handle;
 	const VulkanLogicalDevice* m_device = nullptr;
+	const VulkanDescriptorSetLayout* m_layout = nullptr;
 
 	std::vector<VulkanDescriptor> m_descriptors;
+
+	//su32 m_dynamic_count;
 };
 
 class VulkanDescriptorSetLayout {
@@ -70,6 +73,8 @@ public:
 	VkDescriptorSetLayout m_handle = VK_NULL_HANDLE;
 	const VulkanLogicalDevice* m_device = nullptr;
 	std::vector<VkDescriptorSetLayoutBinding> m_bindings;
+
+	u32 m_dynamic_count = 0;
 };
 
 class VulkanDescriptorPool {

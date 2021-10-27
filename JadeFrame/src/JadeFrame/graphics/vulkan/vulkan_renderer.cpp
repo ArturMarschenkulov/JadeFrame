@@ -133,7 +133,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 				VkBuffer vertex_buffers[] = { gpu_data.m_vertex_buffer.m_handle };
 				VkDeviceSize offsets[] = { 0 };
 				vkCmdBindVertexBuffers(cb.m_handle, 0, 1, vertex_buffers, offsets);
-				vkCmdBindDescriptorSets(cb.m_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.m_pipeline.m_layout, 0, 1, &d.m_descriptor_sets[0].m_handle, 1, &offset);
+				vkCmdBindDescriptorSets(cb.m_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.m_pipeline.m_layout, 0, 1, &d.m_descriptor_sets[0].m_handle, d.m_descriptor_sets[0].m_layout->m_dynamic_count, &offset);
 
 
 				if (vertex_data.m_indices.size() > 0) {

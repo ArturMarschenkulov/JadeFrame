@@ -4,7 +4,7 @@
 namespace JadeFrame {
 VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT, VkDebugUtilsMessageTypeFlagsEXT, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void*) {
 	
-	Logger::log("-------\nvalidation layer: {}\n-------"
+	Logger::debug("-------\nvalidation layer: {}\n-------"
 		, pCallbackData->pMessage
 	);
 	

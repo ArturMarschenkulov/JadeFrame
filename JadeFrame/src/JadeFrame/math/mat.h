@@ -30,7 +30,8 @@ public:
 	
 	}
 
-	constexpr MatrixT(const T digo) {
+	constexpr MatrixT(const T digo)
+	: el(){
 		static_assert(N == M);
 		for (u32 i = 0; i < N; i++) {
 			el[N][M] = digo;
@@ -51,6 +52,7 @@ public:
 		return result;
 	}
 public:
+	std::array<std::array<T, N>, M> el;
 };
 
 template<typename T>

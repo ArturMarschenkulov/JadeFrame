@@ -38,60 +38,60 @@ static auto debug_print_resources(const spirv_cross::ShaderResources& resources)
 
 	for (const spirv_cross::Resource& resource : resources.uniform_buffers) {
 		const std::string& name = resource.name;
-		Logger::log("uniform_buffers {}", name);
+		Logger::info("uniform_buffers {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.storage_buffers) {
 		const std::string& name = resource.name;
-		Logger::log("storage_buffers {}", name);
+		Logger::info("storage_buffers {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.stage_inputs) {
 		const std::string& name = resource.name;
-		Logger::log("stage_inputs {}", name);
+		Logger::info("stage_inputs {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.stage_outputs) {
 		const std::string& name = resource.name;
-		Logger::log("stage_outputs {}", name);
+		Logger::info("stage_outputs {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.subpass_inputs) {
 		const std::string& name = resource.name;
-		Logger::log("subpass_inputs {}", name);
+		Logger::info("subpass_inputs {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.storage_images) {
 		const std::string& name = resource.name;
-		Logger::log("storage_images {}", name);
+		Logger::info("storage_images {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.sampled_images) {
 		const std::string& name = resource.name;
-		Logger::log("sampled_images {}", name);
+		Logger::info("sampled_images {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.atomic_counters) {
 		const std::string& name = resource.name;
-		Logger::log("atomic_counters {}", name);
+		Logger::info("atomic_counters {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.acceleration_structures) {
 		const std::string& name = resource.name;
-		Logger::log("acceleration_structures {}", name);
+		Logger::info("acceleration_structures {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.push_constant_buffers) {
 		const std::string& name = resource.name;
-		Logger::log("push_constant_buffers {}", name);
+		Logger::info("push_constant_buffers {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.separate_images) {
 		const std::string& name = resource.name;
-		Logger::log("separate_images {}", name);
+		Logger::info("separate_images {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.separate_samplers) {
 		const std::string& name = resource.name;
-		Logger::log("separate_samplers {}", name);
+		Logger::info("separate_samplers {}", name);
 	}
 
 	for (const spirv_cross::BuiltInResource& resource : resources.builtin_inputs) {
 		const std::string& name = resource.resource.name;
-		Logger::log("builtin_inputs {}", name);
+		Logger::info("builtin_inputs {}", name);
 	}
 	for (const spirv_cross::BuiltInResource& resource : resources.builtin_outputs) {
 		const std::string& name = resource.resource.name;
-		Logger::log("builtin_outputs {}", name);
+		Logger::info("builtin_outputs {}", name);
 	}
 }
 
@@ -119,7 +119,13 @@ struct ReflectedCode {
 		u32 size; //in bytes
 		SHADER_TYPE type;
 	};
-	struct UniformBuffer {
+	struct SampledImage {
+		std::string name;
+		u32 binding = 0;
+		u32 DescriptorSet = 0;
+		u32 ArraySize = 0;
+	};
+	struct UniformBuffer{
 		std::string name;
 		u32 size;
 		u32 binding;
@@ -129,6 +135,7 @@ struct ReflectedCode {
 
 		std::vector<Input> m_inputs;
 		std::vector<UniformBuffer> m_uniform_buffers;
+		std::vector<SampledImage> m_sampled_images;
 		std::vector<VkPushConstantRange> m_push_constant_ranges;
 	};
 	std::vector<Module> m_modules;
@@ -207,7 +214,10 @@ static auto reflect(const ShadingCode& code) -> ReflectedCode {
 		}
 
 
-		for (const spirv_cross::Resource& resource : resources.sampled_images) {
+		result.m_modules[i].m_sampled_images.resize(resources.sampled_images.size());
+		for (u32 j = 0; j < resources.sampled_images.size(); j++) {
+			const spirv_cross::Resource& resource = resources.sampled_images[j];
+
 			const std::string& name = resource.name;
 			const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
 			const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
@@ -225,6 +235,7 @@ static auto reflect(const ShadingCode& code) -> ReflectedCode {
 			}
 			//__debugbreak();
 		}
+
 
 		result.m_modules[i].m_push_constant_ranges.resize(resources.push_constant_buffers.size());
 		for (u32 j = 0; j < resources.push_constant_buffers.size(); j++) {
@@ -246,6 +257,49 @@ static auto reflect(const ShadingCode& code) -> ReflectedCode {
 	return result;
 }
 
+
+
+static auto check_compatiblity(
+	const std::vector<ReflectedCode::Module>& modules, 
+	const VkVertexInputBindingDescription& input_bindings, 
+	const std::vector<VkVertexInputAttributeDescription>& input_attributes
+) -> bool {
+	bool compatible = true;
+
+	const ReflectedCode::Module* vertex_module = nullptr;
+	for (u32 i = 0; i < modules.size(); i++) {
+		if (modules[i].m_stage == SHADER_STAGE::VERTEX) {
+			vertex_module = &modules[i];
+			break;
+		}
+	}
+
+	if (vertex_module != nullptr) {
+		u32 stride = 0;
+		for (u32 i = 0; i < vertex_module->m_inputs.size(); i++) {
+			stride += vertex_module->m_inputs[i].size;
+		}
+		if (input_bindings.stride != stride) {
+			compatible = false;
+		}
+
+		if (input_attributes.size() == vertex_module->m_inputs.size()) {
+			for (u32 i = 0; i < input_attributes.size(); i++) {
+				if (input_attributes[i].format != SHADER_TYPE_to_VkFormat(vertex_module->m_inputs[i].type))
+					compatible = false;
+				if (input_attributes[i].location != vertex_module->m_inputs[i].location)
+					compatible = false;
+			}
+		} else {
+			__debugbreak();
+		}
+
+	} else {
+		compatible = false;
+	}
+
+	return compatible;
+}
 auto VulkanPipeline::init(
 	const VulkanLogicalDevice& device,
 	const VkExtent2D& extent,
@@ -277,20 +331,24 @@ auto VulkanPipeline::init(
 	std::vector<VkPipelineShaderStageCreateInfo> shader_stages;
 	shader_stages.resize(m_code.m_modules.size());
 	for (u32 i = 0; i < shader_stages.size(); i++) {
-		const VkPipelineShaderStageCreateInfo stage_info = {
-			.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-			.pNext = nullptr,
-			.flags = 0,
-			.stage = from_SHADER_STAGE(m_code.m_modules[i].m_stage),
-			.module = create_shader_module_from_spirv(device.m_handle, std::get<std::vector<u32>>(m_code.m_modules[i].m_code)),
-			.pName = "main",
-			.pSpecializationInfo = nullptr,
-		};
-		shader_stages[i] = stage_info;
+		shader_stages[i].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		shader_stages[i].pNext = nullptr;
+		shader_stages[i].flags = 0;
+		shader_stages[i].stage = from_SHADER_STAGE(m_code.m_modules[i].m_stage);
+		shader_stages[i].module = create_shader_module_from_spirv(device.m_handle, std::get<std::vector<u32>>(m_code.m_modules[i].m_code));
+		shader_stages[i].pName = "main";
+		shader_stages[i].pSpecializationInfo = nullptr;
 	}
 
 	const VkVertexInputBindingDescription binding_description = get_binding_description(vertex_format);
 	const std::vector<VkVertexInputAttributeDescription> attribute_descriptions = get_attribute_descriptions(vertex_format);
+
+	bool compatible = check_compatiblity(reflected_code.m_modules, binding_description, attribute_descriptions);
+	JF_ASSERT(compatible == true, "");
+
+
+
+
 
 	const VkPipelineVertexInputStateCreateInfo vertex_input_info = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
