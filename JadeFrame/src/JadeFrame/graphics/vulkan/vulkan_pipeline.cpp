@@ -122,13 +122,15 @@ struct ReflectedCode {
 	struct SampledImage {
 		std::string name;
 		u32 binding = 0;
+		u32 set = 0;
 		u32 DescriptorSet = 0;
 		u32 ArraySize = 0;
 	};
-	struct UniformBuffer{
+	struct UniformBuffer {
 		std::string name;
 		u32 size;
 		u32 binding;
+		u32 set;
 	};
 	struct Module {
 		SHADER_STAGE m_stage;
@@ -204,11 +206,13 @@ static auto reflect(const ShadingCode& code) -> ReflectedCode {
 			const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.base_type_id);
 			i32 member_count = static_cast<u32>(buffer_type.member_types.size());
 			u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+			u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
 			u32 descriptor_set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
 			u32 size = static_cast<u32>(compiler.get_declared_struct_size(buffer_type));
 
 			std::vector<ReflectedCode::UniformBuffer>& uniform_buffers = current_result_module.m_uniform_buffers;
 			uniform_buffers[j].binding = binding;
+			uniform_buffers[j].set = set;
 			uniform_buffers[j].name = name;
 			uniform_buffers[j].size = size;
 		}
@@ -223,6 +227,7 @@ static auto reflect(const ShadingCode& code) -> ReflectedCode {
 			const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
 			i32 member_count = static_cast<u32>(buffer_type.member_types.size());
 			u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+			u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
 			u32 descriptor_set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
 
 			u32 dimension = base_type.image.dim;
@@ -257,11 +262,33 @@ static auto reflect(const ShadingCode& code) -> ReflectedCode {
 	return result;
 }
 
+static auto extract_descriptor_set_layouts(const VulkanLogicalDevice& device, const ReflectedCode& code)->std::array<VulkanDescriptorSetLayout, 4> {
+	std::array<VulkanDescriptorSetLayout, 4> set_layouts;
+	for (u32 i = 0; i < code.m_modules.size(); i++) {
+		auto& curr_module = code.m_modules[i];
+
+		for(u32 i = 0; i < curr_module.m_uniform_buffers.size(); i++) {
+			const auto& curr_buffer = curr_module.m_uniform_buffers[i];
+			const auto& type = curr_buffer.set == 3 ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			set_layouts[curr_buffer.set].add_binding(
+				curr_buffer.binding, 
+				type,
+				1, 
+				from_SHADER_STAGE(curr_module.m_stage)
+			);
+		}
+	}
+	for(u32 i = 0; i < set_layouts.size(); i++) {
+		set_layouts[i].init(device);
+	}
+	return set_layouts;
+}
+
 
 
 static auto check_compatiblity(
-	const std::vector<ReflectedCode::Module>& modules, 
-	const VkVertexInputBindingDescription& input_bindings, 
+	const std::vector<ReflectedCode::Module>& modules,
+	const VkVertexInputBindingDescription& input_bindings,
 	const std::vector<VkVertexInputAttributeDescription>& input_attributes
 ) -> bool {
 	bool compatible = true;
@@ -327,6 +354,8 @@ auto VulkanPipeline::init(
 	}
 
 	const ReflectedCode reflected_code = reflect(m_code);
+
+	auto set_layouts = extract_descriptor_set_layouts(device, reflected_code);
 
 	std::vector<VkPipelineShaderStageCreateInfo> shader_stages;
 	shader_stages.resize(m_code.m_modules.size());
@@ -452,11 +481,16 @@ auto VulkanPipeline::init(
 		vulkan_push_constant_range.offset = push_constant_range.offset;
 		vulkan_push_constant_range.size = push_constant_range.size;
 	}
+
+	VkDescriptorSetLayout set_layout_handles[4];
+	for(u32 i = 0; i < set_layouts.size(); i++) {
+		set_layout_handles[i] = set_layouts[i].m_handle;
+	}
 	const VkPipelineLayoutCreateInfo pipeline_layout_info = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
 		.pNext = nullptr,
-		.setLayoutCount = 1,
-		.pSetLayouts = &descriptor_set_layout.m_handle,
+		.setLayoutCount = set_layouts.size(),
+		.pSetLayouts = set_layout_handles,
 		.pushConstantRangeCount = static_cast<u32>(vulkan_push_constant_ranges.size()),
 		.pPushConstantRanges = vulkan_push_constant_ranges.data(),
 	};
