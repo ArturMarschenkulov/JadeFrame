@@ -262,14 +262,17 @@ static auto reflect(const ShadingCode& code) -> ReflectedCode {
 	return result;
 }
 
-static auto extract_descriptor_set_layouts(const VulkanLogicalDevice& device, const ReflectedCode& code)->std::array<VulkanDescriptorSetLayout, 4> {
-	std::array<VulkanDescriptorSetLayout, 4> set_layouts;
+static auto extract_descriptor_set_layouts(const VulkanLogicalDevice& device, const ReflectedCode& code)->std::array<VulkanDescriptorSetLayout, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> {
+	std::array<VulkanDescriptorSetLayout, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> set_layouts;
 	for (u32 i = 0; i < code.m_modules.size(); i++) {
 		auto& curr_module = code.m_modules[i];
 
 		for(u32 i = 0; i < curr_module.m_uniform_buffers.size(); i++) {
 			const auto& curr_buffer = curr_module.m_uniform_buffers[i];
-			const auto& type = curr_buffer.set == 3 ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+
+			const bool update_per_object = curr_buffer.set == static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::PER_OBJECT);
+
+			const VkDescriptorType& type = curr_buffer.set == update_per_object ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			set_layouts[curr_buffer.set].add_binding(
 				curr_buffer.binding, 
 				type,
@@ -339,6 +342,8 @@ auto VulkanPipeline::init(
 	m_descriptor_set_layout = &descriptor_set_layout;
 
 	VkResult result;
+	// Convert GLSL to SPIRV and save it in member variables
+	// TODO: Think whether to extract it to somewhere else
 	{
 		std::vector<std::future<std::vector<u32>>> spirvs;
 		spirvs.resize(code.m_modules.size());
@@ -355,7 +360,7 @@ auto VulkanPipeline::init(
 
 	const ReflectedCode reflected_code = reflect(m_code);
 
-	auto set_layouts = extract_descriptor_set_layouts(device, reflected_code);
+	const std::array<VulkanDescriptorSetLayout, 4> set_layouts = extract_descriptor_set_layouts(device, reflected_code);
 
 	std::vector<VkPipelineShaderStageCreateInfo> shader_stages;
 	shader_stages.resize(m_code.m_modules.size());
@@ -398,11 +403,12 @@ auto VulkanPipeline::init(
 	};
 
 	//NOTE: For OpenGL compatibility. make .height *= -1 and .y += .height
+	constexpr bool gl_compat = true;
 	const VkViewport viewport = {
 		.x = 0.0f,
-		.y = static_cast<f32>(extent.height),
+		.y = gl_compat ? static_cast<f32>(extent.height) : 0.0f,
 		.width = static_cast<f32>(extent.width),
-		.height = -static_cast<f32>(extent.height),
+		.height = gl_compat ? -static_cast<f32>(extent.height): static_cast<f32>(extent.height),
 		.minDepth = 0.0f,
 		.maxDepth = 1.0f,
 	};

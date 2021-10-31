@@ -17,7 +17,7 @@ class VulkanLogicalDevice;
 /*---------------------------
 	Descriptor Set
 ---------------------------*/
-auto VulkanDescriptorSet::add_uniform_buffer(const VulkanBuffer& buffer, u32 binding, VkDeviceSize offset, VkDeviceSize range) -> void {
+auto VulkanDescriptorSet::add_uniform_buffer(u32 binding, const VulkanBuffer& buffer,  VkDeviceSize offset, VkDeviceSize range) -> void {
 	JF_ASSERT(buffer.m_size < from_kibibyte(64), "Guaranteed only between 16K and 64K");
 	VulkanDescriptor d = {
 		.bufer_info = {

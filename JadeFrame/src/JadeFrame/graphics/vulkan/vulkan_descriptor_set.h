@@ -10,6 +10,13 @@ class VulkanDescriptorSetLayout;
 class VulkanDescriptorPool;
 class VulkanBuffer;
 
+enum class DESCRIPTOR_SET_FREQUENCY : u8 {
+	PER_FRAME,
+	PER_PASS,
+	PER_MATERIAL,
+	PER_OBJECT,
+	MAX,
+};
 
 
 struct VulkanDescriptor {
@@ -37,8 +44,8 @@ class VulkanDescriptorSet {
 public:
 	auto update() -> void;
 	auto add_uniform_buffer(
+		u32 binding, 
 		const VulkanBuffer& buffer,
-		u32 binding,
 		VkDeviceSize offset,
 		VkDeviceSize range
 	) -> void;

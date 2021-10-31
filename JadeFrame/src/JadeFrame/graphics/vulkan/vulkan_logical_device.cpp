@@ -202,16 +202,14 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	Logger::info("maxBoundDescriptorSets: {}", m_physical_device->m_properties.limits.maxBoundDescriptorSets);
 	JF_ASSERT(m_physical_device->m_properties.limits.maxBoundDescriptorSets >= 4, "");
 
-	VulkanDescriptorSetLayout per_frame_layout;
-	VulkanDescriptorSetLayout per_pass_layout;
-	VulkanDescriptorSetLayout per_material_layout;
-	VulkanDescriptorSetLayout per_object_layout;
+
+
 
 	m_descriptor_set_layout_0.init(*this);
 
 	m_descriptor_sets = m_main_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout_0, 1);
-	m_descriptor_sets[0].add_uniform_buffer(m_ub_cam, 0, 0, sizeof(Matrix4x4));
-	m_descriptor_sets[0].add_uniform_buffer(m_ub_tran, 1, 0, sizeof(Matrix4x4));
+	m_descriptor_sets[0].add_uniform_buffer(0, m_ub_cam, 0, sizeof(Matrix4x4));
+	m_descriptor_sets[0].add_uniform_buffer(1, m_ub_tran, 0, sizeof(Matrix4x4));
 	m_descriptor_sets[0].update();	
 
 

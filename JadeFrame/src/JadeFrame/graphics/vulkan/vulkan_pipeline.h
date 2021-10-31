@@ -1,5 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.h>
+#include "vulkan_descriptor_set.h"
 #include "JadeFrame/defines.h"
 #include "../graphics_shared.h"
 
@@ -34,8 +35,8 @@ public:
 	const VulkanRenderPass* m_render_pass = nullptr;
 	const VulkanDescriptorSetLayout* m_descriptor_set_layout = nullptr;
 
-	//std::vector<u32> m_vert_shader_spirv;
-	//std::vector<u32> m_frag_shader_spirv;
+
+	std::array<VulkanDescriptorSetLayout, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> m_set_layouts;
 	ShadingCode m_code;
 
 	bool m_is_compiled = false;
