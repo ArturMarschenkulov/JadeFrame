@@ -77,7 +77,7 @@ auto Camera::control() -> void {
 	if (old_fovy != m_fovy) {
 		old_fovy = m_fovy;
 		this->perspective(m_position, m_fovy, m_aspect, m_zNear, m_zFar);
-		__debugbreak();
+        assert(false);
 	}
 
 

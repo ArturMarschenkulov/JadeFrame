@@ -102,9 +102,9 @@ auto wgl_load() -> bool {
 		instance,
 		NULL
 	);
-	if (window_handle == NULL) __debugbreak();
+	if (window_handle == NULL) assert(false);
 	const HDC device_context = GetDC(window_handle);
-	if (device_context == NULL) __debugbreak();
+	if (device_context == NULL) assert(false);
 
 	//dummy_window.set_pixel_format();
 	PIXELFORMATDESCRIPTOR desired_pixel_format;
@@ -120,11 +120,11 @@ auto wgl_load() -> bool {
 
 	const i32 suggested_pixel_format_ID = ChoosePixelFormat(device_context, &desired_pixel_format);
 	if (suggested_pixel_format_ID == 0) {
-		__debugbreak();
+        assert(false);
 	}
 	const BOOL pixel_format_success = SetPixelFormat(device_context, suggested_pixel_format_ID, &desired_pixel_format);
 	if (pixel_format_success == FALSE) {
-		__debugbreak();
+        assert(false);
 	}
 
 	//dummy_window.create_render_context();

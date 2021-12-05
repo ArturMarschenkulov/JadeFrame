@@ -6,6 +6,8 @@
 
 #include "extern/spdlog/spdlog.h"
 #include "extern/spdlog/fmt/ostr.h"
+#include "extern/spdlog/sinks/base_sink.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 namespace JadeFrame {
 class Logger {
@@ -49,13 +51,13 @@ public:
 };
 
 template<class ...Types>
-static auto Logger::log(const char* text, const Types& ... args) -> void {
+auto Logger::log(const char* text, const Types& ... args) -> void {
 	log(LEVEL::WARN, text, args...);
 	//std::string s = std::format<Types...>(text, args...);
 	//std::cout << s << "\n";
 }
 template<class ...Types>
-static auto Logger::log(LEVEL /*level*/, const char* text, const Types& ... args) -> void {
+auto Logger::log(LEVEL /*level*/, const char* text, const Types& ... args) -> void {
 	
 	warn(text, args...);
 	//std::string s = std::format<Types...>(text, args...);
@@ -67,32 +69,32 @@ static auto Logger::log(LEVEL /*level*/, const char* text, const Types& ... args
 
 
 template<class ...Types>
-static auto Logger::trace(const char* text, const Types& ... args) -> void {
+auto Logger::trace(const char* text, const Types& ... args) -> void {
 	s_core->trace(text, args...);
 	//Logger::log(LEVEL::TRACE, text, args...);
 }
 template<class ...Types>
-static auto Logger::debug(const char* text, const Types& ... args) -> void {
+auto Logger::debug(const char* text, const Types& ... args) -> void {
 	s_core->debug(text, args...);
 	//Logger::log(LEVEL::DEBUG, text, args...);
 }
 template<class ...Types>
-static auto Logger::info(const char* text, const Types& ... args) -> void {
+auto Logger::info(const char* text, const Types& ... args) -> void {
 	s_core->info(text, args...);
 	//Logger::log(LEVEL::INFO, text, args...);
 }
 template<class ...Types>
-static auto Logger::warn(const char* text, const Types& ... args) -> void {
+auto Logger::warn(const char* text, const Types& ... args) -> void {
 	s_core->warn(text, args...);
 	//Logger::log(LEVEL::WARN, text, args...);
 }
 template<class ...Types>
-static auto Logger::err(const char* text, const Types& ... args) -> void {
+auto Logger::err(const char* text, const Types& ... args) -> void {
 	s_core->error(text, args...);
 	//Logger::log(LEVEL::ERR, text, args...);
 }
 template<class ...Types>
-static auto Logger::critical(const char* text, const Types& ... args) -> void {
+auto Logger::critical(const char* text, const Types& ... args) -> void {
 	s_core->critical(text, args...);
 	//Logger::log(LEVEL::CRITICAL, text, args...);
 }

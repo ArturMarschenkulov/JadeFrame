@@ -51,7 +51,7 @@ auto TextureHandle::init() -> void {
 	/*		Vulkan_Texture* texture = new Vulkan_Texture();
 			texture->init();*/
 		}break;
-		default: __debugbreak();
+		default: assert(false);
 	}
 }
 
@@ -83,7 +83,7 @@ auto ShaderHandle::init() -> void {
 		{
 			//m_handle = new Vulkan_Shader({ vertex_shader_code, fragment_shader_code });
 		}break;
-		default: __debugbreak();
+		default: assert(false);
 	}
 }
 

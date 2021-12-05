@@ -54,20 +54,20 @@ static auto query_surface_support_details(const VulkanPhysicalDevice& physical_d
 
 
 	result = vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device.m_handle, surface.m_handle, &count, nullptr);
-	if (VK_SUCCESS != result || (count == 0)) __debugbreak();
+	if (VK_SUCCESS != result || (count == 0)) assert(false);
 
 	surface_support_details.m_formats.resize(count);
 	result = vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device.m_handle, surface.m_handle, &count, surface_support_details.m_formats.data());
-	if (VK_SUCCESS != result) __debugbreak();
+	if (VK_SUCCESS != result) assert(false);
 
 
 
 	result = vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device.m_handle, surface.m_handle, &count, nullptr);
-	if (VK_SUCCESS != result || (count == 0)) __debugbreak();
+	if (VK_SUCCESS != result || (count == 0)) assert(false);
 
 	surface_support_details.m_present_modes.resize(count);
 	result = vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device.m_handle, surface.m_handle, &count, surface_support_details.m_present_modes.data());
-	if (VK_SUCCESS != result) __debugbreak();
+	if (VK_SUCCESS != result) assert(false);
 
 	return surface_support_details;
 }
@@ -93,7 +93,7 @@ auto VulkanPhysicalDevice::init(VulkanInstance& instance, const VulkanSurface& s
 		result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, nullptr);
 		m_extension_properties.resize(count);
 		result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, m_extension_properties.data());
-		if (VK_SUCCESS != result) __debugbreak();
+		if (VK_SUCCESS != result) assert(false);
 	}
 	m_extension_support = this->check_extension_support(m_device_extensions);
 

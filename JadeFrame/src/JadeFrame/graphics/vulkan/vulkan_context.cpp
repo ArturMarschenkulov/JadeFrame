@@ -96,7 +96,7 @@ auto VulkanInstance::query_layers() -> std::vector<VkLayerProperties> {
 	available_layers.resize(layer_count);
 	vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
 	if (!this->check_validation_layer_support(available_layers)) {
-		__debugbreak();
+        assert(false);
 	}
 	return available_layers;
 }
@@ -106,12 +106,12 @@ auto VulkanInstance::query_extensions() -> std::vector<VkExtensionProperties> {
 
 	u32 extension_count = 0;
 	result = vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 
 	std::vector<VkExtensionProperties> extensions;
 	extensions.resize(extension_count);
 	vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data());
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 
 	return extensions;
 }
@@ -119,7 +119,7 @@ auto VulkanInstance::query_extensions() -> std::vector<VkExtensionProperties> {
 auto VulkanInstance::query_physical_devices() -> std::vector<VulkanPhysicalDevice> {
 	u32 device_count = 0;
 	vkEnumeratePhysicalDevices(m_instance, &device_count, nullptr);
-	if (device_count == 0) __debugbreak();
+	if (device_count == 0) assert(false);
 
 	std::vector<VkPhysicalDevice> phys_devices;
 	phys_devices.resize(device_count);
@@ -141,7 +141,7 @@ auto VulkanInstance::setup_debug() -> void {
 	populate_debug_messenger_create_info(create_info);
 
 	result = vkCreateDebugUtilsMessengerEXT_(m_instance, &create_info, nullptr, &m_debug_messenger);
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 }
 
 auto VulkanInstance::init(HWND window_handle) -> void {
@@ -212,14 +212,14 @@ auto VulkanInstance::init(HWND window_handle) -> void {
 	}
 
 	result = vkCreateInstance(&create_info, nullptr, &m_instance);
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 	
 	if (m_enable_validation_layers) {
 		VkDebugUtilsMessengerCreateInfoEXT info;
 		populate_debug_messenger_create_info(info);
 
 		result = vkCreateDebugUtilsMessengerEXT_(m_instance, &info, nullptr, &m_debug_messenger);
-		if (result != VK_SUCCESS) __debugbreak();
+		if (result != VK_SUCCESS) assert(false);
 	}
 
 	m_surface.init(m_instance, window_handle);

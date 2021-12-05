@@ -59,7 +59,7 @@ auto OGLW_Shader::set_binary(const std::vector<u32>& binary) -> void {
 	);
 }
 auto OGLW_Shader::compile_binary() -> void {
-	__debugbreak();
+    assert(false);
 	glSpecializeShader(m_ID, "main", 0, nullptr, nullptr);
 	//__debugbreak();
 

@@ -30,7 +30,7 @@ static auto create_shader_module_from_spirv(VkDevice device, const std::vector<u
 
 	VkShaderModule shader_module;
 	result = vkCreateShaderModule(device, &create_info, nullptr, &shader_module);
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 	return shader_module;
 }
 
@@ -106,7 +106,7 @@ static auto from_SHADER_STAGE(SHADER_STAGE stage) -> VkShaderStageFlagBits {
 		{
 			result = VK_SHADER_STAGE_FRAGMENT_BIT;
 		} break;
-		default: __debugbreak();
+		default: assert(false);
 	}
 	return result;
 }
@@ -236,7 +236,7 @@ static auto reflect(const ShadingCode& code) -> ReflectedCode {
 			if (array_size == 0) {
 				array_size = 1;
 			} else {
-				__debugbreak();
+                assert(false);
 			}
 			//__debugbreak();
 		}
@@ -321,7 +321,7 @@ static auto check_compatiblity(
 					compatible = false;
 			}
 		} else {
-			__debugbreak();
+            assert(false);
 		}
 
 	} else {
@@ -501,7 +501,7 @@ auto VulkanPipeline::init(
 		.pPushConstantRanges = vulkan_push_constant_ranges.data(),
 	};
 	result = vkCreatePipelineLayout(device.m_handle, &pipeline_layout_info, nullptr, &m_layout);
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 
 	const VkGraphicsPipelineCreateInfo pipeline_info = {
 		.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -526,7 +526,7 @@ auto VulkanPipeline::init(
 	};
 
 	result = vkCreateGraphicsPipelines(device.m_handle, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 
 	for (u32 i = 0; i < shader_stages.size(); i++) {
 		vkDestroyShaderModule(device.m_handle, shader_stages[i].module, nullptr);
@@ -541,7 +541,7 @@ auto VulkanPipeline::deinit() -> void {
 }
 
 auto VulkanPipeline::operator=(const VulkanPipeline& o) {
-	__debugbreak();
+    assert(false);
 }
 
 }

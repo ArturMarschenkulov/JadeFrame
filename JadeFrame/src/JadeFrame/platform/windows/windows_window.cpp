@@ -241,7 +241,7 @@ Windows_Window::Windows_Window(const Windows_Window::Desc& desc) {
 	);
 	if (window_handle == NULL) {
 		Logger::log("win32_create_window error: {}", ::GetLastError());
-		__debugbreak();
+        assert(false);
 	}
 
 	::RECT client_rect = { NULL };

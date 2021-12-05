@@ -138,7 +138,7 @@ static auto convert_buttons_from_JF_to_imgui(BUTTON button) -> i32 {
 		case BUTTON::LEFT: result = 0; break;
 		case BUTTON::RIGHT: result = 1; break;
 		case BUTTON::MIDDLE: result = 4; break;
-		default: result = -1; __debugbreak(); break;
+		default: result = -1; assert(false); break;
 	}
 	return result;
 }

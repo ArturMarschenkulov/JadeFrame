@@ -31,7 +31,7 @@ static auto VkResult_to_string(VkResult x) {
 		JF_SET_ENUM_STRING(str, VK_INCOMPLETE); break;
 		JF_SET_ENUM_STRING(str, VK_SUBOPTIMAL_KHR); break;
 		JF_SET_ENUM_STRING(str, VK_ERROR_OUT_OF_DATE_KHR); break;
-		default: __debugbreak(); str = ""; break;
+		default: assert(false); str = ""; break;
 	}
 	return str;
 #undef JF_SET_ENUM_STRING
@@ -43,7 +43,7 @@ static auto VkResult_to_string(VkResult x) {
 auto VulkanQueue::submit(const VkSubmitInfo& submit_info, const VulkanFence* p_fence) const -> void {
 	VkResult result;
 	result = vkQueueSubmit(m_handle, 1, &submit_info, p_fence->m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 }
 auto VulkanQueue::submit(const VulkanCommandBuffer& cmd_buffer, const VulkanSemaphore* wait_semaphore, const VulkanSemaphore* signal_semaphore, const VulkanFence* fence) -> void {
 	VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
@@ -61,16 +61,16 @@ auto VulkanQueue::submit(const VulkanCommandBuffer& cmd_buffer, const VulkanSema
 	/*this->submit(submit_info);*/
 	VkResult result;
 	result = vkQueueSubmit(m_handle, 1, &submit_info, fence->m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 }
 auto VulkanQueue::wait_idle() const -> void {
 	VkResult result;
 	result = vkQueueWaitIdle(m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 }
 auto VulkanQueue::present(VkPresentInfoKHR info, VkResult& result) const -> void {
 	result = vkQueuePresentKHR(m_handle, &info);
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 }
 
 auto VulkanQueue::present(const u32& index, const VulkanSwapchain& swapchain, const VulkanSemaphore* semaphore, VkResult* out_result) const -> void {
@@ -159,7 +159,7 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 	};
 
 	result = vkCreateDevice(physical_device.m_handle, &create_info, nullptr, &m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 
 
 

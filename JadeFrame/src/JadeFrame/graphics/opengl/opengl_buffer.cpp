@@ -12,7 +12,7 @@ static auto SHADER_TYPE_to_openGL_type(const SHADER_TYPE type) -> GLenum {
 		case SHADER_TYPE::FLOAT_2:
 		case SHADER_TYPE::FLOAT_3:
 		case SHADER_TYPE::FLOAT_4: result = GL_FLOAT; break;
-		default: __debugbreak(); result = 0; break;
+		default: assert(false); result = 0; break;
 	}
 	return result;
 }
@@ -35,7 +35,7 @@ static auto SHADER_TYPE_get_component_count(const SHADER_TYPE type) -> u32 {
 		case SHADER_TYPE::MAT_4:	 // 4* float4
 		case SHADER_TYPE::INT_4:	result = 4; break;
 
-		default: __debugbreak(); result = 0; break;
+		default: assert(false); result = 0; break;
 	}
 	return result;
 }
@@ -99,7 +99,7 @@ auto OpenGL_GPUMeshData::set_layout(const VertexFormat& vertex_format) -> void {
 			} break;
 			default:
 			{
-				__debugbreak();
+                assert(false);
 			}
 
 		}

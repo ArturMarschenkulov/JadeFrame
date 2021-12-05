@@ -173,7 +173,7 @@ auto Vulkan_Renderer::present() -> void {
 			d.m_swapchain.recreate();
 		} else if (result != VK_SUCCESS) {
 			std::cout << "failed to present swap chain image!" << std::endl;
-			__debugbreak();
+            assert(false);
 		}
 	}
 
@@ -186,6 +186,6 @@ auto Vulkan_Renderer::set_viewport(u32 /*x*/, u32 /*y*/, u32 /*width*/, u32 /*he
 }
 
 auto Vulkan_Renderer::take_screenshot(const char* filename) -> void {
-	__debugbreak();
+    assert(false);
 }
 }

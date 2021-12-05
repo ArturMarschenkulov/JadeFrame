@@ -17,7 +17,7 @@ static auto init_device_context(const Windows_Window& window) -> HDC {
 	HDC device_context = ::GetDC(window.m_window_handle);
 	if (device_context == NULL) {
 		Logger::err("GetDC(hWnd) failed! {}", ::GetLastError());
-		__debugbreak();
+        assert(false);
 	}
 	return device_context;
 }

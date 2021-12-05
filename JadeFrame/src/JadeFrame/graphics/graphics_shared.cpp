@@ -44,7 +44,7 @@ auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage) -> std::vector
 		{
 			kind = shaderc_fragment_shader;
 		} break;
-		default: __debugbreak();
+		default: assert(false);
 	}
 
 	shc::CompileOptions options;
@@ -60,7 +60,7 @@ auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage) -> std::vector
 	shc::SpvCompilationResult comp_result = compiler.CompileGlslToSpv(code, kind, "", options);
 	shaderc_compilation_status comp_status = comp_result.GetCompilationStatus();
 	if (comp_status != shaderc_compilation_status_success) {
-		__debugbreak();
+        assert(false);
 		return std::vector<u32>();
 	}
 

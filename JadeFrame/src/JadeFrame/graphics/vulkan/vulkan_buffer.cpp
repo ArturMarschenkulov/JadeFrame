@@ -420,7 +420,7 @@ auto VulkanImageView::init(const VulkanLogicalDevice& device, const VulkanImage&
 	};
 
 	result = vkCreateImageView(device.m_handle, &create_info, nullptr, &m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 }
 auto VulkanImageView::deinit() -> void {
 	vkDestroyImageView(m_device->m_handle, m_handle, nullptr);
@@ -455,7 +455,7 @@ auto VulkanSampler::init(const VulkanLogicalDevice& device) -> void {
 		.unnormalizedCoordinates = VK_FALSE,
 	};
 	result = vkCreateSampler(device.m_handle, &samplerInfo, nullptr, &m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 }
 
 auto VulkanSampler::deinit() -> void {
@@ -528,7 +528,7 @@ auto Vulkan_Texture::transition_layout(const VulkanImage& image, VkFormat /*form
 			source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 			destination_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 		} else {
-			__debugbreak();
+            assert(false);
 		}
 
 		vkCmdPipelineBarrier(

@@ -103,7 +103,7 @@ auto VulkanDescriptorSetLayout::add_binding(u32 binding, VkDescriptorType descri
 		.stageFlags = stage_flags,
 		.pImmutableSamplers = p_immutable_samplers
 	};
-	if (dslb.descriptorType == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT && !(dslb.descriptorCount % 4 == 0)) __debugbreak();
+	if (dslb.descriptorType == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT && !(dslb.descriptorCount % 4 == 0)) assert(false);
 	m_bindings.push_back(dslb);
 
 	switch (descriptor_type) {
@@ -128,7 +128,7 @@ auto VulkanDescriptorSetLayout::init(const VulkanLogicalDevice& device) -> void 
 	};
 
 	result = vkCreateDescriptorSetLayout(device.m_handle, &layout_info, nullptr, &m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 }
 auto VulkanDescriptorSetLayout::deinit() -> void {
 	vkDestroyDescriptorSetLayout(m_device->m_handle, m_handle, nullptr);
@@ -160,7 +160,7 @@ auto VulkanDescriptorPool::init(const VulkanLogicalDevice& device, u32 max_sets)
 	JF_ASSERT(pool_info.poolSizeCount > 0, "");
 
 	result = vkCreateDescriptorPool(device.m_handle, &pool_info, nullptr, &m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 }
 
 auto VulkanDescriptorPool::deinit() -> void {
@@ -180,7 +180,7 @@ auto VulkanDescriptorPool::allocate_descriptor_sets(const VulkanDescriptorSetLay
 	};
 	std::vector<VkDescriptorSet> handles(amount);
 	result = vkAllocateDescriptorSets(m_device->m_handle, &alloc_info, handles.data());
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 
 	std::vector<VulkanDescriptorSet> sets;
 	sets.resize(handles.size());
@@ -221,7 +221,7 @@ auto VulkanDescriptorPool::free_descriptor_sets(const std::vector<VulkanDescript
 auto VulkanDescriptorPool::free_descriptor_set(const VulkanDescriptorSet& descriptor_set) -> void {
 	VkResult result;
 	result = vkFreeDescriptorSets(m_device->m_handle, m_handle, 1, &descriptor_set.m_handle);
-	if (result != VK_SUCCESS) __debugbreak();
+	if (result != VK_SUCCESS) assert(false);
 }
 
 }

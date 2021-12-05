@@ -1,6 +1,7 @@
 #pragma once
 
 #include "JadeFrame/math/vec.h"
+#include "../platform_shared.h"
 
 #include <string>
 
@@ -16,7 +17,7 @@ namespace JadeFrame {
 /*
 	TOOD: Consider whether this class should be RAII or not. Right now it is.
 */
-class Windows_Window {
+class Windows_Window : public IWindow {
 public:
 	enum class WINDOW_STATE {
 		WINDOWED,

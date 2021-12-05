@@ -48,7 +48,7 @@ static auto setup_framebuffer(OGLW_Framebuffer& buffer, OGLW_Texture<GL_TEXTURE_
 	buffer.unbind();
 
 	const GLenum res = buffer.check_status();
-	if (res != GL_FRAMEBUFFER_COMPLETE) __debugbreak();
+	if (res != GL_FRAMEBUFFER_COMPLETE) assert(false);
 }
 OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(window) {
 	{
@@ -73,7 +73,7 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(windo
 		fb.m_framebuffer.unbind();
 
 		const GLenum res = fb.m_framebuffer.check_status();
-		if (res != GL_FRAMEBUFFER_COMPLETE) __debugbreak();
+		if (res != GL_FRAMEBUFFER_COMPLETE) assert(false);
 	}
 
 

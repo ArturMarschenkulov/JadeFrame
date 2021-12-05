@@ -5,7 +5,7 @@
 #include "vec.h"
 #include "JadeFrame/defines.h"
 
-#define M_PI 3.14159265359f
+//#define M_PI 3.14159265359f // 3.14159265358979323846
 
 
 namespace JadeFrame {

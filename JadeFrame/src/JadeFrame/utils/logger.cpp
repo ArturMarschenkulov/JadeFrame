@@ -13,7 +13,7 @@ auto Logger::init() -> void {
 	std::vector<spdlog::sink_ptr> jf_sinks =
 	{
 		std::make_shared<spdlog::sinks::stdout_color_sink_mt>(),
-		//std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/HAZEL.log", true)
+		std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/JadeFrame.log", true)
 	};
 
 	jf_sinks[0]->set_pattern("%^[%T] %n: %v%$");

@@ -112,7 +112,7 @@ struct OGLTexture {
 					internal_format = GL_RGBA8;
 					data_format = GL_RGBA;
 				} break;
-				default: __debugbreak();
+				default: assert(false);
 			}
 
 

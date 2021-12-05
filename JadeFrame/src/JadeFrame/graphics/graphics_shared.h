@@ -127,7 +127,7 @@ inline auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
 		case SHADER_TYPE::INT_3:	result = 4 * 3; break;
 		case SHADER_TYPE::INT_4:	result = 4 * 4; break;
 		case SHADER_TYPE::BOOL:	result = 1; break;
-		default: __debugbreak(); result = 0; break;
+		default: assert(false); result = 0; break;
 	}
 	return result;
 }

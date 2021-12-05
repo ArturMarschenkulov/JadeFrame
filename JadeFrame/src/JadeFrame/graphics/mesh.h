@@ -84,7 +84,7 @@ inline auto convert_into_data(const VertexData& vertex_data, const bool interlea
 		}
 	} else {
 
-		__debugbreak();
+        assert(false);
 		for (size_t i = 0; i < vertex_data.m_positions.size(); i++) {
 			data.push_back(vertex_data.m_positions[i].x);
 			data.push_back(vertex_data.m_positions[i].y);

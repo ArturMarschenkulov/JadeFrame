@@ -21,7 +21,7 @@ static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
 		case GL_FLOAT_VEC4: return SHADER_TYPE::FLOAT_4; break;
 		case GL_FLOAT_MAT4: return SHADER_TYPE::MAT_4; break;
 		case GL_SAMPLER_2D: return SHADER_TYPE::SAMPLER_2D; break;
-		default: __debugbreak(); return {};
+		default: assert(false); return {};
 	}
 }
 //static auto check_glsl_variables(const std::unordered_map<std::string, OpenGL_Shader::GL_Variable>& ) -> void {
@@ -101,7 +101,7 @@ auto OpenGL_Shader::get_uniform_location(const std::string& name) const -> GLint
 	if (m_uniforms.contains(name)) {
 		return m_uniforms.at(name).location;
 	}
-	__debugbreak();
+    assert(false);
 	return -1;
 }
 
@@ -134,7 +134,7 @@ auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::uno
 				glGetActiveAttrib(m_program.m_ID, i, sizeof(buffer), 0, &variables[i].size, &gl_type, buffer);
 				variables[i].location = m_program.get_attribute_location(buffer);
 			}break;
-			default: __debugbreak(); gl_type = -1; break;
+			default: assert(false); gl_type = -1; break;
 		}
 		variables[i].name = std::string(buffer);
 		variables[i].type = SHADER_TYPE_from_openGL_enum(gl_type);
@@ -148,7 +148,7 @@ auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::uno
 				case SHADER_TYPE::FLOAT_3: value_init = v3(); break;
 				case SHADER_TYPE::FLOAT_4: value_init = v4(); break;
 				case SHADER_TYPE::MAT_4: value_init = Matrix4x4(); break;
-				default: __debugbreak(); break;
+				default: assert(false); break;
 			}
 			variables[i].value = value_init;
 		}

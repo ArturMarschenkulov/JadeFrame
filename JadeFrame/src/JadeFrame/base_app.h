@@ -69,7 +69,7 @@ public:
 		if (m_shader_handles.contains(name)) {
 			return m_shader_handles.at(name);
 		}
-		__debugbreak();
+        assert(false);
 		return m_shader_handles.at(name);
 	}
 
@@ -82,7 +82,7 @@ public:
 		if (m_texture_handles.contains(name)) {
 			return m_texture_handles.at(name);
 		}
-		__debugbreak();
+		assert(false);
 		return m_texture_handles.at(name);
 	}
 
@@ -97,14 +97,14 @@ public:
 				return;
 			}
 		}
-		__debugbreak();
+        assert(false);
 
 	}
 	auto get_material_handle(const std::string& name) -> MaterialHandle& {
 		if (m_material_handles.contains(name)) {
 			return m_material_handles.at(name);
 		}
-		__debugbreak();
+        assert(false);
 		return m_material_handles.at(name);
 	}
 
@@ -115,7 +115,7 @@ public:
 		if (m_meshes.contains(name)) {
 			return m_meshes.at(name);
 		}
-		__debugbreak();
+        assert(false);
 		return m_meshes.at(name);
 	}
 private:

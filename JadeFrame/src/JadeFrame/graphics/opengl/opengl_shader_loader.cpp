@@ -400,7 +400,7 @@ auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
 	} else if (name == "framebuffer_test") {
 		shader_tuple = get_shader_framebuffer_test_0();
 	} else {
-		__debugbreak();
+        assert(false);
 	}
 
 	auto [vs, fs] = shader_tuple;

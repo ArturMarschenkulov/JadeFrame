@@ -7,6 +7,7 @@
 #include <map>
 #include <unordered_map>
 #include <set>
+#include <list>
 #include <unordered_set>
 #include <stack>
 #include <queue>
@@ -29,7 +30,9 @@
 #include <concepts>
 
 //Windows
+#if defined _WIN32
 #include <Windows.h>
+#endif
 
 //Graphics API specific
 #pragma warning(push)
@@ -41,10 +44,13 @@
 #include <shaderc/visibility.h>
 #pragma warning(pop)
 
+#if defined _WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
-#include <vulkan/vulkan.h>
 
+#endif
+
+#include <vulkan/vulkan.h>
 //JadeFrame specific
 
-#include "JadeFrame/utils/logger.h"
+//#include "JadeFrame/utils/logger.h"
 

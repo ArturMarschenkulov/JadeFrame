@@ -113,7 +113,7 @@ JadeFrameInstance::JadeFrameInstance() {
 
 		m_system_manager.log();
 	} else {
-		__debugbreak();
+        assert(false);
 	}
 }
 auto JadeFrameInstance::run() -> void {
