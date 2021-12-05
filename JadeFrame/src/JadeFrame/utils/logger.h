@@ -1,7 +1,11 @@
 #pragma once
-#include <format>
+//#include <format>
 #include <iostream>
 #include <string>
+#include <memory>
+
+#include "extern/spdlog/spdlog.h"
+#include "extern/spdlog/fmt/ostr.h"
 
 namespace JadeFrame {
 class Logger {
@@ -33,17 +37,29 @@ public:
 	template<class ...Types>
 	static auto critical(const char* text, const Types& ... args) -> void;
 
+
+	static auto init() -> void;
+	static auto deinit() -> void;
+
+	static std::shared_ptr<spdlog::logger> s_core;
+	//static std::shared_ptr<spdlog::logger> s_client;
+	//static std::shared_ptr<spdlog::logger> s_editor;
+
+
 };
 
 template<class ...Types>
 static auto Logger::log(const char* text, const Types& ... args) -> void {
-	std::string s = std::format<Types...>(text, args...);
-	std::cout << s << "\n";
+	log(LEVEL::WARN, text, args...);
+	//std::string s = std::format<Types...>(text, args...);
+	//std::cout << s << "\n";
 }
 template<class ...Types>
 static auto Logger::log(LEVEL /*level*/, const char* text, const Types& ... args) -> void {
-	std::string s = std::format<Types...>(text, args...);
-	std::cout << s << "\n";
+	
+	warn(text, args...);
+	//std::string s = std::format<Types...>(text, args...);
+	//std::cout << s << "\n";
 }
 
 
@@ -52,26 +68,32 @@ static auto Logger::log(LEVEL /*level*/, const char* text, const Types& ... args
 
 template<class ...Types>
 static auto Logger::trace(const char* text, const Types& ... args) -> void {
-	Logger::log(LEVEL::TRACE, text, args...);
+	s_core->trace(text, args...);
+	//Logger::log(LEVEL::TRACE, text, args...);
 }
 template<class ...Types>
 static auto Logger::debug(const char* text, const Types& ... args) -> void {
-	Logger::log(LEVEL::DEBUG, text, args...);
+	s_core->debug(text, args...);
+	//Logger::log(LEVEL::DEBUG, text, args...);
 }
 template<class ...Types>
 static auto Logger::info(const char* text, const Types& ... args) -> void {
-	Logger::log(LEVEL::INFO, text, args...);
+	s_core->info(text, args...);
+	//Logger::log(LEVEL::INFO, text, args...);
 }
 template<class ...Types>
 static auto Logger::warn(const char* text, const Types& ... args) -> void {
-	Logger::log(LEVEL::WARN, text, args...);
+	s_core->warn(text, args...);
+	//Logger::log(LEVEL::WARN, text, args...);
 }
 template<class ...Types>
 static auto Logger::err(const char* text, const Types& ... args) -> void {
-	Logger::log(LEVEL::ERR, text, args...);
+	s_core->error(text, args...);
+	//Logger::log(LEVEL::ERR, text, args...);
 }
 template<class ...Types>
 static auto Logger::critical(const char* text, const Types& ... args) -> void {
-	Logger::log(LEVEL::CRITICAL, text, args...);
+	s_core->critical(text, args...);
+	//Logger::log(LEVEL::CRITICAL, text, args...);
 }
 }

@@ -6,7 +6,7 @@
 #include "gui.h"
 
 #include <utility>
-#include <format>
+//#include <format>
 #include <JadeFrame/utils/utils.h>
 #include "JadeFrame/math/vec.h"
 
@@ -102,6 +102,7 @@ static auto submit(FuncT&& func) -> void {
 }
 
 JadeFrameInstance::JadeFrameInstance() {
+	Logger::init();
 	Logger::info("JadeFrame is starting...");
 
 	if (m_singleton == nullptr) {
