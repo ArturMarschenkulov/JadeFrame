@@ -165,11 +165,11 @@ set(Files_Math
         "src/JadeFrame/math/i128.h"
         "src/JadeFrame/math/mat.h"
         "src/JadeFrame/math/mat_4.h"
-        "src/JadeFrame/math/Math.h"
+        "src/JadeFrame/math/math.h"
         "src/JadeFrame/math/vec.h"
 
         "src/JadeFrame/math/mat_4.cpp"
-        "src/JadeFrame/math/Math.cpp"
+        "src/JadeFrame/math/math.cpp"
         "src/JadeFrame/math/vec.cpp"
         )
 
