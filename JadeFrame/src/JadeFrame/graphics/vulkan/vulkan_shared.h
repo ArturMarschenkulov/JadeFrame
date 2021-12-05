@@ -3,7 +3,7 @@
 #include <vector>
 #include <array>
 #include "JadeFrame/math/mat_4.h"
-#include "../Mesh.h"
+#include "../mesh.h"
 #include "../graphics_shared.h"
 #include "JadeFrame/utils/assert.h"
 

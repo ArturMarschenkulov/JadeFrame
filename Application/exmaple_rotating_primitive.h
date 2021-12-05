@@ -1,6 +1,6 @@
 #pragma once
 #include<JadeFrame.h>
-#include <JadeFrame/math/Math.h>
+#include <JadeFrame/math/math.h>
 
 
 namespace JadeFrame {
