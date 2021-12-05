@@ -27,7 +27,7 @@ class Matrix4x4;
 class Matrix4x4 {
 public:
 	constexpr Matrix4x4() noexcept;
-	constexpr Matrix4x4(const f32 diagonal) noexcept;
+	constexpr explicit Matrix4x4(f32 digo) noexcept;
 
 	constexpr auto operator=(const Matrix4x4& mat) noexcept ->Matrix4x4&;
 	constexpr auto operator[](const u32 index) noexcept -> std::array<f32, 4>&; // for writing

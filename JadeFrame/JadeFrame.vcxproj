@@ -100,7 +100,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;$(SolutionDir)JadeFrame\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-W4 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -124,7 +124,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;$(SolutionDir)JadeFrame\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-W4 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -148,7 +148,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-W4 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -174,7 +174,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src\extern\freetype\include;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)JadeFrame\src\extern;$(SolutionDir)JadeFrame\src;C:\VulkanSDK\1.2.176.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-W4 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -192,97 +192,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\extern\freetype\config\ftconfig.h" />
-    <ClInclude Include="src\extern\freetype\config\ftheader.h" />
-    <ClInclude Include="src\extern\freetype\config\ftmodule.h" />
-    <ClInclude Include="src\extern\freetype\config\ftoption.h" />
-    <ClInclude Include="src\extern\freetype\config\ftstdlib.h" />
-    <ClInclude Include="src\extern\freetype\freetype.h" />
-    <ClInclude Include="src\extern\freetype\ftadvanc.h" />
-    <ClInclude Include="src\extern\freetype\ftbbox.h" />
-    <ClInclude Include="src\extern\freetype\ftbdf.h" />
-    <ClInclude Include="src\extern\freetype\ftbitmap.h" />
-    <ClInclude Include="src\extern\freetype\ftbzip2.h" />
-    <ClInclude Include="src\extern\freetype\ftcache.h" />
-    <ClInclude Include="src\extern\freetype\ftchapters.h" />
-    <ClInclude Include="src\extern\freetype\ftcid.h" />
-    <ClInclude Include="src\extern\freetype\ftcolor.h" />
-    <ClInclude Include="src\extern\freetype\ftdriver.h" />
-    <ClInclude Include="src\extern\freetype\fterrdef.h" />
-    <ClInclude Include="src\extern\freetype\fterrors.h" />
-    <ClInclude Include="src\extern\freetype\ftfntfmt.h" />
-    <ClInclude Include="src\extern\freetype\ftgasp.h" />
-    <ClInclude Include="src\extern\freetype\ftglyph.h" />
-    <ClInclude Include="src\extern\freetype\ftgxval.h" />
-    <ClInclude Include="src\extern\freetype\ftgzip.h" />
-    <ClInclude Include="src\extern\freetype\ftimage.h" />
-    <ClInclude Include="src\extern\freetype\ftincrem.h" />
-    <ClInclude Include="src\extern\freetype\ftlcdfil.h" />
-    <ClInclude Include="src\extern\freetype\ftlist.h" />
-    <ClInclude Include="src\extern\freetype\ftlzw.h" />
-    <ClInclude Include="src\extern\freetype\ftmac.h" />
-    <ClInclude Include="src\extern\freetype\ftmm.h" />
-    <ClInclude Include="src\extern\freetype\ftmodapi.h" />
-    <ClInclude Include="src\extern\freetype\ftmoderr.h" />
-    <ClInclude Include="src\extern\freetype\ftotval.h" />
-    <ClInclude Include="src\extern\freetype\ftoutln.h" />
-    <ClInclude Include="src\extern\freetype\ftparams.h" />
-    <ClInclude Include="src\extern\freetype\ftpfr.h" />
-    <ClInclude Include="src\extern\freetype\ftrender.h" />
-    <ClInclude Include="src\extern\freetype\ftsizes.h" />
-    <ClInclude Include="src\extern\freetype\ftsnames.h" />
-    <ClInclude Include="src\extern\freetype\ftstroke.h" />
-    <ClInclude Include="src\extern\freetype\ftsynth.h" />
-    <ClInclude Include="src\extern\freetype\ftsystem.h" />
-    <ClInclude Include="src\extern\freetype\fttrigon.h" />
-    <ClInclude Include="src\extern\freetype\fttypes.h" />
-    <ClInclude Include="src\extern\freetype\ftwinfnt.h" />
-    <ClInclude Include="src\extern\freetype\internal\autohint.h" />
-    <ClInclude Include="src\extern\freetype\internal\cffotypes.h" />
-    <ClInclude Include="src\extern\freetype\internal\cfftypes.h" />
-    <ClInclude Include="src\extern\freetype\internal\ftcalc.h" />
-    <ClInclude Include="src\extern\freetype\internal\ftdebug.h" />
-    <ClInclude Include="src\extern\freetype\internal\ftdrv.h" />
-    <ClInclude Include="src\extern\freetype\internal\ftgloadr.h" />
-    <ClInclude Include="src\extern\freetype\internal\fthash.h" />
-    <ClInclude Include="src\extern\freetype\internal\ftmemory.h" />
-    <ClInclude Include="src\extern\freetype\internal\ftobjs.h" />
-    <ClInclude Include="src\extern\freetype\internal\ftpsprop.h" />
-    <ClInclude Include="src\extern\freetype\internal\ftrfork.h" />
-    <ClInclude Include="src\extern\freetype\internal\ftserv.h" />
-    <ClInclude Include="src\extern\freetype\internal\ftstream.h" />
-    <ClInclude Include="src\extern\freetype\internal\fttrace.h" />
-    <ClInclude Include="src\extern\freetype\internal\ftvalid.h" />
-    <ClInclude Include="src\extern\freetype\internal\internal.h" />
-    <ClInclude Include="src\extern\freetype\internal\psaux.h" />
-    <ClInclude Include="src\extern\freetype\internal\pshints.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svbdf.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svcfftl.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svcid.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svfntfmt.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svgldict.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svgxval.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svkern.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svmetric.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svmm.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svotval.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svpfr.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svpostnm.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svprop.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svpscmap.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svpsinfo.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svsfnt.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svttcmap.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svtteng.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svttglyf.h" />
-    <ClInclude Include="src\extern\freetype\internal\services\svwinfnt.h" />
-    <ClInclude Include="src\extern\freetype\internal\sfnt.h" />
-    <ClInclude Include="src\extern\freetype\internal\t1types.h" />
-    <ClInclude Include="src\extern\freetype\internal\tttypes.h" />
-    <ClInclude Include="src\extern\freetype\t1tables.h" />
-    <ClInclude Include="src\extern\freetype\ttnameid.h" />
-    <ClInclude Include="src\extern\freetype\tttables.h" />
-    <ClInclude Include="src\extern\freetype\tttags.h" />
     <ClInclude Include="src\extern\glad\glad.h" />
     <ClInclude Include="src\extern\imgui\imconfig.h" />
     <ClInclude Include="src\extern\imgui\imgui.h" />

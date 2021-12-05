@@ -68,8 +68,8 @@ public:
 
 	virtual auto submit(const Object& obj) -> void override;
 
-	auto set_clear_color(const RGBAColor& color) -> void;
-	auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void;
+    virtual auto set_clear_color(const RGBAColor& color) -> void override;
+    virtual auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void override;
 
 
 	virtual auto take_screenshot(const char* filename) -> void override;

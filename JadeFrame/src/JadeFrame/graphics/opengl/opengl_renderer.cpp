@@ -31,7 +31,7 @@ auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const ->
 static auto setup_framebuffer(OGLW_Framebuffer& buffer, OGLW_Texture<GL_TEXTURE_2D>& texture, OGLW_Renderbuffer& renderbuffer) -> void {
 	buffer.bind();
 
-	const v2 size;// = m_context.m_cache.viewport[1];
+	const v2i32 size;// = m_context.m_cache.viewport[1];
 	texture.bind(0);
 
 	texture.set_texture_image_2D(0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);

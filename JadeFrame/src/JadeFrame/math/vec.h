@@ -24,7 +24,7 @@ public:
 	}
 	//template<typename ...Args>
 	template<class...T2, typename std::enable_if<sizeof...(T2) == N, int>::type = 0>
-	constexpr VectorT(const T2&... args) noexcept {
+	constexpr explicit VectorT(const T2&... args) noexcept {
 		static_assert(sizeof...(T2) == N);
 
 		const std::array<T, N>& arr = {args...};
@@ -300,7 +300,7 @@ public:
 	}
 	constexpr auto get_normal() const -> VectorT {
 		const f32& length = this->get_length();
-		return VectorT(x / length, y / length, z / length);
+		return VectorT(x / (T)length, y / (T)length, z / (T)length);
 	}
 public:
 	union {

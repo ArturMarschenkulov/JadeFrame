@@ -28,7 +28,7 @@ auto Vulkan_Renderer::clear_background() -> void {
 auto Vulkan_Renderer::submit(const Object& obj) -> void {
 	const VulkanLogicalDevice& d = m_context.m_instance.m_logical_device;
 
-	if (obj.m_GPU_mesh_data.m_is_initialized == false) {
+	if (false == obj.m_GPU_mesh_data.m_is_initialized) {
 		assert(obj.m_vertex_format.m_attributes.size() > 0);
 
 		obj.m_GPU_mesh_data.m_handle = new Vulkan_GPUMeshData(d, *obj.m_vertex_data, obj.m_vertex_format);
