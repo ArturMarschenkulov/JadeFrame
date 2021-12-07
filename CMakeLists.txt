@@ -10,7 +10,7 @@ set(CMAKE_EXE_LINKER_FLAGS "-lc++abi")
 project(
     JadeFrame
     VERSION 0.1
-    LANGUAGES CXX
+    LANGUAGES C CXX
 )
 
 

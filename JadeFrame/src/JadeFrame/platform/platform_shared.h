@@ -1,5 +1,6 @@
 #pragma once
 #include "JadeFrame/defines.h"
+#include "JadeFrame/math/vec.h"
 #include <string>
 namespace JadeFrame {
     class IWindow {
