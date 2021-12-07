@@ -1,12 +1,13 @@
 #pragma once
 #include "JadeFrame/defines.h"
+#include "../platform_shared.h"
 #include <cstdint>
 
 namespace JadeFrame {
-class Windows_TimeManager {
+class Windows_TimeManager : public ITimeManager {
 public:
-	auto initialize() -> void;
-	auto get_time() const->f64;
+	virtual auto initialize() -> void override;
+	virtual auto get_time() const -> f64 override;
 
 private:
 	auto query_timer_value() const->u64;
@@ -17,9 +18,9 @@ private:
 	u64 m_offset;
 
 public:
-	auto calc_elapsed() -> f64;
-	auto frame_control(f64 delta_time) -> void;
-	auto set_FPS(f64 FPS) -> void;
+	virtual auto calc_elapsed() -> f64 override;
+	virtual auto frame_control(f64 delta_time) -> void override;
+	virtual auto set_FPS(f64 FPS) -> void override;
 	struct Time {
 		f64 current = 0;
 		f64 previous = 0;

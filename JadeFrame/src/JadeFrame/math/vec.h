@@ -1,22 +1,22 @@
 #pragma once
 #include "JadeFrame/defines.h"
-#include <concepts>
+//#include <concepts>
 #include <type_traits>
 #include <cmath>
 
 namespace JadeFrame {
 #pragma warning(disable : 4201)
-template <class T>
-concept scalar = std::is_scalar_v<T>;
-
-template <class T>
-concept number = std::integral<T> || std::floating_point<T>;
+//template <typename T>
+//concept scalar = std::is_scalar_v<T>;
+//
+//template <typename T>
+//concept number = std::integral<T> || std::floating_point<T>;
 
 
 
 
 template<size_t N, typename T>
-requires number<T>
+//requires number<T>
 class VectorT {
 public:
 	constexpr VectorT() noexcept {

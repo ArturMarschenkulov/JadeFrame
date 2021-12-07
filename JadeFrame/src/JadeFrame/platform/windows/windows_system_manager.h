@@ -1,11 +1,12 @@
 #pragma once
 #include "JadeFrame/defines.h"
+#include "../platform_shared.h"
 #include <string>
 namespace JadeFrame {
-class Windows_SystemManager {
+class Windows_SystemManager : ISystemManager {
 public:
-	auto initialize() -> void;
-	auto log() const -> void;
+	virtual auto initialize() -> void override;
+	virtual auto log() const -> void override;
 
 public:
 	std::string m_user_locale;

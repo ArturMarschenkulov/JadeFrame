@@ -14,7 +14,7 @@ auto VulkanFence::init(const VulkanLogicalDevice& device) -> void {
 	};
 
 	result = vkCreateFence(device.m_handle, &create_info, nullptr, &m_handle);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 }
 
 auto VulkanFence::deinit() -> void {
@@ -25,14 +25,14 @@ auto VulkanFence::deinit() -> void {
 auto VulkanFence::wait_for_fences() -> void {
 	VkResult result;
 	result = vkWaitForFences(m_device->m_handle, 1, &m_handle, VK_TRUE, UINT64_MAX);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 
 }
 
 auto VulkanFence::reset() -> void {
 	VkResult result;
 	result = vkResetFences(m_device->m_handle, 1, &m_handle);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 }
 
 auto VulkanSemaphore::init(const VulkanLogicalDevice& device) -> void {
@@ -46,7 +46,7 @@ auto VulkanSemaphore::init(const VulkanLogicalDevice& device) -> void {
 	};
 
 	result = vkCreateSemaphore(device.m_handle, &create_info, nullptr, &m_handle);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 }
 
 auto VulkanSemaphore::deinit() -> void {

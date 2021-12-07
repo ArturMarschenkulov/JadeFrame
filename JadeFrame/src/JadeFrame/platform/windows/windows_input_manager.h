@@ -1,6 +1,7 @@
 #pragma once
 #include "JadeFrame/defines.h"
 #include "JadeFrame/math/vec.h"
+#include "../platform_shared.h"
 #include <Windows.h>
 
 #include <array>
@@ -117,7 +118,7 @@ struct KeyEvent : public Event {
 	TYPE type;
 	u64 key_code;
 };
-class Windows_InputManager {
+class Windows_InputManager : public IInputManager {
 	friend class WinWindow;
 public:
 	auto handle_input() -> void;

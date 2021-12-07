@@ -29,7 +29,7 @@ public:
 	template<class ...Types>
 	static auto trace(const char* text, const Types& ... args) -> void;
 	template<class ...Types>
-	static auto debug(const char* text, const Types& ... args) -> void;
+	static auto debug(const std::string& text, const Types& ... args) -> void;
 	template<class ...Types>
 	static auto info(const char* text, const Types& ... args) -> void;
 	template<class ...Types>
@@ -74,8 +74,8 @@ auto Logger::trace(const char* text, const Types& ... args) -> void {
 	//Logger::log(LEVEL::TRACE, text, args...);
 }
 template<class ...Types>
-auto Logger::debug(const char* text, const Types& ... args) -> void {
-	s_core->debug(text, args...);
+auto Logger::debug(const std::string& text, const Types& ... args) -> void {
+	s_core->debug(text.c_str(), args...);
 	//Logger::log(LEVEL::DEBUG, text, args...);
 }
 template<class ...Types>

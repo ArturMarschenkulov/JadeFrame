@@ -3,7 +3,11 @@
 
 #if 1 // NOTE: for camera cotrolling. Remove if we move it
 #include "JadeFrame/base_app.h"
+#ifdef _WIN32
 #include "JadeFrame/platform/windows/windows_input_manager.h"
+#elif
+#include "JadeFrame/platform/linux/linux_input_manager.h"
+#endif
 #include "JadeFrame/math/math.h"
 #endif
 
@@ -148,7 +152,7 @@ auto Camera1::get_view_projection_matrix() const -> Matrix4x4 {
 auto Camera1::control() -> void {
 	if (m_mode == MODE::PERSPECTIVE) {
 		const f32 velocity = 0.1f;
-		const Windows_InputManager& i = JadeFrameInstance::get_singleton()->m_input_manager;
+		const InputManager& i = JadeFrameInstance::get_singleton()->m_input_manager;
 		if (i.is_key_down(KEY::E)) m_position += m_up * velocity;
 		if (i.is_key_down(KEY::Q)) m_position -= m_up * velocity;
 

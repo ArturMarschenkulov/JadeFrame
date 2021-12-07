@@ -1,12 +1,11 @@
 #include "pch.h"
 #include "vulkan_debug.h"
+#include "JadeFrame/utils/logger.h"
 
 namespace JadeFrame {
 VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT, VkDebugUtilsMessageTypeFlagsEXT, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void*) {
 	
-	Logger::debug("-------\nvalidation layer: {}\n-------"
-		, pCallbackData->pMessage
-	);
+	Logger::debug("-------\nvalidation layer: {}\n-------", pCallbackData->pMessage);
 	
 	//std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl << std::endl;
 

@@ -19,21 +19,7 @@ namespace JadeFrame {
 */
 class Windows_Window : public IWindow {
 public:
-	enum class WINDOW_STATE {
-		WINDOWED,
-		MINIMIZED,
-		MAXIMIZED,
-	};
 
-	struct Desc {
-		std::string title;
-		v2u32 size;
-		v2u32 position; // NOTE: -1 means randomly chosen by OS
-		//bool is_vsync;
-		WINDOW_STATE window_state = WINDOW_STATE::WINDOWED;
-		bool visable = true;
-		bool accept_drop_files = false;
-	};
 	Windows_Window(const Windows_Window&) = delete;
 	Windows_Window(Windows_Window&&) = delete;
 	auto operator=(const Windows_Window&) -> Windows_Window& = delete;
@@ -45,8 +31,8 @@ public:
 
 
 
-	auto set_title(const std::string& title) -> void;
-	auto get_title() const -> std::string;
+	virtual auto set_title(const std::string& title) -> void override;
+	virtual auto get_title() const -> std::string override;
 
 	auto set_size(const v2u32& size) -> void;
 	auto get_size() const -> const v2u32&;
@@ -55,7 +41,7 @@ public:
 	auto get_position() const -> const v2u32&;
 
 	auto set_window_state(const WINDOW_STATE window_state) -> void;
-	auto get_window_state() const -> WINDOW_STATE;
+	virtual auto get_window_state() const -> WINDOW_STATE override;
 
 	auto query_client_size() const -> v2;
 

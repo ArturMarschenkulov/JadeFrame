@@ -5,6 +5,11 @@
 #include "platform/windows/windows_input_manager.h"
 #include "platform/windows/windows_window.h"
 #include "platform/windows/windows_system_manager.h"
+#elif __linux__
+#include "platform/linux/linux_time_manager.h"
+#include "platform/linux/linux_input_manager.h"
+#include "platform/linux/linux_window.h"
+#include "platform/linux/linux_system_manager.h"
 #endif
 
 #include "JadeFrame/math/vec.h"
@@ -27,6 +32,19 @@ namespace JadeFrame {
 	It also allows an abtraction, which may allow to have several applications at the same time in a JadeFrame context.
 */
 
+
+#ifdef _WIN32 
+using SystemManager = Windows_SystemManager;
+using InputManager = Windows_InputManager;
+using TimeManager = Windows_TimeManager;
+using Window = Windows_Window;
+#elif __linux__
+using SystemManager = Linux_SystemManager;
+using InputManager = Linux_InputManager;
+using TimeManager = Linux_TimeManager;
+using Window = Linux_Window;
+#endif
+
 class BaseApp;
 class IRenderer;
 class JadeFrameInstance {
@@ -42,8 +60,8 @@ public:
 	static auto get_singleton()->JadeFrameInstance*;
 
 public:
-	Windows_SystemManager m_system_manager;
-	Windows_InputManager m_input_manager;
+	SystemManager m_system_manager;
+	InputManager m_input_manager;
 
 	std::deque<BaseApp*> m_apps;
 	BaseApp* m_current_app_p = nullptr;
@@ -66,7 +84,7 @@ public:
 		m_shader_handles.emplace(name, std::move(shader));
 	}
 	auto get_shader_handle(const std::string& name) -> ShaderHandle& {
-		if (m_shader_handles.contains(name)) {
+		if (m_shader_handles.find(name) != m_shader_handles.end()) {
 			return m_shader_handles.at(name);
 		}
         assert(false);
@@ -79,7 +97,7 @@ public:
 		//m_texture_handles.emplace(name, std::move(texture));
 	}
 	auto get_texture_handle(const std::string& name) -> TextureHandle& {
-		if (m_texture_handles.contains(name)) {
+		if (m_texture_handles.find(name) != m_texture_handles.end()) {
 			return m_texture_handles.at(name);
 		}
 		assert(false);
@@ -88,9 +106,9 @@ public:
 
 	auto set_material_handle(const std::string& material_name, const std::string& shader_name, const std::string& texture_name) -> void {
 
-		if (m_shader_handles.contains(shader_name)) {
+		if (m_shader_handles.find(shader_name) != m_shader_handles.end()) {
 			m_material_handles[material_name].m_shader_handle = &m_shader_handles[shader_name];
-			if (m_texture_handles.contains(texture_name)) {
+			if (m_texture_handles.find(texture_name) != m_texture_handles.end()) {
 				m_material_handles[material_name].m_texture_handle = &m_texture_handles[texture_name];
 				return;
 			} else if (texture_name == "") {
@@ -101,7 +119,7 @@ public:
 
 	}
 	auto get_material_handle(const std::string& name) -> MaterialHandle& {
-		if (m_material_handles.contains(name)) {
+		if (m_material_handles.find(name) != m_material_handles.end()) {
 			return m_material_handles.at(name);
 		}
         assert(false);
@@ -112,7 +130,7 @@ public:
 		m_meshes.emplace(name, std::move(vertex_data));
 	}
 	auto get_mesh(const std::string& name) -> VertexData& {
-		if (m_meshes.contains(name)) {
+		if (m_meshes.find(name) != m_meshes.end()) {
 			return m_meshes.at(name);
 		}
         assert(false);
@@ -151,13 +169,13 @@ public:
 	//Window stuff
 	i32 m_window_counter = 0;
 	using WindowID = i32;
-	std::map<WindowID, Windows_Window> m_windows;
-	Windows_Window* m_current_window_p = nullptr;
+	std::map<WindowID, Window> m_windows;
+	Window* m_current_window_p = nullptr;
 
 	IRenderer* m_renderer = nullptr;
 	Camera1 m_camera;
 
-	Windows_TimeManager m_time_manager;
+	TimeManager m_time_manager;
 
 	ResourceStorage m_resources;
 };

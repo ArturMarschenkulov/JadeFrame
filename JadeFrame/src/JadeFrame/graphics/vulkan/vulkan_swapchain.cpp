@@ -119,7 +119,7 @@ auto VulkanRenderPass::init(const VulkanLogicalDevice& device, VkFormat image_fo
 	};
 
 	result = vkCreateRenderPass(device.m_handle, &render_pass_info, nullptr, &m_handle);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 
 }
 auto VulkanRenderPass::deinit() -> void {
@@ -185,7 +185,7 @@ auto VulkanSwapchain::init(
 		create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	}
 	result = vkCreateSwapchainKHR(device.m_handle, &create_info, nullptr, &m_handle);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 
 
 
@@ -194,10 +194,10 @@ auto VulkanSwapchain::init(
 
 	std::vector<VkImage> images;
 	result = vkGetSwapchainImagesKHR(device.m_handle, m_handle, &image_count, nullptr);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 	images.resize(image_count);
 	result = vkGetSwapchainImagesKHR(device.m_handle, m_handle, &image_count, images.data());
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 
 	m_images.resize(image_count);
 	for (u32 i = 0; i < m_images.size(); i++) {
@@ -310,7 +310,7 @@ auto VulkanFramebuffer::init(
 	};
 
 	result = vkCreateFramebuffer(device.m_handle, &framebuffer_info, nullptr, &m_handle);
-	JF_ASSERT(result == VK_SUCCESS);
+	JF_ASSERT(result == VK_SUCCESS, "");
 }
 
 auto VulkanFramebuffer::deinit() -> void {

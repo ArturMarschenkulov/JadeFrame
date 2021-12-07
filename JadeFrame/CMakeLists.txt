@@ -230,7 +230,7 @@ set(ALL_FILES
         ${Files_Extern_shaderc}
         ${Files_Extern_SPIRV-Cross}
         ${Files_Extern_spdlog}
-        src/JadeFrame/platform/platform_shared.h)
+        src/JadeFrame/platform/platform_shared.h "src/JadeFrame/platform/linux/linux_window.h" "src/JadeFrame/platform/linux/linux_time_manager.h" "src/JadeFrame/platform/linux/linux_input_manager.h")
 
 ################################################################################
 # Target
