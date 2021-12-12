@@ -11,7 +11,7 @@
 namespace JadeFrame {
 
 
-Vulkan_Renderer::Vulkan_Renderer(const Windows_Window& window)
+Vulkan_Renderer::Vulkan_Renderer(const Window& window)
 	: m_context(window) {
 
 }

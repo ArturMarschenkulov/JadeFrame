@@ -8,7 +8,13 @@
 
 namespace JadeFrame {
 
+#ifdef _WIN32
 class Windows_Window;
+using Window = Windows_Window;
+#elif __linux__
+class Linux_Window;
+using Window = Linux_Window;
+#endif
 class VulkanPhysicalDevice;
 
 class VulkanInstance {
@@ -54,7 +60,7 @@ struct Vulkan_Context {
 	auto operator=(Vulkan_Context&&)->Vulkan_Context & = delete;
 
 	Vulkan_Context() = default;
-	Vulkan_Context(const Windows_Window& window);
+	Vulkan_Context(const Window& window);
 	~Vulkan_Context();
 public:
 	VulkanInstance m_instance;

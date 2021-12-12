@@ -2,10 +2,14 @@ cmake_minimum_required(VERSION 3.16.0 FATAL_ERROR)
 
 #set(CMAKE_SYSTEM_VERSION 10.0 CACHE STRING "" FORCE)
 
+# For it to compile you need at least clang++-13 or gcc-10
+# std::format is as of right now only by msvc library supported
+
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_COMPILER "clang++")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-set(CMAKE_EXE_LINKER_FLAGS "-lc++abi")
+# set(CMAKE_C_COMPILER "clang")
+# set(CMAKE_CXX_COMPILER "clang++")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+# set(CMAKE_EXE_LINKER_FLAGS "-lc++abi")
 
 project(
     JadeFrame

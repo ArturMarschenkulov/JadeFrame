@@ -266,6 +266,19 @@ Windows_Window::~Windows_Window() {
 	::DestroyWindow(m_window_handle);
 }
 
+auto Windows_Window::handle_events(bool& is_running) -> void {
+	//TODO: Abstract the Windows code away
+	::MSG message;
+	while (::PeekMessageW(&message, NULL, 0, 0, PM_REMOVE)) {
+		if (message.message == WM_QUIT) {
+			is_running = false;
+			return;
+		}
+		::TranslateMessage(&message);
+		::DispatchMessageW(&message);
+	}
+}
+
 auto Windows_Window::set_title(const std::string& title) -> void {
 	m_title = title;
 	::SetWindowTextA(m_window_handle, m_title.c_str());

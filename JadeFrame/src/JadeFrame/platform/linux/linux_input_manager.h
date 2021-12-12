@@ -96,12 +96,16 @@ enum class KEY {
 };
 class Linux_InputManager : public IInputManager {
 public:
-
+	virtual auto handle_input() -> void override {
+		
+	}
     static auto is_key_down(const KEY key) -> bool;
     static auto is_key_up(const KEY key) -> bool;
     static auto is_key_pressed(const KEY key) -> bool;
     static auto is_key_released(const KEY key) -> bool;
 };
-
+#ifdef __linux__
+using InputManager = Linux_InputManager;
+#endif
 
 }

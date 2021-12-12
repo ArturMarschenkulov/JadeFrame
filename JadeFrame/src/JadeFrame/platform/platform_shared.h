@@ -3,6 +3,10 @@
 #include "JadeFrame/math/vec.h"
 #include <string>
 namespace JadeFrame {
+
+    //TODO: Think of a better way to abstract everything. Right now CRTP seems to be enough.
+
+
     class IWindow {
     public:
         enum class WINDOW_STATE {
@@ -20,9 +24,10 @@ namespace JadeFrame {
             bool visable = true;
             bool accept_drop_files = false;
         };
-
+        virtual auto handle_events(bool& running) -> void = 0; //TODO: This is hacky. Fix it later
         virtual auto set_title(const std::string& title) -> void = 0;
         virtual auto get_title() const -> std::string = 0;
+        virtual auto get_size() const -> const v2u32& = 0;
         virtual auto get_window_state() const -> WINDOW_STATE = 0;
     };
     class ITimeManager {
@@ -39,6 +44,7 @@ namespace JadeFrame {
     };
     class IInputManager {
     public:
+        virtual auto handle_input() -> void = 0;
         //static auto is_key_down(const KEY key) -> bool;
         //static auto is_key_up(const KEY key) -> bool;
         //static auto is_key_pressed(const KEY key) -> bool;

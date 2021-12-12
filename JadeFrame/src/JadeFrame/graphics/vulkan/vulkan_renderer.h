@@ -21,7 +21,7 @@ struct Vulkan_RenderCommand {
 
 class Vulkan_Renderer : public IRenderer {
 public:
-	Vulkan_Renderer(const Windows_Window& window);
+	Vulkan_Renderer(const Window& window);
 
 	virtual auto set_clear_color(const RGBAColor& color) -> void override;
 

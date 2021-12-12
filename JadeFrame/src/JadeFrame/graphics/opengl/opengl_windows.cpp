@@ -1,3 +1,4 @@
+#ifdef _WIN32
 #include "pch.h"
 #include "JadeFrame/defines.h"
 #include "opengl_windows.h"
@@ -206,3 +207,4 @@ auto wgl_create_render_context(HDC device_context) -> HGLRC {
 	return render_context;
 }
 }
+#endif

@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <string>
+#include <cstring>
 //#include <format>
 
 #include <cassert>
@@ -27,7 +28,7 @@
 #include <future>
 
 #include <type_traits>
-//#include <concepts>
+#include <concepts>
 
 //Windows
 #if defined _WIN32

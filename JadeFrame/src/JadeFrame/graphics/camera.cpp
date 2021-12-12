@@ -5,7 +5,7 @@
 #include "JadeFrame/base_app.h"
 #ifdef _WIN32
 #include "JadeFrame/platform/windows/windows_input_manager.h"
-#elif
+#elif __linux__
 #include "JadeFrame/platform/linux/linux_input_manager.h"
 #endif
 #include "JadeFrame/math/math.h"
@@ -56,7 +56,7 @@ auto Camera::get_view_matrix() const -> Matrix4x4 {
 auto Camera::control() -> void {
 	f32 r = 0.1f;
 
-	Windows_InputManager i = JadeFrameInstance::get_singleton()->m_input_manager;
+	InputManager i = JadeFrameInstance::get_singleton()->m_input_manager;
 
 
 	if (i.is_key_down(KEY::E)) m_position += m_up * r;

@@ -17,6 +17,8 @@ namespace JadeFrame {
 /*
 	TOOD: Consider whether this class should be RAII or not. Right now it is.
 */
+
+
 class Windows_Window : public IWindow {
 public:
 
@@ -30,6 +32,8 @@ public:
 	~Windows_Window();
 
 
+
+	virtual auto handle_events(bool& running) -> void override;
 
 	virtual auto set_title(const std::string& title) -> void override;
 	virtual auto get_title() const -> std::string override;
@@ -59,5 +63,8 @@ public:
 	WINDOW_STATE m_window_state = WINDOW_STATE::MINIMIZED;
 
 };
+#ifdef _WIN32
+using Window = Windows_Window;
+#endif
 
 }

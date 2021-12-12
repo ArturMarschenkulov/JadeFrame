@@ -20,6 +20,23 @@ Frameworks:
 	SFML, Cell, MagnumEngine, Hazel/Sparky, raylib, toy, cinder
 
 Orthographical convention:
+
+
+	To make the code more readable even without syntax highlighting there are some conventions.
+	Generally, variables and functions are all snake_case.
+	Global variables start with "g_".
+	Classes and structs are all PascalCase.
+		Only special mathematical classes are all lowercase. "i32", "v2" or "mat4"
+		Platform specific may be prefixed with "Platform_". This is maybe temporary.
+	Member variables start with "m_".
+	Always use "this->" with methods as much as possible.
+	Static member variables start with "s_".
+	Enums and enum classes are all ALL_CAPS.
+	Macros all begin with "JF_" after which ALL_CAPS. Try to keep macros contained.
+
+
+
+
 	variables and functions in snake case (my_variable, my_function())
 	Classes and structs are written in pascal case (MyClass, MyStruct). Platform code with "_", e.g. "Windows_Window", "OpenGL_renderer".
 

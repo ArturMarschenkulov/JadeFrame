@@ -1,6 +1,10 @@
 #pragma once
 
+#ifdef _WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
+#elif __linux__
+#define VK_USE_PLATFORM_XLIB_KHR
+#endif
 #include <vulkan/vulkan.h>
 
 struct HWND__;	typedef HWND__* HWND;

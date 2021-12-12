@@ -8,7 +8,8 @@
 namespace JadeFrame {
 
 
-static auto init_device_context(const Windows_Window& window) -> HDC {
+static auto wgl_init_device_context(const Window& window) -> HDC {
+#ifdef _WIN32
 	static bool is_wgl_loaded = false;
 	if (is_wgl_loaded == false) {
 		is_wgl_loaded = wgl_load();
@@ -20,9 +21,13 @@ static auto init_device_context(const Windows_Window& window) -> HDC {
         assert(false);
 	}
 	return device_context;
+#elif __linux__
+	return {};
+#endif
 }
 
-static auto init_render_context(HDC device_context) -> HGLRC {
+static auto wgl_init_render_context(HDC device_context) -> HGLRC {
+#ifdef _WIN32
 	wgl_set_pixel_format(device_context);
 	HGLRC render_context = wgl_create_render_context(device_context);
 	i32 result = gladLoadGL();
@@ -30,10 +35,13 @@ static auto init_render_context(HDC device_context) -> HGLRC {
 		Logger::err("gladLoadGL() failed.", ::GetLastError());
 	}
 	return render_context;
+#elif __linux__
+	return {};
+#endif
 }
-OpenGL_Context::OpenGL_Context(const Windows_Window& window)
-	: m_device_context(init_device_context(window))
-	, m_render_context(init_render_context(m_device_context)) {
+OpenGL_Context::OpenGL_Context(const Window& window)
+	: m_device_context(wgl_init_device_context(window))
+	, m_render_context(wgl_init_render_context(m_device_context)) {
 
 	set_debug_mode(true);
 	m_state.set_default();
@@ -59,7 +67,7 @@ OpenGL_Context::OpenGL_Context(const Windows_Window& window)
 	//glGetIntegerv(GL_MAX_CLIP_DISTANCES, &max_clip_distances);
 	//glGetIntegerv(GL_MAX_CLIP_DISTANCES, &max_clip_distances);
 
-	wgl_swap_interval(0); //TODO: This is windows specific. Abstract this away
+	//wgl_swap_interval(0); //TODO: This is windows specific. Abstract this away
 
 	{
 		const GLuint binding_point_0 = 0;

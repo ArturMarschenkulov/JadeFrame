@@ -37,12 +37,10 @@ namespace JadeFrame {
 using SystemManager = Windows_SystemManager;
 using InputManager = Windows_InputManager;
 using TimeManager = Windows_TimeManager;
-using Window = Windows_Window;
 #elif __linux__
 using SystemManager = Linux_SystemManager;
 using InputManager = Linux_InputManager;
 using TimeManager = Linux_TimeManager;
-using Window = Linux_Window;
 #endif
 
 class BaseApp;

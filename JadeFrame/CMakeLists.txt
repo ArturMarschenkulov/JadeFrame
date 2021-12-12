@@ -3,12 +3,23 @@ set(PROJECT_NAME JadeFrame)
 ################################################################################
 # Source groups
 ################################################################################
-set(Files_Extern_IMGUI
+set(Files_Extern_IMGUI_WIN32
+    "src/extern/imgui/imgui_impl_win32.h"
+    "src/extern/imgui/imgui_impl_win32.cpp"
+
+    "src/extern/imgui/imgui_impl_dx11.h"
+    "src/extern/imgui/imgui_impl_dx11.cpp"
+)
+
+
+
+set(Files_Extern_IMGUI_BASE
         "src/extern/imgui/imconfig.h"
         "src/extern/imgui/imgui.h"
-        "src/extern/imgui/imgui_impl_dx11.h"
+
         "src/extern/imgui/imgui_impl_opengl3.h"
-        "src/extern/imgui/imgui_impl_win32.h"
+        "src/extern/imgui/imgui_impl_opengl3.cpp"
+
         "src/extern/imgui/imgui_internal.h"
         "src/extern/imgui/imstb_rectpack.h"
         "src/extern/imgui/imstb_textedit.h"
@@ -17,11 +28,16 @@ set(Files_Extern_IMGUI
         "src/extern/imgui/imgui.cpp"
         "src/extern/imgui/imgui_demo.cpp"
         "src/extern/imgui/imgui_draw.cpp"
-        "src/extern/imgui/imgui_impl_dx11.cpp"
-        "src/extern/imgui/imgui_impl_opengl3.cpp"
-        "src/extern/imgui/imgui_impl_win32.cpp"
         "src/extern/imgui/imgui_widgets.cpp"
-        )
+)
+
+IF(WIN32)
+set(Files_Extern_IMGUI
+    ${Files_Extern_IMGUI_BASE}
+    ${Files_Extern_IMGUI_WIN32}
+)
+ENDIF()
+
 set(Files_Extern_STB
         "src/extern/stb/stb_image.h"
         "src/extern/stb/stb_image_resize.h"
@@ -87,6 +103,61 @@ set(Files_Base
         "src/JadeFrame/core.cpp"
         "src/JadeFrame/gui.cpp"
         )
+
+
+set(Files_Graphics_OpenGL
+    "src/JadeFrame/graphics/opengl/opengl_buffer.h"
+    "src/JadeFrame/graphics/opengl/opengl_context.h"
+    "src/JadeFrame/graphics/opengl/opengl_debug.h"
+    "src/JadeFrame/graphics/opengl/opengl_renderer.h"
+    "src/JadeFrame/graphics/opengl/opengl_shader.h"
+    "src/JadeFrame/graphics/opengl/opengl_shader_loader.h"
+    "src/JadeFrame/graphics/opengl/opengl_texture.h"
+    "src/JadeFrame/graphics/opengl/opengl_windows.h"
+    "src/JadeFrame/graphics/opengl/opengl_wrapper.h"
+    "src/JadeFrame/graphics/opengl/opengl_buffer.cpp"
+    "src/JadeFrame/graphics/opengl/opengl_context.cpp"
+    "src/JadeFrame/graphics/opengl/opengl_debug.cpp"
+    "src/JadeFrame/graphics/opengl/opengl_renderer.cpp"
+    "src/JadeFrame/graphics/opengl/opengl_shader.cpp"
+    "src/JadeFrame/graphics/opengl/opengl_shader_loader.cpp"
+    "src/JadeFrame/graphics/opengl/opengl_texture.cpp"
+    "src/JadeFrame/graphics/opengl/opengl_windows.cpp"
+    "src/JadeFrame/graphics/opengl/opengl_wrapper.cpp"
+)
+set(Files_Graphics_Vulkan
+    "src/JadeFrame/graphics/vulkan/vulkan_buffer.h"
+    "src/JadeFrame/graphics/vulkan/vulkan_command_buffers.h"
+    "src/JadeFrame/graphics/vulkan/vulkan_context.h"
+    "src/JadeFrame/graphics/vulkan/vulkan_debug.h"
+    "src/JadeFrame/graphics/vulkan/vulkan_descriptor_set.h"
+    "src/JadeFrame/graphics/vulkan/vulkan_logical_device.h"
+    "src/JadeFrame/graphics/vulkan/vulkan_physical_device.h"
+    "src/JadeFrame/graphics/vulkan/vulkan_pipeline.h"
+    "src/JadeFrame/graphics/vulkan/vulkan_renderer.h"
+    "src/JadeFrame/graphics/vulkan/vulkan_shader.h"
+    "src/JadeFrame/graphics/vulkan/vulkan_shared.h"
+    "src/JadeFrame/graphics/vulkan/vulkan_surface.h"
+    "src/JadeFrame/graphics/vulkan/vulkan_swapchain.h"
+    "src/JadeFrame/graphics/vulkan/vulkan_sync_object.h"
+    "src/JadeFrame/graphics/vulkan/vulkan_buffer.cpp"
+    "src/JadeFrame/graphics/vulkan/vulkan_command_buffers.cpp"
+    "src/JadeFrame/graphics/vulkan/vulkan_context.cpp"
+    "src/JadeFrame/graphics/vulkan/vulkan_debug.cpp"
+    "src/JadeFrame/graphics/vulkan/vulkan_descriptor_set.cpp"
+    "src/JadeFrame/graphics/vulkan/vulkan_logical_device.cpp"
+    "src/JadeFrame/graphics/vulkan/vulkan_physical_device.cpp"
+    "src/JadeFrame/graphics/vulkan/vulkan_pipeline.cpp"
+    "src/JadeFrame/graphics/vulkan/vulkan_renderer.cpp"
+    "src/JadeFrame/graphics/vulkan/vulkan_shader.cpp"
+    "src/JadeFrame/graphics/vulkan/vulkan_surface.cpp"
+    "src/JadeFrame/graphics/vulkan/vulkan_swapchain.cpp"
+    "src/JadeFrame/graphics/vulkan/vulkan_sync_object.cpp"
+)
+set(Files_Graphics_DirectX
+    "src/JadeFrame/graphics/d3d11/d3d11_renderer.h"
+    "src/JadeFrame/graphics/d3d12/d3d12_renderer.h"
+)
 set(Files_Graphics
         "src/JadeFrame/graphics/camera.h"
 
@@ -98,56 +169,10 @@ set(Files_Graphics
         "src/JadeFrame/graphics/material_handle.cpp"
         "src/JadeFrame/graphics/mesh.cpp"
 
-        "src/JadeFrame/graphics/d3d11/d3d11_renderer.h"
-        "src/JadeFrame/graphics/d3d12/d3d12_renderer.h"
+
         "src/JadeFrame/graphics/software/software_renderer.h"
-
-        "src/JadeFrame/graphics/opengl/opengl_buffer.h"
-        "src/JadeFrame/graphics/opengl/opengl_context.h"
-        "src/JadeFrame/graphics/opengl/opengl_debug.h"
-        "src/JadeFrame/graphics/opengl/opengl_renderer.h"
-        "src/JadeFrame/graphics/opengl/opengl_shader.h"
-        "src/JadeFrame/graphics/opengl/opengl_shader_loader.h"
-        "src/JadeFrame/graphics/opengl/opengl_texture.h"
-        "src/JadeFrame/graphics/opengl/opengl_windows.h"
-        "src/JadeFrame/graphics/opengl/opengl_wrapper.h"
-        "src/JadeFrame/graphics/opengl/opengl_buffer.cpp"
-        "src/JadeFrame/graphics/opengl/opengl_context.cpp"
-        "src/JadeFrame/graphics/opengl/opengl_debug.cpp"
-        "src/JadeFrame/graphics/opengl/opengl_renderer.cpp"
-        "src/JadeFrame/graphics/opengl/opengl_shader.cpp"
-        "src/JadeFrame/graphics/opengl/opengl_shader_loader.cpp"
-        "src/JadeFrame/graphics/opengl/opengl_texture.cpp"
-        "src/JadeFrame/graphics/opengl/opengl_windows.cpp"
-        "src/JadeFrame/graphics/opengl/opengl_wrapper.cpp"
-
-        "src/JadeFrame/graphics/vulkan/vulkan_buffer.h"
-        "src/JadeFrame/graphics/vulkan/vulkan_command_buffers.h"
-        "src/JadeFrame/graphics/vulkan/vulkan_context.h"
-        "src/JadeFrame/graphics/vulkan/vulkan_debug.h"
-        "src/JadeFrame/graphics/vulkan/vulkan_descriptor_set.h"
-        "src/JadeFrame/graphics/vulkan/vulkan_logical_device.h"
-        "src/JadeFrame/graphics/vulkan/vulkan_physical_device.h"
-        "src/JadeFrame/graphics/vulkan/vulkan_pipeline.h"
-        "src/JadeFrame/graphics/vulkan/vulkan_renderer.h"
-        "src/JadeFrame/graphics/vulkan/vulkan_shader.h"
-        "src/JadeFrame/graphics/vulkan/vulkan_shared.h"
-        "src/JadeFrame/graphics/vulkan/vulkan_surface.h"
-        "src/JadeFrame/graphics/vulkan/vulkan_swapchain.h"
-        "src/JadeFrame/graphics/vulkan/vulkan_sync_object.h"
-        "src/JadeFrame/graphics/vulkan/vulkan_buffer.cpp"
-        "src/JadeFrame/graphics/vulkan/vulkan_command_buffers.cpp"
-        "src/JadeFrame/graphics/vulkan/vulkan_context.cpp"
-        "src/JadeFrame/graphics/vulkan/vulkan_debug.cpp"
-        "src/JadeFrame/graphics/vulkan/vulkan_descriptor_set.cpp"
-        "src/JadeFrame/graphics/vulkan/vulkan_logical_device.cpp"
-        "src/JadeFrame/graphics/vulkan/vulkan_physical_device.cpp"
-        "src/JadeFrame/graphics/vulkan/vulkan_pipeline.cpp"
-        "src/JadeFrame/graphics/vulkan/vulkan_renderer.cpp"
-        "src/JadeFrame/graphics/vulkan/vulkan_shader.cpp"
-        "src/JadeFrame/graphics/vulkan/vulkan_surface.cpp"
-        "src/JadeFrame/graphics/vulkan/vulkan_swapchain.cpp"
-        "src/JadeFrame/graphics/vulkan/vulkan_sync_object.cpp"
+        ${Files_Graphics_Vulkan}
+        ${Files_Graphics_OpenGL}
         )
 set(Files_Extern_OpenGL
         "src/extern/glad/glad.h"
@@ -182,21 +207,34 @@ set(Files_Utils
         "src/JadeFrame/utils/logger.cpp"
         "src/JadeFrame/utils/utils.cpp"
         )
-
-set(Files_Platform_Windows
+IF (WIN32)
+set(Files_Platform
+        "src/JadeFrame/platform/platform_shared.h"  
         "src/JadeFrame/platform/windows/windows_input_manager.h"
+        "src/JadeFrame/platform/windows/windows_input_manager.cpp"
+
         "src/JadeFrame/platform/windows/windows_message_map.h"
+        "src/JadeFrame/platform/windows/windows_message_map.cpp"
+        
         "src/JadeFrame/platform/windows/windows_shared.h"
         "src/JadeFrame/platform/windows/windows_system_manager.h"
-        "src/JadeFrame/platform/windows/windows_time_manager.h"
-        "src/JadeFrame/platform/windows/windows_window.h"
-
-        "src/JadeFrame/platform/windows/windows_input_manager.cpp"
-        "src/JadeFrame/platform/windows/windows_message_map.cpp"
         "src/JadeFrame/platform/windows/windows_system_manager.cpp"
+
+        "src/JadeFrame/platform/windows/windows_time_manager.h"
         "src/JadeFrame/platform/windows/windows_time_manager.cpp"
+
+        "src/JadeFrame/platform/windows/windows_window.h"
         "src/JadeFrame/platform/windows/windows_window.cpp"
         )
+ELSEIF(UNIX)
+set(Files_Platform
+        "src/JadeFrame/platform/platform_shared.h"
+        "src/JadeFrame/platform/linux/linux_window.h" 
+        "src/JadeFrame/platform/linux/linux_time_manager.h"
+        "src/JadeFrame/platform/linux/linux_input_manager.h"
+        )
+  # set stuff for other systems
+ENDIF()
 
 #[[source_group("Files"
         FILES
@@ -219,7 +257,7 @@ set(ALL_FILES
     #${Source_Files}
         ${Files_Base}
         ${Files_Graphics}
-        ${Files_Platform_Windows}
+        ${Files_Platform}
         ${Files_Math}
         ${Files_Utils}
         ${Files_Datatypes}
@@ -230,7 +268,7 @@ set(ALL_FILES
         ${Files_Extern_shaderc}
         ${Files_Extern_SPIRV-Cross}
         ${Files_Extern_spdlog}
-        src/JadeFrame/platform/platform_shared.h "src/JadeFrame/platform/linux/linux_window.h" "src/JadeFrame/platform/linux/linux_time_manager.h" "src/JadeFrame/platform/linux/linux_input_manager.h")
+           "src/JadeFrame/datatypes/option.h")
 
 ################################################################################
 # Target
@@ -564,39 +602,39 @@ endif()
 ################################################################################
 # Dependencies
 ################################################################################
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    set(ADDITIONAL_LIBRARY_DEPENDENCIES
-        "$<$<CONFIG:Debug>:"
-            "shadercd;"
-            "shaderc_combinedd;"
-            "shaderc_sharedd;"
-            "shaderc_utild"
-        ">"
-        "$<$<CONFIG:Release>:"
-            "shaderc;"
-            "shaderc_combined;"
-            "shaderc_shared;"
-            "shaderc_util"
-        ">"
-        "vulkan-1"
-    )
-elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-    set(ADDITIONAL_LIBRARY_DEPENDENCIES
-        "$<$<CONFIG:Debug>:"
-            "shadercd;"
-            "shaderc_combinedd;"
-            "shaderc_sharedd;"
-            "shaderc_utild"
-        ">"
-        "$<$<CONFIG:Release>:"
-            "shaderc;"
-            "shaderc_combined;"
-            "shaderc_shared;"
-            "shaderc_util"
-        ">"
-        "vulkan-1"
-    )
-endif()
+IF(Win32)
+set(ADDITIONAL_LIBRARY_DEPENDENCIES
+    "$<$<CONFIG:Debug>:"
+        "shadercd;"
+        "shaderc_combinedd;"
+        "shaderc_sharedd;"
+        "shaderc_utild"
+    ">"
+    "$<$<CONFIG:Release>:"
+        "shaderc;"
+        "shaderc_combined;"
+        "shaderc_shared;"
+        "shaderc_util"
+    ">"
+    "vulkan-1"
+)
+ELSE()
+set(ADDITIONAL_LIBRARY_DEPENDENCIES
+    "$<$<CONFIG:Debug>:"
+        "shadercd;"
+        "shaderc_combinedd;"
+        "shaderc_sharedd;"
+        "shaderc_utild"
+    ">"
+    "$<$<CONFIG:Release>:"
+        "shaderc;"
+        "shaderc_combined;"
+        "shaderc_shared;"
+        "shaderc_util"
+    ">"
+    "libvulkan.so"
+)
+ENDIF()
 target_link_libraries(${PROJECT_NAME} PUBLIC "${ADDITIONAL_LIBRARY_DEPENDENCIES}")
 
 if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")

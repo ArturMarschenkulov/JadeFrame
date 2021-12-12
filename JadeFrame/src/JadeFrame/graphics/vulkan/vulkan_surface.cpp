@@ -8,7 +8,7 @@ auto VulkanSurface::init(VkInstance instance, HWND window_handle) -> void {
 	m_window_handle = window_handle;
 
 	VkResult result;
-
+#if _WIN32
 	const VkWin32SurfaceCreateInfoKHR create_info = {
 		.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
 		.pNext = nullptr,
@@ -22,6 +22,9 @@ auto VulkanSurface::init(VkInstance instance, HWND window_handle) -> void {
         assert(false);
 		throw std::runtime_error("failed to create window surface!");
 	}
+#else
+	assert(false && "not implemented yet");
+#endif
 }
 
 auto VulkanSurface::deinit() -> void {

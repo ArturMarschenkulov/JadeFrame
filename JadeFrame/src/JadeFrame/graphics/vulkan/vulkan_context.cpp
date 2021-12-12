@@ -247,7 +247,7 @@ auto VulkanInstance::deinit() -> void {
 	vkDestroyInstance(m_instance, nullptr);
 }
 
-Vulkan_Context::Vulkan_Context(const Windows_Window& window) {
+Vulkan_Context::Vulkan_Context(const Window& window) {
 	m_window_handle = window.m_window_handle;
 	m_instance.init(window.m_window_handle);
 }

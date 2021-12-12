@@ -3,6 +3,7 @@
 //#include <concepts>
 #include <type_traits>
 #include <cmath>
+#include <cstring>
 
 namespace JadeFrame {
 #pragma warning(disable : 4201)

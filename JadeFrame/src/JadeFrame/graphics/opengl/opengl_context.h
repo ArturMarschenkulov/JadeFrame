@@ -5,7 +5,11 @@
 #include "JadeFrame/graphics/mesh.h" // For Color
 #include "opengl_wrapper.h" // TODO: FOr SHADER_DATA_TYPE. Maybe move?
 
+#ifdef _WIN32
 #include "JadeFrame/platform/windows/windows_window.h"
+#elif __linux__
+#include "JadeFrame/platform/linux/linux_window.h"
+#endif
 
 struct HGLRC__;
 typedef HGLRC__* HGLRC;
@@ -73,7 +77,7 @@ public:
 class OpenGL_Context {
 public:
 	OpenGL_Context() = default;
-	OpenGL_Context(const Windows_Window& window);
+	OpenGL_Context(const Window& window);
 	~OpenGL_Context();
 public:
 

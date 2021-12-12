@@ -16,8 +16,11 @@
 #include <stack>
 #include <map>
 
-
+#ifdef _WIN32
 #include "JadeFrame/platform/windows/windows_window.h"
+#elif __linux__
+#include "JadeFrame/platform/linux/linux_window.h"
+#endif
 
 namespace JadeFrame {
 
@@ -60,7 +63,7 @@ public:
 class OpenGL_Renderer : public IRenderer {
 public:
 
-	OpenGL_Renderer(const Windows_Window& window);
+	OpenGL_Renderer(const Window& window);
 
 	virtual auto present() -> void override;
 	virtual auto clear_background() -> void override;

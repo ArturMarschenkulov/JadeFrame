@@ -6,7 +6,9 @@
 
 #include <set>
 #include <string>
-#include <Windows.h> // TODO: Try to remove it. Used in "choose_swap_extent()"
+#ifdef _WIN32
+#include "Windows.h" // TODO: Try to remove it. Used in "choose_swap_extent()"
+#endif
 #include "JadeFrame/utils/logger.h"
 
 #undef min

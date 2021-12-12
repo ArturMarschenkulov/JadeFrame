@@ -2,6 +2,7 @@
 #include "JadeFrame/defines.h"
 #include <JadeFrame/math/mat_4.h>
 #include <variant>
+#include <cassert>
 
 
 namespace JadeFrame {

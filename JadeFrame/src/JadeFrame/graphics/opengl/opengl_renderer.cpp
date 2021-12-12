@@ -2,7 +2,9 @@
 #include "opengl_renderer.h"
 #include "JadeFrame/base_app.h"
 
+#ifdef _WIN32
 #include "Windows.h"
+#endif
 
 #include <cassert>
 
@@ -50,7 +52,7 @@ static auto setup_framebuffer(OGLW_Framebuffer& buffer, OGLW_Texture<GL_TEXTURE_
 	const GLenum res = buffer.check_status();
 	if (res != GL_FRAMEBUFFER_COMPLETE) assert(false);
 }
-OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(window) {
+OpenGL_Renderer::OpenGL_Renderer(const Window& window) : m_context(window) {
 	{
 		//setup_framebuffer(m_framebuffer, m_framebuffer_texture, m_framebuffer_renderbuffer);
 
@@ -103,7 +105,9 @@ OpenGL_Renderer::OpenGL_Renderer(const Windows_Window& window) : m_context(windo
 }
 
 auto OpenGL_Renderer::present() -> void {
+#ifdef _WIN32
 	::SwapBuffers(m_context.m_device_context); // TODO: This is Windows specific. Abstract his away!
+#endif
 }
 auto OpenGL_Renderer::submit(const Object& obj) -> void {
 

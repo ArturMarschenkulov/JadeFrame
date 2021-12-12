@@ -54,7 +54,7 @@ auto VulkanDescriptorSet::readd_uniform_buffer(u32 binding, const VulkanBuffer& 
 			return;
 		}
 	}
-	__debugbreak();
+	assert(false);
 	return;
 }
 auto VulkanDescriptorSet::update() -> void {

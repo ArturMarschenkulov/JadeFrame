@@ -58,7 +58,7 @@ auto JadeFrameInstance::add(BaseApp* app) -> void {
 BaseApp::BaseApp(const DESC& desc) {
 	m_time_manager.initialize();
 
-	Windows_Window::Desc win_desc;
+	Window::Desc win_desc;
 	win_desc.title = desc.title;
 	win_desc.size = desc.size;
 	win_desc.position = desc.position;
@@ -96,7 +96,7 @@ auto BaseApp::start() -> void {
 	while (m_is_running) {
 		const f64 time_since_last_frame = m_time_manager.calc_elapsed();
 		this->on_update();
-		if (m_current_window_p->get_window_state() != Windows_Window::WINDOW_STATE::MINIMIZED) {
+		if (m_current_window_p->get_window_state() != Window::WINDOW_STATE::MINIMIZED) {
 			m_renderer->clear_background();
 			//GUI_new_frame();
 
@@ -118,17 +118,7 @@ auto BaseApp::start() -> void {
 }
 auto BaseApp::poll_events() -> void {
 	JadeFrameInstance::get_singleton()->m_input_manager.handle_input();
-
-	//TODO: Abstract the Windows code away
-	::MSG message;
-	while (::PeekMessageW(&message, NULL, 0, 0, PM_REMOVE)) {
-		if (message.message == WM_QUIT) {
-			this->m_is_running = false;
-			return;
-		}
-		::TranslateMessage(&message);
-		::DispatchMessageW(&message);
-	}
+	m_windows[0].handle_events(m_is_running);
 }
 //**************************************************************
 //~BaseApp

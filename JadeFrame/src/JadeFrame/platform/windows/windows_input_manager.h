@@ -121,7 +121,7 @@ struct KeyEvent : public Event {
 class Windows_InputManager : public IInputManager {
 	friend class WinWindow;
 public:
-	auto handle_input() -> void;
+	virtual auto handle_input() -> void override;
 
 public:
 	//key part
@@ -153,5 +153,7 @@ public:
 	static std::array<INPUT_STATE, 3> m_previous_mouse_button_state;
 	static v2 m_mouse_posiition;
 };
-
+#ifdef _WIN32
+using InputManager = Windows_InputManager;
+#endif
 }

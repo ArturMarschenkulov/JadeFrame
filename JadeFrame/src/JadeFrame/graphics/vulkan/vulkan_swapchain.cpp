@@ -1,7 +1,9 @@
 #include "pch.h"
 #include "vulkan_swapchain.h"
 
+#if _WIN32
 #include <Windows.h> // TODO: Try to remove it
+#endif
 
 
 #include "vulkan_logical_device.h"
@@ -45,12 +47,14 @@ static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities
 	if (false/*m_surface_capabilities.currentExtent.width != UINT32_MAX*/) {
 		return available_capabilities.currentExtent;
 	} else {
+	#ifdef _WIN32
 		RECT area;
 		const HWND& wh = swapchain.m_surface->m_window_handle;
 		GetClientRect(wh, &area);
 		i32 width = area.right;
 		i32 height = area.bottom;
 		//glfwGetFramebufferSize(window, &width, &height);
+
 
 		VkExtent2D actual_extent = {
 			static_cast<u32>(width),
@@ -65,6 +69,10 @@ static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities
 		//actual_extent.height = std::clamp(actual_extent.height, m_surface_capabilities.minImageExtent.height, m_surface_capabilities.maxImageExtent.height);
 
 		return actual_extent;
+	#else
+		assert(false && "not implemented yet");
+		return {};
+	#endif
 	}
 }
 
