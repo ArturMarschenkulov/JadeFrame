@@ -6,10 +6,10 @@ cmake_minimum_required(VERSION 3.16.0 FATAL_ERROR)
 # std::format is as of right now only by msvc library supported
 
 set(CMAKE_CXX_STANDARD 20)
-# set(CMAKE_C_COMPILER "clang")
-# set(CMAKE_CXX_COMPILER "clang++")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-# set(CMAKE_EXE_LINKER_FLAGS "-lc++abi")
+set(CMAKE_C_COMPILER "clang")
+set(CMAKE_CXX_COMPILER "clang++")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -pthread")
+set(CMAKE_EXE_LINKER_FLAGS "-lc++abi -lpthread")
 
 project(
     JadeFrame
@@ -18,6 +18,12 @@ project(
 )
 
 
+
+if (WIN32)
+  message("The OS is WIN32")
+elseif (UNIX AND NOT APPLE)
+    message("The OS is LINUX")
+endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   message("using clang compiler")

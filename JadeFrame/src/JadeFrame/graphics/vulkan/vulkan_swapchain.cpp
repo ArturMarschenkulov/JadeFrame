@@ -41,6 +41,7 @@ static auto choose_present_mode(const std::vector<VkPresentModeKHR>& available_s
 		}
 	}
 	assert(!"Should not reach here!");
+	return {};
 }
 static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities, const VulkanSwapchain& swapchain) -> VkExtent2D {
 		//vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_surface, &m_surface_capabilities);

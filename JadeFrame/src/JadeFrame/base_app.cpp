@@ -83,6 +83,7 @@ BaseApp::BaseApp(const DESC& desc) {
 			m_renderer = new Vulkan_Renderer(m_windows[0]);
 			m_current_window_p->set_title(title + " Vulkan");
 		} break;
+		default: assert(false);
 	}
 
 

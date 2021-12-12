@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "windows_time_manager.h"
 #include <Windows.h>
-#include <timeapi.h>
-#pragma comment(lib,"winmm.lib")
+//#include <timeapi.h>
+// #pragma comment(lib,"winmm.lib")
 
 namespace JadeFrame {
 

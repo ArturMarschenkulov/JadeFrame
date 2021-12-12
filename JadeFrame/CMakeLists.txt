@@ -14,21 +14,21 @@ set(Files_Extern_IMGUI_WIN32
 
 
 set(Files_Extern_IMGUI_BASE
-        "src/extern/imgui/imconfig.h"
-        "src/extern/imgui/imgui.h"
+    "src/extern/imgui/imconfig.h"
+    "src/extern/imgui/imgui.h"
 
-        "src/extern/imgui/imgui_impl_opengl3.h"
-        "src/extern/imgui/imgui_impl_opengl3.cpp"
+    "src/extern/imgui/imgui_impl_opengl3.h"
+    "src/extern/imgui/imgui_impl_opengl3.cpp"
 
-        "src/extern/imgui/imgui_internal.h"
-        "src/extern/imgui/imstb_rectpack.h"
-        "src/extern/imgui/imstb_textedit.h"
-        "src/extern/imgui/imstb_truetype.h"
+    "src/extern/imgui/imgui_internal.h"
+    "src/extern/imgui/imstb_rectpack.h"
+    "src/extern/imgui/imstb_textedit.h"
+    "src/extern/imgui/imstb_truetype.h"
 
-        "src/extern/imgui/imgui.cpp"
-        "src/extern/imgui/imgui_demo.cpp"
-        "src/extern/imgui/imgui_draw.cpp"
-        "src/extern/imgui/imgui_widgets.cpp"
+    "src/extern/imgui/imgui.cpp"
+    "src/extern/imgui/imgui_demo.cpp"
+    "src/extern/imgui/imgui_draw.cpp"
+    "src/extern/imgui/imgui_widgets.cpp"
 )
 
 IF(WIN32)
@@ -236,39 +236,23 @@ set(Files_Platform
   # set stuff for other systems
 ENDIF()
 
-#[[source_group("Files"
-        FILES
-
-        ${Files_Base}
-        ${Files_Graphics}
-        ${Files_Platform_Windows}
-        ${Files_Utils}
-        ${Files_Datatypes}
-        ${Files_Extern_OpenGL}
-
-        ${Files_Extern_IMGUI}
-        ${Files_Extern_STB}
-        ${Files_Extern_shaderc}
-        ${Files_Extern_SPIRV-Cross}
-        )]]
-
 set(ALL_FILES
     #${Header_Files}
     #${Source_Files}
-        ${Files_Base}
-        ${Files_Graphics}
-        ${Files_Platform}
-        ${Files_Math}
-        ${Files_Utils}
-        ${Files_Datatypes}
-        ${Files_Extern_OpenGL}
-
-        ${Files_Extern_IMGUI}
-        ${Files_Extern_STB}
-        ${Files_Extern_shaderc}
-        ${Files_Extern_SPIRV-Cross}
-        ${Files_Extern_spdlog}
-           "src/JadeFrame/datatypes/option.h")
+    ${Files_Base}
+    ${Files_Graphics}
+    ${Files_Platform}
+    ${Files_Math}
+    ${Files_Utils}
+    ${Files_Datatypes}
+    ${Files_Extern_OpenGL}  
+    ${Files_Extern_IMGUI}
+    ${Files_Extern_STB}
+    ${Files_Extern_shaderc}
+    ${Files_Extern_SPIRV-Cross}
+    ${Files_Extern_spdlog}
+    "src/JadeFrame/datatypes/option.h"
+)
 
 ################################################################################
 # Target
@@ -285,111 +269,61 @@ set(ROOT_NAMESPACE JadeFrame)
 ################################################################################
 # Output directory
 ################################################################################
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        OUTPUT_DIRECTORY_DEBUG   "${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/"
-        OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/"
-    )
-elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        OUTPUT_DIRECTORY_DEBUG   "${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/"
-        OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/"
-    )
-endif()
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        INTERPROCEDURAL_OPTIMIZATION_RELEASE "TRUE"
-    )
-elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        INTERPROCEDURAL_OPTIMIZATION_RELEASE "TRUE"
-    )
-endif()
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    OUTPUT_DIRECTORY_DEBUG   "${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/"
+    OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/"
+)
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    INTERPROCEDURAL_OPTIMIZATION_RELEASE "TRUE"
+)
 ################################################################################
 # Include directories
 ################################################################################
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    target_include_directories(${PROJECT_NAME} PRIVATE
-        "$<$<CONFIG:Release>:"
-            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../VulkanSDK/1.2.176.1/Include"
-        ">"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/extern;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src"
-    )
-elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-    target_include_directories(${PROJECT_NAME} PRIVATE
-        "$<$<CONFIG:Release>:"
-            "${CMAKE_CURRENT_SOURCE_DIR}/../../../../VulkanSDK/1.2.176.1/Include"
-        ">"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/extern;"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src"
-    )
-endif()
+target_include_directories(${PROJECT_NAME} PRIVATE
+    "$<$<CONFIG:Release>:"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../../../VulkanSDK/1.2.176.1/Include"
+    ">"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/extern;"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+)
 
 ################################################################################
 # Compile definitions
 ################################################################################
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        "$<$<CONFIG:Debug>:"
-            "_DEBUG"
-        ">"
-        "$<$<CONFIG:Release>:"
-            "NDEBUG"
-        ">"
-        "_CRT_SECURE_NO_WARNINGS;"
-        "_CONSOLE;"
-        "UNICODE;"
-        "_UNICODE"
-    )
-elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        "$<$<CONFIG:Debug>:"
-            "_DEBUG"
-        ">"
-        "$<$<CONFIG:Release>:"
-            "NDEBUG"
-        ">"
-        "_CRT_SECURE_NO_WARNINGS;"
-        "_CONSOLE;"
-        "UNICODE;"
-        "_UNICODE"
-    )
-endif()
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    "$<$<CONFIG:Debug>:"
+        "_DEBUG"
+    ">"
+    "$<$<CONFIG:Release>:"
+        "NDEBUG"
+    ">"
+    "_CRT_SECURE_NO_WARNINGS;"
+    "_CONSOLE;"
+    "UNICODE;"
+    "_UNICODE"
+)
 
 ################################################################################
 # Compile and link options
 ################################################################################
+
 if(MSVC)
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        target_compile_options(${PROJECT_NAME} PRIVATE
-            $<$<CONFIG:Release>:
-                /Oi;
-                /Gy
-            >
-            /permissive-;
-            /std:c++latest;
-            /sdl;
-            /W3;
-            ${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT};
-            -W4;
-            ${DEFAULT_CXX_EXCEPTION_HANDLING}
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        target_compile_options(${PROJECT_NAME} PRIVATE
-            $<$<CONFIG:Release>:
-                /Oi;
-                /Gy
-            >
-            /permissive-;
-            /std:c++latest;
-            /sdl;
-            /W3;
-            ${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT};
-            -W4;
-            ${DEFAULT_CXX_EXCEPTION_HANDLING}
-        )
-    endif()
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        $<$<CONFIG:Release>:
+            /Oi;
+            /Gy
+        >
+        /permissive-;
+        /std:c++latest;
+        /sdl;
+        /W3;
+        ${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT};
+        -W4;
+        ${DEFAULT_CXX_EXCEPTION_HANDLING}
+    )
+
+
+
     if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
         string(CONCAT FILE_CL_OPTIONS
             "/Y-"
@@ -602,7 +536,8 @@ endif()
 ################################################################################
 # Dependencies
 ################################################################################
-IF(Win32)
+IF(WIN32)
+message("THIS IS WIN32!!!!!!!!")
 set(ADDITIONAL_LIBRARY_DEPENDENCIES
     "$<$<CONFIG:Debug>:"
         "shadercd;"
@@ -617,8 +552,10 @@ set(ADDITIONAL_LIBRARY_DEPENDENCIES
         "shaderc_util"
     ">"
     "vulkan-1"
+    winmm
 )
-ELSE()
+ELSEIF(UNIX AND NOT APPLE)
+message("THIS IS UNIX AND NOT APPLE!!!!!!!!")
 set(ADDITIONAL_LIBRARY_DEPENDENCIES
     "$<$<CONFIG:Debug>:"
         "shadercd;"
@@ -635,23 +572,14 @@ set(ADDITIONAL_LIBRARY_DEPENDENCIES
     "libvulkan.so"
 )
 ENDIF()
-target_link_libraries(${PROJECT_NAME} PUBLIC "${ADDITIONAL_LIBRARY_DEPENDENCIES}")
+target_link_libraries(${PROJECT_NAME} PUBLIC "${ADDITIONAL_LIBRARY_DEPENDENCIES}" ${CMAKE_DL_LIBS})
 
-if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-    target_link_directories(${PROJECT_NAME} PUBLIC
-        "${CMAKE_SOURCE_DIR}/JadeFrame/src/extern;"
-        "${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glfw32;"
-        "${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glfw64;"
-        "${CMAKE_SOURCE_DIR}/JadeFrame/src;"
-        "C:/VulkanSDK/1.2.176.1/Lib"
-    )
-elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-    target_link_directories(${PROJECT_NAME} PUBLIC
-        "${CMAKE_SOURCE_DIR}/JadeFrame/src/extern;"
-        "${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glfw32;"
-        "${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glfw64;"
-        "${CMAKE_SOURCE_DIR}/JadeFrame/src;"
-        "C:/VulkanSDK/1.2.176.1/Lib"
-    )
-endif()
+target_link_directories(${PROJECT_NAME} PUBLIC
+"${CMAKE_SOURCE_DIR}/JadeFrame/src/extern;"
+"${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glfw32;"
+"${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glfw64;"
+"${CMAKE_SOURCE_DIR}/JadeFrame/src;"
+"C:/VulkanSDK/1.2.176.1/Lib"
+)
 
+message("JadeFrame cmake: Finished")

@@ -241,12 +241,12 @@ Windows_Window::Windows_Window(const Windows_Window::Desc& desc) {
 	);
 	if (window_handle == NULL) {
 		Logger::log("win32_create_window error: {}", ::GetLastError());
-        assert(false);
+		assert(false);
 	}
 
-	::RECT client_rect = { NULL };
+	::RECT client_rect = {};
 	::GetClientRect(window_handle, &client_rect);
-	::RECT window_rect = { NULL };
+	::RECT window_rect = {};
 	::GetWindowRect(window_handle, &window_rect);
 
 	m_title = desc.title;
@@ -313,7 +313,7 @@ auto Windows_Window::get_window_state() const -> WINDOW_STATE {
 }
 
 auto Windows_Window::query_client_size() const-> v2 {
-	::RECT rect = { NULL };
+	::RECT rect = { };
 	::GetClientRect(m_window_handle, &rect);
 	return v2(rect.right, rect.bottom);
 }

@@ -39,7 +39,7 @@ public:
 	virtual auto get_title() const -> std::string override;
 
 	auto set_size(const v2u32& size) -> void;
-	auto get_size() const -> const v2u32&;
+	auto get_size() const -> const v2u32& override;
 
 	auto set_position(const v2u32& position) -> void;
 	auto get_position() const -> const v2u32&;
