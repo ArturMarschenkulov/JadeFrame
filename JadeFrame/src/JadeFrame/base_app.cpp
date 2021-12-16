@@ -11,10 +11,6 @@
 
 namespace JadeFrame {
 
-
-
-
-
 //**************************************************************
 //JadeFrame
 //**************************************************************
@@ -41,10 +37,12 @@ JadeFrameInstance::JadeFrameInstance() {
 	}
 }
 auto JadeFrameInstance::run() -> void {
+	Logger::info("App Running");
 	m_current_app_p = m_apps[0];
 	m_apps.back()->start();
 }
 auto JadeFrameInstance::add(BaseApp* app) -> void {
+	Logger::info("App added");
 	m_apps.push_back(app);
 }
 //**************************************************************
@@ -57,7 +55,7 @@ auto JadeFrameInstance::add(BaseApp* app) -> void {
 
 BaseApp::BaseApp(const DESC& desc) {
 	m_time_manager.initialize();
-
+	Logger::info("Creating Window....");
 	Window::Desc win_desc;
 	win_desc.title = desc.title;
 	win_desc.size = desc.size;
@@ -70,6 +68,7 @@ BaseApp::BaseApp(const DESC& desc) {
 	api = GRAPHICS_API::VULKAN;
 	api = GRAPHICS_API::OPENGL;
 
+	Logger::info("Creating Renderer");
 	const std::string& title = m_current_window_p->get_title();
 	switch (api) {
 		case GRAPHICS_API::OPENGL:

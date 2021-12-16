@@ -7,12 +7,12 @@ Linux_Window::Linux_Window() {
     Status status = XInitThreads();
 
     m_display = XOpenDisplay(nullptr);
-    int screen = DefaultScreen(display);
-    Visual* visual = DefaultVisual(display, screen);
-    int depth = DefaultDepth(display, screen);
+    int screen = DefaultScreen(m_display);
+    Visual* visual = DefaultVisual(m_display, screen);
+    int depth = DefaultDepth(m_display, screen);
 
     Colormap colormap = XCreateColormap(
-        display, RootWindow(display, screen),
+        m_display, RootWindow(m_display, screen),
         visual, AllocNone
     );
 
@@ -25,18 +25,21 @@ Linux_Window::Linux_Window() {
 
 
     m_window = XCreateWindow(
-        display, 
-        RootWindow(display, screen), 
+        m_display, 
+        RootWindow(m_display, screen), 
         0, 0, 
-        desc.width, desc.height, 
+        500, 500, 
         0, depth, InputOutput, visual, 
         CWBackPixel | CWBorderPixel | CWEventMask | CWColormap,
         &window_attributes
     );
 
-    XSelectInput(display, window, ExposureMask | KeyPressMask);
-    XMapWindow(display, window);
-    XFlush(display);
+    XSelectInput(m_display, m_window, ExposureMask | KeyPressMask);
+    XMapWindow(m_display, m_window);
+    XFlush(m_display);
+}
+Linux_Window::Linux_Window(const Linux_Window::Desc& desc) {
+
 }
 Linux_Window::~Linux_Window() {
     XDestroyWindow(m_display, m_window);

@@ -8,8 +8,8 @@ cmake_minimum_required(VERSION 3.16.0 FATAL_ERROR)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_C_COMPILER "clang")
 set(CMAKE_CXX_COMPILER "clang++")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -pthread")
-set(CMAKE_EXE_LINKER_FLAGS "-lc++abi -lpthread")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+#set(CMAKE_EXE_LINKER_FLAGS "-lc++abi -lpthread")
 
 project(
     JadeFrame
@@ -17,33 +17,12 @@ project(
     LANGUAGES C CXX
 )
 
-
-
-if (WIN32)
-  message("The OS is WIN32")
-elseif (UNIX AND NOT APPLE)
-    message("The OS is LINUX")
-endif()
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  message("using clang compiler")
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    message("using gcc compiler")
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    message("using intel compiler")
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    message("using MSVC compiler")
-else()
-    message("using some unknown compiler")
-endif()
-
 ################################################################################
 # Set target arch type if empty. Visual studio solution generator provides it.
 ################################################################################
 if(NOT CMAKE_VS_PLATFORM_NAME)
     set(CMAKE_VS_PLATFORM_NAME "x64")
 endif()
-message("${CMAKE_VS_PLATFORM_NAME} architecture in use")
 
 if(NOT ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64"
      OR "${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86"))
@@ -61,6 +40,8 @@ set(CMAKE_CONFIGURATION_TYPES
     "Release"
     CACHE STRING "" FORCE
 )
+
+set(CMAKE_BUILD_TYPE "Debug")
 
 ################################################################################
 # Global compiler options
@@ -94,6 +75,36 @@ if(MSVC)
     set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS}")
     set(CMAKE_STATIC_LINKER_FLAGS_RELEASE "${CMAKE_STATIC_LINKER_FLAGS}")
 endif()
+
+
+
+
+################################################################################
+# Print out information
+################################################################################
+if (WIN32)
+  message("INFO: OS: WIN32")
+elseif (UNIX AND NOT APPLE)
+    message("INFO: OS: LINUX")
+else()
+    message(FATAL_ERROR "INFO: OS: UNKNOWN")
+endif()
+
+message("INFO: Generator: ${CMAKE_GENERATOR}")
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  message("INFO: Compiler: CLANG")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    message("INFO: Compiler: GCC")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    message("INFO: Compiler: INTEL")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    message("INFO: Compiler: MSVC")
+else()
+    message(FATAL_ERROR "INFO: Compiler: UNKNOWN")
+endif()
+
+message("INFO: Architecture: ${CMAKE_VS_PLATFORM_NAME}")
 
 ################################################################################
 # Nuget packages function stub.

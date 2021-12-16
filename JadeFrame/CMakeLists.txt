@@ -230,7 +230,9 @@ ELSEIF(UNIX)
 set(Files_Platform
         "src/JadeFrame/platform/platform_shared.h"
         "src/JadeFrame/platform/linux/linux_window.h" 
+        "src/JadeFrame/platform/linux/linux_window.cpp" 
         "src/JadeFrame/platform/linux/linux_time_manager.h"
+        "src/JadeFrame/platform/linux/linux_system_manager.h"
         "src/JadeFrame/platform/linux/linux_input_manager.h"
         )
   # set stuff for other systems
@@ -539,47 +541,63 @@ endif()
 IF(WIN32)
 message("THIS IS WIN32!!!!!!!!")
 set(ADDITIONAL_LIBRARY_DEPENDENCIES
-    "$<$<CONFIG:Debug>:"
-        "shadercd;"
-        "shaderc_combinedd;"
-        "shaderc_sharedd;"
-        "shaderc_utild"
-    ">"
-    "$<$<CONFIG:Release>:"
-        "shaderc;"
-        "shaderc_combined;"
-        "shaderc_shared;"
-        "shaderc_util"
-    ">"
+    # "$<$<CONFIG:Debug>:"
+    #     "shadercd;"
+    #     "shaderc_combinedd;"
+    #     "shaderc_sharedd;"
+    #     "shaderc_utild"
+    # ">"
+    # "$<$<CONFIG:Release>:"
+    #     "shaderc;"
+    #     "shaderc_combined;"
+    #     "shaderc_shared;"
+    #     "shaderc_util"
+    # ">"
+    "shadercd;"
+    "shaderc_combinedd;"
+    "shaderc_sharedd;"
+    "shaderc_utild;"
     "vulkan-1"
     winmm
 )
 ELSEIF(UNIX AND NOT APPLE)
 message("THIS IS UNIX AND NOT APPLE!!!!!!!!")
 set(ADDITIONAL_LIBRARY_DEPENDENCIES
-    "$<$<CONFIG:Debug>:"
-        "shadercd;"
-        "shaderc_combinedd;"
-        "shaderc_sharedd;"
-        "shaderc_utild"
-    ">"
-    "$<$<CONFIG:Release>:"
-        "shaderc;"
-        "shaderc_combined;"
-        "shaderc_shared;"
-        "shaderc_util"
-    ">"
+    # "$<$<CONFIG:Debug>:"
+    #     "shadercd;"
+    #     "shaderc_combinedd;"
+    #     "shaderc_sharedd;"
+    #     "shaderc_utild"
+    # ">"
+    # "$<$<CONFIG:Release>:"
+    #     "shaderc;"
+    #     "shaderc_combined;"
+    #     "shaderc_shared;"
+    #     "shaderc_util"
+    # ">"
+    # "shaderc;"
+    # "shaderc_combined;"
+    # "shaderc_shared;"
+    # "shaderc_util;"
+    "pthread;"
+    "X11"
+    "shaderc;"
+    "shaderc_combined;"
+    "shaderc_shared;"
+    #"shaderc_util;"
+
     "libvulkan.so"
 )
 ENDIF()
 target_link_libraries(${PROJECT_NAME} PUBLIC "${ADDITIONAL_LIBRARY_DEPENDENCIES}" ${CMAKE_DL_LIBS})
 
 target_link_directories(${PROJECT_NAME} PUBLIC
-"${CMAKE_SOURCE_DIR}/JadeFrame/src/extern;"
-"${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glfw32;"
-"${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glfw64;"
-"${CMAKE_SOURCE_DIR}/JadeFrame/src;"
-"C:/VulkanSDK/1.2.176.1/Lib"
+    "${CMAKE_SOURCE_DIR}/JadeFrame/src/extern;" 
+    "${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glfw32;"
+    "${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glfw64;"
+    "${CMAKE_SOURCE_DIR}/JadeFrame/src;"
+    "C:/VulkanSDK/1.2.176.1/Lib/"
+    "~/proj_3rd/shaderc/build/"
 )
 
 message("JadeFrame cmake: Finished")

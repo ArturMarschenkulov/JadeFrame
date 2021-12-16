@@ -11,7 +11,7 @@ namespace JadeFrame {
 
 class Linux_Window : public IWindow {
 public:
-	Linux_Window() = default;
+	Linux_Window();
 	Linux_Window(const Linux_Window::Desc& desc);
 	~Linux_Window();
 	virtual auto handle_events(bool& running) -> void override {
@@ -32,7 +32,7 @@ public:
 
 public:
 	::Display* m_display;
-	::Window* m_window;
+	::Window m_window;
 	HWND m_window_handle = nullptr;
 	v2u32 m_size;
 };
