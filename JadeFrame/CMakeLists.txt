@@ -47,9 +47,15 @@ set(Files_Extern_STB
         "src/extern/stb/stb_truetype.h"
         "src/extern/stb/stb_vorbis.h"
         )
-file(GLOB Files_Extern_spdlog
-    "src/extern/spdlog/*"
-)
+# file(GLOB Files_Extern_spdlog
+#     "src/extern/spdlog/*.h"
+#     "src/extern/spdlog/*.cpp"
+#     "src/extern/spdlog/cfg/*.h"
+#     "src/extern/spdlog/details/*.h"
+#     "src/extern/spdlog/fmt/*.h"
+#     "src/extern/spdlog/fmt/bundled/*.h"
+#     "src/extern/spdlog/sinks/*.h"
+# )
 set(Files_Extern_shaderc
         "src/extern/shaderc/env.h"
         "src/extern/shaderc/shaderc.h"

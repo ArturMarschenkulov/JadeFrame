@@ -41,7 +41,7 @@ set(CMAKE_CONFIGURATION_TYPES
     CACHE STRING "" FORCE
 )
 
-set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_BUILD_TYPE "Release")
 
 ################################################################################
 # Global compiler options

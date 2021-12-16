@@ -4,10 +4,10 @@
 #include <string>
 #include <memory>
 
-//#include "extern/spdlog/spdlog.h"
-//#include "extern/spdlog/fmt/ostr.h"
-//#include "extern/spdlog/sinks/base_sink.h"
-//#include "extern/spdlog/sinks/stdout_color_sinks.h"
+#include "extern/spdlog/spdlog.h"
+#include "extern/spdlog/fmt/ostr.h"
+#include "extern/spdlog/sinks/base_sink.h"
+#include "extern/spdlog/sinks/stdout_color_sinks.h"
 
 namespace JadeFrame {
 class Logger {
@@ -43,7 +43,7 @@ public:
 	static auto init() -> void;
 	static auto deinit() -> void;
 
-	//static std::shared_ptr<spdlog::logger> s_core;
+	static std::shared_ptr<spdlog::logger> s_core;
 	//static std::shared_ptr<spdlog::logger> s_client;
 	//static std::shared_ptr<spdlog::logger> s_editor;
 
