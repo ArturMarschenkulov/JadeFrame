@@ -20,9 +20,9 @@ auto VulkanBuffer::init(const VulkanLogicalDevice& device, VulkanBuffer::TYPE bu
 	m_device = &device;
 	m_size = size;
 
-	bool b_with_staging_buffer;
-	VkBufferUsageFlags usage;
-	VkMemoryPropertyFlags properties;
+	bool b_with_staging_buffer = false;
+	VkBufferUsageFlags usage = {};
+	VkMemoryPropertyFlags properties = {};
 
 	switch (buffer_type) {
 		case VulkanBuffer::TYPE::VERTEX:
@@ -512,8 +512,8 @@ auto Vulkan_Texture::transition_layout(const VulkanImage& image, VkFormat /*form
 			},
 		};
 
-		VkPipelineStageFlags source_stage;
-		VkPipelineStageFlags destination_stage;
+		VkPipelineStageFlags source_stage = {};
+		VkPipelineStageFlags destination_stage = {};
 
 		if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED && new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
 			barrier.srcAccessMask = 0;

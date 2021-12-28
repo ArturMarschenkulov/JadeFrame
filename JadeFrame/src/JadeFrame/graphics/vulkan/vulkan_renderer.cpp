@@ -83,7 +83,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 		return;
 	}
 
-	const VulkanImage& image = d.m_swapchain.m_images[image_index];
+	//const VulkanImage& image = d.m_swapchain.m_images[image_index];
 	d.m_present_image_index = image_index;
 
 	if (d.m_images_in_flight[image_index].m_handle != VK_NULL_HANDLE) {
@@ -101,9 +101,9 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 			//Per Frame ubo
 			d.m_ub_cam.send((void*)&view_projection, 0, sizeof(view_projection));
 
-			const size_t min_ubo_alignment = m_context.m_instance.m_physical_device.m_properties.limits.minUniformBufferOffsetAlignment;
-			const size_t block_size = sizeof(Matrix4x4);
-			const size_t aligned_block_size
+			const u64 min_ubo_alignment = m_context.m_instance.m_physical_device.m_properties.limits.minUniformBufferOffsetAlignment;
+			const u64 block_size = sizeof(Matrix4x4);
+			const u64 aligned_block_size
 				= min_ubo_alignment > 0
 				? (block_size + min_ubo_alignment - 1) & ~(min_ubo_alignment - 1)
 				: block_size
@@ -117,8 +117,8 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
 			}
 
-			for (size_t i = 0; i < m_render_commands.size(); i++) {
-				const u32 offset = aligned_block_size * i;
+			for (u64 i = 0; i < m_render_commands.size(); i++) {
+				const u32 offset = static_cast<u32>(aligned_block_size * i);
 				const Vulkan_Shader& shader = *static_cast<Vulkan_Shader*>(m_render_commands[i].material_handle->m_shader_handle->m_handle);
 				const Vulkan_GPUMeshData& gpu_data = *static_cast<Vulkan_GPUMeshData*>(m_render_commands[i].m_GPU_mesh_data->m_handle);
 				const VertexData& vertex_data = *m_render_commands[i].vertex_data;
@@ -138,7 +138,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
 				if (vertex_data.m_indices.size() > 0) {
 					vkCmdBindIndexBuffer(cb.m_handle, gpu_data.m_index_buffer.m_handle, 0, VK_INDEX_TYPE_UINT32);
-					vkCmdDrawIndexed(cb.m_handle, vertex_data.m_indices.size(), 1, 0, 0, 0);
+					vkCmdDrawIndexed(cb.m_handle, static_cast<u32>(vertex_data.m_indices.size()), 1, 0, 0, 0);
 				} else {
 					vkCmdDraw(cb.m_handle, static_cast<u32>(vertex_data.m_positions.size()), 1, 0, 0);
 				}
@@ -185,7 +185,7 @@ auto Vulkan_Renderer::set_viewport(u32 /*x*/, u32 /*y*/, u32 /*width*/, u32 /*he
 
 }
 
-auto Vulkan_Renderer::take_screenshot(const char* filename) -> void {
+auto Vulkan_Renderer::take_screenshot(const char* /*filename*/) -> void {
     assert(false);
 }
 }

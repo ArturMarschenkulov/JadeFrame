@@ -312,10 +312,10 @@ auto Windows_Window::get_window_state() const -> WINDOW_STATE {
 	return m_window_state;
 }
 
-auto Windows_Window::query_client_size() const-> v2 {
+auto Windows_Window::query_client_size() const-> v2u64 {
 	::RECT rect = { };
 	::GetClientRect(m_window_handle, &rect);
-	return v2(rect.right, rect.bottom);
+	return v2u64(rect.right, rect.bottom);
 }
 
 }

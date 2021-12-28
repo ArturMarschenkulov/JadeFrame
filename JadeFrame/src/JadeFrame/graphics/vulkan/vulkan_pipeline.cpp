@@ -96,7 +96,7 @@ static auto debug_print_resources(const spirv_cross::ShaderResources& resources)
 }
 
 static auto from_SHADER_STAGE(SHADER_STAGE stage) -> VkShaderStageFlagBits {
-	VkShaderStageFlagBits result;
+	VkShaderStageFlagBits result = {};
 	switch (stage) {
 		case SHADER_STAGE::VERTEX:
 		{
@@ -166,7 +166,7 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
 	return result;
 }
 static auto reflect(const ShadingCode& code) -> ReflectedCode {
-	ReflectedCode result;
+	ReflectedCode result = {};
 	result.m_modules.resize(code.m_modules.size());
 	for (u32 i = 0; i < code.m_modules.size(); i++) {
 		auto& current_module = code.m_modules[i];

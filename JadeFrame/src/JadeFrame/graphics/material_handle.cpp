@@ -25,7 +25,7 @@ auto TextureHandle::init() -> void {
 	switch (m_api) {
 		case GRAPHICS_API::OPENGL:
 		{
-			GLenum format;
+			GLenum format = {};
 			switch (m_num_components) {
 				case 3:
 				{

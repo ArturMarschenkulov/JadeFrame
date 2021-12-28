@@ -57,8 +57,7 @@ auto Logger::log(const char* text, const Types& ... args) -> void {
 	//std::cout << s << "\n";
 }
 template<class ...Types>
-auto Logger::log(LEVEL /*level*/, const char* text, const Types& ... args) -> void {
-	
+auto Logger::log(LEVEL /*level*/, const char* text, const Types& ... /*args*/) -> void {
 	//warn(text, args...);
 	//std::string s = std::format<Types...>(text, args...);
 	std::cout << text << "\n";

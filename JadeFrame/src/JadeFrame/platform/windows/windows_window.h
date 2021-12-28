@@ -47,7 +47,7 @@ public:
 	auto set_window_state(const WINDOW_STATE window_state) -> void;
 	virtual auto get_window_state() const -> WINDOW_STATE override;
 
-	auto query_client_size() const -> v2;
+	auto query_client_size() const -> v2u64;
 
 
 

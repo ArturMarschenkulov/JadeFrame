@@ -231,11 +231,11 @@ auto Windows_SystemManager::initialize() -> void {
 	}
 }
 
-static auto bytes_to_string(const i64 bytes) -> std::string {
-	static const f64 TB = 1024_u64 * 1024_u64 * 1024_u64 * 1024_u64;
-	static const f64 GB = 1024_u64 * 1024_u64 * 1024_u64;
-	static const f64 MB = 1024_u64 * 1024_u64;
-	static const f64 KB = 1024_u64;
+static auto bytes_to_string(const u64 bytes) -> std::string {
+	constexpr const f64 TB = static_cast<f64>(1024_u64 * 1024_u64 * 1024_u64 * 1024_u64);
+	constexpr const f64 GB = static_cast<f64>(1024_u64 * 1024_u64 * 1024_u64);
+	constexpr const f64 MB = static_cast<f64>(1024_u64 * 1024_u64);
+	constexpr const f64 KB = static_cast<f64>(1024_u64);
 
 	std::string result;
 	if (bytes > TB) result = std::to_string(bytes / TB) + " TB";

@@ -111,7 +111,6 @@ auto VulkanPhysicalDevice::check_extension_support(const std::vector<const char*
 
 
 auto VulkanPhysicalDevice::find_queue_families(const std::vector<VulkanQueueFamily>& queue_families) -> QueueFamilyIndices {
-	VkResult result;
 
 	QueueFamilyIndices indices;
 	for (u32 i = 0; i < queue_families.size(); i++) {

@@ -300,7 +300,7 @@ public:
 		return dot * dot/*std::sqrt(dot)*/;
 	}
 	constexpr auto get_normal() const -> VectorT {
-		const f32& length = this->get_length();
+		const f32& length = static_cast<f32>(this->get_length());
 		return VectorT(x / (T)length, y / (T)length, z / (T)length);
 	}
 public:

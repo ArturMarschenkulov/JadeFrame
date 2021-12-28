@@ -39,7 +39,7 @@ inline auto get_binding_description(const VertexFormat& vertex_format) -> VkVert
 	return binding_description;
 };
 inline auto SHADER_TYPE_to_VkFormat(const SHADER_TYPE& shader_type) ->VkFormat {
-	VkFormat result;
+	VkFormat result = VK_FORMAT_UNDEFINED;
 
 	switch(shader_type) {
 		case SHADER_TYPE::FLOAT_2:

@@ -34,7 +34,7 @@ auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage) -> std::vector
 	namespace shc = shaderc;
 	//using namespace shaderc;
 
-	shaderc_shader_kind kind;
+	shaderc_shader_kind kind = {};
 	switch(stage) {
 		case SHADER_STAGE::VERTEX:
 		{
