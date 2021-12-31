@@ -52,4 +52,22 @@ inline auto from_tebibyte(u64 value) -> u64 {
 //auto byte_to_gibi(u64 value) -> u64 {
 //	return gibi_to_byte(value) * 1024;
 //}
+
+
+template<typename T>
+using Scope = std::unique_ptr<T>;
+
+template<typename T>
+auto make_scope(T* obj) -> Scope<T> {
+	return std::make_unique<T>(obj);
+};
+
+
+template<typename T>
+using Ref = std::shared_ptr<T>;
+template<typename T>
+auto make_ref(T* obj) -> Ref<T> {
+	return std::make_shared<T>(obj);
+};
+
 }

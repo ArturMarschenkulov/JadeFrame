@@ -288,9 +288,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 # Include directories
 ################################################################################
 target_include_directories(${PROJECT_NAME} PRIVATE
-    "$<$<CONFIG:Release>:"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../../../VulkanSDK/1.2.176.1/Include"
-    ">"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/extern;"
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
@@ -299,12 +296,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 # Compile definitions
 ################################################################################
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-    "$<$<CONFIG:Debug>:"
-        "_DEBUG"
-    ">"
-    "$<$<CONFIG:Release>:"
-        "NDEBUG"
-    ">"
+    "$<$<CONFIG:Debug>:_DEBUG>"
+    "$<$<CONFIG:Release>:NDEBUG>"
     "_CRT_SECURE_NO_WARNINGS;"
     "_CONSOLE;"
     "UNICODE;"
@@ -332,213 +325,89 @@ if(MSVC)
 
 
 
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/glad.c ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/imgui/imgui.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/imgui/imgui_demo.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/imgui/imgui_draw.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/imgui/imgui_impl_dx11.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/imgui/imgui_impl_opengl3.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/imgui/imgui_impl_win32.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/imgui/imgui_widgets.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_cfg.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_cpp.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_cross.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_cross_c.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_cross_parsed_ir.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_cross_util.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_glsl.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_hlsl.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_msl.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_parser.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        string(CONCAT FILE_CL_OPTIONS
-            "/Y-"
-        )
-    endif()
+    string(CONCAT FILE_CL_OPTIONS
+        "/Y-"
+    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_reflect.cpp ${FILE_CL_OPTIONS})
-    if("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
-        target_link_options(${PROJECT_NAME} PRIVATE
-            $<$<CONFIG:Release>:
-                /OPT:REF;
-                /OPT:ICF
-            >
-            /SUBSYSTEM:CONSOLE
-        )
-    elseif("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x86")
-        target_link_options(${PROJECT_NAME} PRIVATE
-            $<$<CONFIG:Release>:
-                /OPT:REF;
-                /OPT:ICF
-            >
-            /SUBSYSTEM:CONSOLE
-        )
-    endif()
+    target_link_options(${PROJECT_NAME} PRIVATE
+        $<$<CONFIG:Release>:
+            /OPT:REF;
+            /OPT:ICF
+        >
+        /SUBSYSTEM:CONSOLE
+    )
 endif()
 
 ################################################################################
@@ -547,18 +416,6 @@ endif()
 IF(WIN32)
 message("THIS IS WIN32!!!!!!!!")
 set(ADDITIONAL_LIBRARY_DEPENDENCIES
-    # "$<$<CONFIG:Debug>:"
-    #     "shadercd;"
-    #     "shaderc_combinedd;"
-    #     "shaderc_sharedd;"
-    #     "shaderc_utild"
-    # ">"
-    # "$<$<CONFIG:Release>:"
-    #     "shaderc;"
-    #     "shaderc_combined;"
-    #     "shaderc_shared;"
-    #     "shaderc_util"
-    # ">"
     "shadercd;"
     "shaderc_combinedd;"
     "shaderc_sharedd;"
@@ -569,22 +426,6 @@ set(ADDITIONAL_LIBRARY_DEPENDENCIES
 ELSEIF(UNIX AND NOT APPLE)
 message("THIS IS UNIX AND NOT APPLE!!!!!!!!")
 set(ADDITIONAL_LIBRARY_DEPENDENCIES
-    # "$<$<CONFIG:Debug>:"
-    #     "shadercd;"
-    #     "shaderc_combinedd;"
-    #     "shaderc_sharedd;"
-    #     "shaderc_utild"
-    # ">"
-    # "$<$<CONFIG:Release>:"
-    #     "shaderc;"
-    #     "shaderc_combined;"
-    #     "shaderc_shared;"
-    #     "shaderc_util"
-    # ">"
-    # "shaderc;"
-    # "shaderc_combined;"
-    # "shaderc_shared;"
-    # "shaderc_util;"
     "pthread;"
     "X11"
     "shaderc;"

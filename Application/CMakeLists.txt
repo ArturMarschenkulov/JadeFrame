@@ -52,12 +52,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 # Compile definitions
 ################################################################################
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-    "$<$<CONFIG:Debug>:"
-        "_DEBUG"
-    ">"
-    "$<$<CONFIG:Release>:"
-        "NDEBUG"
-    ">"
+    "$<$<CONFIG:Debug>:_DEBUG>"
+    "$<$<CONFIG:Release>:NDEBUG>"
     "_CONSOLE;"
     "UNICODE;"
     "_UNICODE"

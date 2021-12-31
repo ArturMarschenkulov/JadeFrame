@@ -6,8 +6,8 @@ cmake_minimum_required(VERSION 3.16.0 FATAL_ERROR)
 # std::format is as of right now only by msvc library supported
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_C_COMPILER "clang")
-set(CMAKE_CXX_COMPILER "clang++")
+#set(CMAKE_C_COMPILER "clang")
+#set(CMAKE_CXX_COMPILER "clang++")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 #set(CMAKE_EXE_LINKER_FLAGS "-lc++abi -lpthread")
 
@@ -16,6 +16,15 @@ project(
     VERSION 0.1
     LANGUAGES C CXX
 )
+
+
+
+
+
+#Listing default values
+if(NOT "")
+    message("CMAKE_CONFIGURATION_TYPES -> ${CMAKE_CONFIGURATION_TYPES}")
+endif()
 
 ################################################################################
 # Set target arch type if empty. Visual studio solution generator provides it.
@@ -46,6 +55,12 @@ set(CMAKE_BUILD_TYPE "Release")
 ################################################################################
 # Global compiler options
 ################################################################################
+message(STATUS "CMAKE_C_FLAGS           : ${CMAKE_C_FLAGS}")
+message(STATUS "CMAKE_C_FLAGS_DEBUG     : ${CMAKE_C_FLAGS_DEBUG}")
+message(STATUS "CMAKE_C_FLAGS_RELEASE   : ${CMAKE_C_FLAGS_RELEASE}")
+message(STATUS "CMAKE_CXX_FLAGS         : ${CMAKE_CXX_FLAGS}")
+message(STATUS "CMAKE_CXX_FLAGS_DEBUG   : ${CMAKE_CXX_FLAGS_DEBUG}")
+message(STATUS "CMAKE_CXX_FLAGS_RELEASE : ${CMAKE_CXX_FLAGS_RELEASE}")
 if(MSVC)
     # remove default flags provided with CMake for MSVC
     message("remove default flags provided with CMake for MSVC")
