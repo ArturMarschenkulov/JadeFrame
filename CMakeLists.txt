@@ -23,7 +23,20 @@ project(
 
 #Listing default values
 if(NOT "")
-    message("CMAKE_CONFIGURATION_TYPES -> ${CMAKE_CONFIGURATION_TYPES}")
+    message(STATUS "=========Default values=========")
+    message("CMAKE_CONFIGURATION_TYPES  -> ${CMAKE_CONFIGURATION_TYPES}")
+    message("CMAKE_C_FLAGS              -> ${CMAKE_C_FLAGS}")
+    message("CMAKE_C_FLAGS_DEBUG        -> ${CMAKE_C_FLAGS_DEBUG}")
+    message("CMAKE_C_FLAGS_RELEASE      -> ${CMAKE_C_FLAGS_RELEASE}")
+    message("CMAKE_CXX_FLAGS            -> ${CMAKE_CXX_FLAGS}")
+    message("CMAKE_CXX_FLAGS_DEBUG      -> ${CMAKE_CXX_FLAGS_DEBUG}")
+    message("CMAKE_CXX_FLAGS_RELEASE    -> ${CMAKE_CXX_FLAGS_RELEASE}")
+
+    message("CMAKE_EXE_LINKER_FLAGS    -> ${CMAKE_EXE_LINKER_FLAGS}")
+    message("CMAKE_MODULE_LINKER_FLAGS    -> ${CMAKE_MODULE_LINKER_FLAGS}")
+    message("CMAKE_SHARED_LINKER_FLAGS    -> ${CMAKE_SHARED_LINKER_FLAGS}")
+    message("CMAKE_STATIC_LINKER_FLAGS    -> ${CMAKE_STATIC_LINKER_FLAGS}")
+    message(STATUS "=========Default values=========")
 endif()
 
 ################################################################################
@@ -55,12 +68,7 @@ set(CMAKE_BUILD_TYPE "Release")
 ################################################################################
 # Global compiler options
 ################################################################################
-message(STATUS "CMAKE_C_FLAGS           : ${CMAKE_C_FLAGS}")
-message(STATUS "CMAKE_C_FLAGS_DEBUG     : ${CMAKE_C_FLAGS_DEBUG}")
-message(STATUS "CMAKE_C_FLAGS_RELEASE   : ${CMAKE_C_FLAGS_RELEASE}")
-message(STATUS "CMAKE_CXX_FLAGS         : ${CMAKE_CXX_FLAGS}")
-message(STATUS "CMAKE_CXX_FLAGS_DEBUG   : ${CMAKE_CXX_FLAGS_DEBUG}")
-message(STATUS "CMAKE_CXX_FLAGS_RELEASE : ${CMAKE_CXX_FLAGS_RELEASE}")
+
 if(MSVC)
     # remove default flags provided with CMake for MSVC
     message("remove default flags provided with CMake for MSVC")

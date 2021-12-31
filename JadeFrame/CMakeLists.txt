@@ -214,7 +214,7 @@ set(Files_Utils
         "src/JadeFrame/utils/utils.cpp"
         )
 IF (WIN32)
-set(Files_Platform
+    set(Files_Platform
         "src/JadeFrame/platform/platform_shared.h"  
         "src/JadeFrame/platform/windows/windows_input_manager.h"
         "src/JadeFrame/platform/windows/windows_input_manager.cpp"
@@ -231,16 +231,16 @@ set(Files_Platform
 
         "src/JadeFrame/platform/windows/windows_window.h"
         "src/JadeFrame/platform/windows/windows_window.cpp"
-        )
+    )
 ELSEIF(UNIX)
-set(Files_Platform
+    set(Files_Platform
         "src/JadeFrame/platform/platform_shared.h"
         "src/JadeFrame/platform/linux/linux_window.h" 
         "src/JadeFrame/platform/linux/linux_window.cpp" 
         "src/JadeFrame/platform/linux/linux_time_manager.h"
         "src/JadeFrame/platform/linux/linux_system_manager.h"
         "src/JadeFrame/platform/linux/linux_input_manager.h"
-        )
+    )
   # set stuff for other systems
 ENDIF()
 
@@ -329,78 +329,25 @@ if(MSVC)
         "/Y-"
     )
     source_file_compile_options(src/extern/glad.c ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/imgui/imgui.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/imgui/imgui_demo.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/imgui/imgui_draw.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/imgui/imgui_impl_dx11.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/imgui/imgui_impl_opengl3.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/imgui/imgui_impl_win32.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/imgui/imgui_widgets.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_cfg.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_cpp.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_cross.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_cross_c.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_cross_parsed_ir.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_cross_util.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_glsl.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_hlsl.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_msl.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_parser.cpp ${FILE_CL_OPTIONS})
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_reflect.cpp ${FILE_CL_OPTIONS})
+    
     target_link_options(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Release>:
             /OPT:REF;
@@ -414,27 +361,25 @@ endif()
 # Dependencies
 ################################################################################
 IF(WIN32)
-message("THIS IS WIN32!!!!!!!!")
-set(ADDITIONAL_LIBRARY_DEPENDENCIES
-    "shadercd;"
-    "shaderc_combinedd;"
-    "shaderc_sharedd;"
-    "shaderc_utild;"
-    "vulkan-1"
-    winmm
-)
+    set(ADDITIONAL_LIBRARY_DEPENDENCIES
+        "shadercd;"
+        "shaderc_combinedd;"
+        "shaderc_sharedd;"
+        "shaderc_utild;"
+        "vulkan-1"
+        winmm
+    )
 ELSEIF(UNIX AND NOT APPLE)
-message("THIS IS UNIX AND NOT APPLE!!!!!!!!")
-set(ADDITIONAL_LIBRARY_DEPENDENCIES
-    "pthread;"
-    "X11"
-    "shaderc;"
-    "shaderc_combined;"
-    "shaderc_shared;"
-    #"shaderc_util;"
+    set(ADDITIONAL_LIBRARY_DEPENDENCIES
+        "pthread;"
+        "X11"
+        "shaderc;"
+        "shaderc_combined;"
+        "shaderc_shared;"
+        #"shaderc_util;"
 
-    "libvulkan.so"
-)
+        "libvulkan.so"
+    )
 ENDIF()
 target_link_libraries(${PROJECT_NAME} PUBLIC "${ADDITIONAL_LIBRARY_DEPENDENCIES}" ${CMAKE_DL_LIBS})
 
