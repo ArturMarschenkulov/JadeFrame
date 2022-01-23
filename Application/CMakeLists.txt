@@ -32,13 +32,13 @@ set(ROOT_NAMESPACE Application)
 ################################################################################
 # Output directory
 ################################################################################
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    OUTPUT_DIRECTORY_DEBUG   "${CMAKE_SOURCE_DIR}/$<CONFIG>/"
-    OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/$<CONFIG>/"
-)
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    INTERPROCEDURAL_OPTIMIZATION_RELEASE "TRUE"
-)
+# set_target_properties(${PROJECT_NAME} PROPERTIES
+#     OUTPUT_DIRECTORY_DEBUG   "${CMAKE_SOURCE_DIR}/$<CONFIG>/"
+#     OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/$<CONFIG>/"
+# )
+# set_target_properties(${PROJECT_NAME} PROPERTIES
+#     INTERPROCEDURAL_OPTIMIZATION_RELEASE "TRUE"
+# )
 ################################################################################
 # Include directories
 ################################################################################
