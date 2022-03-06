@@ -15,9 +15,7 @@ namespace JadeFrame {
 //**************************************************************
 JadeFrameInstance* JadeFrameInstance::m_singleton = nullptr;
 
-auto JadeFrameInstance::get_singleton() -> JadeFrameInstance* {
-    return m_singleton;
-}
+auto JadeFrameInstance::get_singleton() -> JadeFrameInstance* { return m_singleton; }
 
 JadeFrameInstance::JadeFrameInstance() {
     Logger::init();
@@ -62,7 +60,8 @@ BaseApp::BaseApp(const DESC& desc) {
 
     m_current_window_p = &m_windows[0];
 
-    GRAPHICS_API api = GRAPHICS_API::UNDEFINED;
+    GRAPHICS_API
+    api = GRAPHICS_API::UNDEFINED;
     api = GRAPHICS_API::VULKAN;
     api = GRAPHICS_API::OPENGL;
 
@@ -78,8 +77,7 @@ BaseApp::BaseApp(const DESC& desc) {
             m_renderer = new Vulkan_Renderer(m_windows[0]);
             m_current_window_p->set_title(title + " Vulkan");
         } break;
-        default:
-            assert(false);
+        default: assert(false);
     }
 }
 auto BaseApp::start() -> void {
@@ -91,14 +89,12 @@ auto BaseApp::start() -> void {
     while (m_is_running) {
         const f64 time_since_last_frame = m_time_manager.calc_elapsed();
         this->on_update();
-        if (m_current_window_p->get_window_state() !=
-            Window::WINDOW_STATE::MINIMIZED) {
+        if (m_current_window_p->get_window_state() != Window::WINDOW_STATE::MINIMIZED) {
             m_renderer->clear_background();
             // GUI_new_frame();
 
             this->on_draw();
-            const Matrix4x4& view_projection =
-                m_camera.get_view_projection_matrix();
+            const Matrix4x4& view_projection = m_camera.get_view_projection_matrix();
             m_renderer->render(view_projection);
 
             // GUI_render();
@@ -119,16 +115,16 @@ auto BaseApp::poll_events() -> void {
 
 namespace T1 {
 
-// template<class T>
-// requires std::same_as<T, bool>
-// auto init_memory(T& data) -> void {
-// 	static_assert(!std::is_pointer<T>::value, "'init_memory' does not allow
-// pointer types");
+template<class T>
+requires std::same_as<T, bool>
+auto init_memory(T& data) -> void {
+    static_assert(!std::is_pointer<T>::value, "'init_memory' does not allow pointertypes");
 
-// 	static_assert(/*std::is_pod<T>::value*/std::is_standard_layout<T>() &&
-// std::is_trivial<T>(), "'init_memory' does only allow plain-old-data (POD)");
-// 	::memset(&data, 0, sizeof(T));
-// }
+    static_assert(
+        /*std::is_pod<T>::value*/ std::is_standard_layout<T>() && std::is_trivial<T>(),
+        "'init_memory'does only allow plain-old-data (POD)");
+    ::memset(&data, 0, sizeof(T));
+}
 
 class RenderCommandQueue {
   public:
@@ -196,25 +192,25 @@ static auto submit(FuncT&& func) -> void {
 }
 
 template<typename BaseType, typename SubType>
-static auto take_ownership(
-    std::set<std::unique_ptr<BaseType>>& object_set,
-    std::unique_ptr<SubType>&&           object) -> SubType* {
+static auto
+take_ownership(std::set<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object)
+    -> SubType* {
     SubType* ref = object.get();
     object_set.emplace(std::forward<std::unique_ptr<SubType>>(object));
     return ref;
 }
 template<typename BaseType, typename SubType>
 static auto take_ownership(
-    std::vector<std::unique_ptr<BaseType>>& object_set,
-    std::unique_ptr<SubType>&&              object) -> SubType* {
+    std::vector<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object)
+    -> SubType* {
     SubType* ref = object.get();
     object_set.emplace_back(std::forward<std::unique_ptr<SubType>>(object));
     return ref;
 }
 template<typename BaseType, typename SubType>
-static auto take_ownership(
-    std::list<std::unique_ptr<BaseType>>& object_set,
-    std::unique_ptr<SubType>&&            object) -> SubType* {
+static auto
+take_ownership(std::list<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object)
+    -> SubType* {
     SubType* ref = object.get();
     object_set.emplace_back(std::forward<std::unique_ptr<SubType>>(object));
     return ref;
@@ -232,12 +228,17 @@ class Either {
         m_is_left = false;
     }
 
-    // auto match() -> T {
+    // auto
+    // match()
+    // ->
+    // T {
     //
     // }
   private:
-    // Left m_left;
-    // Right m_right;
+    // Left
+    // m_left;
+    // Right
+    // m_right;
     union {
         Left  m_left;
         Right m_right;
@@ -247,8 +248,7 @@ class Either {
 
 struct Error {
     std::error_code type;
-    VkResult        vk_result =
-        VK_SUCCESS; // optional error value if a vulkan call failed
+    VkResult        vk_result = VK_SUCCESS; // optional error value if a vulkan call failed
 };
 template<typename T>
 class Result {
@@ -264,16 +264,18 @@ class Result {
 
     ~Result() { destroy(); }
     Result(Result const& expected) : m_init(expected.m_init) {
-        if (m_init)
+        if (m_init) {
             new (&m_value) T{expected.m_value};
-        else
+        } else {
             m_error = expected.m_error;
+        }
     }
     Result(Result&& expected) : m_init(expected.m_init) {
-        if (m_init)
+        if (m_init) {
             new (&m_value) T{std::move(expected.m_value)};
-        else
+        } else {
             m_error = std::move(expected.m_error);
+        }
         expected.destroy();
     }
 
@@ -301,57 +303,55 @@ class Result {
         m_error = error;
         return *this;
     }
-    // clang-format off
-	const T* operator-> () const {
-		assert(m_init);
-		return &m_value;
-	}
-	T* operator-> () {
-		assert(m_init);
-		return &m_value;
-	}
-	const T& operator* () const& {
-		assert(m_init);
-		return m_value;
-	}
-	T& operator* ()& {
-		assert(m_init);
-		return m_value;
-	}
-	T&& operator* ()&& {
-		assert(m_init);
-		return std::move(m_value);
-	}
-	const T& value() const& {
-		assert(m_init);
-		return m_value;
-	}
-	T& value()& {
-		assert(m_init);
-		return m_value;
-	}
-	const T&& value() const&& {
-		assert(m_init);
-		return std::move(m_value);
-	}
-	T&& value()&& {
-		assert(m_init);
-		return std::move(m_value);
-	}
 
-	std::error_code error() const {
-		assert(!m_init);
-		return m_error.type;
-	}
-    // clang-format on
+    const T* operator->() const {
+        assert(m_init);
+        return &m_value;
+    }
+    T* operator->() {
+        assert(m_init);
+        return &m_value;
+    }
+    const T& operator*() const& {
+        assert(m_init);
+        return m_value;
+    }
+    T& operator*() & {
+        assert(m_init);
+        return m_value;
+    }
+    T&& operator*() && {
+        assert(m_init);
+        return std::move(m_value);
+    }
+    const T& value() const& {
+        assert(m_init);
+        return m_value;
+    }
+    T& value() & {
+        assert(m_init);
+        return m_value;
+    }
+    const T&& value() const&& {
+        assert(m_init);
+        return std::move(m_value);
+    }
+    T&& value() && {
+        assert(m_init);
+        return std::move(m_value);
+    }
+
+    std::error_code error() const {
+        assert(!m_init);
+        return m_error.type;
+    }
 
     bool     has_value() const { return m_init; }
     explicit operator bool() const { return m_init; }
 
   private:
     void destroy() {
-        if (m_init)
-            m_value.~T();
+        if (m_init) { m_value.~T(); }
     }
     union {
         T     m_value;
@@ -380,6 +380,8 @@ auto foo() -> void {
 
 template<typename T>
 class UniquePointer {};
-} // namespace T1
+} // namespace
+  // T1
 
-} // namespace JadeFrame
+} // namespace
+  // JadeFrame

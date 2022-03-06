@@ -13,41 +13,28 @@ namespace JadeFrame {
 // template <typename T>
 // concept number = std::integral<T> || std::floating_point<T>;
 
-template <size_t N, typename T>
+template<size_t N, typename T>
 class VectorT {
   public:
     constexpr VectorT() noexcept { std::memset(el, 0, N); }
     // template<typename ...Args>
-    template <class... T2,
-              typename std::enable_if<sizeof...(T2) == N, int>::type = 0>
+    template<class... T2, typename std::enable_if<sizeof...(T2) == N, int>::type = 0>
     constexpr explicit VectorT(const T2&... args) noexcept {
         static_assert(sizeof...(T2) == N);
 
         const std::array<T, N>& arr = {args...};
-        for (u32 i = 0; i < sizeof...(T2); i++) {
-            el[i] = arr[i];
-        }
+        for (u32 i = 0; i < sizeof...(T2); i++) { el[i] = arr[i]; }
     }
 
     constexpr auto operator=(const VectorT& other) -> VectorT& {
-        for (u32 i = 0; i < N; i++) {
-            el[i] = other.el[i];
-        }
+        for (u32 i = 0; i < N; i++) { el[i] = other.el[i]; }
         return *this;
     }
 
-    constexpr auto operator+(const VectorT& other) const -> VectorT {
-        return this->add(other);
-    }
-    constexpr auto operator-(const VectorT& other) const -> VectorT {
-        return this->sub(other);
-    }
-    constexpr auto operator*(const T& other) const -> VectorT {
-        return this->mult(other);
-    }
-    constexpr auto operator/(const T& other) const -> VectorT {
-        return this->div(other);
-    }
+    constexpr auto operator+(const VectorT& other) const -> VectorT { return this->add(other); }
+    constexpr auto operator-(const VectorT& other) const -> VectorT { return this->sub(other); }
+    constexpr auto operator*(const T& other) const -> VectorT { return this->mult(other); }
+    constexpr auto operator/(const T& other) const -> VectorT { return this->div(other); }
 
     constexpr auto operator+=(const VectorT& other) -> VectorT& {
         *this = *this + other;
@@ -68,48 +55,34 @@ class VectorT {
 
     constexpr auto operator==(const VectorT& o) -> bool {
         bool result = true;
-        for (u32 i = 0; i < N; i++) {
-            result = result && (el[i] == o.el[i]);
-        }
+        for (u32 i = 0; i < N; i++) { result = result && (el[i] == o.el[i]); }
         return result;
         // return (x == other.x) && (y == other.y);
     }
-    constexpr auto operator!=(const VectorT& o) -> bool {
-        return !(*this == o);
-    }
+    constexpr auto operator!=(const VectorT& o) -> bool { return !(*this == o); }
     constexpr auto add(const VectorT o) const -> VectorT {
         VectorT result;
-        for (u32 i = 0; i < N; i++) {
-            result.el[i] = el[i] + o.el[i];
-        }
+        for (u32 i = 0; i < N; i++) { result.el[i] = el[i] + o.el[i]; }
         return result;
     }
     constexpr auto sub(const VectorT o) const -> VectorT {
         VectorT result;
-        for (u32 i = 0; i < N; i++) {
-            result.el[i] = el[i] - o.el[i];
-        }
+        for (u32 i = 0; i < N; i++) { result.el[i] = el[i] - o.el[i]; }
         return result;
     }
     constexpr auto mult(const T o) const -> VectorT {
         VectorT result;
-        for (u32 i = 0; i < N; i++) {
-            result.el[i] = el[i] * o.el[i];
-        }
+        for (u32 i = 0; i < N; i++) { result.el[i] = el[i] * o.el[i]; }
         return result;
     }
     constexpr auto div(const T o) const -> VectorT {
         VectorT result;
-        for (u32 i = 0; i < N; i++) {
-            result.el[i] = el[i] / o.el[i];
-        }
+        for (u32 i = 0; i < N; i++) { result.el[i] = el[i] / o.el[i]; }
         return result;
     }
     constexpr auto dot(const VectorT& o) const -> T {
         T result;
-        for (u32 i = 0; i < N; i++) {
-            result += el[i] * o.el[i];
-        }
+        for (u32 i = 0; i < N; i++) { result += el[i] * o.el[i]; }
         return result;
     }
 
@@ -121,11 +94,15 @@ class VectorT {
         Vec2
 ---------------------------*/
 
-template <typename T>
+template<typename T>
 class VectorT<2, T> {
   public:
-    constexpr VectorT() noexcept : x(), y() {}
-    constexpr VectorT(const T x, const T y) noexcept : x(x), y(y) {}
+    constexpr VectorT() noexcept
+        : x()
+        , y() {}
+    constexpr VectorT(const T x, const T y) noexcept
+        : x(x)
+        , y(y) {}
 
     constexpr auto operator=(const VectorT& other) -> VectorT& {
         this->x = other.x;
@@ -133,18 +110,10 @@ class VectorT<2, T> {
         return *this;
     }
 
-    constexpr auto operator+(const VectorT& other) const -> VectorT {
-        return this->add(other);
-    }
-    constexpr auto operator-(const VectorT& other) const -> VectorT {
-        return this->sub(other);
-    }
-    constexpr auto operator*(const T& other) const -> VectorT {
-        return this->mult(other);
-    }
-    constexpr auto operator/(const T& other) const -> VectorT {
-        return this->div(other);
-    }
+    constexpr auto operator+(const VectorT& other) const -> VectorT { return this->add(other); }
+    constexpr auto operator-(const VectorT& other) const -> VectorT { return this->sub(other); }
+    constexpr auto operator*(const T& other) const -> VectorT { return this->mult(other); }
+    constexpr auto operator/(const T& other) const -> VectorT { return this->div(other); }
 
     constexpr auto operator+=(const VectorT& other) -> VectorT& {
         *this = *this + other;
@@ -162,28 +131,14 @@ class VectorT<2, T> {
         *this = *this / other;
         return *this;
     }
-    constexpr auto operator==(const VectorT& other) -> bool {
-        return (x == other.x) && (y == other.y);
-    }
-    constexpr auto operator!=(const VectorT& other) -> bool {
-        return !(*this == other);
-    }
+    constexpr auto operator==(const VectorT& other) -> bool { return (x == other.x) && (y == other.y); }
+    constexpr auto operator!=(const VectorT& other) -> bool { return !(*this == other); }
 
-    constexpr auto add(const VectorT o) const -> VectorT {
-        return VectorT(x + o.x, y + o.y);
-    }
-    constexpr auto sub(const VectorT o) const -> VectorT {
-        return VectorT(x - o.x, y - o.y);
-    }
-    constexpr auto mult(const T o) const -> VectorT {
-        return VectorT(x * o, y * o);
-    }
-    constexpr auto div(const T o) const -> VectorT {
-        return VectorT(x / o, y / o);
-    }
-    constexpr auto dot(const VectorT& o) const -> T {
-        return x * o.x + y * o.y;
-    }
+    constexpr auto add(const VectorT o) const -> VectorT { return VectorT(x + o.x, y + o.y); }
+    constexpr auto sub(const VectorT o) const -> VectorT { return VectorT(x - o.x, y - o.y); }
+    constexpr auto mult(const T o) const -> VectorT { return VectorT(x * o, y * o); }
+    constexpr auto div(const T o) const -> VectorT { return VectorT(x / o, y / o); }
+    constexpr auto dot(const VectorT& o) const -> T { return x * o.x + y * o.y; }
     // constexpr auto get_length() const {
     //	const T dot = this->dot(*this);
     //	return std::sqrt(dot);
@@ -211,12 +166,17 @@ class VectorT<2, T> {
         Vec3
 ---------------------------*/
 
-template <typename T>
+template<typename T>
 class VectorT<3, T> {
   public:
-    constexpr VectorT() noexcept : x(), y(), z() {}
+    constexpr VectorT() noexcept
+        : x()
+        , y()
+        , z() {}
     constexpr VectorT(const T x, const T y, const T z) noexcept
-        : x(x), y(y), z(z) {}
+        : x(x)
+        , y(y)
+        , z(z) {}
 
     constexpr auto operator=(const VectorT& other) -> VectorT& {
         this->x = other.x;
@@ -225,18 +185,10 @@ class VectorT<3, T> {
         return *this;
     }
 
-    constexpr auto operator+(const VectorT& other) const -> VectorT {
-        return this->add(other);
-    }
-    constexpr auto operator-(const VectorT& other) const -> VectorT {
-        return this->sub(other);
-    }
-    constexpr auto operator*(const T& other) const -> VectorT {
-        return this->mult(other);
-    }
-    constexpr auto operator/(const T& other) const -> VectorT {
-        return this->div(other);
-    }
+    constexpr auto operator+(const VectorT& other) const -> VectorT { return this->add(other); }
+    constexpr auto operator-(const VectorT& other) const -> VectorT { return this->sub(other); }
+    constexpr auto operator*(const T& other) const -> VectorT { return this->mult(other); }
+    constexpr auto operator/(const T& other) const -> VectorT { return this->div(other); }
 
     constexpr auto operator+=(const VectorT& other) -> VectorT& {
         *this = *this + other;
@@ -257,25 +209,13 @@ class VectorT<3, T> {
     constexpr auto operator==(const VectorT& other) -> bool {
         return ((x == other.x) && (y == other.y) && (z == other.z));
     }
-    constexpr auto operator!=(const VectorT& other) -> bool {
-        return !(*this == other);
-    }
+    constexpr auto operator!=(const VectorT& other) -> bool { return !(*this == other); }
 
-    constexpr auto add(const VectorT o) const -> VectorT {
-        return VectorT(x + o.x, y + o.y, z + o.z);
-    }
-    constexpr auto sub(const VectorT o) const -> VectorT {
-        return VectorT(x - o.x, y - o.y, z - o.z);
-    }
-    constexpr auto mult(const T o) const -> VectorT {
-        return VectorT(x * o, y * o, z * o);
-    }
-    constexpr auto div(const T o) const -> VectorT {
-        return VectorT(x / o, y / o, z / o);
-    }
-    constexpr auto dot(const VectorT& o) const -> T {
-        return x * o.x + y * o.y + z * o.z;
-    }
+    constexpr auto add(const VectorT o) const -> VectorT { return VectorT(x + o.x, y + o.y, z + o.z); }
+    constexpr auto sub(const VectorT o) const -> VectorT { return VectorT(x - o.x, y - o.y, z - o.z); }
+    constexpr auto mult(const T o) const -> VectorT { return VectorT(x * o, y * o, z * o); }
+    constexpr auto div(const T o) const -> VectorT { return VectorT(x / o, y / o, z / o); }
+    constexpr auto dot(const VectorT& o) const -> T { return x * o.x + y * o.y + z * o.z; }
     constexpr auto cross(const VectorT& o) const -> VectorT {
         return VectorT(y * o.z - z * o.y, z * o.x - x * o.z, x * o.y - y * o.x);
     }
@@ -304,12 +244,19 @@ class VectorT<3, T> {
         Vec4
 ---------------------------*/
 
-template <typename T>
+template<typename T>
 class VectorT<4, T> {
   public:
-    constexpr VectorT() noexcept : x(), y(), z(), w() {}
+    constexpr VectorT() noexcept
+        : x()
+        , y()
+        , z()
+        , w() {}
     constexpr VectorT(const T x, const T y, const T z, const T w) noexcept
-        : x(x), y(y), z(z), w(w) {}
+        : x(x)
+        , y(y)
+        , z(z)
+        , w(w) {}
 
     constexpr auto operator=(const VectorT& other) -> VectorT& {
         this->x = other.x;
@@ -319,18 +266,10 @@ class VectorT<4, T> {
         return *this;
     }
 
-    constexpr auto operator+(const VectorT& other) const -> VectorT {
-        return this->add(other);
-    }
-    constexpr auto operator-(const VectorT& other) const -> VectorT {
-        return this->sub(other);
-    }
-    constexpr auto operator*(const T& other) const -> VectorT {
-        return this->mult(other);
-    }
-    constexpr auto operator/(const T& other) const -> VectorT {
-        return this->div(other);
-    }
+    constexpr auto operator+(const VectorT& other) const -> VectorT { return this->add(other); }
+    constexpr auto operator-(const VectorT& other) const -> VectorT { return this->sub(other); }
+    constexpr auto operator*(const T& other) const -> VectorT { return this->mult(other); }
+    constexpr auto operator/(const T& other) const -> VectorT { return this->div(other); }
 
     constexpr auto operator+=(const VectorT& other) -> VectorT& {
         *this = *this + other;
@@ -349,28 +288,15 @@ class VectorT<4, T> {
         return *this;
     }
     constexpr auto operator==(const VectorT& other) -> bool {
-        return ((x == other.x) && (y == other.y) && (z == other.z) &&
-                (w == other.w));
+        return ((x == other.x) && (y == other.y) && (z == other.z) && (w == other.w));
     }
-    constexpr auto operator!=(const VectorT& other) -> bool {
-        return !(*this == other);
-    }
+    constexpr auto operator!=(const VectorT& other) -> bool { return !(*this == other); }
 
-    constexpr auto add(const VectorT o) const -> VectorT {
-        return VectorT(x + o.x, y + o.y, z + o.z, w + o.w);
-    }
-    constexpr auto sub(const VectorT o) const -> VectorT {
-        return VectorT(x - o.x, y - o.y, z - o.z, w - o.w);
-    }
-    constexpr auto mult(const T o) const -> VectorT {
-        return VectorT(x * o, y * o, z * o, w * o);
-    }
-    constexpr auto div(const T o) const -> VectorT {
-        return VectorT(x / o, y / o, z / o, w / o);
-    }
-    constexpr auto dot(const VectorT& o) const -> T {
-        return x * o.x + y * o.y + z * o.z + w * o.w;
-    }
+    constexpr auto add(const VectorT o) const -> VectorT { return VectorT(x + o.x, y + o.y, z + o.z, w + o.w); }
+    constexpr auto sub(const VectorT o) const -> VectorT { return VectorT(x - o.x, y - o.y, z - o.z, w - o.w); }
+    constexpr auto mult(const T o) const -> VectorT { return VectorT(x * o, y * o, z * o, w * o); }
+    constexpr auto div(const T o) const -> VectorT { return VectorT(x / o, y / o, z / o, w / o); }
+    constexpr auto dot(const VectorT& o) const -> T { return x * o.x + y * o.y + z * o.z + w * o.w; }
     // constexpr auto get_length() const {
     //	const T dot = this->dot(*this);
     //	return std::sqrt(dot);

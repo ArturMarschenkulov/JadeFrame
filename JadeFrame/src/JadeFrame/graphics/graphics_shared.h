@@ -1,8 +1,8 @@
 #pragma once
 #include "JadeFrame/defines.h"
 #include <JadeFrame/math/mat_4.h>
-#include <variant>
 #include <cassert>
+#include <variant>
 
 
 namespace JadeFrame {
@@ -14,77 +14,78 @@ class RGBAColor;
 
 
 enum class GRAPHICS_API {
-	UNDEFINED = -1,
-	OPENGL,
-	VULKAN,
-	D3D11,
-	D3D12,
-	METAL,
-	SOFTWARE,
-	TERMINAL,
+    UNDEFINED = -1,
+    OPENGL,
+    VULKAN,
+    D3D11,
+    D3D12,
+    METAL,
+    SOFTWARE,
+    TERMINAL,
 };
 enum class SHADING_LANGUAGE {
-	//High level
-	GLSL,
-	HLSL,
-	//Low level
-	SPIRV
+    // High level
+    GLSL,
+    HLSL,
+    // Low level
+    SPIRV
 };
 enum class SHADER_STAGE {
-	VERTEX,
-	FRAGMENT, //PIXEL
-	GEOMETRY,
-	TESSELATION,
-	COMPUTE,
+    VERTEX,
+    FRAGMENT, // PIXEL
+    GEOMETRY,
+    TESSELATION,
+    COMPUTE,
 };
 
 struct ShadingCode {
-	struct Module {
-		using Code = std::variant<std::string, std::vector<u32>>;
-		Code m_code;
-		SHADER_STAGE m_stage;
-	};
-	SHADING_LANGUAGE m_shading_language;
-	std::vector<Module> m_modules;
+    struct Module {
+        using Code = std::variant<std::string, std::vector<u32>>;
+        Code         m_code;
+        SHADER_STAGE m_stage;
+    };
+    SHADING_LANGUAGE    m_shading_language;
+    std::vector<Module> m_modules;
 };
 
 struct ShaderModule {
-	SHADING_LANGUAGE shading_language;
+    SHADING_LANGUAGE shading_language;
 };
 
 
 struct GPUDataMeshHandle {
-	GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
-	void* m_handle = nullptr;
+    GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
+    void*        m_handle = nullptr;
 
-	mutable bool m_is_initialized = false;
+    mutable bool m_is_initialized = false;
 };
 
 
 /*
-	TODO: Consider whether this is a good way and whether it is worth it to introdcue inheritance.
-		Right now, inheritance should be mainly used as a sanity check such that all renderers have a common interface.
+        TODO: Consider whether this is a good way and whether it is worth it to introdcue
+   inheritance. Right now, inheritance should be mainly used as a sanity check such that all
+   renderers have a common interface.
 */
 class IRenderer {
-public: // client stuff
-	virtual auto submit(const Object& obj) -> void = 0;
-	virtual auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void = 0;
-	
-	virtual auto take_screenshot(const char* filename) -> void = 0;
+  public: // client stuff
+    virtual auto submit(const Object& obj) -> void = 0;
+    virtual auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void = 0;
+
+    virtual auto take_screenshot(const char* filename) -> void = 0;
 
 
-public: // more internal stuff
-	virtual auto set_clear_color(const RGBAColor& color) -> void = 0;
-	virtual auto clear_background() -> void = 0;
-	virtual auto render(const Matrix4x4& view_projection) -> void = 0;
-	virtual auto present()  -> void = 0;
+  public: // more internal stuff
+    virtual auto set_clear_color(const RGBAColor& color) -> void = 0;
+    virtual auto clear_background() -> void = 0;
+    virtual auto render(const Matrix4x4& view_projection) -> void = 0;
+    virtual auto present() -> void = 0;
 };
 
 
 
 
 //
-//struct RasterizerState {
+// struct RasterizerState {
 //	enum FILL_MODE {
 //	} m_fill_mode;
 //	enum CULL_MODE {
@@ -107,68 +108,78 @@ public: // more internal stuff
 //	f32 m_line_width;
 //};
 enum class SHADER_TYPE {
-	NONE = 0,
-	FLOAT, FLOAT_2, FLOAT_3, FLOAT_4,
-	MAT_3, MAT_4,
-	INT, INT_2, INT_3, INT_4,
-	BOOL,
-	SAMPLER_1D, SAMPLER_2D, SAMPLER_3D, SAMPLER_CUBE,
-}; 
+    NONE = 0,
+    FLOAT,
+    FLOAT_2,
+    FLOAT_3,
+    FLOAT_4,
+    MAT_3,
+    MAT_4,
+    INT,
+    INT_2,
+    INT_3,
+    INT_4,
+    BOOL,
+    SAMPLER_1D,
+    SAMPLER_2D,
+    SAMPLER_3D,
+    SAMPLER_CUBE,
+};
 inline auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
-	u32 result;
-	switch (type) {
-		case SHADER_TYPE::FLOAT:	result = 4; break;
-		case SHADER_TYPE::FLOAT_2:	result = 4 * 2; break;
-		case SHADER_TYPE::FLOAT_3:	result = 4 * 3; break;
-		case SHADER_TYPE::FLOAT_4:	result = 4 * 4; break;
-		case SHADER_TYPE::MAT_3:	result = 4 * 3 * 3; break;
-		case SHADER_TYPE::MAT_4:	result = 4 * 4 * 4; break;
-		case SHADER_TYPE::INT:		result = 4; break;
-		case SHADER_TYPE::INT_2:	result = 4 * 2; break;
-		case SHADER_TYPE::INT_3:	result = 4 * 3; break;
-		case SHADER_TYPE::INT_4:	result = 4 * 4; break;
-		case SHADER_TYPE::BOOL:	result = 1; break;
-		default: assert(false); result = 0; break;
-	}
-	return result;
+    u32 result;
+    switch (type) {
+        case SHADER_TYPE::FLOAT: result = 4; break;
+        case SHADER_TYPE::FLOAT_2: result = 4 * 2; break;
+        case SHADER_TYPE::FLOAT_3: result = 4 * 3; break;
+        case SHADER_TYPE::FLOAT_4: result = 4 * 4; break;
+        case SHADER_TYPE::MAT_3: result = 4 * 3 * 3; break;
+        case SHADER_TYPE::MAT_4: result = 4 * 4 * 4; break;
+        case SHADER_TYPE::INT: result = 4; break;
+        case SHADER_TYPE::INT_2: result = 4 * 2; break;
+        case SHADER_TYPE::INT_3: result = 4 * 3; break;
+        case SHADER_TYPE::INT_4: result = 4 * 4; break;
+        case SHADER_TYPE::BOOL: result = 1; break;
+        default:
+            assert(false);
+            result = 0;
+            break;
+    }
+    return result;
 }
 
 struct VertexAttribute {
-	std::string name;
-	SHADER_TYPE type;
-	u32 size;
-	size_t offset;
-	bool normalized;
+    std::string name;
+    SHADER_TYPE type;
+    u32         size;
+    size_t      offset;
+    bool        normalized;
 
-	VertexAttribute(const std::string& name, SHADER_TYPE type, bool normalized = false);
+    VertexAttribute(const std::string& name, SHADER_TYPE type, bool normalized = false);
 };
 
 class VertexFormat {
-public:
+  public:
+  public:
+    VertexFormat() = default;
+    VertexFormat(const std::initializer_list<VertexAttribute>& attributes);
+    VertexFormat(const VertexFormat&) = default;
+    auto operator=(const VertexFormat&) -> VertexFormat& = default;
+    auto calculate_offset_and_stride(std::vector<VertexAttribute>& attributes) -> void;
 
-
-public:
-	VertexFormat() = default;
-	VertexFormat(const std::initializer_list<VertexAttribute>& attributes);
-	VertexFormat(const VertexFormat&) = default;
-	auto operator=(const VertexFormat&)->VertexFormat & = default;
-	auto calculate_offset_and_stride(std::vector<VertexAttribute>& attributes) -> void;
-
-	std::vector<VertexAttribute> m_attributes;
-	u32 m_stride = 0;
-
+    std::vector<VertexAttribute> m_attributes;
+    u32                          m_stride = 0;
 };
 
 class IShader {
-public:
+  public:
+    struct DESC {
+        SHADING_LANGUAGE shading_language;
+        ShadingCode      code;
+        VertexFormat     vertex_format;
+    };
 
-	struct DESC {
-		SHADING_LANGUAGE shading_language;
-		ShadingCode code;
-		VertexFormat vertex_format;
-	};
-public:
+  public:
 };
 
-auto string_to_SPIRV(const std::string& code, SHADER_STAGE i)->std::vector<u32>;
-}
+auto string_to_SPIRV(const std::string& code, SHADER_STAGE i) -> std::vector<u32>;
+} // namespace JadeFrame

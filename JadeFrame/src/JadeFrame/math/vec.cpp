@@ -1,6 +1,6 @@
-#include "pch.h"
 #include "vec.h"
 #include "JadeFrame/defines.h"
+#include "pch.h"
 
 namespace JadeFrame {
 
@@ -44,4 +44,4 @@ template class VectorT<2, i64>;
 template class VectorT<3, i64>;
 template class VectorT<4, i64>;
 
-}
+} // namespace JadeFrame

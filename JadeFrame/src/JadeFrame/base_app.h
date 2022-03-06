@@ -79,44 +79,34 @@ class JadeFrameInstance {
 */
 struct ResourceStorage {
   public:
-    auto set_shader_handle(const std::string& name, ShaderHandle&& shader)
-        -> void {
+    auto set_shader_handle(const std::string& name, ShaderHandle&& shader) -> void {
         // m_shaders.insert({ name, shader });
         m_shader_handles.emplace(name, std::move(shader));
     }
     auto get_shader_handle(const std::string& name) -> ShaderHandle& {
-        if (m_shader_handles.find(name) != m_shader_handles.end()) {
-            return m_shader_handles.at(name);
-        }
+        if (m_shader_handles.find(name) != m_shader_handles.end()) { return m_shader_handles.at(name); }
         assert(false);
         return m_shader_handles.at(name);
     }
 
-    auto set_texture_handle(const std::string& name, const std::string& path)
-        -> void {
+    auto set_texture_handle(const std::string& name, const std::string& path) -> void {
         // m_shaders.insert({ name, shader });
         m_texture_handles.emplace(name, path);
         // m_texture_handles.emplace(name, std::move(texture));
     }
     auto get_texture_handle(const std::string& name) -> TextureHandle& {
-        if (m_texture_handles.find(name) != m_texture_handles.end()) {
-            return m_texture_handles.at(name);
-        }
+        if (m_texture_handles.find(name) != m_texture_handles.end()) { return m_texture_handles.at(name); }
         assert(false);
         return m_texture_handles.at(name);
     }
 
     auto set_material_handle(
-        const std::string& material_name, const std::string& shader_name,
-        const std::string& texture_name) -> void {
+        const std::string& material_name, const std::string& shader_name, const std::string& texture_name) -> void {
 
         if (m_shader_handles.find(shader_name) != m_shader_handles.end()) {
-            m_material_handles[material_name].m_shader_handle =
-                &m_shader_handles[shader_name];
-            if (m_texture_handles.find(texture_name) !=
-                m_texture_handles.end()) {
-                m_material_handles[material_name].m_texture_handle =
-                    &m_texture_handles[texture_name];
+            m_material_handles[material_name].m_shader_handle = &m_shader_handles[shader_name];
+            if (m_texture_handles.find(texture_name) != m_texture_handles.end()) {
+                m_material_handles[material_name].m_texture_handle = &m_texture_handles[texture_name];
                 return;
             } else if (texture_name == "") {
                 return;
@@ -125,15 +115,12 @@ struct ResourceStorage {
         assert(false);
     }
     auto get_material_handle(const std::string& name) -> MaterialHandle& {
-        if (m_material_handles.find(name) != m_material_handles.end()) {
-            return m_material_handles.at(name);
-        }
+        if (m_material_handles.find(name) != m_material_handles.end()) { return m_material_handles.at(name); }
         assert(false);
         return m_material_handles.at(name);
     }
 
-    auto set_mesh(const std::string& name, const VertexData& vertex_data)
-        -> void {
+    auto set_mesh(const std::string& name, const VertexData& vertex_data) -> void {
         m_meshes.emplace(name, std::move(vertex_data));
     }
     auto get_mesh(const std::string& name) -> VertexData& {
