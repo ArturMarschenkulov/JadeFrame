@@ -1,0 +1,33 @@
+# LLVM, Google, Chromium, Mozilla, WebKit, Microsoft, GNU
+BasedOnStyle: LLVM
+IndentWidth: 4
+Language: Cpp
+PointerAlignment: Left
+AlignConsecutiveDeclarations: Consecutive 
+AllowShortEnumsOnASingleLine: false
+
+AlignConsecutiveMacros: Consecutive
+AlignEscapedNewlines: Right
+
+# Template Stuff
+AlwaysBreakTemplateDeclarations: Yes
+SpaceAfterTemplateKeyword: false
+
+BreakBeforeConceptDeclarations: true
+BreakBeforeTernaryOperators: true
+# ColumnLimit: 0
+IndentCaseLabels: true
+
+# QualifierAlignment: Right
+
+BraceWrapping:
+  AfterCaseLabel: false
+
+AlignAfterOpenBracket: AlwaysBreak
+
+AllowShortBlocksOnASingleLine: Always
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: All
+AllowShortLambdasOnASingleLine: All
+AllowShortLoopsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
