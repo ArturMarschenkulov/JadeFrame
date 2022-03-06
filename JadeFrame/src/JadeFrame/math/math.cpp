@@ -1,5 +1,5 @@
-#include "math.h"
 #include "pch.h"
+#include "math.h"
 
 namespace JadeFrame {
 auto to_radians(f32 degrees) -> f32 {

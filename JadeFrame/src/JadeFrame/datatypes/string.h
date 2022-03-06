@@ -1,7 +1,9 @@
 #pragma once
 namespace JadeFrame {
 class String {
-public:
+private:
+    const char* m_data;
 
+private:
 };
-namespace JadeFrame {
+} // namespace JadeFrame

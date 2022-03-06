@@ -4,14 +4,15 @@
 #include <memory>
 #include <string>
 
+#include "extern/spdlog/spdlog.h"
 #include "extern/spdlog/fmt/ostr.h"
 #include "extern/spdlog/sinks/base_sink.h"
 #include "extern/spdlog/sinks/stdout_color_sinks.h"
-#include "extern/spdlog/spdlog.h"
+
 
 namespace JadeFrame {
 class Logger {
-  public:
+public:
     enum class LEVEL {
         TRACE,
         DEBUG,

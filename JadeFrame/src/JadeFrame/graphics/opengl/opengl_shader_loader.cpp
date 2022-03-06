@@ -1,43 +1,43 @@
-#include "pch.h"
 #include "opengl_shader_loader.h"
+#include "pch.h"
 
 #include <glad/glad.h>
 
 namespace JadeFrame {
 
 /*
-	Conventions for variables
-	v_ = from CPU to vertex
-	f_ = from vertex to fragment
-	o_ = from fragment to output
-	u_ = uniform
-	   = local variables
+        Conventions for variables
+        v_ = from CPU to vertex
+        f_ = from vertex to fragment
+        o_ = from fragment to output
+        u_ = uniform
+           = local variables
 
 
-	Certain variables should be inside a shader.
-		"v_position" is the actual position
-		"u_view_projection"
-		"u_model"
+        Certain variables should be inside a shader.
+                "v_position" is the actual position
+                "u_view_projection"
+                "u_model"
 
-	The structure is:
-		in variables with layout
-		out variables
-		uniforms
+        The structure is:
+                in variables with layout
+                out variables
+                uniforms
 
 
-	Sets:
-	0 = per frame
-	1 = per pass
-	2 = per material
-	3 = per drawcall/object
+        Sets:
+        0 = per frame
+        1 = per pass
+        2 = per material
+        3 = per drawcall/object
 
 */
 
 
 static auto get_shader_framebuffer_test_0() {
 
-	const GLchar* vertex_shader =
-		R"(
+    const GLchar* vertex_shader =
+        R"(
 #version 450 core
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -51,8 +51,8 @@ void main() {
 	f_texture_coordinate = v_texture_coordinate;
 }
 	)";
-	const GLchar* fragment_shader =
-		R"(
+    const GLchar* fragment_shader =
+        R"(
 #version 450 core
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -68,13 +68,13 @@ void main() {
 }
 	)";
 
-	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
+    return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
 
 
 static auto get_shader_spirv_test_0() -> std::tuple<std::string, std::string> {
-	static const char* vertex_shader =
-		R"(
+    static const char* vertex_shader =
+        R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -98,8 +98,8 @@ void main() {
 }
 )";
 
-	static const char* fragment_shader =
-		R"(
+    static const char* fragment_shader =
+        R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -112,12 +112,12 @@ void main() {
 }
 )";
 
-	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
+    return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
 
 static auto get_shader_spirv_test_1() -> std::tuple<std::string, std::string> {
-	static const char* vertex_shader =
-		R"(
+    static const char* vertex_shader =
+        R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -141,8 +141,8 @@ void main() {
 }
 )";
 
-	static const char* fragment_shader =
-		R"(
+    static const char* fragment_shader =
+        R"(
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -155,12 +155,12 @@ void main() {
 }
 )";
 
-	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
+    return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
 
 static auto get_default_shader_flat_0() -> std::tuple<std::string, std::string> {
-	const GLchar* vertex_shader =
-		R"(
+    const GLchar* vertex_shader =
+        R"(
 #version 450 core
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -183,8 +183,8 @@ void main() {
 	//f_texture_coord = v_texture_coord;
 }
 	)";
-	const GLchar* fragment_shader =
-		R"(
+    const GLchar* fragment_shader =
+        R"(
 #version 450 core
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -198,12 +198,12 @@ void main() {
 }
 	)";
 
-	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
+    return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
 
 static auto get_default_shader_with_texture() -> std::tuple<std::string, std::string> {
-	const GLchar* vertex_shader =
-		R"(
+    const GLchar* vertex_shader =
+        R"(
 #version 450 core
 layout (location = 0) in vec3 v_position;
 layout (location = 1) in vec4 v_color;
@@ -227,8 +227,8 @@ void main() {
 	gl_Position = u_camera.view_projection * u_transform.model * vec4(fragment_position, 1.0);
 }
 	)";
-	const GLchar* fragment_shader =
-		R"(
+    const GLchar* fragment_shader =
+        R"(
 #version 450 core
 
 layout(location = 0) in vec4 f_color;
@@ -246,12 +246,12 @@ void main() {
 }
 	)";
 
-	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
+    return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
 
 static auto get_default_shader_depth_testing() -> std::tuple<std::string, std::string> {
-	const GLchar* vertex_shader =
-		R"(
+    const GLchar* vertex_shader =
+        R"(
 #version 450 core
 layout (location = 0) in vec3 v_position;
 layout (location = 1) in vec4 v_color;
@@ -269,8 +269,8 @@ void main() {
 	f_texture_coord = v_texture_coord;
 }
 	)";
-	const GLchar* fragment_shader =
-		R"(
+    const GLchar* fragment_shader =
+        R"(
 #version 450 core
 out vec4 o_color;
 
@@ -287,12 +287,12 @@ void main() {
 }
 	)";
 
-	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
+    return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
 
 static auto get_default_shader_light_client() -> std::tuple<std::string, std::string> {
-	const GLchar* vertex_shader =
-		R"(
+    const GLchar* vertex_shader =
+        R"(
 #version 450 core
 layout (location = 0) in vec3 v_position;
 layout (location = 1) in vec4 v_color;
@@ -312,8 +312,8 @@ void main() {
 
 }
 	)";
-	const GLchar* fragment_shader =
-		R"(
+    const GLchar* fragment_shader =
+        R"(
 #version 450 core
 out vec4 o_color;
 
@@ -350,11 +350,11 @@ void main(){
 }
 )";
 
-	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
+    return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
 static auto get_default_shader_light_server() -> std::tuple<std::string, std::string> {
-	const GLchar* vertex_shader =
-		R"(
+    const GLchar* vertex_shader =
+        R"(
 #version 450 core
 layout (location = 0) in vec3 v_position;
 layout (location = 1) in vec4 v_color;
@@ -367,8 +367,8 @@ void main() {
 	gl_Position = u_view_projection * u_model * vec4(v_position, 1.0);
 }
 	)";
-	const GLchar* fragment_shader =
-		R"(
+    const GLchar* fragment_shader =
+        R"(
 #version 450 core
 out vec4 o_color;
 
@@ -379,38 +379,38 @@ void main()
 }
 	)";
 
-	return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
+    return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
 auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
-	std::tuple<std::string, std::string> shader_tuple;
-	if (name == "flat_0") {
-		shader_tuple = get_default_shader_flat_0();
-	} else if (name == "with_texture_0") {
-		shader_tuple = get_default_shader_with_texture();
-	} else if (name == "depth_testing_0") {
-		shader_tuple = get_default_shader_depth_testing();
-	} else if (name == "light_server") {
-		shader_tuple = get_default_shader_light_server();
-	} else if (name == "light_client") {
-		shader_tuple = get_default_shader_light_client();
-	} else if (name == "spirv_test_0") {
-		shader_tuple = get_shader_spirv_test_0();
-	} else if (name == "spirv_test_1") {
-		shader_tuple = get_shader_spirv_test_1();
-	} else if (name == "framebuffer_test") {
-		shader_tuple = get_shader_framebuffer_test_0();
-	} else {
+    std::tuple<std::string, std::string> shader_tuple;
+    if (name == "flat_0") {
+        shader_tuple = get_default_shader_flat_0();
+    } else if (name == "with_texture_0") {
+        shader_tuple = get_default_shader_with_texture();
+    } else if (name == "depth_testing_0") {
+        shader_tuple = get_default_shader_depth_testing();
+    } else if (name == "light_server") {
+        shader_tuple = get_default_shader_light_server();
+    } else if (name == "light_client") {
+        shader_tuple = get_default_shader_light_client();
+    } else if (name == "spirv_test_0") {
+        shader_tuple = get_shader_spirv_test_0();
+    } else if (name == "spirv_test_1") {
+        shader_tuple = get_shader_spirv_test_1();
+    } else if (name == "framebuffer_test") {
+        shader_tuple = get_shader_framebuffer_test_0();
+    } else {
         assert(false);
-	}
+    }
 
-	auto [vs, fs] = shader_tuple;
-	ShadingCode code;
-	code.m_shading_language = SHADING_LANGUAGE::GLSL;
-	code.m_modules.resize(2);
-	code.m_modules[0].m_stage = SHADER_STAGE::VERTEX;
-	code.m_modules[0].m_code = vs;
-	code.m_modules[1].m_stage = SHADER_STAGE::FRAGMENT;
-	code.m_modules[1].m_code = fs;
-	return code;
+    auto [vs, fs] = shader_tuple;
+    ShadingCode code;
+    code.m_shading_language = SHADING_LANGUAGE::GLSL;
+    code.m_modules.resize(2);
+    code.m_modules[0].m_stage = SHADER_STAGE::VERTEX;
+    code.m_modules[0].m_code = vs;
+    code.m_modules[1].m_stage = SHADER_STAGE::FRAGMENT;
+    code.m_modules[1].m_code = fs;
+    return code;
 }
-}
+} // namespace JadeFrame

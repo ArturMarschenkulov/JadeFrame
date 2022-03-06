@@ -1,5 +1,5 @@
-#include "mesh.h"
 #include "pch.h"
+#include "mesh.h"
 namespace JadeFrame {
 
 // Mesh::Mesh(const VertexData& vertex_data) {

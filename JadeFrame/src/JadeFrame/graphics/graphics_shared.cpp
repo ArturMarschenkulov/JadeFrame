@@ -1,5 +1,5 @@
-#include "graphics_shared.h"
 #include "pch.h"
+#include "graphics_shared.h"
 #pragma warning(push)
 #pragma warning(disable : 4006)
 #include "extern/shaderc/shaderc.hpp"
@@ -50,9 +50,7 @@ auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage) -> std::vector
     options.SetWarningsAsErrors();
     options.SetGenerateDebugInfo();
     const bool optimize = false;
-    if constexpr (optimize == true) {
-        options.SetOptimizationLevel(shaderc_optimization_level_size);
-    }
+    if constexpr (optimize == true) { options.SetOptimizationLevel(shaderc_optimization_level_size); }
     shc::Compiler              compiler;
     shc::SpvCompilationResult  comp_result = compiler.CompileGlslToSpv(code, kind, "", options);
     shaderc_compilation_status comp_status = comp_result.GetCompilationStatus();
@@ -67,7 +65,7 @@ auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage) -> std::vector
 
 
 class RenderCommandQueue {
-  public:
+public:
     typedef void (*RenderCommandFn)(void*);
     RenderCommandQueue() {
         const auto buffer_size = 10 * 1024 * 1024;
@@ -108,7 +106,7 @@ class RenderCommandQueue {
         m_command_count = 0;
     }
 
-  private:
+private:
     u8* m_command_buffer;
     u8* m_command_buffer_ptr;
     u32 m_command_count = 0;

@@ -1,10 +1,12 @@
+#include "pch.h"
 #include "base_app.h"
 #include "graphics/graphics_shared.h"
-#include "pch.h"
 
 #include "gui.h"
 
+// #include "JadeFrame/datatypes/option.h"
 #include "JadeFrame/math/vec.h"
+
 #include <JadeFrame/utils/utils.h>
 #include <utility>
 
@@ -18,6 +20,9 @@ JadeFrameInstance* JadeFrameInstance::m_singleton = nullptr;
 auto JadeFrameInstance::get_singleton() -> JadeFrameInstance* { return m_singleton; }
 
 JadeFrameInstance::JadeFrameInstance() {
+    // Option<int> o_int;
+
+
     Logger::init();
     Logger::info("JadeFrame is starting...");
 
@@ -60,8 +65,7 @@ BaseApp::BaseApp(const DESC& desc) {
 
     m_current_window_p = &m_windows[0];
 
-    GRAPHICS_API
-    api = GRAPHICS_API::UNDEFINED;
+    GRAPHICS_API api = GRAPHICS_API::UNDEFINED;
     api = GRAPHICS_API::VULKAN;
     api = GRAPHICS_API::OPENGL;
 
@@ -127,7 +131,7 @@ auto init_memory(T& data) -> void {
 }
 
 class RenderCommandQueue {
-  public:
+public:
     typedef void (*RenderCommandFn)(void*);
     RenderCommandQueue() {
         const auto buffer_size = 10 * 1024 * 1024;
@@ -168,7 +172,7 @@ class RenderCommandQueue {
         m_command_count = 0;
     }
 
-  private:
+private:
     u8* m_command_buffer;
     u8* m_command_buffer_ptr;
     u32 m_command_count = 0;
@@ -192,24 +196,21 @@ static auto submit(FuncT&& func) -> void {
 }
 
 template<typename BaseType, typename SubType>
-static auto
-take_ownership(std::set<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object)
+static auto take_ownership(std::set<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object)
     -> SubType* {
     SubType* ref = object.get();
     object_set.emplace(std::forward<std::unique_ptr<SubType>>(object));
     return ref;
 }
 template<typename BaseType, typename SubType>
-static auto take_ownership(
-    std::vector<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object)
+static auto take_ownership(std::vector<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object)
     -> SubType* {
     SubType* ref = object.get();
     object_set.emplace_back(std::forward<std::unique_ptr<SubType>>(object));
     return ref;
 }
 template<typename BaseType, typename SubType>
-static auto
-take_ownership(std::list<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object)
+static auto take_ownership(std::list<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object)
     -> SubType* {
     SubType* ref = object.get();
     object_set.emplace_back(std::forward<std::unique_ptr<SubType>>(object));
@@ -218,7 +219,7 @@ take_ownership(std::list<std::unique_ptr<BaseType>>& object_set, std::unique_ptr
 
 template<typename Left, typename Right>
 class Either {
-  public:
+public:
     Either(const Left& left) {
         m_left = left;
         m_is_left = true;
@@ -234,7 +235,7 @@ class Either {
     // T {
     //
     // }
-  private:
+private:
     // Left
     // m_left;
     // Right
@@ -252,25 +253,34 @@ struct Error {
 };
 template<typename T>
 class Result {
-  public:
-    Result(const T& value) : m_value{value}, m_init{true} {}
+public:
+    Result(const T& value)
+        : m_value{value}
+        , m_init{true} {}
 
-    Result(T&& value) : m_value{std::move(value)}, m_init{true} {}
+    Result(T&& value)
+        : m_value{std::move(value)}
+        , m_init{true} {}
 
-    Result(Error error) : m_error{error}, m_init{false} {}
+    Result(Error error)
+        : m_error{error}
+        , m_init{false} {}
 
     Result(std::error_code error_code, VkResult result = VK_SUCCESS)
-        : m_error{error_code, result}, m_init{false} {}
+        : m_error{error_code, result}
+        , m_init{false} {}
 
     ~Result() { destroy(); }
-    Result(Result const& expected) : m_init(expected.m_init) {
+    Result(Result const& expected)
+        : m_init(expected.m_init) {
         if (m_init) {
             new (&m_value) T{expected.m_value};
         } else {
             m_error = expected.m_error;
         }
     }
-    Result(Result&& expected) : m_init(expected.m_init) {
+    Result(Result&& expected)
+        : m_init(expected.m_init) {
         if (m_init) {
             new (&m_value) T{std::move(expected.m_value)};
         } else {
@@ -349,7 +359,7 @@ class Result {
     bool     has_value() const { return m_init; }
     explicit operator bool() const { return m_init; }
 
-  private:
+private:
     void destroy() {
         if (m_init) { m_value.~T(); }
     }
