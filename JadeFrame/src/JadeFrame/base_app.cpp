@@ -4,7 +4,7 @@
 
 #include "gui.h"
 
-// #include "JadeFrame/datatypes/option.h"
+#include "JadeFrame/datatypes/option.h"
 #include "JadeFrame/math/vec.h"
 
 #include <JadeFrame/utils/utils.h>
@@ -20,9 +20,6 @@ JadeFrameInstance* JadeFrameInstance::m_singleton = nullptr;
 auto JadeFrameInstance::get_singleton() -> JadeFrameInstance* { return m_singleton; }
 
 JadeFrameInstance::JadeFrameInstance() {
-    // Option<int> o_int;
-
-
     Logger::init();
     Logger::info("JadeFrame is starting...");
 
@@ -66,7 +63,7 @@ BaseApp::BaseApp(const DESC& desc) {
     m_current_window_p = &m_windows[0];
 
     GRAPHICS_API api = GRAPHICS_API::UNDEFINED;
-    api = GRAPHICS_API::VULKAN;
+    // api = GRAPHICS_API::VULKAN;
     api = GRAPHICS_API::OPENGL;
 
     Logger::info("Creating Renderer");
@@ -382,11 +379,11 @@ constexpr static auto hash(const char* str) -> size_t {
     return total;
 }
 
-auto foo() -> void {
-    Either<i32, f32> e = 32.0f;
+// auto foo() -> void {
+//     Either<i32, f32> e = 32.0f;
 
-    auto ee = Either<i32, f32>(29);
-}
+//     auto ee = Either<i32, f32>(29);
+// }
 
 template<typename T>
 class UniquePointer {};

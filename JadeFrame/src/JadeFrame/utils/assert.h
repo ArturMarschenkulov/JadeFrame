@@ -3,14 +3,14 @@
 
 namespace JadeFrame {
 
-#define JF_ASSERT(expr, text)                                                                                          \
+#define JF_ASSERT(expr, msg)                                                                                           \
     do {                                                                                                               \
         if (expr) {                                                                                                    \
         } else {                                                                                                       \
             /*std::string t = fmt::v8::format("{}: {}: {}", __FILE__,                                                  \
              * __LINE__, std::string(text));*/                                                                         \
-            std::string t = std::string(text);                                                                         \
-            Logger::err(t.c_str());                                                                                    \
+                                                                                                                       \
+            Logger::err(msg);                                                                                          \
             assert(false);                                                                                             \
         }                                                                                                              \
     } while (0)
