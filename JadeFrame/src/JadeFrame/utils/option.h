@@ -15,6 +15,8 @@ namespace JadeFrame {
     NOTE: This is class is mainly modelled after Rust's Option<T>.
     NOTE: Thus member function should have the same naming convention, though provide C++-like wrapper member functions.
     NOTE: Think about maybe renaming this class (Rust, Ocaml) to Maybe (Haskell) or Optional (C++, Swift)
+
+    TODO: Consider whether the ref-qualified "const&&"" overloads are needed. Most likely not.
 */
 
 template<typename T>
@@ -56,7 +58,12 @@ public:
     }
 
     // Dtor
-    constexpr ~Option() { this->clear(); }
+    constexpr ~Option() {
+        if (m_has_value) {
+            this->unwrap().~T();
+            m_has_value = false;
+        }
+    }
 
     // Copy assignment
     constexpr auto operator=(const Option& o) -> Option& {
@@ -74,10 +81,26 @@ public:
     }
 
     constexpr auto operator==(const Option& o) const noexcept -> bool {
-        if (m_has_value && o.m_has_value) { return this->unwrap() == o.unwrap(); }
-        if (!m_has_value && !o.m_has_value) { return true; }
-        return false;
+        if (m_has_value && o.m_has_value) {
+            return this->unwrap() == o.unwrap();
+        } else if (!m_has_value && !o.m_has_value) {
+            return true;
+        } else {
+            return false;
+        }
     }
+    constexpr auto operator==(const T& v) const noexcept -> bool {
+        if (m_has_value) {
+            return this->unwrap() == v;
+        } else {
+            return false;
+        }
+    }
+
+    constexpr auto operator*() const -> const T& { return this->unwrap(); }
+    constexpr auto operator*() -> T& { return this->unwrap(); }
+    constexpr auto operator->() const -> const T* { return &this->unwrap(); }
+    constexpr auto operator->() -> T* { return &this->unwrap(); }
 
 public:
     // auto explicit operator bool() const { return this->has_value(); }
@@ -94,20 +117,19 @@ public:
         std::terminate();
     }
     constexpr auto unwrap() && -> T { return this->release(); }
-    constexpr auto unwrap() const&& -> const T { return this->release(); }
+    // constexpr auto unwrap() const&& -> const T { return this->release(); }
 
     constexpr auto unwrap_unchecked() & -> T& { return reinterpret_cast<T&>(m_storage); }
     constexpr auto unwrap_unchecked() const& -> const T& { return reinterpret_cast<const T&>(m_storage); }
     constexpr auto unwrap_unchecked() && -> T { return std::move(this->release_unchecked()); }
-    constexpr auto unwrap_unchecked() const&& -> const T { return std::move(this->release_unchecked()); }
-    // constexpr auto unwrap() const -> T { return this->value(); }
+    // constexpr auto unwrap_unchecked() const&& -> const T { return std::move(this->release_unchecked()); }
 
     template<typename U>
     constexpr auto and_(const Option<U>& o) const& -> Option<U> {
         if (this->is_some()) {
             return o;
         } else {
-            return Option<T>();
+            return Option<U>();
         }
     }
     constexpr auto or_(const Option<T>& o) const& -> Option<T> {
@@ -175,6 +197,9 @@ public:
         }
     }
 
+    template<typename T, typename U>
+    using ctnmc = std::convertible_to<U, T>&& std::move_constructible<T>;
+
     template<typename U>
     requires std::convertible_to<U, T> && std::move_constructible<T>
     constexpr auto unwrap_or(U&& d) && -> T {
@@ -185,11 +210,6 @@ public:
         }
     }
 
-    constexpr auto operator*() const -> const T& { return this->unwrap(); }
-    constexpr auto operator*() -> T& { return this->unwrap(); }
-    constexpr auto operator->() const -> const T* { return &this->unwrap(); }
-    constexpr auto operator->() -> T* { return &this->unwrap(); }
-
 
 
 
@@ -197,7 +217,7 @@ private:
     constexpr auto release() -> T {
         if (m_has_value) {
             T released_value = std::move(this->unwrap());
-            this->value().~T();
+            this->unwrap().~T();
             m_has_value = false;
             return released_value;
         }
