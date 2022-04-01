@@ -46,7 +46,7 @@ using TimeManager = Linux_TimeManager;
 class BaseApp;
 class IRenderer;
 class JadeFrameInstance {
-  public:
+public:
     JadeFrameInstance(const JadeFrameInstance&) = delete;
     JadeFrameInstance(JadeFrameInstance&&) = delete;
     auto operator=(const JadeFrameInstance&) -> JadeFrameInstance& = delete;
@@ -57,9 +57,10 @@ class JadeFrameInstance {
     auto        add(BaseApp* app) -> void;
     static auto get_singleton() -> JadeFrameInstance*;
 
-  public:
+public:
     SystemManager m_system_manager;
     InputManager  m_input_manager;
+    TimeManager   m_time_manager;
 
     std::deque<BaseApp*> m_apps;
     BaseApp*             m_current_app_p = nullptr;
@@ -78,7 +79,7 @@ class JadeFrameInstance {
    have custom stuff
 */
 struct ResourceStorage {
-  public:
+public:
     auto set_shader_handle(const std::string& name, ShaderHandle&& shader) -> void {
         // m_shaders.insert({ name, shader });
         m_shader_handles.emplace(name, std::move(shader));
@@ -129,7 +130,7 @@ struct ResourceStorage {
         return m_meshes.at(name);
     }
 
-  private:
+private:
     std::unordered_map<std::string, ShaderHandle>   m_shader_handles;
     std::unordered_map<std::string, TextureHandle>  m_texture_handles;
     std::unordered_map<std::string, MaterialHandle> m_material_handles;
@@ -137,7 +138,7 @@ struct ResourceStorage {
 };
 
 class BaseApp {
-  public:
+public:
     struct DESC {
         std::string title;
         v2u32       size;
@@ -155,7 +156,7 @@ class BaseApp {
     // protected:
     auto poll_events() -> void;
 
-  public:
+public:
     bool m_is_running = true;
 
     // Window stuff

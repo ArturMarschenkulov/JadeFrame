@@ -4,7 +4,9 @@
 
 #include "gui.h"
 
-#include "JadeFrame/datatypes/option.h"
+#include "JadeFrame/utils/option.h"
+#include "JadeFrame/utils/result.h"
+
 #include "JadeFrame/math/vec.h"
 
 #include <JadeFrame/utils/utils.h>
@@ -19,14 +21,30 @@ JadeFrameInstance* JadeFrameInstance::m_singleton = nullptr;
 
 auto JadeFrameInstance::get_singleton() -> JadeFrameInstance* { return m_singleton; }
 
+template<typename F>
+requires std::invocable<F>
+auto foo(const F& func) { return func(); }
+
+struct S {
+    auto foo() & -> void { std::cout << "lvalue" << std::endl; }
+    auto foo() const& -> void { std::cout << "lvalue const" << std::endl; }
+    auto foo() && -> void { std::cout << "rvalue" << std::endl; }
+    auto foo() const&& -> void { std::cout << "rvalue const" << std::endl; }
+};
+
 JadeFrameInstance::JadeFrameInstance() {
-    Logger::init();
+
+    auto o = Option(44_i32);
+
+    auto w = o.and_then<i32>([](const i32& x) { return Option((i32)x); });
+    std::cout << "w: " << w.value() << std::endl;
+    // 'return' : cannot convert from 'Option<f32>' to 'Option<int32>' Logger::init();
     Logger::info("JadeFrame is starting...");
 
     if (m_singleton == nullptr) {
         m_singleton = this;
         m_system_manager.initialize();
-        // m_time_manager.initialize();
+        m_time_manager.initialize();
         // m_input_manager.initialize();
 
         m_system_manager.log();

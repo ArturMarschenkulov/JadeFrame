@@ -18,248 +18,223 @@
 namespace JadeFrame {
 
 
-//static auto get_required_instance_extensions(u32* count) -> const char* {
-//    const char* extensions[2];
-//    extensions[0] = "VK_KHR_surface";
-//    extensions[1] = "VK_KHR_win32_surface";
-//    return *extensions;
-//}
+// static auto get_required_instance_extensions(u32* count) -> const char* {
+//     const char* extensions[2];
+//     extensions[0] = "VK_KHR_surface";
+//     extensions[1] = "VK_KHR_win32_surface";
+//     return *extensions;
+// }
 
 struct VulkanVersion {
-	u32 variant;
-	u32 major;
-	u32 minor;
-	u32 patch;
+    u32 variant;
+    u32 major;
+    u32 minor;
+    u32 patch;
 };
 static auto vulkan_get_api_version(u32 version) -> VulkanVersion {
-	VulkanVersion result;
-	result.variant = VK_API_VERSION_VARIANT(version);
-	result.major = VK_API_VERSION_MAJOR(version);
-	result.minor = VK_API_VERSION_MINOR(version);
-	result.patch = VK_API_VERSION_PATCH(version);
-	return result;
+    VulkanVersion result;
+    result.variant = VK_API_VERSION_VARIANT(version);
+    result.major = VK_API_VERSION_MAJOR(version);
+    result.minor = VK_API_VERSION_MINOR(version);
+    result.patch = VK_API_VERSION_PATCH(version);
+    return result;
 }
 static auto vulkan_get_device_type_string(const VkPhysicalDeviceType& device_type) -> const char* {
-	const char* result = "";
-	switch (device_type) {
-		case VK_PHYSICAL_DEVICE_TYPE_OTHER:
-			result = "VK_PHYSICAL_DEVICE_TYPE_OTHER"; break;
-		case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-			result = "VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU"; break;
-		case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-			result = "VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU"; break;
-		case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-			result = "VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU"; break;
-		case VK_PHYSICAL_DEVICE_TYPE_CPU:
-			result = "VK_PHYSICAL_DEVICE_TYPE_CPU"; break;
-		case VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM:
-			JF_ASSERT(false, "");
-			result = ""; break;
-	}
-	return result;
+    const char* result = "";
+    switch (device_type) {
+        case VK_PHYSICAL_DEVICE_TYPE_OTHER: result = "VK_PHYSICAL_DEVICE_TYPE_OTHER"; break;
+        case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: result = "VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU"; break;
+        case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU: result = "VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU"; break;
+        case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: result = "VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU"; break;
+        case VK_PHYSICAL_DEVICE_TYPE_CPU: result = "VK_PHYSICAL_DEVICE_TYPE_CPU"; break;
+        case VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM:
+            JF_ASSERT(false, "");
+            result = "";
+            break;
+    }
+    return result;
 }
 auto VulkanInstance::check_validation_layer_support(const std::vector<VkLayerProperties>& available_layers) -> bool {
-	for (u32 i = 0; i < m_desired_layer_names.size(); i++) {
-		bool layer_found = false;
-		for (u32 j = 0; j < available_layers.size(); j++) {
-			if (strcmp(m_desired_layer_names[i], available_layers[j].layerName) == 0) {
-				layer_found = true;
-				break;
-			}
-		}
-		if (layer_found == false) {
-			return false;
-		}
-	}
-	return true;
+    for (u32 i = 0; i < m_desired_layer_names.size(); i++) {
+        bool layer_found = false;
+        for (u32 j = 0; j < available_layers.size(); j++) {
+            if (strcmp(m_desired_layer_names[i], available_layers[j].layerName) == 0) {
+                layer_found = true;
+                break;
+            }
+        }
+        if (layer_found == false) { return false; }
+    }
+    return true;
 }
 
 static auto is_device_suitable(VulkanPhysicalDevice physical_device) -> bool {
-	bool swapchain_adequate = false;
-	if (physical_device.m_extension_support == true) {
-		swapchain_adequate =
-			!physical_device.m_surface_support_details.m_formats.empty() &&
-			!physical_device.m_surface_support_details.m_present_modes.empty()
-			;
-	}
-	return
-		physical_device.m_queue_family_indices.is_complete() &&
-		physical_device.m_extension_support &&
-		swapchain_adequate
-		;
+    bool swapchain_adequate = false;
+    if (physical_device.m_extension_support == true) {
+        swapchain_adequate = !physical_device.m_surface_support_details.m_formats.empty() &&
+                             !physical_device.m_surface_support_details.m_present_modes.empty();
+    }
+    return physical_device.m_queue_family_indices.is_complete() && physical_device.m_extension_support &&
+           swapchain_adequate;
 }
 
 auto VulkanInstance::query_layers() -> std::vector<VkLayerProperties> {
-	u32 layer_count;
-	vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
-	std::vector<VkLayerProperties> available_layers;
-	available_layers.resize(layer_count);
-	vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
-	if (!this->check_validation_layer_support(available_layers)) {
-        assert(false);
-	}
-	return available_layers;
+    u32 layer_count;
+    vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
+    std::vector<VkLayerProperties> available_layers;
+    available_layers.resize(layer_count);
+    vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
+    if (!this->check_validation_layer_support(available_layers)) { assert(false); }
+    return available_layers;
 }
 
 auto VulkanInstance::query_extensions() -> std::vector<VkExtensionProperties> {
-	VkResult result;
+    VkResult result;
 
-	u32 extension_count = 0;
-	result = vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
-	if (result != VK_SUCCESS) assert(false);
+    u32 extension_count = 0;
+    result = vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
+    if (result != VK_SUCCESS) assert(false);
 
-	std::vector<VkExtensionProperties> extensions;
-	extensions.resize(extension_count);
-	vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data());
-	if (result != VK_SUCCESS) assert(false);
+    std::vector<VkExtensionProperties> extensions;
+    extensions.resize(extension_count);
+    vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data());
+    if (result != VK_SUCCESS) assert(false);
 
-	return extensions;
+    return extensions;
 }
 
 auto VulkanInstance::query_physical_devices() -> std::vector<VulkanPhysicalDevice> {
-	u32 device_count = 0;
-	vkEnumeratePhysicalDevices(m_instance, &device_count, nullptr);
-	if (device_count == 0) assert(false);
+    u32 device_count = 0;
+    vkEnumeratePhysicalDevices(m_instance, &device_count, nullptr);
+    if (device_count == 0) assert(false);
 
-	std::vector<VkPhysicalDevice> phys_devices;
-	phys_devices.resize(device_count);
-	vkEnumeratePhysicalDevices(m_instance, &device_count, phys_devices.data());
+    std::vector<VkPhysicalDevice> phys_devices;
+    phys_devices.resize(device_count);
+    vkEnumeratePhysicalDevices(m_instance, &device_count, phys_devices.data());
 
 
-	std::vector<VulkanPhysicalDevice> physical_devices;
-	physical_devices.resize(device_count);
-	for (u32 i = 0; i < physical_devices.size(); i++) {
-		physical_devices[i].m_handle = phys_devices[i];
-	}
-	return physical_devices;
+    std::vector<VulkanPhysicalDevice> physical_devices;
+    physical_devices.resize(device_count);
+    for (u32 i = 0; i < physical_devices.size(); i++) { physical_devices[i].m_handle = phys_devices[i]; }
+    return physical_devices;
 }
 
 auto VulkanInstance::setup_debug() -> void {
-	VkResult result;
-	if (!m_enable_validation_layers) return;
-	VkDebugUtilsMessengerCreateInfoEXT create_info;
-	populate_debug_messenger_create_info(create_info);
+    VkResult result;
+    if (!m_enable_validation_layers) return;
+    VkDebugUtilsMessengerCreateInfoEXT create_info;
+    populate_debug_messenger_create_info(create_info);
 
-	result = vkCreateDebugUtilsMessengerEXT_(m_instance, &create_info, nullptr, &m_debug_messenger);
-	if (result != VK_SUCCESS) assert(false);
+    result = vkCreateDebugUtilsMessengerEXT_(m_instance, &create_info, nullptr, &m_debug_messenger);
+    if (result != VK_SUCCESS) assert(false);
 }
 
 auto VulkanInstance::init(HWND window_handle) -> void {
-	//m_window_handle = window_handle;
+    // m_window_handle = window_handle;
 
-	VkResult result;
+    VkResult result;
 
-	VkValidationFeatureEnableEXT enables[] = { VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT };
-	VkValidationFeaturesEXT features = {};
-	features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
-	features.enabledValidationFeatureCount = 1;
-	features.pEnabledValidationFeatures = enables;
+    VkValidationFeatureEnableEXT enables[] = {VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT};
+    VkValidationFeaturesEXT      features = {};
+    features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+    features.enabledValidationFeatureCount = 1;
+    features.pEnabledValidationFeatures = enables;
 
-	//VkInstanceCreateInfo info = {};
-	//info.pNext = &features;
+    // VkInstanceCreateInfo info = {};
+    // info.pNext = &features;
 
-	m_available_layers = this->query_layers();
-	m_available_extensions = this->query_extensions();
+    m_available_layers = this->query_layers();
+    m_available_extensions = this->query_extensions();
 
-	if (m_enable_validation_layers && !this->check_validation_layer_support(m_available_layers)) {
-		throw std::runtime_error("validation layers requested, but not available!");
-	}
-
-
-	const VkApplicationInfo app_info = {
-		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-		.pNext = nullptr,
-		.pApplicationName = "Hello Triangle",
-		.applicationVersion = VK_MAKE_VERSION(1, 0, 0),
-		.pEngineName = "JadeFrame",
-		.engineVersion = VK_MAKE_VERSION(1, 0, 0),
-		.apiVersion = VK_API_VERSION_1_2,
-	};
+    if (m_enable_validation_layers && !this->check_validation_layer_support(m_available_layers)) {
+        throw std::runtime_error("validation layers requested, but not available!");
+    }
 
 
-	std::vector<const char*> layer_names;
-	layer_names.resize(m_available_layers.size());
-	for (u32 i = 0; i < m_available_layers.size(); i++) {
-		layer_names[i] = m_available_layers[i].layerName;
-	}
-	std::vector<const char*> extension_names;
-	extension_names.resize(m_available_extensions.size());
-	for (u32 i = 0; i < m_available_extensions.size(); i++) {
-		extension_names[i] = m_available_extensions[i].extensionName;
-	}
-	VkInstanceCreateInfo create_info = {
-		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.pApplicationInfo = &app_info,
-		.enabledLayerCount = static_cast<u32>(m_available_layers.size()),
-		.ppEnabledLayerNames = layer_names.data(),
-		.enabledExtensionCount = static_cast<u32>(m_available_extensions.size()),
-		.ppEnabledExtensionNames = extension_names.data(),
-	};
+    const VkApplicationInfo app_info = {
+        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+        .pNext = nullptr,
+        .pApplicationName = "Hello Triangle",
+        .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+        .pEngineName = "JadeFrame",
+        .engineVersion = VK_MAKE_VERSION(1, 0, 0),
+        .apiVersion = VK_API_VERSION_1_2,
+    };
 
-	
-	if (m_enable_validation_layers) {
-		create_info.enabledLayerCount = static_cast<u32>(m_desired_layer_names.size());
-		create_info.ppEnabledLayerNames = m_desired_layer_names.data();
 
-		VkDebugUtilsMessengerCreateInfoEXT debug_create_info;
-		populate_debug_messenger_create_info(debug_create_info);
-		create_info.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debug_create_info;
-	} else {
-		create_info.enabledLayerCount = 0;
-		create_info.pNext = nullptr;
-	}
+    std::vector<const char*> layer_names;
+    layer_names.resize(m_available_layers.size());
+    for (u32 i = 0; i < m_available_layers.size(); i++) { layer_names[i] = m_available_layers[i].layerName; }
+    std::vector<const char*> extension_names;
+    extension_names.resize(m_available_extensions.size());
+    for (u32 i = 0; i < m_available_extensions.size(); i++) {
+        extension_names[i] = m_available_extensions[i].extensionName;
+    }
+    VkInstanceCreateInfo create_info = {
+        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .pApplicationInfo = &app_info,
+        .enabledLayerCount = static_cast<u32>(m_available_layers.size()),
+        .ppEnabledLayerNames = layer_names.data(),
+        .enabledExtensionCount = static_cast<u32>(m_available_extensions.size()),
+        .ppEnabledExtensionNames = extension_names.data(),
+    };
 
-	result = vkCreateInstance(&create_info, nullptr, &m_instance);
-	if (result != VK_SUCCESS) assert(false);
-	
-	if (m_enable_validation_layers) {
-		VkDebugUtilsMessengerCreateInfoEXT info;
-		populate_debug_messenger_create_info(info);
 
-		result = vkCreateDebugUtilsMessengerEXT_(m_instance, &info, nullptr, &m_debug_messenger);
-		if (result != VK_SUCCESS) assert(false);
-	}
+    if (m_enable_validation_layers) {
+        create_info.enabledLayerCount = static_cast<u32>(m_desired_layer_names.size());
+        create_info.ppEnabledLayerNames = m_desired_layer_names.data();
 
-	m_surface.init(m_instance, window_handle);
+        VkDebugUtilsMessengerCreateInfoEXT debug_create_info;
+        populate_debug_messenger_create_info(debug_create_info);
+        create_info.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debug_create_info;
+    } else {
+        create_info.enabledLayerCount = 0;
+        create_info.pNext = nullptr;
+    }
+
+    result = vkCreateInstance(&create_info, nullptr, &m_instance);
+    if (result != VK_SUCCESS) assert(false);
+
+    if (m_enable_validation_layers) {
+        VkDebugUtilsMessengerCreateInfoEXT info;
+        populate_debug_messenger_create_info(info);
+
+        result = vkCreateDebugUtilsMessengerEXT_(m_instance, &info, nullptr, &m_debug_messenger);
+        if (result != VK_SUCCESS) assert(false);
+    }
+
+    m_surface.init(m_instance, window_handle);
 
 
 
-	m_physical_devices = this->query_physical_devices();
-	for (u32 i = 0; i < m_physical_devices.size(); i++) {
-		m_physical_devices[i].init(*this, m_surface);
-	}
-	for (u32 i = 0; i < m_physical_devices.size(); i++) {
-		if (is_device_suitable(m_physical_devices[i])) {
-			m_physical_device = m_physical_devices[i];
-		}
-	}
+    m_physical_devices = this->query_physical_devices();
+    for (u32 i = 0; i < m_physical_devices.size(); i++) { m_physical_devices[i].init(*this, m_surface); }
+    for (u32 i = 0; i < m_physical_devices.size(); i++) {
+        if (is_device_suitable(m_physical_devices[i])) { m_physical_device = m_physical_devices[i]; }
+    }
 
-	m_logical_device.init(*this, m_physical_device);
+    m_logical_device.init(*this, m_physical_device);
 }
 
 auto VulkanInstance::deinit() -> void {
-	if (m_enable_validation_layers) {
-		vkDestroyDebugUtilsMessengerEXT_(m_instance, m_debug_messenger, nullptr);
-	}
-	m_surface.deinit();
-	vkDestroyInstance(m_instance, nullptr);
+    if (m_enable_validation_layers) { vkDestroyDebugUtilsMessengerEXT_(m_instance, m_debug_messenger, nullptr); }
+    m_surface.deinit();
+    vkDestroyInstance(m_instance, nullptr);
 }
 
 Vulkan_Context::Vulkan_Context(const Window& window) {
-	m_window_handle = window.m_window_handle;
-	m_instance.init(window.m_window_handle);
+    m_window_handle = window.m_window_handle;
+    m_instance.init(window.m_window_handle);
 }
 
 Vulkan_Context::~Vulkan_Context() {
-	m_instance.m_logical_device.deinit();
-	m_instance.deinit();
+    m_instance.m_logical_device.deinit();
+    m_instance.deinit();
 }
 
 
 
 
-
-
-}
+} // namespace JadeFrame

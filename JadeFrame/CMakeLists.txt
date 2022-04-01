@@ -259,7 +259,8 @@ set(ALL_FILES
     ${Files_Extern_shaderc}
     ${Files_Extern_SPIRV-Cross}
     ${Files_Extern_spdlog}
-    "src/JadeFrame/datatypes/option.h"
+    "src/JadeFrame/utils/option.h"
+    "src/JadeFrame/utils/result.h"
 )
 
 ################################################################################
