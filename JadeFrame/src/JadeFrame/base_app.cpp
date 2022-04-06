@@ -21,24 +21,85 @@ JadeFrameInstance* JadeFrameInstance::m_singleton = nullptr;
 
 auto JadeFrameInstance::get_singleton() -> JadeFrameInstance* { return m_singleton; }
 
-template<typename F>
-requires std::invocable<F>
-auto foo(const F& func) { return func(); }
+struct Student {
+    int         age;
+    std::string name;
 
-struct S {
-    auto foo() & -> void { std::cout << "lvalue" << std::endl; }
-    auto foo() const& -> void { std::cout << "lvalue const" << std::endl; }
-    auto foo() && -> void { std::cout << "rvalue" << std::endl; }
-    auto foo() const&& -> void { std::cout << "rvalue const" << std::endl; }
+    auto get_name() const -> Option<const std::string&> {
+        if (age < 18) {
+            return Option<const std::string&>(name);
+        } else {
+            return Option<const std::string&>();
+        }
+    }
 };
+
+template<typename T>
+struct Opt_base;
+
+template<typename T>
+requires std::is_lvalue_reference_v<T>
+struct Opt_base<T> {
+    std::remove_reference<T>::type* m_pointer;
+};
+template<typename T>
+requires(!std::is_lvalue_reference_v<T>) struct Opt_base<T> {
+    alignas(T) u8 m_storage[sizeof(T)];
+};
+
+template<typename T>
+struct Opt : Opt_base<T> {
+
+    // Opt() requires(std::is_lvalue_reference_v<T>) { std::cout << "Opt() + l" << std::endl; }
+    Opt(const T& t) requires(std::is_lvalue_reference_v<T>) { std::cout << "Opt(const T& t) + lref" << std::endl; }
+    Opt(T&& t) requires(std::is_lvalue_reference_v<T>) { std::cout << "Opt(T&& t) + lref" << std::endl; }
+    ~Opt() requires(std::is_lvalue_reference_v<T>) { std::cout << "~Opt() + lref" << std::endl; }
+
+
+
+    // Opt() requires(!std::is_lvalue_reference_v<T>) {
+    //     std::cout << "Opt() + !l" << std::endl;
+    //     if (std::is_rvalue_reference_v<T>) { std::cout << "Opt() + r" << std::endl; }
+    // }
+    Opt() {
+        std::cout << "Opt()";
+        if (std::is_lvalue_reference_v<T>) {
+            std::cout << " + lref";
+        } else {
+            std::cout << " + !lref";
+        }
+        if (std::is_rvalue_reference_v<T>) {
+            std::cout << " + rref";
+        } else {
+            std::cout << " + !rref";
+        }
+
+        std::cout << std::endl;
+    }
+
+    Opt(const T& t) requires(!std::is_lvalue_reference_v<T>) { std::cout << "Opt(const T& t) + !lref" << std::endl; }
+    Opt(T&& t) requires(!std::is_lvalue_reference_v<T>) { std::cout << "Opt(T&& t) + !lref" << std::endl; }
+    ~Opt() requires(!std::is_lvalue_reference_v<T>) { std::cout << "~Opt() + !lref" << std::endl; }
+};
+
 
 JadeFrameInstance::JadeFrameInstance() {
 
-    auto o = Option(44_i32);
+    int x = 3;
+    Opt<i32>();
 
-    auto w = o.and_then<i32>([](const i32& x) { return Option((i32)x); });
-    std::cout << "w: " << w.value() << std::endl;
-    // 'return' : cannot convert from 'Option<f32>' to 'Option<int32>' Logger::init();
+    Student s = {14, "Jade"};
+
+    Option<const std::string&> name = s.get_name();
+
+    auto name0 = name.unwrap();
+
+
+    Option<i32> n = Option<i32>(33_i32);
+    n.unwrap();
+
+    test_options();
+
     Logger::info("JadeFrame is starting...");
 
     if (m_singleton == nullptr) {
