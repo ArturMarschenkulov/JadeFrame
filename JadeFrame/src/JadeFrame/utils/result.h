@@ -8,11 +8,13 @@
 #include <type_traits>
 
 namespace JadeFrame {
+namespace result {
 
 enum ResultType {
     OK,
     ERR
 };
+
 template<typename T, typename E>
 class Result {
 
@@ -134,4 +136,7 @@ public:
     };
 };
 
+auto test() -> void {}
+} // namespace result
+using result::Result;
 } // namespace JadeFrame

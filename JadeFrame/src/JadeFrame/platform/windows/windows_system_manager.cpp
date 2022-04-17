@@ -4,6 +4,7 @@
 #include <Windows.h>
 #include <winreg.h>
 #include <intrin.h> // for "__cpuid()"
+#include <tlhelp32.h>
 
 #include "JadeFrame/utils/utils.h"
 namespace JadeFrame {
@@ -76,27 +77,52 @@ static auto get_DWORD_reg_key(HKEY hKey, const wchar_t* strValueName, DWORD& nVa
 };
 auto Windows_SystemManager::initialize() -> void {
     {
-        TCHAR buffer[256] = L"";
-        DWORD size = sizeof(buffer);
+        u32 flags = TH32CS_INHERIT | TH32CS_SNAPALL | TH32CS_SNAPHEAPLIST | TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32 |
+                    TH32CS_SNAPPROCESS | TH32CS_SNAPTHREAD;
+        ::HANDLE snapshot = ::CreateToolhelp32Snapshot(flags, 0);
+        if (snapshot != INVALID_HANDLE_VALUE) {
+            ::MODULEENTRY32W module_entry;
+            module_entry.dwSize = sizeof(module_entry);
+            ::BOOL success = ::Module32FirstW(snapshot, &module_entry);
+            if (success == TRUE) {
+                do {
+                    m_modules.emplace_back();
+                    m_modules.back().m_name = JadeFrame::from_wstring_to_string(module_entry.szModule);
+                    m_modules.back().m_path = JadeFrame::from_wstring_to_string(module_entry.szExePath);
+                    m_modules.back().m_id = module_entry.th32ModuleID;
+                    m_modules.back().m_process_id = module_entry.th32ProcessID;
+                    m_modules.back().m_global_usage_count = module_entry.GlblcntUsage;
+                    m_modules.back().m_process_usage_count = module_entry.ProccntUsage;
+                } while (::Module32NextW(snapshot, &module_entry));
+            }
+            ::CloseHandle(snapshot);
+        }
 
 
-        GetUserDefaultLocaleName(buffer, LOCALE_NAME_MAX_LENGTH);
+        std::cout << "llll" << std::endl;
+    }
+    {
+        ::TCHAR buffer[256] = L"";
+        ::DWORD size = sizeof(buffer);
+
+
+        ::GetUserDefaultLocaleName(buffer, LOCALE_NAME_MAX_LENGTH);
         m_user_locale = JadeFrame::from_wstring_to_string(buffer);
 
-        GetSystemDefaultLocaleName(buffer, LOCALE_NAME_MAX_LENGTH);
+        ::GetSystemDefaultLocaleName(buffer, LOCALE_NAME_MAX_LENGTH);
         m_system_locale = JadeFrame::from_wstring_to_string(buffer);
 
-        GetComputerNameW(buffer, &size);
+        ::GetComputerNameW(buffer, &size);
         m_computer_name = JadeFrame::from_wstring_to_string(buffer);
 
-        GetUserNameW(buffer, &size);
+        ::GetUserNameW(buffer, &size);
         m_user_name = JadeFrame::from_wstring_to_string(buffer);
     }
 
     {
-        MEMORYSTATUSEX status;
-        status.dwLength = sizeof(MEMORYSTATUSEX);
-        GlobalMemoryStatusEx(&status);
+        ::MEMORYSTATUSEX status;
+        status.dwLength = sizeof(::MEMORYSTATUSEX);
+        ::GlobalMemoryStatusEx(&status);
 
         m_available_physical_memory = (i64)status.ullAvailPhys;
         m_total_physical_memory = (i64)status.ullTotalPhys;
@@ -106,34 +132,34 @@ auto Windows_SystemManager::initialize() -> void {
     }
     {
         i32 args[4];
-        __cpuid(args, 0x80000006);
+        ::__cpuid(args, 0x80000006);
         m_cache_line_size = args[2] & 0xFF;
     }
     {
         i32  cpu_info[4] = {-1};
         char CPU_brand_string[0x40];
 
-        memset(CPU_brand_string, 0, sizeof(CPU_brand_string));
+        ::memset(CPU_brand_string, 0, sizeof(CPU_brand_string));
 
-        __cpuid(cpu_info, 0x80000002);
-        memcpy(CPU_brand_string, cpu_info, sizeof(cpu_info));
+        ::__cpuid(cpu_info, 0x80000002);
+        ::memcpy(CPU_brand_string, cpu_info, sizeof(cpu_info));
 
-        __cpuid(cpu_info, 0x80000003);
-        memcpy(CPU_brand_string + 16, cpu_info, sizeof(cpu_info));
+        ::__cpuid(cpu_info, 0x80000003);
+        ::memcpy(CPU_brand_string + 16, cpu_info, sizeof(cpu_info));
 
-        __cpuid(cpu_info, 0x80000004);
-        memcpy(CPU_brand_string + 32, cpu_info, sizeof(cpu_info));
+        ::__cpuid(cpu_info, 0x80000004);
+        ::memcpy(CPU_brand_string + 32, cpu_info, sizeof(cpu_info));
         m_cpu_name = CPU_brand_string;
     }
     {
-        PSYSTEM_LOGICAL_PROCESSOR_INFORMATION buffer = nullptr;
-        DWORD                                 return_length = 0;
-        BOOL                                  done = FALSE;
+        ::PSYSTEM_LOGICAL_PROCESSOR_INFORMATION buffer = nullptr;
+        ::DWORD                                 return_length = 0;
+        ::BOOL                                  done = FALSE;
         while (!done) {
             DWORD rc = ::GetLogicalProcessorInformation(buffer, &return_length);
             if (FALSE == rc) {
                 if (::GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
-                    if (buffer) { free(buffer); }
+                    if (buffer) { ::free(buffer); }
                     buffer = static_cast<PSYSTEM_LOGICAL_PROCESSOR_INFORMATION>(malloc(return_length));
                     if (buffer == nullptr) { return; }
                 } else {

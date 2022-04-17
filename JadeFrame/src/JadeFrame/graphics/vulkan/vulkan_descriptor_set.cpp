@@ -15,218 +15,216 @@ namespace JadeFrame {
 
 class VulkanLogicalDevice;
 /*---------------------------
-	Descriptor Set
+        Descriptor Set
 ---------------------------*/
-auto VulkanDescriptorSet::add_uniform_buffer(u32 binding, const VulkanBuffer& buffer,  VkDeviceSize offset, VkDeviceSize range) -> void {
-	JF_ASSERT(buffer.m_size < from_kibibyte(64), "Guaranteed only between 16K and 64K");
-	//VulkanDescriptor d = {
-	//	.bufer_info = {
-	//		.buffer = buffer.m_handle,
-	//		.offset = offset,
-	//		.range = range,
-	//	},
-	//	.binding = binding
-	//};
-	VulkanDescriptor d;
-	d.bufer_info.buffer = buffer.m_handle;
-	d.bufer_info.offset = offset;
-	d.bufer_info.range = range;
-	d.binding = binding;
+auto VulkanDescriptorSet::add_uniform_buffer(
+    u32 binding, const VulkanBuffer& buffer, VkDeviceSize offset, VkDeviceSize range) -> void {
+    JF_ASSERT(buffer.m_size < from_kibibyte(64), "Guaranteed only between 16K and 64K");
+    // VulkanDescriptor d = {
+    //	.bufer_info = {
+    //		.buffer = buffer.m_handle,
+    //		.offset = offset,
+    //		.range = range,
+    //	},
+    //	.binding = binding
+    // };
+    VulkanDescriptor d;
+    d.bufer_info.buffer = buffer.m_handle;
+    d.bufer_info.offset = offset;
+    d.bufer_info.range = range;
+    d.binding = binding;
 
 
-	JF_ASSERT(d.bufer_info.offset < buffer.m_size, "");
-	JF_ASSERT(d.bufer_info.range != VK_WHOLE_SIZE && d.bufer_info.range > 0, "");
-	JF_ASSERT(d.bufer_info.range != VK_WHOLE_SIZE && d.bufer_info.range <= buffer.m_size - d.bufer_info.offset, "");
+    JF_ASSERT(d.bufer_info.offset < buffer.m_size, "");
+    JF_ASSERT(d.bufer_info.range != VK_WHOLE_SIZE && d.bufer_info.range > 0, "");
+    JF_ASSERT(d.bufer_info.range != VK_WHOLE_SIZE && d.bufer_info.range <= buffer.m_size - d.bufer_info.offset, "");
 
-	//Find according to binding.
-	//TODO: Maybe find a better way
-	bool found = false;
-	for (u32 i = 0; i < m_descriptors.size(); i++) {
-		if (m_descriptors[i].binding == d.binding) {
-			found = true;
-			m_descriptors[i].bufer_info = d.bufer_info;
-			//infos[i] = d.info;
-		}
-	}
-	JF_ASSERT(found == true, "");
-
+    // Find according to binding.
+    // TODO: Maybe find a better way
+    bool found = false;
+    for (u32 i = 0; i < m_descriptors.size(); i++) {
+        if (m_descriptors[i].binding == d.binding) {
+            found = true;
+            m_descriptors[i].bufer_info = d.bufer_info;
+            // infos[i] = d.info;
+        }
+    }
+    JF_ASSERT(found == true, "");
 }
 auto VulkanDescriptorSet::readd_uniform_buffer(u32 binding, const VulkanBuffer& buffer) -> void {
 
-	for (u32 i = 0;; i++) {
-		if (m_descriptors[i].binding == binding) {
-			m_descriptors[binding].bufer_info.buffer = buffer.m_handle;
-			return;
-		}
-	}
-	assert(false);
-	return;
+    for (u32 i = 0;; i++) {
+        if (m_descriptors[i].binding == binding) {
+            m_descriptors[binding].bufer_info.buffer = buffer.m_handle;
+            return;
+        }
+    }
+    assert(false);
+    return;
 }
 auto VulkanDescriptorSet::update() -> void {
 
-	std::vector<VkDescriptorBufferInfo> infos;
-	infos.resize(m_descriptors.size());
-	for (u32 i = 0; i < m_descriptors.size(); i++) {
-		infos[i] = m_descriptors[i].bufer_info;
-	}
+    std::vector<VkDescriptorBufferInfo> infos;
+    infos.resize(m_descriptors.size());
+    for (u32 i = 0; i < m_descriptors.size(); i++) { infos[i] = m_descriptors[i].bufer_info; }
 
-	std::vector<VkWriteDescriptorSet> wdss;
-	wdss.reserve(m_descriptors.size());
-	for (u32 i = 0; i < m_descriptors.size(); i++) {
+    std::vector<VkWriteDescriptorSet> wdss;
+    wdss.reserve(m_descriptors.size());
+    for (u32 i = 0; i < m_descriptors.size(); i++) {
 
-		const VkWriteDescriptorSet wds = {
-			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.pNext = nullptr,
-			.dstSet = m_handle,
-			.dstBinding = m_descriptors[i].binding,
-			.dstArrayElement = 0,
-			.descriptorCount = 1/*static_cast<u32>(m_descriptors.size())*/,
-			.descriptorType = m_descriptors[i].type,//m_binding_map.at(m_descriptors[i].binding).descriptorType,//VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			.pImageInfo = nullptr,
-			.pBufferInfo = &infos[i],
-			.pTexelBufferView = nullptr,
-		};
-		wdss.push_back(wds);
-	}
+        const VkWriteDescriptorSet wds = {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .pNext = nullptr,
+            .dstSet = m_handle,
+            .dstBinding = m_descriptors[i].binding,
+            .dstArrayElement = 0,
+            .descriptorCount = 1 /*static_cast<u32>(m_descriptors.size())*/,
+            .descriptorType =
+                m_descriptors[i]
+                    .type, // m_binding_map.at(m_descriptors[i].binding).descriptorType,//VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pImageInfo = nullptr,
+            .pBufferInfo = &infos[i],
+            .pTexelBufferView = nullptr,
+        };
+        wdss.push_back(wds);
+    }
 
-	vkUpdateDescriptorSets(m_device->m_handle, static_cast<u32>(wdss.size()), wdss.data(), 0, nullptr);
-
+    vkUpdateDescriptorSets(m_device->m_handle, static_cast<u32>(wdss.size()), wdss.data(), 0, nullptr);
 }
 
 
 
 /*---------------------------
-	Descriptor Set Layout
+        Descriptor Set Layout
 ---------------------------*/
 
-auto VulkanDescriptorSetLayout::add_binding(u32 binding, VkDescriptorType descriptor_type, u32 descriptor_count, VkShaderStageFlags stage_flags, const VkSampler* p_immutable_samplers) -> void {
-	JF_ASSERT(m_handle == VK_NULL_HANDLE, "");
-	const VkDescriptorSetLayoutBinding dslb = {
-		.binding = binding,
-		.descriptorType = descriptor_type,
-		.descriptorCount = descriptor_count,
-		.stageFlags = stage_flags,
-		.pImmutableSamplers = p_immutable_samplers
-	};
-	if (dslb.descriptorType == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT && !(dslb.descriptorCount % 4 == 0)) assert(false);
-	m_bindings.push_back(dslb);
+auto VulkanDescriptorSetLayout::add_binding(
+    u32 binding, VkDescriptorType descriptor_type, u32 descriptor_count, VkShaderStageFlags stage_flags,
+    const VkSampler* p_immutable_samplers) -> void {
+    JF_ASSERT(m_handle == VK_NULL_HANDLE, "");
+    const VkDescriptorSetLayoutBinding dslb = {
+        .binding = binding,
+        .descriptorType = descriptor_type,
+        .descriptorCount = descriptor_count,
+        .stageFlags = stage_flags,
+        .pImmutableSamplers = p_immutable_samplers};
+    if (dslb.descriptorType == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT && !(dslb.descriptorCount % 4 == 0))
+        assert(false);
+    m_bindings.push_back(dslb);
 
-	switch (descriptor_type) {
-		case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-		case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-			m_dynamic_count++; break;
-		default:;
-	}
+    switch (descriptor_type) {
+        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC: m_dynamic_count++; break;
+        default:;
+    }
 }
 
 auto VulkanDescriptorSetLayout::init(const VulkanLogicalDevice& device) -> void {
 
-	m_device = &device;
-	VkResult result;
+    m_device = &device;
+    VkResult result;
 
-	const VkDescriptorSetLayoutCreateInfo layout_info = {
-		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0,
-		.bindingCount = static_cast<u32>(m_bindings.size()),
-		.pBindings = m_bindings.data(),
-	};
+    const VkDescriptorSetLayoutCreateInfo layout_info = {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .bindingCount = static_cast<u32>(m_bindings.size()),
+        .pBindings = m_bindings.data(),
+    };
 
-	result = vkCreateDescriptorSetLayout(device.m_handle, &layout_info, nullptr, &m_handle);
-	if (result != VK_SUCCESS) assert(false);
+    result = vkCreateDescriptorSetLayout(device.m_handle, &layout_info, nullptr, &m_handle);
+    if (result != VK_SUCCESS) assert(false);
 }
 auto VulkanDescriptorSetLayout::deinit() -> void {
-	vkDestroyDescriptorSetLayout(m_device->m_handle, m_handle, nullptr);
+    vkDestroyDescriptorSetLayout(m_device->m_handle, m_handle, nullptr);
 }
 
 /*---------------------------
-	Descriptor Pool
+        Descriptor Pool
 ---------------------------*/
 auto VulkanDescriptorPool::add_pool_size(const VkDescriptorPoolSize& pool_size) -> void {
-	JF_ASSERT(m_handle == VK_NULL_HANDLE, "");
-	JF_ASSERT(pool_size.descriptorCount > 0, "");
+    JF_ASSERT(m_handle == VK_NULL_HANDLE, "");
+    JF_ASSERT(pool_size.descriptorCount > 0, "");
 
-	m_pool_sizes.push_back(pool_size);
+    m_pool_sizes.push_back(pool_size);
 }
 
 
 auto VulkanDescriptorPool::init(const VulkanLogicalDevice& device, u32 max_sets) -> void {
-	m_device = &device;
-	VkResult result;
-	const VkDescriptorPoolCreateInfo pool_info = {
-		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-		.pNext = nullptr,
-		.flags = 0 /* | VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT*/ ,
-		.maxSets = max_sets,
-		.poolSizeCount = static_cast<u32>(m_pool_sizes.size()),
-		.pPoolSizes = m_pool_sizes.data(),
-	};
-	JF_ASSERT(pool_info.maxSets > 0, "");
-	JF_ASSERT(pool_info.poolSizeCount > 0, "");
+    m_device = &device;
+    VkResult                         result;
+    const VkDescriptorPoolCreateInfo pool_info = {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0 /* | VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT*/,
+        .maxSets = max_sets,
+        .poolSizeCount = static_cast<u32>(m_pool_sizes.size()),
+        .pPoolSizes = m_pool_sizes.data(),
+    };
+    JF_ASSERT(pool_info.maxSets > 0, "");
+    JF_ASSERT(pool_info.poolSizeCount > 0, "");
 
-	result = vkCreateDescriptorPool(device.m_handle, &pool_info, nullptr, &m_handle);
-	if (result != VK_SUCCESS) assert(false);
+    result = vkCreateDescriptorPool(device.m_handle, &pool_info, nullptr, &m_handle);
+    if (result != VK_SUCCESS) assert(false);
 }
 
-auto VulkanDescriptorPool::deinit() -> void {
-	vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr);
+auto VulkanDescriptorPool::deinit() -> void { vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr); }
+
+auto VulkanDescriptorPool::allocate_descriptor_sets(const VulkanDescriptorSetLayout& descriptor_set_layout, u32 amount)
+    -> std::vector<VulkanDescriptorSet> {
+    VkResult                           result;
+    std::vector<VkDescriptorSetLayout> layouts(amount, descriptor_set_layout.m_handle);
+
+    const VkDescriptorSetAllocateInfo alloc_info = {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .descriptorPool = m_handle,
+        .descriptorSetCount = static_cast<u32>(amount),
+        .pSetLayouts = layouts.data(),
+    };
+    std::vector<VkDescriptorSet> handles(amount);
+    result = vkAllocateDescriptorSets(m_device->m_handle, &alloc_info, handles.data());
+    if (result != VK_SUCCESS) assert(false);
+
+    std::vector<VulkanDescriptorSet> sets;
+    sets.resize(handles.size());
+    for (u32 i = 0; i < sets.size(); i++) {
+        VulkanDescriptorSet& set = sets[i];
+        set.m_handle = handles[i];
+        set.m_device = m_device;
+
+        sets[i].m_layout = &descriptor_set_layout;
+        set.m_descriptors.resize(descriptor_set_layout.m_bindings.size());
+        for (u32 j = 0; j < descriptor_set_layout.m_bindings.size(); j++) {
+            set.m_descriptors[j].binding = descriptor_set_layout.m_bindings[j].binding;
+            set.m_descriptors[j].stage_flags = descriptor_set_layout.m_bindings[j].stageFlags;
+            set.m_descriptors[j].type = descriptor_set_layout.m_bindings[j].descriptorType;
+        }
+    }
+    return sets;
 }
 
-auto VulkanDescriptorPool::allocate_descriptor_sets(const VulkanDescriptorSetLayout& descriptor_set_layout, u32 amount) -> std::vector<VulkanDescriptorSet> {
-	VkResult result;
-	std::vector<VkDescriptorSetLayout> layouts(amount, descriptor_set_layout.m_handle);
-
-	const VkDescriptorSetAllocateInfo alloc_info = {
-		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-		.pNext = nullptr,
-		.descriptorPool = m_handle,
-		.descriptorSetCount = static_cast<u32>(amount),
-		.pSetLayouts = layouts.data(),
-	};
-	std::vector<VkDescriptorSet> handles(amount);
-	result = vkAllocateDescriptorSets(m_device->m_handle, &alloc_info, handles.data());
-	if (result != VK_SUCCESS) assert(false);
-
-	std::vector<VulkanDescriptorSet> sets;
-	sets.resize(handles.size());
-	for (u32 i = 0; i < sets.size(); i++) {
-		VulkanDescriptorSet& set = sets[i];
-		set.m_handle = handles[i];
-		set.m_device = m_device;
-
-		sets[i].m_layout = &descriptor_set_layout;
-		set.m_descriptors.resize(descriptor_set_layout.m_bindings.size());
-		for (u32 j = 0; j < descriptor_set_layout.m_bindings.size(); j++) {
-			set.m_descriptors[j].binding = descriptor_set_layout.m_bindings[j].binding;
-			set.m_descriptors[j].stage_flags = descriptor_set_layout.m_bindings[j].stageFlags;
-			set.m_descriptors[j].type = descriptor_set_layout.m_bindings[j].descriptorType;
-		}
-	}
-	return sets;
-
-}
-
-auto VulkanDescriptorPool::allocate_descriptor_set(const VulkanDescriptorSetLayout& descriptor_set_layout) -> VulkanDescriptorSet {
-	return this->allocate_descriptor_sets(descriptor_set_layout, 1)[0];
+auto VulkanDescriptorPool::allocate_descriptor_set(const VulkanDescriptorSetLayout& descriptor_set_layout)
+    -> VulkanDescriptorSet {
+    return this->allocate_descriptor_sets(descriptor_set_layout, 1)[0];
 }
 
 auto VulkanDescriptorPool::free_descriptor_sets(const std::vector<VulkanDescriptorSet>& /*descriptor_sets*/) -> void {
-	//for(u32 i = 0; i < descriptor_sets.size(); i++) {
-	//	VkResult result;
-	//	result = vkFreeDescriptorSets(m_device->m_handle, m_handle, 1, &descriptor_sets[i].m_handle);
-	//	if (result != VK_SUCCESS) __debugbreak();
-	//}
-	//VkResult result;
-	//result = vkResetDescriptorPool(m_device->m_handle, m_handle, 0);
-	//if (result != VK_SUCCESS) __debugbreak();
-	vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr);
-
+    // for(u32 i = 0; i < descriptor_sets.size(); i++) {
+    //	VkResult result;
+    //	result = vkFreeDescriptorSets(m_device->m_handle, m_handle, 1, &descriptor_sets[i].m_handle);
+    //	if (result != VK_SUCCESS) __debugbreak();
+    // }
+    // VkResult result;
+    // result = vkResetDescriptorPool(m_device->m_handle, m_handle, 0);
+    // if (result != VK_SUCCESS) __debugbreak();
+    vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr);
 }
 
 auto VulkanDescriptorPool::free_descriptor_set(const VulkanDescriptorSet& descriptor_set) -> void {
-	VkResult result;
-	result = vkFreeDescriptorSets(m_device->m_handle, m_handle, 1, &descriptor_set.m_handle);
-	if (result != VK_SUCCESS) assert(false);
+    VkResult result;
+    result = vkFreeDescriptorSets(m_device->m_handle, m_handle, 1, &descriptor_set.m_handle);
+    if (result != VK_SUCCESS) assert(false);
 }
 
-}
+} // namespace JadeFrame

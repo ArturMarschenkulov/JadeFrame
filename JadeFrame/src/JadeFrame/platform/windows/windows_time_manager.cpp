@@ -11,7 +11,7 @@ namespace JadeFrame {
 auto query_performance_frequency() -> Option<u64> {
     u64 frequency;
     if (::QueryPerformanceFrequency((LARGE_INTEGER*)&frequency)) {
-        return Option<u64>(frequency);
+        return Option<u64>(std::move(frequency));
     } else {
         return Option<u64>();
     }
@@ -19,7 +19,7 @@ auto query_performance_frequency() -> Option<u64> {
 auto query_performance_counter() -> Option<u64> {
     u64 counter;
     if (::QueryPerformanceCounter((LARGE_INTEGER*)&counter)) {
-        return Option<u64>(counter);
+        return Option<u64>(std::move(counter));
     } else {
         return Option<u64>();
     }
@@ -73,7 +73,7 @@ auto Windows_TimeManager::frame_control(f64 delta_time) -> void {
 }
 
 auto Windows_TimeManager::set_FPS(f64 FPS) -> void {
-    max_FPS = FPS;
+    max_FPS = static_cast<i32>(FPS);
     time.target = 1 / (f64)FPS;
 }
 } // namespace JadeFrame

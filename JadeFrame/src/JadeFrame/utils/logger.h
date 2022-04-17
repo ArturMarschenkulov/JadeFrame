@@ -44,7 +44,7 @@ public:
     static auto init() -> void;
     static auto deinit() -> void;
 
-    static std::shared_ptr<spdlog::logger> s_core;
+    // static std::shared_ptr<spdlog::logger> s_core;
     // static std::shared_ptr<spdlog::logger> s_client;
     // static std::shared_ptr<spdlog::logger> s_editor;
 };
