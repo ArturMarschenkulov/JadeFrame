@@ -165,27 +165,27 @@ set(Files_Graphics_DirectX
     "src/JadeFrame/graphics/d3d12/d3d12_renderer.h"
 )
 set(Files_Graphics
-        "src/JadeFrame/graphics/camera.h"
+    "src/JadeFrame/graphics/camera.h"
 
-        "src/JadeFrame/graphics/graphics_shared.h"
-        "src/JadeFrame/graphics/material_handle.h"
-        "src/JadeFrame/graphics/mesh.h"
-        "src/JadeFrame/graphics/camera.cpp"
-        "src/JadeFrame/graphics/graphics_shared.cpp"
-        "src/JadeFrame/graphics/material_handle.cpp"
-        "src/JadeFrame/graphics/mesh.cpp"
+    "src/JadeFrame/graphics/graphics_shared.h"
+    "src/JadeFrame/graphics/material_handle.h"
+    "src/JadeFrame/graphics/mesh.h"
+    "src/JadeFrame/graphics/camera.cpp"
+    "src/JadeFrame/graphics/graphics_shared.cpp"
+    "src/JadeFrame/graphics/material_handle.cpp"
+    "src/JadeFrame/graphics/mesh.cpp"
 
 
-        "src/JadeFrame/graphics/software/software_renderer.h"
-        ${Files_Graphics_Vulkan}
-        ${Files_Graphics_OpenGL}
-        )
+    "src/JadeFrame/graphics/software/software_renderer.h"
+    ${Files_Graphics_Vulkan}
+    ${Files_Graphics_OpenGL}
+)
 set(Files_Extern_OpenGL
-        "src/extern/glad/glad.h"
-        "src/extern/KHR/khrplatform.h"
+    "src/extern/glad/glad.h"
+    "src/extern/KHR/khrplatform.h"
 
-        "src/extern/glad.c"
-        )
+    "src/extern/glad.c"
+)
 
 set(Files_Datatypes
         "src/JadeFrame/datatypes/cowdata.h"
@@ -256,9 +256,9 @@ set(ALL_FILES
     ${Files_Extern_OpenGL}  
     ${Files_Extern_IMGUI}
     ${Files_Extern_STB}
-    ${Files_Extern_shaderc}
-    ${Files_Extern_SPIRV-Cross}
-    ${Files_Extern_spdlog}
+    # ${Files_Extern_shaderc}
+    # ${Files_Extern_SPIRV-Cross}
+    # ${Files_Extern_spdlog}
     "src/JadeFrame/utils/option.h"
     "src/JadeFrame/utils/result.h"
 )

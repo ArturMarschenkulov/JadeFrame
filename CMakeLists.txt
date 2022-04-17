@@ -6,10 +6,10 @@ cmake_minimum_required(VERSION 3.16.0 FATAL_ERROR)
 # std::format is as of right now only by msvc library supported
 
 set(CMAKE_CXX_STANDARD 20)
-# set(CMAKE_C_COMPILER "clang")
-# set(CMAKE_CXX_COMPILER "clang++")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-# set(CMAKE_EXE_LINKER_FLAGS "-lc++abi -lpthread")
+set(CMAKE_C_COMPILER "clang-13")
+set(CMAKE_CXX_COMPILER "clang++-13")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+set(CMAKE_EXE_LINKER_FLAGS "-lc++abi -lpthread")
 
 project(
     JadeFrame
@@ -132,12 +132,12 @@ message("INFO: Architecture: ${CMAKE_VS_PLATFORM_NAME}")
 ################################################################################
 # Common utils
 ################################################################################
-include(CMake/Utils.cmake)
+include(cmake/Utils.cmake)
 
 ################################################################################
 # Additional Global Settings(add specific info there)
 ################################################################################
-include(CMake/GlobalSettingsInclude.cmake OPTIONAL)
+include(cmake/GlobalSettingsInclude.cmake OPTIONAL)
 
 ################################################################################
 # Use solution folders feature

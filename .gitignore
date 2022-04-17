@@ -3,3 +3,4 @@ buildl/
 CMakeFiles/
 .vscode
 .vs
+.cache

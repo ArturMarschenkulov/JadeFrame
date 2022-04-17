@@ -2,7 +2,7 @@
 #include "graphics_shared.h"
 #pragma warning(push)
 #pragma warning(disable : 4006)
-#include "extern/shaderc/shaderc.hpp"
+// #include "extern/shaderc/shaderc.hpp"
 #pragma warning(pop)
 namespace JadeFrame {
 
@@ -30,6 +30,7 @@ auto VertexFormat::calculate_offset_and_stride(std::vector<VertexAttribute>& att
 
 
 auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage) -> std::vector<u32> {
+#if 0
     namespace shc = shaderc;
     // using namespace shaderc;
 
@@ -61,6 +62,7 @@ auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage) -> std::vector
 
     std::vector<u32> result = {comp_result.cbegin(), comp_result.cend()};
     return result;
+#endif
 }
 
 
