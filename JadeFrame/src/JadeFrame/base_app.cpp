@@ -194,7 +194,7 @@ BaseApp::BaseApp(const DESC& desc) {
     win_desc.size = desc.size;
     win_desc.position = desc.position;
     m_windows.try_emplace(0, win_desc);
-    _CPPLIB_VER;
+    //_CPPLIB_VER;
     // __GNU_LIBRARY__;
     // __KLIBC__;
     // __UCLIBC__;
