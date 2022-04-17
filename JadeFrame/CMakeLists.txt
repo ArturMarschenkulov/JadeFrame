@@ -356,6 +356,15 @@ if(MSVC)
         >
         /SUBSYSTEM:CONSOLE
     )
+
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    message("INFO: Compiler: CLANG33")
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        -Wall 
+        -Wextra 
+        -Wpedantic 
+        # -Werror
+    )
 endif()
 
 ################################################################################

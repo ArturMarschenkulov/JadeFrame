@@ -63,6 +63,7 @@ auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage) -> std::vector
     std::vector<u32> result = {comp_result.cbegin(), comp_result.cend()};
     return result;
 #endif
+    return {};
 }
 
 

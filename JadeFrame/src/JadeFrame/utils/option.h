@@ -41,7 +41,7 @@ namespace details {
     // NOTE: In "Option_Base" member variables and member functions are located which are specific to whether T is a
     // lvalue reference or not.
     template<typename T>
-    struct Option_Base;
+    class Option_Base;
 
     template<typename T>
     requires std::is_lvalue_reference_v<T>

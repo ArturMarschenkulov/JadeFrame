@@ -63,16 +63,16 @@ consteval auto get_compiler_info() -> CompilerInfo {
     constexpr u32         major = _MSC_VER / 100;
     constexpr u32         minor = _MSC_VER - (_MSC_VER / 100);
     constexpr u32         patch = _MSC_FULL_VER - _MSC_VER * 100000;
-#elif defined(__GNUC__)
-    constexpr const char* name = "GCC";
-    constexpr u32         major = __GNUC__;
-    constexpr u32         minor = __GNUC_MINOR__;
-    constexpr u32         patch = __GNUC_PATCHLEVEL__;
 #elif defined(__clang__)
     constexpr const char* name = "CLANG";
     constexpr u32         major = __clang_major__;
     constexpr u32         minor = __clang_minor__;
     constexpr u32         patch = __clang_patchlevel__;
+#elif defined(__GNUC__)
+    constexpr const char* name = "GCC";
+    constexpr u32         major = __GNUC__;
+    constexpr u32         minor = __GNUC_MINOR__;
+    constexpr u32         patch = __GNUC_PATCHLEVEL__;
 #elif defined(__INTEL_COMPILER)
     constexpr const char* name = "ICC";
     constexpr u32         major = __INTEL_COMPILER / 100;

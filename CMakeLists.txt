@@ -127,6 +127,9 @@ else()
     message(FATAL_ERROR "INFO: Compiler: UNKNOWN")
 endif()
 
+
+message("INFO: DEFAULT_CXX_DEBUG_INFORMATION_FORMAT: ${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT}")
+message("INFO: DEFAULT_CXX_EXCEPTION_HANDLING: ${DEFAULT_CXX_EXCEPTION_HANDLING}")
 message("INFO: Architecture: ${CMAKE_VS_PLATFORM_NAME}")
 
 ################################################################################

@@ -27,6 +27,9 @@ class Matrix4x4;
 class Matrix4x4 {
   public:
     constexpr Matrix4x4() noexcept;
+    constexpr Matrix4x4(const Matrix4x4&) noexcept = default;
+    constexpr Matrix4x4(Matrix4x4&&) noexcept = default;
+    ~Matrix4x4() noexcept = default;
     constexpr explicit Matrix4x4(f32 digo) noexcept;
 
     constexpr auto operator=(const Matrix4x4& mat) noexcept -> Matrix4x4&;

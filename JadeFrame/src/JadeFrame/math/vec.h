@@ -100,6 +100,10 @@ class VectorT<2, T> {
     constexpr VectorT() noexcept
         : x()
         , y() {}
+
+    constexpr VectorT(const VectorT&) = default;
+    constexpr VectorT(VectorT&&) = default;
+    ~VectorT() = default;
     constexpr VectorT(const T x, const T y) noexcept
         : x(x)
         , y(y) {}
@@ -173,6 +177,11 @@ class VectorT<3, T> {
         : x()
         , y()
         , z() {}
+
+    constexpr VectorT(const VectorT&) = default;
+    constexpr VectorT(VectorT&&) = default;
+    ~VectorT() = default;
+
     constexpr VectorT(const T x, const T y, const T z) noexcept
         : x(x)
         , y(y)
@@ -252,6 +261,10 @@ class VectorT<4, T> {
         , y()
         , z()
         , w() {}
+
+    constexpr VectorT(const VectorT&) = default;
+    constexpr VectorT(VectorT&&) = default;
+    ~VectorT() = default;
     constexpr VectorT(const T x, const T y, const T z, const T w) noexcept
         : x(x)
         , y(y)
