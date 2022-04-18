@@ -73,7 +73,7 @@ auto Windows_TimeManager::frame_control(f64 delta_time) -> void {
 }
 
 auto Windows_TimeManager::set_FPS(f64 FPS) -> void {
-    max_FPS = static_cast<i32>(FPS);
+    max_FPS = static_cast<f32>(FPS);
     time.target = 1 / (f64)FPS;
 }
 } // namespace JadeFrame

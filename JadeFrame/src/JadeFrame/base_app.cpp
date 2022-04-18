@@ -61,7 +61,7 @@ consteval auto get_compiler_info() -> CompilerInfo {
 #if defined(_MSC_VER)
     constexpr const char* name = "MSVC";
     constexpr u32         major = _MSC_VER / 100;
-    constexpr u32         minor = _MSC_VER - (_MSC_VER / 100);
+    constexpr u32         minor = _MSC_VER - (_MSC_VER / 100 * 100);
     constexpr u32         patch = _MSC_FULL_VER - _MSC_VER * 100000;
 #elif defined(__clang__)
     constexpr const char* name = "CLANG";

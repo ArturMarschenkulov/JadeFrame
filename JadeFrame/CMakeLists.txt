@@ -315,7 +315,7 @@ if(MSVC)
             /Oi;
             /Gy
         >
-        /permissive-;
+        # /permissive-;
         /std:c++latest;
         /sdl;
         /W3;
