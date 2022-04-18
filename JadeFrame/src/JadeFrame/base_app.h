@@ -162,12 +162,12 @@ public:
 
     Instance();
     auto        run() -> void;
-    auto        add(BaseApp* app) -> void;
     static auto get_singleton() -> Instance*;
 
     template<typename T>
     auto request_app(BaseApp::DESC desc) -> T* {
-        return new T(desc);
+        m_apps.emplace_back(new T(desc));
+        return (T*)m_apps.back();
     }
 
 public:
@@ -176,7 +176,9 @@ public:
     TimeManager   m_time_manager;
 
     std::deque<BaseApp*> m_apps;
-    BaseApp*             m_current_app_p = nullptr;
+    // std::deque<BaseApp> m_apps;
+
+    BaseApp* m_current_app_p = nullptr;
 
     static Instance* m_singleton;
 };

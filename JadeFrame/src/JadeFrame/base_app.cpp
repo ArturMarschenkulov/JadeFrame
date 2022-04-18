@@ -174,10 +174,6 @@ auto Instance::run() -> void {
     m_current_app_p = m_apps[0];
     m_apps.back()->start();
 }
-auto Instance::add(BaseApp* app) -> void {
-    Logger::info("App added");
-    m_apps.push_back(app);
-}
 //**************************************************************
 //~JadeFrame
 //**************************************************************

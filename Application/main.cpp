@@ -1,4 +1,4 @@
-#include<JadeFrame.h>
+#include <JadeFrame.h>
 
 //#include "example_0.h"
 //#include "example_empty.h"
@@ -11,37 +11,29 @@
 class App : public JadeFrame::BaseApp {
 public:
 public:
-	App(DESC desc)
-		: BaseApp(desc) {
-	}
-	virtual auto on_init() -> void override {
-	}
-	virtual auto on_update() -> void override {
-	}
-	virtual auto on_draw() -> void override {
-	}
+    App(DESC desc)
+        : BaseApp(desc) {}
+    virtual auto on_init() -> void override {}
+    virtual auto on_update() -> void override {}
+    virtual auto on_draw() -> void override {}
 };
 
 
 int main() {
 
 #if 1
-	using GApp = JadeFrame::TestApp;
-	JadeFrame::Instance jade_frame;
-	GApp::DESC win_desc;
-	win_desc.title = "Test";
-	win_desc.size.width = 800;// = 1280;
-	win_desc.size.height = 800;// = 720;
 
-	// jade_frame.request_app<GApp>(win_desc);
+    JadeFrame::Instance jade_frame;
 
-	GApp* app = new GApp(win_desc);
+    using GApp = JadeFrame::TestApp;
 
-	jade_frame.add(app);
-	jade_frame.run();
-	return 0;
+    GApp::DESC win_desc;
+    win_desc.title = "Test";
+    win_desc.size.width = 800;  // = 1280;
+    win_desc.size.height = 800; // = 720;
+
+    GApp* app = jade_frame.request_app<GApp>(win_desc);
+    jade_frame.run();
+    return 0;
 #endif
 }
-
-
-
