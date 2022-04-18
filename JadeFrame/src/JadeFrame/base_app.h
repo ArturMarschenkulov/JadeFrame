@@ -45,28 +45,7 @@ using TimeManager = Linux_TimeManager;
 
 class BaseApp;
 class IRenderer;
-class JadeFrameInstance {
-public:
-    JadeFrameInstance(const JadeFrameInstance&) = delete;
-    JadeFrameInstance(JadeFrameInstance&&) = delete;
-    auto operator=(const JadeFrameInstance&) -> JadeFrameInstance& = delete;
-    auto operator=(JadeFrameInstance&&) -> JadeFrameInstance& = delete;
 
-    JadeFrameInstance();
-    auto        run() -> void;
-    auto        add(BaseApp* app) -> void;
-    static auto get_singleton() -> JadeFrameInstance*;
-
-public:
-    SystemManager m_system_manager;
-    InputManager  m_input_manager;
-    TimeManager   m_time_manager;
-
-    std::deque<BaseApp*> m_apps;
-    BaseApp*             m_current_app_p = nullptr;
-
-    static JadeFrameInstance* m_singleton;
-};
 
 /*
         This is the storage of various resources which should be accessible
@@ -172,6 +151,37 @@ public:
 
     ResourceStorage m_resources;
 };
+
+
+class Instance {
+public:
+    Instance(const Instance&) = delete;
+    Instance(Instance&&) = delete;
+    auto operator=(const Instance&) -> Instance& = delete;
+    auto operator=(Instance&&) -> Instance& = delete;
+
+    Instance();
+    auto        run() -> void;
+    auto        add(BaseApp* app) -> void;
+    static auto get_singleton() -> Instance*;
+
+    template<typename T>
+    auto request_app(BaseApp::DESC desc) -> T* {
+        return new T(desc);
+    }
+
+public:
+    SystemManager m_system_manager;
+    InputManager  m_input_manager;
+    TimeManager   m_time_manager;
+
+    std::deque<BaseApp*> m_apps;
+    BaseApp*             m_current_app_p = nullptr;
+
+    static Instance* m_singleton;
+};
+
+
 
 } // namespace JadeFrame
 

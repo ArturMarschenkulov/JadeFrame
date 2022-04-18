@@ -6,7 +6,17 @@
 #include <type_traits>
 
 namespace JadeFrame {
+JF_PRAGMA_PUSH
+#if defined(_MSC_VER)
 #pragma warning(disable : 4201)
+#elif defined(__clang__)
+#pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
+#pragma clang diagnostic ignored "-Wnested-anon-types"
+#elif defined(__GNUC__)
+// #pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
+// #pragma GCC diagnostic ignored "-Wnested-anon-types"
+#endif
+
 // template <typename T>
 // concept scalar = std::is_scalar_v<T>;
 //
@@ -377,5 +387,5 @@ using v4i64 = VectorT<4, i64>;
 using v2 = v2f32;
 using v3 = v3f32;
 using v4 = v4f32;
-#pragma warning(default : 4201)
+JF_PRAGMA_POP
 } // namespace JadeFrame

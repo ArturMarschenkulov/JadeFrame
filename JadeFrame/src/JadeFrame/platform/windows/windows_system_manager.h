@@ -9,6 +9,8 @@ public:
     virtual auto log() const -> void override;
 
 public:
+
+    // represents Dynamically Linked Libraries (DLL) on Windows and Shared Object (SO) on Linux
     struct Module {
 
         std::string m_name;

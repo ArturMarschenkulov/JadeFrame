@@ -56,7 +56,7 @@ auto Camera::get_view_matrix() const -> Matrix4x4 {
 auto Camera::control() -> void {
 	f32 r = 0.1f;
 
-	InputManager i = JadeFrameInstance::get_singleton()->m_input_manager;
+	InputManager i = Instance::get_singleton()->m_input_manager;
 
 
 	if (i.is_key_down(KEY::E)) m_position += m_up * r;
@@ -152,7 +152,7 @@ auto Camera1::get_view_projection_matrix() const -> Matrix4x4 {
 auto Camera1::control() -> void {
 	if (m_mode == MODE::PERSPECTIVE) {
 		const f32 velocity = 0.1f;
-		const InputManager& i = JadeFrameInstance::get_singleton()->m_input_manager;
+		const InputManager& i = Instance::get_singleton()->m_input_manager;
 		if (i.is_key_down(KEY::E)) m_position += m_up * velocity;
 		if (i.is_key_down(KEY::Q)) m_position -= m_up * velocity;
 

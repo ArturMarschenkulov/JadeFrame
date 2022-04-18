@@ -5,8 +5,16 @@
 #include <array>
 #include <vector>
 
-#pragma warning(push)
+JF_PRAGMA_PUSH
+#if defined(_MSC_VER)
 #pragma warning(disable : 4201)
+#elif defined(__clang__)
+#pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
+#pragma clang diagnostic ignored "-Wnested-anon-types"
+#elif defined(__GNUC__)
+// #pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
+// #pragma GCC diagnostic ignored "-Wnested-anon-types"
+#endif
 namespace JadeFrame {
 /*
         This matrix is column major
@@ -312,4 +320,4 @@ inline constexpr auto Matrix4x4::make_echelon() -> Matrix4x4& {
     return *this;
 }
 } // namespace JadeFrame
-#pragma warning(pop)
+JF_PRAGMA_POP

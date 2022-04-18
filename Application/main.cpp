@@ -7,8 +7,8 @@
 
 #include <string>
 #include <iostream>
-using namespace JadeFrame;
-class App : public BaseApp {
+// using namespace JadeFrame;
+class App : public JadeFrame::BaseApp {
 public:
 public:
 	App(DESC desc)
@@ -26,13 +26,14 @@ public:
 int main() {
 
 #if 1
-	using GApp = TestApp;
-	JadeFrameInstance jade_frame;
-
+	using GApp = JadeFrame::TestApp;
+	JadeFrame::Instance jade_frame;
 	GApp::DESC win_desc;
 	win_desc.title = "Test";
 	win_desc.size.width = 800;// = 1280;
 	win_desc.size.height = 800;// = 720;
+
+	// jade_frame.request_app<GApp>(win_desc);
 
 	GApp* app = new GApp(win_desc);
 

@@ -1,4 +1,8 @@
 #include "linux_window.h"
+#include<X11/X.h>
+#include<GL/gl.h>
+#include<GL/glx.h>
+// #include<GL/glu.h>
 
 
 namespace JadeFrame {
@@ -7,6 +11,16 @@ Linux_Window::Linux_Window() {
     Status status = XInitThreads();
 
     m_display = XOpenDisplay(nullptr);
+    if(m_display) {
+        printf("\n\tcannot connect to X server\n\n");
+        exit(0);
+    }
+
+    XID root = DefaultRootWindow(m_display);
+
+    GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
+
+    XVisualInfo* xcv = glXChooseVisual(m_display, 0, att);
     int screen = DefaultScreen(m_display);
     Visual* visual = DefaultVisual(m_display, screen);
     int depth = DefaultDepth(m_display, screen);
@@ -22,7 +36,7 @@ Linux_Window::Linux_Window() {
     window_attributes.border_pixel = 0;
     window_attributes.event_mask =
         KeyPressMask | KeyReleaseMask | StructureNotifyMask | ExposureMask;
-
+    // glXCreateContext(m_display, visual, nullptr, GL_TRUE);
 
     m_window = XCreateWindow(
         m_display, 

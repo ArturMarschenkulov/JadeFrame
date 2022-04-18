@@ -96,7 +96,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 	cb.record_begin();
 	{
 		const auto& c = m_clear_color;
-		cb.render_pass_begin(d.m_swapchain.m_framebuffers[image_index], d.m_swapchain.m_render_pass, d.m_swapchain.m_extent, { c.r, c.g, c.b, c.a });
+		cb.render_pass_begin(d.m_swapchain.m_framebuffers[image_index], d.m_swapchain.m_render_pass, d.m_swapchain.m_extent, { {c.r, c.g, c.b, c.a }});
 		{
 			//Per Frame ubo
 			d.m_ub_cam.send((void*)&view_projection, 0, sizeof(view_projection));

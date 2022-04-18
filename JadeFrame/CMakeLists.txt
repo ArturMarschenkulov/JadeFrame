@@ -358,7 +358,13 @@ if(MSVC)
     )
 
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    message("INFO: Compiler: CLANG33")
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        -Wall 
+        -Wextra 
+        -Wpedantic 
+        # -Werror
+    )
+elseif(CMKAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(${PROJECT_NAME} PRIVATE
         -Wall 
         -Wextra 
@@ -383,6 +389,7 @@ ELSEIF(UNIX AND NOT APPLE)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
         "pthread;"
         "X11"
+        "GL"
         "shaderc;"
         "shaderc_combined;"
         "shaderc_shared;"

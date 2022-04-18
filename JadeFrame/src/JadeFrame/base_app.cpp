@@ -17,9 +17,9 @@ namespace JadeFrame {
 //**************************************************************
 // JadeFrame
 //**************************************************************
-JadeFrameInstance* JadeFrameInstance::m_singleton = nullptr;
+Instance* Instance::m_singleton = nullptr;
 
-auto JadeFrameInstance::get_singleton() -> JadeFrameInstance* { return m_singleton; }
+auto Instance::get_singleton() -> Instance* { return m_singleton; }
 
 
 
@@ -142,7 +142,7 @@ auto test_modules() -> void {
     option::test();
     result::test();
 }
-JadeFrameInstance::JadeFrameInstance() {
+Instance::Instance() {
     auto ci = get_compiler_info();
     auto pi = get_plattform_info();
     auto ai = get_architecture_info();
@@ -169,12 +169,12 @@ JadeFrameInstance::JadeFrameInstance() {
         assert(false);
     }
 }
-auto JadeFrameInstance::run() -> void {
+auto Instance::run() -> void {
     Logger::info("App Running");
     m_current_app_p = m_apps[0];
     m_apps.back()->start();
 }
-auto JadeFrameInstance::add(BaseApp* app) -> void {
+auto Instance::add(BaseApp* app) -> void {
     Logger::info("App added");
     m_apps.push_back(app);
 }
@@ -250,7 +250,7 @@ auto BaseApp::start() -> void {
     }
 }
 auto BaseApp::poll_events() -> void {
-    JadeFrameInstance::get_singleton()->m_input_manager.handle_input();
+    Instance::get_singleton()->m_input_manager.handle_input();
     m_windows[0].handle_events(m_is_running);
 }
 //**************************************************************

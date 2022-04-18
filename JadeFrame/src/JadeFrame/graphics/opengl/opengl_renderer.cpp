@@ -29,30 +29,30 @@ auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const ->
     //__debugbreak();
 }
 
-static auto
-setup_framebuffer(OGLW_Framebuffer& buffer, OGLW_Texture<GL_TEXTURE_2D>& texture, OGLW_Renderbuffer& renderbuffer)
-    -> void {
-    buffer.bind();
+// static auto
+// setup_framebuffer(OGLW_Framebuffer& buffer, OGLW_Texture<GL_TEXTURE_2D>& texture, OGLW_Renderbuffer& renderbuffer)
+//     -> void {
+//     buffer.bind();
 
-    const v2i32 size; // = m_context.m_cache.viewport[1];
-    texture.bind(0);
+//     const v2i32 size; // = m_context.m_cache.viewport[1];
+//     texture.bind(0);
 
-    texture.set_texture_image_2D(0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    texture.set_texture_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    texture.set_texture_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    texture.set_texture_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    texture.set_texture_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    buffer.attach_texture_2D(texture);
+//     texture.set_texture_image_2D(0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+//     texture.set_texture_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//     texture.set_texture_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//     texture.set_texture_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//     texture.set_texture_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//     buffer.attach_texture_2D(texture);
 
-    renderbuffer.bind();
-    renderbuffer.store(GL_DEPTH24_STENCIL8, size.x, size.y);
-    buffer.attach_renderbuffer(renderbuffer);
+//     renderbuffer.bind();
+//     renderbuffer.store(GL_DEPTH24_STENCIL8, size.x, size.y);
+//     buffer.attach_renderbuffer(renderbuffer);
 
-    buffer.unbind();
+//     buffer.unbind();
 
-    const GLenum res = buffer.check_status();
-    if (res != GL_FRAMEBUFFER_COMPLETE) assert(false);
-}
+//     const GLenum res = buffer.check_status();
+//     if (res != GL_FRAMEBUFFER_COMPLETE) assert(false);
+// }
 OpenGL_Renderer::OpenGL_Renderer(const Window& window)
     : m_context(window) {
     {
@@ -187,7 +187,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     }
 #if JF_FB
     fb.m_framebuffer.unbind();
-    GL_State old_state = m_context.m_state;
+    // GL_State old_state = m_context.m_state;
     m_context.m_state.set_depth_test(false);
     {
 

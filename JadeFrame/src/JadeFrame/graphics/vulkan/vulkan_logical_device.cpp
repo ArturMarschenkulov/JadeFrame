@@ -256,6 +256,7 @@ auto VulkanLogicalDevice::deinit() -> void {
     // m_render_pass.deinit();
     m_swapchain.deinit();
     result = vkDeviceWaitIdle(m_handle);
+    if (result != VK_SUCCESS) assert(false);
     vkDestroyDevice(m_handle, nullptr);
 }
 

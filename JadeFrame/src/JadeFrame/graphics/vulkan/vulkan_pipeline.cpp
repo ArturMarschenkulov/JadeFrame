@@ -168,7 +168,7 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
 	return result;
 }
 #endif
-static auto reflect(const ShadingCode& code) -> ReflectedCode {
+static auto reflect(const ShadingCode& /*code*/) -> ReflectedCode {
 	ReflectedCode result = {};
 #if 0
 	result.m_modules.resize(code.m_modules.size());
@@ -544,7 +544,7 @@ auto VulkanPipeline::deinit() -> void {
 	vkDestroyPipelineLayout(m_device->m_handle, m_layout, nullptr);
 }
 
-auto VulkanPipeline::operator=(const VulkanPipeline& o) {
+auto VulkanPipeline::operator=(const VulkanPipeline& /*o*/) {
     assert(false);
 }
 
