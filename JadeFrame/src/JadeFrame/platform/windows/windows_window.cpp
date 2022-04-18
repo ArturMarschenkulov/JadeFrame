@@ -39,7 +39,7 @@ static auto window_resize_callback(Windows_Window& window, const WindowsMessage&
     window.set_size(v2u32(LOWORD(wm.lParam), HIWORD(wm.lParam)));
 
     const v2u32& size = window.get_size();
-    auto&        renderer = JadeFrameInstance::get_singleton()->m_current_app_p->m_renderer;
+    auto&        renderer = Instance::get_singleton()->m_current_app_p->m_renderer;
     renderer->set_viewport(0, 0, size.width, size.height);
 
     // static i32 rrr = 1;
@@ -59,7 +59,7 @@ static auto window_focus_callback(Windows_Window& window, bool should_focus) { w
 static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam) -> ::LRESULT {
     const WindowsMessage& wm = {hWnd, message, wParam, lParam};
 
-    BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
+    BaseApp* app = Instance::get_singleton()->m_current_app_p;
     if (app == nullptr) {
         // Logger::log("WindowProced___: {}", windows_message_map(wm));
         return ::DefWindowProcW(hWnd, message, wParam, lParam);
@@ -68,7 +68,7 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
     }
 
 
-    Windows_InputManager& input_manager = JadeFrameInstance::get_singleton()->m_input_manager;
+    Windows_InputManager& input_manager = Instance::get_singleton()->m_input_manager;
     i32                   current_window_id = -1;
     for (auto const& [window_id, window] : app->m_windows) {
         if (window.m_window_handle == hWnd) { current_window_id = window_id; }

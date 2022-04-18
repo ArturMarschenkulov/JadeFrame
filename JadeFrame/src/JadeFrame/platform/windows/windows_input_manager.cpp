@@ -43,7 +43,7 @@ auto Windows_InputManager::key_callback(const WindowsMessage& wm) -> void {
         if (MessageBoxW(hwnd, L"Quit through ESC?", L"My application", MB_OKCANCEL) == IDOK) {
             Logger::log("WinInputManager::key_callback(); WM_QUIT");
             //__debugbreak();
-            JadeFrameInstance::get_singleton()->m_current_app_p->m_is_running = false;
+            Instance::get_singleton()->m_current_app_p->m_is_running = false;
             ::PostQuitMessage(0);
             // DestroyWindow(hwnd);
         }
