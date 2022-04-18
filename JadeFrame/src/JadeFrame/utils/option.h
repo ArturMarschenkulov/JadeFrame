@@ -18,16 +18,8 @@ namespace JadeFrame {
     TODO: Consider whether the ref-qualified "const&&"" overloads are needed. Most likely not.
 */
 namespace option {
-template<typename T>
-class Option;
 
-template<typename T>
-struct is_option : std::false_type {};
-template<typename T>
-struct is_option<Option<T>> : std::true_type {};
 
-template<typename T>
-static constexpr bool is_option_v = is_option<std::decay_t<T>>::value;
 
 template<typename T>
 concept option_concept_functions = requires(T v) {
@@ -233,10 +225,10 @@ namespace details {
         constexpr Storage(const T& v)
             : m_has_value(true)
             , m_pointer(&v) {}
-        constexpr Storage(const T& v) requires(std::is_lvalue_reference_v<T>) = delete;
-        constexpr Storage(T&& v)
-            : m_has_value(true)
-            , m_pointer(&v) {}
+        // constexpr Storage(const T& v) requires(std::is_lvalue_reference_v<T>) = delete;
+        // constexpr Storage(T&& v)
+        //     : m_has_value(true)
+        //     , m_pointer(&v) {}
 
 
         constexpr auto get() const& -> const T& { return *m_pointer; }
@@ -284,6 +276,7 @@ namespace details {
     };
 } // namespace details
 
+
 template<typename T>
 class Option2 {
 public:
@@ -295,7 +288,9 @@ public:
         : m_storage(std::move(o.m_storage)) {}
     constexpr Option2(const T& v)
         : m_storage(v) {}
-    constexpr Option2(T&& v)
+
+    // constexpr Option2(T&& v) requires(std::is_lvalue_reference_v<T>) = delete;
+    constexpr Option2(T&& v) requires(!std::is_lvalue_reference_v<T>)
         : m_storage(std::move(v)) {}
 
     constexpr auto operator=(const Option2&) -> Option2& = delete;
@@ -346,8 +341,8 @@ public:
 
     constexpr auto operator*() const -> const T& { return this->unwrap(); }
     constexpr auto operator*() -> T& { return this->unwrap(); }
-    constexpr auto operator->() const -> const T* { return &std::remove_reference_t<T>(this->unwrap()); }
-    constexpr auto operator->() -> T* { return &std::remove_reference_t<T>(this->unwrap()); }
+    // constexpr auto operator->() const -> const T* { return &std::remove_reference_t<T>(this->unwrap()); }
+    // constexpr auto operator->() -> T* { return &std::remove_reference_t<T>(this->unwrap()); }
 
     template<typename U = T>
     constexpr auto and_(const Option2<U>& o) const& -> Option2<U> {
@@ -403,6 +398,22 @@ public: // C++-like wrappers
 private:
     details::Storage<T> m_storage;
 };
+template<typename T>
+using Option = Option2<T>;
+
+namespace rem {
+template<typename T>
+class Option;
+
+
+template<typename T>
+struct is_option : std::false_type {};
+template<typename T>
+struct is_option<Option<T>> : std::true_type {};
+
+template<typename T>
+static constexpr bool is_option_v = is_option<std::decay_t<T>>::value;
+
 
 template<typename T>
 class Option : public details::Option_Base<T> {
@@ -482,7 +493,7 @@ private:
     // NOTE: The member variables are found in "Option_Base<T>".
     // bool m_has_value = false;
 };
-
+} // namespace rem
 
 namespace tests {
 static auto test() -> void {
@@ -633,3 +644,32 @@ static auto test() -> void {
 } // namespace option
 using option::Option;
 } // namespace JadeFrame
+
+
+/*
+
+
+    const T p;
+    let p: T;
+
+    T p;
+    let p: mut T;
+    let mut p: T;
+
+    T* p;
+    let p: mut*mut T;
+    let mut p: *mut T;
+
+    const T* p;
+    T const* p;
+    let p: mut *T;
+    let mut p: *T;
+
+    T* const p;
+    let p: *mut T;
+
+    const T* const p;
+    T const *const p;
+
+    let p: *T;
+*/
