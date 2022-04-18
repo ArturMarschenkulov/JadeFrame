@@ -233,6 +233,7 @@ namespace details {
         constexpr Storage(const T& v)
             : m_has_value(true)
             , m_pointer(&v) {}
+        constexpr Storage(const T& v) requires(std::is_lvalue_reference_v<T>) = delete;
         constexpr Storage(T&& v)
             : m_has_value(true)
             , m_pointer(&v) {}
@@ -275,9 +276,9 @@ namespace details {
             new (&m_storage) T(std::forward<T>(v));
         }
         constexpr auto get() const& -> const T& { return reinterpret_cast<const T&>(m_storage); }
-        constexpr auto has_value() const -> bool { return m_has_value; }
+        // constexpr auto has_value() const -> bool { return m_has_value; }
 
-    private:
+    public:
         alignas(T) u8 m_storage[sizeof(T)];
         bool m_has_value;
     };
@@ -297,40 +298,43 @@ public:
     constexpr Option2(T&& v)
         : m_storage(std::move(v)) {}
 
+    constexpr auto operator=(const Option2&) -> Option2& = delete;
+    constexpr auto operator=(Option2&&) -> Option2& = delete;
+
     constexpr auto operator==(const Option2& o) const noexcept -> bool {
-        if (m_storage.has_value() && o.m_storage.has_value()) {
+        if (this->is_some() && o.is_some()) {
             return this->unwrap() == o.unwrap();
-        } else if (!m_storage.has_value() && !o.m_storage.has_value()) {
+        } else if (!this->is_some() && !o.is_some()) {
             return true;
         } else {
             return false;
         }
     }
     constexpr auto operator==(const T& v) const noexcept -> bool {
-        if (m_storage.has_value()) {
+        if (this->is_some()) {
             return this->unwrap() == v;
         } else {
             return false;
         }
     }
 
-    constexpr auto is_some() const -> bool { return m_storage.has_value(); }
+    constexpr auto is_some() const -> bool { return m_storage.m_has_value; }
     constexpr auto is_none() const -> bool { return !this->is_some(); }
 
     constexpr auto unwrap() & -> T& {
-        if (m_storage.has_value()) { return m_storage.get(); }
+        if (this->is_some()) { return m_storage.get(); }
         JF_PANIC("called `Option::unwrap() & -> T&` on a `None` value");
         std::terminate();
     }
     constexpr auto unwrap() const& -> const T& {
-        if (m_storage.has_value()) { return m_storage.get(); }
+        if (this->is_some()) { return m_storage.get(); }
         JF_PANIC("called `Option::unwrap() const& -> const T&` on a `None` value");
         std::terminate();
     }
     constexpr auto unwrap() && -> T { return this->release(); }
 
     constexpr auto release() -> T {
-        if (m_storage.m_has_value) {
+        if (this->is_some()) {
             T released_value = std::move(this->unwrap());
             this->unwrap().~T();
             m_storage.m_has_value = false;
@@ -340,6 +344,10 @@ public:
         std::terminate();
     }
 
+    constexpr auto operator*() const -> const T& { return this->unwrap(); }
+    constexpr auto operator*() -> T& { return this->unwrap(); }
+    constexpr auto operator->() const -> const T* { return &std::remove_reference_t<T>(this->unwrap()); }
+    constexpr auto operator->() -> T* { return &std::remove_reference_t<T>(this->unwrap()); }
 
     template<typename U = T>
     constexpr auto and_(const Option2<U>& o) const& -> Option2<U> {
@@ -386,6 +394,11 @@ public:
             return func();
         }
     }
+
+public: // C++-like wrappers
+    auto value() -> T& { return this->unwrap(); }
+    auto value() const -> const T& { return this->unwrap(); }
+    auto has_value() const -> bool { return this->is_some(); }
 
 private:
     details::Storage<T> m_storage;
@@ -598,11 +611,11 @@ static auto lvalue_ref() -> void {
         int         age;
         std::string name;
 
-        auto get_name() const -> Option<const std::string&> {
+        auto get_name() const -> Option2<const std::string&> {
             if (age >= 18) {
-                return Option<const std::string&>(name);
+                return Option2<const std::string&>(name);
             } else {
-                return Option<const std::string&>();
+                return Option2<const std::string&>();
             }
         }
     };
