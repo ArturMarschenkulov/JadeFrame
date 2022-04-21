@@ -226,9 +226,9 @@ namespace details {
             : m_has_value(true)
             , m_pointer(&v) {}
         // constexpr Storage(const T& v) requires(std::is_lvalue_reference_v<T>) = delete;
-        // constexpr Storage(T&& v)
-        //     : m_has_value(true)
-        //     , m_pointer(&v) {}
+        constexpr Storage(T&& v) requires(!std::is_lvalue_reference_v<T>)
+            : m_has_value(true)
+            , m_pointer(&v) {}
 
 
         constexpr auto get() const& -> const T& { return *m_pointer; }
@@ -285,13 +285,14 @@ public:
     constexpr Option2(const Option2& o)
         : m_storage(o.m_storage) {}
     constexpr Option2(Option2&& o)
-        : m_storage(std::move(o.m_storage)) {}
+        : m_storage(std::forward<Option2>(o.m_storage)) {}
+    // constexpr Option2(const T& v) requires(!std::is_lvalue_reference_v<T>) = delete;
     constexpr Option2(const T& v)
         : m_storage(v) {}
 
     // constexpr Option2(T&& v) requires(std::is_lvalue_reference_v<T>) = delete;
     constexpr Option2(T&& v) requires(!std::is_lvalue_reference_v<T>)
-        : m_storage(std::move(v)) {}
+        : m_storage(std::forward<T>(std::move(v))) {}
 
     constexpr auto operator=(const Option2&) -> Option2& = delete;
     constexpr auto operator=(Option2&&) -> Option2& = delete;
@@ -327,6 +328,17 @@ public:
         std::terminate();
     }
     constexpr auto unwrap() && -> T { return this->release(); }
+
+    constexpr auto unwrap_unchecked() & -> T& { return const_cast<T&>(m_storage.get()); }
+    constexpr auto unwrap_unchecked() const& -> const T& { return m_storage.get(); }
+    constexpr auto unwrap_unchecked() && -> T { return this->release_unchecked(); }
+
+    constexpr auto release_unchecked() -> T {
+        T released_value = std::move(this->unwrap_unchecked());
+        this->unwrap_unchecked().~T();
+        m_storage.m_has_value = false;
+        return released_value;
+    }
 
     constexpr auto release() -> T {
         if (this->is_some()) {
