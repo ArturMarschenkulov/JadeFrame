@@ -40,7 +40,7 @@ auto Windows_InputManager::key_callback(const WindowsMessage& wm) -> void {
 
     // TODO: Try to extract that to somewhere else. So th
     if (m_current_key_state[static_cast<i32>(KEY::ESCAPE)] == INPUT_STATE::PRESSED) {
-        if (MessageBoxW(hwnd, L"Quit through ESC?", L"My application", MB_OKCANCEL) == IDOK) {
+        if (::MessageBoxW(hwnd, L"Quit through ESC?", L"My application", MB_OKCANCEL) == IDOK) {
             Logger::log("WinInputManager::key_callback(); WM_QUIT");
             //__debugbreak();
             Instance::get_singleton()->m_current_app_p->m_is_running = false;
@@ -128,7 +128,8 @@ auto Windows_InputManager::is_key_released(const KEY key) -> bool {
 std::array<INPUT_STATE, 3> Windows_InputManager::m_current_mouse_button_state = {};
 std::array<INPUT_STATE, 3> Windows_InputManager::m_previous_mouse_button_state = {};
 
-v2          Windows_InputManager::m_mouse_posiition{};
+v2 Windows_InputManager::m_mouse_posiition{};
+
 static auto convert_buttons_from_JF_to_imgui(BUTTON button) -> i32 {
     i32 result;
     switch (button) {

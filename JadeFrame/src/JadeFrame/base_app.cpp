@@ -190,15 +190,6 @@ BaseApp::BaseApp(const DESC& desc) {
     win_desc.size = desc.size;
     win_desc.position = desc.position;
     m_windows.try_emplace(0, win_desc);
-    //_CPPLIB_VER;
-    // __GNU_LIBRARY__;
-    // __KLIBC__;
-    // __UCLIBC__;
-    // __CRTL_VER;
-    // __LIBREL__;
-    // __GLIBCPP__;
-    // __INTEL_CXXLIB_ICC;
-    // _MFC_VER;
     m_current_window_p = &m_windows[0];
 
     GRAPHICS_API api = GRAPHICS_API::UNDEFINED;
@@ -518,16 +509,16 @@ constexpr static auto hash(const char* str) -> size_t {
     return total;
 }
 
-// auto foo() -> void {
-//     Either<i32, f32> e = 32.0f;
-
-//     auto ee = Either<i32, f32>(29);
-// }
-
 template<typename T>
 class UniquePointer {};
 } // namespace
   // T1
 
+void* malloc(size_t size);
+template<typename T>
+auto jf_new() -> Option<T> {
+    T* p = new T;
+    return Option<T>{p};
+}
 } // namespace
   // JadeFrame

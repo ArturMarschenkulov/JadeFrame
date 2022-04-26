@@ -19,115 +19,99 @@ namespace JadeFrame {
 */
 namespace option {
 
-
-
+namespace details {
 template<typename T>
-concept option_concept_functions = requires(T v) {
-    { v.is_none() } -> std::same_as<bool>;
-    { v.is_some() } -> std::same_as<bool>;
-    { v.unwrap() } -> std::same_as<T>;
+class Storage {
+public:
+    bool m_has_value;
+};
+template<typename T>
+requires std::is_lvalue_reference_v<T>
+class Storage<T> {
+public:
+    constexpr Storage()
+        : m_has_value(false) {}
+    constexpr Storage(const Storage& o)
+        : m_has_value(o.m_has_value)
+        , m_pointer(o.m_pointer) {}
+    constexpr Storage(Storage&& o)
+        : m_has_value(o.m_has_value)
+        , m_pointer(o.m_pointer) {
+        o.m_has_value = false;
+        o.m_pointer = nullptr;
+    }
+    constexpr Storage(const T& v)
+        : m_has_value(true)
+        , m_pointer(&v) {}
+    constexpr Storage(T&& v) requires(!std::is_lvalue_reference_v<T>)
+        : m_has_value(true)
+        , m_pointer(&v) {}
+
+
+    constexpr auto get() const& -> const T& { return *m_pointer; }
+
+public:
+    std::remove_reference_t<T>* m_pointer = nullptr;
+    bool                        m_has_value = false;
 };
 
+template<typename T>
+requires(!std::is_lvalue_reference_v<T>) class Storage<T> {
+public:
+    constexpr Storage()
+        : m_has_value(false) {}
+    constexpr Storage(const Storage& o)
+        : m_has_value(o.m_has_value) {
+        if (o.m_has_value) { new (&m_storage) T(reinterpret_cast<const T&>(o.m_storage)); }
+    }
 
-namespace details {
-    // NOTE: In "Option_Base" member variables and member functions are located which are specific to whether T is a
-    // lvalue reference or not.    template<typename T>
-    template<typename T>
-    class Storage {
-    public:
-        bool m_has_value;
-    };
-    template<typename T>
-    requires std::is_lvalue_reference_v<T>
-    class Storage<T> {
-    public:
-        constexpr Storage()
-            : m_has_value(false) {}
-        constexpr Storage(const Storage& o)
-            : m_has_value(o.m_has_value)
-            , m_pointer(o.m_pointer) {}
-        constexpr Storage(Storage&& o)
-            : m_has_value(o.m_has_value)
-            , m_pointer(o.m_pointer) {
-            o.m_has_value = false;
-            o.m_pointer = nullptr;
+    constexpr Storage(Storage&& o)
+        : m_has_value(o.m_has_value) {
+        if (o.m_has_value) {
+            T rv = std::move(reinterpret_cast<T&>(o.m_storage));
+            reinterpret_cast<T&>(o.m_storage).~T();
+            m_has_value = false;
+            new (&m_storage) T(rv);
         }
-        constexpr Storage(const T& v)
-            : m_has_value(true)
-            , m_pointer(&v) {}
-        // constexpr Storage(const T& v) requires(std::is_lvalue_reference_v<T>) = delete;
-        constexpr Storage(T&& v) requires(!std::is_lvalue_reference_v<T>)
-            : m_has_value(true)
-            , m_pointer(&v) {}
+    }
 
+    constexpr Storage(const T& v)
+        : m_has_value(true) {
+        new (&m_storage) T(v);
+    }
 
-        constexpr auto get() const& -> const T& { return *m_pointer; }
+    constexpr Storage(T&& v)
+        : m_has_value(true) {
+        new (&m_storage) T(std::forward<T>(v));
+    }
+    constexpr auto get() const& -> const T& { return reinterpret_cast<const T&>(m_storage); }
+    // constexpr auto has_value() const -> bool { return m_has_value; }
 
-    public:
-        std::remove_reference_t<T>* m_pointer = nullptr;
-        bool                        m_has_value = false;
-    };
-
-    template<typename T>
-    requires(!std::is_lvalue_reference_v<T>) class Storage<T> {
-    public:
-        constexpr Storage()
-            : m_has_value(false) {}
-        constexpr Storage(const Storage& o)
-            : m_has_value(o.m_has_value) {
-            if (o.m_has_value) { new (&m_storage) T(reinterpret_cast<const T&>(o.m_storage)); }
-        }
-
-        constexpr Storage(Storage&& o)
-            : m_has_value(o.m_has_value) {
-            if (o.m_has_value) {
-                T rv = std::move(reinterpret_cast<T&>(o.m_storage));
-                reinterpret_cast<T&>(o.m_storage).~T();
-                m_has_value = false;
-                new (&m_storage) T(rv);
-            }
-        }
-
-        constexpr Storage(const T& v)
-            : m_has_value(true) {
-            new (&m_storage) T(v);
-        }
-
-        constexpr Storage(T&& v)
-            : m_has_value(true) {
-            new (&m_storage) T(std::forward<T>(v));
-        }
-        constexpr auto get() const& -> const T& { return reinterpret_cast<const T&>(m_storage); }
-        // constexpr auto has_value() const -> bool { return m_has_value; }
-
-    public:
-        alignas(T) u8 m_storage[sizeof(T)];
-        bool m_has_value;
-    };
+public:
+    alignas(T) u8 m_storage[sizeof(T)];
+    bool m_has_value;
+};
 } // namespace details
 
 
 template<typename T>
-class Option2 {
+class Option {
 public:
-    constexpr Option2()
+    constexpr Option()
         : m_storage() {}
-    constexpr Option2(const Option2& o)
+    constexpr Option(const Option& o)
         : m_storage(o.m_storage) {}
-    constexpr Option2(Option2&& o)
-        : m_storage(std::forward<Option2>(o.m_storage)) {}
-    // constexpr Option2(const T& v) requires(!std::is_lvalue_reference_v<T>) = delete;
-    constexpr Option2(const T& v)
+    constexpr Option(Option&& o)
+        : m_storage(std::forward<Option>(o.m_storage)) {}
+    constexpr Option(const T& v)
         : m_storage(v) {}
-
-    // constexpr Option2(T&& v) requires(std::is_lvalue_reference_v<T>) = delete;
-    constexpr Option2(T&& v) requires(!std::is_lvalue_reference_v<T>)
+    constexpr Option(T&& v) requires(!std::is_lvalue_reference_v<T>)
         : m_storage(std::forward<T>(std::move(v))) {}
 
-    constexpr auto operator=(const Option2&) -> Option2& = delete;
-    constexpr auto operator=(Option2&&) -> Option2& = delete;
+    constexpr auto operator=(const Option&) -> Option& = delete;
+    constexpr auto operator=(Option&&) -> Option& = delete;
 
-    constexpr auto operator==(const Option2& o) const noexcept -> bool {
+    constexpr auto operator==(const Option& o) const noexcept -> bool {
         if (this->is_some() && o.is_some()) {
             return this->unwrap() == o.unwrap();
         } else if (!this->is_some() && !o.is_some()) {
@@ -187,44 +171,44 @@ public:
     // constexpr auto operator->() -> T* { return &std::remove_reference_t<T>(this->unwrap()); }
 
     template<typename U = T>
-    constexpr auto and_(const Option2<U>& o) const& -> Option2<U> {
+    constexpr auto and_(const Option<U>& o) const& -> Option<U> {
         if (this->is_some()) {
             return o;
         } else {
-            return Option2<U>();
+            return Option<U>();
         }
     }
-    constexpr auto or_(const Option2<T>& o) const& -> Option2<T> {
+    constexpr auto or_(const Option<T>& o) const& -> Option<T> {
         if (this->is_some()) {
             return *this;
         } else {
             return o;
         }
     }
-    constexpr auto xor_(const Option2<T>& o) const& -> Option2<T> {
+    constexpr auto xor_(const Option<T>& o) const& -> Option<T> {
         if (this->is_some() && !o.is_some()) {
             return *this;
         } else if (!this->is_some() && o.is_some()) {
             return o;
         } else {
-            return Option2<T>();
+            return Option<T>();
         }
     }
 
     template<typename U = T, typename F>
     requires std::invocable<F, T>
-    constexpr auto and_then(F&& func) const& -> Option2<U> {
+    constexpr auto and_then(F&& func) const& -> Option<U> {
         if (this->is_some()) {
             return func(this->unwrap());
         } else {
-            return Option2<U>();
+            return Option<U>();
         }
     }
 
     template<typename F>
     // requires std::convertible_to<Option<T>>
     requires std::invocable<F, int>
-    constexpr auto or_else(F&& func) const& -> Option2<T> {
+    constexpr auto or_else(F&& func) const& -> Option<T> {
         if (this->is_some()) {
             return *this;
         } else {
@@ -240,8 +224,6 @@ public: // C++-like wrappers
 private:
     details::Storage<T> m_storage;
 };
-template<typename T>
-using Option = Option2<T>;
 
 namespace tests {
 static auto test() -> void {
@@ -304,65 +286,77 @@ static auto test() -> void {
         assert(Option<int>{}.xor_(Option<int>{}) == Option<int>{});
     }
 }
+template<typename T>
+concept option_concept_functions = requires(T v) {
+    { v.is_none() } -> std::same_as<bool>;
+    { v.is_some() } -> std::same_as<bool>;
+    { v.unwrap() } -> std::same_as<T>;
+};
+template<typename T>
+requires option_concept_functions<T>
+class Test {
+    T m_value;
+};
 static auto test2() -> void {
-    Option2<int> a = Option2<int>(333);
+
+    Option<int> a = Option<int>(333);
 
     // Testing functions
     {
-        Option2<u32> x0 = Option2<u32>(2);
+        Option<u32> x0 = Option<u32>(2);
         assert(x0.is_some() == true);
 
-        Option2<u32> x1 = Option2<u32>();
+        Option<u32> x1 = Option<u32>();
         assert(x1.is_some() == false);
     }
     {
-        Option2<u32> x0 = Option2<u32>(2);
+        Option<u32> x0 = Option<u32>(2);
         assert(x0.is_none() == false);
 
-        Option2<u32> x1 = Option2<u32>();
+        Option<u32> x1 = Option<u32>();
         assert(x1.is_none() == true);
     }
     // Testing "and"
-    auto s = Option2<i32>(2_i32);
-    s.and_(Option2<i32>(3_i32));
+    auto s = Option<i32>(2_i32);
+    s.and_(Option<i32>(3_i32));
 
 
     {
-        Option2<i32>         x0 = Option2<i32>(2_i32);
-        Option2<const char*> y0 = Option2<const char*>();
-        assert(x0.and_(y0) == Option2<const char*>());
+        Option<i32>         x0 = Option<i32>(2_i32);
+        Option<const char*> y0 = Option<const char*>();
+        assert(x0.and_(y0) == Option<const char*>());
 
-        Option2<i32>         x1 = Option2<i32>();
-        Option2<const char*> y1 = Option2<const char*>("foo");
-        assert(x1.and_(y1) == Option2<const char*>());
+        Option<i32>         x1 = Option<i32>();
+        Option<const char*> y1 = Option<const char*>("foo");
+        assert(x1.and_(y1) == Option<const char*>());
 
-        Option2<i32>         x2 = Option2<i32>(2_i32);
-        Option2<const char*> y2 = Option2<const char*>("foo");
-        assert(x2.and_(y2) == Option2<const char*>("foo"));
+        Option<i32>         x2 = Option<i32>(2_i32);
+        Option<const char*> y2 = Option<const char*>("foo");
+        assert(x2.and_(y2) == Option<const char*>("foo"));
 
-        Option2<i32>         x3 = Option2<i32>();
-        Option2<const char*> y3 = Option2<const char*>();
-        assert(x3.and_(x3) == Option2<i32>());
+        Option<i32>         x3 = Option<i32>();
+        Option<const char*> y3 = Option<const char*>();
+        assert(x3.and_(x3) == Option<i32>());
 
 
-        assert(Option2<int>{1}.and_(Option2<int>{2}) == Option2<int>{2});
-        assert(Option2<int>{1}.and_(Option2<int>{}) == Option2<int>{});
-        assert(Option2<int>{}.and_(Option2<int>{2}) == Option2<int>{});
-        assert(Option2<int>{}.and_(Option2<int>{}) == Option2<int>{});
+        assert(Option<int>{1}.and_(Option<int>{2}) == Option<int>{2});
+        assert(Option<int>{1}.and_(Option<int>{}) == Option<int>{});
+        assert(Option<int>{}.and_(Option<int>{2}) == Option<int>{});
+        assert(Option<int>{}.and_(Option<int>{}) == Option<int>{});
     }
 
     {
-        assert(Option2<int>{1}.or_(Option2<int>{2}) == Option2<int>{1});
-        assert(Option2<int>{1}.or_(Option2<int>{}) == Option2<int>{1});
-        assert(Option2<int>{}.or_(Option2<int>{2}) == Option2<int>{2});
-        assert(Option2<int>{}.or_(Option2<int>{}) == Option2<int>{});
+        assert(Option<int>{1}.or_(Option<int>{2}) == Option<int>{1});
+        assert(Option<int>{1}.or_(Option<int>{}) == Option<int>{1});
+        assert(Option<int>{}.or_(Option<int>{2}) == Option<int>{2});
+        assert(Option<int>{}.or_(Option<int>{}) == Option<int>{});
     }
 
     {
-        assert(Option2<int>{1}.xor_(Option2<int>{2}) == Option2<int>{});
-        assert(Option2<int>{1}.xor_(Option2<int>{}) == Option2<int>{1});
-        assert(Option2<int>{}.xor_(Option2<int>{2}) == Option2<int>{2});
-        assert(Option2<int>{}.xor_(Option2<int>{}) == Option2<int>{});
+        assert(Option<int>{1}.xor_(Option<int>{2}) == Option<int>{});
+        assert(Option<int>{1}.xor_(Option<int>{}) == Option<int>{1});
+        assert(Option<int>{}.xor_(Option<int>{2}) == Option<int>{2});
+        assert(Option<int>{}.xor_(Option<int>{}) == Option<int>{});
     }
 }
 static auto lvalue_ref() -> void {
@@ -370,11 +364,11 @@ static auto lvalue_ref() -> void {
         int         age;
         std::string name;
 
-        auto get_name() const -> Option2<const std::string&> {
+        auto get_name() const -> Option<const std::string&> {
             if (age >= 18) {
-                return Option2<const std::string&>(name);
+                return Option<const std::string&>(name);
             } else {
-                return Option2<const std::string&>();
+                return Option<const std::string&>();
             }
         }
     };
@@ -385,6 +379,9 @@ static auto lvalue_ref() -> void {
 }
 } // namespace tests
 static auto test() -> void {
+
+
+
     tests::test();
     tests::test2();
     tests::lvalue_ref();

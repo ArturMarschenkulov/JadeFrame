@@ -8,6 +8,122 @@
 
 #include "JadeFrame/utils/utils.h"
 namespace JadeFrame {
+
+namespace platform {
+namespace win32 {
+DWORD count_set_bits(ULONG_PTR bit_mask) {
+    DWORD     LSHIFT = sizeof(ULONG_PTR) * 8 - 1;
+    DWORD     bit_set_count = 0;
+    ULONG_PTR bit_test = static_cast<ULONG_PTR>(1) << LSHIFT;
+    DWORD     i;
+
+    for (i = 0; i <= LSHIFT; ++i) {
+        bit_set_count += ((bit_mask & bit_test) ? 1 : 0);
+        bit_test /= 2;
+    }
+
+    return bit_set_count;
+}
+// auto get_heaps() -> std::vector<int> {}
+
+
+struct ProcessEntry {
+    u32     size;
+    u32     usage;
+    u32     process_id;
+    u64     default_heap_id;
+    u32     module_id;
+    u32     thread_count;
+    u32     paranet_process_id;
+    i64     priority;
+    u32     flags;
+    wchar_t path[MAX_PATH];
+};
+
+struct ModuleEntry {
+    u32       size;
+    u32       module_id;
+    u32       process_id;
+    u32       global_usage_count;
+    u32       process_usage_count;
+    u8*       base_adress;
+    u32       base_size;
+    HINSTANCE instance;
+    wchar_t   module_size[MAX_MODULE_NAME32 + 1];
+    wchar_t   path[MAX_PATH];
+};
+auto get_processes() -> std::vector<ProcessEntry> {
+    std::vector<ProcessEntry> processes;
+
+    ::HANDLE snapshot = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (snapshot != INVALID_HANDLE_VALUE) {
+        ::PROCESSENTRY32W process_entry;
+        process_entry.dwSize = sizeof(process_entry);
+        ::BOOL success = ::Process32FirstW(snapshot, &process_entry);
+        if (success == TRUE) {
+            do {
+                processes.emplace_back();
+                // processes.back() = *(ProcessEntry*)&process_entry;
+                processes.back() = *reinterpret_cast<ProcessEntry*>(&process_entry);
+            } while (::Process32NextW(snapshot, &process_entry));
+        }
+        ::CloseHandle(snapshot);
+    }
+    return processes;
+}
+auto get_modules() -> std::vector<ModuleEntry> {
+    std::vector<ModuleEntry> modules;
+    u32 flags = TH32CS_INHERIT | TH32CS_SNAPALL | TH32CS_SNAPHEAPLIST | TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32 |
+                TH32CS_SNAPPROCESS | TH32CS_SNAPTHREAD;
+    ::HANDLE snapshot = ::CreateToolhelp32Snapshot(flags, 0);
+    if (snapshot != INVALID_HANDLE_VALUE) {
+        ::MODULEENTRY32W module_entry;
+        module_entry.dwSize = sizeof(module_entry);
+        ::BOOL success = ::Module32FirstW(snapshot, &module_entry);
+        if (success == TRUE) {
+            do {
+                modules.emplace_back();
+                modules.back() = *reinterpret_cast<ModuleEntry*>(&module_entry);
+            } while (::Module32NextW(snapshot, &module_entry));
+        }
+        ::CloseHandle(snapshot);
+    }
+    return modules;
+}
+
+static auto get_DWORD_reg_key(HKEY hKey, const wchar_t* strValueName, DWORD& nValue, DWORD nDefaultValue) -> LONG {
+    nValue = nDefaultValue;
+    DWORD buffer_size(sizeof(DWORD));
+    DWORD result(0);
+    LONG  error =
+        RegQueryValueExW(hKey, strValueName, nullptr, nullptr, reinterpret_cast<LPBYTE>(&result), &buffer_size);
+    if (ERROR_SUCCESS == error) { nValue = result; }
+    return error;
+};
+
+static auto get_processor_name() -> std::string {
+    const wchar_t* id = L"Hardware\\Description\\System\\CentralProcessor\\0";
+    HKEY           hKey;
+
+    LONG error = RegOpenKeyExW(HKEY_LOCAL_MACHINE, (LPCWSTR)id, 0, KEY_QUERY_VALUE, &hKey);
+    if (ERROR_SUCCESS != error) {}
+
+    WCHAR buffer[256];
+    DWORD buffer_len = 256;
+    DWORD vtype = REG_SZ;
+    error = RegQueryValueExW(hKey, L"ProcessorNameString", nullptr, &vtype, (LPBYTE)buffer, &buffer_len);
+}
+
+auto test() -> void {
+    // TODO: Check whether our assumptions are correct.
+    static_assert(sizeof(DWORD) == 4, "DWORD is not 32-bit");         // u32
+    static_assert(sizeof(DWORD_PTR) == 8, "DWORD_PTR is not 64-bit"); // u64
+    static_assert(sizeof(ULONG_PTR) == 8, "ULONG_PTR is not 64-bit"); // u64
+    static_assert(sizeof(LONG) == 4, "LONG is not 32-bit");           // i32
+    static_assert(sizeof(WCHAR) == 2, "WCHAR is not 16-bit");         // u16
+}
+} // namespace win32
+} // namespace platform
 // static auto get_primary_monitor_handle() -> HMONITOR {
 //	const POINT pt_zero = { 0, 0 };
 //	return ::MonitorFromPoint(pt_zero, MONITOR_DEFAULTTOPRIMARY);
@@ -66,17 +182,17 @@ DWORD count_set_bits(ULONG_PTR bit_mask) {
 //	return nError;
 // }
 
-static auto get_DWORD_reg_key(HKEY hKey, const wchar_t* strValueName, DWORD& nValue, DWORD nDefaultValue) -> LONG {
-    nValue = nDefaultValue;
-    DWORD buffer_size(sizeof(DWORD));
-    DWORD result(0);
-    LONG  error =
-        RegQueryValueExW(hKey, strValueName, nullptr, nullptr, reinterpret_cast<LPBYTE>(&result), &buffer_size);
-    if (ERROR_SUCCESS == error) { nValue = result; }
-    return error;
-};
+
+
+
 auto Windows_SystemManager::initialize() -> void {
+
     {
+        auto modules = platform::win32::get_modules();
+        auto proesses = platform::win32::get_processes();
+    }
+    {
+
         u32 flags = TH32CS_INHERIT | TH32CS_SNAPALL | TH32CS_SNAPHEAPLIST | TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32 |
                     TH32CS_SNAPPROCESS | TH32CS_SNAPTHREAD;
         ::HANDLE snapshot = ::CreateToolhelp32Snapshot(flags, 0);
@@ -123,7 +239,6 @@ auto Windows_SystemManager::initialize() -> void {
         ::MEMORYSTATUSEX status;
         status.dwLength = sizeof(::MEMORYSTATUSEX);
         ::GlobalMemoryStatusEx(&status);
-
         m_available_physical_memory = (i64)status.ullAvailPhys;
         m_total_physical_memory = (i64)status.ullTotalPhys;
 
@@ -243,8 +358,8 @@ auto Windows_SystemManager::initialize() -> void {
             HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"), 0, KEY_READ, &hKey);
         DWORD current_major_version_number;
         DWORD current_minor_version_number;
-        get_DWORD_reg_key(hKey, TEXT("CurrentMajorVersionNumber"), current_major_version_number, 0);
-        get_DWORD_reg_key(hKey, TEXT("CurrentMinorVersionNumber"), current_minor_version_number, 0);
+        platform::win32::get_DWORD_reg_key(hKey, TEXT("CurrentMajorVersionNumber"), current_major_version_number, 0);
+        platform::win32::get_DWORD_reg_key(hKey, TEXT("CurrentMinorVersionNumber"), current_minor_version_number, 0);
 
         m_window_version_major = current_major_version_number;
         m_window_version_minor = current_minor_version_number;

@@ -10,11 +10,59 @@
 namespace JadeFrame {
 namespace result {
 
+
+namespace details {
+template<typename T, typename E>
+class Storage {
+public:
+    bool m_has_value;
+};
+template<typename T, typename E>
+requires std::is_lvalue_reference_v<T>
+class Storage<T, E> {
+public:
+private:
+    union {
+        T* m_value;
+        E  m_error;
+    };
+};
+
+template<typename T, typename E>
+requires(!std::is_lvalue_reference_v<T>) class Storage<T, E> {
+public:
+private:
+    union {
+        T m_value;
+        E m_error;
+    };
+};
+} // namespace details
+
 enum ResultType {
     OK,
     ERR
 };
 
+template<typename T, typename E>
+class Result {
+public:
+    constexpr Result()
+        : m_storage() {}
+    constexpr Result(const Result& o)
+        : m_storage(o.m_storage) {}
+    constexpr Result(Result&& o)
+        : m_storage(std::forward<Result>(o.m_storage)) {}
+    constexpr Result(const T& v)
+        : m_storage(v) {}
+
+    constexpr Result(T&& v) requires(!std::is_lvalue_reference_v<T>)
+        : m_storage(std::forward<T>(std::move(v))) {}
+
+private:
+    details::Storage<T, E> m_storage;
+};
+namespace to_be_removed {
 template<typename T, typename E>
 class Result {
 
@@ -135,8 +183,13 @@ public:
         alignas(E) u8 m_err[sizeof(E)];
     };
 };
+} // namespace to_be_removed
 
+namespace tests {
 auto test() -> void {}
+} // namespace tests
+
+static auto test() -> void { tests::test(); }
 } // namespace result
 using result::Result;
 } // namespace JadeFrame
