@@ -9,7 +9,9 @@
 
 #include "JadeFrame/math/vec.h"
 
-#include <JadeFrame/utils/utils.h>
+#include "JadeFrame/utils/utils.h"
+#include "JadeFrame/ptr/ptr.h"
+
 #include <utility>
 
 namespace JadeFrame {
@@ -157,6 +159,11 @@ Instance::Instance() {
     test_modules();
 
     Logger::info("JadeFrame is starting...");
+
+    ptr::Scope<i32> p_to_100 = ptr::make_scope<i32>(100);
+    auto            o = ptr::make_scope_noexcept<i32>(100); // Option<ptr::Scope<i32>>
+
+    ptr::Scope<i32> p = std::move(p_to_100);
 
     if (m_singleton == nullptr) {
         m_singleton = this;
@@ -321,6 +328,13 @@ static auto submit(FuncT&& func) -> void {
     rcq.execute();
     //__debugbreak();
 }
+
+// template<typename BaseType, typename SubType>
+// static auto take_ownership(std::set<ptr::Scope<BaseType>>& object_set, ptr::Scope<SubType>&& object) -> SubType* {
+//     SubType* ref = object.get();
+//     object_set.emplace(std::forward<ptr::Scope<SubType>>(object));
+//     return ref;
+// }
 
 template<typename BaseType, typename SubType>
 static auto take_ownership(std::set<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object)
