@@ -27,17 +27,39 @@ template<typename T, typename E>
 requires std::is_lvalue_reference_v<T>
 class Storage<T, E> {
 public:
-    // constexpr Storage(const T& v)
-    //     : m_has_value(true)
-    //     , m_pointer(&v) {}
-    // constexpr Storage(T&& v) requires(!std::is_lvalue_reference_v<T>)
-    //     : m_has_value(true)
-    //     , m_pointer(&v) {}
+    constexpr Storage(const Storage& o)
+        : m_has_value(o.m_has_value)
+        , m_value(o.m_value) {}
+    constexpr Storage(Storage&& o)
+        : m_has_value(o.m_has_value)
+        , m_value(o.m_value) {
+        o.m_has_value = false;
+        o.m_value = nullptr;
+    }
+    constexpr Storage(const T& v)
+        : m_has_value(true)
+        , m_value(&v) {}
+    constexpr Storage(T&& v) requires(!std::is_lvalue_reference_v<T>)
+        : m_has_value(true)
+        , m_value(&v) {}
+    constexpr Storage(details::ErrorTag, E& v)
+        : m_has_value(false)
+        , m_error(&v) {}
+    constexpr Storage(details::ErrorTag, E&& v) requires(!std::is_lvalue_reference_v<E>)
+        : m_has_value(false)
+        , m_error(&v) {}
+    constexpr ~Storage() {
+        if (m_has_value) {
+            m_value = nullptr;
+        } else {
+            m_error.~E();
+        }
+    }
 
 private:
     union {
-        T* m_value;
-        E  m_error;
+        std::remove_reference_t<T>* m_value;
+        E                           m_error;
     };
     bool m_has_value;
 };
@@ -49,7 +71,7 @@ public:
         : m_has_value(true) {
         new (&m_value) T(v);
     }
-    constexpr Storage(T&& v)
+    constexpr Storage(T&& v) requires(!std::is_lvalue_reference_v<T>)
         : m_has_value(true) {
         new (&m_value) T(std::forward<T>(v));
     }
@@ -57,9 +79,16 @@ public:
         : m_has_value(false) {
         new (&m_error) E(v);
     }
-    constexpr Storage(details::ErrorTag, E&& v)
+    constexpr Storage(details::ErrorTag, E&& v) requires(!std::is_lvalue_reference_v<T>)
         : m_has_value(false) {
         new (&m_error) E(std::forward<E>(v));
+    }
+    ~Storage() {
+        if (m_has_value) {
+            m_value->~T();
+        } else {
+            m_error.~E();
+        }
     }
 
 private:
@@ -118,6 +147,12 @@ public:
 
     constexpr Result(T&& v) requires(!std::is_lvalue_reference_v<T>)
         : m_storage(std::forward<T>(std::move(v))) {}
+
+    constexpr ~Result() {}
+
+public:
+    auto is_ok() const -> bool { return m_storage.m_has_value; }
+    auto is_err() const -> bool { return !this->is_ok(); }
 
 private:
     details::Storage<T, E> m_storage;
@@ -246,6 +281,20 @@ public:
 } // namespace to_be_removed
 
 namespace tests {
+
+
+struct Student {
+    std::string name;
+    int         age;
+    auto        get_name() const -> Result<const std::string&, std::string> {
+        if (age < 18) {
+            return Failure(std::string("Too young"));
+        } else {
+            return Result<const std::string&, std::string>(name);
+        }
+    }
+};
+auto pp() -> void {}
 enum class Version {
     VER1,
     VER2
@@ -260,7 +309,7 @@ auto parse_version(const int& version) -> Result<Version, const char*> {
         return f;
     }
 }
-auto general_usage() {}
+auto general_usage() { auto res = parse_version(1); }
 auto test() -> void {}
 } // namespace tests
 

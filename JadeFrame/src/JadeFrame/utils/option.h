@@ -47,6 +47,10 @@ public:
         : m_has_value(true)
         , m_pointer(&v) {}
 
+    constexpr ~Storage() {
+        if (m_has_value) { m_pointer = nullptr; }
+    }
+
 
     constexpr auto get() const& -> const T& { return *m_pointer; }
 
