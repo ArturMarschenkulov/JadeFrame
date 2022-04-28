@@ -379,9 +379,6 @@ static auto lvalue_ref() -> void {
 }
 } // namespace tests
 static auto test() -> void {
-
-
-
     tests::test();
     tests::test2();
     tests::lvalue_ref();

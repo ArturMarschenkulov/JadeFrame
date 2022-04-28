@@ -6,6 +6,7 @@
 
 #include "JadeFrame/utils/option.h"
 #include "JadeFrame/utils/result.h"
+#include "../extern/result.hpp"
 
 #include "JadeFrame/math/vec.h"
 
@@ -144,6 +145,21 @@ auto test_modules() -> void {
     option::test();
     result::test();
 }
+
+
+auto to_double(const char* str) noexcept -> Result<double, std::errc> {
+    auto* last_entry = static_cast<char*>(nullptr);
+
+    errno = 0;
+    const auto result = std::strtod(str, &last_entry);
+
+    if (errno != 0) {
+        // Returns an error value
+        return Failure(static_cast<std::errc>(errno));
+    }
+    // Returns a value
+    return result;
+}
 Instance::Instance() {
     auto ci = get_compiler_info();
     auto pi = get_plattform_info();
@@ -157,6 +173,8 @@ Instance::Instance() {
     std::cout << "C++ version: " << li << std::endl;
 
     test_modules();
+
+    cpp::result<int, const char*> r;
 
     Logger::info("JadeFrame is starting...");
 
@@ -330,7 +348,8 @@ static auto submit(FuncT&& func) -> void {
 }
 
 // template<typename BaseType, typename SubType>
-// static auto take_ownership(std::set<ptr::Scope<BaseType>>& object_set, ptr::Scope<SubType>&& object) -> SubType* {
+// static auto take_ownership(std::set<ptr::Scope<BaseType>>& object_set, ptr::Scope<SubType>&& object) -> SubType*
+// {
 //     SubType* ref = object.get();
 //     object_set.emplace(std::forward<ptr::Scope<SubType>>(object));
 //     return ref;
