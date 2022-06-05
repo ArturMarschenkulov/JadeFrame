@@ -4,10 +4,9 @@ cmake_minimum_required(VERSION 3.16.0 FATAL_ERROR)
 
 # For it to compile you need at least clang++-13 or gcc-10
 # std::format is as of right now only by msvc library supported
-
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_C_COMPILER "clang-13")
-set(CMAKE_CXX_COMPILER "clang++-13")
+set(CMAKE_C_COMPILER "clang")
+set(CMAKE_CXX_COMPILER "clang++")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 set(CMAKE_EXE_LINKER_FLAGS "-lc++abi -lpthread")
 
@@ -63,7 +62,11 @@ set(CMAKE_CONFIGURATION_TYPES
     CACHE STRING "" FORCE
 )
 
+#set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_BUILD_TYPE "Release")
+
+# #set(CMAKE_CONFIGURATION_TYPES "Debug")
+# set(CMAKE_CONFIGURATION_TYPES "Release")
 
 ################################################################################
 # Global compiler options
@@ -71,13 +74,21 @@ set(CMAKE_BUILD_TYPE "Release")
 
 if(MSVC)
     # remove default flags provided with CMake for MSVC
-    message("remove default flags provided with CMake for MSVC")
-    set(CMAKE_C_FLAGS "")
-    set(CMAKE_C_FLAGS_DEBUG "")
-    set(CMAKE_C_FLAGS_RELEASE "")
-    set(CMAKE_CXX_FLAGS "")
-    set(CMAKE_CXX_FLAGS_DEBUG "")
-    set(CMAKE_CXX_FLAGS_RELEASE "")
+    message("Overriding the default flags for MSVC")
+    set(CMAKE_C_FLAGS "") # /DWIN32 /D_WINDOWS
+    set(CMAKE_C_FLAGS_DEBUG "") # /Zi /Ob0 /Od /RTC1
+    set(CMAKE_C_FLAGS_RELEASE "") # /O2 /Ob2 /DNDEBUG
+    set(CMAKE_CXX_FLAGS "") # /DWIN32 /D_WINDOWS /GR /EHsc /stdlib=libc++
+    set(CMAKE_CXX_FLAGS_DEBUG "") # /Zi /Ob0 /Od /RTC1
+    set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob2 /DNDEBUG") # /O2 /Ob2 /DNDEBUG
+
+    message("Now the flags are as follows:")
+    message("   CMAKE_C_FLAGS           -> ${CMAKE_C_FLAGS}")
+    message("   CMAKE_C_FLAGS_DEBUG     -> ${CMAKE_C_FLAGS_DEBUG}")
+    message("   CMAKE_C_FLAGS_RELEASE   -> ${CMAKE_C_FLAGS_RELEASE}")
+    message("   CMAKE_CXX_FLAGS         -> ${CMAKE_CXX_FLAGS}")
+    message("   CMAKE_CXX_FLAGS_DEBUG   -> ${CMAKE_CXX_FLAGS_DEBUG}")
+    message("   CMAKE_CXX_FLAGS_RELEASE -> ${CMAKE_CXX_FLAGS_RELEASE}")
 endif()
 
 ################################################################################

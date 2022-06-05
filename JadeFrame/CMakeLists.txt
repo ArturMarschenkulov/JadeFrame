@@ -378,6 +378,7 @@ endif()
 ################################################################################
 IF(WIN32)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
+        "opengl32"
         "shadercd;"
         "shaderc_combinedd;"
         "shaderc_sharedd;"
