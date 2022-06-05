@@ -44,10 +44,10 @@ public:
         , m_value(&v) {}
     constexpr Storage(details::ErrorTag, E& v)
         : m_has_value(false)
-        , m_error(&v) {}
+        , m_error(v) {}
     constexpr Storage(details::ErrorTag, E&& v) requires(!std::is_lvalue_reference_v<E>)
         : m_has_value(false)
-        , m_error(&v) {}
+        , m_error(v) {}
     constexpr ~Storage() {
         if (m_has_value) {
             m_value = nullptr;
@@ -85,7 +85,7 @@ public:
     }
     ~Storage() {
         if (m_has_value) {
-            m_value->~T();
+            m_value.~T();
         } else {
             m_error.~E();
         }
