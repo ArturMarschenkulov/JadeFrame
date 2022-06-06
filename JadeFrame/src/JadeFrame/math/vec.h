@@ -25,7 +25,7 @@ JF_PRAGMA_PUSH
 
 template<size_t N, typename T>
 class VectorT {
-  public:
+public:
     constexpr VectorT() noexcept { std::memset(el, 0, N); }
     // template<typename ...Args>
     template<class... T2, typename std::enable_if<sizeof...(T2) == N, int>::type = 0>
@@ -96,7 +96,7 @@ class VectorT {
         return result;
     }
 
-  public:
+public:
     T el[N];
 };
 
@@ -106,7 +106,7 @@ class VectorT {
 
 template<typename T>
 class VectorT<2, T> {
-  public:
+public:
     constexpr VectorT() noexcept
         : x()
         , y() {}
@@ -161,7 +161,7 @@ class VectorT<2, T> {
     //	const f32& length = this->get_length();
     //	return VectorT(x / length, y / length, z / length);
     // }
-  public:
+public:
     union {
         T el[2];
         struct {
@@ -182,7 +182,7 @@ class VectorT<2, T> {
 
 template<typename T>
 class VectorT<3, T> {
-  public:
+public:
     constexpr VectorT() noexcept
         : x()
         , y()
@@ -247,7 +247,7 @@ class VectorT<3, T> {
         return VectorT(x / (T)length, y / (T)length, z / (T)length);
     }
 
-  public:
+public:
     union {
         T el[3];
         struct {
@@ -265,7 +265,7 @@ class VectorT<3, T> {
 
 template<typename T>
 class VectorT<4, T> {
-  public:
+public:
     constexpr VectorT() noexcept
         : x()
         , y()
@@ -328,7 +328,7 @@ class VectorT<4, T> {
     //	const f32& length = this->get_length();
     //	return Vec3(x / length, y / length, z / length);
     // }
-  public:
+public:
     union {
         T el[4];
         struct {
@@ -383,6 +383,14 @@ using v4i32 = VectorT<4, i32>;
 using v2i64 = VectorT<2, i64>;
 using v3i64 = VectorT<3, i64>;
 using v4i64 = VectorT<4, i64>;
+
+using v2i = v2i32;
+using v3i = v3i32;
+using v4i = v4i32;
+
+using v2u = v2u32;
+using v3u = v3u32;
+using v4u = v4u32;
 
 using v2 = v2f32;
 using v3 = v3f32;
