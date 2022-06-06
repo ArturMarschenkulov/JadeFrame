@@ -44,7 +44,7 @@ OpenGL_Texture::OpenGL_Texture(void* data, v2u32 size, GLenum internal_format, G
     m_texture.set_texture_parameters(GL_TEXTURE_MIN_FILTER, filter_min);
     m_texture.set_texture_parameters(GL_TEXTURE_MAG_FILTER, filter_max);
 
-    m_texture.set_texture_image_2D(0, internal_format, size.width, size.height, 0, format, type, data);
+    m_texture.set_texture_image(0, internal_format, size, 0, format, type, data);
     // if (m_mipmapping) {
     m_texture.generate_mipmap();
     //}
@@ -54,7 +54,7 @@ auto OpenGL_Texture::resize(u32 width, u32 height, u32 /*depth*/) -> void {
 
     m_texture.bind(0);
     assert(width > 0 && height > 0);
-    m_texture.set_texture_image_2D(0, m_internal_format, width, height, 0, m_format, m_type, 0);
+    m_texture.set_texture_image(0, m_internal_format, {width, height}, 0, m_format, m_type, 0);
 
     // switch (m_target) {
     //	case GL_TEXTURE_1D:

@@ -8,6 +8,7 @@
    nothing more
 */
 #include "JadeFrame/defines.h"
+#include "JadeFrame/math/vec.h"
 #include <glad/glad.h>
 
 #include <vector>
@@ -241,15 +242,15 @@ struct OGLW_Texture {
     auto unbind() const -> void;
     auto generate_mipmap() const -> void;
     auto set_texture_parameters(GLenum pname, GLint param) const -> void;
-    auto set_texture_image_1D(
-        GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type,
-        const void* pixels) const -> void;
-    auto set_texture_image_2D(
-        GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type,
-        const void* pixels) const -> void;
-    auto set_texture_image_3D(
-        GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format,
-        GLenum type, const void* pixels) const -> void;
+    auto set_texture_image(
+        GLint level, GLint internalformat, u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
+        -> void;
+    auto set_texture_image(
+        GLint level, GLint internalformat, v2u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
+        -> void;
+    auto set_texture_image(
+        GLint level, GLint internalformat, v3u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
+        -> void;
     GLuint m_ID;
 
 private:
@@ -301,23 +302,21 @@ auto OGLW_Texture<texture_type>::set_texture_parameters(GLenum pname, GLint para
     // glTexParameteri(texture_type, pname, param);
 }
 template<GLenum texture_type>
-auto OGLW_Texture<texture_type>::set_texture_image_1D(
-    GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type,
-    const void* pixels) const -> void {
-    glTexImage1D(texture_type, level, internalformat, width, border, format, type, pixels);
+auto OGLW_Texture<texture_type>::set_texture_image(
+    GLint level, GLint internalformat, u32 size, GLint border, GLenum format, GLenum type, const void* pixels) -> void {
+    glTexImage1D(texture_type, level, internalformat, size, border, format, type, pixels);
 }
 template<GLenum texture_type>
-auto OGLW_Texture<texture_type>::set_texture_image_2D(
-    GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type,
-    const void* pixels) const -> void {
-    glTexImage2D(texture_type, level, internalformat, width, height, border, format, type, pixels);
-    // glTextureStorage2D(m_ID, level, internalformat, width, height);
+auto OGLW_Texture<texture_type>::set_texture_image(
+    GLint level, GLint internalformat, v2u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
+    -> void {
+    glTexImage2D(texture_type, level, internalformat, size.x, size.y, border, format, type, pixels);
 }
 template<GLenum texture_type>
-auto OGLW_Texture<texture_type>::set_texture_image_3D(
-    GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format,
-    GLenum type, const void* pixels) const -> void {
-    glTexImage3D(texture_type, level, internalformat, width, height, depth, border, format, type, pixels);
+auto OGLW_Texture<texture_type>::set_texture_image(
+    GLint level, GLint internalformat, v3u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
+    -> void {
+    glTexImage3D(texture_type, level, internalformat, size.x, size.y, size.z, border, format, type, pixels);
 }
 
 /*******************
@@ -382,7 +381,7 @@ public:
     OGLW_Framebuffer();
     ~OGLW_Framebuffer();
 
-    auto attach_texture_2D(const OGLW_Texture<GL_TEXTURE_2D>& texture) const -> void;
+    auto attach_texture(const OGLW_Texture<GL_TEXTURE_2D>& texture) const -> void;
     auto attach_renderbuffer(const OGLW_Renderbuffer& renderbuffer) const -> void;
     auto check_status() const -> GLenum;
     auto bind() const -> void;
@@ -399,7 +398,7 @@ private:
 
 inline OGLW_Framebuffer::OGLW_Framebuffer() { glCreateFramebuffers(1, &m_ID); }
 inline OGLW_Framebuffer::~OGLW_Framebuffer() { this->reset(); }
-inline auto OGLW_Framebuffer::attach_texture_2D(const OGLW_Texture<GL_TEXTURE_2D>& texture) const -> void {
+inline auto OGLW_Framebuffer::attach_texture(const OGLW_Texture<GL_TEXTURE_2D>& texture) const -> void {
     glNamedFramebufferTexture(m_ID, GL_COLOR_ATTACHMENT0, texture.m_ID, 0);
 }
 inline auto OGLW_Framebuffer::attach_renderbuffer(const OGLW_Renderbuffer& renderbuffer) const -> void {
