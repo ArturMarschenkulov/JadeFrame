@@ -6,52 +6,22 @@
 namespace JadeFrame {
 
 class Camera {
-  public:
-    Camera() {}
-
-    auto
-    perspective(const v3& pos, const f32 fov, const f32 aspect, const f32 zNear, const f32 zFar)
-        -> void;
-    auto get_projection_matrix() const -> Matrix4x4;
-    auto get_view_matrix() const -> Matrix4x4;
-
-    Matrix4x4 m_projection_matrix{};
-    v3        m_position{};
-    v3        m_up{};
-    v3        m_right{};
-    v3        m_front{};
-    v3        m_worldUp{};
-
-    f32 m_fovy{};
-    f32 m_yaw{};
-    f32 m_pitch{};
-    f32 m_roll{};
-
-    f32  m_aspect;
-    f32  m_zNear;
-    f32  m_zFar;
-    auto control() -> void;
-};
-
-class Camera1 {
     enum class MODE {
         ORTHOGRAPHIC,
         PERSPECTIVE,
     };
 
-  public:
-    auto perspective_mode(
-        const v3& position, const f32 fov, const f32 aspect, const f32 zNear, const f32 zFar)
+public:
+    auto perspective_mode(const v3& position, const f32 fov, const f32 aspect, const f32 zNear, const f32 zFar) -> void;
+    auto
+    othographic_mode(const f32 left, const f32 right, const f32 buttom, const f32 top, const f32 near_, const f32 far_)
         -> void;
-    auto othographic_mode(
-        const f32 left, const f32 right, const f32 buttom, const f32 top, const f32 near_,
-        const f32 far_) -> void;
     auto get_projection_matrix() const -> Matrix4x4;
     auto get_view_matrix() const -> Matrix4x4;
     auto get_view_projection_matrix() const -> Matrix4x4;
     auto control() -> void;
 
-  private:
+private:
     MODE      m_mode;
     Matrix4x4 m_projection_matrix = {};
     Matrix4x4 m_view_matrix = {};
@@ -86,8 +56,7 @@ class Camera0 {
     f32  m_far;
     bool m_is_perspective;
 
-    auto set_perspective(const f32 fov, const f32 aspect, const f32 t_near, const f32 t_far)
-        -> void {
+    auto set_perspective(const f32 fov, const f32 aspect, const f32 t_near, const f32 t_far) -> void {
         m_is_perspective = true;
         m_projection = Matrix4x4::perspective_projection_matrix(fov, aspect, t_near, t_far);
         m_FOV = fov;
@@ -96,17 +65,13 @@ class Camera0 {
         m_far = t_far;
     }
     auto set_orthographic(
-        const f32 left, const f32 right, const f32 top, const f32 bottom, const f32 t_near,
-        const f32 t_far) -> void {
+        const f32 left, const f32 right, const f32 top, const f32 bottom, const f32 t_near, const f32 t_far) -> void {
         m_is_perspective = false;
-        m_projection =
-            Matrix4x4::orthogonal_projection_matrix(left, right, top, bottom, t_near, t_far);
+        m_projection = Matrix4x4::orthogonal_projection_matrix(left, right, top, bottom, t_near, t_far);
         m_near = t_near;
         m_far = t_far;
     }
-    auto update_view() -> void {
-        m_view = Matrix4x4::look_at_matrix(m_position, m_position + m_forward, m_up);
-    }
+    auto update_view() -> void { m_view = Matrix4x4::look_at_matrix(m_position, m_position + m_forward, m_up); }
 };
 
 } // namespace JadeFrame

@@ -145,7 +145,7 @@ public:
     Window*                    m_current_window_p = nullptr;
 
     IRenderer* m_renderer = nullptr;
-    Camera1    m_camera;
+    Camera     m_camera;
 
     TimeManager m_time_manager;
 
