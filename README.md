@@ -26,6 +26,7 @@ Those are projects which have an editor abstraction. Meaning in normal use one d
 - [Blender](https://github.com/blender/blender)
 - [Godot](https://github.com/blender/blender)
 - [Unreal Engine](https://github.com/EpicGames/UnrealEngine)
+- [CryEngine](https://github.com/ValtoGameEngines/CryEngine)
 - [Banshee Engine](https://github.com/ValtoGameEngines/Banshee-Engine)
 - [FlaxEngine](https://github.com/FlaxEngine/FlaxEngine)
 - [SpartanEngine](https://github.com/PanosK92/SpartanEngine)
