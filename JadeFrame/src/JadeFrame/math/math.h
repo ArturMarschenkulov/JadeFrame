@@ -1,7 +1,7 @@
 #pragma once
 #undef min
 #undef max
-#include "JadeFrame/defines.h"
+#include "JadeFrame/prelude.h"
 #include "mat_4.h"
 #include "vec.h"
 

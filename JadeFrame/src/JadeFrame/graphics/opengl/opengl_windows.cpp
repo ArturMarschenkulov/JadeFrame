@@ -1,7 +1,7 @@
 #ifdef _WIN32
 #include "pch.h"
 
-#include "JadeFrame/defines.h"
+#include "JadeFrame/prelude.h"
 #include "opengl_windows.h"
 #include <glad/glad.h>
 
@@ -186,16 +186,16 @@ auto wgl_set_pixel_format(const HDC& device_context) -> void {
 auto wgl_create_render_context(HDC device_context) -> HGLRC {
     const i32 major_min = 4, minor_min = 6;
     i32       context_attributes[] = {
-        WGL_CONTEXT_MAJOR_VERSION_ARB,
-        major_min,
-        WGL_CONTEXT_MINOR_VERSION_ARB,
-        minor_min,
-        WGL_CONTEXT_FLAGS_ARB,
-        WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB |
-            WGL_CONTEXT_DEBUG_BIT_ARB, // TODO check whether this UE4 part is relevant to us
-        WGL_CONTEXT_PROFILE_MASK_ARB,
-        WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-        0};
+              WGL_CONTEXT_MAJOR_VERSION_ARB,
+              major_min,
+              WGL_CONTEXT_MINOR_VERSION_ARB,
+              minor_min,
+              WGL_CONTEXT_FLAGS_ARB,
+              WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB |
+                  WGL_CONTEXT_DEBUG_BIT_ARB, // TODO check whether this UE4 part is relevant to us
+              WGL_CONTEXT_PROFILE_MASK_ARB,
+              WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+              0};
     const HGLRC render_context = wglCreateContextAttribsARB(device_context, 0, context_attributes);
     if (render_context == NULL) {
         Logger::log("wglCreateContextAttribsARB() failed. {}", ::GetLastError());

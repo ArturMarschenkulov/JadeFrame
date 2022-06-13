@@ -1,5 +1,5 @@
 
-//STD
+// STD
 #include <vector>
 #include <array>
 #include <deque>
@@ -30,16 +30,16 @@
 #include <type_traits>
 #include <concepts>
 
-//Windows
+// Windows
 #if defined _WIN32
 #include <Windows.h>
 #endif
 
-#include "JadeFrame/defines.h"
+#include "JadeFrame/prelude.h"
 
 
 
-//Graphics API specific
+// Graphics API specific
 JF_PRAGMA_PUSH
 // #pragma warning(disable:4006)
 #include <shaderc/shaderc.hpp>
@@ -55,7 +55,6 @@ JF_PRAGMA_POP
 #endif
 
 #include <vulkan/vulkan.h>
-//JadeFrame specific
+// JadeFrame specific
 
 //#include "JadeFrame/utils/logger.h"
-

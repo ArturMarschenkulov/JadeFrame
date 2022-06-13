@@ -1,13 +1,14 @@
 #pragma once
-#include "JadeFrame/defines.h"
+#include "JadeFrame/prelude.h"
 
 
-struct D3D12_Context {
-};
-struct HWND__;	typedef HWND__* HWND;
+struct D3D12_Context {};
+struct HWND__;
+typedef HWND__* HWND;
 class D3D12_Renderer {
 public:
-	auto set_context(const HWND& window) -> void;
+    auto set_context(const HWND& window) -> void;
+
 private:
-	D3D12_Context m_context;
+    D3D12_Context m_context;
 };

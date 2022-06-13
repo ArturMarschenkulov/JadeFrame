@@ -8,7 +8,7 @@
 #include "JadeFrame/platform/windows/windows_window.h"
 
 
-#include "JadeFrame/defines.h"
+#include "JadeFrame/prelude.h"
 
 
 #include <set>

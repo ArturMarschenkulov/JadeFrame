@@ -1,5 +1,5 @@
 #pragma once
-#include "JadeFrame/defines.h"
+#include "JadeFrame/prelude.h"
 #include "../platform_shared.h"
 #include <string>
 namespace JadeFrame {
@@ -9,7 +9,6 @@ public:
     virtual auto log() const -> void override;
 
 public:
-
     // represents Dynamically Linked Libraries (DLL) on Windows and Shared Object (SO) on Linux
     struct Module {
 

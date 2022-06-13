@@ -1,5 +1,5 @@
 #pragma once
-#include "JadeFrame/defines.h"
+#include "JadeFrame/prelude.h"
 #include "vec.h"
 #include <cmath>
 #include <concepts>
@@ -24,7 +24,7 @@ namespace JadeFrame {
 template<size_t N, size_t M, typename T>
 // requires number<T>
 class MatrixT {
-  public:
+public:
     constexpr MatrixT() noexcept
         : el() {}
 
@@ -48,7 +48,7 @@ class MatrixT {
         return result;
     }
 
-  public:
+public:
     std::array<std::array<T, N>, M> el;
 };
 
@@ -56,7 +56,7 @@ template<typename T>
 class MatrixT<4, 4, T> {
     constexpr MatrixT() {}
 
-  private:
+private:
     union {
         std::array<std::array<T, N>, M> el;
         // std::array<f32, 4> colVec;

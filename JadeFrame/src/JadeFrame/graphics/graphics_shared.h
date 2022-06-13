@@ -1,6 +1,6 @@
 #pragma once
-#include "JadeFrame/defines.h"
-#include <JadeFrame/math/mat_4.h>
+#include "JadeFrame/prelude.h"
+#include "JadeFrame/math/mat_4.h"
 #include <cassert>
 #include <variant>
 
@@ -66,15 +66,27 @@ struct GPUDataMeshHandle {
    inheritance. Right now, inheritance should be mainly used as a sanity check such that all
    renderers have a common interface.
 */
+using ssss = const char*;
+template<typename T>
+concept is_renderer = requires(T& t) {
+
+    { t.present() } -> std::same_as<void>;
+    { t.clear_background() } -> std::same_as<void>;
+    { t.render(std::declval<Matrix4x4>()) } -> std::same_as<void>;
+    { t.submit(std::declval<Object>()) } -> std::same_as<void>;
+    { t.set_clear_color(std::declval<RGBAColor>()) } -> std::same_as<void>;
+    { t.set_viewport(u32{}, u32{}, u32{}, u32{}) } -> std::same_as<void>;
+    { t.take_screenshot(std::declval<char*>()) } -> std::same_as<void>;
+};
 class IRenderer {
-  public: // client stuff
+public: // client stuff
     virtual auto submit(const Object& obj) -> void = 0;
     virtual auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void = 0;
 
     virtual auto take_screenshot(const char* filename) -> void = 0;
 
 
-  public: // more internal stuff
+public: // more internal stuff
     virtual auto set_clear_color(const RGBAColor& color) -> void = 0;
     virtual auto clear_background() -> void = 0;
     virtual auto render(const Matrix4x4& view_projection) -> void = 0;
@@ -158,8 +170,8 @@ struct VertexAttribute {
 };
 
 class VertexFormat {
-  public:
-  public:
+public:
+public:
     VertexFormat() = default;
     VertexFormat(const std::initializer_list<VertexAttribute>& attributes);
     VertexFormat(const VertexFormat&) = default;
@@ -171,14 +183,14 @@ class VertexFormat {
 };
 
 class IShader {
-  public:
+public:
     struct DESC {
         SHADING_LANGUAGE shading_language;
         ShadingCode      code;
         VertexFormat     vertex_format;
     };
 
-  public:
+public:
 };
 
 auto string_to_SPIRV(const std::string& code, SHADER_STAGE i) -> std::vector<u32>;

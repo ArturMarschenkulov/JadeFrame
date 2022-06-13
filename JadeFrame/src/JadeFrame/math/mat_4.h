@@ -1,5 +1,5 @@
 #pragma once
-#include "JadeFrame/defines.h"
+#include "JadeFrame/prelude.h"
 #include "vec.h"
 
 #include <array>
@@ -33,33 +33,31 @@ m2	|__|__|__|
 */
 class Matrix4x4;
 class Matrix4x4 {
-  public:
+public:
     constexpr Matrix4x4() noexcept;
     constexpr Matrix4x4(const Matrix4x4&) noexcept = default;
     constexpr Matrix4x4(Matrix4x4&&) noexcept = default;
     ~Matrix4x4() noexcept = default;
     constexpr explicit Matrix4x4(f32 digo) noexcept;
 
-    constexpr auto operator=(const Matrix4x4& mat) noexcept -> Matrix4x4&;
-    constexpr auto operator[](const u32 index) noexcept -> std::array<f32, 4>&; // for writing
-    constexpr auto operator[](const u32 index) const noexcept
-        -> const std::array<f32, 4>&; // for reading
+    constexpr auto     operator=(const Matrix4x4& mat) noexcept -> Matrix4x4&;
+    constexpr auto     operator[](const u32 index) noexcept -> std::array<f32, 4>&;             // for writing
+    constexpr auto     operator[](const u32 index) const noexcept -> const std::array<f32, 4>&; // for reading
     /*constexpr*/ auto operator*(const v4& vector) const noexcept -> v4;
     constexpr auto     operator*(const Matrix4x4& other) const noexcept -> Matrix4x4;
 
-  public: // static methods for matrices
-    constexpr static auto orthogonal_projection_matrix(
-        f32 left, f32 right, f32 buttom, f32 top, f32 near, f32 far) noexcept -> Matrix4x4;
-    /*constexpr*/ static auto
-    perspective_projection_matrix(f32 fovy, f32 aspect, f32 near, f32 far) noexcept -> Matrix4x4;
+public: // static methods for matrices
+    constexpr static auto
+    orthogonal_projection_matrix(f32 left, f32 right, f32 buttom, f32 top, f32 near, f32 far) noexcept -> Matrix4x4;
+    /*constexpr*/ static auto perspective_projection_matrix(f32 fovy, f32 aspect, f32 near, f32 far) noexcept
+        -> Matrix4x4;
     constexpr static auto     translation_matrix(const v3& trans) noexcept -> Matrix4x4;
     /*constexpr*/ static auto rotation_matrix(f32 angle, const v3& axis) noexcept -> Matrix4x4;
     /*constexpr*/ static auto scale_matrix(const v3& scale) noexcept -> Matrix4x4;
     constexpr static auto     shear_matrix() noexcept -> Matrix4x4;
-    constexpr static auto look_at_matrix(const v3& camera, const v3& object, const v3& up) noexcept
-        -> Matrix4x4;
+    constexpr static auto     look_at_matrix(const v3& camera, const v3& object, const v3& up) noexcept -> Matrix4x4;
 
-  public:
+public:
     constexpr auto get_determinant() const -> f32;
     constexpr auto get_echelon() const -> Matrix4x4;
     constexpr auto get_transpose() const -> Matrix4x4;
@@ -71,7 +69,7 @@ class Matrix4x4 {
     constexpr auto make_echelon() -> Matrix4x4&;
 
 
-  private:
+private:
     union {
         std::array<std::array<f32, 4>, 4> el;
         // std::array<f32, 4> colVec;
@@ -105,25 +103,18 @@ inline constexpr auto Matrix4x4::operator=(const Matrix4x4& mat) noexcept -> Mat
     return (*this);
 }
 
-inline constexpr auto Matrix4x4::operator[](const u32 index) noexcept -> std::array<f32, 4>& {
-    return this->el[index];
-}
+inline constexpr auto Matrix4x4::operator[](const u32 index) noexcept -> std::array<f32, 4>& { return this->el[index]; }
 
-inline constexpr auto Matrix4x4::operator[](const u32 index) const noexcept
-    -> const std::array<f32, 4>& {
+inline constexpr auto Matrix4x4::operator[](const u32 index) const noexcept -> const std::array<f32, 4>& {
     return this->el[index];
 }
 
 inline /*constexpr*/ auto Matrix4x4::operator*(const v4& vector) const noexcept -> v4 {
     v4 result;
-    result.x =
-        el[0][0] * vector.x + el[1][0] * vector.y + el[2][0] * vector.z + el[3][0] * vector.w;
-    result.y =
-        el[0][1] * vector.x + el[1][1] * vector.y + el[2][1] * vector.z + el[3][1] * vector.w;
-    result.z =
-        el[0][2] * vector.x + el[1][2] * vector.y + el[2][2] * vector.z + el[3][2] * vector.w;
-    result.w =
-        el[0][3] * vector.x + el[1][3] * vector.y + el[2][3] * vector.z + el[3][3] * vector.w;
+    result.x = el[0][0] * vector.x + el[1][0] * vector.y + el[2][0] * vector.z + el[3][0] * vector.w;
+    result.y = el[0][1] * vector.x + el[1][1] * vector.y + el[2][1] * vector.z + el[3][1] * vector.w;
+    result.z = el[0][2] * vector.x + el[1][2] * vector.y + el[2][2] * vector.z + el[3][2] * vector.w;
+    result.w = el[0][3] * vector.x + el[1][3] * vector.y + el[2][3] * vector.z + el[3][3] * vector.w;
     return result;
 }
 
@@ -140,8 +131,9 @@ inline constexpr auto Matrix4x4::operator*(const Matrix4x4& other) const noexcep
     return result;
 }
 
-inline constexpr auto Matrix4x4::orthogonal_projection_matrix(
-    f32 left, f32 right, f32 bottom, f32 top, f32 zNear, f32 zFar) noexcept -> Matrix4x4 {
+inline constexpr auto
+Matrix4x4::orthogonal_projection_matrix(f32 left, f32 right, f32 bottom, f32 top, f32 zNear, f32 zFar) noexcept
+    -> Matrix4x4 {
     Matrix4x4 result(1);
     result[0][0] = 2.0f / (right - left);
     result[1][1] = 2.0f / (top - bottom);
@@ -152,8 +144,7 @@ inline constexpr auto Matrix4x4::orthogonal_projection_matrix(
     return result;
 }
 
-inline /*constexpr*/ auto
-Matrix4x4::perspective_projection_matrix(f32 fovy, f32 aspect, f32 zNear, f32 zFar) noexcept
+inline /*constexpr*/ auto Matrix4x4::perspective_projection_matrix(f32 fovy, f32 aspect, f32 zNear, f32 zFar) noexcept
     -> Matrix4x4 {
     const f32 tan_half_fovy = static_cast<f32>(tan(fovy / 2.0f));
     Matrix4x4 result(0.0f);
@@ -171,8 +162,7 @@ inline constexpr auto Matrix4x4::translation_matrix(const v3& trans) noexcept ->
     result.el[3][2] = trans.z;
     return result;
 }
-inline /*constexpr*/ auto Matrix4x4::rotation_matrix(f32 angle, const v3& axis) noexcept
-    -> Matrix4x4 {
+inline /*constexpr*/ auto Matrix4x4::rotation_matrix(f32 angle, const v3& axis) noexcept -> Matrix4x4 {
     const f32 c = static_cast<f32>(cos(angle));
     const f32 omc = 1 - c;
     const f32 s = static_cast<f32>(sin(angle));
@@ -199,8 +189,7 @@ inline /*constexpr*/ auto Matrix4x4::scale_matrix(const v3& scale) noexcept -> M
     return result;
 }
 
-inline constexpr auto
-Matrix4x4::look_at_matrix(const v3& eye, const v3& center, const v3& up) noexcept -> Matrix4x4 {
+inline constexpr auto Matrix4x4::look_at_matrix(const v3& eye, const v3& center, const v3& up) noexcept -> Matrix4x4 {
     v3 const f((center - eye).get_normal());
     v3 const s(f.cross(up).get_normal());
     v3 const u(s.cross(f));
@@ -273,18 +262,14 @@ inline constexpr auto Matrix4x4::get_echelon() const -> Matrix4x4 {
         for (u32 row = col + 1; row < row_count; row++) {
             if (m[col][row] != 0) {
                 f32 factor = m[col][row] / m[col][col];
-                for (u32 col2 = 0; col2 < col_count; col2++) {
-                    m[col2][row] -= factor * m[col2][col];
-                }
+                for (u32 col2 = 0; col2 < col_count; col2++) { m[col2][row] -= factor * m[col2][col]; }
             }
         }
     }
     return m;
 }
 
-inline constexpr auto Matrix4x4::is_invertible() const -> bool {
-    return (this->get_determinant() == 0) ? false : true;
-}
+inline constexpr auto Matrix4x4::is_invertible() const -> bool { return (this->get_determinant() == 0) ? false : true; }
 
 inline constexpr auto Matrix4x4::get_rank() const -> i32 {
     i32  result = 0;
@@ -311,9 +296,7 @@ inline constexpr auto Matrix4x4::make_echelon() -> Matrix4x4& {
         for (u32 row = col + 1; row < row_count; row++) {
             if (el[col][row] != 0) {
                 f32 factor = el[col][row] / el[col][col];
-                for (u32 col2 = 0; col2 < col_count; col2++) {
-                    el[col2][row] -= factor * el[col2][col];
-                }
+                for (u32 col2 = 0; col2 < col_count; col2++) { el[col2][row] -= factor * el[col2][col]; }
             }
         }
     }

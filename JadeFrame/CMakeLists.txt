@@ -101,6 +101,9 @@ set(Files_Base
         "src/JadeFrame/base_app.h"
         "src/JadeFrame/core.h"
         "src/JadeFrame/defines.h"
+        "src/JadeFrame/macros.h"
+        "src/JadeFrame/types.h"
+        "src/JadeFrame/prelude.h"
         "src/JadeFrame/gui.h"
 
         "src/JadeFrame.cpp"
@@ -110,7 +113,7 @@ set(Files_Base
         "src/JadeFrame/gui.cpp"
         )
 
-
+# add_subdirectory(src/JadeFrame/graphics/opengl)
 set(Files_Graphics_OpenGL
     "src/JadeFrame/graphics/opengl/opengl_buffer.h"
     "src/JadeFrame/graphics/opengl/opengl_context.h"
@@ -192,17 +195,18 @@ set(Files_Datatypes
         "src/JadeFrame/datatypes/string.h"
         )
 
+#add_subdirectory(src/JadeFrame/math)
 set(Files_Math
-        "src/JadeFrame/math/i128.h"
-        "src/JadeFrame/math/mat.h"
-        "src/JadeFrame/math/mat_4.h"
-        "src/JadeFrame/math/math.h"
-        "src/JadeFrame/math/vec.h"
+    "src/JadeFrame/math/i128.h"
+    "src/JadeFrame/math/mat.h"
+    "src/JadeFrame/math/mat_4.h"
+    "src/JadeFrame/math/math.h"
+    "src/JadeFrame/math/vec.h"
 
-        "src/JadeFrame/math/mat_4.cpp"
-        "src/JadeFrame/math/math.cpp"
-        "src/JadeFrame/math/vec.cpp"
-        )
+    "src/JadeFrame/math/mat_4.cpp"
+    "src/JadeFrame/math/math.cpp"
+    "src/JadeFrame/math/vec.cpp"
+)
 
 set(Files_Utils
         "src/JadeFrame/utils/assert.h"
@@ -268,9 +272,11 @@ set(ALL_FILES
 ################################################################################
 add_library(${PROJECT_NAME} STATIC ${ALL_FILES})
 
-target_precompile_headers(${PROJECT_NAME} PRIVATE
+target_precompile_headers(${PROJECT_NAME} PUBLIC
     "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>"
 )
+add_library(JF_MODULE_pch STATIC src/pch.cpp src/pch.h)
+# target_include_directories(JF_MODULE_pch INTERFACE src/)
 
 use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
 set(ROOT_NAMESPACE JadeFrame)
@@ -330,6 +336,7 @@ if(MSVC)
         "/Y-"
     )
     source_file_compile_options(src/extern/glad.c ${FILE_CL_OPTIONS})
+
     source_file_compile_options(src/extern/imgui/imgui.cpp ${FILE_CL_OPTIONS})
     source_file_compile_options(src/extern/imgui/imgui_demo.cpp ${FILE_CL_OPTIONS})
     source_file_compile_options(src/extern/imgui/imgui_draw.cpp ${FILE_CL_OPTIONS})
@@ -337,6 +344,7 @@ if(MSVC)
     source_file_compile_options(src/extern/imgui/imgui_impl_opengl3.cpp ${FILE_CL_OPTIONS})
     source_file_compile_options(src/extern/imgui/imgui_impl_win32.cpp ${FILE_CL_OPTIONS})
     source_file_compile_options(src/extern/imgui/imgui_widgets.cpp ${FILE_CL_OPTIONS})
+
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_cfg.cpp ${FILE_CL_OPTIONS})
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_cpp.cpp ${FILE_CL_OPTIONS})
     source_file_compile_options(src/extern/SPIRV-Cross/spirv_cross.cpp ${FILE_CL_OPTIONS})
@@ -399,7 +407,15 @@ ELSEIF(UNIX AND NOT APPLE)
         "libvulkan.so"
     )
 ENDIF()
-target_link_libraries(${PROJECT_NAME} PUBLIC "${ADDITIONAL_LIBRARY_DEPENDENCIES}" ${CMAKE_DL_LIBS})
+target_link_libraries(
+    ${PROJECT_NAME} 
+    PUBLIC 
+        "${ADDITIONAL_LIBRARY_DEPENDENCIES}" 
+        ${CMAKE_DL_LIBS}
+        # JF_MODULE_pch
+        # JF_MODULE_math
+        #"${Files_Math}"
+)
 
 target_link_directories(${PROJECT_NAME} PUBLIC
     "${CMAKE_SOURCE_DIR}/JadeFrame/src/extern;" 

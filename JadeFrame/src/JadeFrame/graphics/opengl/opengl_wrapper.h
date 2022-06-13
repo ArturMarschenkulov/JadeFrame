@@ -7,7 +7,7 @@
         These wrapper classes should have as little state as possible. The optimal would be to only have their ID and
    nothing more
 */
-#include "JadeFrame/defines.h"
+#include "JadeFrame/prelude.h"
 #include "JadeFrame/math/vec.h"
 #include <glad/glad.h>
 

@@ -10,7 +10,7 @@
 #include "vulkan_command_buffers.h"
 
 
-#include "JadeFrame/defines.h"
+#include "JadeFrame/prelude.h"
 
 #include <array>
 #include <vector>

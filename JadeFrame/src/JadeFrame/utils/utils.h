@@ -1,5 +1,5 @@
 #pragma once
-#include "JadeFrame/defines.h"
+#include "JadeFrame/prelude.h"
 #include <string>
 
 namespace JadeFrame {

@@ -2,7 +2,7 @@
 #include "opengl_debug.h"
 #include <glad/glad.h>
 #include <string>
-#include "JadeFrame/defines.h"
+#include "JadeFrame/prelude.h"
 
 namespace JadeFrame {
 

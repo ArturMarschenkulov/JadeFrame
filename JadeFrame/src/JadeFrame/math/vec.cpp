@@ -1,5 +1,5 @@
 #include "vec.h"
-#include "JadeFrame/defines.h"
+#include "JadeFrame/prelude.h"
 #include "pch.h"
 
 namespace JadeFrame {
