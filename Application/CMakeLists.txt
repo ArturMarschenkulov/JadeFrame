@@ -16,7 +16,8 @@ set(Source_Files
 )
 source_group("Source Files" FILES ${Source_Files})
 
-set(ALL_FILES
+set(
+    ALL_FILES
     ${Header_Files}
     ${Source_Files}
 )
@@ -51,12 +52,13 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 ################################################################################
 # Compile definitions
 ################################################################################
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    "$<$<CONFIG:Debug>:_DEBUG>"
-    "$<$<CONFIG:Release>:NDEBUG>"
-    "_CONSOLE;"
-    "UNICODE;"
-    "_UNICODE"
+target_compile_definitions(${PROJECT_NAME} 
+    PRIVATE
+        "$<$<CONFIG:Debug>:_DEBUG>"
+        "$<$<CONFIG:Release>:NDEBUG>"
+        "_CONSOLE;"
+        "UNICODE;"
+        "_UNICODE"
 )
 
 ################################################################################
@@ -101,9 +103,13 @@ add_dependencies(${PROJECT_NAME}
 set(ADDITIONAL_LIBRARY_DEPENDENCIES
     "JadeFrame"
 )
-target_link_libraries(${PROJECT_NAME} PRIVATE "${ADDITIONAL_LIBRARY_DEPENDENCIES}")
+target_link_libraries(${PROJECT_NAME} 
+    PRIVATE 
+        "${ADDITIONAL_LIBRARY_DEPENDENCIES}"
+)
 
-target_link_directories(${PROJECT_NAME} PRIVATE
-    "${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/"
+target_link_directories(${PROJECT_NAME} 
+    PRIVATE
+        "${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/"
 )
 

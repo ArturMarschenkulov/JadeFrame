@@ -1,0 +1,44 @@
+
+set(
+    OPENGL_FILES
+    "opengl_buffer.h"
+    "opengl_context.h"
+    "opengl_debug.h"
+    "opengl_renderer.h"
+    "opengl_shader.h"
+    "opengl_shader_loader.h"
+    "opengl_texture.h"
+    "opengl_windows.h"
+    "opengl_wrapper.h"
+    "opengl_buffer.cpp"
+    "opengl_context.cpp"
+    "opengl_debug.cpp"
+    "opengl_renderer.cpp"
+    "opengl_shader.cpp"
+    "opengl_shader_loader.cpp"
+    "opengl_texture.cpp"
+    "opengl_windows.cpp"
+    "opengl_wrapper.cpp"
+)
+
+add_library(
+    Files_Graphics_OpenGL
+    "opengl_buffer.h"
+    "opengl_context.h"
+    "opengl_debug.h"
+    "opengl_renderer.h"
+    "opengl_shader.h"
+    "opengl_shader_loader.h"
+    "opengl_texture.h"
+    "opengl_windows.h"
+    "opengl_wrapper.h"
+    "opengl_buffer.cpp"
+    "opengl_context.cpp"
+    "opengl_debug.cpp"
+    "opengl_renderer.cpp"
+    "opengl_shader.cpp"
+    "opengl_shader_loader.cpp"
+    "opengl_texture.cpp"
+    "opengl_windows.cpp"
+    "opengl_wrapper.cpp"
+)

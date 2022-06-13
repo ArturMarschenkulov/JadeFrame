@@ -12,9 +12,15 @@ set(CMAKE_EXE_LINKER_FLAGS "-lc++abi -lpthread")
 
 project(
     JadeFrame
-    VERSION 0.1
+    VERSION 0.0.1
     LANGUAGES C CXX
 )
+
+set(ENABLE_DEVELOPER_MODE
+    TRUE
+    CACHE BOOL "Enable 'developer mode'"
+)
+include(cmake/my_utils.cmake)
 
 
 
@@ -22,7 +28,19 @@ project(
 
 #Listing default values
 if(NOT "")
-    message("=========Default values=========")
+    my_print_cmake_data()
+    message("${CMAKE_PROJECT_NAME}-${CMAKE_PROJECT_VERSION}-${GIT_SHORT_SHA}-${CMAKE_SYSTEM_NAME}-${CMAKE_BUILD_TYPE}-${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION}")
+    message("PROJECT_SOURCE_DIR         -> ${PROJECT_SOURCE_DIR}")
+    message("CMAKE_CURRENT_SOURCE_DIR   -> ${CMAKE_CURRENT_SOURCE_DIR}")
+    message("CMAKE_CURRENT_BINARY_DIR   -> ${CMAKE_CURRENT_BINARY_DIR}")
+    message("CMAKE_PROJECT_NAME         -> ${CMAKE_PROJECT_NAME}")
+    message("CMAKE_PROJECT_VERSION      -> ${CMAKE_PROJECT_VERSION}")
+    message("CMAKE_SYSTEM_NAME          -> ${CMAKE_SYSTEM_NAME}")
+    message("CMAKE_SYSTEM_PROCESSOR     -> ${CMAKE_SYSTEM_PROCESSOR}")
+    message("CMAKE_SYSTEM_VERSION       -> ${CMAKE_SYSTEM_VERSION}")
+    message("CMAKE_DL_LIBS              -> ${CMAKE_DL_LIBS}")
+
+    message("=========Default values=========") 
     message("CMAKE_CONFIGURATION_TYPES  -> ${CMAKE_CONFIGURATION_TYPES}")
     message("CMAKE_C_FLAGS              -> ${CMAKE_C_FLAGS}")
     message("CMAKE_C_FLAGS_DEBUG        -> ${CMAKE_C_FLAGS_DEBUG}")
@@ -80,7 +98,7 @@ if(MSVC)
     set(CMAKE_C_FLAGS_RELEASE "") # /O2 /Ob2 /DNDEBUG
     set(CMAKE_CXX_FLAGS "") # /DWIN32 /D_WINDOWS /GR /EHsc /stdlib=libc++
     set(CMAKE_CXX_FLAGS_DEBUG "") # /Zi /Ob0 /Od /RTC1
-    set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob2 /DNDEBUG") # /O2 /Ob2 /DNDEBUG
+    set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob3 /DNDEBUG") # /O2 /Ob2 /DNDEBUG
 
     message("Now the flags are as follows:")
     message("   CMAKE_C_FLAGS           -> ${CMAKE_C_FLAGS}")
@@ -143,24 +161,14 @@ message("INFO: DEFAULT_CXX_DEBUG_INFORMATION_FORMAT: ${DEFAULT_CXX_DEBUG_INFORMA
 message("INFO: DEFAULT_CXX_EXCEPTION_HANDLING: ${DEFAULT_CXX_EXCEPTION_HANDLING}")
 message("INFO: Architecture: ${CMAKE_VS_PLATFORM_NAME}")
 
-################################################################################
-# Common utils
-################################################################################
-include(cmake/Utils.cmake)
 
-################################################################################
-# Additional Global Settings(add specific info there)
-################################################################################
-include(cmake/GlobalSettingsInclude.cmake OPTIONAL)
-
-################################################################################
-# Use solution folders feature
-################################################################################
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+include(cmake/Utils.cmake) # Common utils
+include(cmake/GlobalSettingsInclude.cmake OPTIONAL) # Additional Global Settings(add specific info there)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON) # Use solution folders feature
 
 ################################################################################
 # Sub-projects
 ################################################################################
-add_subdirectory(Application)
-add_subdirectory(JadeFrame)
 
+add_subdirectory(JadeFrame)
+add_subdirectory(Application)
