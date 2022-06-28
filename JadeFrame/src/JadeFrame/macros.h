@@ -1,4 +1,7 @@
-
+#pragma once
+/*
+    In this file various useful macros are defined.
+*/
 
 #if defined(_MSC_VER)
 #define JF_PRAGMA_PUSH       _Pragma("warning(push)")

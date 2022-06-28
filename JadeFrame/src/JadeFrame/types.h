@@ -1,6 +1,12 @@
 #pragma once
 #include <cstdint>
 
+/*
+    This file defines custom types for JadeFrame.
+    The standard C++ types are too messy and too long, while the ones defines in 'std' are still too long.
+    With this file we have a standardized style across the whole project, hopefully making things easier on the eye.
+*/
+
 namespace JadeFrame {
 
 
