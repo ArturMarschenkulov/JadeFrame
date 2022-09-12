@@ -80,5 +80,6 @@ target_include_directories(Files_Graphics_OpenGL
 target_link_libraries(Files_Graphics_OpenGL
     PUBLIC
         ${imgui2}
+        ${stb}
 
 )

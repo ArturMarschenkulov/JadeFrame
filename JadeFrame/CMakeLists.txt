@@ -30,16 +30,16 @@ add_library(imgui
 ################################################################################
 # Source groups
 ################################################################################
-
-set(Files_Extern_STB
-    "src/extern/stb/stb_image.h"
-    "src/extern/stb/stb_image_resize.h"
-    "src/extern/stb/stb_image_write.h"
-    "src/extern/stb/stb_perlin.h"
-    "src/extern/stb/stb_rect_pack.h"
-    "src/extern/stb/stb_truetype.h"
-    "src/extern/stb/stb_vorbis.h"
-)
+add_subdirectory(src/extern/stb)
+# set(Files_Extern_STB
+#     "src/extern/stb/stb_image.h"
+#     "src/extern/stb/stb_image_resize.h"
+#     "src/extern/stb/stb_image_write.h"
+#     "src/extern/stb/stb_perlin.h"
+#     "src/extern/stb/stb_rect_pack.h"
+#     "src/extern/stb/stb_truetype.h"
+#     "src/extern/stb/stb_vorbis.h"
+# )
 # file(GLOB Files_Extern_spdlog
 #     "src/extern/spdlog/*.h"
 #     "src/extern/spdlog/*.cpp"
@@ -243,7 +243,7 @@ set(ALL_FILES
     ${Files_Math}
     ${Files_Utils}
     ${Files_Datatypes}
-    ${Files_Extern_STB}
+    # ${Files_Extern_STB}
     # ${Files_Extern_shaderc}
     # ${Files_Extern_SPIRV-Cross}
     # ${Files_Extern_spdlog}
@@ -404,6 +404,7 @@ target_link_libraries(
         ${Vulkan_LIBRARIES}
         ${glad}
         ${imgui}
+        # ${stb}
         # JF_MODULE_pch
         # JF_MODULE_math
         #"${Files_Math}"
