@@ -185,12 +185,14 @@ set(Files_Graphics
     ${Files_Graphics_Vulkan}
     ${Files_Graphics_OpenGL}
 )
-set(Files_Extern_OpenGL
-    "src/extern/glad/glad.h"
-    "src/extern/KHR/khrplatform.h"
 
-    "src/extern/glad.c"
-)
+add_subdirectory(src/extern/glad/)
+# set(Files_Extern_OpenGL
+#     "src/extern/glad/include/glad/glad.h"
+#     "src/extern/glad/include/KHR/khrplatform.h"
+
+#     "src/extern/glad/src/glad.c"
+# )
 
 set(Files_Datatypes
         "src/JadeFrame/datatypes/cowdata.h"
@@ -259,7 +261,7 @@ set(ALL_FILES
     ${Files_Math}
     ${Files_Utils}
     ${Files_Datatypes}
-    ${Files_Extern_OpenGL}  
+    # ${Files_Extern_OpenGL}  
     ${Files_Extern_IMGUI}
     ${Files_Extern_STB}
     # ${Files_Extern_shaderc}
@@ -300,6 +302,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/extern;"
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
     ${Vulkan_INCLUDE_DIRS}
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/extern/glad/include"
 )
 
 ################################################################################
@@ -395,6 +398,7 @@ IF(WIN32)
         # "shaderc_sharedd;"
         # "shaderc_utild;"
         "vulkan-1"
+        glad
         winmm
     )
 ELSEIF(UNIX AND NOT APPLE)
@@ -417,6 +421,7 @@ target_link_libraries(
         ${CMAKE_DL_LIBS}
         Vulkan::Vulkan
         ${Vulkan_LIBRARIES}
+        ${glad}
         # JF_MODULE_pch
         # JF_MODULE_math
         #"${Files_Math}"
