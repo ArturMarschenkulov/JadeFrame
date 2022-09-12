@@ -240,20 +240,20 @@ auto BaseApp::start() -> void {
 
     this->on_init();
     // m_renderer->main_loop();
-    // GUI_init(m_current_window_p->m_window_handle);
+    GUI_init(m_current_window_p->m_window_handle);
     m_time_manager.set_FPS(60);
     while (m_is_running) {
         const f64 time_since_last_frame = m_time_manager.calc_elapsed();
         this->on_update();
         if (m_current_window_p->get_window_state() != Window::WINDOW_STATE::MINIMIZED) {
             m_renderer->clear_background();
-            // GUI_new_frame();
+            GUI_new_frame();
 
             this->on_draw();
             const Matrix4x4& view_projection = m_camera.get_view_projection_matrix();
             m_renderer->render(view_projection);
 
-            // GUI_render();
+            GUI_render();
 
             m_renderer->present();
         }

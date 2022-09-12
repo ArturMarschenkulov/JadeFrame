@@ -1,44 +1,61 @@
 set(PROJECT_NAME JadeFrame)
 
 find_package(Vulkan REQUIRED)
+set(imgui_DIR 
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/extern/imgui/)
+include_directories(${imgui_DIR} 
+    ${imgui_DIR}/backends
+)
+add_library(imgui
+    STATIC
+        ${imgui_DIR}/imgui_demo.cpp
+        ${imgui_DIR}/imgui_draw.cpp
+        ${imgui_DIR}/imgui_tables.cpp
+        ${imgui_DIR}/imgui_widgets.cpp
+        ${imgui_DIR}/imgui.cpp
+
+        ${imgui_DIR}/backends/imgui_impl_win32.cpp
+        ${imgui_DIR}/backends/imgui_impl_opengl3.cpp
+        ${imgui_DIR}/backends/imgui_impl_dx11.cpp
+)
 
 ################################################################################
 # Source groups
 ################################################################################
-set(Files_Extern_IMGUI_WIN32
-    "src/extern/imgui/imgui_impl_win32.h"
-    "src/extern/imgui/imgui_impl_win32.cpp"
-
-    "src/extern/imgui/imgui_impl_dx11.h"
-    "src/extern/imgui/imgui_impl_dx11.cpp"
-)
+# set(Files_Extern_IMGUI_WIN32
+#     "src/extern/imgui/imgui_impl_win32.h"
+#     "src/extern/imgui/imgui_impl_win32.cpp"
 
 
 
-set(Files_Extern_IMGUI_BASE
-    "src/extern/imgui/imconfig.h"
-    "src/extern/imgui/imgui.h"
 
-    "src/extern/imgui/imgui_impl_opengl3.h"
-    "src/extern/imgui/imgui_impl_opengl3.cpp"
+#     "src/extern/imgui/imgui_impl_dx11.h"
+#     "src/extern/imgui/imgui_impl_dx11.cpp"
+# )
+# set(Files_Extern_IMGUI_BASE
+#     "src/extern/imgui/imconfig.h"
+#     "src/extern/imgui/imgui.h"
 
-    "src/extern/imgui/imgui_internal.h"
-    "src/extern/imgui/imstb_rectpack.h"
-    "src/extern/imgui/imstb_textedit.h"
-    "src/extern/imgui/imstb_truetype.h"
+#     "src/extern/imgui/imgui_impl_opengl3.h"
+#     "src/extern/imgui/imgui_impl_opengl3.cpp"
 
-    "src/extern/imgui/imgui.cpp"
-    "src/extern/imgui/imgui_demo.cpp"
-    "src/extern/imgui/imgui_draw.cpp"
-    "src/extern/imgui/imgui_widgets.cpp"
-)
+#     "src/extern/imgui/imgui_internal.h"
+#     "src/extern/imgui/imstb_rectpack.h"
+#     "src/extern/imgui/imstb_textedit.h"
+#     "src/extern/imgui/imstb_truetype.h"
 
-IF(WIN32)
-set(Files_Extern_IMGUI
-    ${Files_Extern_IMGUI_BASE}
-    ${Files_Extern_IMGUI_WIN32}
-)
-ENDIF()
+#     "src/extern/imgui/imgui.cpp"
+#     "src/extern/imgui/imgui_demo.cpp"
+#     "src/extern/imgui/imgui_draw.cpp"
+#     "src/extern/imgui/imgui_widgets.cpp"
+# )
+
+# IF(WIN32)
+# set(Files_Extern_IMGUI
+#     ${Files_Extern_IMGUI_BASE}
+#     ${Files_Extern_IMGUI_WIN32}
+# )
+# ENDIF()
 
 set(Files_Extern_STB
         "src/extern/stb/stb_image.h"
@@ -188,6 +205,7 @@ set(Files_Graphics
 
 add_subdirectory(src/extern/glad/)
 
+
 set(Files_Datatypes
         "src/JadeFrame/datatypes/cowdata.h"
         "src/JadeFrame/datatypes/string.h"
@@ -255,7 +273,7 @@ set(ALL_FILES
     ${Files_Utils}
     ${Files_Datatypes}
     # ${Files_Extern_OpenGL}  
-    ${Files_Extern_IMGUI}
+    # ${Files_Extern_IMGUI}
     ${Files_Extern_STB}
     # ${Files_Extern_shaderc}
     # ${Files_Extern_SPIRV-Cross}
@@ -392,6 +410,7 @@ IF(WIN32)
         # "shaderc_utild;"
         "vulkan-1"
         glad
+        imgui
         winmm
     )
 ELSEIF(UNIX AND NOT APPLE)
@@ -415,6 +434,7 @@ target_link_libraries(
         Vulkan::Vulkan
         ${Vulkan_LIBRARIES}
         ${glad}
+        ${imgui}
         # JF_MODULE_pch
         # JF_MODULE_math
         #"${Files_Math}"
