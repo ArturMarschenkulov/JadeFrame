@@ -1,5 +1,7 @@
 set(PROJECT_NAME JadeFrame)
 
+find_package(Vulkan REQUIRED)
+
 ################################################################################
 # Source groups
 ################################################################################
@@ -100,7 +102,7 @@ set(Files_Base
         "src/pch.h"
         "src/JadeFrame/base_app.h"
         "src/JadeFrame/core.h"
-        "src/JadeFrame/defines.h"
+        # "src/JadeFrame/defines.h"
         "src/JadeFrame/macros.h"
         "src/JadeFrame/types.h"
         "src/JadeFrame/prelude.h"
@@ -275,7 +277,7 @@ add_library(${PROJECT_NAME} STATIC ${ALL_FILES})
 target_precompile_headers(${PROJECT_NAME} PUBLIC
     "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>"
 )
-add_library(JF_MODULE_pch STATIC src/pch.cpp src/pch.h)
+# add_library(JF_MODULE_pch STATIC src/pch.cpp src/pch.h)
 # target_include_directories(JF_MODULE_pch INTERFACE src/)
 
 use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
@@ -297,6 +299,7 @@ set(ROOT_NAMESPACE JadeFrame)
 target_include_directories(${PROJECT_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/extern;"
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    ${Vulkan_INCLUDE_DIRS}
 )
 
 ################################################################################
@@ -387,10 +390,10 @@ endif()
 IF(WIN32)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
         "opengl32"
-        "shadercd;"
-        "shaderc_combinedd;"
-        "shaderc_sharedd;"
-        "shaderc_utild;"
+        # "shadercd;"
+        # "shaderc_combinedd;"
+        # "shaderc_sharedd;"
+        # "shaderc_utild;"
         "vulkan-1"
         winmm
     )
@@ -399,10 +402,10 @@ ELSEIF(UNIX AND NOT APPLE)
         "pthread;"
         "X11"
         "GL"
-        "shaderc;"
-        "shaderc_combined;"
-        "shaderc_shared;"
-        #"shaderc_util;"
+        # "shaderc;"
+        # "shaderc_combined;"
+        # "shaderc_shared;"
+        # "shaderc_util;"
 
         "libvulkan.so"
     )
@@ -412,6 +415,8 @@ target_link_libraries(
     PUBLIC 
         "${ADDITIONAL_LIBRARY_DEPENDENCIES}" 
         ${CMAKE_DL_LIBS}
+        Vulkan::Vulkan
+        ${Vulkan_LIBRARIES}
         # JF_MODULE_pch
         # JF_MODULE_math
         #"${Files_Math}"
@@ -422,8 +427,9 @@ target_link_directories(${PROJECT_NAME} PUBLIC
     "${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glfw32;"
     "${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glfw64;"
     "${CMAKE_SOURCE_DIR}/JadeFrame/src;"
-    "C:/VulkanSDK/1.2.176.1/Lib/"
-    "~/proj_3rd/shaderc/build/"
+    # "C:/VulkanSDK/1.2.176.1/Lib/"
+    "C:/VulkanSDK/1.3.224.1/Lib/" # TODO: make this less hard-coded
+    # "~/proj_3rd/shaderc/build/"
 )
 
 message("JadeFrame cmake: Finished")
