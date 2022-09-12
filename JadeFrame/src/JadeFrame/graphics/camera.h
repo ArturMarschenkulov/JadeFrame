@@ -6,6 +6,7 @@
 namespace JadeFrame {
 
 class Camera {
+public:
     enum class MODE {
         ORTHOGRAPHIC,
         PERSPECTIVE,
@@ -21,7 +22,8 @@ public:
     auto get_view_projection_matrix() const -> Matrix4x4;
     auto control() -> void;
 
-private:
+// private:
+public:
     MODE      m_mode;
     Matrix4x4 m_projection_matrix = {};
     Matrix4x4 m_view_matrix = {};

@@ -32,7 +32,7 @@ namespace JadeFrame {
         It also allows an abtraction, which may allow to have several
    applications at the same time in a JadeFrame context.
 */
-
+auto control_camera(Camera* self) -> void;
 #ifdef _WIN32
 using SystemManager = Windows_SystemManager;
 using InputManager = Windows_InputManager;

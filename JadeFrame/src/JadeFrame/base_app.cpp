@@ -11,11 +11,49 @@
 #include "JadeFrame/math/vec.h"
 
 #include "JadeFrame/utils/utils.h"
+#include "JadeFrame/math/math.h"
 #include "JadeFrame/ptr/ptr.h"
 
 #include <utility>
 
 namespace JadeFrame {
+
+
+auto control_camera(Camera* self) -> void {
+    if (self->m_mode == Camera::MODE::PERSPECTIVE) {
+        const f32           velocity = 0.1f;
+        const InputManager& i = Instance::get_singleton()->m_input_manager;
+        if (i.is_key_down(KEY::E)) self->m_position += self->m_up * velocity;
+        if (i.is_key_down(KEY::Q)) self->m_position -= self->m_up * velocity;
+
+        if (i.is_key_down(KEY::A)) self->m_position -= self->m_right * velocity;
+        if (i.is_key_down(KEY::D)) self->m_position += self->m_right * velocity;
+
+        if (i.is_key_down(KEY::S)) self->m_position -= self->m_forward * velocity;
+        if (i.is_key_down(KEY::W)) self->m_position += self->m_forward * velocity;
+
+        auto sensitivity = 10;
+        if (i.is_key_down(KEY::LEFT)) self->m_pitch += velocity * sensitivity;
+        if (i.is_key_down(KEY::RIGHT)) self->m_pitch -= velocity * sensitivity;
+        if (i.is_key_down(KEY::UP)) self->m_yaw += velocity * sensitivity;
+        if (i.is_key_down(KEY::DOWN)) self->m_yaw -= velocity * sensitivity;
+
+
+        // if (m_pitch > 89.0f)
+        //	m_pitch = 89.0f;
+        // if (m_pitch < -89.0f)
+        //	m_pitch = -89.0f;
+
+        v3 front;
+        front.x = cos(to_radians(self->m_yaw)) * cos(to_radians(self->m_pitch));
+        front.y = sin(to_radians(self->m_pitch));
+        front.z = sin(to_radians(self->m_yaw)) * cos(to_radians(self->m_pitch));
+        self->m_forward = front.get_normal();
+
+        self->m_right = self->m_forward.cross(self->m_world_up).get_normal();
+        self->m_up = self->m_right.cross(self->m_forward).get_normal();
+    }
+}
 
 //**************************************************************
 // JadeFrame
