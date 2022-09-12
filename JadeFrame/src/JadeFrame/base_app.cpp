@@ -14,6 +14,9 @@
 #include "JadeFrame/math/math.h"
 #include "JadeFrame/ptr/ptr.h"
 
+#include "graphics/opengl/opengl_renderer.h"
+#include "graphics/vulkan/vulkan_renderer.h"
+
 #include <utility>
 
 namespace JadeFrame {

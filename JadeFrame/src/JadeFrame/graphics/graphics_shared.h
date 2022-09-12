@@ -194,4 +194,14 @@ public:
 };
 
 auto string_to_SPIRV(const std::string& code, SHADER_STAGE i) -> std::vector<u32>;
+struct MaterialHandle;
+class VertexData;
+class Object {
+public:
+    VertexData*               m_vertex_data;
+    VertexFormat              m_vertex_format;
+    MaterialHandle*           m_material_handle;
+    Matrix4x4                 m_transform;
+    mutable GPUDataMeshHandle m_GPU_mesh_data;
+};
 } // namespace JadeFrame
