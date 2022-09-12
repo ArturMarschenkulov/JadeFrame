@@ -187,19 +187,12 @@ set(Files_Graphics
 )
 
 add_subdirectory(src/extern/glad/)
-# set(Files_Extern_OpenGL
-#     "src/extern/glad/include/glad/glad.h"
-#     "src/extern/glad/include/KHR/khrplatform.h"
-
-#     "src/extern/glad/src/glad.c"
-# )
 
 set(Files_Datatypes
         "src/JadeFrame/datatypes/cowdata.h"
         "src/JadeFrame/datatypes/string.h"
         )
 
-#add_subdirectory(src/JadeFrame/math)
 set(Files_Math
     "src/JadeFrame/math/i128.h"
     "src/JadeFrame/math/mat.h"
