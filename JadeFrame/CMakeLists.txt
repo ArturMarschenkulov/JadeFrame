@@ -58,14 +58,14 @@ add_library(imgui
 # ENDIF()
 
 set(Files_Extern_STB
-        "src/extern/stb/stb_image.h"
-        "src/extern/stb/stb_image_resize.h"
-        "src/extern/stb/stb_image_write.h"
-        "src/extern/stb/stb_perlin.h"
-        "src/extern/stb/stb_rect_pack.h"
-        "src/extern/stb/stb_truetype.h"
-        "src/extern/stb/stb_vorbis.h"
-        )
+    "src/extern/stb/stb_image.h"
+    "src/extern/stb/stb_image_resize.h"
+    "src/extern/stb/stb_image_write.h"
+    "src/extern/stb/stb_perlin.h"
+    "src/extern/stb/stb_rect_pack.h"
+    "src/extern/stb/stb_truetype.h"
+    "src/extern/stb/stb_vorbis.h"
+)
 # file(GLOB Files_Extern_spdlog
 #     "src/extern/spdlog/*.h"
 #     "src/extern/spdlog/*.cpp"
@@ -76,61 +76,60 @@ set(Files_Extern_STB
 #     "src/extern/spdlog/sinks/*.h"
 # )
 set(Files_Extern_shaderc
-        "src/extern/shaderc/env.h"
-        "src/extern/shaderc/shaderc.h"
-        "src/extern/shaderc/shaderc.hpp"
-        "src/extern/shaderc/status.h"
-        "src/extern/shaderc/visibility.h"
-        )
+    "src/extern/shaderc/env.h"
+    "src/extern/shaderc/shaderc.h"
+    "src/extern/shaderc/shaderc.hpp"
+    "src/extern/shaderc/status.h"
+    "src/extern/shaderc/visibility.h"
+)
 set(Files_Extern_SPIRV-Cross
-        "src/extern/SPIRV-Cross/GLSL.std.450.h"
-        "src/extern/SPIRV-Cross/spirv.h"
-        "src/extern/SPIRV-Cross/spirv.hpp"
-        "src/extern/SPIRV-Cross/spirv_cfg.hpp"
-        "src/extern/SPIRV-Cross/spirv_common.hpp"
-        "src/extern/SPIRV-Cross/spirv_cpp.hpp"
-        "src/extern/SPIRV-Cross/spirv_cross.hpp"
-        "src/extern/SPIRV-Cross/spirv_cross_c.h"
-        "src/extern/SPIRV-Cross/spirv_cross_containers.hpp"
-        "src/extern/SPIRV-Cross/spirv_cross_error_handling.hpp"
-        "src/extern/SPIRV-Cross/spirv_cross_parsed_ir.hpp"
-        "src/extern/SPIRV-Cross/spirv_cross_util.hpp"
-        "src/extern/SPIRV-Cross/spirv_glsl.hpp"
-        "src/extern/SPIRV-Cross/spirv_hlsl.hpp"
-        "src/extern/SPIRV-Cross/spirv_msl.hpp"
-        "src/extern/SPIRV-Cross/spirv_parser.hpp"
-        "src/extern/SPIRV-Cross/spirv_reflect.hpp"
+    "src/extern/SPIRV-Cross/GLSL.std.450.h"
+    "src/extern/SPIRV-Cross/spirv.h"
+    "src/extern/SPIRV-Cross/spirv.hpp"
+    "src/extern/SPIRV-Cross/spirv_cfg.hpp"
+    "src/extern/SPIRV-Cross/spirv_common.hpp"
+    "src/extern/SPIRV-Cross/spirv_cpp.hpp"
+    "src/extern/SPIRV-Cross/spirv_cross.hpp"
+    "src/extern/SPIRV-Cross/spirv_cross_c.h"
+    "src/extern/SPIRV-Cross/spirv_cross_containers.hpp"
+    "src/extern/SPIRV-Cross/spirv_cross_error_handling.hpp"
+    "src/extern/SPIRV-Cross/spirv_cross_parsed_ir.hpp"
+    "src/extern/SPIRV-Cross/spirv_cross_util.hpp"
+    "src/extern/SPIRV-Cross/spirv_glsl.hpp"
+    "src/extern/SPIRV-Cross/spirv_hlsl.hpp"
+    "src/extern/SPIRV-Cross/spirv_msl.hpp"
+    "src/extern/SPIRV-Cross/spirv_parser.hpp"
+    "src/extern/SPIRV-Cross/spirv_reflect.hpp"
 
-        "src/extern/SPIRV-Cross/spirv_cfg.cpp"
-        "src/extern/SPIRV-Cross/spirv_cpp.cpp"
-        "src/extern/SPIRV-Cross/spirv_cross.cpp"
-        "src/extern/SPIRV-Cross/spirv_cross_c.cpp"
-        "src/extern/SPIRV-Cross/spirv_cross_parsed_ir.cpp"
-        "src/extern/SPIRV-Cross/spirv_cross_util.cpp"
-        "src/extern/SPIRV-Cross/spirv_glsl.cpp"
-        "src/extern/SPIRV-Cross/spirv_hlsl.cpp"
-        "src/extern/SPIRV-Cross/spirv_msl.cpp"
-        "src/extern/SPIRV-Cross/spirv_parser.cpp"
-        "src/extern/SPIRV-Cross/spirv_reflect.cpp"
-        )
+    "src/extern/SPIRV-Cross/spirv_cfg.cpp"
+    "src/extern/SPIRV-Cross/spirv_cpp.cpp"
+    "src/extern/SPIRV-Cross/spirv_cross.cpp"
+    "src/extern/SPIRV-Cross/spirv_cross_c.cpp"
+    "src/extern/SPIRV-Cross/spirv_cross_parsed_ir.cpp"
+    "src/extern/SPIRV-Cross/spirv_cross_util.cpp"
+    "src/extern/SPIRV-Cross/spirv_glsl.cpp"
+    "src/extern/SPIRV-Cross/spirv_hlsl.cpp"
+    "src/extern/SPIRV-Cross/spirv_msl.cpp"
+    "src/extern/SPIRV-Cross/spirv_parser.cpp"
+    "src/extern/SPIRV-Cross/spirv_reflect.cpp"
+)
 
 set(Files_Base
-        "src/JadeFrame.h"
-        "src/pch.h"
-        "src/JadeFrame/base_app.h"
-        "src/JadeFrame/core.h"
-        # "src/JadeFrame/defines.h"
-        "src/JadeFrame/macros.h"
-        "src/JadeFrame/types.h"
-        "src/JadeFrame/prelude.h"
-        "src/JadeFrame/gui.h"
+    "src/JadeFrame.h"
+    "src/pch.h"
+    "src/JadeFrame/base_app.h"
+    "src/JadeFrame/core.h"
+    "src/JadeFrame/macros.h"
+    "src/JadeFrame/types.h"
+    "src/JadeFrame/prelude.h"
+    "src/JadeFrame/gui.h"
 
-        "src/JadeFrame.cpp"
-        "src/pch.cpp"
-        "src/JadeFrame/base_app.cpp"
-        "src/JadeFrame/core.cpp"
-        "src/JadeFrame/gui.cpp"
-        )
+    "src/JadeFrame.cpp"
+    "src/pch.cpp"
+    "src/JadeFrame/base_app.cpp"
+    "src/JadeFrame/core.cpp"
+    "src/JadeFrame/gui.cpp"
+)
 
 # add_subdirectory(src/JadeFrame/graphics/opengl)
 set(Files_Graphics_OpenGL
@@ -207,9 +206,9 @@ add_subdirectory(src/extern/glad/)
 
 
 set(Files_Datatypes
-        "src/JadeFrame/datatypes/cowdata.h"
-        "src/JadeFrame/datatypes/string.h"
-        )
+    "src/JadeFrame/datatypes/cowdata.h"
+    "src/JadeFrame/datatypes/string.h"
+)
 
 set(Files_Math
     "src/JadeFrame/math/i128.h"
@@ -224,14 +223,14 @@ set(Files_Math
 )
 
 set(Files_Utils
-        "src/JadeFrame/utils/assert.h"
-        "src/JadeFrame/utils/dynamic_array.h"
-        "src/JadeFrame/utils/logger.h"
-        "src/JadeFrame/utils/utils.h"
+    "src/JadeFrame/utils/assert.h"
+    "src/JadeFrame/utils/dynamic_array.h"
+    "src/JadeFrame/utils/logger.h"
+    "src/JadeFrame/utils/utils.h"
 
-        "src/JadeFrame/utils/logger.cpp"
-        "src/JadeFrame/utils/utils.cpp"
-        )
+    "src/JadeFrame/utils/logger.cpp"
+    "src/JadeFrame/utils/utils.cpp"
+)
 IF (WIN32)
     set(Files_Platform
         "src/JadeFrame/platform/platform_shared.h"  
@@ -264,16 +263,12 @@ ELSEIF(UNIX)
 ENDIF()
 
 set(ALL_FILES
-    #${Header_Files}
-    #${Source_Files}
     ${Files_Base}
     ${Files_Graphics}
     ${Files_Platform}
     ${Files_Math}
     ${Files_Utils}
     ${Files_Datatypes}
-    # ${Files_Extern_OpenGL}  
-    # ${Files_Extern_IMGUI}
     ${Files_Extern_STB}
     # ${Files_Extern_shaderc}
     # ${Files_Extern_SPIRV-Cross}
