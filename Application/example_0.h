@@ -170,7 +170,8 @@ auto Example_0::on_init() -> void {
 	m_resources.get_shader_handle("framebuffer_shader_0");
 }
 auto Example_0::on_update() -> void {
-	m_camera.control();
+	//m_camera.control();
+	camera_control(&m_camera);
 
 
 	thingies[0].update();
