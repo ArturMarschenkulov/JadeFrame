@@ -31,15 +31,11 @@ add_library(imgui
 # Source groups
 ################################################################################
 add_subdirectory(src/extern/stb/)
-# set(Files_Extern_STB
-#     "src/extern/stb/stb_image.h"
-#     "src/extern/stb/stb_image_resize.h"
-#     "src/extern/stb/stb_image_write.h"
-#     "src/extern/stb/stb_perlin.h"
-#     "src/extern/stb/stb_rect_pack.h"
-#     "src/extern/stb/stb_truetype.h"
-#     "src/extern/stb/stb_vorbis.h"
-# )
+add_subdirectory(src/JadeFrame/graphics/opengl)
+add_subdirectory(src/JadeFrame/graphics/vulkan)
+add_subdirectory(src/extern/glad/)
+
+
 # file(GLOB Files_Extern_spdlog
 #     "src/extern/spdlog/*.h"
 #     "src/extern/spdlog/*.cpp"
@@ -104,56 +100,6 @@ set(Files_Base
     "src/JadeFrame/core.cpp"
     "src/JadeFrame/gui.cpp"
 )
-
-# add_subdirectory(src/JadeFrame/graphics/opengl)
-set(Files_Graphics_OpenGL
-    "src/JadeFrame/graphics/opengl/opengl_buffer.h"
-    "src/JadeFrame/graphics/opengl/opengl_context.h"
-    "src/JadeFrame/graphics/opengl/opengl_debug.h"
-    "src/JadeFrame/graphics/opengl/opengl_renderer.h"
-    "src/JadeFrame/graphics/opengl/opengl_shader.h"
-
-    "src/JadeFrame/graphics/opengl/opengl_texture.h"
-    "src/JadeFrame/graphics/opengl/opengl_windows.h"
-    "src/JadeFrame/graphics/opengl/opengl_wrapper.h"
-    "src/JadeFrame/graphics/opengl/opengl_buffer.cpp"
-    "src/JadeFrame/graphics/opengl/opengl_context.cpp"
-    "src/JadeFrame/graphics/opengl/opengl_debug.cpp"
-    "src/JadeFrame/graphics/opengl/opengl_renderer.cpp"
-    "src/JadeFrame/graphics/opengl/opengl_shader.cpp"
-    "src/JadeFrame/graphics/opengl/opengl_texture.cpp"
-    "src/JadeFrame/graphics/opengl/opengl_windows.cpp"
-    "src/JadeFrame/graphics/opengl/opengl_wrapper.cpp"
-)
-set(Files_Graphics_Vulkan
-    "src/JadeFrame/graphics/vulkan/vulkan_buffer.h"
-    "src/JadeFrame/graphics/vulkan/vulkan_command_buffers.h"
-    "src/JadeFrame/graphics/vulkan/vulkan_context.h"
-    "src/JadeFrame/graphics/vulkan/vulkan_debug.h"
-    "src/JadeFrame/graphics/vulkan/vulkan_descriptor_set.h"
-    "src/JadeFrame/graphics/vulkan/vulkan_logical_device.h"
-    "src/JadeFrame/graphics/vulkan/vulkan_physical_device.h"
-    "src/JadeFrame/graphics/vulkan/vulkan_pipeline.h"
-    "src/JadeFrame/graphics/vulkan/vulkan_renderer.h"
-    "src/JadeFrame/graphics/vulkan/vulkan_shader.h"
-    "src/JadeFrame/graphics/vulkan/vulkan_shared.h"
-    "src/JadeFrame/graphics/vulkan/vulkan_surface.h"
-    "src/JadeFrame/graphics/vulkan/vulkan_swapchain.h"
-    "src/JadeFrame/graphics/vulkan/vulkan_sync_object.h"
-    "src/JadeFrame/graphics/vulkan/vulkan_buffer.cpp"
-    "src/JadeFrame/graphics/vulkan/vulkan_command_buffers.cpp"
-    "src/JadeFrame/graphics/vulkan/vulkan_context.cpp"
-    "src/JadeFrame/graphics/vulkan/vulkan_debug.cpp"
-    "src/JadeFrame/graphics/vulkan/vulkan_descriptor_set.cpp"
-    "src/JadeFrame/graphics/vulkan/vulkan_logical_device.cpp"
-    "src/JadeFrame/graphics/vulkan/vulkan_physical_device.cpp"
-    "src/JadeFrame/graphics/vulkan/vulkan_pipeline.cpp"
-    "src/JadeFrame/graphics/vulkan/vulkan_renderer.cpp"
-    "src/JadeFrame/graphics/vulkan/vulkan_shader.cpp"
-    "src/JadeFrame/graphics/vulkan/vulkan_surface.cpp"
-    "src/JadeFrame/graphics/vulkan/vulkan_swapchain.cpp"
-    "src/JadeFrame/graphics/vulkan/vulkan_sync_object.cpp"
-)
 set(Files_Graphics_DirectX
     "src/JadeFrame/graphics/d3d11/d3d11_renderer.h"
     "src/JadeFrame/graphics/d3d12/d3d12_renderer.h"
@@ -173,11 +119,9 @@ set(Files_Graphics
 
 
     "src/JadeFrame/graphics/software/software_renderer.h"
-    ${Files_Graphics_Vulkan}
-    ${Files_Graphics_OpenGL}
 )
 
-add_subdirectory(src/extern/glad/)
+
 
 
 set(Files_Datatypes
@@ -258,7 +202,7 @@ set(ALL_FILES
 add_library(${PROJECT_NAME} STATIC ${ALL_FILES})
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC
-    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>"
+    $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
 )
 # add_library(JF_MODULE_pch STATIC src/pch.cpp src/pch.h)
 # target_include_directories(JF_MODULE_pch INTERFACE src/)
@@ -282,6 +226,7 @@ set(ROOT_NAMESPACE JadeFrame)
 target_include_directories(${PROJECT_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/extern;"
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/JadeFrame
     ${Vulkan_INCLUDE_DIRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/src/extern/glad/include"
 )
@@ -406,6 +351,8 @@ target_link_libraries(
         ${glad}
         ${imgui}
         ${stb}
+        GraphicsAPI_OpenGL
+        GraphicsAPI_Vulkan
         # JF_MODULE_pch
         # JF_MODULE_math
         #"${Files_Math}"
@@ -414,6 +361,7 @@ target_link_libraries(
 target_link_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern
     ${CMAKE_SOURCE_DIR}/JadeFrame/src
+    ${CMAKE_SOURCE_DIR}/JadeFrame/
     # "C:/VulkanSDK/1.2.176.1/Lib/
     C:/VulkanSDK/1.3.224.1/Lib/ # TODO: make this less hard-coded
     # "~/proj_3rd/shaderc/build/"

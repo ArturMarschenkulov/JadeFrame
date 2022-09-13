@@ -3,7 +3,6 @@
 #include "vulkan_renderer.h"
 #include "JadeFrame/platform/windows/windows_window.h"
 #include "vulkan_shader.h"
-#include "../opengl/opengl_renderer.h"
 
 #include "../graphics_shared.h"
 #include "JadeFrame/utils/logger.h"

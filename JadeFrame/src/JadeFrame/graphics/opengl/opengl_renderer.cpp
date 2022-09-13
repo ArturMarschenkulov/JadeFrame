@@ -1,7 +1,9 @@
 #include "pch.h"
 
 #include "opengl_renderer.h"
-#include "JadeFrame/base_app.h"
+// #include "JadeFrame/base_app.h"
+// #include "graphics/opengl/opengl_renderer.h"
+// #include "graphics/vulkan/vulkan_renderer.h"
 
 #ifdef _WIN32
 #include "Windows.h"
@@ -10,7 +12,7 @@
 #include <cassert>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "extern/stb/stb_image_write.h"
+#include "stb/stb_image_write.h"
 #include <chrono>
 #include <future>
 #include <thread>
