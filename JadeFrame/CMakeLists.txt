@@ -30,7 +30,7 @@ add_library(imgui
 ################################################################################
 # Source groups
 ################################################################################
-add_subdirectory(src/extern/stb)
+add_subdirectory(src/extern/stb/)
 # set(Files_Extern_STB
 #     "src/extern/stb/stb_image.h"
 #     "src/extern/stb/stb_image_resize.h"
@@ -112,7 +112,7 @@ set(Files_Graphics_OpenGL
     "src/JadeFrame/graphics/opengl/opengl_debug.h"
     "src/JadeFrame/graphics/opengl/opengl_renderer.h"
     "src/JadeFrame/graphics/opengl/opengl_shader.h"
-    "src/JadeFrame/graphics/opengl/opengl_shader_loader.h"
+
     "src/JadeFrame/graphics/opengl/opengl_texture.h"
     "src/JadeFrame/graphics/opengl/opengl_windows.h"
     "src/JadeFrame/graphics/opengl/opengl_wrapper.h"
@@ -121,7 +121,6 @@ set(Files_Graphics_OpenGL
     "src/JadeFrame/graphics/opengl/opengl_debug.cpp"
     "src/JadeFrame/graphics/opengl/opengl_renderer.cpp"
     "src/JadeFrame/graphics/opengl/opengl_shader.cpp"
-    "src/JadeFrame/graphics/opengl/opengl_shader_loader.cpp"
     "src/JadeFrame/graphics/opengl/opengl_texture.cpp"
     "src/JadeFrame/graphics/opengl/opengl_windows.cpp"
     "src/JadeFrame/graphics/opengl/opengl_wrapper.cpp"
@@ -169,6 +168,8 @@ set(Files_Graphics
     "src/JadeFrame/graphics/graphics_shared.cpp"
     "src/JadeFrame/graphics/material_handle.cpp"
     "src/JadeFrame/graphics/mesh.cpp"
+    "src/JadeFrame/graphics/shader_loader.h"
+    "src/JadeFrame/graphics/shader_loader.cpp"
 
 
     "src/JadeFrame/graphics/software/software_renderer.h"
@@ -372,12 +373,12 @@ endif()
 ################################################################################
 IF(WIN32)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
-        "opengl32"
+        opengl32
         # "shadercd;"
         # "shaderc_combinedd;"
         # "shaderc_sharedd;"
         # "shaderc_utild;"
-        "vulkan-1"
+        vulkan-1
         glad
         imgui
         winmm
@@ -398,25 +399,23 @@ ENDIF()
 target_link_libraries(
     ${PROJECT_NAME} 
     PUBLIC 
-        "${ADDITIONAL_LIBRARY_DEPENDENCIES}" 
+        ${ADDITIONAL_LIBRARY_DEPENDENCIES}
         ${CMAKE_DL_LIBS}
         Vulkan::Vulkan
         ${Vulkan_LIBRARIES}
         ${glad}
         ${imgui}
-        # ${stb}
+        ${stb}
         # JF_MODULE_pch
         # JF_MODULE_math
         #"${Files_Math}"
 )
 
 target_link_directories(${PROJECT_NAME} PUBLIC
-    "${CMAKE_SOURCE_DIR}/JadeFrame/src/extern;" 
-    "${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glfw32;"
-    "${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glfw64;"
-    "${CMAKE_SOURCE_DIR}/JadeFrame/src;"
-    # "C:/VulkanSDK/1.2.176.1/Lib/"
-    "C:/VulkanSDK/1.3.224.1/Lib/" # TODO: make this less hard-coded
+    ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern
+    ${CMAKE_SOURCE_DIR}/JadeFrame/src
+    # "C:/VulkanSDK/1.2.176.1/Lib/
+    C:/VulkanSDK/1.3.224.1/Lib/ # TODO: make this less hard-coded
     # "~/proj_3rd/shaderc/build/"
 )
 

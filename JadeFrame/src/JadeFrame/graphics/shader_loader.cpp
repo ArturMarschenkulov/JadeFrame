@@ -1,7 +1,7 @@
-#include "opengl_shader_loader.h"
+#include "shader_loader.h"
 #include "pch.h"
 
-#include <glad/glad.h>
+// #include <glad/glad.h>
 
 namespace JadeFrame {
 
@@ -36,7 +36,7 @@ namespace JadeFrame {
 
 static auto get_shader_framebuffer_test_0() {
 
-    const GLchar* vertex_shader =
+    const char* vertex_shader =
         R"(
 #version 450 core
 #extension GL_ARB_separate_shader_objects : enable
@@ -51,7 +51,7 @@ void main() {
 	f_texture_coordinate = v_texture_coordinate;
 }
 	)";
-    const GLchar* fragment_shader =
+    const char* fragment_shader =
         R"(
 #version 450 core
 #extension GL_ARB_separate_shader_objects : enable
@@ -159,7 +159,7 @@ void main() {
 }
 
 static auto get_default_shader_flat_0() -> std::tuple<std::string, std::string> {
-    const GLchar* vertex_shader =
+    const char* vertex_shader =
         R"(
 #version 450 core
 #extension GL_ARB_separate_shader_objects : enable
@@ -183,7 +183,7 @@ void main() {
 	//f_texture_coord = v_texture_coord;
 }
 	)";
-    const GLchar* fragment_shader =
+    const char* fragment_shader =
         R"(
 #version 450 core
 #extension GL_ARB_separate_shader_objects : enable
@@ -202,7 +202,7 @@ void main() {
 }
 
 static auto get_default_shader_with_texture() -> std::tuple<std::string, std::string> {
-    const GLchar* vertex_shader =
+    const char* vertex_shader =
         R"(
 #version 450 core
 layout (location = 0) in vec3 v_position;
@@ -227,7 +227,7 @@ void main() {
 	gl_Position = u_camera.view_projection * u_transform.model * vec4(fragment_position, 1.0);
 }
 	)";
-    const GLchar* fragment_shader =
+    const char* fragment_shader =
         R"(
 #version 450 core
 
@@ -250,7 +250,7 @@ void main() {
 }
 
 static auto get_default_shader_depth_testing() -> std::tuple<std::string, std::string> {
-    const GLchar* vertex_shader =
+    const char* vertex_shader =
         R"(
 #version 450 core
 layout (location = 0) in vec3 v_position;
@@ -269,7 +269,7 @@ void main() {
 	f_texture_coord = v_texture_coord;
 }
 	)";
-    const GLchar* fragment_shader =
+    const char* fragment_shader =
         R"(
 #version 450 core
 out vec4 o_color;
@@ -291,7 +291,7 @@ void main() {
 }
 
 static auto get_default_shader_light_client() -> std::tuple<std::string, std::string> {
-    const GLchar* vertex_shader =
+    const char* vertex_shader =
         R"(
 #version 450 core
 layout (location = 0) in vec3 v_position;
@@ -312,7 +312,7 @@ void main() {
 
 }
 	)";
-    const GLchar* fragment_shader =
+    const char* fragment_shader =
         R"(
 #version 450 core
 out vec4 o_color;
@@ -353,7 +353,7 @@ void main(){
     return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
 static auto get_default_shader_light_server() -> std::tuple<std::string, std::string> {
-    const GLchar* vertex_shader =
+    const char* vertex_shader =
         R"(
 #version 450 core
 layout (location = 0) in vec3 v_position;
@@ -367,7 +367,7 @@ void main() {
 	gl_Position = u_view_projection * u_model * vec4(v_position, 1.0);
 }
 	)";
-    const GLchar* fragment_shader =
+    const char* fragment_shader =
         R"(
 #version 450 core
 out vec4 o_color;

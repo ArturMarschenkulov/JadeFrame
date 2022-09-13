@@ -7,7 +7,7 @@
 #include <thread>
 #include <future>
 #include <vector>
-#include <JadeFrame/graphics/opengl/opengl_shader_loader.h>
+#include <JadeFrame/graphics/shader_loader.h>
 
 namespace JadeFrame {
 class VulkanLogicalDevice;

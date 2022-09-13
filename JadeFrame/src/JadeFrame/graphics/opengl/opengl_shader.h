@@ -1,7 +1,7 @@
 #pragma once
 #include <glad/glad.h>
 #include "opengl_buffer.h" // TODO: FOr SHADER_DATA_TYPE. Maybe move?
-#include "opengl_shader_loader.h"
+#include "../shader_loader.h"
 
 #include "JadeFrame/math/mat_4.h"
 #include "JadeFrame/math/vec.h"

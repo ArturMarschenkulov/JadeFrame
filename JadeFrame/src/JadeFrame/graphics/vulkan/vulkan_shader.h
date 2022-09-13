@@ -1,6 +1,6 @@
 #pragma once 
 #include "../graphics_shared.h"
-#include "../opengl/opengl_shader_loader.h"
+#include "../shader_loader.h"
 #include "vulkan_pipeline.h"
 
 namespace JadeFrame {

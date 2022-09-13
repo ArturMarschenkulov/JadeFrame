@@ -1,7 +1,7 @@
 #pragma once
 #include "JadeFrame/prelude.h"
 
-#include "opengl/opengl_shader_loader.h"
+#include "shader_loader.h"
 #include "graphics_shared.h"
 #include <string>
 

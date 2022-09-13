@@ -5,7 +5,7 @@
 
 #include "JadeFrame/math/mat_4.h"
 
-#include "opengl_shader_loader.h"
+#include "../shader_loader.h"
 
 #include "../graphics_shared.h"
 #include <future>
