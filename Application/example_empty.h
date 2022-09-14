@@ -10,8 +10,8 @@ struct Example_Empty : public BaseApp {
 	virtual auto on_draw() -> void override;
 
 public:
-	std::deque<Mesh> m_meshes;
-	std::vector<Object> m_objs;
+	// std::deque<Mesh> m_meshes;
+	// std::vector<Object> m_objs;
 };
 
 

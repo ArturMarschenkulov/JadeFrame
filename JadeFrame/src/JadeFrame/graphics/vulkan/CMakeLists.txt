@@ -41,14 +41,17 @@ target_link_libraries(GraphicsAPI_Vulkan
         ${stb}
         stb
 )
-# target_compile_definitions(GraphicsAPI_Vulkan PRIVATE
-#     "$<$<CONFIG:Debug>:_DEBUG>"
-#     "$<$<CONFIG:Release>:NDEBUG>"
-#     "_CRT_SECURE_NO_WARNINGS"
-#     "_CONSOLE"
-#     "UNICODE"
-#     "_UNICODE"
-# )
+target_compile_definitions(GraphicsAPI_Vulkan PRIVATE
+    "$<$<CONFIG:Debug>:_DEBUG>"
+    "$<$<CONFIG:Release>:NDEBUG>"
+    "_CRT_SECURE_NO_WARNINGS"
+    "_CONSOLE"
+    "UNICODE"
+    "_UNICODE"
+    
+)
 target_compile_options(GraphicsAPI_Vulkan PRIVATE
     /EHsc
+    /Z7
+    /Od
 )

@@ -31,9 +31,9 @@ add_library(imgui
 # Source groups
 ################################################################################
 add_subdirectory(src/extern/stb/)
+add_subdirectory(src/extern/glad/)
 add_subdirectory(src/JadeFrame/graphics/opengl)
 add_subdirectory(src/JadeFrame/graphics/vulkan)
-add_subdirectory(src/extern/glad/)
 
 
 # file(GLOB Files_Extern_spdlog
@@ -188,7 +188,6 @@ set(ALL_FILES
     ${Files_Math}
     ${Files_Utils}
     ${Files_Datatypes}
-    # ${Files_Extern_STB}
     # ${Files_Extern_shaderc}
     # ${Files_Extern_SPIRV-Cross}
     # ${Files_Extern_spdlog}
@@ -224,23 +223,24 @@ set(ROOT_NAMESPACE JadeFrame)
 # Include directories
 ################################################################################
 target_include_directories(${PROJECT_NAME} PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/extern;"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/extern
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/JadeFrame
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/extern/glad/include
+    
     ${Vulkan_INCLUDE_DIRS}
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/extern/glad/include"
 )
 
 ################################################################################
 # Compile definitions
 ################################################################################
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-    "$<$<CONFIG:Debug>:_DEBUG>"
-    "$<$<CONFIG:Release>:NDEBUG>"
-    "_CRT_SECURE_NO_WARNINGS;"
-    "_CONSOLE;"
-    "UNICODE;"
-    "_UNICODE"
+    $<$<CONFIG:Debug>:_DEBUG>
+    $<$<CONFIG:Release>:NDEBUG>
+    _CRT_SECURE_NO_WARNINGS
+    _CONSOLE
+    UNICODE
+    _UNICODE
 )
 
 ################################################################################
@@ -318,15 +318,16 @@ endif()
 ################################################################################
 IF(WIN32)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
+        winmm
+
         opengl32
+        vulkan-1
         # "shadercd;"
         # "shaderc_combinedd;"
         # "shaderc_sharedd;"
         # "shaderc_utild;"
-        vulkan-1
-        glad
-        imgui
-        winmm
+        
+        
     )
 ELSEIF(UNIX AND NOT APPLE)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
@@ -348,14 +349,14 @@ target_link_libraries(
         ${CMAKE_DL_LIBS}
         Vulkan::Vulkan
         ${Vulkan_LIBRARIES}
-        ${glad}
-        ${imgui}
-        ${stb}
+        glad
+        imgui
+        stb
+        # ${glad}
+        # ${imgui}
+        # ${stb}
         GraphicsAPI_OpenGL
         GraphicsAPI_Vulkan
-        # JF_MODULE_pch
-        # JF_MODULE_math
-        #"${Files_Math}"
 )
 
 target_link_directories(${PROJECT_NAME} PUBLIC

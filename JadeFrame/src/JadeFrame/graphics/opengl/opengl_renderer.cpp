@@ -166,23 +166,22 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     m_context.m_uniform_buffers[0].unbind();
 
     for (size_t i = 0; i < m_render_commands.size(); ++i) {
+        const OpenGL_RenderCommand& command = m_render_commands[i];
 
-        const OpenGL_Shader* p_shader =
-            static_cast<OpenGL_Shader*>(m_render_commands[i].material_handle->m_shader_handle->m_handle);
-        const VertexData*         p_mesh = m_render_commands[i].vertex_data;
-        const OpenGL_GPUMeshData* p_vertex_array =
-            static_cast<OpenGL_GPUMeshData*>(m_render_commands[i].m_GPU_mesh_data->m_handle);
+        const OpenGL_Shader* p_shader = static_cast<OpenGL_Shader*>(command.material_handle->m_shader_handle->m_handle);
+        const VertexData*    p_mesh = command.vertex_data;
+        const OpenGL_GPUMeshData* p_vertex_array = static_cast<OpenGL_GPUMeshData*>(command.m_GPU_mesh_data->m_handle);
 
         p_shader->bind();
-        if (m_render_commands[i].material_handle->m_texture_handle != nullptr) {
+        if (command.material_handle->m_texture_handle != nullptr) {
             OpenGL_Texture& texture =
-                *static_cast<OpenGL_Texture*>(m_render_commands[i].material_handle->m_texture_handle->m_handle);
+                *static_cast<OpenGL_Texture*>(command.material_handle->m_texture_handle->m_handle);
             texture.bind();
         }
 
         this->render_mesh(p_vertex_array, p_mesh);
 
-        const Matrix4x4& transform = *m_render_commands[i].transform;
+        const Matrix4x4& transform = *command.transform;
         m_context.m_uniform_buffers[1].bind();
         m_context.m_uniform_buffers[1].send({transform});
         m_context.m_uniform_buffers[1].unbind();

@@ -1,14 +1,20 @@
 #pragma once
-#include <imgui/imgui.h>
+#include "graphics/graphics_shared.h"
 
 
 struct HWND__;
 typedef HWND__* HWND;
 
 namespace JadeFrame {
-
-auto GUI_init(HWND window) -> void;
-auto GUI_new_frame() -> void;
-auto GUI_render() -> void;
-auto GUI_destroy() -> void;
+class GUI {
+public:
+    auto init(HWND window, GRAPHICS_API api) -> void;
+    auto new_frame() -> void;
+    auto render() -> void;
+    auto destroy() -> void;
+};
+// auto GUI_init(HWND window) -> void;
+// auto GUI_new_frame() -> void;
+// auto GUI_render() -> void;
+// auto GUI_destroy() -> void;
 } // namespace JadeFrame

@@ -255,12 +255,12 @@ BaseApp::BaseApp(const DESC& desc) {
     win_desc.title = desc.title;
     win_desc.size = desc.size;
     win_desc.position = desc.position;
-    m_windows.try_emplace(0, win_desc);
+    m_windows.try_emplace(0, win_desc); // NOTE: Here the window is created
     m_current_window_p = &m_windows[0];
 
     GRAPHICS_API api = GRAPHICS_API::UNDEFINED;
-    // api = GRAPHICS_API::VULKAN;
-    api = GRAPHICS_API::OPENGL;
+    api = GRAPHICS_API::VULKAN;
+    // api = GRAPHICS_API::OPENGL;
 
     Logger::info("Creating Renderer");
     const std::string& title = m_current_window_p->get_title();
@@ -276,25 +276,39 @@ BaseApp::BaseApp(const DESC& desc) {
         } break;
         default: assert(false);
     }
+    // m_gui.init(m_current_window_p->m_window_handle, api);
+}
+auto to_string(const Matrix4x4& m) -> std::string {
+    std::string result;
+    for (u32 col = 0; col < 4; col++) {
+        for (u32 row = col + 1; row < 4; row++) {
+            auto s = std::to_string(m[col][row]);
+            result += s;
+            result += ", ";
+        }
+    }
+    return result;
 }
 auto BaseApp::start() -> void {
+    m_camera.othographic_mode(0, m_windows[0].get_size().x, m_windows[0].get_size().y, 0, -1, 1);
 
     this->on_init();
     // m_renderer->main_loop();
-    GUI_init(m_current_window_p->m_window_handle);
+
     m_time_manager.set_FPS(60);
     while (m_is_running) {
         const f64 time_since_last_frame = m_time_manager.calc_elapsed();
         this->on_update();
         if (m_current_window_p->get_window_state() != Window::WINDOW_STATE::MINIMIZED) {
             m_renderer->clear_background();
-            GUI_new_frame();
+            // m_gui.new_frame();
 
             this->on_draw();
             const Matrix4x4& view_projection = m_camera.get_view_projection_matrix();
+            std::cout << to_string(view_projection) << std::endl;
             m_renderer->render(view_projection);
 
-            GUI_render();
+            // m_gui.render();
 
             m_renderer->present();
         }

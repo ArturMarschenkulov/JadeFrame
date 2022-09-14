@@ -17,6 +17,7 @@
 #include "graphics/graphics_shared.h"
 #include "graphics/material_handle.h"
 #include "JadeFrame/graphics/mesh.h"
+#include "gui.h"
 
 #include <deque>
 #include <map>
@@ -147,6 +148,7 @@ public:
     Camera     m_camera;
 
     TimeManager m_time_manager;
+    GUI m_gui;
 
     ResourceStorage m_resources;
 };
