@@ -148,7 +148,7 @@ public:
     Camera     m_camera;
 
     TimeManager m_time_manager;
-    GUI m_gui;
+    GUI         m_gui;
 
     ResourceStorage m_resources;
 };
