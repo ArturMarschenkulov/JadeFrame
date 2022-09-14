@@ -6,15 +6,10 @@ namespace JadeFrame {
 
 
 Vulkan_Shader::Vulkan_Shader(const VulkanLogicalDevice& device, const DESC& desc) {
-	m_device = &device;
-	m_pipeline.init(
-		device,
-		device.m_swapchain.m_extent,
-		device.m_descriptor_set_layout_0,
-		device.m_swapchain.m_render_pass,
-		desc.code,
-		desc.vertex_format
-	);
+    m_device = &device;
+    m_pipeline.init(
+        device, device.m_swapchain.m_extent, device.m_descriptor_set_layout_0, device.m_swapchain.m_render_pass,
+        desc.code, desc.vertex_format);
 }
 
-}
+} // namespace JadeFrame
