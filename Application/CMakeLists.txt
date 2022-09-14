@@ -47,6 +47,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/../JadeFrame/src"
     "${CMAKE_CURRENT_SOURCE_DIR}/../JadeFrame/src/extern"
     "${CMAKE_CURRENT_SOURCE_DIR}/../JadeFrame/src/extern/glad/include"
+
+    
+    ${CMAKE_CURRENT_SOURCE_DIR}/../JadeFrame/src/extern/spdlog/include
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../VulkanSDK/1.2.176.1/Include"
 )
 

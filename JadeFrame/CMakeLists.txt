@@ -32,6 +32,7 @@ add_library(imgui
 ################################################################################
 add_subdirectory(src/extern/stb/)
 add_subdirectory(src/extern/glad/)
+add_subdirectory(src/extern/spdlog/)
 add_subdirectory(src/JadeFrame/graphics/opengl)
 add_subdirectory(src/JadeFrame/graphics/vulkan)
 
@@ -222,11 +223,11 @@ set(ROOT_NAMESPACE JadeFrame)
 ################################################################################
 # Include directories
 ################################################################################
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/extern
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/JadeFrame
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/extern/glad/include
+target_include_directories(${PROJECT_NAME} PUBLIC
+    ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern
+    ${CMAKE_SOURCE_DIR}/JadeFrame/src
+    ${CMAKE_SOURCE_DIR}/JadeFrame/src/JadeFrame
+    ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glad/include
     
     ${Vulkan_INCLUDE_DIRS}
 )
@@ -345,6 +346,9 @@ ENDIF()
 target_link_libraries(
     ${PROJECT_NAME} 
     PUBLIC 
+    
+    PUBLIC spdlog::spdlog
+        spdlog
         ${ADDITIONAL_LIBRARY_DEPENDENCIES}
         ${CMAKE_DL_LIBS}
         Vulkan::Vulkan
@@ -360,8 +364,8 @@ target_link_libraries(
 )
 
 target_link_directories(${PROJECT_NAME} PUBLIC
-    ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern
-    ${CMAKE_SOURCE_DIR}/JadeFrame/src
+    ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
+    ${CMAKE_SOURCE_DIR}/JadeFrame/src/
     ${CMAKE_SOURCE_DIR}/JadeFrame/
     # "C:/VulkanSDK/1.2.176.1/Lib/
     C:/VulkanSDK/1.3.224.1/Lib/ # TODO: make this less hard-coded

@@ -34,12 +34,15 @@ target_include_directories(GraphicsAPI_Vulkan
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/JadeFrame/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
+        ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include
+
 
 )
 target_link_libraries(GraphicsAPI_Vulkan
     PUBLIC
         ${stb}
         stb
+        spdlog
 )
 target_compile_definitions(GraphicsAPI_Vulkan PRIVATE
     "$<$<CONFIG:Debug>:_DEBUG>"

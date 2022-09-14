@@ -25,12 +25,14 @@ target_include_directories(GraphicsAPI_OpenGL
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/JadeFrame/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glad/include/
+        ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/
 
 )
 target_link_libraries(GraphicsAPI_OpenGL
     PUBLIC
         ${stb}
         stb
+        spdlog
 )
 target_compile_definitions(GraphicsAPI_OpenGL PRIVATE
     "$<$<CONFIG:Debug>:_DEBUG>"
