@@ -111,16 +111,16 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
         } break;
 
         case WM_CLOSE: {
-            Logger::log("WindowProcedure: {}", windows_message_map(wm));
+            Logger::trace("WindowProcedure: {}.", windows_message_map(wm));
 
             app->m_windows.erase(current_window_id);
 
-            Logger::log("\tLOG: Window Nr {} closing", app->m_windows.size());
+            Logger::trace("\tLOG: Window Nr {} closing", app->m_windows.size());
             if (app->m_windows.empty() == true) {
-                Logger::log("\tLOG: All Windows were closed");
+                Logger::trace("\tLOG: All Windows were closed");
                 ::PostQuitMessage(0);
             } else if (app->m_windows.contains(0) == false) {
-                Logger::log("\tLOG: Main Window was closed thus every other as well");
+                Logger::trace("\tLOG: Main Window was closed thus every other as well");
                 ::PostQuitMessage(0);
                 app->m_is_running = false;
             }
@@ -129,12 +129,12 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
 
         } break;
         case WM_DESTROY: {
-            Logger::log("WindowProcedure: {}", windows_message_map(wm));
+            Logger::trace("WindowProcedure: {}", windows_message_map(wm));
             //::PostQuitMessage(0);
             return DefWindowProc(hWnd, message, wParam, lParam);
         } break;
         case WM_QUIT: {
-            Logger::log("WindowProcedure: {}", windows_message_map(wm));
+            Logger::trace("WindowProcedure: {}", windows_message_map(wm));
             return DefWindowProc(hWnd, message, wParam, lParam);
             //::PostQuitMessage(0);
         } break;

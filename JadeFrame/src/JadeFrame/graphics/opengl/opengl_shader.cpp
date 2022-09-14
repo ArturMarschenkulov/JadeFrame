@@ -73,13 +73,13 @@ OpenGL_Shader::OpenGL_Shader(const DESC& desc)
     const bool is_linked = m_program.link();
     if (is_linked == false) {
         std::string info_log = m_program.get_info_log();
-        Logger::log(info_log.c_str());
+        Logger::log("{}", info_log);
     }
 
     const bool is_validated = m_program.validate();
     if (is_validated == false) {
         std::string info_log = m_program.get_info_log();
-        Logger::log(info_log.c_str());
+        Logger::log("{}", info_log);
     }
 
     m_program.detach(m_vertex_shader);

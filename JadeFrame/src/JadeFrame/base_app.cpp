@@ -217,6 +217,7 @@ Instance::Instance() {
 
     cpp::result<int, const char*> r;
 
+    Logger::init();
     Logger::info("JadeFrame is starting...");
 
     ptr::Scope<i32> p_to_100 = ptr::make_scope<i32>(100);
