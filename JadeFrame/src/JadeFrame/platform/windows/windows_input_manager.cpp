@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "windows_input_manager.h"
 
-#include "JadeFrame/base_app.h"
+#include "JadeFrame/base_app.h" // For `Instance::get_singleton()`
 //#include "JadeFrame/gui.h"
 #include <Windows.h>
 #include <windowsx.h>

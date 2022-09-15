@@ -33,6 +33,7 @@ add_library(imgui
 add_subdirectory(src/extern/stb/)
 add_subdirectory(src/extern/glad/)
 add_subdirectory(src/extern/spdlog/)
+# add_subdirectory(src/extern/shaderc/)
 add_subdirectory(src/JadeFrame/graphics/opengl)
 add_subdirectory(src/JadeFrame/graphics/vulkan)
 
@@ -142,23 +143,9 @@ set(Files_Utils
     "src/JadeFrame/utils/utils.cpp"
 )
 IF (WIN32)
+    add_subdirectory(src/JadeFrame/platform/windows/)
     set(Files_Platform
-        "src/JadeFrame/platform/platform_shared.h"  
-        "src/JadeFrame/platform/windows/windows_input_manager.h"
-        "src/JadeFrame/platform/windows/windows_input_manager.cpp"
-
-        "src/JadeFrame/platform/windows/windows_message_map.h"
-        "src/JadeFrame/platform/windows/windows_message_map.cpp"
-        
-        "src/JadeFrame/platform/windows/windows_shared.h"
-        "src/JadeFrame/platform/windows/windows_system_manager.h"
-        "src/JadeFrame/platform/windows/windows_system_manager.cpp"
-
-        "src/JadeFrame/platform/windows/windows_time_manager.h"
-        "src/JadeFrame/platform/windows/windows_time_manager.cpp"
-
-        "src/JadeFrame/platform/windows/windows_window.h"
-        "src/JadeFrame/platform/windows/windows_window.cpp"
+        "src/JadeFrame/platform/platform_shared.h"
     )
 ELSEIF(UNIX)
     set(Files_Platform
@@ -213,10 +200,9 @@ set(ROOT_NAMESPACE JadeFrame)
 # Include directories
 ################################################################################
 target_include_directories(${PROJECT_NAME} PUBLIC
-    ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern
     ${CMAKE_SOURCE_DIR}/JadeFrame/src
+    ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern
     ${CMAKE_SOURCE_DIR}/JadeFrame/src/JadeFrame
-    ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glad/include
     
     ${Vulkan_INCLUDE_DIRS}
 )
@@ -307,16 +293,13 @@ endif()
 ################################################################################
 IF(WIN32)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
-        winmm
-
+        Platform_Win32
         opengl32
         vulkan-1
         # "shadercd;"
         # "shaderc_combinedd;"
         # "shaderc_sharedd;"
         # "shaderc_utild;"
-        
-        
     )
 ELSEIF(UNIX AND NOT APPLE)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES

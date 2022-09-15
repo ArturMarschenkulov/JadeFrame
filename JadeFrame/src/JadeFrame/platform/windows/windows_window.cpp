@@ -188,6 +188,7 @@ static auto register_class(HINSTANCE instance) -> ::WNDCLASSEX {
         return window_class;
     }
     assert(!"should not be here");
+    return {};
 }
 
 Windows_Window::Windows_Window(const Windows_Window::Desc& desc) {

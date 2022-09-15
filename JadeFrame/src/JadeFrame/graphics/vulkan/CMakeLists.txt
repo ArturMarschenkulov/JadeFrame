@@ -44,18 +44,37 @@ target_link_libraries(GraphicsAPI_Vulkan
         stb
         spdlog
 )
-target_compile_definitions(GraphicsAPI_Vulkan PRIVATE
-    "$<$<CONFIG:Debug>:_DEBUG>"
-    "$<$<CONFIG:Release>:NDEBUG>"
-    "_CRT_SECURE_NO_WARNINGS"
-    "_CONSOLE"
-    "UNICODE"
-    "_UNICODE"
-    
-)
-target_compile_options(GraphicsAPI_Vulkan PRIVATE
-    /EHsc
-    /Z7
-    /Od
-    /W4
-)
+if(MSVC)
+    target_compile_definitions(GraphicsAPI_Vulkan PRIVATE
+        "$<$<CONFIG:Debug>:_DEBUG>"
+        "$<$<CONFIG:Release>:NDEBUG>"
+        "_CRT_SECURE_NO_WARNINGS"
+        "_CONSOLE"
+        "UNICODE"
+        "_UNICODE"
+
+    )
+    target_compile_options(GraphicsAPI_Vulkan PRIVATE
+        /EHsc
+        /Z7
+        /Od
+        /W4
+    )
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_definitions(GraphicsAPI_OpenGL PRIVATE
+        $<$<CONFIG:Debug>:_DEBUG>
+        $<$<CONFIG:Release>:NDEBUG>
+        _CRT_SECURE_NO_WARNINGS
+        _CONSOLE
+        UNICODE
+        _UNICODE
+    )
+    target_compile_options(GraphicsAPI_OpenGL PRIVATE
+        -Wall 
+        -Wextra 
+        -Wpedantic 
+        # -Werror
+    )
+elseif(CMKAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    message(ERROR "GCC is not supported yet")
+endif()

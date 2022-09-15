@@ -112,6 +112,7 @@ static auto get_processor_name() -> std::string {
     DWORD buffer_len = 256;
     DWORD vtype = REG_SZ;
     error = RegQueryValueExW(hKey, L"ProcessorNameString", nullptr, &vtype, (LPBYTE)buffer, &buffer_len);
+    return "";
 }
 
 auto test() -> void {
@@ -322,6 +323,16 @@ auto Windows_SystemManager::initialize() -> void {
                     break;
                     // default:
                     //	__debugbreak();
+                case RelationNumaNode:
+                    // Non-NUMA systems report a single record of this type.
+                    break;
+                case RelationGroup:
+                    // We're not sure how to interpret this, so don't.
+                    break;
+                case RelationAll:
+                    // We're not sure how to interpret this, so don't.
+                    break;
+                default: break;
             }
             byte_offset += sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
             ptr++;

@@ -6,14 +6,15 @@
 #include <vector>
 
 JF_PRAGMA_PUSH
-#if defined(_MSC_VER)
-#pragma warning(disable : 4201)
-#elif defined(__clang__)
+
+#if defined(__clang__)
 #pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
 #pragma clang diagnostic ignored "-Wnested-anon-types"
 #elif defined(__GNUC__)
 // #pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
 // #pragma GCC diagnostic ignored "-Wnested-anon-types"
+#elif defined(_MSC_VER)
+#pragma warning(disable : 4201)
 #endif
 namespace JadeFrame {
 /*

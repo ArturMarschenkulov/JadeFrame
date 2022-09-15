@@ -7,14 +7,15 @@
 
 namespace JadeFrame {
 JF_PRAGMA_PUSH
-#if defined(_MSC_VER)
-#pragma warning(disable : 4201)
-#elif defined(__clang__)
+
+#if defined(__clang__)
 #pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
 #pragma clang diagnostic ignored "-Wnested-anon-types"
 #elif defined(__GNUC__)
 // #pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
 // #pragma GCC diagnostic ignored "-Wnested-anon-types"
+#elif defined(_MSC_VER)
+#pragma warning(disable : 4201)
 #endif
 
 // template <typename T>
@@ -30,7 +31,7 @@ public:
     // template<typename ...Args>
     template<class... T2, typename std::enable_if<sizeof...(T2) == N, int>::type = 0>
     constexpr explicit VectorT(const T2&... args) noexcept {
-        static_assert(sizeof...(T2) == N);
+        static_assert(sizeof...(T2) == N, "VectorT: invalid number of arguments");
 
         const std::array<T, N>& arr = {args...};
         for (u32 i = 0; i < sizeof...(T2); i++) { el[i] = arr[i]; }

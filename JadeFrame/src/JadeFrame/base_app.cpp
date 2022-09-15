@@ -102,12 +102,7 @@ struct CompilerInfo {
 };
 
 consteval auto get_compiler_info() -> CompilerInfo {
-#if defined(_MSC_VER)
-    constexpr const char* name = "MSVC";
-    constexpr u32         major = _MSC_VER / 100;
-    constexpr u32         minor = _MSC_VER - (_MSC_VER / 100 * 100);
-    constexpr u32         patch = _MSC_FULL_VER - _MSC_VER * 100000;
-#elif defined(__clang__)
+#if defined(__clang__)
     constexpr const char* name = "CLANG";
     constexpr u32         major = __clang_major__;
     constexpr u32         minor = __clang_minor__;
@@ -117,6 +112,12 @@ consteval auto get_compiler_info() -> CompilerInfo {
     constexpr u32         major = __GNUC__;
     constexpr u32         minor = __GNUC_MINOR__;
     constexpr u32         patch = __GNUC_PATCHLEVEL__;
+#elif defined(_MSC_VER)
+    constexpr const char* name = "MSVC";
+    constexpr u32         major = _MSC_VER / 100;
+    constexpr u32         minor = _MSC_VER - (_MSC_VER / 100 * 100);
+    constexpr u32         patch = _MSC_FULL_VER - _MSC_VER * 100000;
+
 #elif defined(__INTEL_COMPILER)
     constexpr const char* name = "ICC";
     constexpr u32         major = __INTEL_COMPILER / 100;
@@ -306,7 +307,6 @@ auto BaseApp::start() -> void {
 
             this->on_draw();
             const Matrix4x4& view_projection = m_camera.get_view_projection_matrix();
-            std::cout << to_string(view_projection) << std::endl;
             m_renderer->render(view_projection);
 
             // m_gui.render();

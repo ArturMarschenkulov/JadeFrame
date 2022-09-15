@@ -1,41 +1,34 @@
-add_library(GraphicsAPI_OpenGL
-    "opengl_buffer.h"
-    "opengl_context.h"
-    "opengl_debug.h"
-    "opengl_renderer.h"
-    "opengl_shader.h"
-    "opengl_texture.h"
-    "opengl_wrapper.h"
-
-    "opengl_buffer.cpp"
-    "opengl_context.cpp"
-    "opengl_debug.cpp"
-    "opengl_renderer.cpp"
-    "opengl_shader.cpp"
-    "opengl_texture.cpp"
-    "opengl_wrapper.cpp"
-
-    "opengl_windows.h"
-    "opengl_windows.cpp"
+add_library(Platform_Win32
+    "windows_input_manager.h"
+    "windows_input_manager.cpp"
+    "windows_message_map.h"
+    "windows_message_map.cpp"
+    "windows_shared.h"
+    "windows_system_manager.h"
+    "windows_system_manager.cpp"
+    "windows_time_manager.h"
+    "windows_time_manager.cpp"
+    "windows_window.h"
+    "windows_window.cpp"
 )
 
-target_include_directories(GraphicsAPI_OpenGL
+target_include_directories(Platform_Win32
     PUBLIC
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/JadeFrame/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glad/include/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/
 
 )
-target_link_libraries(GraphicsAPI_OpenGL
+
+target_link_libraries(Platform_Win32
     PUBLIC
-        ${stb}
-        stb
+        winmm
         spdlog
 )
+
 if(MSVC)
-    target_compile_definitions(GraphicsAPI_OpenGL PRIVATE
+    target_compile_definitions(Platform_Win32 PRIVATE
         $<$<CONFIG:Debug>:_DEBUG>
         $<$<CONFIG:Release>:NDEBUG>
         _CRT_SECURE_NO_WARNINGS
@@ -43,11 +36,11 @@ if(MSVC)
         UNICODE
         _UNICODE
     )
-    target_compile_options(GraphicsAPI_OpenGL PRIVATE
+    target_compile_options(Platform_Win32 PRIVATE
         /EHsc
     )
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_definitions(GraphicsAPI_OpenGL PRIVATE
+    target_compile_definitions(Platform_Win32 PRIVATE
         $<$<CONFIG:Debug>:_DEBUG>
         $<$<CONFIG:Release>:NDEBUG>
         _CRT_SECURE_NO_WARNINGS
@@ -55,7 +48,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         UNICODE
         _UNICODE
     )
-    target_compile_options(GraphicsAPI_OpenGL PRIVATE
+    target_compile_options(Platform_Win32 PRIVATE
         -Wall 
         -Wextra 
         -Wpedantic 

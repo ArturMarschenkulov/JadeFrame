@@ -16,21 +16,21 @@ auto GUI::init(HWND window, GRAPHICS_API api) -> void {
             ImGui_ImplOpenGL3_Init(glsl_version);
         } break;
         case GRAPHICS_API::VULKAN: {
-            const char*               glsl_version = "#version 450";
-            ImGui_ImplVulkan_InitInfo info;
-            info.Instance;
-            info.PhysicalDevice;
-            info.Device;
-            info.QueueFamily;
-            info.Queue;
-            info.PipelineCache;
-            info.DescriptorPool;
-            info.Subpass;
-            info.MinImageCount; // >= 2
-            info.ImageCount;    // >= MinImageCount
-            info.MSAASamples;   // >= VK_SAMPLE_COUNT_1_BIT (0 -> default to VK_SAMPLE_COUNT_1_BIT)
-            info.Allocator;
-            info.CheckVkResultFn;
+            // const char*               glsl_version = "#version 450";
+            // ImGui_ImplVulkan_InitInfo info;
+            // info.Instance;
+            // info.PhysicalDevice;
+            // info.Device;
+            // info.QueueFamily;
+            // info.Queue;
+            // info.PipelineCache;
+            // info.DescriptorPool;
+            // info.Subpass;
+            // info.MinImageCount; // >= 2
+            // info.ImageCount;    // >= MinImageCount
+            // info.MSAASamples;   // >= VK_SAMPLE_COUNT_1_BIT (0 -> default to VK_SAMPLE_COUNT_1_BIT)
+            // info.Allocator;
+            // info.CheckVkResultFn;
 
             // ImGui_ImplVulkan_Init(&info);
             // ImGui_ImplOpenGL3_Init(glsl_version);
