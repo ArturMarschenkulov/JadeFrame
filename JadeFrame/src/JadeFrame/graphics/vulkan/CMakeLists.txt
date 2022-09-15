@@ -57,4 +57,5 @@ target_compile_options(GraphicsAPI_Vulkan PRIVATE
     /EHsc
     /Z7
     /Od
+    /W4
 )

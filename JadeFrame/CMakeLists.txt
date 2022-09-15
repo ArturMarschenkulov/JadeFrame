@@ -36,16 +36,6 @@ add_subdirectory(src/extern/spdlog/)
 add_subdirectory(src/JadeFrame/graphics/opengl)
 add_subdirectory(src/JadeFrame/graphics/vulkan)
 
-
-# file(GLOB Files_Extern_spdlog
-#     "src/extern/spdlog/*.h"
-#     "src/extern/spdlog/*.cpp"
-#     "src/extern/spdlog/cfg/*.h"
-#     "src/extern/spdlog/details/*.h"
-#     "src/extern/spdlog/fmt/*.h"
-#     "src/extern/spdlog/fmt/bundled/*.h"
-#     "src/extern/spdlog/sinks/*.h"
-# )
 set(Files_Extern_shaderc
     "src/extern/shaderc/env.h"
     "src/extern/shaderc/shaderc.h"
@@ -191,7 +181,6 @@ set(ALL_FILES
     ${Files_Datatypes}
     # ${Files_Extern_shaderc}
     # ${Files_Extern_SPIRV-Cross}
-    # ${Files_Extern_spdlog}
     "src/JadeFrame/utils/option.h"
     "src/JadeFrame/utils/result.h"
 )
@@ -268,7 +257,6 @@ if(MSVC)
     string(CONCAT FILE_CL_OPTIONS
         "/Y-"
     )
-    source_file_compile_options(src/extern/glad.c ${FILE_CL_OPTIONS})
 
     source_file_compile_options(src/extern/imgui/imgui.cpp ${FILE_CL_OPTIONS})
     source_file_compile_options(src/extern/imgui/imgui_demo.cpp ${FILE_CL_OPTIONS})

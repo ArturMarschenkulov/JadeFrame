@@ -5,7 +5,6 @@ add_library(GraphicsAPI_OpenGL
     "opengl_renderer.h"
     "opengl_shader.h"
     "opengl_texture.h"
-    "opengl_windows.h"
     "opengl_wrapper.h"
 
     "opengl_buffer.cpp"
@@ -14,8 +13,10 @@ add_library(GraphicsAPI_OpenGL
     "opengl_renderer.cpp"
     "opengl_shader.cpp"
     "opengl_texture.cpp"
-    "opengl_windows.cpp"
     "opengl_wrapper.cpp"
+
+    "opengl_windows.h"
+    "opengl_windows.cpp"
 )
 
 # PROJECT_SOURCE_DIR
@@ -35,12 +36,12 @@ target_link_libraries(GraphicsAPI_OpenGL
         spdlog
 )
 target_compile_definitions(GraphicsAPI_OpenGL PRIVATE
-    "$<$<CONFIG:Debug>:_DEBUG>"
-    "$<$<CONFIG:Release>:NDEBUG>"
-    "_CRT_SECURE_NO_WARNINGS"
-    "_CONSOLE"
-    "UNICODE"
-    "_UNICODE"
+    $<$<CONFIG:Debug>:_DEBUG>
+    $<$<CONFIG:Release>:NDEBUG>
+    _CRT_SECURE_NO_WARNINGS
+    _CONSOLE
+    UNICODE
+    _UNICODE
 )
 target_compile_options(GraphicsAPI_OpenGL PRIVATE
     /EHsc
