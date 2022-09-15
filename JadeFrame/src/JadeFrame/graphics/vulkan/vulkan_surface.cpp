@@ -5,6 +5,7 @@
 
 namespace JadeFrame {
 auto VulkanSurface::init(VkInstance instance, HWND window_handle) -> void {
+    Logger::trace("VulkanSurface::init start");
     m_window_handle = window_handle;
 
     VkResult result;
@@ -25,6 +26,7 @@ auto VulkanSurface::init(VkInstance instance, HWND window_handle) -> void {
 #else
     assert(false && "not implemented yet");
 #endif
+    Logger::trace("VulkanSurface::init end");
 }
 
 auto VulkanSurface::deinit() -> void { vkDestroySurfaceKHR(m_instance, m_handle, nullptr); }

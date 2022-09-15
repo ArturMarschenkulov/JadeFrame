@@ -130,6 +130,7 @@ auto VulkanInstance::setup_debug() -> void {
 }
 
 auto VulkanInstance::init(HWND window_handle) -> void {
+    Logger::trace("VulkanInstance::init start");
     // m_window_handle = window_handle;
 
     VkResult result;
@@ -170,6 +171,12 @@ auto VulkanInstance::init(HWND window_handle) -> void {
     for (u32 i = 0; i < m_available_extensions.size(); i++) {
         extension_names[i] = m_available_extensions[i].extensionName;
     }
+    {
+        Logger::debug("Printing Layer names:");
+        for (auto& layer_name : layer_names) { Logger::debug("\t{}", layer_name); }
+        Logger::debug("Printing Extension names:");
+        for (auto& extension_name : extension_names) { Logger::debug("\t{}", extension_name); }
+    }
     VkInstanceCreateInfo create_info = {
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
         .pNext = nullptr,
@@ -208,7 +215,8 @@ auto VulkanInstance::init(HWND window_handle) -> void {
     m_surface.init(m_instance, window_handle);
 
 
-
+    Logger::debug("Querying Physical Devices");
+    Logger::debug("There are {} physical devices", m_physical_devices.size());
     m_physical_devices = this->query_physical_devices();
     for (u32 i = 0; i < m_physical_devices.size(); i++) { m_physical_devices[i].init(*this, m_surface); }
     for (u32 i = 0; i < m_physical_devices.size(); i++) {
@@ -216,6 +224,7 @@ auto VulkanInstance::init(HWND window_handle) -> void {
     }
 
     m_logical_device.init(*this, m_physical_device);
+    Logger::trace("VulkanInstance::init end");
 }
 
 auto VulkanInstance::deinit() -> void {

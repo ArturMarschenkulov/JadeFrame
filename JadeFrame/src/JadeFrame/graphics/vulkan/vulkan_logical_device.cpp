@@ -211,7 +211,7 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 
 
 
-    Logger::info("maxBoundDescriptorSets: {}", m_physical_device->m_properties.limits.maxBoundDescriptorSets);
+    Logger::debug("maxBoundDescriptorSets: {}", m_physical_device->m_properties.limits.maxBoundDescriptorSets);
     JF_ASSERT(m_physical_device->m_properties.limits.maxBoundDescriptorSets >= 4, "");
 
 
