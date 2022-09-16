@@ -20,9 +20,11 @@ class VulkanInstance;
 class VulkanPhysicalDevice;
 class VulkanPipeline;
 class VulkanBuffer;
-
+class VulkanLogicalDevice;
 class VulkanQueue {
 public:
+    VulkanQueue() = default;
+    VulkanQueue(const VulkanLogicalDevice& device, u32 queue_family_index, u32 queue_index);
     auto submit(const VkSubmitInfo& submit_info, const VulkanFence* p_fence) const -> void;
     auto submit(
         const VulkanCommandBuffer& cmd_buffer, const VulkanSemaphore* wait_semaphore,

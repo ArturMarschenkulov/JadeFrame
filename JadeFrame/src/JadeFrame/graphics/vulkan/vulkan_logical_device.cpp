@@ -52,6 +52,11 @@ static auto VkResult_to_string(VkResult x) {
 /*---------------------------
         Queue
 ---------------------------*/
+
+
+VulkanQueue::VulkanQueue(const VulkanLogicalDevice& device, u32 queue_family_index, u32 queue_index) {
+    vkGetDeviceQueue(device.m_handle, queue_family_index, queue_index, &m_handle);
+}
 auto VulkanQueue::submit(const VkSubmitInfo& submit_info, const VulkanFence* p_fence) const -> void {
     VkResult result;
     result = vkQueueSubmit(m_handle, 1, &submit_info, p_fence->m_handle);
@@ -261,9 +266,10 @@ auto VulkanLogicalDevice::deinit() -> void {
 }
 
 auto VulkanLogicalDevice::query_queue(u32 queue_family_index, u32 queue_index) -> VulkanQueue {
-    VulkanQueue queue;
-    vkGetDeviceQueue(m_handle, queue_family_index, queue_index, &queue.m_handle);
-    return queue;
+    return VulkanQueue(*this, queue_family_index, queue_index);
+    // VulkanQueue queue;
+    // vkGetDeviceQueue(m_handle, queue_family_index, queue_index, &queue.m_handle);
+    // return queue;
 }
 
 } // namespace JadeFrame
