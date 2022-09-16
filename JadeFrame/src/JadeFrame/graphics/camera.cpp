@@ -1,25 +1,6 @@
 #include "pch.h"
 #include "camera.h"
 
-// #if 0 // NOTE: for camera cotrolling. Remove if we move it
-// #include "JadeFrame/base_app.h"
-// #ifdef _WIN32
-// #include "JadeFrame/platform/windows/windows_input_manager.h"
-// #elif __linux__
-// #include "JadeFrame/platform/linux/linux_input_manager.h"
-// #endif
-// #include "JadeFrame/math/math.h"
-// #endif
-
-
-// m_camera.perspective_mode(
-//	Vec3(0.0f, 0.0f, 3.0f),//{ -20, 10, -5 },
-//	to_radians(45.0f),
-//	m_current_window_p->m_size.x / m_current_window_p->m_size.y,
-//	0.1f,
-//	10000.0f
-//);
-
 namespace JadeFrame {
 
 auto Camera::perspective_mode(const v3& position, const f32 fov, const f32 aspect, const f32 zNear, const f32 zFar)
@@ -63,40 +44,4 @@ auto Camera::get_view_matrix() const -> Matrix4x4 {
 auto Camera::get_view_projection_matrix() const -> Matrix4x4 {
     return this->get_view_matrix() * this->get_projection_matrix();
 }
-
-// auto Camera::control() -> void {
-//     if (m_mode == MODE::PERSPECTIVE) {
-//         const f32           velocity = 0.1f;
-//         const InputManager& i = Instance::get_singleton()->m_input_manager;
-//         if (i.is_key_down(KEY::E)) m_position += m_up * velocity;
-//         if (i.is_key_down(KEY::Q)) m_position -= m_up * velocity;
-
-//         if (i.is_key_down(KEY::A)) m_position -= m_right * velocity;
-//         if (i.is_key_down(KEY::D)) m_position += m_right * velocity;
-
-//         if (i.is_key_down(KEY::S)) m_position -= m_forward * velocity;
-//         if (i.is_key_down(KEY::W)) m_position += m_forward * velocity;
-
-//         auto sensitivity = 10;
-//         if (i.is_key_down(KEY::LEFT)) m_pitch += velocity * sensitivity;
-//         if (i.is_key_down(KEY::RIGHT)) m_pitch -= velocity * sensitivity;
-//         if (i.is_key_down(KEY::UP)) m_yaw += velocity * sensitivity;
-//         if (i.is_key_down(KEY::DOWN)) m_yaw -= velocity * sensitivity;
-
-
-//         // if (m_pitch > 89.0f)
-//         //	m_pitch = 89.0f;
-//         // if (m_pitch < -89.0f)
-//         //	m_pitch = -89.0f;
-
-//         v3 front;
-//         front.x = cos(to_radians(m_yaw)) * cos(to_radians(m_pitch));
-//         front.y = sin(to_radians(m_pitch));
-//         front.z = sin(to_radians(m_yaw)) * cos(to_radians(m_pitch));
-//         m_forward = front.get_normal();
-
-//         m_right = m_forward.cross(m_world_up).get_normal();
-//         m_up = m_right.cross(m_forward).get_normal();
-//     }
-// }
 } // namespace JadeFrame

@@ -4,6 +4,7 @@ add_library(Platform_Win32
     "windows_message_map.h"
     "windows_message_map.cpp"
     "windows_shared.h"
+    "windows_shared.cpp"
     "windows_system_manager.h"
     "windows_system_manager.cpp"
     "windows_time_manager.h"
@@ -18,6 +19,7 @@ target_include_directories(Platform_Win32
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/JadeFrame/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/
+        ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/spdlog/details/
 
 )
 
