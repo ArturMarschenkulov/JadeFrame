@@ -1,10 +1,12 @@
 #include "pch.h"
 #include "windows_system_manager.h"
+#include "windows_shared.h"
 
 #include <Windows.h>
 #include <winreg.h>
 #include <intrin.h> // for "__cpuid()"
 #include <tlhelp32.h>
+#include "spdlog/fmt/xchar.h"
 
 #include "JadeFrame/utils/utils.h"
 namespace JadeFrame {
@@ -41,17 +43,46 @@ struct ProcessEntry {
 };
 
 struct ModuleEntry {
-    u32       size;
-    u32       module_id;
-    u32       process_id;
-    u32       global_usage_count;
-    u32       process_usage_count;
+    u64       size;
+    u64       module_id;
+    u64       process_id;
+    u64       global_usage_count;
+    u64       process_usage_count;
     u8*       base_adress;
-    u32       base_size;
+    u64       base_size;
     HINSTANCE instance;
     wchar_t   module_size[MAX_MODULE_NAME32 + 1];
     wchar_t   path[MAX_PATH];
 };
+static auto to_process_entry(const PROCESSENTRY32W& entry) -> ProcessEntry {
+    ProcessEntry result;
+    result.size = entry.dwSize;
+    result.usage = entry.cntUsage;
+    result.process_id = entry.th32ProcessID;
+    result.default_heap_id = entry.th32DefaultHeapID;
+    result.module_id = entry.th32ModuleID;
+    result.thread_count = entry.cntThreads;
+    result.paranet_process_id = entry.th32ParentProcessID;
+    result.priority = entry.pcPriClassBase;
+    result.flags = entry.dwFlags;
+    wcscpy_s(result.path, entry.szExeFile);
+    return result;
+}
+static auto to_module_entry(const MODULEENTRY32W& module_entry) -> ModuleEntry {
+    ModuleEntry entry;
+    entry.size = module_entry.dwSize;
+    entry.module_id = module_entry.th32ModuleID;
+    entry.process_id = module_entry.th32ProcessID;
+    entry.global_usage_count = module_entry.GlblcntUsage;
+    entry.process_usage_count = module_entry.ProccntUsage;
+    entry.base_adress = module_entry.modBaseAddr;
+    entry.base_size = module_entry.modBaseSize;
+    entry.instance = module_entry.hModule;
+    wcscpy_s(entry.module_size, module_entry.szModule);
+    wcscpy_s(entry.path, module_entry.szExePath);
+    return entry;
+}
+
 auto get_processes() -> std::vector<ProcessEntry> {
     std::vector<ProcessEntry> processes;
 
@@ -63,8 +94,9 @@ auto get_processes() -> std::vector<ProcessEntry> {
         if (success == TRUE) {
             do {
                 processes.emplace_back();
+                processes.back() = to_process_entry(process_entry);
                 // processes.back() = *(ProcessEntry*)&process_entry;
-                processes.back() = *reinterpret_cast<ProcessEntry*>(&process_entry);
+                // processes.back() = *reinterpret_cast<ProcessEntry*>(&process_entry);
             } while (::Process32NextW(snapshot, &process_entry));
         }
         ::CloseHandle(snapshot);
@@ -76,18 +108,19 @@ auto get_modules() -> std::vector<ModuleEntry> {
     u32 flags = TH32CS_INHERIT | TH32CS_SNAPALL | TH32CS_SNAPHEAPLIST | TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32 |
                 TH32CS_SNAPPROCESS | TH32CS_SNAPTHREAD;
     ::HANDLE snapshot = ::CreateToolhelp32Snapshot(flags, 0);
-    if (snapshot != INVALID_HANDLE_VALUE) {
-        ::MODULEENTRY32W module_entry;
-        module_entry.dwSize = sizeof(module_entry);
-        ::BOOL success = ::Module32FirstW(snapshot, &module_entry);
-        if (success == TRUE) {
-            do {
-                modules.emplace_back();
-                modules.back() = *reinterpret_cast<ModuleEntry*>(&module_entry);
-            } while (::Module32NextW(snapshot, &module_entry));
-        }
-        ::CloseHandle(snapshot);
+    if (snapshot == INVALID_HANDLE_VALUE) { return modules; }
+
+    ::MODULEENTRY32W module_entry;
+    module_entry.dwSize = sizeof(module_entry);
+    ::BOOL success = ::Module32FirstW(snapshot, &module_entry);
+    if (success == TRUE) {
+        do {
+            modules.emplace_back();
+            modules.back() = to_module_entry(module_entry);
+            // modules.back() = *reinterpret_cast<ModuleEntry*>(&module_entry);
+        } while (::Module32NextW(snapshot, &module_entry));
     }
+    ::CloseHandle(snapshot);
     return modules;
 }
 
@@ -187,10 +220,23 @@ DWORD count_set_bits(ULONG_PTR bit_mask) {
 
 
 auto Windows_SystemManager::initialize() -> void {
-
+    Logger::debug("Initializing Windows System Manager");
     {
-        auto modules = platform::win32::get_modules();
-        auto proesses = platform::win32::get_processes();
+        std::vector<platform::win32::ModuleEntry>  modules = platform::win32::get_modules();
+        std::vector<platform::win32::ProcessEntry> processes = platform::win32::get_processes();
+
+        Logger::debug("There are {} modules loaded", modules.size());
+        for (auto& module : modules) {
+            char output[260];
+            sprintf(output, "%ws", module.path);
+            Logger::debug("\tModule: {}", output);
+        }
+        Logger::debug("There are {} processes running", processes.size());
+        for (auto& process : processes) {
+            char output[260];
+            sprintf(output, "%ws", process.path);
+            Logger::debug("\tProcess: {}", output);
+        }
     }
     {
 
@@ -204,8 +250,8 @@ auto Windows_SystemManager::initialize() -> void {
             if (success == TRUE) {
                 do {
                     m_modules.emplace_back();
-                    m_modules.back().m_name = JadeFrame::from_wstring_to_string(module_entry.szModule);
-                    m_modules.back().m_path = JadeFrame::from_wstring_to_string(module_entry.szExePath);
+                    m_modules.back().m_name = platform::win32::from_wstring_to_string(module_entry.szModule);
+                    m_modules.back().m_path = platform::win32::from_wstring_to_string(module_entry.szExePath);
                     m_modules.back().m_id = module_entry.th32ModuleID;
                     m_modules.back().m_process_id = module_entry.th32ProcessID;
                     m_modules.back().m_global_usage_count = module_entry.GlblcntUsage;
@@ -214,9 +260,6 @@ auto Windows_SystemManager::initialize() -> void {
             }
             ::CloseHandle(snapshot);
         }
-
-
-        std::cout << "llll" << std::endl;
     }
     {
         ::TCHAR buffer[256] = L"";
@@ -224,16 +267,16 @@ auto Windows_SystemManager::initialize() -> void {
 
 
         ::GetUserDefaultLocaleName(buffer, LOCALE_NAME_MAX_LENGTH);
-        m_user_locale = JadeFrame::from_wstring_to_string(buffer);
+        m_user_locale = platform::win32::from_wstring_to_string(buffer);
 
         ::GetSystemDefaultLocaleName(buffer, LOCALE_NAME_MAX_LENGTH);
-        m_system_locale = JadeFrame::from_wstring_to_string(buffer);
+        m_system_locale = platform::win32::from_wstring_to_string(buffer);
 
         ::GetComputerNameW(buffer, &size);
-        m_computer_name = JadeFrame::from_wstring_to_string(buffer);
+        m_computer_name = platform::win32::from_wstring_to_string(buffer);
 
         ::GetUserNameW(buffer, &size);
-        m_user_name = JadeFrame::from_wstring_to_string(buffer);
+        m_user_name = platform::win32::from_wstring_to_string(buffer);
     }
 
     {

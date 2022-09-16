@@ -4,6 +4,7 @@
 #include <Windows.h>
 
 #include "windows_message_map.h"
+#include "windows_shared.h"
 
 #include "JadeFrame/base_app.h" // for the singleton
 
@@ -16,14 +17,7 @@ namespace JadeFrame {
 
 static WindowsMessageMap windows_message_map;
 
-#if 1 // TODO: Utility function, move it to another place
-static auto win32_convert_char_array_to_LPCWSTR(const char* charArray) -> wchar_t* {
-    wchar_t* wString = new wchar_t[4096];
-    // wchar_t wString[4096];
-    ::MultiByteToWideChar(CP_ACP, 0, charArray, -1, wString, 4096);
-    return wString;
-}
-#endif
+
 
 static auto window_resize_callback(Windows_Window& window, const WindowsMessage& wm) -> void {
 
@@ -61,10 +55,10 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
 
     BaseApp* app = Instance::get_singleton()->m_current_app_p;
     if (app == nullptr) {
-        // Logger::log("WindowProced___: {}", windows_message_map(wm));
+        // Logger::trace("WindowProced___: {}", windows_message_map(wm));
         return ::DefWindowProcW(hWnd, message, wParam, lParam);
     } else {
-        // Logger::log("WindowProcedure: {}", windows_message_map(wm));
+        // Logger::trace("WindowProcedure: {}", windows_message_map(wm));
     }
 
 
@@ -165,36 +159,36 @@ static auto get_style(const Windows_Window::Desc& desc) -> ::DWORD {
 
 static auto register_class(HINSTANCE instance) -> ::WNDCLASSEX {
     static bool is_window_class_registered = false;
-    if (is_window_class_registered == false) {
-
-        ::WNDCLASSEX window_class;
-        ZeroMemory(&window_class, sizeof(window_class));
-        window_class.cbSize = sizeof(window_class);
-        window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-        window_class.lpfnWndProc = window_procedure;
-        window_class.cbClsExtra = 0;
-        window_class.cbWndExtra = 0;
-        window_class.hInstance = instance;
-        window_class.hIcon = LoadIcon(NULL, IDI_WINLOGO); // IDI_APPLICATION
-        window_class.hCursor = LoadCursor(NULL, IDC_ARROW);
-        window_class.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH)); // nullptr;
-        window_class.lpszMenuName = nullptr;
-        window_class.lpszClassName = L"JadeFrame"; //"L"JadeFrame Window";
-
-        ::ATOM res = ::RegisterClassExW(&window_class);
-        if (!res) Logger::log("Window Registration Failed! {}", ::GetLastError());
-
-        is_window_class_registered = true;
-        return window_class;
+    if (is_window_class_registered == true) {
+        Logger::err("window is already registered. This should not be possible!!");
+        assert(!"should not be here");
     }
-    assert(!"should not be here");
-    return {};
+
+    ::WNDCLASSEX window_class;
+    ZeroMemory(&window_class, sizeof(window_class));
+    window_class.cbSize = sizeof(window_class);
+    window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+    window_class.lpfnWndProc = window_procedure;
+    window_class.cbClsExtra = 0;
+    window_class.cbWndExtra = 0;
+    window_class.hInstance = instance;
+    window_class.hIcon = LoadIcon(NULL, IDI_WINLOGO); // IDI_APPLICATION
+    window_class.hCursor = LoadCursor(NULL, IDC_ARROW);
+    window_class.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH)); // nullptr;
+    window_class.lpszMenuName = nullptr;
+    window_class.lpszClassName = L"JadeFrame"; //"L"JadeFrame Window";
+
+    ::ATOM res = ::RegisterClassExW(&window_class);
+    if (!res) Logger::err("Window Registration Failed! {}", ::GetLastError());
+
+    is_window_class_registered = true;
+    return window_class;
 }
 
 Windows_Window::Windows_Window(const Windows_Window::Desc& desc) {
 
     ::HINSTANCE instance = ::GetModuleHandleW(NULL);
-    if (instance == NULL) Logger::log("GetModuleHandleW(NULL) failed! {}", ::GetLastError());
+    if (instance == NULL) Logger::err("GetModuleHandleW(NULL) failed! {}", ::GetLastError());
 
     ::WNDCLASSEX wc = register_class(instance);
 
@@ -203,7 +197,7 @@ Windows_Window::Windows_Window(const Windows_Window::Desc& desc) {
     ::HWND window_handle = ::CreateWindowExW(
         0,                                                                                 // window_ex_style,
         L"JadeFrame",                                                                      // app_window_class,
-        win32_convert_char_array_to_LPCWSTR(static_cast<const char*>(desc.title.c_str())), // app_window_title,
+        platform::win32::to_wide_char(static_cast<const char*>(desc.title.c_str())), // app_window_title,
         window_style,
         (desc.position.x == -1) ? CW_USEDEFAULT : desc.position.x, // window_x,
         (desc.position.y == -1) ? CW_USEDEFAULT : desc.position.y, // window_y,
@@ -215,7 +209,7 @@ Windows_Window::Windows_Window(const Windows_Window::Desc& desc) {
         NULL // lpParam
     );
     if (window_handle == NULL) {
-        Logger::log("win32_create_window error: {}", ::GetLastError());
+        Logger::err("win32_create_window error: {}", ::GetLastError());
         assert(false);
     }
 

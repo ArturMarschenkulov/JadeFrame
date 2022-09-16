@@ -3,9 +3,6 @@
 #include <string>
 
 namespace JadeFrame {
-auto from_wstring_to_string(const std::wstring& wstr) -> std::string;
-auto from_string_to_wstring(const std::string& str) -> std::wstring;
-
 auto custom_simple_hash_0(const std::string& str) -> u32;
 // constexpr auto custom_simple_hash_1(const char* str) -> u32 {
 //	u32 hash = 0;

@@ -8,7 +8,7 @@
 namespace JadeFrame {
 struct Drop {
 	Drop() {
-		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
+		BaseApp* app = Instance::get_singleton()->m_current_app_p;
 		const f32 window_width = app->m_current_window_p->get_size().x;
 
 		x = static_cast<f32>(get_random_number(0, window_width));
@@ -29,13 +29,13 @@ struct Drop {
 	auto fall() -> void {
 		y = y + y_speed;
 		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 80.0f, 1.0f }) * Matrix4x4::translation_matrix({ x, y, 0.0f });
-		const f32 window_height = JadeFrameInstance::get_singleton()->m_current_app_p->m_current_window_p->get_size().y;
+		const f32 window_height = Instance::get_singleton()->m_current_app_p->m_current_window_p->get_size().y;
 		if (y >= window_height) {
 			y = -100;
 		}
 	}
 	auto show() const -> void {
-		IRenderer* renderer = JadeFrameInstance::get_singleton()->m_apps[0]->m_renderer;
+		IRenderer* renderer = Instance::get_singleton()->m_apps[0]->m_renderer;
 		renderer->submit(obj);
 	}
 	Object obj = {};
@@ -46,7 +46,7 @@ struct Drop {
 
 struct Checkerbox {
 	Checkerbox(f32 size, v2 pos) {
-		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
+		BaseApp* app = Instance::get_singleton()->m_current_app_p;
 		const f32 window_width = app->m_current_window_p->get_size().x;
 		x = pos.x;
 		y = pos.y;
@@ -60,7 +60,7 @@ struct Checkerbox {
 
 	}
 	auto show() const -> void {
-		IRenderer* renderer = JadeFrameInstance::get_singleton()->m_apps[0]->m_renderer;
+		IRenderer* renderer = Instance::get_singleton()->m_apps[0]->m_renderer;
 		renderer->submit(obj);
 	}
 	Object obj = {};
@@ -70,7 +70,7 @@ struct Checkerbox {
 
 struct Thingy {
 	Thingy() {
-		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
+		BaseApp* app = Instance::get_singleton()->m_current_app_p;
 		const f32 window_width = app->m_current_window_p->get_size().x;
 
 		pos.x = static_cast<f32>(get_random_number(0, window_width));
@@ -86,8 +86,8 @@ struct Thingy {
 	}
 
 	auto update() -> void {
-		BaseApp* app = JadeFrameInstance::get_singleton()->m_current_app_p;
-		auto& im = JadeFrameInstance::get_singleton()->m_input_manager;
+		BaseApp* app = Instance::get_singleton()->m_current_app_p;
+		auto& im = Instance::get_singleton()->m_input_manager;
 		const v2 mp = im.get_mouse_position();
 
 		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 10.0f, 1.0f }) * Matrix4x4::translation_matrix({ mp.x, mp.y, 0.0f });
@@ -179,7 +179,7 @@ auto Example_0::on_update() -> void {
 		drops[i].fall();
 	}
 
-	if (JadeFrameInstance::get_singleton()->m_input_manager.is_key_released(KEY::P)) {
+	if (Instance::get_singleton()->m_input_manager.is_key_released(KEY::P)) {
 		//std::thread t(&Renderer::take_screenshot, &m_renderer);
 		m_renderer->take_screenshot("im.png");
 	}
