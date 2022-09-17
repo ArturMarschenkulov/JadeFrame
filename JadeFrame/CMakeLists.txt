@@ -30,46 +30,18 @@ add_library(imgui
 ################################################################################
 # Source groups
 ################################################################################
+
+add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+add_definitions(-DNOMINMAX)
 add_subdirectory(src/extern/stb/)
 add_subdirectory(src/extern/glad/)
 add_subdirectory(src/extern/spdlog/)
-add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 set(SHADERC_SKIP_TESTS ON)
 set(SHADERC_SKIP_EXAMPLES ON)
 add_subdirectory(src/extern/shaderc/)
+add_subdirectory(src/extern/SPIRV-Cross/)
 add_subdirectory(src/JadeFrame/graphics/opengl)
 add_subdirectory(src/JadeFrame/graphics/vulkan)
-set(Files_Extern_SPIRV-Cross
-    "src/extern/SPIRV-Cross/GLSL.std.450.h"
-    "src/extern/SPIRV-Cross/spirv.h"
-    "src/extern/SPIRV-Cross/spirv.hpp"
-    "src/extern/SPIRV-Cross/spirv_cfg.hpp"
-    "src/extern/SPIRV-Cross/spirv_common.hpp"
-    "src/extern/SPIRV-Cross/spirv_cpp.hpp"
-    "src/extern/SPIRV-Cross/spirv_cross.hpp"
-    "src/extern/SPIRV-Cross/spirv_cross_c.h"
-    "src/extern/SPIRV-Cross/spirv_cross_containers.hpp"
-    "src/extern/SPIRV-Cross/spirv_cross_error_handling.hpp"
-    "src/extern/SPIRV-Cross/spirv_cross_parsed_ir.hpp"
-    "src/extern/SPIRV-Cross/spirv_cross_util.hpp"
-    "src/extern/SPIRV-Cross/spirv_glsl.hpp"
-    "src/extern/SPIRV-Cross/spirv_hlsl.hpp"
-    "src/extern/SPIRV-Cross/spirv_msl.hpp"
-    "src/extern/SPIRV-Cross/spirv_parser.hpp"
-    "src/extern/SPIRV-Cross/spirv_reflect.hpp"
-
-    "src/extern/SPIRV-Cross/spirv_cfg.cpp"
-    "src/extern/SPIRV-Cross/spirv_cpp.cpp"
-    "src/extern/SPIRV-Cross/spirv_cross.cpp"
-    "src/extern/SPIRV-Cross/spirv_cross_c.cpp"
-    "src/extern/SPIRV-Cross/spirv_cross_parsed_ir.cpp"
-    "src/extern/SPIRV-Cross/spirv_cross_util.cpp"
-    "src/extern/SPIRV-Cross/spirv_glsl.cpp"
-    "src/extern/SPIRV-Cross/spirv_hlsl.cpp"
-    "src/extern/SPIRV-Cross/spirv_msl.cpp"
-    "src/extern/SPIRV-Cross/spirv_parser.cpp"
-    "src/extern/SPIRV-Cross/spirv_reflect.cpp"
-)
 
 set(Files_Base
     "src/JadeFrame.h"
@@ -161,7 +133,6 @@ set(ALL_FILES
     ${Files_Math}
     ${Files_Utils}
     ${Files_Datatypes}
-    # ${Files_Extern_SPIRV-Cross}
     "src/JadeFrame/utils/option.h"
     "src/JadeFrame/utils/result.h"
 )
@@ -322,6 +293,9 @@ target_link_libraries(
         imgui
         stb
         shaderc
+        spirv-cross-hlsl
+        spirv-cross-glsl
+        spirv-cross-msl
         # ${glad}
         # ${imgui}
         # ${stb}

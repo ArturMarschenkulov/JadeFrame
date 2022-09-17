@@ -5,9 +5,9 @@
 #include "vulkan_swapchain.h"
 #include "vulkan_descriptor_set.h"
 
-// #include "extern/SPIRV-Cross/spirv_glsl.hpp"
-// #include "extern/SPIRV-Cross/spirv_hlsl.hpp"
-// #include "extern/SPIRV-Cross/spirv_msl.hpp"
+#include "SPIRV-Cross/spirv_glsl.hpp"
+#include "SPIRV-Cross/spirv_hlsl.hpp"
+#include "SPIRV-Cross/spirv_msl.hpp"
 
 #include "JadeFrame/utils/assert.h"
 
@@ -34,7 +34,7 @@ static auto create_shader_module_from_spirv(VkDevice device, const std::vector<u
     return shader_module;
 }
 
-#if 0
+#if 1
 static auto debug_print_resources(const spirv_cross::ShaderResources& resources) -> void {
 
 	for (const spirv_cross::Resource& resource : resources.uniform_buffers) {
@@ -142,7 +142,7 @@ struct ReflectedCode {
     };
     std::vector<Module> m_modules;
 };
-#if 0
+#if 1
 static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 columns) -> SHADER_TYPE {
 	SHADER_TYPE result = SHADER_TYPE::NONE;
 	if (columns == 1) {
@@ -166,9 +166,9 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
 	return result;
 }
 #endif
-static auto reflect(const ShadingCode& /*code*/) -> ReflectedCode {
+static auto reflect(const ShadingCode& code) -> ReflectedCode {
     ReflectedCode result = {};
-#if 0
+#if 1
 	result.m_modules.resize(code.m_modules.size());
 	for (u32 i = 0; i < code.m_modules.size(); i++) {
 		auto& current_module = code.m_modules[i];
