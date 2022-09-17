@@ -4,11 +4,23 @@ JadeFrame is a C++ Graphics Framework. The point of project is to understand low
 
 One of the main goals is to use as few external code as possible.
 
+# Building it
+
+The most generic way to build the project is:
+```
+mkdir build
+cd build
+cmake ../.
+cmake --build . -j10
+./Application/Application.exe
+```
+
 
 # Directory structure
 The whole project should be organized into modules (aka namespaces), which should be as modular and independent as possible. Roughly speaking, a folder should correspond to one module. Every folder should have a `README.md` file, which should contain a short description of the module.
 
-# Naming convention
+# Conventions
+## Naming convention
 The whole project should conform to the following naming convention:
 
 - All code written should be in the `JadeFrame` namespace.
@@ -18,7 +30,10 @@ The whole project should conform to the following naming convention:
 - Member variables should be in `snake_case`, but with a `m_` prefix.
 - Functions and member functions should be in `snake_case`.
 - For more complex classes, one should use Descriptor structs on constructors.
-
+## Coding convention
+- trailing return type
+- use of own datatypes, especially primitive ones `i32`, `u8`, etc.
+- C++ style type casting, no C style
 # Inspirations
 The following is a list of interesting projects and resources in general, which may be relevant to the project.
 ## Engine-like
