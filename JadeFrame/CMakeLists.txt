@@ -33,17 +33,12 @@ add_library(imgui
 add_subdirectory(src/extern/stb/)
 add_subdirectory(src/extern/glad/)
 add_subdirectory(src/extern/spdlog/)
-# add_subdirectory(src/extern/shaderc/)
+add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+set(SHADERC_SKIP_TESTS ON)
+set(SHADERC_SKIP_EXAMPLES ON)
+add_subdirectory(src/extern/shaderc/)
 add_subdirectory(src/JadeFrame/graphics/opengl)
 add_subdirectory(src/JadeFrame/graphics/vulkan)
-
-set(Files_Extern_shaderc
-    "src/extern/shaderc/env.h"
-    "src/extern/shaderc/shaderc.h"
-    "src/extern/shaderc/shaderc.hpp"
-    "src/extern/shaderc/status.h"
-    "src/extern/shaderc/visibility.h"
-)
 set(Files_Extern_SPIRV-Cross
     "src/extern/SPIRV-Cross/GLSL.std.450.h"
     "src/extern/SPIRV-Cross/spirv.h"
@@ -166,7 +161,6 @@ set(ALL_FILES
     ${Files_Math}
     ${Files_Utils}
     ${Files_Datatypes}
-    # ${Files_Extern_shaderc}
     # ${Files_Extern_SPIRV-Cross}
     "src/JadeFrame/utils/option.h"
     "src/JadeFrame/utils/result.h"
@@ -327,6 +321,7 @@ target_link_libraries(
         glad
         imgui
         stb
+        shaderc
         # ${glad}
         # ${imgui}
         # ${stb}

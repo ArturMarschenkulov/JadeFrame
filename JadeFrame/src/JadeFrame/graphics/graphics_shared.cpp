@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "graphics_shared.h"
 JF_PRAGMA_PUSH
-// #pragma warning(disable : 4006)
-// #include "extern/shaderc/shaderc.hpp"
+#pragma warning(disable : 4006)
+#include "shaderc/shaderc.hpp"
 JF_PRAGMA_POP
 namespace JadeFrame {
 
@@ -29,8 +29,8 @@ auto VertexFormat::calculate_offset_and_stride(std::vector<VertexAttribute>& att
 
 
 
-auto string_to_SPIRV(const std::string& /*code*/, SHADER_STAGE /*stage*/) -> std::vector<u32> {
-#if 0
+auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage) -> std::vector<u32> {
+#if 1
     namespace shc = shaderc;
     // using namespace shaderc;
 
