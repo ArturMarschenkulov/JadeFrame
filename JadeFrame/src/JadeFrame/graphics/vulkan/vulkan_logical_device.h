@@ -21,24 +21,36 @@ class VulkanPhysicalDevice;
 class VulkanPipeline;
 class VulkanBuffer;
 class VulkanLogicalDevice;
-class VulkanQueue {
+
+namespace vulkan {
+class Queue {
 public:
-    VulkanQueue() = default;
-    VulkanQueue(const VulkanLogicalDevice& device, u32 queue_family_index, u32 queue_index);
-    auto submit(const VkSubmitInfo& submit_info, const VulkanFence* p_fence) const -> void;
+    Queue() = default;
+    Queue(const Queue&) = delete;
+    Queue(Queue&& other)
+        : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE)) {}
+    auto operator=(const Queue&) -> Queue& = delete;
+    auto operator=(Queue&& other) -> Queue& {
+        if (this != &other) { m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE); }
+        return *this;
+    }
+
+    Queue(const VulkanLogicalDevice& device, u32 queue_family_index, u32 queue_index);
+    auto submit(const VkSubmitInfo& submit_info, const vulkan::Fence* p_fence) const -> void;
     auto submit(
-        const VulkanCommandBuffer& cmd_buffer, const VulkanSemaphore* wait_semaphore,
-        const VulkanSemaphore* signal_semaphore, const VulkanFence* p_fence) -> void;
+        const VulkanCommandBuffer& cmd_buffer, const vulkan::Semaphore* wait_semaphore,
+        const vulkan::Semaphore* signal_semaphore, const vulkan::Fence* p_fence) -> void;
     auto wait_idle() const -> void;
     auto present(VkPresentInfoKHR info, VkResult& result) const -> void;
     auto present(
-        const u32& index, const VulkanSwapchain& swapchain, const VulkanSemaphore* result, VkResult* out_result) const
+        const u32& index, const VulkanSwapchain& swapchain, const vulkan::Semaphore* result, VkResult* out_result) const
         -> void;
 
 public:
     VkQueue m_handle = VK_NULL_HANDLE;
     // const VulkanQueueFamily* = nullptr;
 };
+}
 
 
 
@@ -49,15 +61,16 @@ public:
     auto init(const VulkanInstance& instance, const VulkanPhysicalDevice& physical_device) -> void;
     auto deinit() -> void;
 
-    auto query_queue(u32 queue_family_index, u32 queue_index) -> VulkanQueue;
+    auto wait_for_fence(const vulkan::Fence& fences, bool wait_all, u64 timeout) -> void;
+    auto wait_for_fences(const std::vector<vulkan::Fence>& fences, bool wait_all, u64 timeout) -> void;
 
 public:
     VkDevice                    m_handle = VK_NULL_HANDLE;
     const VulkanInstance*       m_instance = nullptr;
     const VulkanPhysicalDevice* m_physical_device = nullptr;
 
-    VulkanQueue m_graphics_queue;
-    VulkanQueue m_present_queue;
+    vulkan::Queue m_graphics_queue;
+    vulkan::Queue m_present_queue;
 
 public: // Swapchain stuff
     auto recreate_swapchain() -> void;
@@ -82,10 +95,10 @@ public:
 
 
 public: // synchro objects
-    std::vector<VulkanSemaphore> m_image_available_semaphores;
-    std::vector<VulkanSemaphore> m_render_finished_semaphores;
-    std::vector<VulkanFence>     m_in_flight_fences;
-    std::vector<VulkanFence>     m_images_in_flight;
+    std::vector<vulkan::Semaphore> m_image_available_semaphores;
+    std::vector<vulkan::Semaphore> m_render_finished_semaphores;
+    std::vector<vulkan::Fence>     m_in_flight_fences;
+    std::vector<vulkan::Fence>     m_images_in_flight;
 
 public: // Misc
     u32    m_present_image_index = 0;

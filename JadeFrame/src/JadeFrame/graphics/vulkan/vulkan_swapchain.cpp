@@ -227,7 +227,7 @@ auto VulkanSwapchain::recreate() -> void {
 }
 
 auto VulkanSwapchain::acquire_next_image(
-    const VulkanSemaphore* semaphore, const VulkanFence* fence, VkResult& out_result) -> u32 {
+    const vulkan::Semaphore* semaphore, const vulkan::Fence* fence, VkResult& out_result) -> u32 {
     u32 image_index;
     out_result = vkAcquireNextImageKHR(
         m_device->m_handle, m_handle, UINT64_MAX, semaphore == nullptr ? VK_NULL_HANDLE : semaphore->m_handle,
@@ -235,7 +235,7 @@ auto VulkanSwapchain::acquire_next_image(
     return image_index;
 }
 
-auto VulkanSwapchain::acquire_next_image(const VulkanSemaphore* semaphore, const VulkanFence* fence) -> u32 {
+auto VulkanSwapchain::acquire_next_image(const vulkan::Semaphore* semaphore, const vulkan::Fence* fence) -> u32 {
     VkResult result;
     u32      image_index;
     result = vkAcquireNextImageKHR(

@@ -6,7 +6,8 @@ namespace JadeFrame {
 
 class VulkanLogicalDevice;
 
-class VulkanFence {
+namespace vulkan {
+class Fence {
 public:
     auto init(const VulkanLogicalDevice& device) -> void;
     auto deinit() -> void;
@@ -17,7 +18,7 @@ public:
     const VulkanLogicalDevice* m_device = nullptr;
 };
 
-class VulkanSemaphore {
+class Semaphore {
 public:
     auto init(const VulkanLogicalDevice& device) -> void;
     auto deinit() -> void;
@@ -25,5 +26,5 @@ public:
     VkSemaphore                m_handle = VK_NULL_HANDLE;
     const VulkanLogicalDevice* m_device = nullptr;
 };
-
+} // namespace vulkan
 } // namespace JadeFrame

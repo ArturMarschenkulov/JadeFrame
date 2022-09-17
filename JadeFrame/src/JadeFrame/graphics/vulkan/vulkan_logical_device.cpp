@@ -12,6 +12,7 @@
 #include <future>
 #include <set>
 #include <cassert>
+#include <array>
 
 
 namespace JadeFrame {
@@ -53,18 +54,18 @@ static auto VkResult_to_string(VkResult x) {
         Queue
 ---------------------------*/
 
-
-VulkanQueue::VulkanQueue(const VulkanLogicalDevice& device, u32 queue_family_index, u32 queue_index) {
+namespace vulkan {
+Queue::Queue(const VulkanLogicalDevice& device, u32 queue_family_index, u32 queue_index) {
     vkGetDeviceQueue(device.m_handle, queue_family_index, queue_index, &m_handle);
 }
-auto VulkanQueue::submit(const VkSubmitInfo& submit_info, const VulkanFence* p_fence) const -> void {
+auto Queue::submit(const VkSubmitInfo& submit_info, const vulkan::Fence* p_fence) const -> void {
     VkResult result;
     result = vkQueueSubmit(m_handle, 1, &submit_info, p_fence->m_handle);
     if (result != VK_SUCCESS) assert(false);
 }
-auto VulkanQueue::submit(
-    const VulkanCommandBuffer& cmd_buffer, const VulkanSemaphore* wait_semaphore,
-    const VulkanSemaphore* signal_semaphore, const VulkanFence* fence) -> void {
+auto Queue::submit(
+    const VulkanCommandBuffer& cmd_buffer, const vulkan::Semaphore* wait_semaphore,
+    const vulkan::Semaphore* signal_semaphore, const vulkan::Fence* fence) -> void {
     VkPipelineStageFlags wait_stages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     const VkSubmitInfo   submit_info = {
           .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -82,18 +83,18 @@ auto VulkanQueue::submit(
     result = vkQueueSubmit(m_handle, 1, &submit_info, fence->m_handle);
     if (result != VK_SUCCESS) assert(false);
 }
-auto VulkanQueue::wait_idle() const -> void {
+auto Queue::wait_idle() const -> void {
     VkResult result;
     result = vkQueueWaitIdle(m_handle);
     if (result != VK_SUCCESS) assert(false);
 }
-auto VulkanQueue::present(VkPresentInfoKHR info, VkResult& result) const -> void {
+auto Queue::present(VkPresentInfoKHR info, VkResult& result) const -> void {
     result = vkQueuePresentKHR(m_handle, &info);
     if (result != VK_SUCCESS) assert(false);
 }
 
-auto VulkanQueue::present(
-    const u32& index, const VulkanSwapchain& swapchain, const VulkanSemaphore* semaphore, VkResult* out_result) const
+auto Queue::present(
+    const u32& index, const VulkanSwapchain& swapchain, const vulkan::Semaphore* semaphore, VkResult* out_result) const
     -> void {
     /*VkResult result;*/
 
@@ -120,6 +121,7 @@ auto VulkanQueue::present(
     //	__debugbreak();
     // }
 }
+} // namespace vulkan
 
 /*---------------------------
         Logical Device
@@ -136,6 +138,23 @@ auto VulkanLogicalDevice::cleanup_swapchain() -> void {
 
     // m_render_pass.deinit();
     m_swapchain.deinit();
+}
+
+auto VulkanLogicalDevice::wait_for_fence(const vulkan::Fence& fences, bool wait_all, u64 timeout) -> void {
+    VkResult result;
+    result = vkWaitForFences(m_handle, 1, &fences.m_handle, wait_all, timeout);
+    if (result != VK_SUCCESS) assert(false);
+}
+auto VulkanLogicalDevice::wait_for_fences(const std::vector<vulkan::Fence>& fences, bool wait_all, u64 timeout)
+    -> void {
+    assert(fences.size() < 5);
+    std::array<VkFence, 5>  vk_fences;
+    for(u32 i = 0; i < fences.size(); ++i) {
+        vk_fences[i] = fences[i].m_handle;
+    }
+    VkResult result;
+    result = vkWaitForFences(m_handle, static_cast<u32>(fences.size()), vk_fences.data(), wait_all, timeout);
+    if (result != VK_SUCCESS) assert(false);
 }
 
 auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysicalDevice& physical_device) -> void {
@@ -182,8 +201,8 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 
 
 
-    m_graphics_queue = this->query_queue(indices.m_graphics_family.value(), 0);
-    m_present_queue = this->query_queue(indices.m_present_family.value(), 0);
+    m_graphics_queue = vulkan::Queue(*this, indices.m_graphics_family.value(), 0);
+    m_present_queue = vulkan::Queue(*this, indices.m_present_family.value(), 0);
 
 
     // Swapchain stuff
@@ -263,13 +282,6 @@ auto VulkanLogicalDevice::deinit() -> void {
     result = vkDeviceWaitIdle(m_handle);
     if (result != VK_SUCCESS) assert(false);
     vkDestroyDevice(m_handle, nullptr);
-}
-
-auto VulkanLogicalDevice::query_queue(u32 queue_family_index, u32 queue_index) -> VulkanQueue {
-    return VulkanQueue(*this, queue_family_index, queue_index);
-    // VulkanQueue queue;
-    // vkGetDeviceQueue(m_handle, queue_family_index, queue_index, &queue.m_handle);
-    // return queue;
 }
 
 } // namespace JadeFrame

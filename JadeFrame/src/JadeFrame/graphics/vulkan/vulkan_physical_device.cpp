@@ -134,8 +134,7 @@ auto VulkanPhysicalDevice::init(VulkanInstance& instance, const VulkanSurface& s
     /*
         Quick Vulkan Queue Family Guide:
         - Graphics: Used for rendering. (VK_QUEUE_GRAPHICS_BIT)
-        - Compute: Used for general purpose computation. E.g. Ray tracing, physics simulation, etc.
-       (VK_QUEUE_COMPUTE_BIT)
+        - Compute: Used for general purpose computation. (VK_QUEUE_COMPUTE_BIT)
         - Transfer: Used for data transfer operations. (VK_QUEUE_TRANSFER_BIT)
         - Sparse Binding: Used for sparse resources. (VK_QUEUE_SPARSE_BINDING_BIT)
         - Protected: Used for protected memory. (VK_QUEUE_PROTECTED_BIT)

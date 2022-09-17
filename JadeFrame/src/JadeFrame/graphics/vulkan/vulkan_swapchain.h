@@ -13,8 +13,12 @@ class VulkanLogicalDevice;
 class VulkanInstance;
 class VulkanPhysicalDevice;
 class VulkanSurface;
-class VulkanSemaphore;
-class VulkanFence;
+namespace vulkan {
+class Semaphore;
+class Fence;
+}
+// class vulkan::Semaphore;
+// class vulkan::Fence;
 class VulkanRenderPass;
 class VulkanImageView;
 
@@ -51,8 +55,8 @@ public:
     auto deinit() -> void;
     auto recreate() -> void;
 
-    auto acquire_next_image(const VulkanSemaphore* semaphore, const VulkanFence* fence, VkResult& result) -> u32;
-    auto acquire_next_image(const VulkanSemaphore* semaphore, const VulkanFence* fence) -> u32;
+    auto acquire_next_image(const vulkan::Semaphore* semaphore, const vulkan::Fence* fence, VkResult& result) -> u32;
+    auto acquire_next_image(const vulkan::Semaphore* semaphore, const vulkan::Fence* fence) -> u32;
 
 public:
     VkSwapchainKHR       m_handle = VK_NULL_HANDLE;

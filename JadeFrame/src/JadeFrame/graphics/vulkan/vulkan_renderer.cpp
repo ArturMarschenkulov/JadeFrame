@@ -64,7 +64,8 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
 auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     VulkanLogicalDevice& d = m_context.m_instance.m_logical_device;
 
-    d.m_in_flight_fences[d.m_current_frame].wait_for_fences();
+    d.wait_for_fence(d.m_in_flight_fences[d.m_current_frame], VK_TRUE, UINT64_MAX);
+    //d.m_in_flight_fences[d.m_current_frame].wait_for_fences();
     const u32 image_index =
         d.m_swapchain.acquire_next_image(&d.m_image_available_semaphores[d.m_current_frame], nullptr);
 
@@ -77,7 +78,8 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     d.m_present_image_index = image_index;
 
     if (d.m_images_in_flight[image_index].m_handle != VK_NULL_HANDLE) {
-        d.m_images_in_flight[image_index].wait_for_fences();
+        d.wait_for_fence(d.m_images_in_flight[image_index], VK_TRUE, UINT64_MAX);
+        // d.m_images_in_flight[image_index].wait_for_fences();
     }
     d.m_images_in_flight[image_index].m_handle = d.m_in_flight_fences[d.m_current_frame].m_handle;
 
