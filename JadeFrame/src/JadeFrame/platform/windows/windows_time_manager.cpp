@@ -6,7 +6,7 @@
 // #pragma comment(lib,"winmm.lib")
 
 namespace JadeFrame {
-
+namespace win32 {
 #if 1
 auto query_performance_frequency() -> Option<u64> {
     u64 frequency;
@@ -25,7 +25,7 @@ auto query_performance_counter() -> Option<u64> {
     }
 }
 #endif
-auto Windows_TimeManager::initialize() -> void {
+auto TimeManager::initialize() -> void {
     timeBeginPeriod(1);
 
 #if 1
@@ -51,7 +51,7 @@ auto Windows_TimeManager::initialize() -> void {
 #endif
 }
 
-auto Windows_TimeManager::get_time() const -> f64 {
+auto TimeManager::get_time() const -> f64 {
 #if 1
     const u64 counter = query_performance_counter().unwrap_unchecked() - m_offset;
     const u64 frequency = this->get_timer_frequency();
@@ -65,16 +65,16 @@ auto Windows_TimeManager::get_time() const -> f64 {
 #endif
 }
 
-auto Windows_TimeManager::get_timer_frequency() const -> u64 { return m_frequency; }
+auto TimeManager::get_timer_frequency() const -> u64 { return m_frequency; }
 
-auto Windows_TimeManager::calc_elapsed() -> f64 {
+auto TimeManager::calc_elapsed() -> f64 {
     time.current = this->get_time();
     time.update = time.current - time.previous;
     time.previous = time.current;
     return time.update;
 }
 
-auto Windows_TimeManager::frame_control(f64 delta_time) -> void {
+auto TimeManager::frame_control(f64 delta_time) -> void {
     // Frame time control system
     time.current = this->get_time();
     time.draw = time.current - time.previous;
@@ -92,8 +92,9 @@ auto Windows_TimeManager::frame_control(f64 delta_time) -> void {
     //__debugbreak();
 }
 
-auto Windows_TimeManager::set_FPS(f64 FPS) -> void {
+auto TimeManager::set_FPS(f64 FPS) -> void {
     max_FPS = static_cast<f32>(FPS);
     time.target = 1 / (f64)FPS;
+}
 }
 } // namespace JadeFrame

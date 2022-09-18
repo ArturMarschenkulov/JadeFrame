@@ -3,7 +3,9 @@
 #include "../platform_shared.h"
 #include <string>
 namespace JadeFrame {
-class Windows_SystemManager : ISystemManager {
+
+namespace win32 {
+class SystemManager : ISystemManager {
 public:
     virtual auto initialize() -> void override;
     virtual auto log() const -> void override;
@@ -54,4 +56,5 @@ public:
     u16   m_processor_level;
     u16   m_processor_revision;
 };
+}
 } // namespace JadeFrame

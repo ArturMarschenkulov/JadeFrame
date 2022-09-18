@@ -18,18 +18,18 @@ namespace JadeFrame {
 	TOOD: Consider whether this class should be RAII or not. Right now it is.
 */
 
-
-class Windows_Window : public IWindow {
+namespace win32 {
+class Window : public IWindow {
 public:
 
-	Windows_Window(const Windows_Window&) = delete;
-	Windows_Window(Windows_Window&&) = delete;
-	auto operator=(const Windows_Window&) -> Windows_Window& = delete;
-	auto operator=(Windows_Window&&) -> Windows_Window& = delete;
+	Window(const Window&) = delete;
+	Window(Window&&) = delete;
+	auto operator=(const Window&) -> Window& = delete;
+	auto operator=(Window&&) -> Window& = delete;
 
-	Windows_Window() = default;
-	Windows_Window(const Windows_Window::Desc& desc);
-	~Windows_Window();
+	Window() = default;
+	Window(const Window::Desc& desc);
+	~Window();
 
 
 
@@ -63,8 +63,9 @@ public:
 	WINDOW_STATE m_window_state = WINDOW_STATE::MINIMIZED;
 
 };
+} // namespace win32
 #ifdef _WIN32
-using Window = Windows_Window;
+using Window = win32::Window;
 #endif
 
-}
+} // namespace JadeFrame

@@ -11,7 +11,7 @@
 #include "JadeFrame/utils/utils.h"
 namespace JadeFrame {
 
-namespace platform {
+// namespace platform {
 namespace win32 {
 DWORD count_set_bits(ULONG_PTR bit_mask) {
     DWORD     LSHIFT = sizeof(ULONG_PTR) * 8 - 1;
@@ -156,8 +156,6 @@ auto test() -> void {
     static_assert(sizeof(LONG) == 4, "LONG is not 32-bit");           // i32
     static_assert(sizeof(WCHAR) == 2, "WCHAR is not 16-bit");         // u16
 }
-} // namespace win32
-} // namespace platform
 // static auto get_primary_monitor_handle() -> HMONITOR {
 //	const POINT pt_zero = { 0, 0 };
 //	return ::MonitorFromPoint(pt_zero, MONITOR_DEFAULTTOPRIMARY);
@@ -191,21 +189,6 @@ auto test() -> void {
 //	return 96;
 // }
 
-// Helper function to count set bits in the processor mask
-DWORD count_set_bits(ULONG_PTR bit_mask) {
-    DWORD     LSHIFT = sizeof(ULONG_PTR) * 8 - 1;
-    DWORD     bit_set_count = 0;
-    ULONG_PTR bit_test = static_cast<ULONG_PTR>(1) << LSHIFT;
-    DWORD     i;
-
-    for (i = 0; i <= LSHIFT; ++i) {
-        bit_set_count += ((bit_mask & bit_test) ? 1 : 0);
-        bit_test /= 2;
-    }
-
-    return bit_set_count;
-}
-
 // static auto get_string_reg_key(HKEY hKey, const wchar_t* strValueName, std::string& strValue, const std::string&
 // strDefaultValue) -> LONG { 	strValue = strDefaultValue; 	WCHAR szBuffer[512]; 	DWORD dwBufferSize =
 // sizeof(szBuffer);
@@ -219,11 +202,11 @@ DWORD count_set_bits(ULONG_PTR bit_mask) {
 
 
 
-auto Windows_SystemManager::initialize() -> void {
+auto SystemManager::initialize() -> void {
     Logger::debug("Initializing Windows System Manager");
     {
-        std::vector<platform::win32::ModuleEntry>  modules = platform::win32::get_modules();
-        std::vector<platform::win32::ProcessEntry> processes = platform::win32::get_processes();
+        std::vector<ModuleEntry>  modules = get_modules();
+        std::vector<ProcessEntry> processes = get_processes();
 
         Logger::debug("There are {} modules loaded", modules.size());
         for (auto& module : modules) {
@@ -250,8 +233,8 @@ auto Windows_SystemManager::initialize() -> void {
             if (success == TRUE) {
                 do {
                     m_modules.emplace_back();
-                    m_modules.back().m_name = platform::win32::from_wstring_to_string(module_entry.szModule);
-                    m_modules.back().m_path = platform::win32::from_wstring_to_string(module_entry.szExePath);
+                    m_modules.back().m_name = from_wstring_to_string(module_entry.szModule);
+                    m_modules.back().m_path = from_wstring_to_string(module_entry.szExePath);
                     m_modules.back().m_id = module_entry.th32ModuleID;
                     m_modules.back().m_process_id = module_entry.th32ProcessID;
                     m_modules.back().m_global_usage_count = module_entry.GlblcntUsage;
@@ -267,16 +250,16 @@ auto Windows_SystemManager::initialize() -> void {
 
 
         ::GetUserDefaultLocaleName(buffer, LOCALE_NAME_MAX_LENGTH);
-        m_user_locale = platform::win32::from_wstring_to_string(buffer);
+        m_user_locale = from_wstring_to_string(buffer);
 
         ::GetSystemDefaultLocaleName(buffer, LOCALE_NAME_MAX_LENGTH);
-        m_system_locale = platform::win32::from_wstring_to_string(buffer);
+        m_system_locale = from_wstring_to_string(buffer);
 
         ::GetComputerNameW(buffer, &size);
-        m_computer_name = platform::win32::from_wstring_to_string(buffer);
+        m_computer_name = from_wstring_to_string(buffer);
 
         ::GetUserNameW(buffer, &size);
-        m_user_name = platform::win32::from_wstring_to_string(buffer);
+        m_user_name = from_wstring_to_string(buffer);
     }
 
     {
@@ -412,8 +395,8 @@ auto Windows_SystemManager::initialize() -> void {
             HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"), 0, KEY_READ, &hKey);
         DWORD current_major_version_number;
         DWORD current_minor_version_number;
-        platform::win32::get_DWORD_reg_key(hKey, TEXT("CurrentMajorVersionNumber"), current_major_version_number, 0);
-        platform::win32::get_DWORD_reg_key(hKey, TEXT("CurrentMinorVersionNumber"), current_minor_version_number, 0);
+        get_DWORD_reg_key(hKey, TEXT("CurrentMajorVersionNumber"), current_major_version_number, 0);
+        get_DWORD_reg_key(hKey, TEXT("CurrentMinorVersionNumber"), current_minor_version_number, 0);
 
         m_window_version_major = current_major_version_number;
         m_window_version_minor = current_minor_version_number;
@@ -447,7 +430,7 @@ static auto win32_get_processor_architecture_string(u16 t) -> std::string {
     }
     return result;
 }
-auto Windows_SystemManager::log() const -> void {
+auto SystemManager::log() const -> void {
     std::cout << "**********SYSTEM LOG**********"
               << "\n"
               << "\tComputer Name: " << m_computer_name << "\n"
@@ -475,4 +458,6 @@ auto Windows_SystemManager::log() const -> void {
               << "\tTotal RAM     : " << bytes_to_string(m_total_virtual_memory) << "\n"
               << "******************************" << std::endl;
 }
+
+} // namespace win32
 } // namespace JadeFrame

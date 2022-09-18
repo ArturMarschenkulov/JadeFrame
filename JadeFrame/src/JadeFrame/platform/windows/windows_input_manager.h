@@ -8,8 +8,8 @@
 #include <queue>
 
 namespace JadeFrame {
-
-struct WindowsMessage;
+namespace win32 {
+struct EventMessage;
 enum class INPUT_STATE {
     RELEASED,
     PRESSED
@@ -114,7 +114,7 @@ struct KeyEvent : public Event {
     TYPE type;
     u64  key_code;
 };
-class Windows_InputManager : public IInputManager {
+class InputManager : public IInputManager {
     friend class WinWindow;
 
 public:
@@ -124,9 +124,9 @@ public:
     // key part
     std::queue<KeyEvent> key_buffer;
     // static auto key_callback(i64 lParam, u64 wParam, u32 message) -> void;
-    static auto key_callback(const WindowsMessage& window_message) -> void;
+    static auto key_callback(const EventMessage& window_message) -> void;
     static auto key_callback2(i64 lParam, u64 wParam, u32 message) -> void;
-    static auto char_callback(const WindowsMessage& window_message) -> void;
+    static auto char_callback(const EventMessage& window_message) -> void;
 
     static auto is_key_down(const KEY key) -> bool;
     static auto is_key_up(const KEY key) -> bool;
@@ -138,7 +138,7 @@ public:
 
 public:
     // mouse part
-    static auto mouse_button_callback(const WindowsMessage& window_message) -> void;
+    static auto mouse_button_callback(const EventMessage& window_message) -> void;
 
     auto is_button_down(const BUTTON button) const -> bool;
     auto is_button_up(const BUTTON button) const -> bool;
@@ -150,7 +150,8 @@ public:
     static std::array<INPUT_STATE, 3> m_previous_mouse_button_state;
     static v2                         m_mouse_posiition;
 };
+}
 #ifdef _WIN32
-using InputManager = Windows_InputManager;
+using InputManager = win32::InputManager;
 #endif
 } // namespace JadeFrame

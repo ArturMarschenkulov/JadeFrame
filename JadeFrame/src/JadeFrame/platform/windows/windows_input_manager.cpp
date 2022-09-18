@@ -8,17 +8,18 @@
 #include "windows_message_map.h" // for WindowMessage struct
 
 namespace JadeFrame {
+namespace win32 {
 /*
         KEY INPUT
 */
-std::array<INPUT_STATE, 512> Windows_InputManager::m_current_key_state = {};
-std::array<INPUT_STATE, 512> Windows_InputManager::m_previous_key_state = {};
+std::array<INPUT_STATE, 512> InputManager::m_current_key_state = {};
+std::array<INPUT_STATE, 512> InputManager::m_previous_key_state = {};
 
-auto Windows_InputManager::handle_input() -> void {
+auto InputManager::handle_input() -> void {
     for (size_t i = 0; i < m_current_key_state.size(); i++) { m_previous_key_state[i] = m_current_key_state[i]; }
 }
 
-auto Windows_InputManager::key_callback(const WindowsMessage& wm) -> void {
+auto InputManager::key_callback(const EventMessage& wm) -> void {
     auto hwnd = wm.hWnd;
     // window_message.message;
     auto wParam = wm.wParam;
@@ -51,7 +52,7 @@ auto Windows_InputManager::key_callback(const WindowsMessage& wm) -> void {
         //::PostQuitMessage(0);
     }
 }
-// auto Windows_InputManager::key_callback2(i64 lParam, u64 wParam, u32 message) -> void {
+// auto InputManager::key_callback2(i64 lParam, u64 wParam, u32 message) -> void {
 //	u64 key_code = wParam;
 //
 //	//int64_t bit_29 = (lParam >> 29) & 1; // 1 == system key (basically ALT key + some key)
@@ -83,7 +84,7 @@ auto Windows_InputManager::key_callback(const WindowsMessage& wm) -> void {
 //		::PostQuitMessage(0);
 //	}
 // }
-auto Windows_InputManager::char_callback(const WindowsMessage& wm) -> void {
+auto InputManager::char_callback(const EventMessage& wm) -> void {
     // window_message.hWnd;
     // window_message.message;
     auto wParam = wm.wParam;
@@ -98,23 +99,23 @@ auto Windows_InputManager::char_callback(const WindowsMessage& wm) -> void {
     }
 }
 
-auto Windows_InputManager::is_key_down(const KEY key) -> bool {
+auto InputManager::is_key_down(const KEY key) -> bool {
     i32  key_0 = static_cast<i32>(key);
     bool is_current_pressed = (m_current_key_state[key_0] == INPUT_STATE::PRESSED);
     return is_current_pressed ? true : false;
 }
-auto Windows_InputManager::is_key_up(const KEY key) -> bool {
+auto InputManager::is_key_up(const KEY key) -> bool {
     i32  key_0 = static_cast<i32>(key);
     bool is_current_released = (m_current_key_state[key_0] == INPUT_STATE::RELEASED);
     return is_current_released ? true : false;
 }
-auto Windows_InputManager::is_key_pressed(const KEY key) -> bool {
+auto InputManager::is_key_pressed(const KEY key) -> bool {
     i32  key_0 = static_cast<i32>(key);
     bool is_current_changed = (m_current_key_state[key_0] != m_previous_key_state[key_0]);
     bool is_current_pressed = (m_current_key_state[key_0] == INPUT_STATE::PRESSED);
     return (is_current_changed && is_current_pressed) ? true : false;
 }
-auto Windows_InputManager::is_key_released(const KEY key) -> bool {
+auto InputManager::is_key_released(const KEY key) -> bool {
     i32  key_0 = static_cast<i32>(key);
     bool is_current_changed = (m_current_key_state[key_0] != m_previous_key_state[key_0]);
     bool is_current_released = (m_current_key_state[key_0] == INPUT_STATE::RELEASED);
@@ -125,10 +126,10 @@ auto Windows_InputManager::is_key_released(const KEY key) -> bool {
 /*
         MOUSE INPUT
 */
-std::array<INPUT_STATE, 3> Windows_InputManager::m_current_mouse_button_state = {};
-std::array<INPUT_STATE, 3> Windows_InputManager::m_previous_mouse_button_state = {};
+std::array<INPUT_STATE, 3> InputManager::m_current_mouse_button_state = {};
+std::array<INPUT_STATE, 3> InputManager::m_previous_mouse_button_state = {};
 
-v2 Windows_InputManager::m_mouse_posiition{};
+v2 InputManager::m_mouse_posiition{};
 
 static auto convert_buttons_from_JF_to_imgui(BUTTON button) -> i32 {
     i32 result;
@@ -154,8 +155,8 @@ static auto convert_buttons_from_JF_to_imgui(BUTTON button) -> i32 {
 //	return result;
 // }
 
-// auto Windows_InputManager::mouse_button_callback(i64 lParam, i64 wParam, i32 message) -> void {
-auto Windows_InputManager::mouse_button_callback(const WindowsMessage& wm) -> void {
+// auto InputManager::mouse_button_callback(i64 lParam, i64 wParam, i32 message) -> void {
+auto InputManager::mouse_button_callback(const EventMessage& wm) -> void {
     // window_message.hWnd;
     auto message = wm.message;
     // auto wParam = window_message.wParam;
@@ -205,32 +206,32 @@ auto Windows_InputManager::mouse_button_callback(const WindowsMessage& wm) -> vo
     // io.DeltaTime = 1.0f / 60.0f;
 }
 
-auto Windows_InputManager::is_button_down(const BUTTON button) const -> bool {
+auto InputManager::is_button_down(const BUTTON button) const -> bool {
     i32  button_0 = static_cast<i32>(button);
     bool is_current_pressed = (m_current_key_state[button_0] == INPUT_STATE::PRESSED);
     return is_current_pressed ? true : false;
 }
 
-auto Windows_InputManager::is_button_up(const BUTTON button) const -> bool {
+auto InputManager::is_button_up(const BUTTON button) const -> bool {
     i32  button_0 = static_cast<i32>(button);
     bool is_current_released = (m_current_key_state[button_0] == INPUT_STATE::RELEASED);
     return is_current_released ? true : false;
 }
 
-auto Windows_InputManager::is_button_pressed(const BUTTON button) const -> bool {
+auto InputManager::is_button_pressed(const BUTTON button) const -> bool {
     i32  button_0 = static_cast<i32>(button);
     bool is_current_changed = (m_current_key_state[button_0] != m_previous_key_state[button_0]);
     bool is_current_pressed = (m_current_key_state[button_0] == INPUT_STATE::PRESSED);
     return (is_current_changed && is_current_pressed) ? true : false;
 }
 
-auto Windows_InputManager::is_button_released(const BUTTON button) const -> bool {
+auto InputManager::is_button_released(const BUTTON button) const -> bool {
     i32  button_0 = static_cast<i32>(button);
     bool is_current_changed = (m_current_key_state[button_0] != m_previous_key_state[button_0]);
     bool is_current_released = (m_current_key_state[button_0] == INPUT_STATE::RELEASED);
     return (is_current_changed && is_current_released) ? true : false;
 }
 
-auto Windows_InputManager::get_mouse_position() const -> v2 { return m_mouse_posiition; }
-
+auto InputManager::get_mouse_position() const -> v2 { return m_mouse_posiition; }
+} // namespace win32
 } // namespace JadeFrame

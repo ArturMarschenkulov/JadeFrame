@@ -34,9 +34,9 @@ namespace JadeFrame {
 */
 auto control_camera(Camera* self) -> void;
 #ifdef _WIN32
-using SystemManager = Windows_SystemManager;
-using InputManager = Windows_InputManager;
-using TimeManager = Windows_TimeManager;
+using SystemManager = win32::SystemManager;
+using InputManager = win32::InputManager;
+using TimeManager = win32::TimeManager;
 #elif __linux__
 using SystemManager = Linux_SystemManager;
 using InputManager = Linux_InputManager;

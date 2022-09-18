@@ -4,7 +4,8 @@
 #include <cstdint>
 
 namespace JadeFrame {
-class Windows_TimeManager : public ITimeManager {
+    namespace win32 {
+class TimeManager : public ITimeManager {
 public:
     virtual auto initialize() -> void override;
     virtual auto get_time() const -> f64 override;
@@ -32,4 +33,5 @@ public:
     Time time;
     f32  max_FPS;
 };
+    }
 } // namespace JadeFrame
