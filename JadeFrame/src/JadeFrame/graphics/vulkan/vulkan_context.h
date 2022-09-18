@@ -9,8 +9,11 @@
 namespace JadeFrame {
 
 #ifdef _WIN32
-class Windows_Window;
-using Window = Windows_Window;
+namespace win32 {
+class Window;
+}
+
+using Window = win32::Window;
 #elif __linux__
 class Linux_Window;
 using Window = Linux_Window;
