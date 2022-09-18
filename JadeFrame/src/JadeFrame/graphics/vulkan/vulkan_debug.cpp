@@ -21,7 +21,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
         case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT: msg_type = "Per."; break;
         default: assert(false);
     }
-    Logger::log(level, "Vulkan {}: {}", msg_type, pCallbackData->pMessage);
+    Logger::log(level, "Vulkan {}: {}\n-------------", msg_type, pCallbackData->pMessage);
 
     return VK_FALSE;
 }

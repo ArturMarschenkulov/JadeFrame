@@ -36,63 +36,63 @@ static auto create_shader_module_from_spirv(VkDevice device, const std::vector<u
 
 #if 1
 static auto debug_print_resources(const spirv_cross::ShaderResources& resources) -> void {
-
-	for (const spirv_cross::Resource& resource : resources.uniform_buffers) {
-		const std::string& name = resource.name;
-		Logger::info("uniform_buffers {}", name);
-	}
+    Logger::info("printing shader resources");
+    for (const spirv_cross::Resource& resource : resources.uniform_buffers) {
+        const std::string& name = resource.name;
+        Logger::info("\tuniform_buffers {}", name);
+        }
 	for (const spirv_cross::Resource& resource : resources.storage_buffers) {
 		const std::string& name = resource.name;
-		Logger::info("storage_buffers {}", name);
+		Logger::info("\tstorage_buffers {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.stage_inputs) {
 		const std::string& name = resource.name;
-		Logger::info("stage_inputs {}", name);
+		Logger::info("\tstage_inputs {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.stage_outputs) {
 		const std::string& name = resource.name;
-		Logger::info("stage_outputs {}", name);
+		Logger::info("\tstage_outputs {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.subpass_inputs) {
 		const std::string& name = resource.name;
-		Logger::info("subpass_inputs {}", name);
+		Logger::info("\tsubpass_inputs {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.storage_images) {
 		const std::string& name = resource.name;
-		Logger::info("storage_images {}", name);
+		Logger::info("\tstorage_images {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.sampled_images) {
 		const std::string& name = resource.name;
-		Logger::info("sampled_images {}", name);
+		Logger::info("\tsampled_images {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.atomic_counters) {
 		const std::string& name = resource.name;
-		Logger::info("atomic_counters {}", name);
+		Logger::info("\tatomic_counters {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.acceleration_structures) {
 		const std::string& name = resource.name;
-		Logger::info("acceleration_structures {}", name);
+		Logger::info("\tacceleration_structures {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.push_constant_buffers) {
 		const std::string& name = resource.name;
-		Logger::info("push_constant_buffers {}", name);
+		Logger::info("\tpush_constant_buffers {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.separate_images) {
 		const std::string& name = resource.name;
-		Logger::info("separate_images {}", name);
+		Logger::info("\tseparate_images {}", name);
 	}
 	for (const spirv_cross::Resource& resource : resources.separate_samplers) {
 		const std::string& name = resource.name;
-		Logger::info("separate_samplers {}", name);
+		Logger::info("\tseparate_samplers {}", name);
 	}
 
 	for (const spirv_cross::BuiltInResource& resource : resources.builtin_inputs) {
 		const std::string& name = resource.resource.name;
-		Logger::info("builtin_inputs {}", name);
+		Logger::info("\tbuiltin_inputs {}", name);
 	}
 	for (const spirv_cross::BuiltInResource& resource : resources.builtin_outputs) {
 		const std::string& name = resource.resource.name;
-		Logger::info("builtin_outputs {}", name);
+		Logger::info("\tbuiltin_outputs {}", name);
 	}
 }
 #endif
