@@ -41,10 +41,10 @@ public:
         const VulkanCommandBuffer& cmd_buffer, const vulkan::Semaphore* wait_semaphore,
         const vulkan::Semaphore* signal_semaphore, const vulkan::Fence* p_fence) -> void;
     auto wait_idle() const -> void;
-    auto present(VkPresentInfoKHR info, VkResult& result) const -> void;
+    auto present(VkPresentInfoKHR info) const -> VkResult;
     auto present(
-        const u32& index, const VulkanSwapchain& swapchain, const vulkan::Semaphore* result, VkResult* out_result) const
-        -> void;
+        const u32& index, const VulkanSwapchain& swapchain, const vulkan::Semaphore* result) const
+        -> VkResult;
 
 public:
     VkQueue m_handle = VK_NULL_HANDLE;

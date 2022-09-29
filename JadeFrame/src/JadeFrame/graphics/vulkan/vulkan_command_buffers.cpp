@@ -58,6 +58,9 @@ auto VulkanCommandBuffer::reset() -> void {
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
+auto VulkanCommandBuffer::copy_buffer(const VulkanBuffer& src, const VulkanBuffer& dst, u32 region_size, VkBufferCopy* regions) -> void {
+    vkCmdCopyBuffer(m_handle, src.m_handle, dst.m_handle, region_size, regions);
+}
 
 
 auto VulkanCommandPool::init(const VulkanLogicalDevice& device, const QueueFamilyIndex& queue_family_index) -> void {

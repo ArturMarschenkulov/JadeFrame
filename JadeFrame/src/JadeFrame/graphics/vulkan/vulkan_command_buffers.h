@@ -28,6 +28,7 @@ public:
 
     auto reset() -> void;
 
+    auto copy_buffer(const VulkanBuffer& src, const VulkanBuffer& dst, u32 region_size, VkBufferCopy* regions) -> void;
 public:
     VkCommandBuffer            m_handle;
     const VulkanLogicalDevice* m_device = nullptr;

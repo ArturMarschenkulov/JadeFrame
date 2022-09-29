@@ -88,14 +88,14 @@ auto Queue::wait_idle() const -> void {
     result = vkQueueWaitIdle(m_handle);
     if (result != VK_SUCCESS) assert(false);
 }
-auto Queue::present(VkPresentInfoKHR info, VkResult& result) const -> void {
-    result = vkQueuePresentKHR(m_handle, &info);
+auto Queue::present(VkPresentInfoKHR info) const -> VkResult {
+    VkResult result = vkQueuePresentKHR(m_handle, &info);
     if (result != VK_SUCCESS) assert(false);
+    return result;
 }
 
-auto Queue::present(
-    const u32& index, const VulkanSwapchain& swapchain, const vulkan::Semaphore* semaphore, VkResult* out_result) const
-    -> void {
+auto Queue::present(const u32& index, const VulkanSwapchain& swapchain, const vulkan::Semaphore* semaphore) const
+    -> VkResult {
     /*VkResult result;*/
 
     const VkPresentInfoKHR info = {
@@ -109,7 +109,7 @@ auto Queue::present(
         .pResults = nullptr,
     };
 
-    *out_result = vkQueuePresentKHR(m_handle, &info);
+    return vkQueuePresentKHR(m_handle, &info);
     // if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR /*|| d.m_framebuffer_resized*/) {
     //	/*d.m_framebuffer_resized = false;*/
     //	std::cout << "recreate because of vkQueuePresentKHR" << std::endl;
