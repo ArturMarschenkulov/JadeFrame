@@ -313,6 +313,7 @@ auto BaseApp::start() -> void {
             // m_gui.render();
 
             m_renderer->present();
+            m_tick += 1;
         }
         this->poll_events();
         m_time_manager.frame_control(time_since_last_frame);

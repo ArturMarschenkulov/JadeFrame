@@ -151,6 +151,7 @@ public:
     GUI         m_gui;
 
     ResourceStorage m_resources;
+    u64 m_tick = 0;
 };
 
 
