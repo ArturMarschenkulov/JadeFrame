@@ -63,6 +63,20 @@ auto VulkanCommandBuffer::copy_buffer(const VulkanBuffer& src, const VulkanBuffe
 }
 
 
+static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFlags& flag) -> std::string { 
+    std::string result = "{ ";
+    if (flag & VK_COMMAND_POOL_CREATE_TRANSIENT_BIT) {
+        result += "TRANSIENT ";
+    }
+    if (flag & VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT) {
+        result += "RESET_COMMAND_BUFFER ";
+    }
+    if (flag & VK_COMMAND_POOL_CREATE_PROTECTED_BIT) {
+        result += "PROTECTED ";
+    }
+    result += "}";
+    return result;
+}
 auto VulkanCommandPool::init(const VulkanLogicalDevice& device, const QueueFamilyIndex& queue_family_index) -> void {
     m_device = &device;
     VkResult result;

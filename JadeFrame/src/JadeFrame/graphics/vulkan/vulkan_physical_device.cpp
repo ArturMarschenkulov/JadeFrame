@@ -63,16 +63,6 @@ static auto query_surface_support_details(const VulkanPhysicalDevice& physical_d
 // auto decode_bitmask(const Flag&) -> std::vector<Flag> {
 //
 // }
-auto to_string(const VkPhysicalDeviceType& device_type) -> std::string {
-    switch (device_type) {
-        case VK_PHYSICAL_DEVICE_TYPE_OTHER: return "Other";
-        case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: return "Integrated GPU";
-        case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU: return "Discrete GPU";
-        case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: return "Virtual GPU";
-        case VK_PHYSICAL_DEVICE_TYPE_CPU: return "CPU";
-        default: return "Unknown";
-    }
-}
 auto to_string(uint8_t pipeline_cache_UUID[16]) -> std::string {
     std::string result;
     for (auto i = 0; i < 16; ++i) {
@@ -97,30 +87,6 @@ auto to_string_vendor_id(uint32_t vendor_id) -> std::string {
         case 0x8087: return "Xilinx";
         default: return "Unknown";
     }
-}
-auto to_string(const VkMemoryType& memory_type) -> std::string {
-    std::string result = "{ ";
-    if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) { result += "DeviceLocal "; }
-    if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) { result += "HostVisible "; }
-    if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) { result += "HostCoherent "; }
-    if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) { result += "HostCached "; }
-    if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT) { result += "LazilyAllocated "; }
-    if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_PROTECTED_BIT) { result += "Protected "; }
-    // AMD Specific
-    // if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD) { result += "DeviceCoherent "; }
-    // if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD) { result += "DeviceUncached "; }
-    // NV Specific
-    // if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV ) { result += "Protected "; }
-    result += "}";
-    return result;
-}
-auto to_string(const VkMemoryHeap& memory_heap) -> std::string {
-    std::string result = "{ ";
-    if (memory_heap.flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) { result += "DeviceLocal "; }
-    if (memory_heap.flags & VK_MEMORY_HEAP_MULTI_INSTANCE_BIT) { result += "MultiInstance "; }
-    if (memory_heap.flags & VK_MEMORY_HEAP_MULTI_INSTANCE_BIT_KHR) { result += "MultiInstance_KHR "; }
-    result += "}";
-    return result;
 }
 auto VulkanPhysicalDevice::init(VulkanInstance& instance, const VulkanSurface& surface) -> void {
     m_instance_p = &instance;

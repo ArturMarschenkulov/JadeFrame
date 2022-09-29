@@ -281,7 +281,7 @@ BaseApp::BaseApp(const DESC& desc) {
     }
     // m_gui.init(m_current_window_p->m_window_handle, api);
 }
-auto to_string(const Matrix4x4& m) -> std::string {
+inline auto to_string(const Matrix4x4& m) -> std::string {
     std::string result;
     for (u32 col = 0; col < 4; col++) {
         for (u32 row = col + 1; row < 4; row++) {
