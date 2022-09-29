@@ -350,6 +350,39 @@ auto VulkanPipeline::init(
 
     const std::array<VulkanDescriptorSetLayout, 4> set_layouts = extract_descriptor_set_layouts(device, reflected_code);
 
+    // Logging the pipeline layout
+    {
+        std::string offset = "  ";
+        Logger::info("Created Pipeline Layout {} at {}", fmt::ptr(m_layout), fmt::ptr(this));
+        Logger::info("\tSet Layouts count: {}", set_layouts.size());
+        for (u32 i = 0; i < set_layouts.size(); i++) {
+            std::string layout_str;
+            switch (i) {
+                case 0: layout_str = "Global"; break;
+                case 1: layout_str = "Per-Pass"; break;
+                case 2: layout_str = "Per-Material"; break;
+                case 3: layout_str = "Per-Object"; break;
+                default: layout_str = "Unknown"; break;
+            }
+            Logger::info("\t-Set layout: {} {}", i, layout_str);
+            const VulkanDescriptorSetLayout& set_layout = set_layouts[i];
+            for (u32 j = 0; j < set_layout.m_bindings.size(); j++) {
+                const VkDescriptorSetLayoutBinding& binding = set_layout.m_bindings[j];
+                Logger::info("\t\tBinding: {}", binding.binding);
+                Logger::info("\t\t-Type: {}", to_string(binding.descriptorType));
+                Logger::info("\t\t-Count: {}", binding.descriptorCount);
+                Logger::info("\t\t-Stage: {}", to_string_from_shader_stage_flags(binding.stageFlags));
+            }
+        }
+        Logger::info("Push constant ranges count: {}", vulkan_push_constant_ranges.size());
+        for (u32 i = 0; i < vulkan_push_constant_ranges.size(); i++) {
+            const VkPushConstantRange& push_constant_range = vulkan_push_constant_ranges[i];
+            Logger::info("\tPush constant range: {}", i);
+            Logger::info("\t\tStage: {}", to_string_from_shader_stage_flags(push_constant_range.stageFlags));
+            Logger::info("\t\tOffset: {}", push_constant_range.offset);
+            Logger::info("\t\tSize: {}", push_constant_range.size);
+        }
+    }
     std::vector<VkPipelineShaderStageCreateInfo> shader_stages;
     shader_stages.resize(m_code.m_modules.size());
     for (u32 i = 0; i < shader_stages.size(); i++) {
