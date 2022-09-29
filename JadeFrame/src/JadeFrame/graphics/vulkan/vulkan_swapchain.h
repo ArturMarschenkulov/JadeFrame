@@ -16,7 +16,7 @@ class VulkanSurface;
 namespace vulkan {
 class Semaphore;
 class Fence;
-}
+} // namespace vulkan
 // class vulkan::Semaphore;
 // class vulkan::Fence;
 class VulkanRenderPass;

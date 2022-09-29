@@ -87,7 +87,8 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     VulkanCommandBuffer& cb = d.m_command_buffers[image_index];
     cb.record_begin();
     {
-        const auto& c = m_clear_color;
+        // const RGBAColor& c = m_clear_color;
+        const RGBAColor c = {0.2_f32, 0.2_f32, 0.2_f32, 1.0_f32};
         cb.render_pass_begin(
             d.m_swapchain.m_framebuffers[image_index], d.m_swapchain.m_render_pass, d.m_swapchain.m_extent,
             {
@@ -104,7 +105,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
                 min_ubo_alignment > 0 ? (block_size + min_ubo_alignment - 1) & ~(min_ubo_alignment - 1) : block_size;
 
             // Update ubo buffer and descriptor set when the amount of render commands changes
-            if (m_render_commands.size() * aligned_block_size != d.m_ub_tran.m_size) {
+            if (m_render_commands.size() != 0 && m_render_commands.size() * aligned_block_size != d.m_ub_tran.m_size) {
                 d.m_ub_tran.resize(m_render_commands.size() * aligned_block_size);
                 d.m_descriptor_sets[0].readd_uniform_buffer(1, d.m_ub_tran);
                 d.m_descriptor_sets[0].update();
@@ -124,13 +125,30 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
 
 
-                vkCmdBindPipeline(cb.m_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.m_pipeline.m_handle);
+                vkCmdBindPipeline(
+                    cb.m_handle,                     // commandBuffer
+                    VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+                    shader.m_pipeline.m_handle       // pipeline
+                );
                 VkBuffer     vertex_buffers[] = {gpu_data.m_vertex_buffer.m_handle};
-                VkDeviceSize offsets[] = {0};
-                vkCmdBindVertexBuffers(cb.m_handle, 0, 1, vertex_buffers, offsets);
+                VkDeviceSize offsets[] = {0, 0};
+                vkCmdBindVertexBuffers(
+                    cb.m_handle,    // commandBuffer
+                    0,              // firstBinding
+                    1,              // bindingCount
+                    vertex_buffers, // pBuffers
+                    offsets         // pOffsets
+                );
                 vkCmdBindDescriptorSets(
-                    cb.m_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, shader.m_pipeline.m_layout, 0, 1,
-                    &d.m_descriptor_sets[0].m_handle, d.m_descriptor_sets[0].m_layout->m_dynamic_count, &offset);
+                    cb.m_handle,                                      // commandBuffer
+                    VK_PIPELINE_BIND_POINT_GRAPHICS,                  // pipelineBindPoint
+                    shader.m_pipeline.m_layout,                       // layout
+                    0,                                                // firstSet
+                    1,                                                // descriptorSetCount
+                    &d.m_descriptor_sets[0].m_handle,                 // pDescriptorSets
+                    d.m_descriptor_sets[0].m_layout->m_dynamic_count, // dynamicOffsetCount
+                    &offset                                           // pDynamicOffsets
+                );
 
 
                 if (vertex_data.m_indices.size() > 0) {
@@ -155,11 +173,10 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 }
 
 auto Vulkan_Renderer::present() -> void {
-    VkResult             result;
     VulkanLogicalDevice& d = m_context.m_instance.m_logical_device;
 
-    d.m_present_queue.present(
-        d.m_present_image_index, d.m_swapchain, &d.m_render_finished_semaphores[d.m_current_frame], &result);
+    VkResult result = d.m_present_queue.present(
+        d.m_present_image_index, d.m_swapchain, &d.m_render_finished_semaphores[d.m_current_frame]);
     {
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || d.m_framebuffer_resized) {
             d.m_framebuffer_resized = false;

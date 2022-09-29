@@ -4,6 +4,7 @@
 #include "vulkan_physical_device.h"
 #include "vulkan_swapchain.h"
 #include "vulkan_descriptor_set.h"
+#include "vulkan_shared.h"
 
 #include "SPIRV-Cross/spirv_glsl.hpp"
 #include "SPIRV-Cross/spirv_hlsl.hpp"
