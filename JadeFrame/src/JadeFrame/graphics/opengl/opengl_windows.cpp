@@ -61,6 +61,28 @@ static PFNWGLGETEXTENSIONSSTRINGEXTPROC*  wglGetExtensionsStringEXT = nullptr;
 //	return true;
 // }
 namespace JadeFrame {
+namespace opengl {
+namespace win32 {
+
+auto init_device_context(const HWND& window_handle) -> HDC {
+    static bool is_wgl_loaded = false;
+    if (is_wgl_loaded == false) { is_wgl_loaded = win32::load(); }
+
+    HDC device_context = ::GetDC(window_handle);
+    if (device_context == NULL) {
+        Logger::err("GetDC(hWnd) failed! {}", ::GetLastError());
+        assert(false);
+    }
+    return device_context;
+}
+
+auto init_render_context(HDC device_context) -> HGLRC {
+    win32::set_pixel_format(device_context);
+    HGLRC render_context = win32::create_render_context(device_context);
+    i32   result = gladLoadGL();
+    if (result != 1) { Logger::err("gladLoadGL() failed.", ::GetLastError()); }
+    return render_context;
+}
 static auto load_wgl_functions() -> void {
     wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC*)wglGetProcAddress("wglChoosePixelFormatARB");
     wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC*)wglGetProcAddress("wglCreateContextAttribsARB");
@@ -68,7 +90,7 @@ static auto load_wgl_functions() -> void {
     wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC*)wglGetProcAddress("wglGetExtensionsStringEXT");
 }
 
-auto wgl_load() -> bool {
+auto load() -> bool {
     // DummyWindow dummy_window;
     const HINSTANCE instance = GetModuleHandleW(NULL);
     if (instance == NULL) { Logger::log("GetModuleHandleW(NULL) failed. {}", ::GetLastError()); }
@@ -138,9 +160,9 @@ auto wgl_load() -> bool {
     return true;
 }
 
-auto wgl_swap_interval(i32 i) -> void { wglSwapIntervalEXT(i); }
+auto swap_interval(i32 i) -> void { wglSwapIntervalEXT(i); }
 
-auto wgl_set_pixel_format(const HDC& device_context) -> void {
+auto set_pixel_format(const HDC& device_context) -> void {
     const i32 pixel_attributes[] = {
         WGL_DRAW_TO_WINDOW_ARB,
         GL_TRUE,
@@ -183,7 +205,7 @@ auto wgl_set_pixel_format(const HDC& device_context) -> void {
     if (result == FALSE) { Logger::log("SetPixelFormat() failed. {}", ::GetLastError()); }
 }
 
-auto wgl_create_render_context(HDC device_context) -> HGLRC {
+auto create_render_context(HDC device_context) -> HGLRC {
     const i32 major_min = 4, minor_min = 6;
     i32       context_attributes[] = {
               WGL_CONTEXT_MAJOR_VERSION_ARB,
@@ -208,5 +230,7 @@ auto wgl_create_render_context(HDC device_context) -> HGLRC {
     }
     return render_context;
 }
+} // namespace win32
+} // namespace opengl
 } // namespace JadeFrame
 #endif
