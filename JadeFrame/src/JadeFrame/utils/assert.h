@@ -10,7 +10,7 @@ namespace JadeFrame {
             /*std::string t = fmt::v8::format("{}: {}: {}", __FILE__,                                                  \
              * __LINE__, std::string(text));*/                                                                         \
                                                                                                                        \
-            Logger::err(msg);                                                                                          \
+            Logger::err("{}", msg);                                                                                          \
             assert(false);                                                                                             \
         }                                                                                                              \
     } while (0)
