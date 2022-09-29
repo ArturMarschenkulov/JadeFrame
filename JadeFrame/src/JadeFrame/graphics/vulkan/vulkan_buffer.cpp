@@ -359,6 +359,13 @@ auto VulkanImage::init(const VulkanLogicalDevice& device, const v2u32& size, VkF
 
 	result = vkCreateImage(device.m_handle, &image_info, nullptr, &m_handle);
 	JF_ASSERT(result == VK_SUCCESS, "");
+	{
+		Logger::info("Created image {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
+		Logger::info("-w, h, d: {}, {}, {}", image_info.extent.width, image_info.extent.height, image_info.extent.depth);
+		Logger::info("-mip levels: {}", image_info.mipLevels);
+		Logger::info("-array layers: {}", image_info.arrayLayers);
+		
+	}
 
 	VkMemoryRequirements mem_requirements;
 	vkGetImageMemoryRequirements(device.m_handle, m_handle, &mem_requirements);

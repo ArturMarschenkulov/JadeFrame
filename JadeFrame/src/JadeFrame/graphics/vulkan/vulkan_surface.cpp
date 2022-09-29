@@ -23,6 +23,9 @@ auto VulkanSurface::init(VkInstance instance, HWND window_handle) -> void {
         assert(false);
         throw std::runtime_error("failed to create window surface!");
     }
+    {
+        Logger::info("Created Win32 surface {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
+    }
 #else
     assert(false && "not implemented yet");
 #endif

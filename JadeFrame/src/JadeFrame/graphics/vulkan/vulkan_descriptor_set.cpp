@@ -117,6 +117,9 @@ auto VulkanDescriptorSetLayout::add_binding(
         case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC: m_dynamic_count++; break;
         default:;
     }
+    {
+        // Logger::info()
+    }
 }
 
 auto VulkanDescriptorSetLayout::init(const VulkanLogicalDevice& device) -> void {
@@ -134,9 +137,20 @@ auto VulkanDescriptorSetLayout::init(const VulkanLogicalDevice& device) -> void 
 
     result = vkCreateDescriptorSetLayout(device.m_handle, &layout_info, nullptr, &m_handle);
     if (result != VK_SUCCESS) assert(false);
+    {
+        Logger::info("Created descriptor set layout {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
+        Logger::info("\tBindings: {}", m_bindings.size());
+        for (const auto& b : m_bindings) {
+            Logger::info("\t\tBinding: {}", b.binding);
+            Logger::info("\t\t-Descriptor Type: {}", to_string(b.descriptorType));
+            Logger::info("\t\t-Descriptor Count: {}", b.descriptorCount);
+            Logger::info("\t\t-Stage Flags: {}", to_string_from_shader_stage_flags(b.stageFlags));
+        }
+    }
 }
 auto VulkanDescriptorSetLayout::deinit() -> void {
     vkDestroyDescriptorSetLayout(m_device->m_handle, m_handle, nullptr);
+    { Logger::info("Destroyed descriptor set layout {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
 }
 
 /*---------------------------
@@ -147,6 +161,11 @@ auto VulkanDescriptorPool::add_pool_size(const VkDescriptorPoolSize& pool_size) 
     JF_ASSERT(pool_size.descriptorCount > 0, "");
 
     m_pool_sizes.push_back(pool_size);
+    {
+        Logger::info(
+            "Added to descriptor pool {} a pool size {} of type {}", fmt::ptr(this), pool_size.descriptorCount,
+            to_string(pool_size.type));
+    }
 }
 
 
@@ -166,9 +185,20 @@ auto VulkanDescriptorPool::init(const VulkanLogicalDevice& device, u32 max_sets)
 
     result = vkCreateDescriptorPool(device.m_handle, &pool_info, nullptr, &m_handle);
     if (result != VK_SUCCESS) assert(false);
+    {
+        Logger::info("Created descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
+        Logger::info("\tmax sets: {}", max_sets);
+        Logger::info("\tpools: {}", m_pool_sizes.size());
+        for (const auto& pool_size : m_pool_sizes) {
+            Logger::info("\t-size, type: {} {}", pool_size.descriptorCount, to_string(pool_size.type));
+        }
+    }
 }
 
-auto VulkanDescriptorPool::deinit() -> void { vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr); }
+auto VulkanDescriptorPool::deinit() -> void {
+    vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr);
+    { Logger::info("Destroyed descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
+}
 
 auto VulkanDescriptorPool::allocate_descriptor_sets(const VulkanDescriptorSetLayout& descriptor_set_layout, u32 amount)
     -> std::vector<VulkanDescriptorSet> {
@@ -185,6 +215,10 @@ auto VulkanDescriptorPool::allocate_descriptor_sets(const VulkanDescriptorSetLay
     std::vector<VkDescriptorSet> handles(amount);
     result = vkAllocateDescriptorSets(m_device->m_handle, &alloc_info, handles.data());
     if (result != VK_SUCCESS) assert(false);
+    {
+        Logger::info(
+            "Allocated {} descriptor sets from pool {} at {}", amount, fmt::ptr(this), fmt::ptr(*handles.data()));
+    }
 
     std::vector<VulkanDescriptorSet> sets;
     sets.resize(handles.size());
@@ -193,12 +227,29 @@ auto VulkanDescriptorPool::allocate_descriptor_sets(const VulkanDescriptorSetLay
         set.m_handle = handles[i];
         set.m_device = m_device;
 
-        sets[i].m_layout = &descriptor_set_layout;
+        set.m_layout = &descriptor_set_layout;
         set.m_descriptors.resize(descriptor_set_layout.m_bindings.size());
         for (u32 j = 0; j < descriptor_set_layout.m_bindings.size(); j++) {
-            set.m_descriptors[j].binding = descriptor_set_layout.m_bindings[j].binding;
-            set.m_descriptors[j].stage_flags = descriptor_set_layout.m_bindings[j].stageFlags;
-            set.m_descriptors[j].type = descriptor_set_layout.m_bindings[j].descriptorType;
+            VulkanDescriptor& descr = set.m_descriptors[j];
+            descr.binding = descriptor_set_layout.m_bindings[j].binding;
+            descr.stage_flags = descriptor_set_layout.m_bindings[j].stageFlags;
+            descr.type = descriptor_set_layout.m_bindings[j].descriptorType;
+        }
+    }
+    {
+        Logger::info(
+            "Allocated {} descriptor sets from pool {} at {}", amount, fmt::ptr(this), fmt::ptr(*handles.data()));
+        i32 i = 0;
+        for (const auto& set : sets) {
+            Logger::info("\tset {} at {}", i, fmt::ptr(set.m_handle));
+            Logger::info("\tlayout at: {}", fmt::ptr(set.m_layout->m_handle));
+            Logger::info("\tdescriptors: {}", set.m_descriptors.size());
+            for (const auto& descr : set.m_descriptors) {
+                Logger::info("\t\tbinding: {}", descr.binding);
+                Logger::info("\t\t-type: {}", to_string(descr.type));
+                Logger::info("\t\t-stage flags: {}", to_string_from_shader_stage_flags(descr.stage_flags));
+            }
+            i++;
         }
     }
     return sets;
@@ -219,12 +270,14 @@ auto VulkanDescriptorPool::free_descriptor_sets(const std::vector<VulkanDescript
     // result = vkResetDescriptorPool(m_device->m_handle, m_handle, 0);
     // if (result != VK_SUCCESS) __debugbreak();
     vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr);
+    { Logger::info("Destroyed descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
 }
 
 auto VulkanDescriptorPool::free_descriptor_set(const VulkanDescriptorSet& descriptor_set) -> void {
     VkResult result;
     result = vkFreeDescriptorSets(m_device->m_handle, m_handle, 1, &descriptor_set.m_handle);
     if (result != VK_SUCCESS) assert(false);
+    { Logger::info("Freed descriptor set {} from pool {}", fmt::ptr(&descriptor_set), fmt::ptr(this)); }
 }
 
 } // namespace JadeFrame

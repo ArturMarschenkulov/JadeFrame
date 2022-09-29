@@ -204,6 +204,9 @@ auto VulkanInstance::init(HWND window_handle) -> void {
     result = vkCreateInstance(&create_info, nullptr, &m_instance);
     if (result != VK_SUCCESS) assert(false);
 
+    {
+        Logger::info("Created Vulkan Instance {} at {}", fmt::ptr(this), fmt::ptr(m_instance));
+    }
     if (m_enable_validation_layers) {
         VkDebugUtilsMessengerCreateInfoEXT info;
         populate_debug_messenger_create_info(info);

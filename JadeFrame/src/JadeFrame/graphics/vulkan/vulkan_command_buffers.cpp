@@ -73,6 +73,11 @@ auto VulkanCommandPool::init(const VulkanLogicalDevice& device, const QueueFamil
 
     result = vkCreateCommandPool(device.m_handle, &pool_info, nullptr, &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
+    {
+        Logger::info("Created Command Pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
+        Logger::info("-flags: {}", to_string_from_command_pool_create_flags(pool_info.flags));
+        Logger::info("-queueFamilyIndex: {}", pool_info.queueFamilyIndex);
+    }
 }
 
 auto VulkanCommandPool::deinit() -> void { vkDestroyCommandPool(m_device->m_handle, m_handle, nullptr); }
@@ -90,6 +95,9 @@ auto VulkanCommandPool::allocate_command_buffers(u32 amount) const -> std::vecto
     };
     result = vkAllocateCommandBuffers(m_device->m_handle, &alloc_info, handles.data());
     JF_ASSERT(result == VK_SUCCESS, "");
+    {
+        Logger::info("Allocated {} Command Buffers to {} from pool {}", amount, fmt::ptr(*handles.data()), fmt::ptr(m_handle));
+    }
 
 
     std::vector<VulkanCommandBuffer> command_buffers(handles.size());
@@ -106,6 +114,9 @@ auto VulkanCommandPool::allocate_command_buffer() const -> VulkanCommandBuffer {
 auto VulkanCommandPool::free_command_buffers(const std::vector<VulkanCommandBuffer>& command_buffers) const -> void {
     for (u32 i = 0; i < command_buffers.size(); i++) {
         vkFreeCommandBuffers(m_device->m_handle, m_handle, 1, &command_buffers[i].m_handle);
+        {
+            Logger::info("Freed Command Buffer {} from {}", fmt::ptr(command_buffers[i].m_handle), fmt::ptr(m_handle));
+        }
     }
 }
 } // namespace JadeFrame

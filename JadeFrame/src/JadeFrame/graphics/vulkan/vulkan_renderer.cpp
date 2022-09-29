@@ -63,7 +63,7 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
 }
 auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     VulkanLogicalDevice& d = m_context.m_instance.m_logical_device;
-
+    Logger::info("start of frame");
     d.wait_for_fence(d.m_in_flight_fences[d.m_current_frame], VK_TRUE, UINT64_MAX);
     //d.m_in_flight_fences[d.m_current_frame].wait_for_fences();
     const u32 image_index =
@@ -151,6 +151,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         d.m_command_buffers[image_index], &d.m_image_available_semaphores[d.m_current_frame],
         &d.m_render_finished_semaphores[d.m_current_frame], &d.m_in_flight_fences[d.m_current_frame]);
     m_render_commands.clear();
+    std::cout << "Rendered frame" << std::endl;
 }
 
 auto Vulkan_Renderer::present() -> void {

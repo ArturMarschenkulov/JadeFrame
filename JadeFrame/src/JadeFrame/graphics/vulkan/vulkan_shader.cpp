@@ -7,9 +7,11 @@ namespace JadeFrame {
 
 Vulkan_Shader::Vulkan_Shader(const VulkanLogicalDevice& device, const DESC& desc) {
     m_device = &device;
+    Logger::info("Creating Vulkan shader");
     m_pipeline.init(
         device, device.m_swapchain.m_extent, device.m_descriptor_set_layout_0, device.m_swapchain.m_render_pass,
         desc.code, desc.vertex_format);
+    Logger::info("Created Vulkan shader");
 }
 
 } // namespace JadeFrame
