@@ -261,22 +261,13 @@ IF(WIN32)
         Platform_Win32
         opengl32
         vulkan-1
-        # "shadercd;"
-        # "shaderc_combinedd;"
-        # "shaderc_sharedd;"
-        # "shaderc_utild;"
     )
 ELSEIF(UNIX AND NOT APPLE)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
-        "pthread;"
-        "X11"
-        "GL"
-        # "shaderc;"
-        # "shaderc_combined;"
-        # "shaderc_shared;"
-        # "shaderc_util;"
-
-        "libvulkan.so"
+        pthread
+        X11
+        GL
+        libvulkan.so
     )
 ENDIF()
 target_link_libraries(
