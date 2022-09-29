@@ -41,7 +41,12 @@ OpenGL_Shader::OpenGL_Shader(const DESC& desc)
     m_vertex_source = vertex_shader;
     m_fragment_source = fragment_shader;
     if constexpr (false) {
-
+        
+        /*
+            NOTE: Strangely, on the laptops I tried it out, this function `glSpecializeShader` doesn't work.
+            I'm not sure why, but it seems to be a driver issue.
+            I'm leaving this here in case I ever get around to fixing it.
+        */
         std::future<std::vector<u32>> vert_shader_spirv =
             std::async(std::launch::async, string_to_SPIRV, m_vertex_source.c_str(), desc.code.m_modules[0].m_stage);
         std::future<std::vector<u32>> frag_shader_spirv =

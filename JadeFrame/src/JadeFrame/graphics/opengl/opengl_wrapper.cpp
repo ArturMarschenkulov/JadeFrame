@@ -43,6 +43,11 @@ auto OGLW_Shader::set_binary(const std::vector<u32>& binary) -> void {
 }
 auto OGLW_Shader::compile_binary() -> void {
     assert(false);
+    /*
+        NOTE: Strangely, on the laptops I tried it out, this function doesn't work.
+        I'm not sure why, but it seems to be a driver issue.
+        I'm leaving this here in case I ever get around to fixing it.
+    */
     glSpecializeShader(m_ID, "main", 0, nullptr, nullptr);
     //__debugbreak();
 }
