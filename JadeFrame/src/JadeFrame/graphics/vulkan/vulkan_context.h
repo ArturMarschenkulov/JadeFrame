@@ -18,14 +18,15 @@ using Window = win32::Window;
 class Linux_Window;
 using Window = Linux_Window;
 #endif
-class VulkanPhysicalDevice;
-
+namespace vulkan {
+class PhysicalDevice;
+}
 class VulkanInstance {
 
 private:
     auto query_layers() -> std::vector<VkLayerProperties>;
     auto query_extensions() -> std::vector<VkExtensionProperties>;
-    auto query_physical_devices() -> std::vector<VulkanPhysicalDevice>;
+    auto query_physical_devices() -> std::vector<vulkan::PhysicalDevice>;
     auto setup_debug() -> void;
     auto check_validation_layer_support(const std::vector<VkLayerProperties>& available_layers) -> bool;
 
@@ -37,7 +38,7 @@ public:
 public:
     VkInstance m_instance = VK_NULL_HANDLE;
     // HWND m_window_handle;
-    VulkanSurface m_surface;
+    vulkan::Surface m_surface;
 
     std::vector<VkLayerProperties> m_available_layers;
     const std::vector<const char*> m_desired_layer_names = {
@@ -53,9 +54,9 @@ public:
     const bool m_enable_validation_layers = true;
 #endif
 
-    std::vector<VulkanPhysicalDevice> m_physical_devices;
-    VulkanPhysicalDevice              m_physical_device;
-    VulkanLogicalDevice               m_logical_device;
+    std::vector<vulkan::PhysicalDevice> m_physical_devices;
+    vulkan::PhysicalDevice              m_physical_device;
+    vulkan::LogicalDevice               m_logical_device;
 };
 
 struct Vulkan_Context {

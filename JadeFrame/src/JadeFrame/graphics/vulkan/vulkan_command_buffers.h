@@ -7,46 +7,53 @@
 
 namespace JadeFrame {
 
-class VulkanLogicalDevice;
-class VulkanCommandPool;
-class VulkanSwapchain;
-class VulkanRenderPass;
-class VulkanDescriptorSet;
-class VulkanBuffer;
-class VulkanPipeline;
-class VulkanFramebuffer;
-class QueueFamilyIndices;
 
-class VulkanCommandBuffer {
+
+
+namespace vulkan {
+class QueueFamilyIndices;
+class RenderPass;
+class Framebuffer;
+class LogicalDevice;
+class DescriptorSet;
+class Swapchain;
+class Buffer;
+class Pipeline;
+class CommandPool;
+
+class CommandBuffer {
 public:
     auto record_begin() -> void;
     auto record_end() -> void;
     auto render_pass_begin(
-        const VulkanFramebuffer& framebuffer, const VulkanRenderPass& render_pass, const VkExtent2D& swapchain,
-        VkClearValue color) -> void;
+        const Framebuffer& framebuffer, const RenderPass& render_pass, const VkExtent2D& swapchain, VkClearValue color)
+        -> void;
     auto render_pass_end() -> void;
 
     auto reset() -> void;
 
-    auto copy_buffer(const VulkanBuffer& src, const VulkanBuffer& dst, u32 region_size, VkBufferCopy* regions) -> void;
+    auto copy_buffer(const Buffer& src, const Buffer& dst, u32 region_size, VkBufferCopy* regions) -> void;
+
 public:
-    VkCommandBuffer            m_handle;
-    const VulkanLogicalDevice* m_device = nullptr;
-    const VulkanCommandPool*   m_command_pool = nullptr;
+    VkCommandBuffer      m_handle;
+    const LogicalDevice* m_device = nullptr;
+    const CommandPool*   m_command_pool = nullptr;
 };
 
 using QueueFamilyIndex = u32;
-class VulkanCommandPool {
+class CommandPool {
 public:
-    auto init(const VulkanLogicalDevice& device, const QueueFamilyIndex& queue_family_index) -> void;
+    auto init(const LogicalDevice& device, const QueueFamilyIndex& queue_family_index) -> void;
     auto deinit() -> void;
 
-    auto allocate_command_buffers(u32 amount) const -> std::vector<VulkanCommandBuffer>;
-    auto allocate_command_buffer() const -> VulkanCommandBuffer;
-    auto free_command_buffers(const std::vector<VulkanCommandBuffer>& command_buffers) const -> void;
+    auto allocate_command_buffers(u32 amount) const -> std::vector<CommandBuffer>;
+    auto allocate_command_buffer() const -> CommandBuffer;
+    auto free_command_buffers(const std::vector<CommandBuffer>& command_buffers) const -> void;
 
 public:
-    const VulkanLogicalDevice* m_device = nullptr;
-    VkCommandPool              m_handle = VK_NULL_HANDLE;
+    const LogicalDevice* m_device = nullptr;
+    VkCommandPool        m_handle = VK_NULL_HANDLE;
 };
+
+} // namespace vulkan
 } // namespace JadeFrame

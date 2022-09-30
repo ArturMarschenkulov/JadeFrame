@@ -16,7 +16,9 @@
 
 namespace JadeFrame {
 
-static auto to_format_string_queue_family(const VulkanQueueFamily& queue_family) -> std::string {
+
+namespace vulkan {
+static auto to_format_string_queue_family(const QueueFamily& queue_family) -> std::string {
     std::string result = "{ ";
     if (queue_family.m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) { result += "Graphics "; }
     if (queue_family.m_properties.queueFlags & VK_QUEUE_COMPUTE_BIT) { result += "Compute "; }
@@ -28,7 +30,7 @@ static auto to_format_string_queue_family(const VulkanQueueFamily& queue_family)
     return result;
 }
 
-static auto query_surface_support_details(const VulkanPhysicalDevice& physical_device, const VulkanSurface& surface)
+static auto query_surface_support_details(const PhysicalDevice& physical_device, const Surface& surface)
     -> SurfaceSupportDetails {
     VkResult              result;
     SurfaceSupportDetails surface_support_details;
@@ -88,7 +90,7 @@ auto to_string_vendor_id(uint32_t vendor_id) -> std::string {
         default: return "Unknown";
     }
 }
-auto VulkanPhysicalDevice::init(VulkanInstance& instance, const VulkanSurface& surface) -> void {
+auto PhysicalDevice::init(VulkanInstance& instance, const Surface& surface) -> void {
     m_instance_p = &instance;
     VkResult result;
     vkGetPhysicalDeviceProperties(m_handle, &m_properties);
@@ -145,7 +147,7 @@ auto VulkanPhysicalDevice::init(VulkanInstance& instance, const VulkanSurface& s
             Logger::info("\t\t{}: {} with {} bytes", i, to_string(memory_heap), memory_heap.size);
         }
         for (int i = 0; i < m_queue_families.size(); i++) {
-            VulkanQueueFamily& queue_family = m_queue_families[i];
+            QueueFamily& queue_family = m_queue_families[i];
             Logger::debug(
                 "Queue family {} has {} queues capable of {}", i, queue_family.m_properties.queueCount,
                 to_format_string_queue_family(queue_family));
@@ -153,7 +155,7 @@ auto VulkanPhysicalDevice::init(VulkanInstance& instance, const VulkanSurface& s
     }
 }
 
-auto VulkanPhysicalDevice::check_extension_support(const std::vector<const char*>& extensions) -> bool {
+auto PhysicalDevice::check_extension_support(const std::vector<const char*>& extensions) -> bool {
     std::set<std::string> required_extensions(extensions.begin(), extensions.end());
     for (u32 i = 0; i < m_extension_properties.size(); i++) {
         required_extensions.erase(m_extension_properties[i].extensionName);
@@ -162,8 +164,7 @@ auto VulkanPhysicalDevice::check_extension_support(const std::vector<const char*
 }
 
 
-auto VulkanPhysicalDevice::find_queue_families(const std::vector<VulkanQueueFamily>& queue_families)
-    -> QueueFamilyIndices {
+auto PhysicalDevice::find_queue_families(const std::vector<QueueFamily>& queue_families) -> QueueFamilyIndices {
 
     QueueFamilyIndices indices;
     for (u32 i = 0; i < queue_families.size(); i++) {
@@ -179,7 +180,7 @@ auto VulkanPhysicalDevice::find_queue_families(const std::vector<VulkanQueueFami
     }
     return indices;
 }
-auto VulkanPhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32 {
+auto PhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32 {
     const VkPhysicalDeviceMemoryProperties& mem_props = m_memory_properties;
     for (u32 i = 0; i < mem_props.memoryTypeCount; i++) {
         if ((type_filter & (1 << i)) && (mem_props.memoryTypes[i].propertyFlags & properties) == properties) {
@@ -188,7 +189,7 @@ auto VulkanPhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFla
     }
     throw std::runtime_error("failed to find suitable memory type!");
 }
-auto VulkanPhysicalDevice::query_queue_families(const VulkanSurface& surface) -> std::vector<VulkanQueueFamily> {
+auto PhysicalDevice::query_queue_families(const Surface& surface) -> std::vector<QueueFamily> {
     u32 count = 0;
 
     vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, nullptr);
@@ -197,7 +198,7 @@ auto VulkanPhysicalDevice::query_queue_families(const VulkanSurface& surface) ->
     queue_family_properties.resize(count);
     vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, queue_family_properties.data());
 
-    std::vector<VulkanQueueFamily> families;
+    std::vector<QueueFamily> families;
     families.resize(count);
     for (u32 i = 0; i < count; i++) {
         families[i].m_index = i;
@@ -208,4 +209,5 @@ auto VulkanPhysicalDevice::query_queue_families(const VulkanSurface& surface) ->
 
     return families;
 }
+} // namespace vulkan
 } // namespace JadeFrame

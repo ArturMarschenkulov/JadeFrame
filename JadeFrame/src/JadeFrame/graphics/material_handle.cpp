@@ -78,7 +78,7 @@ auto ShaderHandle::init() -> void {
             Logger::warn("lnlknm,lm. ");
             Vulkan_Shader::DESC shader_desc;
             shader_desc.code = m_code;
-            m_handle = new Vulkan_Shader(*(VulkanLogicalDevice*)m_handle, shader_desc);
+            m_handle = new Vulkan_Shader(*(vulkan::LogicalDevice*)m_handle, shader_desc);
             // m_handle = new Vulkan_Shader({ vertex_shader_code, fragment_shader_code });
         } break;
         default: assert(false);

@@ -10,30 +10,34 @@
 #include <JadeFrame/graphics/shader_loader.h>
 
 namespace JadeFrame {
-class VulkanLogicalDevice;
-class VulkanDescriptorSetLayout;
-class VulkanRenderPass;
+
+namespace vulkan {
+
+class LogicalDevice;
+class DescriptorSetLayout;
+
+class RenderPass;
 
 
-class VulkanPipeline {
+class Pipeline {
 public:
     auto init(
-        const VulkanLogicalDevice& device, const VkExtent2D& extend, const VulkanDescriptorSetLayout& descriptor_layout,
-        const VulkanRenderPass& render_pass, const ShadingCode& code, const VertexFormat& vertex_format) -> void;
+        const LogicalDevice& device, const VkExtent2D& extend, const DescriptorSetLayout& descriptor_layout,
+        const RenderPass& render_pass, const ShadingCode& code, const VertexFormat& vertex_format) -> void;
     auto deinit() -> void;
 
-    auto operator=(const VulkanPipeline& pipeline);
+    auto operator=(const Pipeline& pipeline);
 
 public:
-    VkPipeline                       m_handle;
-    VkPipelineLayout                 m_layout;
-    const VulkanLogicalDevice*       m_device = nullptr;
-    const VulkanRenderPass*          m_render_pass = nullptr;
-    const VulkanDescriptorSetLayout* m_descriptor_set_layout = nullptr;
+    VkPipeline                 m_handle;
+    VkPipelineLayout           m_layout;
+    const LogicalDevice*       m_device = nullptr;
+    const RenderPass*          m_render_pass = nullptr;
+    const DescriptorSetLayout* m_descriptor_set_layout = nullptr;
 
 
-    std::array<VulkanDescriptorSetLayout, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> m_set_layouts;
-    ShadingCode                                                                           m_code;
+    std::array<DescriptorSetLayout, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> m_set_layouts;
+    ShadingCode                                                                     m_code;
 
     bool m_is_compiled = false;
 
@@ -45,4 +49,5 @@ public:
     };
     std::vector<PushConstantRange> m_push_constant_ranges;
 };
+} // namespace vulkan
 } // namespace JadeFrame

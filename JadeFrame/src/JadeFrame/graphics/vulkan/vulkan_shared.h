@@ -10,7 +10,7 @@
 // TODO: Look whether this file is needed. This is file was mainly created as a quick fix for some globals
 
 namespace JadeFrame {
-
+namespace vulkan {
 
 // auto get_binding_description(Mesh m) -> VkVertexInputBindingDescription {
 //	VkVertexInputBindingDescription binding_description = {};
@@ -193,4 +193,5 @@ inline auto to_string(const VkMemoryType& memory_type) -> std::string {
     result += "}";
     return result;
 }
+} // namespace vulkan
 } // namespace JadeFrame

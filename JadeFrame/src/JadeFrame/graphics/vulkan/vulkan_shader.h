@@ -4,12 +4,14 @@
 #include "vulkan_pipeline.h"
 
 namespace JadeFrame {
-class VulkanLogicalDevice;
+namespace vulkan {
+class LogicalDevice;
+}
 class Vulkan_Shader : public IShader {
     // private:
-    //	Vulkan_Shader(const VulkanLogicalDevice& device, const GLSLCode& code);
+    //	Vulkan_Shader(const vulkan::LogicalDevice& device, const GLSLCode& code);
 public:
-    Vulkan_Shader(const VulkanLogicalDevice& device, const DESC& desc);
+    Vulkan_Shader(const vulkan::LogicalDevice& device, const DESC& desc);
 
     Vulkan_Shader() = default;
     Vulkan_Shader(Vulkan_Shader&&) noexcept = default;
@@ -19,7 +21,7 @@ public:
     auto operator=(Vulkan_Shader&&) -> Vulkan_Shader& = delete;
 
 public:
-    VulkanPipeline             m_pipeline;
-    const VulkanLogicalDevice* m_device;
+    vulkan::Pipeline             m_pipeline;
+    const vulkan::LogicalDevice* m_device;
 };
 } // namespace JadeFrame

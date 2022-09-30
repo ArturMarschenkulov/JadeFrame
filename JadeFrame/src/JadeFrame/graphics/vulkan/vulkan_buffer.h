@@ -11,8 +11,7 @@
 
 namespace JadeFrame {
 
-class VulkanLogicalDevice;
-class VulkanPhysicalDevice;
+
 
 // enum class VULKAN_BUFFER_TYPE {
 //	UNINIT, // TODO: find ways to remove it
@@ -21,8 +20,10 @@ class VulkanPhysicalDevice;
 //	UNIFORM,
 //	STAGING,
 // };
-
-class VulkanBuffer {
+namespace vulkan {
+class LogicalDevice;
+class PhysicalDevice;
+class Buffer {
 public:
     enum TYPE {
         UNINIT, // TODO: find ways to remove it
@@ -31,9 +32,9 @@ public:
         UNIFORM,
         STAGING
     };
-    VulkanBuffer() = default;
-    VulkanBuffer(const VulkanBuffer::TYPE type);
-    auto init(const VulkanLogicalDevice& device, VulkanBuffer::TYPE buffer_type, void* data, size_t size) -> void;
+    Buffer() = default;
+    Buffer(const Buffer::TYPE type);
+    auto init(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data, size_t size) -> void;
     auto deinit() -> void;
     auto send(void* data, VkDeviceSize offset, VkDeviceSize size) -> void;
     auto resize(size_t size) -> void;
@@ -45,82 +46,82 @@ private:
     auto copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size) -> void;
 
 public:
-    const VulkanBuffer::TYPE m_type = VulkanBuffer::TYPE::UNINIT;
+    const Buffer::TYPE m_type = Buffer::TYPE::UNINIT;
     //	VkBufferUsageFlags m_usage = 0;
     VkDeviceSize m_size = 0;
 
     VkBuffer       m_handle = VK_NULL_HANDLE;
     VkDeviceMemory m_memory = VK_NULL_HANDLE;
 
-    const VulkanLogicalDevice* m_device = nullptr;
+    const LogicalDevice* m_device = nullptr;
 };
 
 
 class Vulkan_GPUMeshData {
 public:
     Vulkan_GPUMeshData(
-        const VulkanLogicalDevice& device, const VertexData& vertex_data, const VertexFormat& vertex_format,
+        const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat& vertex_format,
         bool interleaved = true);
     auto bind() const -> void;
     auto set_layout(const VertexFormat& vertex_format) -> void;
 
 public:
-    VulkanBuffer m_vertex_buffer = VulkanBuffer::TYPE::VERTEX;
-    VulkanBuffer m_index_buffer = VulkanBuffer::TYPE::INDEX;
+    Buffer       m_vertex_buffer = Buffer::TYPE::VERTEX;
+    Buffer       m_index_buffer = Buffer::TYPE::INDEX;
     VertexFormat m_vertex_format;
 };
 
-class VulkanImage {
+class Image {
 public:
     enum class SOURCE {
         REGULAR,
         SWAPCHAIN
     };
-    auto init(const VulkanLogicalDevice& device, const v2u32& extent, VkFormat format, VkImageUsageFlags usage) -> void;
-    auto init(const VulkanLogicalDevice& device, VkImage image) -> void;
+    auto init(const LogicalDevice& device, const v2u32& extent, VkFormat format, VkImageUsageFlags usage) -> void;
+    auto init(const LogicalDevice& device, VkImage image) -> void;
     auto deinit() -> void;
 
-    VkImage                    m_handle = VK_NULL_HANDLE;
-    const VulkanLogicalDevice* m_device = nullptr;
-    VkDeviceMemory             m_memory;
-    SOURCE                     m_source;
+    VkImage              m_handle = VK_NULL_HANDLE;
+    const LogicalDevice* m_device = nullptr;
+    VkDeviceMemory       m_memory;
+    SOURCE               m_source;
 };
 
-class VulkanImageView {
+class ImageView {
 public:
-    auto init(const VulkanLogicalDevice& device, const VulkanImage& image, VkFormat format) -> void;
+    auto init(const LogicalDevice& device, const Image& image, VkFormat format) -> void;
     auto deinit() -> void;
 
 public:
-    VkImageView                m_handle = VK_NULL_HANDLE;
-    const VulkanLogicalDevice* m_device = nullptr;
-    const VulkanImage*         m_image = nullptr;
+    VkImageView          m_handle = VK_NULL_HANDLE;
+    const LogicalDevice* m_device = nullptr;
+    const Image*         m_image = nullptr;
 };
 
 
-class VulkanSampler {
+class Sampler {
 public:
-    auto init(const VulkanLogicalDevice& device) -> void;
+    auto init(const LogicalDevice& device) -> void;
     auto deinit() -> void;
 
 public:
-    VkSampler                  m_handle;
-    const VulkanLogicalDevice* m_device;
+    VkSampler            m_handle;
+    const LogicalDevice* m_device;
 };
 class Vulkan_Texture {
 public:
-    auto init(const VulkanLogicalDevice& device, void* data, v2u32 size, VkFormat) -> void;
+    auto init(const LogicalDevice& device, void* data, v2u32 size, VkFormat) -> void;
     auto deinit() -> void;
 
-    auto
-    transition_layout(const VulkanImage& image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout)
+    auto transition_layout(const Image& image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout)
         -> void;
-    auto copy_buffer_to_image(const VulkanBuffer buffer, const VulkanImage image, v2u32 size) -> void;
+    auto copy_buffer_to_image(const Buffer buffer, const Image image, v2u32 size) -> void;
 
 public:
-    VulkanImage                m_image;
-    const VulkanLogicalDevice* m_device;
-    VulkanSampler              m_sampler;
+    Image                m_image;
+    const LogicalDevice* m_device;
+    Sampler              m_sampler;
 };
+} // namespace vulkan
 
 } // namespace JadeFrame

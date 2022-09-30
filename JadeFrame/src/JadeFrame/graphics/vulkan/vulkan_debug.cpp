@@ -3,6 +3,7 @@
 #include "JadeFrame/utils/logger.h"
 
 namespace JadeFrame {
+namespace vulkan {
 VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT message_severity, VkDebugUtilsMessageTypeFlagsEXT message_type,
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void*) {
@@ -28,8 +29,8 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
 auto populate_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT& createInfo) -> void {
     createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    createInfo.messageSeverity =                          //
-        // VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | // Trace
+    createInfo.messageSeverity = //
+                                 // VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | // Trace
         VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |    // Info
         VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | // Warn
         VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;    // Error
@@ -39,6 +40,7 @@ auto populate_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT& cr
         VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;  //
     createInfo.pfnUserCallback = debug_callback;
 }
+} // namespace vulkan
 } // namespace JadeFrame
 
 auto vkCreateDebugUtilsMessengerEXT_(

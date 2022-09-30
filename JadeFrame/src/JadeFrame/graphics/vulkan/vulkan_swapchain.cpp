@@ -15,6 +15,7 @@
 #undef max
 
 namespace JadeFrame {
+namespace vulkan {
 
 static auto choose_surface_format(const std::vector<VkSurfaceFormatKHR>& available_surface_formats)
     -> VkSurfaceFormatKHR {
@@ -40,7 +41,7 @@ static auto choose_present_mode(const std::vector<VkPresentModeKHR>& available_s
     assert(!"Should not reach here!");
     return {};
 }
-static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities, const VulkanSwapchain& swapchain)
+static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities, const Swapchain& swapchain)
     -> VkExtent2D {
     // vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_surface, &m_surface_capabilities);
     if (false /*m_surface_capabilities.currentExtent.width != UINT32_MAX*/) {
@@ -79,7 +80,7 @@ static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities
         Render Pass
 ---------------------------*/
 
-auto VulkanRenderPass::init(const VulkanLogicalDevice& device, VkFormat image_format) -> void {
+auto RenderPass::init(const LogicalDevice& device, VkFormat image_format) -> void {
     m_device = &device;
     VkResult result;
 
@@ -128,18 +129,18 @@ auto VulkanRenderPass::init(const VulkanLogicalDevice& device, VkFormat image_fo
     result = vkCreateRenderPass(device.m_handle, &render_pass_info, nullptr, &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
-auto VulkanRenderPass::deinit() -> void { vkDestroyRenderPass(m_device->m_handle, m_handle, nullptr); }
+auto RenderPass::deinit() -> void { vkDestroyRenderPass(m_device->m_handle, m_handle, nullptr); }
 
 /*---------------------------
         Swapchain
 ---------------------------*/
 
-auto VulkanSwapchain::init(VulkanLogicalDevice& device, const VulkanSurface& surface) -> void {
+auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     m_device = &device;
     m_surface = &surface;
 
     VkResult                     result;
-    const VulkanPhysicalDevice*  gpu = device.m_physical_device;
+    const PhysicalDevice*  gpu = device.m_physical_device;
     const SurfaceSupportDetails& surface_details = gpu->m_surface_support_details;
 
     u32 image_count = surface_details.m_capabilities.minImageCount + 1;
@@ -210,7 +211,7 @@ auto VulkanSwapchain::init(VulkanLogicalDevice& device, const VulkanSurface& sur
     }
 }
 
-auto VulkanSwapchain::deinit() -> void {
+auto Swapchain::deinit() -> void {
     for (uint32_t i = 0; i < m_framebuffers.size(); i++) { m_framebuffers[i].deinit(); }
     m_render_pass.deinit();
     for (uint32_t i = 0; i < m_image_views.size(); i++) { m_image_views[i].deinit(); }
@@ -218,7 +219,7 @@ auto VulkanSwapchain::deinit() -> void {
     vkDestroySwapchainKHR(m_device->m_handle, m_handle, nullptr);
 }
 
-auto VulkanSwapchain::recreate() -> void {
+auto Swapchain::recreate() -> void {
     vkDeviceWaitIdle(m_device->m_handle);
     this->deinit();
 
@@ -226,8 +227,8 @@ auto VulkanSwapchain::recreate() -> void {
     m_device->m_images_in_flight.resize(m_images.size());
 }
 
-auto VulkanSwapchain::acquire_next_image(
-    const vulkan::Semaphore* semaphore, const vulkan::Fence* fence, VkResult& out_result) -> u32 {
+auto Swapchain::acquire_next_image(const Semaphore* semaphore, const Fence* fence, VkResult& out_result)
+    -> u32 {
     u32 image_index;
     out_result = vkAcquireNextImageKHR(
         m_device->m_handle,                                          // device
@@ -240,7 +241,7 @@ auto VulkanSwapchain::acquire_next_image(
     return image_index;
 }
 
-auto VulkanSwapchain::acquire_next_image(const vulkan::Semaphore* semaphore, const vulkan::Fence* fence) -> u32 {
+auto Swapchain::acquire_next_image(const Semaphore* semaphore, const Fence* fence) -> u32 {
     VkResult result;
     u32      image_index;
     result = vkAcquireNextImageKHR(
@@ -265,8 +266,8 @@ auto VulkanSwapchain::acquire_next_image(const vulkan::Semaphore* semaphore, con
         Framebuffer
 ---------------------------*/
 
-auto VulkanFramebuffer::init(
-    const VulkanLogicalDevice& device, const VulkanImageView& image_view, const VulkanRenderPass& render_pass,
+auto Framebuffer::init(
+    const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass,
     VkExtent2D extent) -> void {
     m_device = &device;
     m_image_view = &image_view;
@@ -291,6 +292,6 @@ auto VulkanFramebuffer::init(
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
-auto VulkanFramebuffer::deinit() -> void { vkDestroyFramebuffer(m_device->m_handle, m_handle, nullptr); }
-
+auto Framebuffer::deinit() -> void { vkDestroyFramebuffer(m_device->m_handle, m_handle, nullptr); }
+} // namespace vulkan
 } // namespace JadeFrame

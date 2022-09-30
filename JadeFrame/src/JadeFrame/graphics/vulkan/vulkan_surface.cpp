@@ -4,8 +4,10 @@
 #include <cassert>
 
 namespace JadeFrame {
-auto VulkanSurface::init(VkInstance instance, HWND window_handle) -> void {
-    Logger::trace("VulkanSurface::init start");
+namespace vulkan {
+// namespace win32 {
+auto Surface::init(VkInstance instance, HWND window_handle) -> void {
+    Logger::trace("Surface::init start");
     m_window_handle = window_handle;
 
     VkResult result;
@@ -23,18 +25,15 @@ auto VulkanSurface::init(VkInstance instance, HWND window_handle) -> void {
         assert(false);
         throw std::runtime_error("failed to create window surface!");
     }
-    {
-        Logger::info("Created Win32 surface {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
-    }
+    { Logger::info("Created Win32 surface {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
 #else
     assert(false && "not implemented yet");
 #endif
-    Logger::trace("VulkanSurface::init end");
+    Logger::trace("Surface::init end");
 }
 
-auto VulkanSurface::deinit() -> void { vkDestroySurfaceKHR(m_instance, m_handle, nullptr); }
+auto Surface::deinit() -> void { vkDestroySurfaceKHR(m_instance, m_handle, nullptr); }
 
-
-
-
+//} // namespace win32
+} // namespace vulkan
 } // namespace JadeFrame

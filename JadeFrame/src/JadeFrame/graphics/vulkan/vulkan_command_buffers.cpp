@@ -9,7 +9,9 @@
 
 namespace JadeFrame {
 
-auto VulkanCommandBuffer::record_begin() -> void {
+namespace vulkan {
+
+auto CommandBuffer::record_begin() -> void {
     VkResult                       result;
     const VkCommandBufferBeginInfo begin_info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -22,14 +24,14 @@ auto VulkanCommandBuffer::record_begin() -> void {
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
-auto VulkanCommandBuffer::record_end() -> void {
+auto CommandBuffer::record_end() -> void {
     VkResult result;
     result = vkEndCommandBuffer(m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
-auto VulkanCommandBuffer::render_pass_begin(
-    const VulkanFramebuffer& framebuffer, const VulkanRenderPass& render_pass, const VkExtent2D& extent,
+auto CommandBuffer::render_pass_begin(
+    const Framebuffer& framebuffer, const RenderPass& render_pass, const VkExtent2D& extent,
     VkClearValue clear_color) -> void {
     const VkRenderPassBeginInfo render_pass_info = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
@@ -47,10 +49,10 @@ auto VulkanCommandBuffer::render_pass_begin(
     vkCmdBeginRenderPass(m_handle, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
 }
 
-auto VulkanCommandBuffer::render_pass_end() -> void { vkCmdEndRenderPass(m_handle); }
+auto CommandBuffer::render_pass_end() -> void { vkCmdEndRenderPass(m_handle); }
 
 
-auto VulkanCommandBuffer::reset() -> void {
+auto CommandBuffer::reset() -> void {
     VkResult                  result;
     VkCommandBufferResetFlags flags = {};
 
@@ -58,26 +60,20 @@ auto VulkanCommandBuffer::reset() -> void {
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
-auto VulkanCommandBuffer::copy_buffer(const VulkanBuffer& src, const VulkanBuffer& dst, u32 region_size, VkBufferCopy* regions) -> void {
+auto CommandBuffer::copy_buffer(const Buffer& src, const Buffer& dst, u32 region_size, VkBufferCopy* regions) -> void {
     vkCmdCopyBuffer(m_handle, src.m_handle, dst.m_handle, region_size, regions);
 }
 
 
-static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFlags& flag) -> std::string { 
+static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFlags& flag) -> std::string {
     std::string result = "{ ";
-    if (flag & VK_COMMAND_POOL_CREATE_TRANSIENT_BIT) {
-        result += "TRANSIENT ";
-    }
-    if (flag & VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT) {
-        result += "RESET_COMMAND_BUFFER ";
-    }
-    if (flag & VK_COMMAND_POOL_CREATE_PROTECTED_BIT) {
-        result += "PROTECTED ";
-    }
+    if (flag & VK_COMMAND_POOL_CREATE_TRANSIENT_BIT) { result += "TRANSIENT "; }
+    if (flag & VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT) { result += "RESET_COMMAND_BUFFER "; }
+    if (flag & VK_COMMAND_POOL_CREATE_PROTECTED_BIT) { result += "PROTECTED "; }
     result += "}";
     return result;
 }
-auto VulkanCommandPool::init(const VulkanLogicalDevice& device, const QueueFamilyIndex& queue_family_index) -> void {
+auto CommandPool::init(const LogicalDevice& device, const QueueFamilyIndex& queue_family_index) -> void {
     m_device = &device;
     VkResult result;
 
@@ -97,9 +93,9 @@ auto VulkanCommandPool::init(const VulkanLogicalDevice& device, const QueueFamil
     }
 }
 
-auto VulkanCommandPool::deinit() -> void { vkDestroyCommandPool(m_device->m_handle, m_handle, nullptr); }
+auto CommandPool::deinit() -> void { vkDestroyCommandPool(m_device->m_handle, m_handle, nullptr); }
 
-auto VulkanCommandPool::allocate_command_buffers(u32 amount) const -> std::vector<VulkanCommandBuffer> {
+auto CommandPool::allocate_command_buffers(u32 amount) const -> std::vector<CommandBuffer> {
     VkResult result;
 
     std::vector<VkCommandBuffer>      handles(amount);
@@ -113,11 +109,12 @@ auto VulkanCommandPool::allocate_command_buffers(u32 amount) const -> std::vecto
     result = vkAllocateCommandBuffers(m_device->m_handle, &alloc_info, handles.data());
     JF_ASSERT(result == VK_SUCCESS, "");
     {
-        Logger::info("Allocated {} Command Buffers to {} from pool {}", amount, fmt::ptr(*handles.data()), fmt::ptr(m_handle));
+        Logger::info(
+            "Allocated {} Command Buffers to {} from pool {}", amount, fmt::ptr(*handles.data()), fmt::ptr(m_handle));
     }
 
 
-    std::vector<VulkanCommandBuffer> command_buffers(handles.size());
+    std::vector<CommandBuffer> command_buffers(handles.size());
     for (u32 i = 0; i < command_buffers.size(); i++) {
         command_buffers[i].m_handle = handles[i];
         command_buffers[i].m_device = m_device;
@@ -125,15 +122,12 @@ auto VulkanCommandPool::allocate_command_buffers(u32 amount) const -> std::vecto
     }
     return command_buffers;
 }
-auto VulkanCommandPool::allocate_command_buffer() const -> VulkanCommandBuffer {
-    return this->allocate_command_buffers(1)[0];
-}
-auto VulkanCommandPool::free_command_buffers(const std::vector<VulkanCommandBuffer>& command_buffers) const -> void {
+auto CommandPool::allocate_command_buffer() const -> CommandBuffer { return this->allocate_command_buffers(1)[0]; }
+auto CommandPool::free_command_buffers(const std::vector<CommandBuffer>& command_buffers) const -> void {
     for (u32 i = 0; i < command_buffers.size(); i++) {
         vkFreeCommandBuffers(m_device->m_handle, m_handle, 1, &command_buffers[i].m_handle);
-        {
-            Logger::info("Freed Command Buffer {} from {}", fmt::ptr(command_buffers[i].m_handle), fmt::ptr(m_handle));
-        }
+        { Logger::info("Freed Command Buffer {} from {}", fmt::ptr(command_buffers[i].m_handle), fmt::ptr(m_handle)); }
     }
 }
+} // namespace vulkan
 } // namespace JadeFrame

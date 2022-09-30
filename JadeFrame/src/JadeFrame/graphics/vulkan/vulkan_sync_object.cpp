@@ -4,7 +4,7 @@
 #include "JadeFrame/utils/assert.h"
 namespace JadeFrame {
 namespace vulkan {
-auto Fence::init(const VulkanLogicalDevice& device) -> void {
+auto Fence::init(const LogicalDevice& device) -> void {
     m_device = &device;
     VkResult result;
 
@@ -32,7 +32,7 @@ auto Fence::reset() -> void {
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
-auto Semaphore::init(const VulkanLogicalDevice& device) -> void {
+auto Semaphore::init(const LogicalDevice& device) -> void {
     m_device = &device;
     VkResult result;
 

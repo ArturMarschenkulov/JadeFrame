@@ -19,12 +19,12 @@ auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void { m_clear_
 auto Vulkan_Renderer::clear_background() -> void {}
 
 auto Vulkan_Renderer::submit(const Object& obj) -> void {
-    const VulkanLogicalDevice& d = m_context.m_instance.m_logical_device;
+    const vulkan::LogicalDevice& d = m_context.m_instance.m_logical_device;
 
     if (false == obj.m_GPU_mesh_data.m_is_initialized) {
         assert(obj.m_vertex_format.m_attributes.size() > 0);
 
-        obj.m_GPU_mesh_data.m_handle = new Vulkan_GPUMeshData(d, *obj.m_vertex_data, obj.m_vertex_format);
+        obj.m_GPU_mesh_data.m_handle = new vulkan::Vulkan_GPUMeshData(d, *obj.m_vertex_data, obj.m_vertex_format);
         obj.m_GPU_mesh_data.m_is_initialized = true;
     }
 
@@ -41,7 +41,7 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
         if (mh->m_texture_handle != nullptr) {
             mh->m_texture_handle->m_api = GRAPHICS_API::VULKAN;
             // mh->m_texture_handle->init();
-            Vulkan_Texture* texture = new Vulkan_Texture();
+            vulkan::Vulkan_Texture* texture = new vulkan::Vulkan_Texture();
             texture->init(
                 d, mh->m_texture_handle->m_data,
                 {static_cast<u32>(mh->m_texture_handle->m_size.x), static_cast<u32>(mh->m_texture_handle->m_size.y)},
@@ -62,10 +62,10 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
     m_render_commands.push_back(command);
 }
 auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
-    VulkanLogicalDevice& d = m_context.m_instance.m_logical_device;
+    vulkan::LogicalDevice& d = m_context.m_instance.m_logical_device;
     Logger::info("start of frame");
     d.wait_for_fence(d.m_in_flight_fences[d.m_current_frame], VK_TRUE, UINT64_MAX);
-    //d.m_in_flight_fences[d.m_current_frame].wait_for_fences();
+    // d.m_in_flight_fences[d.m_current_frame].wait_for_fences();
     const u32 image_index =
         d.m_swapchain.acquire_next_image(&d.m_image_available_semaphores[d.m_current_frame], nullptr);
 
@@ -84,7 +84,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     d.m_images_in_flight[image_index].m_handle = d.m_in_flight_fences[d.m_current_frame].m_handle;
 
 
-    VulkanCommandBuffer& cb = d.m_command_buffers[image_index];
+    vulkan::CommandBuffer& cb = d.m_command_buffers[image_index];
     cb.record_begin();
     {
         // const RGBAColor& c = m_clear_color;
@@ -115,8 +115,8 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
                 const u32            offset = static_cast<u32>(aligned_block_size * i);
                 const Vulkan_Shader& shader =
                     *static_cast<Vulkan_Shader*>(m_render_commands[i].material_handle->m_shader_handle->m_handle);
-                const Vulkan_GPUMeshData& gpu_data =
-                    *static_cast<Vulkan_GPUMeshData*>(m_render_commands[i].m_GPU_mesh_data->m_handle);
+                const vulkan::Vulkan_GPUMeshData& gpu_data =
+                    *static_cast<vulkan::Vulkan_GPUMeshData*>(m_render_commands[i].m_GPU_mesh_data->m_handle);
                 const VertexData& vertex_data = *m_render_commands[i].vertex_data;
                 const Matrix4x4&  transform = *m_render_commands[i].transform;
 
@@ -173,7 +173,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 }
 
 auto Vulkan_Renderer::present() -> void {
-    VulkanLogicalDevice& d = m_context.m_instance.m_logical_device;
+    vulkan::LogicalDevice& d = m_context.m_instance.m_logical_device;
 
     VkResult result = d.m_present_queue.present(
         d.m_present_image_index, d.m_swapchain, &d.m_render_finished_semaphores[d.m_current_frame]);

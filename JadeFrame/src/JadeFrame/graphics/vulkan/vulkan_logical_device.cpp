@@ -55,17 +55,17 @@ static auto VkResult_to_string(VkResult x) {
 ---------------------------*/
 
 namespace vulkan {
-Queue::Queue(const VulkanLogicalDevice& device, u32 queue_family_index, u32 queue_index) {
+Queue::Queue(const LogicalDevice& device, u32 queue_family_index, u32 queue_index) {
     vkGetDeviceQueue(device.m_handle, queue_family_index, queue_index, &m_handle);
 }
-auto Queue::submit(const VkSubmitInfo& submit_info, const vulkan::Fence* p_fence) const -> void {
+auto Queue::submit(const VkSubmitInfo& submit_info, const Fence* p_fence) const -> void {
     VkResult result;
     result = vkQueueSubmit(m_handle, 1, &submit_info, p_fence->m_handle);
     if (result != VK_SUCCESS) assert(false);
 }
 auto Queue::submit(
-    const VulkanCommandBuffer& cmd_buffer, const vulkan::Semaphore* wait_semaphore,
-    const vulkan::Semaphore* signal_semaphore, const vulkan::Fence* fence) -> void {
+    const CommandBuffer& cmd_buffer, const Semaphore* wait_semaphore, const Semaphore* signal_semaphore,
+    const Fence* fence) -> void {
     VkPipelineStageFlags wait_stages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     const VkSubmitInfo   submit_info = {
           .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -94,8 +94,7 @@ auto Queue::present(VkPresentInfoKHR info) const -> VkResult {
     return result;
 }
 
-auto Queue::present(const u32& index, const VulkanSwapchain& swapchain, const vulkan::Semaphore* semaphore) const
-    -> VkResult {
+auto Queue::present(const u32& index, const Swapchain& swapchain, const Semaphore* semaphore) const -> VkResult {
     /*VkResult result;*/
 
     const VkPresentInfoKHR info = {
@@ -121,32 +120,30 @@ auto Queue::present(const u32& index, const VulkanSwapchain& swapchain, const vu
     //	__debugbreak();
     // }
 }
-} // namespace vulkan
 
 /*---------------------------
         Logical Device
 ---------------------------*/
 
-auto VulkanLogicalDevice::recreate_swapchain() -> void {
+auto LogicalDevice::recreate_swapchain() -> void {
     vkDeviceWaitIdle(m_handle);
     m_swapchain.deinit();
 
     m_swapchain.init(*this, m_instance->m_surface);
     m_images_in_flight.resize(m_swapchain.m_images.size());
 }
-auto VulkanLogicalDevice::cleanup_swapchain() -> void {
+auto LogicalDevice::cleanup_swapchain() -> void {
 
     // m_render_pass.deinit();
     m_swapchain.deinit();
 }
 
-auto VulkanLogicalDevice::wait_for_fence(const vulkan::Fence& fences, bool wait_all, u64 timeout) -> void {
+auto LogicalDevice::wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) -> void {
     VkResult result;
     result = vkWaitForFences(m_handle, 1, &fences.m_handle, wait_all, timeout);
     if (result != VK_SUCCESS) assert(false);
 }
-auto VulkanLogicalDevice::wait_for_fences(const std::vector<vulkan::Fence>& fences, bool wait_all, u64 timeout)
-    -> void {
+auto LogicalDevice::wait_for_fences(const std::vector<Fence>& fences, bool wait_all, u64 timeout) -> void {
     assert(fences.size() < 5);
     std::array<VkFence, 5>  vk_fences;
     for(u32 i = 0; i < fences.size(); ++i) {
@@ -157,7 +154,7 @@ auto VulkanLogicalDevice::wait_for_fences(const std::vector<vulkan::Fence>& fenc
     if (result != VK_SUCCESS) assert(false);
 }
 
-auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysicalDevice& physical_device) -> void {
+auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& physical_device) -> void {
     m_physical_device = &physical_device;
     m_instance = &instance;
 
@@ -201,8 +198,8 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 
 
 
-    m_graphics_queue = vulkan::Queue(*this, indices.m_graphics_family.value(), 0);
-    m_present_queue = vulkan::Queue(*this, indices.m_present_family.value(), 0);
+    m_graphics_queue = Queue(*this, indices.m_graphics_family.value(), 0);
+    m_present_queue = Queue(*this, indices.m_present_family.value(), 0);
 
 
     // Swapchain stuff
@@ -211,8 +208,8 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
 
     // Uniform stuff
 
-    m_ub_cam.init(*this, VulkanBuffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
-    m_ub_tran.init(*this, VulkanBuffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+    m_ub_cam.init(*this, Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+    m_ub_tran.init(*this, Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
 
 
     // Create main descriptor pool, which should have all kinds of types. In the future maybe make it more specific.
@@ -267,7 +264,7 @@ auto VulkanLogicalDevice::init(const VulkanInstance& instance, const VulkanPhysi
     for (size_t i = 0; i < swapchain_image_amount; i++) { m_images_in_flight[i].init(*this); }
 }
 
-auto VulkanLogicalDevice::deinit() -> void {
+auto LogicalDevice::deinit() -> void {
     VkResult result;
     this->cleanup_swapchain();
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -284,4 +281,5 @@ auto VulkanLogicalDevice::deinit() -> void {
     vkDestroyDevice(m_handle, nullptr);
 }
 
+} // namespace vulkan
 } // namespace JadeFrame

@@ -5,7 +5,7 @@
 namespace JadeFrame {
 
 
-Vulkan_Shader::Vulkan_Shader(const VulkanLogicalDevice& device, const DESC& desc) {
+Vulkan_Shader::Vulkan_Shader(const vulkan::LogicalDevice& device, const DESC& desc) {
     m_device = &device;
     Logger::info("Creating Vulkan shader");
     m_pipeline.init(

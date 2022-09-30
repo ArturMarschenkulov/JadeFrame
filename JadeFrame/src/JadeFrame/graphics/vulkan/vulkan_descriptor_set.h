@@ -5,10 +5,13 @@
 #include <vector>
 
 namespace JadeFrame {
-class VulkanLogicalDevice;
-class VulkanDescriptorSetLayout;
-class VulkanDescriptorPool;
-class VulkanBuffer;
+
+namespace vulkan {
+class LogicalDevice;
+class Buffer;
+class DescriptorSetLayout;
+class DescriptorPool;
+
 
 enum class DESCRIPTOR_SET_FREQUENCY : u8 {
     PER_FRAME,
@@ -19,7 +22,7 @@ enum class DESCRIPTOR_SET_FREQUENCY : u8 {
 };
 
 
-struct VulkanDescriptor {
+struct Descriptor {
     union {
         VkDescriptorBufferInfo bufer_info;
         VkDescriptorImageInfo  image_info;
@@ -28,7 +31,7 @@ struct VulkanDescriptor {
     VkShaderStageFlags stage_flags;
     u32                binding;
 };
-inline auto is_image(VulkanDescriptor d) -> bool {
+inline auto is_image(Descriptor d) -> bool {
     switch (d.type) {
         case VK_DESCRIPTOR_TYPE_SAMPLER:
         case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
@@ -42,26 +45,26 @@ inline auto is_image(VulkanDescriptor d) -> bool {
     }
 }
 
-class VulkanDescriptorSet {
+class DescriptorSet {
 public:
     auto update() -> void;
-    auto add_uniform_buffer(u32 binding, const VulkanBuffer& buffer, VkDeviceSize offset, VkDeviceSize range) -> void;
-    auto readd_uniform_buffer(u32 binding, const VulkanBuffer& buffer) -> void;
+    auto add_uniform_buffer(u32 binding, const Buffer& buffer, VkDeviceSize offset, VkDeviceSize range) -> void;
+    auto readd_uniform_buffer(u32 binding, const Buffer& buffer) -> void;
 
 public:
-    VkDescriptorSet                  m_handle;
-    const VulkanLogicalDevice*       m_device = nullptr;
-    const VulkanDescriptorSetLayout* m_layout = nullptr;
+    VkDescriptorSet            m_handle;
+    const LogicalDevice*       m_device = nullptr;
+    const DescriptorSetLayout* m_layout = nullptr;
 
-    std::vector<VulkanDescriptor> m_descriptors;
+    std::vector<Descriptor> m_descriptors;
 
     // su32 m_dynamic_count;
 };
 
-class VulkanDescriptorSetLayout {
+class DescriptorSetLayout {
 
 public:
-    auto init(const VulkanLogicalDevice& device) -> void;
+    auto init(const LogicalDevice& device) -> void;
     auto deinit() -> void;
 
     auto add_binding(
@@ -70,28 +73,29 @@ public:
 
 public:
     VkDescriptorSetLayout                     m_handle = VK_NULL_HANDLE;
-    const VulkanLogicalDevice*                m_device = nullptr;
+    const LogicalDevice*                      m_device = nullptr;
     std::vector<VkDescriptorSetLayoutBinding> m_bindings;
 
     u32 m_dynamic_count = 0;
 };
 
-class VulkanDescriptorPool {
+class DescriptorPool {
 public:
-    auto init(const VulkanLogicalDevice& device, u32 max_sets) -> void;
+    auto init(const LogicalDevice& device, u32 max_sets) -> void;
     auto deinit() -> void;
 
     auto add_pool_size(const VkDescriptorPoolSize& pool_size) -> void;
 
-    auto allocate_descriptor_sets(const VulkanDescriptorSetLayout& descriptor_set_layout, u32 image_amount)
-        -> std::vector<VulkanDescriptorSet>;
-    auto allocate_descriptor_set(const VulkanDescriptorSetLayout& descriptor_set_layout) -> VulkanDescriptorSet;
-    auto free_descriptor_sets(const std::vector<VulkanDescriptorSet>& descriptor_sets) -> void;
-    auto free_descriptor_set(const VulkanDescriptorSet& descriptor_sets) -> void;
+    auto allocate_descriptor_sets(const DescriptorSetLayout& descriptor_set_layout, u32 image_amount)
+        -> std::vector<DescriptorSet>;
+    auto allocate_descriptor_set(const DescriptorSetLayout& descriptor_set_layout) -> DescriptorSet;
+    auto free_descriptor_sets(const std::vector<DescriptorSet>& descriptor_sets) -> void;
+    auto free_descriptor_set(const DescriptorSet& descriptor_sets) -> void;
 
 public:
-    const VulkanLogicalDevice*        m_device = nullptr;
+    const LogicalDevice*              m_device = nullptr;
     VkDescriptorPool                  m_handle = VK_NULL_HANDLE;
     std::vector<VkDescriptorPoolSize> m_pool_sizes;
 };
+} // namespace vulkan
 } // namespace JadeFrame

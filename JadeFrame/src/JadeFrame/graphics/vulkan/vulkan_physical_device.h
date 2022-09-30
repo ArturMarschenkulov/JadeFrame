@@ -9,7 +9,9 @@
 
 namespace JadeFrame {
 
-class VulkanSurface;
+class VulkanInstance;
+namespace vulkan {
+class Surface;
 
 using QueueFamilyIndex = u32;
 class QueueFamilyIndices {
@@ -18,7 +20,7 @@ public:
     std::optional<QueueFamilyIndex> m_present_family;
     auto is_complete() -> bool { return m_graphics_family.has_value() && m_present_family.has_value(); }
 };
-class VulkanQueueFamily {
+class QueueFamily {
 public:
     QueueFamilyIndex        m_index;
     VkQueueFamilyProperties m_properties;
@@ -30,15 +32,14 @@ struct SurfaceSupportDetails {
     std::vector<VkSurfaceFormatKHR> m_formats;
     std::vector<VkPresentModeKHR>   m_present_modes;
 };
-class VulkanInstance;
-class VulkanPhysicalDevice {
+class PhysicalDevice {
 private:
 public:
-    auto init(VulkanInstance& instance, const VulkanSurface& surface) -> void;
+    auto init(VulkanInstance& instance, const Surface& surface) -> void;
     auto check_extension_support(const std::vector<const char*>& extensions) -> bool;
-    auto find_queue_families(const std::vector<VulkanQueueFamily>& queue_families) -> QueueFamilyIndices;
+    auto find_queue_families(const std::vector<QueueFamily>& queue_families) -> QueueFamilyIndices;
     auto find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32;
-    auto query_queue_families(const VulkanSurface& surface) -> std::vector<VulkanQueueFamily>;
+    auto query_queue_families(const Surface& surface) -> std::vector<QueueFamily>;
 
 public:
     VkPhysicalDevice m_handle;
@@ -51,7 +52,7 @@ public:
     SurfaceSupportDetails m_surface_support_details;
 
     // Queue stuff
-    std::vector<VulkanQueueFamily>       m_queue_families;
+    std::vector<QueueFamily>             m_queue_families;
     std::vector<VkQueueFamilyProperties> m_queue_family_properties;
     QueueFamilyIndices                   m_queue_family_indices;
 
@@ -62,4 +63,6 @@ public:
     };
     bool m_extension_support;
 };
+
+} // namespace vulkan
 } // namespace JadeFrame

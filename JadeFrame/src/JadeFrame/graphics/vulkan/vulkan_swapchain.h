@@ -9,68 +9,72 @@
 
 namespace JadeFrame {
 
-class VulkanLogicalDevice;
+
 class VulkanInstance;
-class VulkanPhysicalDevice;
-class VulkanSurface;
+
 namespace vulkan {
+class LogicalDevice;
 class Semaphore;
 class Fence;
-} // namespace vulkan
-// class vulkan::Semaphore;
-// class vulkan::Fence;
-class VulkanRenderPass;
-class VulkanImageView;
+class ImageView;
+
+class PhysicalDevice;
+class Surface;
 
 
-class VulkanRenderPass {
+class RenderPass;
+
+
+
+class RenderPass {
 public:
-    auto init(const VulkanLogicalDevice& device, VkFormat image_format) -> void;
+    auto init(const LogicalDevice& device, VkFormat image_format) -> void;
     auto deinit() -> void;
 
 public:
-    VkRenderPass               m_handle = VK_NULL_HANDLE;
-    const VulkanLogicalDevice* m_device = nullptr;
+    VkRenderPass         m_handle = VK_NULL_HANDLE;
+    const LogicalDevice* m_device = nullptr;
 };
 
-class VulkanFramebuffer {
+class Framebuffer {
 public:
-    auto init(
-        const VulkanLogicalDevice& device, const VulkanImageView& image_view, const VulkanRenderPass& render_pass,
-        VkExtent2D extent) -> void;
+    auto
+    init(const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent)
+        -> void;
     auto deinit() -> void;
 
 public:
-    VkFramebuffer              m_handle;
-    const VulkanLogicalDevice* m_device = nullptr;
-    const VulkanImageView*     m_image_view = nullptr;
-    const VulkanRenderPass*    m_render_pass = nullptr;
-    // const VulkanSwapchain* m_swapchain = nullptr;
+    VkFramebuffer        m_handle;
+    const LogicalDevice* m_device = nullptr;
+    const ImageView*     m_image_view = nullptr;
+    const RenderPass*    m_render_pass = nullptr;
+    // const Swapchain* m_swapchain = nullptr;
 };
 
 
-class VulkanSwapchain {
+class Swapchain {
 public:
-    auto init(VulkanLogicalDevice& device, const VulkanSurface& surface) -> void;
+    auto init(LogicalDevice& device, const Surface& surface) -> void;
     auto deinit() -> void;
     auto recreate() -> void;
 
-    auto acquire_next_image(const vulkan::Semaphore* semaphore, const vulkan::Fence* fence, VkResult& result) -> u32;
-    auto acquire_next_image(const vulkan::Semaphore* semaphore, const vulkan::Fence* fence) -> u32;
+    auto acquire_next_image(const Semaphore* semaphore, const Fence* fence, VkResult& result) -> u32;
+    auto acquire_next_image(const Semaphore* semaphore, const Fence* fence) -> u32;
 
 public:
-    VkSwapchainKHR       m_handle = VK_NULL_HANDLE;
-    VulkanLogicalDevice* m_device = nullptr;
-    const VulkanSurface* m_surface = nullptr;
+    VkSwapchainKHR m_handle = VK_NULL_HANDLE;
+    LogicalDevice* m_device = nullptr;
+    const Surface* m_surface = nullptr;
 
-    std::vector<VulkanImage>       m_images;
-    std::vector<VulkanImageView>   m_image_views;
-    VulkanRenderPass               m_render_pass;
-    std::vector<VulkanFramebuffer> m_framebuffers;
+    std::vector<Image>       m_images;
+    std::vector<ImageView>   m_image_views;
+    RenderPass               m_render_pass;
+    std::vector<Framebuffer> m_framebuffers;
 
     VkFormat   m_image_format;
     VkExtent2D m_extent;
 
     bool m_is_recreated = false;
 };
+} // namespace vulkan
 } // namespace JadeFrame

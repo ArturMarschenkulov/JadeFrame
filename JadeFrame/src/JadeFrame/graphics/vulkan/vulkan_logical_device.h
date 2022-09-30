@@ -17,12 +17,13 @@
 
 namespace JadeFrame {
 class VulkanInstance;
-class VulkanPhysicalDevice;
-class VulkanPipeline;
-class VulkanBuffer;
-class VulkanLogicalDevice;
+
+
 
 namespace vulkan {
+class LogicalDevice;
+class Pipeline;
+class PhysicalDevice;
 class Queue {
 public:
     Queue() = default;
@@ -35,70 +36,67 @@ public:
         return *this;
     }
 
-    Queue(const VulkanLogicalDevice& device, u32 queue_family_index, u32 queue_index);
-    auto submit(const VkSubmitInfo& submit_info, const vulkan::Fence* p_fence) const -> void;
+    Queue(const LogicalDevice& device, u32 queue_family_index, u32 queue_index);
+    auto submit(const VkSubmitInfo& submit_info, const Fence* p_fence) const -> void;
     auto submit(
-        const VulkanCommandBuffer& cmd_buffer, const vulkan::Semaphore* wait_semaphore,
-        const vulkan::Semaphore* signal_semaphore, const vulkan::Fence* p_fence) -> void;
+        const CommandBuffer& cmd_buffer, const Semaphore* wait_semaphore, const Semaphore* signal_semaphore,
+        const Fence* p_fence) -> void;
     auto wait_idle() const -> void;
     auto present(VkPresentInfoKHR info) const -> VkResult;
-    auto present(
-        const u32& index, const VulkanSwapchain& swapchain, const vulkan::Semaphore* result) const
-        -> VkResult;
+    auto present(const u32& index, const Swapchain& swapchain, const Semaphore* result) const -> VkResult;
 
 public:
     VkQueue m_handle = VK_NULL_HANDLE;
-    // const VulkanQueueFamily* = nullptr;
+    // const QueueFamily* = nullptr;
 };
-}
 
 
 
 
-class VulkanLogicalDevice {
+class LogicalDevice {
 private:
 public:
-    auto init(const VulkanInstance& instance, const VulkanPhysicalDevice& physical_device) -> void;
+    auto init(const VulkanInstance& instance, const PhysicalDevice& physical_device) -> void;
     auto deinit() -> void;
 
-    auto wait_for_fence(const vulkan::Fence& fences, bool wait_all, u64 timeout) -> void;
-    auto wait_for_fences(const std::vector<vulkan::Fence>& fences, bool wait_all, u64 timeout) -> void;
+    auto wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) -> void;
+    auto wait_for_fences(const std::vector<Fence>& fences, bool wait_all, u64 timeout) -> void;
 
 public:
-    VkDevice                    m_handle = VK_NULL_HANDLE;
-    const VulkanInstance*       m_instance = nullptr;
-    const VulkanPhysicalDevice* m_physical_device = nullptr;
+    VkDevice              m_handle = VK_NULL_HANDLE;
+    const VulkanInstance* m_instance = nullptr;
+    const PhysicalDevice* m_physical_device = nullptr;
 
-    vulkan::Queue m_graphics_queue;
-    vulkan::Queue m_present_queue;
+    Queue m_graphics_queue;
+    Queue m_present_queue;
 
 public: // Swapchain stuff
     auto recreate_swapchain() -> void;
     auto cleanup_swapchain() -> void;
 
-    VulkanSwapchain m_swapchain;
-    // VulkanRenderPass m_render_pass;
+    Swapchain m_swapchain;
+    // RenderPass m_render_pass;
 
 
     // TODO: Move the descriptor stuff to the shader code
 public: // Descriptor set
-    VulkanDescriptorPool      m_main_descriptor_pool;
-    VulkanDescriptorSetLayout m_descriptor_set_layout_0;
+    DescriptorPool      m_main_descriptor_pool;
+    DescriptorSetLayout m_descriptor_set_layout_0;
 
-    std::vector<VulkanDescriptorSet> m_descriptor_sets;
-    VulkanBuffer                     m_ub_cam = {VulkanBuffer::TYPE::UNIFORM};
-    VulkanBuffer                     m_ub_tran = {VulkanBuffer::TYPE::UNIFORM};
+    std::vector<DescriptorSet> m_descriptor_sets;
+    Buffer                     m_ub_cam = {Buffer::TYPE::UNIFORM};
+    Buffer                     m_ub_tran = {Buffer::TYPE::UNIFORM};
 
 public:
-    VulkanCommandPool                m_command_pool;
-    std::vector<VulkanCommandBuffer> m_command_buffers;
+    CommandPool                m_command_pool;
+    std::vector<CommandBuffer> m_command_buffers;
 
 
 public: // synchro objects
-    std::vector<vulkan::Semaphore> m_image_available_semaphores;
-    std::vector<vulkan::Semaphore> m_render_finished_semaphores;
-    std::vector<vulkan::Fence>     m_in_flight_fences;
-    std::vector<vulkan::Fence>     m_images_in_flight;
+    std::vector<Semaphore> m_image_available_semaphores;
+    std::vector<Semaphore> m_render_finished_semaphores;
+    std::vector<Fence>     m_in_flight_fences;
+    std::vector<Fence>     m_images_in_flight;
 
 public: // Misc
     u32    m_present_image_index = 0;
@@ -115,7 +113,7 @@ public: // texture stuff
         v2u32 size, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
         VkImage& image, VkDeviceMemory& imageMemory) -> void;
     // auto copy_buffer_to_image(VkBuffer buffer, VkImage image, u32 width, u32 height) -> void;
-    VulkanImage m_texture_image;
+    Image m_texture_image;
     // VkImage m_texture_image;
     VkDeviceMemory m_texture_image_Memory;
 
@@ -123,8 +121,10 @@ public: // texture stuff
     auto create_texture_image_view() -> void;
     auto create_texture_sampler() -> void;
 
-    VulkanImageView m_texture_image_view;
+    ImageView m_texture_image_view;
     // VkImageView m_texture_image_view;
     VkSampler m_texture_sampler;
 };
+
+} // namespace vulkan
 } // namespace JadeFrame

@@ -11,7 +11,9 @@ struct HWND__;
 typedef HWND__* HWND;
 
 namespace JadeFrame {
-class VulkanSurface {
+namespace vulkan {
+// namespace win32 {
+class Surface {
 private:
 public:
     auto init(VkInstance instance, HWND window_handle) -> void;
@@ -22,4 +24,6 @@ public:
     HWND         m_window_handle = nullptr;
     VkInstance   m_instance = nullptr;
 };
+//} // namespace win32
+} // namespace vulkan
 } // namespace JadeFrame

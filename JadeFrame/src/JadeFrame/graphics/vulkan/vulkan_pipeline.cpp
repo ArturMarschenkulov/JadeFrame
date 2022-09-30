@@ -17,6 +17,7 @@
 
 
 namespace JadeFrame {
+namespace vulkan {
 
 
 static auto create_shader_module_from_spirv(VkDevice device, const std::vector<u32>& spirv) -> VkShaderModule {
@@ -265,9 +266,9 @@ static auto reflect(const ShadingCode& code) -> ReflectedCode {
     return result;
 }
 
-static auto extract_descriptor_set_layouts(const VulkanLogicalDevice& device, const ReflectedCode& code)
-    -> std::array<VulkanDescriptorSetLayout, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> {
-    std::array<VulkanDescriptorSetLayout, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> set_layouts;
+static auto extract_descriptor_set_layouts(const LogicalDevice& device, const ReflectedCode& code)
+    -> std::array<DescriptorSetLayout, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> {
+    std::array<DescriptorSetLayout, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> set_layouts;
     for (u32 i = 0; i < code.m_modules.size(); i++) {
         auto& curr_module = code.m_modules[i];
 
@@ -323,9 +324,9 @@ static auto check_compatiblity(
 
     return compatible;
 }
-auto VulkanPipeline::init(
-    const VulkanLogicalDevice& device, const VkExtent2D& extent, const VulkanDescriptorSetLayout& descriptor_set_layout,
-    const VulkanRenderPass& render_pass, const ShadingCode& code, const VertexFormat& vertex_format) -> void {
+auto Pipeline::init(
+    const LogicalDevice& device, const VkExtent2D& extent, const DescriptorSetLayout& descriptor_set_layout,
+    const RenderPass& render_pass, const ShadingCode& code, const VertexFormat& vertex_format) -> void {
     m_device = &device;
     m_render_pass = &render_pass;
     m_descriptor_set_layout = &descriptor_set_layout;
@@ -355,8 +356,13 @@ auto VulkanPipeline::init(
         1 - Used for per-pass resources. Bound once per pass.
         2 - Used for per-material resources. Bound once per material.
         3 - Used for per-object resources. Bound once per object.
+
+        set 0: projection and view matrix. point lights.
+        set 1:
+        set 2: materials.
+        set 3: model matrix.
     */
-    const std::array<VulkanDescriptorSetLayout, 4> set_layouts = extract_descriptor_set_layouts(device, reflected_code);
+    const std::array<DescriptorSetLayout, 4> set_layouts = extract_descriptor_set_layouts(device, reflected_code);
 
 
 
@@ -404,7 +410,7 @@ auto VulkanPipeline::init(
                 default: layout_str = "Unknown"; break;
             }
             Logger::info("\t-Set layout: {} {}", i, layout_str);
-            const VulkanDescriptorSetLayout& set_layout = set_layouts[i];
+            const DescriptorSetLayout& set_layout = set_layouts[i];
             for (u32 j = 0; j < set_layout.m_bindings.size(); j++) {
                 const VkDescriptorSetLayoutBinding& binding = set_layout.m_bindings[j];
                 Logger::info("\t\tBinding: {}", binding.binding);
@@ -554,6 +560,14 @@ auto VulkanPipeline::init(
 
     result = vkCreateGraphicsPipelines(device.m_handle, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_handle);
     if (result != VK_SUCCESS) assert(false);
+    // // Logger part
+    // {
+    //     Logger::info("Created graphics pipeline {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
+    //     Logger::info("\tShader stages:");
+    //     for (const auto& stage : shader_stages) {
+    //         Logger::info("\t\t{}", stage.module);
+    //     }
+    // }
 
     for (u32 i = 0; i < shader_stages.size(); i++) {
         vkDestroyShaderModule(device.m_handle, shader_stages[i].module, nullptr);
@@ -562,11 +576,11 @@ auto VulkanPipeline::init(
     m_device = &device;
 }
 
-auto VulkanPipeline::deinit() -> void {
+auto Pipeline::deinit() -> void {
     vkDestroyPipeline(m_device->m_handle, m_handle, nullptr);
     vkDestroyPipelineLayout(m_device->m_handle, m_layout, nullptr);
 }
 
-auto VulkanPipeline::operator=(const VulkanPipeline& /*o*/) { assert(false); }
-
+auto Pipeline::operator=(const Pipeline& /*o*/) { assert(false); }
+} // namespace vulkan
 } // namespace JadeFrame
