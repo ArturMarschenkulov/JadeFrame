@@ -29,14 +29,14 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
     }
 
     MaterialHandle* mh = obj.m_material_handle;
-    ShaderHandle*   sh = obj.m_material_handle->m_shader_handle;
+    ShaderHandle*   sh = mh->m_shader_handle;
     if (mh->m_is_initialized == false) {
-        mh->m_shader_handle->m_api = GRAPHICS_API::VULKAN;
+        sh->m_api = GRAPHICS_API::VULKAN;
 
         Vulkan_Shader::DESC shader_desc;
         shader_desc.code = sh->m_code;
         shader_desc.vertex_format = sh->m_vertex_format;
-        mh->m_shader_handle->m_handle = new Vulkan_Shader(d, shader_desc);
+        sh->m_handle = new Vulkan_Shader(d, shader_desc);
 
         if (mh->m_texture_handle != nullptr) {
             mh->m_texture_handle->m_api = GRAPHICS_API::VULKAN;
@@ -61,48 +61,48 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
     };
     m_render_commands.push_back(command);
 }
+
 auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
-    vulkan::LogicalDevice& d = m_context.m_instance.m_logical_device;
+
     Logger::info("start of frame");
-    d.wait_for_fence(d.m_in_flight_fences[d.m_current_frame], VK_TRUE, UINT64_MAX);
-    // d.m_in_flight_fences[d.m_current_frame].wait_for_fences();
-    const u32 image_index =
-        d.m_swapchain.acquire_next_image(&d.m_image_available_semaphores[d.m_current_frame], nullptr);
+    vulkan::LogicalDevice& d = m_context.m_instance.m_logical_device;
+    const RGBAColor        c = {0.2_f32, 0.2_f32, 0.2_f32, 1.0_f32};
+    const VkClearValue     clear_value = VkClearValue{c.r, c.g, c.b, c.a};
+
+    // vulkan::Fence&     image_in_flight = d.m_images_in_flight[d.m_current_frame];
+    vulkan::Fence&     curr_fence = d.m_in_flight_fences[d.m_current_frame];
+    vulkan::Semaphore& available_semaphore = d.m_image_available_semaphores[d.m_current_frame];
+    vulkan::Semaphore& finished_semaphore = d.m_render_finished_semaphores[d.m_current_frame];
+
+    vulkan::RenderPass& render_pass = d.m_swapchain.m_render_pass;
+
+    const u64 alignment = m_context.m_instance.m_physical_device.m_properties.limits.minUniformBufferOffsetAlignment;
+    const u64 block_size = sizeof(Matrix4x4);
+    const u64 aligned_block_size = alignment > 0 ? (block_size + alignment - 1) & ~(alignment - 1) : block_size;
+
+
+    d.wait_for_fence(curr_fence, VK_TRUE, UINT64_MAX);
+    d.m_present_image_index = d.m_swapchain.acquire_next_image(&available_semaphore, nullptr);
+    const u32 image_index = d.m_present_image_index;
 
     if (d.m_swapchain.m_is_recreated == true) {
         d.m_swapchain.m_is_recreated = false;
         return;
     }
-
     // const VulkanImage& image = d.m_swapchain.m_images[image_index];
-    d.m_present_image_index = image_index;
-
-    if (d.m_images_in_flight[image_index].m_handle != VK_NULL_HANDLE) {
-        d.wait_for_fence(d.m_images_in_flight[image_index], VK_TRUE, UINT64_MAX);
-        // d.m_images_in_flight[image_index].wait_for_fences();
-    }
-    d.m_images_in_flight[image_index].m_handle = d.m_in_flight_fences[d.m_current_frame].m_handle;
-
-
     vulkan::CommandBuffer& cb = d.m_command_buffers[image_index];
-    cb.record_begin();
-    {
-        // const RGBAColor& c = m_clear_color;
-        const RGBAColor c = {0.2_f32, 0.2_f32, 0.2_f32, 1.0_f32};
-        cb.render_pass_begin(
-            d.m_swapchain.m_framebuffers[image_index], d.m_swapchain.m_render_pass, d.m_swapchain.m_extent,
-            {
-                {c.r, c.g, c.b, c.a}
-        });
-        {
-            // Per Frame ubo
-            d.m_ub_cam.send((void*)&view_projection, 0, sizeof(view_projection));
+    vulkan::Framebuffer&   framebuffer = d.m_swapchain.m_framebuffers[image_index];
 
-            const u64 min_ubo_alignment =
-                m_context.m_instance.m_physical_device.m_properties.limits.minUniformBufferOffsetAlignment;
-            const u64 block_size = sizeof(Matrix4x4);
-            const u64 aligned_block_size =
-                min_ubo_alignment > 0 ? (block_size + min_ubo_alignment - 1) & ~(min_ubo_alignment - 1) : block_size;
+    // TODO: remember what exactly this part did. Right now it seems unnecessary!
+    // if (image_in_flight.m_handle != VK_NULL_HANDLE) { d.wait_for_fence(image_in_flight, VK_TRUE, UINT64_MAX); }
+    // d.wait_for_fence(image_in_flight, VK_TRUE, UINT64_MAX);
+    // image_in_flight.m_handle = curr_fence.m_handle;
+
+    // cb.record_begin();
+    cb.record([&] {
+        cb.render_pass(framebuffer, render_pass, d.m_swapchain.m_extent, clear_value, [&] {
+            // Per Frame ubo
+            d.m_ub_cam.send(view_projection, 0);
 
             // Update ubo buffer and descriptor set when the amount of render commands changes
             if (m_render_commands.size() != 0 && m_render_commands.size() * aligned_block_size != d.m_ub_tran.m_size) {
@@ -111,43 +111,46 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
                 d.m_descriptor_sets[0].update();
             }
 
+
             for (u64 i = 0; i < m_render_commands.size(); i++) {
-                const u32            offset = static_cast<u32>(aligned_block_size * i);
-                const Vulkan_Shader& shader =
-                    *static_cast<Vulkan_Shader*>(m_render_commands[i].material_handle->m_shader_handle->m_handle);
-                const vulkan::Vulkan_GPUMeshData& gpu_data =
-                    *static_cast<vulkan::Vulkan_GPUMeshData*>(m_render_commands[i].m_GPU_mesh_data->m_handle);
-                const VertexData& vertex_data = *m_render_commands[i].vertex_data;
-                const Matrix4x4&  transform = *m_render_commands[i].transform;
+                const auto& cmd = m_render_commands[i];
+                const auto& shader = *static_cast<Vulkan_Shader*>(cmd.material_handle->m_shader_handle->m_handle);
+                const auto& gpu_data = *static_cast<vulkan::Vulkan_GPUMeshData*>(cmd.m_GPU_mesh_data->m_handle);
+                const auto& vertex_data = *cmd.vertex_data;
+                const auto& transform = *cmd.transform;
+                VkBuffer    vertex_buffers[] = {gpu_data.m_vertex_buffer.m_handle};
+                VkPipelineBindPoint bind_point = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+
+                const u32    offset = static_cast<u32>(aligned_block_size * i);
+                VkDeviceSize offsets[] = {0, 0};
 
                 // Per DrawCall ubo
-                d.m_ub_tran.send((void*)&transform, offset, sizeof(transform));
-
-
+                d.m_ub_tran.send(transform, offset);
 
                 vkCmdBindPipeline(
-                    cb.m_handle,                     // commandBuffer
-                    VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
-                    shader.m_pipeline.m_handle       // pipeline
+                    cb.m_handle,               // commandBuffer
+                    bind_point,                // pipelineBindPoint
+                    shader.m_pipeline.m_handle // pipeline
                 );
-                VkBuffer     vertex_buffers[] = {gpu_data.m_vertex_buffer.m_handle};
-                VkDeviceSize offsets[] = {0, 0};
-                vkCmdBindVertexBuffers(
-                    cb.m_handle,    // commandBuffer
-                    0,              // firstBinding
-                    1,              // bindingCount
-                    vertex_buffers, // pBuffers
-                    offsets         // pOffsets
-                );
+
                 vkCmdBindDescriptorSets(
                     cb.m_handle,                                      // commandBuffer
-                    VK_PIPELINE_BIND_POINT_GRAPHICS,                  // pipelineBindPoint
+                    bind_point,                                       // pipelineBindPoint
                     shader.m_pipeline.m_layout,                       // layout
                     0,                                                // firstSet
                     1,                                                // descriptorSetCount
                     &d.m_descriptor_sets[0].m_handle,                 // pDescriptorSets
                     d.m_descriptor_sets[0].m_layout->m_dynamic_count, // dynamicOffsetCount
                     &offset                                           // pDynamicOffsets
+                );
+
+                vkCmdBindVertexBuffers(
+                    cb.m_handle,    // commandBuffer
+                    0,              // firstBinding
+                    1,              // bindingCount
+                    vertex_buffers, // pBuffers
+                    offsets         // pOffsets
                 );
 
 
@@ -157,26 +160,24 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
                 } else {
                     vkCmdDraw(cb.m_handle, static_cast<u32>(vertex_data.m_positions.size()), 1, 0, 0);
                 }
-            }
-        }
-        cb.render_pass_end();
-    }
-    cb.record_end();
+            } //
+        });
+        // cb.render_pass_end();
+    });
+    // cb.record_end();
 
-    d.m_in_flight_fences[d.m_current_frame].reset();
+    curr_fence.reset();
+    d.m_graphics_queue.submit(cb, &available_semaphore, &finished_semaphore, &curr_fence);
 
-    d.m_graphics_queue.submit(
-        d.m_command_buffers[image_index], &d.m_image_available_semaphores[d.m_current_frame],
-        &d.m_render_finished_semaphores[d.m_current_frame], &d.m_in_flight_fences[d.m_current_frame]);
     m_render_commands.clear();
     std::cout << "Rendered frame" << std::endl;
 }
 
 auto Vulkan_Renderer::present() -> void {
     vulkan::LogicalDevice& d = m_context.m_instance.m_logical_device;
+    vulkan::Semaphore&     finished_semaphore = d.m_render_finished_semaphores[d.m_current_frame];
 
-    VkResult result = d.m_present_queue.present(
-        d.m_present_image_index, d.m_swapchain, &d.m_render_finished_semaphores[d.m_current_frame]);
+    VkResult result = d.m_present_queue.present(d.m_present_image_index, d.m_swapchain, &finished_semaphore);
     {
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || d.m_framebuffer_resized) {
             d.m_framebuffer_resized = false;
