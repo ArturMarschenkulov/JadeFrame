@@ -69,7 +69,6 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     const RGBAColor        c = {0.2_f32, 0.2_f32, 0.2_f32, 1.0_f32};
     const VkClearValue     clear_value = VkClearValue{c.r, c.g, c.b, c.a};
 
-    // vulkan::Fence&     image_in_flight = d.m_images_in_flight[d.m_current_frame];
     vulkan::Fence&     curr_fence = d.m_in_flight_fences[d.m_current_frame];
     vulkan::Semaphore& available_semaphore = d.m_image_available_semaphores[d.m_current_frame];
     vulkan::Semaphore& finished_semaphore = d.m_render_finished_semaphores[d.m_current_frame];
@@ -92,11 +91,6 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     // const VulkanImage& image = d.m_swapchain.m_images[image_index];
     vulkan::CommandBuffer& cb = d.m_command_buffers[image_index];
     vulkan::Framebuffer&   framebuffer = d.m_swapchain.m_framebuffers[image_index];
-
-    // TODO: remember what exactly this part did. Right now it seems unnecessary!
-    // if (image_in_flight.m_handle != VK_NULL_HANDLE) { d.wait_for_fence(image_in_flight, VK_TRUE, UINT64_MAX); }
-    // d.wait_for_fence(image_in_flight, VK_TRUE, UINT64_MAX);
-    // image_in_flight.m_handle = curr_fence.m_handle;
 
     // cb.record_begin();
     cb.record([&] {

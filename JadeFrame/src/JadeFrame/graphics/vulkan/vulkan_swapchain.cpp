@@ -224,7 +224,6 @@ auto Swapchain::recreate() -> void {
     this->deinit();
 
     this->init(*m_device, m_device->m_instance->m_surface);
-    m_device->m_images_in_flight.resize(m_images.size());
 }
 
 auto Swapchain::acquire_next_image(const Semaphore* semaphore, const Fence* fence, VkResult& out_result) -> u32 {

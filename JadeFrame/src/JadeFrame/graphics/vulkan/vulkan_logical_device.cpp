@@ -131,7 +131,6 @@ auto LogicalDevice::recreate_swapchain() -> void {
     m_swapchain.deinit();
 
     m_swapchain.init(*this, m_instance->m_surface);
-    m_images_in_flight.resize(m_swapchain.m_images.size());
 }
 auto LogicalDevice::cleanup_swapchain() -> void {
 
@@ -253,14 +252,12 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
     m_image_available_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
     m_render_finished_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
     m_in_flight_fences.resize(MAX_FRAMES_IN_FLIGHT);
-    m_images_in_flight.resize(swapchain_image_amount);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         m_image_available_semaphores[i].init(*this);
         m_render_finished_semaphores[i].init(*this);
         m_in_flight_fences[i].init(*this);
     }
-    for (size_t i = 0; i < swapchain_image_amount; i++) { m_images_in_flight[i].init(*this); }
 }
 
 auto LogicalDevice::deinit() -> void {
