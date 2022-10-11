@@ -24,7 +24,7 @@ enum class DESCRIPTOR_SET_FREQUENCY : u8 {
 
 struct Descriptor {
     union {
-        VkDescriptorBufferInfo bufer_info;
+        VkDescriptorBufferInfo buffer_info;
         VkDescriptorImageInfo  image_info;
     };
     VkDescriptorType   type;

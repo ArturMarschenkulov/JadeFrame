@@ -22,7 +22,7 @@ auto DescriptorSet::add_uniform_buffer(u32 binding, const Buffer& buffer, VkDevi
     -> void {
     JF_ASSERT(buffer.m_size < from_kibibyte(64), "Guaranteed only between 16K and 64K");
     // Descriptor d = {
-    //	.bufer_info = {
+    //	.buffer_info = {
     //		.buffer = buffer.m_handle,
     //		.offset = offset,
     //		.range = range,
@@ -30,15 +30,15 @@ auto DescriptorSet::add_uniform_buffer(u32 binding, const Buffer& buffer, VkDevi
     //	.binding = binding
     // };
     Descriptor d;
-    d.bufer_info.buffer = buffer.m_handle;
-    d.bufer_info.offset = offset;
-    d.bufer_info.range = range;
+    d.buffer_info.buffer = buffer.m_handle;
+    d.buffer_info.offset = offset;
+    d.buffer_info.range = range;
     d.binding = binding;
 
 
-    JF_ASSERT(d.bufer_info.offset < buffer.m_size, "");
-    JF_ASSERT(d.bufer_info.range != VK_WHOLE_SIZE && d.bufer_info.range > 0, "");
-    JF_ASSERT(d.bufer_info.range != VK_WHOLE_SIZE && d.bufer_info.range <= buffer.m_size - d.bufer_info.offset, "");
+    JF_ASSERT(d.buffer_info.offset < buffer.m_size, "");
+    JF_ASSERT(d.buffer_info.range != VK_WHOLE_SIZE && d.buffer_info.range > 0, "");
+    JF_ASSERT(d.buffer_info.range != VK_WHOLE_SIZE && d.buffer_info.range <= buffer.m_size - d.buffer_info.offset, "");
 
     // Find according to binding.
     // TODO: Maybe find a better way
@@ -46,7 +46,7 @@ auto DescriptorSet::add_uniform_buffer(u32 binding, const Buffer& buffer, VkDevi
     for (u32 i = 0; i < m_descriptors.size(); i++) {
         if (m_descriptors[i].binding == d.binding) {
             found = true;
-            m_descriptors[i].bufer_info = d.bufer_info;
+            m_descriptors[i].buffer_info = d.buffer_info;
             // infos[i] = d.info;
         }
     }
@@ -56,7 +56,7 @@ auto DescriptorSet::readd_uniform_buffer(u32 binding, const Buffer& buffer) -> v
 
     for (u32 i = 0;; i++) {
         if (m_descriptors[i].binding == binding) {
-            m_descriptors[binding].bufer_info.buffer = buffer.m_handle;
+            m_descriptors[binding].buffer_info.buffer = buffer.m_handle;
             return;
         }
     }
@@ -67,7 +67,7 @@ auto DescriptorSet::update() -> void {
 
     std::vector<VkDescriptorBufferInfo> infos;
     infos.resize(m_descriptors.size());
-    for (u32 i = 0; i < m_descriptors.size(); i++) { infos[i] = m_descriptors[i].bufer_info; }
+    for (u32 i = 0; i < m_descriptors.size(); i++) { infos[i] = m_descriptors[i].buffer_info; }
 
     std::vector<VkWriteDescriptorSet> wdss;
     wdss.reserve(m_descriptors.size());
