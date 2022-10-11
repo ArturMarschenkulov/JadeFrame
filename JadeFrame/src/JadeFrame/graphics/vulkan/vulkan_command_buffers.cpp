@@ -19,20 +19,21 @@ auto CommandBuffer::record_begin() -> void {
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
         .pInheritanceInfo = nullptr,
     };
-
     result = vkBeginCommandBuffer(m_handle, &begin_info);
     JF_ASSERT(result == VK_SUCCESS, "");
+    m_stage = STAGE::RECORDING;
 }
 
 auto CommandBuffer::record_end() -> void {
     VkResult result;
     result = vkEndCommandBuffer(m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
+    m_stage = STAGE::EXCECUTABLE;
 }
 
 auto CommandBuffer::render_pass_begin(
-    const Framebuffer& framebuffer, const RenderPass& render_pass, const VkExtent2D& extent,
-    VkClearValue clear_color) -> void {
+    const Framebuffer& framebuffer, const RenderPass& render_pass, const VkExtent2D& extent, VkClearValue clear_color)
+    -> void {
     const VkRenderPassBeginInfo render_pass_info = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .renderPass = render_pass.m_handle,
@@ -65,6 +66,12 @@ auto CommandBuffer::copy_buffer(const Buffer& src, const Buffer& dst, u32 region
 }
 
 
+auto CommandBuffer::bind_pipeline(const VkPipelineBindPoint bind_point, const Pipeline& pipeline) -> void {
+    vkCmdBindPipeline(m_handle, bind_point, pipeline.m_handle);
+}
+
+
+
 static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFlags& flag) -> std::string {
     std::string result = "{ ";
     if (flag & VK_COMMAND_POOL_CREATE_TRANSIENT_BIT) { result += "TRANSIENT "; }
@@ -91,6 +98,7 @@ auto CommandPool::init(const LogicalDevice& device, const QueueFamilyIndex& queu
         Logger::info("-flags: {}", to_string_from_command_pool_create_flags(pool_info.flags));
         Logger::info("-queueFamilyIndex: {}", pool_info.queueFamilyIndex);
     }
+    m_create_info = pool_info;
 }
 
 auto CommandPool::deinit() -> void { vkDestroyCommandPool(m_device->m_handle, m_handle, nullptr); }
@@ -113,12 +121,13 @@ auto CommandPool::allocate_command_buffers(u32 amount) const -> std::vector<Comm
             "Allocated {} Command Buffers to {} from pool {}", amount, fmt::ptr(*handles.data()), fmt::ptr(m_handle));
     }
 
-
     std::vector<CommandBuffer> command_buffers(handles.size());
     for (u32 i = 0; i < command_buffers.size(); i++) {
         command_buffers[i].m_handle = handles[i];
+        command_buffers[i].m_alloc_info = alloc_info;
         command_buffers[i].m_device = m_device;
         command_buffers[i].m_command_pool = this;
+        command_buffers[i].m_stage = CommandBuffer::STAGE::INITIAL;
     }
     return command_buffers;
 }

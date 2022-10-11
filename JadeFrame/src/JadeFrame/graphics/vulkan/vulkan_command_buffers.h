@@ -30,14 +30,44 @@ public:
         -> void;
     auto render_pass_end() -> void;
 
+    template<typename Func>
+    auto record(Func&& func) -> void {
+        record_begin();
+        func();
+        record_end();
+    }
+    template<typename Func>
+    auto render_pass(
+        const Framebuffer& framebuffer, const RenderPass& render_pass, const VkExtent2D& swapchain, VkClearValue color,
+        Func&& func) -> void {
+        render_pass_begin(framebuffer, render_pass, swapchain, color);
+        func();
+        render_pass_end();
+    }
+
     auto reset() -> void;
 
     auto copy_buffer(const Buffer& src, const Buffer& dst, u32 region_size, VkBufferCopy* regions) -> void;
 
+
+    auto bind_pipeline(const VkPipelineBindPoint bind_point, const Pipeline& pipeline) -> void;
+    auto bind_vertex_buffers(u32 first_binding, u32 binding_count, const Buffer& buffers, const VkDeviceSize* offsets)
+        -> void;
+    auto bind_vertex_buffers(const VkBuffer* buffers, const VkDeviceSize* offsets) -> void;
+
 public:
-    VkCommandBuffer      m_handle;
-    const LogicalDevice* m_device = nullptr;
-    const CommandPool*   m_command_pool = nullptr;
+    enum class STAGE {
+        INITIAL,
+        RECORDING,
+        EXCECUTABLE,
+        PENDING,
+        INVALID
+    };
+    VkCommandBuffer             m_handle;
+    VkCommandBufferAllocateInfo m_alloc_info;
+    const LogicalDevice*        m_device = nullptr;
+    const CommandPool*          m_command_pool = nullptr;
+    mutable STAGE               m_stage = STAGE::INVALID;
 };
 
 using QueueFamilyIndex = u32;
@@ -51,8 +81,9 @@ public:
     auto free_command_buffers(const std::vector<CommandBuffer>& command_buffers) const -> void;
 
 public:
-    const LogicalDevice* m_device = nullptr;
-    VkCommandPool        m_handle = VK_NULL_HANDLE;
+    const LogicalDevice*    m_device = nullptr;
+    VkCommandPool           m_handle = VK_NULL_HANDLE;
+    VkCommandPoolCreateInfo m_create_info = {};
 };
 
 } // namespace vulkan
