@@ -31,7 +31,15 @@ auto Fence::reset() -> void {
     result = vkResetFences(m_device->m_handle, 1, &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
-
+auto Fence::is_signaled() -> bool {
+    VkResult result;
+    result = vkGetFenceStatus(m_device->m_handle, m_handle);
+    switch (result) {
+        case VK_SUCCESS: return true;
+        case VK_NOT_READY: return false;
+        default: JF_ASSERT(false, ""); return false;
+    }
+}
 auto Semaphore::init(const LogicalDevice& device) -> void {
     m_device = &device;
     VkResult result;

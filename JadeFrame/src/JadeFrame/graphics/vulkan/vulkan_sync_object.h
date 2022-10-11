@@ -13,6 +13,7 @@ public:
     auto deinit() -> void;
     auto wait_for_fences() -> void;
     auto reset() -> void;
+    auto is_signaled() -> bool;
 
     VkFence              m_handle = VK_NULL_HANDLE;
     const LogicalDevice* m_device = nullptr;
