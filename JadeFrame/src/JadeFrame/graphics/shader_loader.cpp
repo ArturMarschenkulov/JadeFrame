@@ -115,6 +115,13 @@ void main() {
     return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
 
+/*
+    This is the vulkan testing shader which uses the 4 descriptor sets philosophy.
+    0 = per frame
+    1 = per pass
+    2 = per material
+    3 = per drawcall/object
+*/
 static auto get_shader_spirv_test_1() -> std::tuple<std::string, std::string> {
     static const char* vertex_shader =
         R"(

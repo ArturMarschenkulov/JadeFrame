@@ -36,6 +36,7 @@ public:
     Buffer(const Buffer::TYPE type);
     auto init(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data, size_t size) -> void;
     auto deinit() -> void;
+    auto send(const Matrix4x4& m, VkDeviceSize offset) -> void;
     auto send(void* data, VkDeviceSize offset, VkDeviceSize size) -> void;
     auto resize(size_t size) -> void;
 

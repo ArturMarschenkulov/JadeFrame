@@ -36,7 +36,6 @@ static auto create_shader_module_from_spirv(VkDevice device, const std::vector<u
     return shader_module;
 }
 
-#if 1
 static auto debug_print_resources(const spirv_cross::ShaderResources& resources) -> void {
     Logger::info("printing shader resources");
     for (const spirv_cross::Resource& resource : resources.uniform_buffers) {
@@ -97,7 +96,6 @@ static auto debug_print_resources(const spirv_cross::ShaderResources& resources)
         Logger::info("\tbuiltin_outputs {}", name);
     }
 }
-#endif
 
 static auto from_SHADER_STAGE(SHADER_STAGE stage) -> VkShaderStageFlagBits {
     VkShaderStageFlagBits result = {};
@@ -144,7 +142,7 @@ struct ReflectedCode {
     };
     std::vector<Module> m_modules;
 };
-#if 1
+
 static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 columns) -> SHADER_TYPE {
     SHADER_TYPE result = SHADER_TYPE::NONE;
     if (columns == 1) {
@@ -167,10 +165,10 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
     }
     return result;
 }
-#endif
+
 static auto reflect(const ShadingCode& code) -> ReflectedCode {
     ReflectedCode result = {};
-#if 1
+
     result.m_modules.resize(code.m_modules.size());
     for (u32 i = 0; i < code.m_modules.size(); i++) {
         auto& current_module = code.m_modules[i];
@@ -262,26 +260,23 @@ static auto reflect(const ShadingCode& code) -> ReflectedCode {
             push_constant_ranges[j].offset = buffer_offset;
         }
     }
-#endif
     return result;
 }
 
 static auto extract_descriptor_set_layouts(const LogicalDevice& device, const ReflectedCode& code)
     -> std::array<DescriptorSetLayout, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> {
+
     std::array<DescriptorSetLayout, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> set_layouts;
     for (u32 i = 0; i < code.m_modules.size(); i++) {
-        auto& curr_module = code.m_modules[i];
+        auto& module = code.m_modules[i];
 
-        for (u32 j = 0; j < curr_module.m_uniform_buffers.size(); j++) {
-            const auto& curr_buffer = curr_module.m_uniform_buffers[j];
+        for (u32 j = 0; j < module.m_uniform_buffers.size(); j++) {
+            const auto& buffer = module.m_uniform_buffers[j];
 
-            const VkBool32 update_per_object = curr_buffer.set == static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::PER_OBJECT);
-
-            const VkDescriptorType& type = curr_buffer.set == update_per_object
+            const VkDescriptorType& type = buffer.set == static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::PER_OBJECT)
                                                ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
                                                : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            set_layouts[curr_buffer.set].add_binding(
-                curr_buffer.binding, type, 1, from_SHADER_STAGE(curr_module.m_stage));
+            set_layouts[buffer.set].add_binding(buffer.binding, type, 1, from_SHADER_STAGE(module.m_stage));
         }
     }
     for (u32 i = 0; i < set_layouts.size(); i++) { set_layouts[i].init(device); }
@@ -398,7 +393,7 @@ auto Pipeline::init(
     // Logging the pipeline layout
     {
         std::string offset = "  ";
-        Logger::info("Created Pipeline Layout {} at {}", fmt::ptr(m_layout), fmt::ptr(this));
+        Logger::info("Created Pipeline Layout {} at {}", fmt::ptr(this), fmt::ptr(m_layout));
         Logger::info("\tSet Layouts count: {}", set_layouts.size());
         for (u32 i = 0; i < set_layouts.size(); i++) {
             std::string layout_str;

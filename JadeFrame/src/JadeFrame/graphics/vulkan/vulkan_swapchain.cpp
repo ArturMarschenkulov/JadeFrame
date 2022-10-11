@@ -140,7 +140,7 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     m_surface = &surface;
 
     VkResult                     result;
-    const PhysicalDevice*  gpu = device.m_physical_device;
+    const PhysicalDevice*        gpu = device.m_physical_device;
     const SurfaceSupportDetails& surface_details = gpu->m_surface_support_details;
 
     u32 image_count = surface_details.m_capabilities.minImageCount + 1;
@@ -227,26 +227,36 @@ auto Swapchain::recreate() -> void {
     m_device->m_images_in_flight.resize(m_images.size());
 }
 
-auto Swapchain::acquire_next_image(const Semaphore* semaphore, const Fence* fence, VkResult& out_result)
-    -> u32 {
-    u32 image_index;
+auto Swapchain::acquire_next_image(const Semaphore* semaphore, const Fence* fence, VkResult& out_result) -> u32 {
+    u32         image_index;
+    VkSemaphore p_semaphore = semaphore == nullptr ? VK_NULL_HANDLE : semaphore->m_handle;
+    VkFence     p_fence = fence == nullptr ? VK_NULL_HANDLE : fence->m_handle;
+
     out_result = vkAcquireNextImageKHR(
-        m_device->m_handle,                                          // device
-        m_handle,                                                    // swapchain
-        UINT64_MAX,                                                  // timeout
-        semaphore == nullptr ? VK_NULL_HANDLE : semaphore->m_handle, // semaphore
-        fence == nullptr ? VK_NULL_HANDLE : fence->m_handle,         // fence
-        &image_index                                                 // image index
+        m_device->m_handle, // device
+        m_handle,           // swapchain
+        UINT64_MAX,         // timeout
+        p_semaphore,        // semaphore
+        p_fence,            // fence
+        &image_index        // image index
     );
     return image_index;
 }
 
 auto Swapchain::acquire_next_image(const Semaphore* semaphore, const Fence* fence) -> u32 {
-    VkResult result;
-    u32      image_index;
+    VkResult    result;
+    u32         image_index;
+    VkSemaphore p_semaphore = semaphore == nullptr ? VK_NULL_HANDLE : semaphore->m_handle;
+    VkFence     p_fence = fence == nullptr ? VK_NULL_HANDLE : fence->m_handle;
+
     result = vkAcquireNextImageKHR(
-        m_device->m_handle, m_handle, UINT64_MAX, semaphore == nullptr ? VK_NULL_HANDLE : semaphore->m_handle,
-        fence == nullptr ? VK_NULL_HANDLE : fence->m_handle, &image_index);
+        m_device->m_handle, // device
+        m_handle,           // swapchain
+        UINT64_MAX,         // timeout
+        p_semaphore,        // semaphore
+        p_fence,            // fence
+        &image_index        // image index
+    );
     if (result != VK_SUCCESS) {
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
             std::cout << "VK_ERROR_OUT_OF_DATE_KHR" << std::endl;
@@ -267,8 +277,8 @@ auto Swapchain::acquire_next_image(const Semaphore* semaphore, const Fence* fenc
 ---------------------------*/
 
 auto Framebuffer::init(
-    const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass,
-    VkExtent2D extent) -> void {
+    const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent)
+    -> void {
     m_device = &device;
     m_image_view = &image_view;
     m_render_pass = &render_pass;
