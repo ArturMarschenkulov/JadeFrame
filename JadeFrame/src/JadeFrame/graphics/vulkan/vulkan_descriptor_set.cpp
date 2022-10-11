@@ -54,7 +54,7 @@ auto DescriptorSet::add_uniform_buffer(u32 binding, const Buffer& buffer, VkDevi
 }
 auto DescriptorSet::readd_uniform_buffer(u32 binding, const Buffer& buffer) -> void {
 
-    for (u32 i = 0;; i++) {
+    for (u32 i = 0; i < m_descriptors.size(); i++) {
         if (m_descriptors[i].binding == binding) {
             m_descriptors[binding].buffer_info.buffer = buffer.m_handle;
             return;
@@ -216,7 +216,10 @@ auto DescriptorPool::allocate_descriptor_sets(const DescriptorSetLayout& descrip
     };
     std::vector<VkDescriptorSet> handles(amount);
     result = vkAllocateDescriptorSets(m_device->m_handle, &alloc_info, handles.data());
-    if (result != VK_SUCCESS) assert(false);
+    if (result != VK_SUCCESS) {
+        Logger::err("Failed to allocate descriptor sets {}", to_string(result));
+        assert(false);
+    }
     {
         Logger::info(
             "Allocated {} descriptor sets from pool {} at {}", amount, fmt::ptr(this), fmt::ptr(*handles.data()));

@@ -199,9 +199,12 @@ auto Buffer::init(const LogicalDevice& device, Buffer::TYPE buffer_type, void* d
 auto Buffer::deinit() -> void {
     vkDestroyBuffer(m_device->m_handle, m_handle, nullptr);
     vkFreeMemory(m_device->m_handle, m_memory, nullptr);
+    
+    Logger::info("Destroyed Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
 
     m_handle = VK_NULL_HANDLE;
     m_memory = VK_NULL_HANDLE;
+
 }
 
 auto Buffer::send(const Matrix4x4& m, VkDeviceSize offset) -> void {
@@ -242,6 +245,7 @@ auto Buffer::create_buffer(
     };
     result = vkCreateBuffer(m_device->m_handle, &buffer_info, nullptr, &buffer);
     JF_ASSERT(result == VK_SUCCESS, "");
+    m_handle = buffer;
 
     VkMemoryRequirements mem_requirements;
     vkGetBufferMemoryRequirements(m_device->m_handle, buffer, &mem_requirements);
@@ -258,6 +262,9 @@ auto Buffer::create_buffer(
     JF_ASSERT(result == VK_SUCCESS, "");
 
     result = vkBindBufferMemory(m_device->m_handle, buffer, buffer_memory, 0);
+    {
+        Logger::info("Created Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
+    }
 }
 
 auto Buffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size) -> void {

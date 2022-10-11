@@ -555,14 +555,14 @@ auto Pipeline::init(
 
     result = vkCreateGraphicsPipelines(device.m_handle, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_handle);
     if (result != VK_SUCCESS) assert(false);
-    // // Logger part
-    // {
-    //     Logger::info("Created graphics pipeline {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
-    //     Logger::info("\tShader stages:");
-    //     for (const auto& stage : shader_stages) {
-    //         Logger::info("\t\t{}", stage.module);
-    //     }
-    // }
+    // Logger part
+    {
+        Logger::info("Created graphics pipeline {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
+        Logger::info("\tShader stages:");
+        for (const auto& stage : shader_stages) {
+            // Logger::info("\t\t{}", stage.module);
+        }
+    }
 
     for (u32 i = 0; i < shader_stages.size(); i++) {
         vkDestroyShaderModule(device.m_handle, shader_stages[i].module, nullptr);

@@ -122,7 +122,10 @@ inline auto to_string(const VkResult& result) -> std::string {
         case VK_ERROR_FRAGMENTED_POOL: str = "VK_ERROR_FRAGMENTED_POOL"; break;
         case VK_ERROR_SURFACE_LOST_KHR: str = "VK_ERROR_SURFACE_LOST_KHR"; break;
         case VK_ERROR_NATIVE_WINDOW_IN_USE_KHR: str = "VK_ERROR_NATIVE_WINDOW_IN_USE_KHR"; break;
+        case VK_ERROR_OUT_OF_POOL_MEMORY: str = "VK_ERROR_OUT_OF_POOL_MEMORY"; break;
+        // case VK_ERROR_OUT_OF_POOL_MEMORY_KHR: str = "VK_ERROR_OUT_OF_POOL_MEMORY_KHR"; break;
         default:
+            Logger::err("Unknown VkResult: {}", result);
             assert(false);
             str = "";
             break;

@@ -128,15 +128,18 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
         obj.m_GPU_mesh_data.m_handle = new OpenGL_GPUMeshData(*obj.m_vertex_data, vertex_format);
         obj.m_GPU_mesh_data.m_is_initialized = true;
     }
-    if (obj.m_material_handle->m_is_initialized == false) {
+    MaterialHandle* mh = obj.m_material_handle;
+    ShaderHandle*   sh = mh->m_shader_handle;
+    TextureHandle*  th = mh->m_texture_handle;
+    if (mh->m_is_initialized == false) {
         // obj.m_material_handle->init();
-        obj.m_material_handle->m_shader_handle->m_api = GRAPHICS_API::OPENGL;
-        obj.m_material_handle->m_shader_handle->init();
+        sh->m_api = GRAPHICS_API::OPENGL;
+        sh->init();
         // obj.m_material_handle->m_shader_handle->m_handle = new OpenGL_Shader();
 
-        if (obj.m_material_handle->m_texture_handle != nullptr) {
-            obj.m_material_handle->m_texture_handle->m_api = GRAPHICS_API::OPENGL;
-            obj.m_material_handle->m_texture_handle->init();
+        if (th != nullptr) {
+            th->m_api = GRAPHICS_API::OPENGL;
+            th->init();
         }
         obj.m_material_handle->m_is_initialized = true;
     }
@@ -167,15 +170,15 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     for (size_t i = 0; i < m_render_commands.size(); ++i) {
         const OpenGL_RenderCommand& command = m_render_commands[i];
+        const MaterialHandle&       mh = *command.material_handle;
 
-        const OpenGL_Shader* p_shader = static_cast<OpenGL_Shader*>(command.material_handle->m_shader_handle->m_handle);
-        const VertexData*    p_mesh = command.vertex_data;
+        const OpenGL_Shader*      p_shader = static_cast<OpenGL_Shader*>(mh.m_shader_handle->m_handle);
+        const VertexData*         p_mesh = command.vertex_data;
         const OpenGL_GPUMeshData* p_vertex_array = static_cast<OpenGL_GPUMeshData*>(command.m_GPU_mesh_data->m_handle);
 
         p_shader->bind();
-        if (command.material_handle->m_texture_handle != nullptr) {
-            OpenGL_Texture& texture =
-                *static_cast<OpenGL_Texture*>(command.material_handle->m_texture_handle->m_handle);
+        if (mh.m_texture_handle != nullptr) {
+            OpenGL_Texture& texture = *static_cast<OpenGL_Texture*>(mh.m_texture_handle->m_handle);
             texture.bind();
         }
 
@@ -209,15 +212,17 @@ auto OpenGL_Renderer::render_mesh(const OpenGL_GPUMeshData* vertex_array, const 
 
     if (vertex_data->m_indices.size() > 0) {
         glDrawElements(
-            /*mode*/ static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES),
-            /*count*/ vertex_data->m_indices.size(),
-            /*type*/ GL_UNSIGNED_INT,
-            /*indices*/ nullptr);
+            static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES), // mode
+            vertex_data->m_indices.size(),                  // count
+            GL_UNSIGNED_INT,                                // type
+            nullptr                                         // indices
+        );
     } else {
         glDrawArrays(
-            /*mode*/ static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES),
-            /*first*/ 0,
-            /*count*/ vertex_data->m_positions.size());
+            static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES), // mode
+            0,                                              // first
+            vertex_data->m_positions.size()                 // count
+        );
     }
 }
 

@@ -30,10 +30,6 @@ auto VertexFormat::calculate_offset_and_stride(std::vector<VertexAttribute>& att
 
 
 auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage) -> std::vector<u32> {
-#if 1
-    namespace shc = shaderc;
-    // using namespace shaderc;
-
     shaderc_shader_kind kind = {};
     switch (stage) {
         case SHADER_STAGE::VERTEX: {
@@ -45,15 +41,15 @@ auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage) -> std::vector
         default: assert(false);
     }
 
-    shc::CompileOptions options;
+    shaderc::CompileOptions options;
     options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
     // options.SetTargetEnvironment(shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
     options.SetWarningsAsErrors();
     options.SetGenerateDebugInfo();
     const bool optimize = false;
     if constexpr (optimize == true) { options.SetOptimizationLevel(shaderc_optimization_level_size); }
-    shc::Compiler              compiler;
-    shc::SpvCompilationResult  comp_result = compiler.CompileGlslToSpv(code, kind, "", options);
+    shaderc::Compiler              compiler;
+    shaderc::SpvCompilationResult  comp_result = compiler.CompileGlslToSpv(code, kind, "", options);
     shaderc_compilation_status comp_status = comp_result.GetCompilationStatus();
     if (comp_status != shaderc_compilation_status_success) {
         assert(false);
@@ -62,8 +58,6 @@ auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage) -> std::vector
 
     std::vector<u32> result = {comp_result.cbegin(), comp_result.cend()};
     return result;
-#endif
-    return {};
 }
 
 

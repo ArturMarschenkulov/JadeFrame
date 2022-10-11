@@ -14,6 +14,11 @@
 #include <cassert>
 #include <tuple>
 
+
+#include "SPIRV-Cross/spirv_glsl.hpp"
+#include "SPIRV-Cross/spirv_hlsl.hpp"
+#include "SPIRV-Cross/spirv_msl.hpp"
+
 namespace JadeFrame {
 static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
     switch (type) {
@@ -40,8 +45,10 @@ OpenGL_Shader::OpenGL_Shader(const DESC& desc)
     auto fragment_shader = std::get<std::string>(desc.code.m_modules[1].m_code);
     m_vertex_source = vertex_shader;
     m_fragment_source = fragment_shader;
+    Logger::info("vertex shader: {}", vertex_shader);
+    Logger::info("fragment shader: {}", fragment_shader);
     if constexpr (false) {
-        
+
         /*
             NOTE: Strangely, on the laptops I tried it out, this function `glSpecializeShader` doesn't work.
             I'm not sure why, but it seems to be a driver issue.
@@ -70,6 +77,19 @@ OpenGL_Shader::OpenGL_Shader(const DESC& desc)
 
         m_fragment_shader.set_source(fragment_shader);
         m_fragment_shader.compile();
+
+        std::vector<u32> vs = string_to_SPIRV(vertex_shader.c_str(), desc.code.m_modules[0].m_stage);
+
+        spirv_cross::CompilerGLSL::Options options;
+        options.version = 450;
+        options.es = false;
+        options.vulkan_semantics = true;
+        spirv_cross::CompilerGLSL glsl(vs);
+        glsl.set_common_options(options);
+        std::cout << glsl.compile() << std::endl;
+        std::cout << "====================" << std::endl;
+        spirv_cross::CompilerHLSL hlsl(vs);
+        std::cout << hlsl.compile() << std::endl;
     }
 
     m_program.attach(m_vertex_shader);
