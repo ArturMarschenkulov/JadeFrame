@@ -204,11 +204,23 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
     m_swapchain.init(*this, m_instance->m_surface);
     const u32 swapchain_image_amount = static_cast<u32>(m_swapchain.m_images.size());
 
-    // Uniform stuff
+    // Commad Buffer stuff
+    m_command_pool.init(*this, m_physical_device->m_queue_family_indices.m_graphics_family.value());
+    m_command_buffers = m_command_pool.allocate_command_buffers(static_cast<u32>(m_swapchain.m_framebuffers.size()));
 
-    m_ub_cam.init(*this, Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
-    m_ub_tran.init(*this, Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+    Logger::debug("maxBoundDescriptorSets: {}", m_physical_device->m_properties.limits.maxBoundDescriptorSets);
+    JF_ASSERT(m_physical_device->m_properties.limits.maxBoundDescriptorSets >= 4, "");
 
+    // Sync objects stuff
+    m_image_available_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    m_render_finished_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    m_in_flight_fences.resize(MAX_FRAMES_IN_FLIGHT);
+
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        m_image_available_semaphores[i].init(*this);
+        m_render_finished_semaphores[i].init(*this);
+        m_in_flight_fences[i].init(*this);
+    }
 
     // Create main descriptor pool, which should have all kinds of types. In the future maybe make it more specific.
     u32 descriptor_count = 1000;
@@ -222,42 +234,35 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
     m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_SAMPLER, descriptor_count});
     m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, descriptor_count});
     m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, descriptor_count});
-    m_main_descriptor_pool.init(*this, 1);
-
-    m_descriptor_set_layout_0.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
-    m_descriptor_set_layout_0.add_binding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
-    // m_descriptor_set_layout_0.add_binding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_ALL);
+    m_main_descriptor_pool.init(*this, 4);
 
 
+    /*
+        The part below should probably be somewhere else, as they are highly dependent on the shader code.
+        One has to find a way to make it more dynamic.
+    */
 
-    Logger::debug("maxBoundDescriptorSets: {}", m_physical_device->m_properties.limits.maxBoundDescriptorSets);
-    JF_ASSERT(m_physical_device->m_properties.limits.maxBoundDescriptorSets >= 4, "");
+    // Uniform stuff
+    m_ub_cam.init(*this, Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+    m_ub_tran.init(*this, Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
 
+    m_descriptor_set_layout_global.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
+    m_descriptor_set_layout_global.init(*this);
+
+    m_descriptor_set_layout_draw_call.add_binding(
+        0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_VERTEX_BIT);
+    m_descriptor_set_layout_draw_call.init(*this);
 
     // TODO: Maybe move the descriptor code to `vulkan_renderer.cpp`?
 
-    m_descriptor_set_layout_0.init(*this);
 
-    m_descriptor_sets = m_main_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout_0, 1);
+    m_descriptor_sets.resize(2);
+    m_descriptor_sets[0] = m_main_descriptor_pool.allocate_descriptor_set(m_descriptor_set_layout_global);
+    m_descriptor_sets[1] = m_main_descriptor_pool.allocate_descriptor_set(m_descriptor_set_layout_draw_call);
+    // m_descriptor_sets = m_main_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout_0, 1);
     m_descriptor_sets[0].add_uniform_buffer(0, m_ub_cam, 0, sizeof(Matrix4x4));
-    m_descriptor_sets[0].add_uniform_buffer(1, m_ub_tran, 0, sizeof(Matrix4x4));
-    m_descriptor_sets[0].update();
-
-
-    // Commad Buffer stuff
-    m_command_pool.init(*this, m_physical_device->m_queue_family_indices.m_graphics_family.value());
-    m_command_buffers = m_command_pool.allocate_command_buffers(static_cast<u32>(m_swapchain.m_framebuffers.size()));
-
-    // Sync objects stuff
-    m_image_available_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    m_render_finished_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    m_in_flight_fences.resize(MAX_FRAMES_IN_FLIGHT);
-
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        m_image_available_semaphores[i].init(*this);
-        m_render_finished_semaphores[i].init(*this);
-        m_in_flight_fences[i].init(*this);
-    }
+    m_descriptor_sets[1].add_uniform_buffer(0, m_ub_tran, 0, sizeof(Matrix4x4));
+    for (int i = 0; i < m_descriptor_sets.size(); i++) { m_descriptor_sets[i].update(); }
 }
 
 auto LogicalDevice::deinit() -> void {

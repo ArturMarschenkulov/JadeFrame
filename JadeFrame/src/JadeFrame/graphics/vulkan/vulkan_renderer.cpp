@@ -64,9 +64,9 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
 
 auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
-    Logger::info("start of frame");
+    Logger::info("start of frame rendering");
     vulkan::LogicalDevice& d = m_context.m_instance.m_logical_device;
-    const RGBAColor        c = {0.2_f32, 0.2_f32, 0.2_f32, 1.0_f32};
+    const RGBAColor        c = m_clear_color;
     const VkClearValue     clear_value = VkClearValue{c.r, c.g, c.b, c.a};
 
     vulkan::Fence&     curr_fence = d.m_in_flight_fences[d.m_current_frame];
@@ -82,30 +82,28 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     d.wait_for_fence(curr_fence, VK_TRUE, UINT64_MAX);
     d.m_present_image_index = d.m_swapchain.acquire_next_image(&available_semaphore, nullptr);
-    const u32 image_index = d.m_present_image_index;
 
     if (d.m_swapchain.m_is_recreated == true) {
         d.m_swapchain.m_is_recreated = false;
         return;
     }
     // const VulkanImage& image = d.m_swapchain.m_images[image_index];
-    vulkan::CommandBuffer& cb = d.m_command_buffers[image_index];
-    vulkan::Framebuffer&   framebuffer = d.m_swapchain.m_framebuffers[image_index];
+    vulkan::CommandBuffer& cb = d.m_command_buffers[d.m_present_image_index];
+    vulkan::Framebuffer&   framebuffer = d.m_swapchain.m_framebuffers[d.m_present_image_index];
+
+    // Per Frame ubo
+    d.m_ub_cam.send(view_projection, 0);
+
+    // Update ubo buffer and descriptor set when the amount of render commands changes
+    if (m_render_commands.size() != 0 && m_render_commands.size() * aligned_block_size != d.m_ub_tran.m_size) {
+        d.m_ub_tran.resize(m_render_commands.size() * aligned_block_size);
+        d.m_descriptor_sets[1].readd_uniform_buffer(0, d.m_ub_tran);
+        for (int i = 0; i < d.m_descriptor_sets.size(); i++) { d.m_descriptor_sets[i].update(); }
+    }
 
     // cb.record_begin();
     cb.record([&] {
         cb.render_pass(framebuffer, render_pass, d.m_swapchain.m_extent, clear_value, [&] {
-            // Per Frame ubo
-            d.m_ub_cam.send(view_projection, 0);
-
-            // Update ubo buffer and descriptor set when the amount of render commands changes
-            if (m_render_commands.size() != 0 && m_render_commands.size() * aligned_block_size != d.m_ub_tran.m_size) {
-                d.m_ub_tran.resize(m_render_commands.size() * aligned_block_size);
-                d.m_descriptor_sets[0].readd_uniform_buffer(1, d.m_ub_tran);
-                d.m_descriptor_sets[0].update();
-            }
-
-
             for (u64 i = 0; i < m_render_commands.size(); i++) {
                 const auto& cmd = m_render_commands[i];
                 const auto& shader = *static_cast<Vulkan_Shader*>(cmd.material_handle->m_shader_handle->m_handle);
@@ -128,6 +126,14 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
                     shader.m_pipeline.m_handle // pipeline
                 );
 
+                vkCmdBindVertexBuffers(
+                    cb.m_handle,    // commandBuffer
+                    0,              // firstBinding
+                    1,              // bindingCount
+                    vertex_buffers, // pBuffers
+                    offsets         // pOffsets
+                );
+
                 vkCmdBindDescriptorSets(
                     cb.m_handle,                                      // commandBuffer
                     bind_point,                                       // pipelineBindPoint
@@ -139,13 +145,18 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
                     &offset                                           // pDynamicOffsets
                 );
 
-                vkCmdBindVertexBuffers(
-                    cb.m_handle,    // commandBuffer
-                    0,              // firstBinding
-                    1,              // bindingCount
-                    vertex_buffers, // pBuffers
-                    offsets         // pOffsets
+                vkCmdBindDescriptorSets(
+                    cb.m_handle,                                      // commandBuffer
+                    bind_point,                                       // pipelineBindPoint
+                    shader.m_pipeline.m_layout,                       // layout
+                    3,                                                // firstSet
+                    1,                                                // descriptorSetCount
+                    &d.m_descriptor_sets[1].m_handle,                 // pDescriptorSets
+                    d.m_descriptor_sets[1].m_layout->m_dynamic_count, // dynamicOffsetCount
+                    &offset                                           // pDynamicOffsets
                 );
+
+
 
 
                 if (vertex_data.m_indices.size() > 0) {
