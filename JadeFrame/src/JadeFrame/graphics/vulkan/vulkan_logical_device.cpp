@@ -65,7 +65,7 @@ auto Queue::submit(const VkSubmitInfo& submit_info, const Fence* p_fence) const 
 }
 auto Queue::submit(
     const CommandBuffer& cmd_buffer, const Semaphore* wait_semaphore, const Semaphore* signal_semaphore,
-    const Fence* fence) -> void {
+    const Fence* fence) const -> void {
     VkPipelineStageFlags wait_stages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     const VkSubmitInfo   submit_info = {
           .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -81,7 +81,8 @@ auto Queue::submit(
     /*this->submit(submit_info);*/
     VkResult result;
     result = vkQueueSubmit(m_handle, 1, &submit_info, fence->m_handle);
-    if (result != VK_SUCCESS) assert(false);
+    if (result != VK_SUCCESS) JF_ASSERT(false, to_string(result));
+    cmd_buffer.m_stage = CommandBuffer::STAGE::PENDING;
 }
 auto Queue::wait_idle() const -> void {
     VkResult result;
@@ -145,10 +146,8 @@ auto LogicalDevice::wait_for_fence(const Fence& fences, bool wait_all, u64 timeo
 }
 auto LogicalDevice::wait_for_fences(const std::vector<Fence>& fences, bool wait_all, u64 timeout) -> void {
     assert(fences.size() < 5);
-    std::array<VkFence, 5>  vk_fences;
-    for(u32 i = 0; i < fences.size(); ++i) {
-        vk_fences[i] = fences[i].m_handle;
-    }
+    std::array<VkFence, 5> vk_fences;
+    for (u32 i = 0; i < fences.size(); ++i) { vk_fences[i] = fences[i].m_handle; }
     VkResult result;
     result = vkWaitForFences(m_handle, static_cast<u32>(fences.size()), vk_fences.data(), wait_all, timeout);
     if (result != VK_SUCCESS) assert(false);
@@ -227,7 +226,7 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
     m_main_descriptor_pool.init(*this, 1);
 
     m_descriptor_set_layout_0.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
-    m_descriptor_set_layout_0.add_binding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_VERTEX_BIT);
+    m_descriptor_set_layout_0.add_binding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
     // m_descriptor_set_layout_0.add_binding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_ALL);
 
 
@@ -236,7 +235,7 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
     JF_ASSERT(m_physical_device->m_properties.limits.maxBoundDescriptorSets >= 4, "");
 
 
-
+    // TODO: Maybe move the descriptor code to `vulkan_renderer.cpp`?
 
     m_descriptor_set_layout_0.init(*this);
 

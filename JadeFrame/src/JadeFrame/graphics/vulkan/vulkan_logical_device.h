@@ -40,7 +40,7 @@ public:
     auto submit(const VkSubmitInfo& submit_info, const Fence* p_fence) const -> void;
     auto submit(
         const CommandBuffer& cmd_buffer, const Semaphore* wait_semaphore, const Semaphore* signal_semaphore,
-        const Fence* p_fence) -> void;
+        const Fence* p_fence) const -> void;
     auto wait_idle() const -> void;
     auto present(VkPresentInfoKHR info) const -> VkResult;
     auto present(const u32& index, const Swapchain& swapchain, const Semaphore* result) const -> VkResult;
@@ -96,7 +96,7 @@ public: // synchro objects
     std::vector<Semaphore> m_image_available_semaphores;
     std::vector<Semaphore> m_render_finished_semaphores;
     std::vector<Fence>     m_in_flight_fences;
-    std::vector<Fence>     m_images_in_flight;
+    std::vector<Fence>     m_images_in_flight; // TODO: Find out why it's here! Seems useless right now!!!!
 
 public: // Misc
     u32    m_present_image_index = 0;
