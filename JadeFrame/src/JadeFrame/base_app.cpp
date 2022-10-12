@@ -24,7 +24,6 @@ namespace JadeFrame {
 
 auto control_camera(Camera* self) -> void {
     if (self->m_mode == Camera::MODE::PERSPECTIVE) {
-        using namespace win32;
         const f32           velocity = 0.1f;
         const InputManager& i = Instance::get_singleton()->m_input_manager;
         if (i.is_key_down(KEY::E)) self->m_position += self->m_up * velocity;
