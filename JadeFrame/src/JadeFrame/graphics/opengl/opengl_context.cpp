@@ -8,8 +8,14 @@ namespace JadeFrame {
 
 
 OpenGL_Context::OpenGL_Context(const Window& window)
-    : m_device_context(opengl::win32::init_device_context(window.m_window_handle))
-    , m_render_context(opengl::win32::init_render_context(m_device_context)) {
+#ifdef WIN32
+    : m_device_context(opengl::win32::init_device_context(window.m_window_handle)) {
+    auto m_render_context = opengl::win32::init_render_context(m_device_context);
+#elif __linux__
+    {
+    // : m_device_context(opengl::linux::init_device_context(window.m_window_handle)) {
+    // auto m_render_context = opengl::linux::init_render_context(m_device_context);
+#endif
 
     set_debug_mode(true);
     m_state.set_default();
@@ -58,6 +64,14 @@ OpenGL_Context::OpenGL_Context(const Window& window)
 }
 
 OpenGL_Context::~OpenGL_Context() {}
+
+
+auto OpenGL_Context::swap_buffers() -> void {
+#ifdef _WIN32
+    ::SwapBuffers(m_device_context); // TODO: This is Windows specific. Abstract his away!
+#endif
+}
+
 
 auto GL_State::set_default() -> void {
     this->set_clear_color({0.2f, 0.2f, 0.2f, 1.0f});

@@ -103,11 +103,7 @@ OpenGL_Renderer::OpenGL_Renderer(const Window& window)
     fb.m_shader_handle_fb->init();
 }
 
-auto OpenGL_Renderer::present() -> void {
-#ifdef _WIN32
-    ::SwapBuffers(m_context.m_device_context); // TODO: This is Windows specific. Abstract his away!
-#endif
-}
+auto OpenGL_Renderer::present() -> void { m_context.swap_buffers(); }
 auto OpenGL_Renderer::submit(const Object& obj) -> void {
 
     if (obj.m_GPU_mesh_data.m_is_initialized == false) {
