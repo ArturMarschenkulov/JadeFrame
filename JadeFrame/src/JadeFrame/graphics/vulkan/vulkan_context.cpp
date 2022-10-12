@@ -1,6 +1,10 @@
 #include "pch.h"
 
+#ifdef WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
+#elif
+#define VK_USE_PLATFORM_X11_KHR
+#endif
 #include "vulkan_context.h"
 #include "vulkan_shared.h"
 #include "vulkan_physical_device.h"
