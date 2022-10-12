@@ -16,91 +16,119 @@ enum class INPUT_STATE {
 };
 
 enum class BUTTON {
-    LEFT = VK_LBUTTON,
-    RIGHT = VK_RBUTTON,
-    MIDDLE = VK_MBUTTON,
-    X1 = VK_XBUTTON1,
-    X2 = VK_XBUTTON2,
+    LEFT,
+    RIGHT,
+    MIDDLE,
+    X1,
+    X2,
+    MAX
 };
 enum class KEY {
-    SPACE = VK_SPACE,
-    ESCAPE = VK_ESCAPE, // 256,
-    ENTER = VK_RETURN,
-    TAB = VK_TAB,
-    BACKSPACE = VK_BACK,
-    INSERT = VK_INSERT,
-    DELET = VK_DELETE,
-    RIGHT = VK_RIGHT,
-    LEFT = VK_LEFT,
-    DOWN = VK_DOWN,
-    UP = VK_UP,
-    PAGE_UP = VK_PRIOR,
-    PAGE_DOWN = VK_NEXT,
-    HOME = VK_HOME,
-    END = VK_END,
-    CAPS_LOCK = VK_CAPITAL,
-    SCROLL_LOCK = VK_SCROLL,
-    NUM_LOCK = VK_NUMLOCK,
-    PRINT_SCREEN = VK_SNAPSHOT,
-    PAUSE = VK_PAUSE,
-    F1 = VK_F1,
-    F2 = VK_F2,
-    F3 = VK_F3,
-    F4 = VK_F4,
-    F5 = VK_F5,
-    F6 = VK_F6,
-    F7 = VK_F7,
-    F8 = VK_F8,
-    F9 = VK_F9,
-    F10 = VK_F10,
-    F11 = VK_F11,
-    F12 = VK_F12,
-    LEFT_SHIFT = VK_LSHIFT,
-    LEFT_CONTROL = VK_LCONTROL,
-    LEFT_ALT = 342,
-    RIGHT_SHIFT = 344,
-    RIGHT_CONTROL = 345,
-    RIGHT_ALT = 346,
-    GRAVE = 96,
-    SLASH = 47,
-    BACKSLASH = 92,
+    SPACE,
+    ESCAPE,
+    ENTER,
+    TAB,
+    BACKSPACE,
+    INSERT,
+    DELET,
+    RIGHT,
+    LEFT,
+    DOWN,
+    UP,
+    PAGE_UP,
+    PAGE_DOWN,
+    HOME,
+    END,
+    CAPS_LOCK,
+    SCROLL_LOCK,
+    NUM_LOCK,
+    PRINT_SCREEN,
+    PAUSE,
 
-    ZERO = 48,
-    ONE = 49,
-    TWO = 50,
-    THREE = 51,
-    FOUR = 52,
-    FIVE = 53,
-    SIX = 54,
-    SEVEN = 55,
-    EIGHT = 56,
-    NINE = 57,
-    A = 65,
-    B = 66,
-    C = 67,
-    D = 68,
-    E = 69,
-    F = 70,
-    G = 71,
-    H = 72,
-    I = 73,
-    J = 74,
-    K = 75,
-    L = 76,
-    M = 77,
-    N = 78,
-    O = 79,
-    P = 80,
-    Q = 81,
-    R = 82,
-    S = 83,
-    T = 84,
-    U = 85,
-    V = 86,
-    W = 87,
-    X = 88,
-    Y = 89,
-    Z = 90,
+    // Extra. Names may be changed
+    OEM_1,
+    OEM_PLUS,
+    OEM_COMMA,
+    OEM_MINUS,
+    OEM_PERIOD,
+    OEM_2,
+    OEM_3,
+    OEM_4,
+    OEM_5,
+    OEM_6,
+    OEM_7,
+    OEM_8,
+    OEM_AX,
+    OEM_102,
+    ICO_HELP,
+    ICO_00,
+    // The F keys
+    F1,
+    F2,
+    F3,
+    F4,
+    F5,
+    F6,
+    F7,
+    F8,
+    F9,
+    F10,
+    F11,
+    F12,
+
+    LEFT_SHIFT,
+    LEFT_CONTROL,
+    LEFT_ALT,
+    RIGHT_SHIFT,
+    RIGHT_CONTROL,
+    RIGHT_ALT,
+    GRAVE,
+    SLASH,
+    BACKSLASH,
+
+    LEFT_SUPER, // Windows key
+
+    // The number keys
+    ZERO,
+    ONE,
+    TWO,
+    THREE,
+    FOUR,
+    FIVE,
+    SIX,
+    SEVEN,
+    EIGHT,
+    NINE,
+
+    // The letter keys
+    A,
+    B,
+    C,
+    D,
+    E,
+    F,
+    G,
+    H,
+    I,
+    J,
+    K,
+    L,
+    M,
+    N,
+    O,
+    P,
+    Q,
+    R,
+    S,
+    T,
+    U,
+    V,
+    W,
+    X,
+    Y,
+    Z,
+
+    MAX
 };
 struct Event {};
 struct KeyEvent : public Event {
@@ -133,8 +161,11 @@ public:
     static auto is_key_pressed(const KEY key) -> bool;
     static auto is_key_released(const KEY key) -> bool;
 
-    static std::array<INPUT_STATE, 512> m_current_key_state;
-    static std::array<INPUT_STATE, 512> m_previous_key_state;
+    static std::array<INPUT_STATE, static_cast<u32>(KEY::MAX)> m_current_key_state;
+    static std::array<INPUT_STATE, static_cast<u32>(KEY::MAX)> m_previous_key_state;
+
+    static auto translate_key_code(const u64 key_code) -> KEY;
+    static auto translate_button_code(const u64 button_code) -> BUTTON;
 
 public:
     // mouse part
@@ -146,11 +177,11 @@ public:
     auto is_button_released(const BUTTON button) const -> bool;
     auto get_mouse_position() const -> v2;
 
-    static std::array<INPUT_STATE, 3> m_current_mouse_button_state;
-    static std::array<INPUT_STATE, 3> m_previous_mouse_button_state;
-    static v2                         m_mouse_posiition;
+    static std::array<INPUT_STATE, static_cast<u32>(BUTTON::MAX)> m_current_mouse_button_state;
+    static std::array<INPUT_STATE, static_cast<u32>(BUTTON::MAX)> m_previous_mouse_button_state;
+    static v2                                                     m_mouse_posiition;
 };
-}
+} // namespace win32
 #ifdef _WIN32
 using InputManager = win32::InputManager;
 #endif

@@ -63,7 +63,7 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
 
 
     InputManager& input_manager = Instance::get_singleton()->m_input_manager;
-    i32                   current_window_id = -1;
+    i32           current_window_id = -1;
     for (auto const& [window_id, window] : app->m_windows) {
         if (window.m_window_handle == hWnd) { current_window_id = window_id; }
     }
@@ -104,7 +104,17 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
             input_manager.mouse_button_callback(wm);
         } break;
 
+        /*
+            Since WM_CLOSE, WM_DESTROY and WM_QUIT get frequently confused, I will explain them here.
+            - WM_CLOSE: When one does something with the intention of closing a window. Like pressing X or Alt+F4.
+            - WM_DESTROY: When window is about to be destroyed.
+            - WM_NCDESTROY: When window is destroyed.
+
+            - WM_QUIT is sent when the application is closed. Usually called after WM_DESTROY.
+        */
         case WM_CLOSE: {
+            // TODO: This code needs to be moved to WM_DESTROY.
+
             Logger::trace("WindowProcedure: {}.", windows_message_map(wm));
 
             app->m_windows.erase(current_window_id);
@@ -195,8 +205,8 @@ Window::Window(const Window::Desc& desc) {
     ::DWORD window_style = get_style(desc);
 
     ::HWND window_handle = ::CreateWindowExW(
-        0,                                                                                 // window_ex_style,
-        L"JadeFrame",                                                                      // app_window_class,
+        0,                                                          // window_ex_style,
+        L"JadeFrame",                                               // app_window_class,
         to_wide_char(static_cast<const char*>(desc.title.c_str())), // app_window_title,
         window_style,
         (desc.position.x == -1) ? CW_USEDEFAULT : desc.position.x, // window_x,
@@ -270,6 +280,6 @@ auto Window::query_client_size() const -> v2u64 {
     ::GetClientRect(m_window_handle, &rect);
     return v2u64(rect.right, rect.bottom);
 }
-}
+} // namespace win32
 
 } // namespace JadeFrame

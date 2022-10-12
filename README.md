@@ -4,15 +4,28 @@ JadeFrame is a C++ Graphics Framework. The point of project is to understand low
 
 One of the main goals is to use as few external code as possible.
 
-# Building it
-
+# Building and running it
 The most generic way to build the project is:
 ```
 mkdir build
 cd build
 cmake ../.
 cmake --build . -j10
-./Application/Application.exe
+./Application/Application
+```
+
+If you have `ninja` you can also build it like this on windows or linux:
+```
+mkdir build
+cd build
+cmake -GNinja -DCMAKE_BUILD_TYPE={Debug|Release|RelWithDebInfo} $SOURCE_DIR
+ninja
+./Application/Application
+```
+
+A quick way to compile and run it if success in powershell is:
+```
+cmake --build . -j8; if ($?) { .\Application\Application }
 ```
 
 
@@ -50,7 +63,7 @@ Those are projects which have an editor abstraction. Meaning in normal use one d
 
 ## Framework-like
 Those are projects where one has to actually write code.
-- [Ogre](https://github.com/OGRECave/ogre)
+- [Ogre](https://github.com/OGRECave/ogre): Has multiple Graphics APIs. Opengl, Vulkan,...
 - [Urho3D](https://github.com/urho3d/Urho3D)
 - [Handmade Hero](https://github.com/HandmadeHero/cpp)
 - [CrystalSpace3D](https://github.com/crystalspace/CS)

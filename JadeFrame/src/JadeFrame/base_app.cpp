@@ -215,17 +215,17 @@ Instance::Instance() {
               << ci.version.patch << std::endl;
     std::cout << "C++ version: " << li << std::endl;
 
-    test_modules();
+    // test_modules();
 
-    cpp::result<int, const char*> r;
+    // cpp::result<int, const char*> r;
 
     Logger::init();
     Logger::info("JadeFrame is starting...");
 
-    ptr::Scope<i32> p_to_100 = ptr::make_scope<i32>(100);
-    auto            o = ptr::make_scope_noexcept<i32>(100); // Option<ptr::Scope<i32>>
+    // ptr::Scope<i32> p_to_100 = ptr::make_scope<i32>(100);
+    // auto            o = ptr::make_scope_noexcept<i32>(100); // Option<ptr::Scope<i32>>
 
-    ptr::Scope<i32> p = std::move(p_to_100);
+    // ptr::Scope<i32> p = std::move(p_to_100);
 
     if (m_singleton == nullptr) {
         m_singleton = this;

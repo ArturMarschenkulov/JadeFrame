@@ -58,11 +58,11 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 ################################################################################
 target_compile_definitions(${PROJECT_NAME} 
     PRIVATE
-        "$<$<CONFIG:Debug>:_DEBUG>"
-        "$<$<CONFIG:Release>:NDEBUG>"
-        "_CONSOLE;"
-        "UNICODE;"
-        "_UNICODE"
+        $<$<CONFIG:Debug>:_DEBUG>
+        $<$<CONFIG:Release>:NDEBUG>
+        _CONSOLE
+        UNICODE
+        _UNICODE
 )
 
 ################################################################################

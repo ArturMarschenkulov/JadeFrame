@@ -37,8 +37,10 @@ add_library(imgui
 # Source groups
 ################################################################################
 
+if(WIN32)
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 add_definitions(-DNOMINMAX)
+endif()
 add_subdirectory(src/extern/stb/)
 add_subdirectory(src/extern/glad/)
 add_subdirectory(src/extern/spdlog/)
