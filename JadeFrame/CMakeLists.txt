@@ -9,6 +9,16 @@ include_directories(${imgui_DIR}
     ${imgui_DIR}/backends
 )
 
+
+if(WIN32)
+    set(imgui_platform_specific_sources
+        ${imgui_DIR}/backends/imgui_impl_win32.h
+        ${imgui_DIR}/backends/imgui_impl_dx11.h
+        ${imgui_DIR}/backends/imgui_impl_win32.cpp
+        ${imgui_DIR}/backends/imgui_impl_dx11.cpp
+    )
+elseif(UNIX AND NOT APPLE)
+endif()
 add_library(imgui
     STATIC
         ${imgui_DIR}/imgui_demo.cpp
@@ -20,11 +30,7 @@ add_library(imgui
         ${imgui_DIR}/backends/imgui_impl_opengl3.h
         ${imgui_DIR}/backends/imgui_impl_opengl3.cpp
 
-        # TODO: This is Windows only!!!!
-        ${imgui_DIR}/backends/imgui_impl_win32.h
-        ${imgui_DIR}/backends/imgui_impl_dx11.h
-        ${imgui_DIR}/backends/imgui_impl_win32.cpp
-        ${imgui_DIR}/backends/imgui_impl_dx11.cpp
+        ${imgui_platform_specific_sources}
 )
 
 ################################################################################
