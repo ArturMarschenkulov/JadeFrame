@@ -33,6 +33,13 @@ target_link_libraries(GraphicsAPI_OpenGL
         ${stb}
         stb
         spdlog
+        glad
+        GL
+        shaderc
+        spirv-cross-hlsl
+        spirv-cross-glsl
+        spirv-cross-msl
+        JadeFrame
 )
 if(MSVC)
     target_compile_definitions(GraphicsAPI_OpenGL PRIVATE
