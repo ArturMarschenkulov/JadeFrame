@@ -34,7 +34,6 @@ target_link_libraries(GraphicsAPI_OpenGL
         stb
         spdlog
         glad
-        GL
         shaderc
         spirv-cross-hlsl
         spirv-cross-glsl
