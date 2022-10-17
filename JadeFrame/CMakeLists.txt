@@ -10,6 +10,7 @@ include_directories(${imgui_DIR}
 )
 
 
+add_subdirectory(src/extern/glfw/)
 if(WIN32)
     set(imgui_platform_specific_sources
         ${imgui_DIR}/backends/imgui_impl_win32.h
@@ -30,6 +31,10 @@ add_library(imgui
         ${imgui_DIR}/backends/imgui_impl_opengl3.h
         ${imgui_DIR}/backends/imgui_impl_opengl3.cpp
 
+        ${imgui_DIR}/backends/imgui_impl_glfw.h
+        ${imgui_DIR}/backends/imgui_impl_glfw.cpp
+
+
         ${imgui_platform_specific_sources}
 )
 
@@ -43,6 +48,7 @@ add_definitions(-DNOMINMAX)
 endif()
 add_subdirectory(src/extern/stb/)
 add_subdirectory(src/extern/glad/)
+
 add_subdirectory(src/extern/spdlog/)
 set(SHADERC_SKIP_TESTS ON)
 set(SHADERC_SKIP_EXAMPLES ON)
@@ -177,9 +183,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern
     ${CMAKE_SOURCE_DIR}/JadeFrame/src/JadeFrame
     
+
+    
     ${Vulkan_INCLUDE_DIRS}
 )
-
+include_directories(
+    ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glfw/include # TODO: This should be only temporary!!!
+)
 ################################################################################
 # Compile definitions
 ################################################################################
@@ -289,6 +299,7 @@ target_link_libraries(
         Vulkan::Vulkan
         ${Vulkan_LIBRARIES}
         glad
+        glfw
         imgui
         stb
         shaderc
