@@ -4,12 +4,17 @@
 #include "imgui/backends/imgui_impl_opengl3.h"
 #include "imgui/backends/imgui_impl_vulkan.h"
 #include "imgui/backends/imgui_impl_win32.h"
+#include "imgui/backends/imgui_impl_glfw.h"
 
 namespace JadeFrame {
-
+#define USE_GLFW 1
 auto GUI::init(HWND window, GRAPHICS_API api) -> void {
     ImGui::CreateContext();
+#if USE_GLFW
+    ImGui_ImplGlfw_InitForOpenGL((GLFWwindow*)window, false);
+#else
     ImGui_ImplWin32_Init(window);
+#endif
     switch (api) {
         case GRAPHICS_API::OPENGL: {
             const char* glsl_version = "#version 450";
@@ -40,8 +45,14 @@ auto GUI::init(HWND window, GRAPHICS_API api) -> void {
 }
 
 auto GUI::new_frame() -> void {
+
     ImGui_ImplOpenGL3_NewFrame();
+#if USE_GLFW
+    ImGui_ImplGlfw_NewFrame();
+#else
     ImGui_ImplWin32_NewFrame();
+#endif
+
     ImGui::NewFrame();
 }
 auto GUI::render() -> void {
@@ -52,7 +63,11 @@ auto GUI::render() -> void {
 }
 auto GUI::destroy() -> void {
     ImGui_ImplOpenGL3_Shutdown();
+#if USE_GLFW
+    ImGui_ImplGlfw_Shutdown();
+#else
     ImGui_ImplWin32_Shutdown();
+#endif
     ImGui::DestroyContext();
 }
 

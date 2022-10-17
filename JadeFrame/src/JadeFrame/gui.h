@@ -1,7 +1,10 @@
 #pragma once
 #include "graphics/graphics_shared.h"
 
-
+/*
+    TODO: For now glfw effective only works for windows
+    
+*/
 struct HWND__;
 typedef HWND__* HWND;
 
