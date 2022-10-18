@@ -1,5 +1,5 @@
 build/
-buildl/
+build_wsl/
 CMakeFiles/
 .vscode
 .vs
