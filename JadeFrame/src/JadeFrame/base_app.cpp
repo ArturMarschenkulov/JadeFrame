@@ -257,8 +257,11 @@ BaseApp::BaseApp(const DESC& desc) {
     win_desc.title = desc.title;
     win_desc.size = desc.size;
     win_desc.position = desc.position;
+#ifdef _WIN32
     m_windows[0] = std::make_unique<win32::Window>(win_desc);
-    // m_windows.try_emplace(0, std::make_unique<win_desc); // NOTE: Here the window is created
+#elif __linux__
+    m_windows[0] = std::make_unique<linux_Window>(win_desc);
+#endif
     m_current_window_p = m_windows[0].get();
 
     GRAPHICS_API api = GRAPHICS_API::UNDEFINED;

@@ -72,26 +72,4 @@ auto GUI::destroy() -> void {
 #endif
     ImGui::DestroyContext();
 }
-
-// auto GUI_init(HWND window) -> void {
-//     ImGui::CreateContext();
-//     ImGui_ImplWin32_Init(window);
-//     const char* glsl_version = "#version 450";
-//     ImGui_ImplOpenGL3_Init(glsl_version);
-// }
-// auto GUI_new_frame() -> void {
-//     ImGui_ImplOpenGL3_NewFrame();
-//     ImGui_ImplWin32_NewFrame();
-//     ImGui::NewFrame();
-// }
-// auto GUI_render() -> void {
-//     ImGui::Text("Hello, world %d", 123);
-//     ImGui::Render();
-//     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-// }
-// auto GUI_destroy() -> void {
-//     ImGui_ImplOpenGL3_Shutdown();
-//     ImGui_ImplWin32_Shutdown();
-//     ImGui::DestroyContext();
-// }
 } // namespace JadeFrame

@@ -64,8 +64,5 @@ public:
     WINDOW_STATE m_window_state = WINDOW_STATE::MINIMIZED;
 };
 } // namespace win32
-// #ifdef _WIN32
-// using Window = win32::Window;
-// #endif
 
 } // namespace JadeFrame

@@ -15,8 +15,4 @@ public:
     auto render() -> void;
     auto destroy() -> void;
 };
-// auto GUI_init(HWND window) -> void;
-// auto GUI_new_frame() -> void;
-// auto GUI_render() -> void;
-// auto GUI_destroy() -> void;
 } // namespace JadeFrame
