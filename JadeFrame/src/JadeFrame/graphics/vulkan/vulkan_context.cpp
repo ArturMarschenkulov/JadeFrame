@@ -135,7 +135,6 @@ auto VulkanInstance::setup_debug() -> void {
 
 auto VulkanInstance::init(HWND window_handle) -> void {
     Logger::trace("VulkanInstance::init start");
-    // m_window_handle = window_handle;
 
     VkResult result;
 

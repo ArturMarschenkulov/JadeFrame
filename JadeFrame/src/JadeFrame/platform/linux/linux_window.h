@@ -3,9 +3,6 @@
 #include "../platform_shared.h"
 #include <X11/Xlib.h>
 
-
-struct HWND__;
-typedef HWND__* HWND;
 namespace JadeFrame {
 
 
@@ -33,7 +30,6 @@ public:
 public:
 	::Display* m_display;
 	::Window m_window;
-	HWND m_window_handle = nullptr;
 	v2u32 m_size;
 };
 #ifdef __linux__

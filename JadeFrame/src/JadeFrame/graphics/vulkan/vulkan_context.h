@@ -37,7 +37,6 @@ public:
 
 public:
     VkInstance m_instance = VK_NULL_HANDLE;
-    // HWND m_window_handle;
     vulkan::Surface m_surface;
 
     std::vector<VkLayerProperties> m_available_layers;
