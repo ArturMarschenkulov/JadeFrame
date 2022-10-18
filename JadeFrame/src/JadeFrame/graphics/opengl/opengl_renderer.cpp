@@ -56,7 +56,7 @@ auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const ->
 //     const GLenum res = buffer.check_status();
 //     if (res != GL_FRAMEBUFFER_COMPLETE) assert(false);
 // }
-OpenGL_Renderer::OpenGL_Renderer(const Window& window)
+OpenGL_Renderer::OpenGL_Renderer(const IWindow* window)
     : m_context(window) {
     {
         // setup_framebuffer(m_framebuffer, m_framebuffer_texture, m_framebuffer_renderbuffer);

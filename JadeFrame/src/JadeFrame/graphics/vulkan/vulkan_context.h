@@ -9,11 +9,9 @@
 namespace JadeFrame {
 
 #ifdef _WIN32
-namespace win32 {
-class Window;
-}
 
-using Window = win32::Window;
+class IWindow;
+
 #elif __linux__
 class Linux_Window;
 using Window = Linux_Window;
@@ -32,11 +30,11 @@ private:
 
 public:
     VulkanInstance() = default;
-    auto init(HWND window_handle) -> void;
+    auto init(const IWindow* window_handle) -> void;
     auto deinit() -> void;
 
 public:
-    VkInstance m_instance = VK_NULL_HANDLE;
+    VkInstance      m_instance = VK_NULL_HANDLE;
     vulkan::Surface m_surface;
 
     std::vector<VkLayerProperties> m_available_layers;
@@ -65,12 +63,12 @@ struct Vulkan_Context {
     auto operator=(Vulkan_Context&&) -> Vulkan_Context& = delete;
 
     Vulkan_Context() = default;
-    Vulkan_Context(const Window& window);
+    Vulkan_Context(const IWindow* window);
     ~Vulkan_Context();
 
 public:
     VulkanInstance m_instance;
-    HWND           m_window_handle;
+    const IWindow* m_window_handle;
 
 public:
 };

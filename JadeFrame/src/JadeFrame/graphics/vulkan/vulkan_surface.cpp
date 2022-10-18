@@ -1,12 +1,13 @@
 #include "pch.h"
 #include "vulkan_surface.h"
+#include "platform/windows/windows_window.h"
 
 #include <cassert>
 
 namespace JadeFrame {
 namespace vulkan {
 // namespace win32 {
-auto Surface::init(VkInstance instance, HWND window_handle) -> void {
+auto Surface::init(VkInstance instance, const IWindow* window_handle) -> void {
     Logger::trace("Surface::init start");
     m_window_handle = window_handle;
 
@@ -17,7 +18,7 @@ auto Surface::init(VkInstance instance, HWND window_handle) -> void {
         .pNext = nullptr,
         .flags = 0,
         .hinstance = ::GetModuleHandleW(NULL),
-        .hwnd = window_handle,
+        .hwnd = (HWND)window_handle->get(),
     };
 
     result = vkCreateWin32SurfaceKHR(instance, &create_info, nullptr, &m_handle);

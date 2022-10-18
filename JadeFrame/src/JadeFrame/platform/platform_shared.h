@@ -152,6 +152,7 @@ public:
     virtual auto get_title() const -> std::string = 0;
     virtual auto get_size() const -> const v2u32& = 0;
     virtual auto get_window_state() const -> WINDOW_STATE = 0;
+    virtual auto get() const -> void* = 0;
 };
 class ITimeManager {
     virtual auto initialize() -> void = 0;

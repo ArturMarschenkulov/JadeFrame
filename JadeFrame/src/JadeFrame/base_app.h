@@ -21,6 +21,7 @@
 
 #include <deque>
 #include <map>
+#include <memory>
 
 namespace JadeFrame {
 
@@ -141,8 +142,8 @@ public:
     // Window stuff
     i32 m_window_counter = 0;
     using WindowID = i32;
-    std::map<WindowID, Window> m_windows;
-    Window*                    m_current_window_p = nullptr;
+    std::map<WindowID, std::unique_ptr<IWindow>> m_windows;
+    IWindow*                                     m_current_window_p = nullptr;
 
     IRenderer* m_renderer = nullptr;
     Camera     m_camera;
@@ -151,7 +152,7 @@ public:
     GUI         m_gui;
 
     ResourceStorage m_resources;
-    u64 m_tick = 0;
+    u64             m_tick = 0;
 };
 
 

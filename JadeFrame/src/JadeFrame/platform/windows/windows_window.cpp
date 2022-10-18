@@ -65,9 +65,9 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
     InputManager& input_manager = Instance::get_singleton()->m_input_manager;
     i32           current_window_id = -1;
     for (auto const& [window_id, window] : app->m_windows) {
-        if (window.m_window_handle == hWnd) { current_window_id = window_id; }
+        if (window->get() == hWnd) { current_window_id = window_id; }
     }
-    Window& current_window = app->m_windows[current_window_id];
+    Window& current_window = *reinterpret_cast<Window*>(app->m_windows[current_window_id].get());
 
     switch (message) {
         case WM_SETFOCUS:
@@ -241,6 +241,11 @@ Window::Window(const Window::Desc& desc) {
         // m_window_state = WINDOW_STATE::MINIMIZED;
     }
 }
+
+auto Window::get() const -> void* {
+    return reinterpret_cast<void*>(m_window_handle);
+}
+
 Window::~Window() { ::DestroyWindow(m_window_handle); }
 
 auto Window::handle_events(bool& is_running) -> void {

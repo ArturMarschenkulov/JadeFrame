@@ -10,6 +10,7 @@
 #include "vulkan_context.h"
 #include "vulkan_sync_object.h"
 #include "JadeFrame/utils/assert.h"
+#include "platform/windows/windows_window.h"
 
 #undef min
 #undef max
@@ -49,7 +50,7 @@ static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities
     } else {
 #ifdef _WIN32
         RECT        area;
-        const HWND& wh = swapchain.m_surface->m_window_handle;
+        const HWND wh = (const HWND)swapchain.m_surface->m_window_handle->get();
         GetClientRect(wh, &area);
         i32 width = area.right;
         i32 height = area.bottom;

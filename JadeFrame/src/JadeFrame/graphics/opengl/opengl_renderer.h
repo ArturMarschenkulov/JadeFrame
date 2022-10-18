@@ -55,7 +55,7 @@ public:
 
 class OpenGL_Renderer : public IRenderer {
 public:
-    OpenGL_Renderer(const Window& window);
+    OpenGL_Renderer(const IWindow* window);
 
     virtual auto present() -> void override;
     virtual auto clear_background() -> void override;

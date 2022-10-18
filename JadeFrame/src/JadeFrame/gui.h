@@ -5,13 +5,12 @@
     TODO: For now glfw effective only works for windows
     
 */
-struct HWND__;
-typedef HWND__* HWND;
 
 namespace JadeFrame {
+class IWindow;
 class GUI {
 public:
-    auto init(HWND window, GRAPHICS_API api) -> void;
+    auto init(IWindow* window, GRAPHICS_API api) -> void;
     auto new_frame() -> void;
     auto render() -> void;
     auto destroy() -> void;

@@ -253,32 +253,33 @@ auto Instance::run() -> void {
 BaseApp::BaseApp(const DESC& desc) {
     m_time_manager.initialize();
     Logger::info("Creating Window....");
-    Window::Desc win_desc;
+    IWindow::Desc win_desc;
     win_desc.title = desc.title;
     win_desc.size = desc.size;
     win_desc.position = desc.position;
-    m_windows.try_emplace(0, win_desc); // NOTE: Here the window is created
-    m_current_window_p = &m_windows[0];
+    m_windows[0] = std::make_unique<win32::Window>(win_desc);
+    // m_windows.try_emplace(0, std::make_unique<win_desc); // NOTE: Here the window is created
+    m_current_window_p = m_windows[0].get();
 
     GRAPHICS_API api = GRAPHICS_API::UNDEFINED;
     api = GRAPHICS_API::VULKAN;
-    // api = GRAPHICS_API::OPENGL;
+    api = GRAPHICS_API::OPENGL;
 
     Logger::info("Creating Renderer");
     const std::string& title = m_current_window_p->get_title();
     switch (api) {
         case GRAPHICS_API::OPENGL: {
-            m_renderer = new OpenGL_Renderer(m_windows[0]);
+            m_renderer = new OpenGL_Renderer(m_windows[0].get());
             m_current_window_p->set_title(title + " OpenGL");
 
         } break;
         case GRAPHICS_API::VULKAN: {
-            m_renderer = new Vulkan_Renderer(m_windows[0]);
+            m_renderer = new Vulkan_Renderer(m_windows[0].get());
             m_current_window_p->set_title(title + " Vulkan");
         } break;
         default: assert(false);
     }
-    // m_gui.init(m_current_window_p->m_window_handle, api);
+    m_gui.init(m_current_window_p, api);
 }
 inline auto to_string(const Matrix4x4& m) -> std::string {
     std::string result;
@@ -292,7 +293,7 @@ inline auto to_string(const Matrix4x4& m) -> std::string {
     return result;
 }
 auto BaseApp::start() -> void {
-    m_camera.othographic_mode(0, m_windows[0].get_size().x, m_windows[0].get_size().y, 0, -1, 1);
+    m_camera.othographic_mode(0, m_windows[0]->get_size().x, m_windows[0]->get_size().y, 0, -1, 1);
 
     this->on_init();
     // m_renderer->main_loop();
@@ -301,15 +302,15 @@ auto BaseApp::start() -> void {
     while (m_is_running) {
         const f64 time_since_last_frame = m_time_manager.calc_elapsed();
         this->on_update();
-        if (m_current_window_p->get_window_state() != Window::WINDOW_STATE::MINIMIZED) {
+        if (m_current_window_p->get_window_state() != IWindow::WINDOW_STATE::MINIMIZED) {
             m_renderer->clear_background();
-            // m_gui.new_frame();
+            m_gui.new_frame();
 
             this->on_draw();
             const Matrix4x4& view_projection = m_camera.get_view_projection_matrix();
             m_renderer->render(view_projection);
 
-            // m_gui.render();
+            m_gui.render();
 
             m_renderer->present();
             m_tick += 1;
@@ -320,7 +321,7 @@ auto BaseApp::start() -> void {
 }
 auto BaseApp::poll_events() -> void {
     Instance::get_singleton()->m_input_manager.handle_input();
-    m_windows[0].handle_events(m_is_running);
+    m_windows[0]->handle_events(m_is_running);
 }
 //**************************************************************
 //~BaseApp

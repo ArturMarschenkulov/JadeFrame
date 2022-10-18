@@ -10,7 +10,7 @@
 namespace JadeFrame {
 
 
-Vulkan_Renderer::Vulkan_Renderer(const Window& window)
+Vulkan_Renderer::Vulkan_Renderer(const IWindow* window)
     : m_context(window) {}
 auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void { m_clear_color = color; }
 

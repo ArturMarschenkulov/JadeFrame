@@ -7,9 +7,9 @@ namespace JadeFrame {
 
 
 
-OpenGL_Context::OpenGL_Context(const Window& window)
+OpenGL_Context::OpenGL_Context(const IWindow* window)
 #ifdef WIN32
-    : m_device_context(opengl::win32::init_device_context(window.m_window_handle)) {
+    : m_device_context(opengl::win32::init_device_context((const HWND)window->get())) {
     auto m_render_context = opengl::win32::init_render_context(m_device_context);
 #elif __linux__
     {
@@ -59,7 +59,7 @@ OpenGL_Context::OpenGL_Context(const Window& window)
         m_uniform_buffers[1].bind_base(binding_point_1);
     }
 
-    const v2u32& size = window.get_size();
+    const v2u32& size = window->get_size();
     m_state.set_viewport(0, 0, size.x, size.y);
 }
 

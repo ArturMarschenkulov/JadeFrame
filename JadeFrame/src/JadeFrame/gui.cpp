@@ -6,14 +6,16 @@
 #include "imgui/backends/imgui_impl_win32.h"
 #include "imgui/backends/imgui_impl_glfw.h"
 
+#include "platform/windows/windows_window.h"
+
 namespace JadeFrame {
-#define USE_GLFW 1
-auto GUI::init(HWND window, GRAPHICS_API api) -> void {
+#define USE_GLFW 0
+auto GUI::init(IWindow* window, GRAPHICS_API api) -> void {
     ImGui::CreateContext();
 #if USE_GLFW
     ImGui_ImplGlfw_InitForOpenGL((GLFWwindow*)window, false);
 #else
-    ImGui_ImplWin32_Init(window);
+    ImGui_ImplWin32_Init((HWND)window->get());
 #endif
     switch (api) {
         case GRAPHICS_API::OPENGL: {

@@ -133,7 +133,7 @@ auto VulkanInstance::setup_debug() -> void {
     if (result != VK_SUCCESS) assert(false);
 }
 
-auto VulkanInstance::init(HWND window_handle) -> void {
+auto VulkanInstance::init(const IWindow* window_handle) -> void {
     Logger::trace("VulkanInstance::init start");
 
     VkResult result;
@@ -237,9 +237,9 @@ auto VulkanInstance::deinit() -> void {
     vkDestroyInstance(m_instance, nullptr);
 }
 
-Vulkan_Context::Vulkan_Context(const Window& window) {
-    m_window_handle = window.m_window_handle;
-    m_instance.init(window.m_window_handle);
+Vulkan_Context::Vulkan_Context(const IWindow* window) {
+    m_window_handle = window;
+    m_instance.init(window);
 }
 
 Vulkan_Context::~Vulkan_Context() {
