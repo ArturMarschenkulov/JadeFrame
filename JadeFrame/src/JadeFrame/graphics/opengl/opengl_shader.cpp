@@ -45,8 +45,8 @@ OpenGL_Shader::OpenGL_Shader(const DESC& desc)
     auto fragment_shader = std::get<std::string>(desc.code.m_modules[1].m_code);
     m_vertex_source = vertex_shader;
     m_fragment_source = fragment_shader;
-    Logger::info("vertex shader: {}", vertex_shader);
-    Logger::info("fragment shader: {}", fragment_shader);
+    // Logger::trace("vertex shader: {}", vertex_shader);
+    // Logger::trace("fragment shader: {}", fragment_shader);
     if constexpr (false) {
 
         /*
@@ -78,18 +78,18 @@ OpenGL_Shader::OpenGL_Shader(const DESC& desc)
         m_fragment_shader.set_source(fragment_shader);
         m_fragment_shader.compile();
 
-        std::vector<u32> vs = string_to_SPIRV(vertex_shader.c_str(), desc.code.m_modules[0].m_stage);
+        // std::vector<u32> vs = string_to_SPIRV(vertex_shader.c_str(), desc.code.m_modules[0].m_stage);
 
-        spirv_cross::CompilerGLSL::Options options;
-        options.version = 450;
-        options.es = false;
-        options.vulkan_semantics = true;
-        spirv_cross::CompilerGLSL glsl(vs);
-        glsl.set_common_options(options);
-        std::cout << glsl.compile() << std::endl;
-        std::cout << "====================" << std::endl;
-        spirv_cross::CompilerHLSL hlsl(vs);
-        std::cout << hlsl.compile() << std::endl;
+        // spirv_cross::CompilerGLSL::Options options;
+        // options.version = 450;
+        // options.es = false;
+        // options.vulkan_semantics = true;
+        // spirv_cross::CompilerGLSL glsl(vs);
+        // glsl.set_common_options(options);
+        // Logger::trace("{}", glsl.compile());
+        // Logger::trace("====================");
+        // spirv_cross::CompilerHLSL hlsl(vs);
+        // Logger::trace("{}", hlsl.compile());
     }
 
     m_program.attach(m_vertex_shader);
