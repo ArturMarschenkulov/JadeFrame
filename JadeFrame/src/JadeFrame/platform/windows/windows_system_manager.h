@@ -11,6 +11,7 @@ public:
     virtual auto log() const -> void override;
 
 public:
+    ::HMODULE m_instance;
     // represents Dynamically Linked Libraries (DLL) on Windows and Shared Object (SO) on Linux
     struct Module {
 
@@ -56,5 +57,5 @@ public:
     u16   m_processor_level;
     u16   m_processor_revision;
 };
-}
+} // namespace win32
 } // namespace JadeFrame

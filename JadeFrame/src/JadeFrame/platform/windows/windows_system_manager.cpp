@@ -203,6 +203,7 @@ auto test() -> void {
 
 
 auto SystemManager::initialize() -> void {
+    m_instance = ::GetModuleHandleW(NULL);
     Logger::debug("Initializing Windows System Manager");
     {
         std::vector<ModuleEntry>  modules = get_modules();
