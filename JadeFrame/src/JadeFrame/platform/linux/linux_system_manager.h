@@ -11,6 +11,9 @@ public:
 	virtual auto log() const -> void override {
 	
 	}
+	virtual auto request_window(IWindow::Desc desc) -> IWindow* override {
+		return nullptr;
+	}
 
 };
 
