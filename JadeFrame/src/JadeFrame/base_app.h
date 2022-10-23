@@ -140,7 +140,6 @@ public:
     bool m_is_running = true;
 
     // Window stuff
-    i32 m_window_counter = 0;
     using WindowID = i32;
     std::map<WindowID, IWindow*> m_windows;
     IWindow*                     m_current_window_p = nullptr;
@@ -155,6 +154,10 @@ public:
     u64             m_tick = 0;
 };
 
+/*
+    The instance is JadeFrames global scope, so to say. It can also be regarded as the first place to put stuff if one
+   does not know where to put it.
+*/
 
 class Instance {
 public:
@@ -169,6 +172,8 @@ public:
 
     template<typename T>
     auto request_app(BaseApp::DESC desc) -> T* {
+        // For now only one app is allowed
+        assert(m_apps.size() == 0);
         m_apps.emplace_back(new T(desc));
         return (T*)m_apps.back();
     }

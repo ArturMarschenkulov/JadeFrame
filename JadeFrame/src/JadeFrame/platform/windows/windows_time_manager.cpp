@@ -7,7 +7,9 @@
 
 namespace JadeFrame {
 namespace win32 {
-#if 1
+
+#define USE_OPTION_TYPE 1
+#if USE_OPTION_TYPE
 auto query_performance_frequency() -> Option<u64> {
     u64 frequency;
     if (::QueryPerformanceFrequency((LARGE_INTEGER*)&frequency)) {
@@ -28,7 +30,7 @@ auto query_performance_counter() -> Option<u64> {
 auto TimeManager::initialize() -> void {
     timeBeginPeriod(1);
 
-#if 1
+#if USE_OPTION_TYPE
     Option<u64> frequency = query_performance_frequency();
     if (frequency.is_some()) {
         m_has_performance_counter = true;
@@ -52,7 +54,7 @@ auto TimeManager::initialize() -> void {
 }
 
 auto TimeManager::get_time() const -> f64 {
-#if 1
+#if USE_OPTION_TYPE
     const u64 counter = query_performance_counter().unwrap_unchecked() - m_offset;
     const u64 frequency = this->get_timer_frequency();
     return static_cast<f64>(counter) / frequency;

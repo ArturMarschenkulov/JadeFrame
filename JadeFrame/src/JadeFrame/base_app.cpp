@@ -203,23 +203,25 @@ auto to_double(const char* str) noexcept -> Result<double, std::errc> {
     return result;
 }
 Instance::Instance() {
+    Logger::init();
+    Logger::info("Logger initialized");
+    Logger::info("JadeFrame is starting...");
+
     auto ci = get_compiler_info();
     auto pi = get_plattform_info();
     auto ai = get_architecture_info();
     auto li = get_cpp_version();
 
-    std::cout << "Architecture: " << ai << std::endl;
-    std::cout << "Platform: " << pi << std::endl;
-    std::cout << "Compiler: " << ci.name << " " << ci.version.major << "." << ci.version.minor << "."
-              << ci.version.patch << std::endl;
-    std::cout << "C++ version: " << li << std::endl;
+    Logger::info("Architecture: {}", ai);
+    Logger::info("Plattform: {}", pi);
+    Logger::info("Compiler: {} {}.{}.{}", ci.name, ci.version.major, ci.version.minor, ci.version.patch);
+    Logger::info("C++ Version: {}", li);
 
     // test_modules();
 
     // cpp::result<int, const char*> r;
 
-    Logger::init();
-    Logger::info("JadeFrame is starting...");
+
 
     // ptr::Scope<i32> p_to_100 = ptr::make_scope<i32>(100);
     // auto            o = ptr::make_scope_noexcept<i32>(100); // Option<ptr::Scope<i32>>

@@ -210,7 +210,7 @@ auto SystemManager::request_window(IWindow::Desc desc) -> IWindow* {
 auto SystemManager::initialize() -> void {
     m_instance = ::GetModuleHandleW(NULL);
     Logger::debug("Initializing Windows System Manager");
-    {
+    if (false) {
         std::vector<ModuleEntry>  modules = get_modules();
         std::vector<ProcessEntry> processes = get_processes();
 

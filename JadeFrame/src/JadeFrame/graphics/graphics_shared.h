@@ -14,7 +14,7 @@ class RGBAColor;
 
 
 enum class GRAPHICS_API {
-    UNDEFINED = -1,
+    UNDEFINED,
     OPENGL,
     VULKAN,
     D3D11,

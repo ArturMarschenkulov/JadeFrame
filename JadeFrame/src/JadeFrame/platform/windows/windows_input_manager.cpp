@@ -140,15 +140,15 @@ auto InputManager::key_callback(const EventMessage& wm) -> void {
         The lParam parameter of a keystroke message contains additional information about the keystroke that generated
         the message. This information includes the repeat count, the scan code, the extended-key flag, the context code,
         the previous key-state flag, and the transition-state flag. The following illustration shows the locations of
-       these flags and values in the lParam parameter.
+        these flags and values in the lParam parameter.
 
-       31: Transition state flag
-       30: Previous key state flag
-       29: Context code
-       28-25: Reserved
-       24: Extended key flag
-       23-16: OEM scan code
-       15-0: Repeat count
+        31: Transition state flag
+        30: Previous key state flag
+        29: Context code
+        28-25: Reserved
+        24: Extended key flag
+        23-16: OEM scan code
+        15-0: Repeat count
     */
     HWND   hwnd = wm.hWnd;
     UINT   msg = wm.message;
