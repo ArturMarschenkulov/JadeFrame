@@ -3,19 +3,36 @@
 #include <imgui/imgui.h>
 #include "imgui/backends/imgui_impl_opengl3.h"
 #include "imgui/backends/imgui_impl_vulkan.h"
+
+#if defined(_WIN32)
 #include "imgui/backends/imgui_impl_win32.h"
-#include "imgui/backends/imgui_impl_glfw.h"
+#elif defined(__linux__)
+#include "imgui/backends/imgui_impl_x11.h"
+#endif
 
 #include "platform/windows/windows_window.h"
 
+
+/*
+    The `imgui` repo does not have a linux/x11/wayland backend. One can use `glfw`,
+    but that means that we'd have to integrate `glfw` into the engine, which is not optimal.
+
+
+    This means that we'll have to write our own. There are some attempts in the wild already.
+    For now, I will collect various links to such resources so that I can write my own x11/wayland backend.
+    https://github.com/ocornut/imgui/pull/3372
+    https://github.com/ocornut/imgui/issues/4224
+
+*/
+
 namespace JadeFrame {
-#define USE_GLFW 0
+
 auto GUI::init(IWindow* window, GRAPHICS_API api) -> void {
     ImGui::CreateContext();
-#if USE_GLFW
-    ImGui_ImplGlfw_InitForOpenGL((GLFWwindow*)window, false);
-#else
+#if _WIN32
     ImGui_ImplWin32_Init((HWND)window->get());
+#elif __linux__
+    ImGui_ImplX11_Init(nullptr, nullptr);
 #endif
     switch (api) {
         case GRAPHICS_API::OPENGL: {
@@ -49,10 +66,10 @@ auto GUI::init(IWindow* window, GRAPHICS_API api) -> void {
 auto GUI::new_frame() -> void {
 
     ImGui_ImplOpenGL3_NewFrame();
-#if USE_GLFW
-    ImGui_ImplGlfw_NewFrame();
-#else
+#if _WIN32
     ImGui_ImplWin32_NewFrame();
+#elif __linux__
+    ImGui_ImplX11_NewFrame();
 #endif
 
     ImGui::NewFrame();
@@ -65,10 +82,10 @@ auto GUI::render() -> void {
 }
 auto GUI::destroy() -> void {
     ImGui_ImplOpenGL3_Shutdown();
-#if USE_GLFW
-    ImGui_ImplGlfw_Shutdown();
-#else
+#if _WIN32
     ImGui_ImplWin32_Shutdown();
+#elif __linux__
+    ImGui_ImplX11_Shutdown();
 #endif
     ImGui::DestroyContext();
 }
