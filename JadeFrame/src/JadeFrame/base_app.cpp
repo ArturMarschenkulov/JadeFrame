@@ -257,12 +257,9 @@ BaseApp::BaseApp(const DESC& desc) {
     win_desc.title = desc.title;
     win_desc.size = desc.size;
     win_desc.position = desc.position;
-#ifdef _WIN32
-    m_windows[0] = std::make_unique<win32::Window>(win_desc);
-#elif __linux__
-    m_windows[0] = std::make_unique<linux_Window>(win_desc);
-#endif
-    m_current_window_p = m_windows[0].get();
+    auto i = Instance::get_singleton();
+    m_windows[0] = i->m_system_manager.request_window(win_desc);
+    m_current_window_p = m_windows[0];
 
     GRAPHICS_API api = GRAPHICS_API::UNDEFINED;
     api = GRAPHICS_API::VULKAN;
@@ -272,12 +269,12 @@ BaseApp::BaseApp(const DESC& desc) {
     const std::string& title = m_current_window_p->get_title();
     switch (api) {
         case GRAPHICS_API::OPENGL: {
-            m_renderer = new OpenGL_Renderer(m_windows[0].get());
+            m_renderer = new OpenGL_Renderer(m_windows[0]);
             m_current_window_p->set_title(title + " OpenGL");
 
         } break;
         case GRAPHICS_API::VULKAN: {
-            m_renderer = new Vulkan_Renderer(m_windows[0].get());
+            m_renderer = new Vulkan_Renderer(m_windows[0]);
             m_current_window_p->set_title(title + " Vulkan");
         } break;
         default: assert(false);

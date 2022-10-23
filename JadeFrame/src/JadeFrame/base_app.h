@@ -142,8 +142,8 @@ public:
     // Window stuff
     i32 m_window_counter = 0;
     using WindowID = i32;
-    std::map<WindowID, std::unique_ptr<IWindow>> m_windows;
-    IWindow*                                     m_current_window_p = nullptr;
+    std::map<WindowID, IWindow*> m_windows;
+    IWindow*                     m_current_window_p = nullptr;
 
     IRenderer* m_renderer = nullptr;
     Camera     m_camera;

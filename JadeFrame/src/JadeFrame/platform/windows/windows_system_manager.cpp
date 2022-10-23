@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "windows_system_manager.h"
 #include "windows_shared.h"
+#include "windows_window.h"
 
 #include <Windows.h>
 #include <winreg.h>
@@ -200,7 +201,11 @@ auto test() -> void {
 // }
 
 
-
+auto SystemManager::request_window(IWindow::Desc desc) -> IWindow* {
+    m_windows[m_window_counter] = std::make_unique<Window>(desc);
+    m_window_counter++;
+    return m_windows[m_window_counter - 1].get();
+}
 
 auto SystemManager::initialize() -> void {
     m_instance = ::GetModuleHandleW(NULL);

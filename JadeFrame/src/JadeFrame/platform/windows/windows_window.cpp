@@ -67,7 +67,7 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
     for (auto const& [window_id, window] : app->m_windows) {
         if (window->get() == hWnd) { current_window_id = window_id; }
     }
-    Window& current_window = *reinterpret_cast<Window*>(app->m_windows[current_window_id].get());
+    Window& current_window = *reinterpret_cast<Window*>(app->m_windows[current_window_id]);
 
     switch (message) {
         case WM_SETFOCUS:

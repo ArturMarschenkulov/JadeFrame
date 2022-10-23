@@ -10,6 +10,15 @@ public:
     virtual auto initialize() -> void override;
     virtual auto log() const -> void override;
 
+    virtual auto request_window(IWindow::Desc desc) -> IWindow* override;
+
+public:
+    // Window stuff
+    i32 m_window_counter = 0;
+    using WindowID = i32;
+    std::map<WindowID, std::unique_ptr<IWindow>> m_windows;
+    IWindow*                                     m_curr_window = nullptr;
+
 public:
     ::HMODULE m_instance;
     // represents Dynamically Linked Libraries (DLL) on Windows and Shared Object (SO) on Linux
