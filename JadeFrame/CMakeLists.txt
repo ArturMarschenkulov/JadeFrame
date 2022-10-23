@@ -19,6 +19,10 @@ if(WIN32)
         ${imgui_DIR}/backends/imgui_impl_dx11.cpp
     )
 elseif(UNIX AND NOT APPLE)
+    set(imgui_platform_specific_sources
+        ${imgui_DIR}/backends/imgui_impl_x11.h
+        ${imgui_DIR}/backends/imgui_impl_x11.h
+    )
 endif()
 add_library(imgui
     STATIC
