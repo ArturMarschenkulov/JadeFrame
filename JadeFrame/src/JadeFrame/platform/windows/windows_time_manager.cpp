@@ -70,28 +70,27 @@ auto TimeManager::get_time() const -> f64 {
 auto TimeManager::get_timer_frequency() const -> u64 { return m_frequency; }
 
 auto TimeManager::calc_elapsed() -> f64 {
-    time.current = this->get_time();
-    time.update = time.current - time.previous;
-    time.previous = time.current;
-    return time.update;
+    f64 current = this->get_time();
+    f64 update = current - time.previous;
+    time.previous = current;
+    return update;
 }
 
 auto TimeManager::frame_control(f64 delta_time) -> void {
     // Frame time control system
-    time.current = this->get_time();
-    time.draw = time.current - time.previous;
-    time.previous = time.current;
+    f64 current = this->get_time();
+    f64 draw = current - time.previous;
+    time.previous = current;
 
-    time.frame = /*time.update*/ delta_time + time.draw;
+    f64 frame = delta_time + draw;
 
-    if (time.frame < time.target) {
-        ::Sleep(static_cast<u32>((time.target - time.frame) * 1000.0));
-        time.current = this->get_time();
-        f64 time_wait = time.current - time.previous;
-        time.previous = time.current;
-        time.frame += time_wait;
+    if (frame < time.target) {
+        ::Sleep(static_cast<u32>((time.target - frame) * 1000.0));
+        f64 current = this->get_time();
+        f64 time_wait = current - time.previous;
+        time.previous = current;
+        frame += time_wait;
     }
-    //__debugbreak();
 }
 
 auto TimeManager::set_FPS(f64 FPS) -> void {

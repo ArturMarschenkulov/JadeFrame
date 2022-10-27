@@ -23,11 +23,7 @@ public:
     virtual auto frame_control(f64 delta_time) -> void override;
     virtual auto set_FPS(f64 FPS) -> void override;
     struct Time {
-        f64 current = 0;
         f64 previous = 0;
-        f64 update = 0;
-        f64 draw = 0;
-        f64 frame = 0;
         f64 target = 0;
     };
     Time time;
