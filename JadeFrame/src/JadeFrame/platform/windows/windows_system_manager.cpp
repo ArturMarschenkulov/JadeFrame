@@ -3,6 +3,8 @@
 #include "windows_shared.h"
 #include "windows_window.h"
 
+#include "JadeFrame/utils/option.h"
+
 #include <Windows.h>
 #include <winreg.h>
 #include <intrin.h> // for "__cpuid()"
@@ -207,7 +209,97 @@ auto SystemManager::request_window(IWindow::Desc desc) -> IWindow* {
     return m_windows[m_window_counter - 1].get();
 }
 
+
+#define USE_OPTION_TYPE 1
+#if USE_OPTION_TYPE
+static auto query_performance_frequency() -> Option<u64> {
+    u64 frequency;
+    if (::QueryPerformanceFrequency((LARGE_INTEGER*)&frequency)) {
+        return Option<u64>(std::move(frequency));
+    } else {
+        return Option<u64>();
+    }
+}
+static auto query_performance_counter() -> Option<u64> {
+    u64 counter;
+    if (::QueryPerformanceCounter((LARGE_INTEGER*)&counter)) {
+        return Option<u64>(std::move(counter));
+    } else {
+        return Option<u64>();
+    }
+}
+#endif
+
+auto SystemManager::calc_elapsed() -> f64 {
+    f64 current = this->get_time();
+    f64 update = current - time.previous;
+    time.previous = current;
+    return update;
+}
+
+auto SystemManager::frame_control(f64 delta_time) -> void {
+    // Frame time control system
+    f64 current = this->get_time();
+    f64 draw = current - time.previous;
+    time.previous = current;
+
+    f64 frame = delta_time + draw;
+
+    if (frame < time.target) {
+        ::Sleep(static_cast<u32>((time.target - frame) * 1000.0));
+        f64 current = this->get_time();
+        f64 time_wait = current - time.previous;
+        time.previous = current;
+        frame += time_wait;
+    }
+}
+
+auto SystemManager::set_target_FPS(f64 FPS) -> void {
+    max_FPS = static_cast<f32>(FPS);
+    time.target = 1 / (f64)FPS;
+}
+
+auto SystemManager::get_time() const -> f64 {
+#if USE_OPTION_TYPE
+    const u64 counter = query_performance_counter().unwrap_unchecked() - m_offset;
+    const u64 frequency = m_frequency;
+    return static_cast<f64>(counter) / frequency;
+#else
+    u64 counter;
+    ::QueryPerformanceCounter((LARGE_INTEGER*)&counter);
+    const u64 frequency = m_frequency;
+
+    return static_cast<f64>(counter) / frequency;
+#endif
+}
 auto SystemManager::initialize() -> void {
+
+    // time stuff
+    timeBeginPeriod(1);
+
+#if USE_OPTION_TYPE
+    Option<u64> frequency = query_performance_frequency();
+    if (frequency.is_some()) {
+        m_has_performance_counter = true;
+        m_frequency = frequency.unwrap_unchecked();
+    } else {
+        m_has_performance_counter = false;
+        m_frequency = 1000;
+    }
+    m_offset = query_performance_counter().unwrap_unchecked();
+#else
+    u64 frequency;
+    if (::QueryPerformanceFrequency((LARGE_INTEGER*)&frequency)) {
+        m_has_performance_counter = true;
+        m_frequency = frequency;
+    } else {
+        m_has_performance_counter = false;
+        m_frequency = 1000;
+    }
+    ::QueryPerformanceCounter((LARGE_INTEGER*)&m_offset);
+#endif
+
+    // time stuff end
     m_instance = ::GetModuleHandleW(NULL);
     Logger::debug("Initializing Windows System Manager");
     if (false) {

@@ -3,7 +3,6 @@
 #if _WIN32 || _WIN64
 #include "platform/windows/windows_input_manager.h"
 #include "platform/windows/windows_system_manager.h"
-#include "platform/windows/windows_time_manager.h"
 #include "platform/windows/windows_window.h"
 #elif __linux__
 #include "platform/linux/linux_input_manager.h"
@@ -37,7 +36,6 @@ auto control_camera(Camera* self) -> void;
 #ifdef _WIN32
 using SystemManager = win32::SystemManager;
 using InputManager = win32::InputManager;
-using TimeManager = win32::TimeManager;
 #elif __linux__
 using SystemManager = Linux_SystemManager;
 using InputManager = Linux_InputManager;
@@ -147,8 +145,7 @@ public:
     IRenderer* m_renderer = nullptr;
     Camera     m_camera;
 
-    TimeManager m_time_manager;
-    GUI         m_gui;
+    GUI m_gui;
 
     ResourceStorage m_resources;
     u64             m_tick = 0;
@@ -181,7 +178,6 @@ public:
 public:
     SystemManager m_system_manager;
     InputManager  m_input_manager;
-    TimeManager   m_time_manager;
 
     std::deque<BaseApp*> m_apps;
     // std::deque<BaseApp> m_apps;

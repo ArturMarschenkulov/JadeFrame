@@ -7,8 +7,6 @@ add_library(Platform_Win32
     "windows_shared.cpp"
     "windows_system_manager.h"
     "windows_system_manager.cpp"
-    "windows_time_manager.h"
-    "windows_time_manager.cpp"
     "windows_window.h"
     "windows_window.cpp"
 )

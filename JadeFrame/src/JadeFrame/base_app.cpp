@@ -231,7 +231,6 @@ Instance::Instance() {
     if (m_singleton == nullptr) {
         m_singleton = this;
         m_system_manager.initialize();
-        m_time_manager.initialize();
         // m_input_manager.initialize();
 
         m_system_manager.log();
@@ -300,9 +299,9 @@ auto BaseApp::start() -> void {
     this->on_init();
     // m_renderer->main_loop();
 
-    m_time_manager.set_FPS(60);
+    i->m_system_manager.set_target_FPS(60);
     while (m_is_running) {
-        const f64 time_since_last_frame = m_time_manager.calc_elapsed();
+        const f64 delta_time = i->m_system_manager.calc_elapsed();
         this->on_update();
         if (m_current_window_p->get_window_state() != IWindow::WINDOW_STATE::MINIMIZED) {
             m_renderer->clear_background();
@@ -318,7 +317,7 @@ auto BaseApp::start() -> void {
             m_tick += 1;
         }
         this->poll_events();
-        m_time_manager.frame_control(time_since_last_frame);
+        i->m_system_manager.frame_control(delta_time);
     }
 }
 auto BaseApp::poll_events() -> void {
