@@ -155,18 +155,38 @@ auto InputManager::key_callback(const EventMessage& wm) -> void {
     WPARAM wParam = wm.wParam;
     LPARAM lParam = wm.lParam;
 
+    bool is_sys_stroke = msg == WM_SYSKEYDOWN || msg == WM_SYSKEYUP;
+    bool is_down = WM_KEYDOWN == msg || WM_SYSKEYDOWN == msg;
 
-    auto key_flags = HIWORD(lParam);
-    auto vk_code = LOWORD(wParam);
+    WORD virtual_key = LOWORD(wParam);
 
-    auto scan_code = LOBYTE(key_flags);
+    WORD key_flags = HIWORD(lParam);
+    BYTE scan_code = LOBYTE(key_flags);
+
+    WORD repeat_count = LOWORD(lParam); // NOTE: For what can it be used?
+
+
+#if 0
+    i64 bit_24 = (wm.lParam >> 24) & 1; // extended key flag
+    i64 bit_29 = (wm.lParam >> 29) & 1; // 1 == system key
+    i64 bit_30 = (wm.lParam >> 30) & 1; // 1 == repeatedly pressed
+    i64 bit_31 = (wm.lParam >> 31) & 1; // 0 == pressed, 1 == released
+
+    // bool b_is_system_key = (bit_29 == 1);
+    // bool b_is_repeated = (bit_30 == 1);
+    // bool b_is_pressed = (bit_31 == 0);
+
+    bool is_released = (bit_31 == 1);
+    bool was_down = (bit_30 == 1);
+    bool is_extended_key = (bit_24 == 1);
+    if (is_extended_key) { scan_code = MAKEWORD(scan_code, 0xE0); }
+#else
     bool is_extended_key = (key_flags & KF_EXTENDED) == KF_EXTENDED;
     if (is_extended_key) { scan_code = MAKEWORD(scan_code, 0xE0); }
-
-    auto repeat_count = LOWORD(lParam);
     bool is_released = HIWORD(lParam) & KF_UP;
     bool was_down = HIWORD(lParam) & KF_REPEAT;
-    bool is_system_stroke = msg == WM_SYSKEYDOWN || msg == WM_SYSKEYUP;
+#endif
+
 
     // sanity checks
     {
@@ -175,32 +195,26 @@ auto InputManager::key_callback(const EventMessage& wm) -> void {
         if (msg == WM_KEYUP || msg == WM_SYSKEYUP) { assert(is_released = true); }
 
         auto mapped_vk_code = MapVirtualKey(scan_code, MAPVK_VSC_TO_VK_EX);
-        if (mapped_vk_code != vk_code) {
-            Logger::warn("vk code and mapped scan code don't match\n{}\n{}", vk_code, mapped_vk_code);
+        if (mapped_vk_code != virtual_key) {
+            Logger::warn("vk code and mapped scan code don't match\n{}\n{}", virtual_key, mapped_vk_code);
         }
     }
 
     // if (is_system_stroke == true) {
     //     ::DefWindowProc(hwnd, msg, wParam, lParam);
     // }
-    switch (vk_code) {
+
+    switch (virtual_key) {
         case VK_SHIFT:   // converts to VK_LSHIFT or VK_RSHIFT
         case VK_CONTROL: // converts to VK_LCONTROL or VK_RCONTROL
         case VK_MENU:    // converts to VK_LMENU or VK_RMENU
-            vk_code = LOWORD(MapVirtualKey(vk_code, MAPVK_VSC_TO_VK_EX));
+            virtual_key = LOWORD(MapVirtualKey(virtual_key, MAPVK_VSC_TO_VK_EX));
             break;
     }
-    KEY jf_keycode = translate_key_code(vk_code);
+    KEY jf_keycode = translate_key_code(virtual_key);
 
-    // i64 bit_29 = (wm.lParam >> 29) & 1; // 1 == system key
-    // i64 bit_30 = (wm.lParam >> 30) & 1; // 1 == repeatedly pressed
-    i64 bit_31 = (wm.lParam >> 31) & 1; // 0 == pressed, 1 == released
 
-    // bool b_is_system_key = (bit_29 == 1);
-    // bool b_is_repeated = (bit_30 == 1);
-    bool b_is_pressed = (bit_31 == 0);
-
-    m_current_key_state[static_cast<u32>(jf_keycode)] = static_cast<INPUT_STATE>(b_is_pressed);
+    m_current_key_state[static_cast<u32>(jf_keycode)] = static_cast<INPUT_STATE>(!is_released);
     // ImGuiIO& io = ImGui::GetIO();
     // io.KeysDown[key_code] = b_is_pressed;
 
@@ -218,38 +232,7 @@ auto InputManager::key_callback(const EventMessage& wm) -> void {
         //::PostQuitMessage(0);
     }
 }
-// auto InputManager::key_callback2(i64 lParam, u64 wParam, u32 message) -> void {
-//	u64 key_code = wParam;
-//
-//	//int64_t bit_29 = (lParam >> 29) & 1; // 1 == system key (basically ALT key + some key)
-//	//int64_t bit_30 = (lParam >> 30) & 1; // 1 == repeatedly pressed
-//	i64 bit_31 = (lParam >> 31) & 1; // 0 == pressed, 1 == released
-//
-//	//bool b_is_system_key = (bit_29 == 1);
-//	//bool b_is_repeated = (bit_30 == 1);
-//	bool b_is_pressed = (bit_31 == 0);
-//
-//	KeyEvent::TYPE key_event_type = b_is_pressed ? KeyEvent::TYPE::PRESSED : KeyEvent::TYPE::RELEASED;
-//	KeyEvent key_event = { key_event_type, key_code };
-//
-//	std::vector<KeyEvent> key_events;
-//	key_events.push_back(key_event);
-//
-//	if (key_event.type == KeyEvent::TYPE::PRESSED) {
-//		m_current_key_state[key_code] = INPUT_STATE::PRESSED;
-//	} else if (key_event.type == KeyEvent::TYPE::RELEASED) {
-//		m_current_key_state[key_code] = INPUT_STATE::RELEASED;
-//	} else {
-//		__debugbreak();
-//	}
-//
-//
-//	//TODO: Try to extract that to somewhere else.
-//	if (m_current_key_state[static_cast<i32>(KEY::ESCAPE)] == INPUT_STATE::PRESSED) {
-//		JadeFrame::get_singleton()->m_current_app_p->m_is_running = false;
-//		::PostQuitMessage(0);
-//	}
-// }
+
 auto InputManager::char_callback(const EventMessage& wm) -> void {
     // window_message.hWnd;
     // window_message.message;
