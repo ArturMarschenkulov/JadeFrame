@@ -154,17 +154,31 @@ public:
     virtual auto get_window_state() const -> WINDOW_STATE = 0;
     virtual auto get() const -> void* = 0;
 };
-class ITimeManager {
-    virtual auto initialize() -> void = 0;
-    virtual auto get_time() const -> f64 = 0;
-    virtual auto calc_elapsed() -> f64 = 0;
-    virtual auto frame_control(f64 delta_time) -> void = 0;
-    virtual auto set_FPS(f64 FPS) -> void = 0;
-};
+
 class ISystemManager {
 public:
     virtual auto initialize() -> void = 0;
     virtual auto log() const -> void = 0;
+
+    virtual auto request_window(IWindow::Desc desc) -> IWindow* = 0;
+
+    virtual auto get_time() const -> f64 = 0;
+    virtual auto calc_elapsed() -> f64 = 0;
+    virtual auto frame_control(f64 delta_time) -> void = 0;
+    virtual auto set_target_FPS(f64 FPS) -> void = 0;
+};
+
+class IPlatform {
+public:
+    // platform stuff
+
+    // input stuff
+
+    // time stuff
+    virtual auto get_time() const -> f64 = 0;
+    virtual auto calc_elapsed() -> f64 = 0;
+    virtual auto frame_control(f64 delta_time) -> void = 0;
+    virtual auto set_FPS(f64 FPS) -> void = 0;
 };
 
 class SystemManager2 {
