@@ -246,7 +246,7 @@ auto test() -> void {
 
 
 auto SystemManager::request_window(IWindow::Desc desc) -> IWindow* {
-    m_windows[m_window_counter] = std::make_unique<Window>(desc);
+    m_windows[m_window_counter] = std::make_unique<Window>(desc, m_instance);
     m_window_counter++;
     return m_windows[m_window_counter - 1].get();
 }
@@ -274,31 +274,31 @@ static auto query_performance_counter() -> Option<u64> {
 
 auto SystemManager::calc_elapsed() -> f64 {
     f64 current = this->get_time();
-    f64 update = current - time.previous;
-    time.previous = current;
+    f64 update = current - m_time.previous;
+    m_time.previous = current;
     return update;
 }
 
 auto SystemManager::frame_control(f64 delta_time) -> void {
     // Frame time control system
     f64 current = this->get_time();
-    f64 draw = current - time.previous;
-    time.previous = current;
+    f64 draw = current - m_time.previous;
+    m_time.previous = current;
 
     f64 frame = delta_time + draw;
 
-    if (frame < time.target) {
-        ::Sleep(static_cast<u32>((time.target - frame) * 1000.0));
+    if (frame < m_time.target) {
+        ::Sleep(static_cast<u32>((m_time.target - frame) * 1000.0));
         f64 current = this->get_time();
-        f64 time_wait = current - time.previous;
-        time.previous = current;
+        f64 time_wait = current - m_time.previous;
+        m_time.previous = current;
         frame += time_wait;
     }
 }
 
 auto SystemManager::set_target_FPS(f64 FPS) -> void {
-    max_FPS = static_cast<f32>(FPS);
-    time.target = 1 / (f64)FPS;
+    m_max_FPS = static_cast<f32>(FPS);
+    m_time.target = 1 / (f64)FPS;
 }
 
 auto SystemManager::get_time() const -> f64 {
