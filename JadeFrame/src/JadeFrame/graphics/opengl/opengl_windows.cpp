@@ -2,6 +2,7 @@
 #include "pch.h"
 
 #include "JadeFrame/prelude.h"
+#include "JadeFrame/platform/windows/windows_window.h"
 #include "opengl_windows.h"
 #include <glad/glad.h>
 
@@ -64,11 +65,13 @@ namespace JadeFrame {
 namespace opengl {
 namespace win32 {
 
-auto init_device_context(const HWND& window_handle) -> HDC {
-    static bool is_wgl_loaded = false;
-    if (is_wgl_loaded == false) { is_wgl_loaded = win32::load(); }
+auto init_device_context(const IWindow* window) -> HDC {
+    auto win = static_cast<const JadeFrame::win32::Window*>(window);
 
-    HDC device_context = ::GetDC(window_handle);
+    static bool is_wgl_loaded = false;
+    if (is_wgl_loaded == false) { is_wgl_loaded = load(win->m_instance_handle); }
+
+    HDC device_context = ::GetDC(win->m_window_handle);
     if (device_context == NULL) {
         Logger::err("GetDC(hWnd) failed! {}", ::GetLastError());
         assert(false);
@@ -90,10 +93,7 @@ static auto load_wgl_functions() -> void {
     wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC*)wglGetProcAddress("wglGetExtensionsStringEXT");
 }
 
-auto load() -> bool {
-    // DummyWindow dummy_window;
-    const HINSTANCE instance = GetModuleHandleW(NULL);
-    if (instance == NULL) { Logger::log("GetModuleHandleW(NULL) failed. {}", ::GetLastError()); }
+auto load(HMODULE instance) -> bool {
     const LPCWSTR window_class_name = L"OpenGL";
 
     // dummy_window.registerr();

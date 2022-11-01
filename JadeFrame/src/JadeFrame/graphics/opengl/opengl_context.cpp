@@ -9,7 +9,7 @@ namespace JadeFrame {
 
 OpenGL_Context::OpenGL_Context(const IWindow* window)
 #ifdef WIN32
-    : m_device_context(opengl::win32::init_device_context((const HWND)window->get())) {
+    : m_device_context(opengl::win32::init_device_context(window)) {
     auto m_render_context = opengl::win32::init_render_context(m_device_context);
 #elif __linux__
     {

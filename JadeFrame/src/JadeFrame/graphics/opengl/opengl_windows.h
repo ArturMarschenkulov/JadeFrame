@@ -10,9 +10,9 @@
 namespace JadeFrame {
 namespace opengl {
 namespace win32 {
-auto init_device_context(const HWND& window) -> HDC;
+auto init_device_context(const IWindow* window) -> HDC;
 auto init_render_context(HDC device_context) -> HGLRC;
-auto load() -> bool;
+auto load(HMODULE module) -> bool;
 auto swap_interval(i32) -> void;
 auto set_pixel_format(const HDC& device_context) -> void;
 auto create_render_context(HDC device_context) -> HGLRC;
