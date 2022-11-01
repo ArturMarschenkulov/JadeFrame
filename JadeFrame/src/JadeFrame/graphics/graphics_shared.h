@@ -204,4 +204,41 @@ public:
     Matrix4x4                 m_transform;
     mutable GPUDataMeshHandle m_GPU_mesh_data;
 };
+
+
+// --------------------------------------------
+
+struct ReflectedCode {
+    struct Input {
+        std::string name;
+        u32         location;
+        u32         size; // in bytes
+        SHADER_TYPE type;
+    };
+    struct SampledImage {
+        std::string name;
+        u32         binding = 0;
+        u32         set = 0;
+        u32         DescriptorSet = 0;
+        u32         ArraySize = 0;
+    };
+    struct UniformBuffer {
+        std::string name;
+        u32         size;
+        u32         binding;
+        u32         set;
+    };
+    struct Module {
+        SHADER_STAGE m_stage;
+
+        std::vector<Input>               m_inputs;
+        std::vector<UniformBuffer>       m_uniform_buffers;
+        std::vector<SampledImage>        m_sampled_images;
+        // std::vector<VkPushConstantRange> m_push_constant_ranges;
+    };
+    std::vector<Module> m_modules;
+};
+auto reflect(const ShadingCode& code) -> ReflectedCode;
+
+
 } // namespace JadeFrame
