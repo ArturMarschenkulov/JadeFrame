@@ -51,6 +51,9 @@ if(MSVC)
     )
     target_compile_options(GraphicsAPI_OpenGL PRIVATE
         /EHsc
+        /Z7
+        /Od
+        /W4
     )
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_definitions(GraphicsAPI_OpenGL PRIVATE
