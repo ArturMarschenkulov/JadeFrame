@@ -33,9 +33,9 @@ auto TextureHandle::init() -> void {
                     Logger::err("TextureHandle::init() - Unsupported number of components: {}", m_num_components);
                     assert(false);
             }
-            OpenGL_Texture* texture = new OpenGL_Texture(
-                m_data, {static_cast<u32>(m_size.width), static_cast<u32>(m_size.height)}, format,
-                format, GL_UNSIGNED_BYTE);
+            opengl::Texture* texture = new opengl::Texture(
+                m_data, {static_cast<u32>(m_size.width), static_cast<u32>(m_size.height)}, format, format,
+                GL_UNSIGNED_BYTE);
             m_handle = texture;
 
 
@@ -68,9 +68,9 @@ auto ShaderHandle::init() -> void {
     // }
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            OpenGL_Shader::DESC shader_desc;
+            opengl::Shader::DESC shader_desc;
             shader_desc.code = m_code;
-            m_handle = new OpenGL_Shader(shader_desc);
+            m_handle = new opengl::Shader(shader_desc);
 
         } break;
         case GRAPHICS_API::VULKAN: {
