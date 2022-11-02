@@ -15,7 +15,7 @@
 namespace JadeFrame {
 
 namespace win32 {
-static EventMessageMap windows_message_map;
+static EventMessageMap g_windows_message_map;
 
 
 
@@ -55,10 +55,10 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
 
     BaseApp* app = Instance::get_singleton()->m_current_app_p;
     if (app == nullptr) {
-        // Logger::trace("WindowProced___: {}", windows_message_map(wm));
+        // Logger::trace("WindowProced___: {}", g_windows_message_map(wm));
         return ::DefWindowProcW(hWnd, message, wParam, lParam);
     } else {
-        // Logger::trace("WindowProcedure: {}", windows_message_map(wm));
+        // Logger::trace("WindowProcedure: {}", g_windows_message_map(wm));
     }
 
 
@@ -72,7 +72,7 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
     switch (message) {
         case WM_SETFOCUS:
         case WM_KILLFOCUS: {
-            // Logger::log("WindowProced___: {}", windows_message_map(wm));
+            // Logger::log("WindowProced___: {}", g_windows_message_map(wm));
             bool should_focus = message == WM_SETFOCUS ? true : false;
             window_focus_callback(current_window, should_focus);
         } break;
@@ -87,11 +87,11 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
         case WM_SYSKEYDOWN:
         case WM_KEYUP:
         case WM_SYSKEYUP: {
-            // Logger::log("WindowProcedure: {}", windows_message_map(wm));
+            // Logger::log("WindowProcedure: {}", g_windows_message_map(wm));
             input_manager.key_callback(wm);
         } break;
         case WM_CHAR: {
-            // Logger::log("WindowProcedure: {}", windows_message_map(wm));
+            // Logger::log("WindowProcedure: {}", g_windows_message_map(wm));
             input_manager.char_callback(wm);
         } break;
         case WM_LBUTTONDOWN:
@@ -115,7 +115,7 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
         case WM_CLOSE: {
             // TODO: This code needs to be moved to WM_DESTROY.
 
-            Logger::trace("WindowProcedure: {}.", windows_message_map(wm));
+            Logger::trace("WindowProcedure: {}.", g_windows_message_map(wm));
 
             app->m_windows.erase(current_window_id);
 
@@ -133,18 +133,18 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
 
         } break;
         case WM_DESTROY: {
-            Logger::trace("WindowProcedure: {}", windows_message_map(wm));
+            Logger::trace("WindowProcedure: {}", g_windows_message_map(wm));
             //::PostQuitMessage(0);
             return DefWindowProc(hWnd, message, wParam, lParam);
         } break;
         case WM_QUIT: {
-            Logger::trace("WindowProcedure: {}", windows_message_map(wm));
+            Logger::trace("WindowProcedure: {}", g_windows_message_map(wm));
             return DefWindowProc(hWnd, message, wParam, lParam);
             //::PostQuitMessage(0);
         } break;
 
         default: {
-            // Logger::log("WindowProced___: {}", windows_message_map(wm));
+            // Logger::log("WindowProced___: {}", g_windows_message_map(wm));
             return DefWindowProc(hWnd, message, wParam, lParam);
         }
     }
