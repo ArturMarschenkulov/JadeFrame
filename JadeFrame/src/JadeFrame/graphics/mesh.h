@@ -29,6 +29,39 @@ public:
 		return !(*this == color);
 	}
 
+	static auto solid_black() -> RGBAColor {
+		return RGBAColor(0.0f, 0.0f, 0.0f, 1.0f);
+	}
+	static auto solid_white() -> RGBAColor {
+		return RGBAColor(1.0f, 1.0f, 1.0f, 1.0f);
+	}
+	static auto solid_red() -> RGBAColor {
+		return RGBAColor(1.0f, 0.0f, 0.0f, 1.0f);
+	}
+	static auto solid_green() -> RGBAColor {
+		return RGBAColor(0.0f, 1.0f, 0.0f, 1.0f);
+	}
+	static auto solid_blue() -> RGBAColor {
+		return RGBAColor(0.0f, 0.0f, 1.0f, 1.0f);
+	}
+
+	static auto solid_yellow() -> RGBAColor {
+		return RGBAColor(1.0f, 1.0f, 0.0f, 1.0f);
+	}
+	static auto solid_cyan() -> RGBAColor {
+		return RGBAColor(0.0f, 1.0f, 1.0f, 1.0f);
+	}
+	static auto solid_magenta() -> RGBAColor {
+		return RGBAColor(1.0f, 0.0f, 1.0f, 1.0f);
+	}
+
+	static auto solid_transparent() -> RGBAColor {
+		return RGBAColor(0.0f, 0.0f, 0.0f, 0.0f);
+	}
+	auto set_opacity(f32 opacity) -> RGBAColor {
+		return RGBAColor(r, g, b, opacity);
+	}
+
 public:
 	f32 r, g, b, a;
 };
