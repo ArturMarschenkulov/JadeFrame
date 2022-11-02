@@ -125,7 +125,7 @@ auto Pipeline::init(
         spirvs.resize(code.m_modules.size());
         for (u32 i = 0; i < code.m_modules.size(); i++) {
             const std::string& str = std::get<std::string>(code.m_modules[i].m_code);
-            spirvs[i] = std::async(std::launch::async, string_to_SPIRV, str, code.m_modules[i].m_stage);
+            spirvs[i] = std::async(std::launch::async, string_to_SPIRV, str, code.m_modules[i].m_stage, GRAPHICS_API::VULKAN);
         }
         m_code.m_modules.resize(spirvs.size());
         for (u32 i = 0; i < m_code.m_modules.size(); i++) {

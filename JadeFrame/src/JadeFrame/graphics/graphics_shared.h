@@ -193,7 +193,7 @@ public:
 public:
 };
 
-auto string_to_SPIRV(const std::string& code, SHADER_STAGE i) -> std::vector<u32>;
+auto string_to_SPIRV(const std::string& code, SHADER_STAGE i, GRAPHICS_API api) -> std::vector<u32>;
 struct MaterialHandle;
 class VertexData;
 class Object {

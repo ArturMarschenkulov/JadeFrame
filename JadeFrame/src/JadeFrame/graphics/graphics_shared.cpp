@@ -35,7 +35,7 @@ auto VertexFormat::calculate_offset_and_stride(std::vector<VertexAttribute>& att
 
 
 
-auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage) -> std::vector<u32> {
+auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage, GRAPHICS_API api) -> std::vector<u32> {
     shaderc_shader_kind kind = {};
     switch (stage) {
         case SHADER_STAGE::VERTEX: {
@@ -48,8 +48,14 @@ auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage) -> std::vector
     }
 
     shaderc::CompileOptions options;
-    options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
-    // options.SetTargetEnvironment(shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
+    switch (api) {
+        case GRAPHICS_API::VULKAN: {
+            options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
+        } break;
+        case GRAPHICS_API::OPENGL: {
+            options.SetTargetEnvironment(shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
+        } break;
+    }
     options.SetWarningsAsErrors();
     options.SetGenerateDebugInfo();
     const bool optimize = false;

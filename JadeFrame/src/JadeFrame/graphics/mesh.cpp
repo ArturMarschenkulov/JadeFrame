@@ -34,6 +34,60 @@ namespace JadeFrame {
 //
 // }
 
+auto convert_into_data(const VertexData& vertex_data, const bool interleaved) -> std::vector<f32> {
+	//assert(mesh.m_positions.size() == mesh.m_normals.size());
+	const u64 size
+		= vertex_data.m_positions.size() * 3
+		+ vertex_data.m_colors.size() * 4
+		+ vertex_data.m_texture_coordinates.size() * 2
+		+ vertex_data.m_normals.size() * 3;
+
+	std::vector<f32> data;
+	data.reserve(size);
+	if (interleaved == true) {
+		for (size_t i = 0; i < vertex_data.m_positions.size(); i++) {
+			data.push_back(vertex_data.m_positions[i].x);
+			data.push_back(vertex_data.m_positions[i].y);
+			data.push_back(vertex_data.m_positions[i].z);
+			if (vertex_data.m_colors.size()) {
+				data.push_back(vertex_data.m_colors[i].r);
+				data.push_back(vertex_data.m_colors[i].g);
+				data.push_back(vertex_data.m_colors[i].b);
+				data.push_back(vertex_data.m_colors[i].a);
+			}
+			if (vertex_data.m_texture_coordinates.size()) {
+				data.push_back(vertex_data.m_texture_coordinates[i].x);
+				data.push_back(vertex_data.m_texture_coordinates[i].y);
+			}
+			if (vertex_data.m_normals.size()) {
+				data.push_back(vertex_data.m_normals[i].x);
+				data.push_back(vertex_data.m_normals[i].y);
+				data.push_back(vertex_data.m_normals[i].z);
+			}
+		}
+	} else {
+
+        assert(false);
+		for (size_t i = 0; i < vertex_data.m_positions.size(); i++) {
+			data.push_back(vertex_data.m_positions[i].x);
+			data.push_back(vertex_data.m_positions[i].y);
+			data.push_back(vertex_data.m_positions[i].z);
+		}
+		for (size_t i = 0; i < vertex_data.m_colors.size(); i++) {
+			data.push_back(vertex_data.m_colors[i].r);
+			data.push_back(vertex_data.m_colors[i].g);
+			data.push_back(vertex_data.m_colors[i].b);
+			data.push_back(vertex_data.m_colors[i].a);
+		}
+		for (size_t i = 0; i < vertex_data.m_texture_coordinates.size(); i++) {
+			data.push_back(vertex_data.m_texture_coordinates[i].x);
+			data.push_back(vertex_data.m_texture_coordinates[i].y);
+		}
+	}
+
+	return data;
+}
+
 auto VertexDataFactory::make_line(const v3& pos1, const v3& pos2) -> VertexData {
     VertexData vertex_data;
     vertex_data.m_positions.resize(2);
