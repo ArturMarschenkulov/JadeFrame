@@ -93,7 +93,7 @@ OpenGL_Renderer::OpenGL_Renderer(const IWindow* window)
         {           "v_position", SHADER_TYPE::FLOAT_3},
         {"v_texture_coordinates", SHADER_TYPE::FLOAT_2}
     };
-    fb.m_framebuffer_rect = new OpenGL_GPUMeshData(vertex_data, layout);
+    fb.m_framebuffer_rect = new opengl::GPUMeshData(vertex_data, layout);
 
     ShaderHandle::DESC shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
@@ -121,7 +121,7 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
             vertex_format = obj.m_vertex_format;
         }
 
-        obj.m_GPU_mesh_data.m_handle = new OpenGL_GPUMeshData(*obj.m_vertex_data, vertex_format);
+        obj.m_GPU_mesh_data.m_handle = new opengl::GPUMeshData(*obj.m_vertex_data, vertex_format);
         obj.m_GPU_mesh_data.m_is_initialized = true;
     }
     MaterialHandle* mh = obj.m_material_handle;
@@ -168,13 +168,13 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         const OpenGL_RenderCommand& command = m_render_commands[i];
         const MaterialHandle&       mh = *command.material_handle;
 
-        const OpenGL_Shader*      p_shader = static_cast<OpenGL_Shader*>(mh.m_shader_handle->m_handle);
+        const opengl::Shader*      p_shader = static_cast<opengl::Shader*>(mh.m_shader_handle->m_handle);
         const VertexData*         p_mesh = command.vertex_data;
-        const OpenGL_GPUMeshData* p_vertex_array = static_cast<OpenGL_GPUMeshData*>(command.m_GPU_mesh_data->m_handle);
+        const opengl::GPUMeshData* p_vertex_array = static_cast<opengl::GPUMeshData*>(command.m_GPU_mesh_data->m_handle);
 
         p_shader->bind();
         if (mh.m_texture_handle != nullptr) {
-            OpenGL_Texture& texture = *static_cast<OpenGL_Texture*>(mh.m_texture_handle->m_handle);
+            opengl::Texture& texture = *static_cast<opengl::Texture*>(mh.m_texture_handle->m_handle);
             texture.bind();
         }
 
@@ -203,7 +203,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     m_render_commands.clear();
 }
 
-auto OpenGL_Renderer::render_mesh(const OpenGL_GPUMeshData* vertex_array, const VertexData* vertex_data) const -> void {
+auto OpenGL_Renderer::render_mesh(const opengl::GPUMeshData* vertex_array, const VertexData* vertex_data) const -> void {
     vertex_array->bind();
 
     if (vertex_data->m_indices.size() > 0) {

@@ -10,9 +10,6 @@
 
 namespace JadeFrame {
 
-
-
-
 struct STBIImage {
     STBIImage(const std::string& path) {
         // flip textures on their y coordinate while loading
@@ -24,9 +21,9 @@ struct STBIImage {
     i32            width, height, num_components;
     unsigned char* data;
 };
+namespace opengl {
 
-
-OpenGL_Texture::OpenGL_Texture(void* data, v2u32 size, GLenum internal_format, GLenum format, GLenum type)
+Texture::Texture(void* data, v2u32 size, GLenum internal_format, GLenum format, GLenum type)
     : m_size(size)
     , m_internal_format(internal_format)
     , m_format(format)
@@ -50,7 +47,7 @@ OpenGL_Texture::OpenGL_Texture(void* data, v2u32 size, GLenum internal_format, G
     //}
     m_texture.unbind();
 }
-auto OpenGL_Texture::resize(u32 width, u32 height, u32 /*depth*/) -> void {
+auto Texture::resize(u32 width, u32 height, u32 /*depth*/) -> void {
 
     m_texture.bind(0);
     assert(width > 0 && height > 0);
@@ -73,8 +70,8 @@ auto OpenGL_Texture::resize(u32 width, u32 height, u32 /*depth*/) -> void {
     // }
 }
 
-auto OpenGL_Texture::bind() const -> void { m_texture.bind(0); }
-auto OpenGL_Texture::unbind() const -> void { m_texture.unbind(); }
+auto Texture::bind() const -> void { m_texture.bind(0); }
+auto Texture::unbind() const -> void { m_texture.unbind(); }
 
 struct OGLTexture {
     auto create(const std::string& path) {
@@ -128,5 +125,5 @@ public:
     GLenum                      m_data_format;
 };
 
-
+} // namespace opengl
 } // namespace JadeFrame

@@ -4,6 +4,7 @@
 #include "JadeFrame/graphics/mesh.h"
 
 namespace JadeFrame {
+namespace opengl {
 
 static auto SHADER_TYPE_to_openGL_type(const SHADER_TYPE type) -> GLenum {
     GLenum result;
@@ -49,7 +50,7 @@ static auto SHADER_TYPE_get_component_count(const SHADER_TYPE type) -> u32 {
 
 
 
-OpenGL_GPUMeshData::OpenGL_GPUMeshData(const VertexData& vertex_data, VertexFormat vertex_format, bool interleaved)
+GPUMeshData::GPUMeshData(const VertexData& vertex_data, VertexFormat vertex_format, bool interleaved)
     : m_vertex_buffer()
     , m_vertex_array()
     , m_index_buffer() {
@@ -71,9 +72,9 @@ OpenGL_GPUMeshData::OpenGL_GPUMeshData(const VertexData& vertex_data, VertexForm
     m_vertex_buffer.unbind();
 }
 
-auto OpenGL_GPUMeshData::bind() const -> void { m_vertex_array.bind(); }
+auto GPUMeshData::bind() const -> void { m_vertex_array.bind(); }
 
-auto OpenGL_GPUMeshData::set_layout(const VertexFormat& vertex_format) -> void {
+auto GPUMeshData::set_layout(const VertexFormat& vertex_format) -> void {
     m_vertex_format = vertex_format;
 
     i32 vertex_buffer_index = 0;
@@ -104,6 +105,5 @@ auto OpenGL_GPUMeshData::set_layout(const VertexFormat& vertex_format) -> void {
     }
 }
 
-
-
+} // namespace opengl
 } // namespace JadeFrame

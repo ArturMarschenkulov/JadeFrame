@@ -31,10 +31,9 @@ enum class PRIMITIVE_TYPE {
 };
 
 struct OpenGL_Material {
-    const OpenGL_Texture* m_texture = nullptr;
-    OpenGL_Shader*        m_shader = nullptr;
+    const opengl::Texture* m_texture = nullptr;
+    opengl::Shader*        m_shader = nullptr;
 };
-
 
 
 
@@ -73,7 +72,7 @@ public:
 
 
 private:
-    auto render_mesh(const OpenGL_GPUMeshData* buffer_data, const VertexData* vertex_data) const -> void;
+    auto render_mesh(const opengl::GPUMeshData* buffer_data, const VertexData* vertex_data) const -> void;
 
 private:
     OpenGL_Context                           m_context;
@@ -84,7 +83,7 @@ private:
         OGLW_Texture<GL_TEXTURE_2D> m_framebuffer_texture;
         OGLW_Renderbuffer           m_framebuffer_renderbuffer;
         OGLW_Framebuffer            m_framebuffer;
-        OpenGL_GPUMeshData*         m_framebuffer_rect;
+        opengl::GPUMeshData*        m_framebuffer_rect;
         ShaderHandle*               m_shader_handle_fb;
     } fb;
 };

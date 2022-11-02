@@ -17,7 +17,7 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
     // auto m_render_context = opengl::linux::init_render_context(m_device_context);
 #endif
 
-    set_debug_mode(true);
+    opengl::set_debug_mode(true);
     m_state.set_default();
 
     vendor = reinterpret_cast<char const*>(glGetString(GL_VENDOR));

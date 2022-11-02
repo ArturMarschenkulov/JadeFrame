@@ -14,6 +14,7 @@
 #include <cassert>
 #include <tuple>
 
+#include "opengl_wrapper.h"
 
 #include "SPIRV-Cross/spirv_glsl.hpp"
 #include "SPIRV-Cross/spirv_hlsl.hpp"
@@ -34,9 +35,9 @@ static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
 // static auto check_glsl_variables(const std::unordered_map<std::string, OpenGL_Shader::GL_Variable>& ) -> void {
 //
 // }
+namespace opengl {
 
-
-OpenGL_Shader::OpenGL_Shader(const DESC& desc)
+Shader::Shader(const DESC& desc)
     : m_program()
     , m_vertex_shader(GL_VERTEX_SHADER)
     , m_fragment_shader(GL_FRAGMENT_SHADER) {
@@ -135,10 +136,10 @@ OpenGL_Shader::OpenGL_Shader(const DESC& desc)
     m_attributes = this->query_uniforms(GL_ACTIVE_ATTRIBUTES);
 }
 
-auto OpenGL_Shader::bind() const -> void { m_program.bind(); }
-auto OpenGL_Shader::unbind() const -> void { m_program.unbind(); }
+auto Shader::bind() const -> void { m_program.bind(); }
+auto Shader::unbind() const -> void { m_program.unbind(); }
 
-auto OpenGL_Shader::get_uniform_location(const std::string& name) const -> GLint {
+auto Shader::get_uniform_location(const std::string& name) const -> GLint {
     if (m_uniforms.contains(name)) { return m_uniforms.at(name).location; }
     assert(false);
     return -1;
@@ -190,7 +191,7 @@ static auto to_string_gl_type(GLenum type) -> std::string {
     return result;
 }
 
-auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::unordered_map<std::string, GL_Variable> {
+auto Shader::query_uniforms(const GLenum variable_type) const -> std::unordered_map<std::string, GL_Variable> {
     // variable_type = GL_ACTIVE_UNIFORMS | GL_ACTIVE_ATTRIBUTES
 
     GLint                                        num_variables = m_program.get_info(variable_type);
@@ -242,4 +243,5 @@ auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::uno
     }
     return variable_map;
 }
+} // namespace opengl
 } // namespace JadeFrame
