@@ -27,7 +27,7 @@ public:
     auto operator=(Window&&) -> Window& = delete;
 
     Window() = default;
-    Window(const Window::Desc& desc);
+    Window(const Window::Desc& desc, ::HMODULE instance);
     ~Window();
 
 
@@ -53,7 +53,8 @@ public:
 
 
 public:
-    HWND m_window_handle = nullptr;
+    HWND    m_window_handle = nullptr;
+    HMODULE m_instance_handle = nullptr;
 
 public:
     std::string m_title;

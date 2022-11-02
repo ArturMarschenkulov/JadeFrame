@@ -195,11 +195,7 @@ static auto register_class(HINSTANCE instance) -> ::WNDCLASSEX {
     return window_class;
 }
 
-Window::Window(const Window::Desc& desc) {
-
-    ::HINSTANCE instance = ::GetModuleHandleW(NULL);
-    if (instance == NULL) Logger::err("GetModuleHandleW(NULL) failed! {}", ::GetLastError());
-
+Window::Window(const Window::Desc& desc, ::HMODULE instance) {
     ::WNDCLASSEX wc = register_class(instance);
 
     ::DWORD window_style = get_style(desc);
