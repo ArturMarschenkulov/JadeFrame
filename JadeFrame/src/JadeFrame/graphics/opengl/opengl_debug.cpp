@@ -64,11 +64,18 @@ GL_ERR: Source: {}
 }
 
 auto set_debug_mode(bool b) -> void {
+    int flags;
+    glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+        Logger::info("OpenGL debug mode enabled");
+    } else {
+        Logger::warn("OpenGL debug mode disabled");
+    }
     if (b) { // enable debug output
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(opengl_message_callback, nullptr);
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
     }
 }
 } // namespace JadeFrame

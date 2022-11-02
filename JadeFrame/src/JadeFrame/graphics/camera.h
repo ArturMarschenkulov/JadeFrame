@@ -31,7 +31,7 @@ public:
     v3 m_position = {};
     v3 m_forward = {}; // front
     v3 m_up = {};
-    v3 m_world_up = {};
+    v3 m_world_up = {}; // TODO: Seems to be a global thing, maybe should to a more global scope?
     v3 m_right = {};
 
     f32 m_fov = {};

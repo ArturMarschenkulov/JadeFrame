@@ -46,7 +46,7 @@ public:
 public:
     VkFramebuffer        m_handle;
     const LogicalDevice* m_device = nullptr;
-    const ImageView*     m_image_view = nullptr;
+    const ImageView*     m_image_view = nullptr; // TODO: Find out whether this is even needed
     const RenderPass*    m_render_pass = nullptr;
     // const Swapchain* m_swapchain = nullptr;
 };

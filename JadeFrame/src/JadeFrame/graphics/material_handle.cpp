@@ -15,6 +15,7 @@ TextureHandle::TextureHandle(const std::string& path) {
     stbi_set_flip_vertically_on_load(true);
     // i32 width, height, num_components;
     m_data = stbi_load(path.c_str(), &m_size.width, &m_size.height, &m_num_components, 4);
+    if (m_data == nullptr) { Logger::err("Failed to load texture: {} ", path); }
 }
 
 TextureHandle::~TextureHandle() { stbi_image_free(m_data); }
@@ -26,13 +27,11 @@ auto TextureHandle::init() -> void {
         case GRAPHICS_API::OPENGL: {
             GLenum format = {};
             switch (m_num_components) {
-                case 3: {
-                    format = GL_RGB;
-                } break;
-                case 4: {
-                    format = GL_RGBA;
-                } break;
-                default: assert(false);
+                case 3: format = GL_RGB; break;
+                case 4: format = GL_RGBA; break;
+                default:
+                    Logger::err("TextureHandle::init() - Unsupported number of components: {}", m_num_components);
+                    assert(false);
             }
             OpenGL_Texture* texture = new OpenGL_Texture(
                 m_data, {static_cast<u32>(m_size.width), static_cast<u32>(m_size.height)}, format,

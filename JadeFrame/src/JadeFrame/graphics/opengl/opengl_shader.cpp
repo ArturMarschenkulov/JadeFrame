@@ -54,10 +54,12 @@ OpenGL_Shader::OpenGL_Shader(const DESC& desc)
             I'm not sure why, but it seems to be a driver issue.
             I'm leaving this here in case I ever get around to fixing it.
         */
-        std::future<std::vector<u32>> vert_shader_spirv =
-            std::async(std::launch::async, string_to_SPIRV, m_vertex_source.c_str(), desc.code.m_modules[0].m_stage, GRAPHICS_API::OPENGL);
-        std::future<std::vector<u32>> frag_shader_spirv =
-            std::async(std::launch::async, string_to_SPIRV, m_fragment_source.c_str(), desc.code.m_modules[1].m_stage, GRAPHICS_API::OPENGL);
+        std::future<std::vector<u32>> vert_shader_spirv = std::async(
+            std::launch::async, string_to_SPIRV, m_vertex_source.c_str(), desc.code.m_modules[0].m_stage,
+            GRAPHICS_API::OPENGL);
+        std::future<std::vector<u32>> frag_shader_spirv = std::async(
+            std::launch::async, string_to_SPIRV, m_fragment_source.c_str(), desc.code.m_modules[1].m_stage,
+            GRAPHICS_API::OPENGL);
 
         std::vector<u32> mvert_shader_spirv = vert_shader_spirv.get();
         std::vector<u32> mfrag_shader_spirv = frag_shader_spirv.get();
@@ -77,6 +79,22 @@ OpenGL_Shader::OpenGL_Shader(const DESC& desc)
 
         m_fragment_shader.set_source(fragment_shader);
         m_fragment_shader.compile();
+
+        auto s0 = std::async(
+            std::launch::async, string_to_SPIRV, m_vertex_source.c_str(), desc.code.m_modules[0].m_stage,
+            GRAPHICS_API::OPENGL);
+        auto s1 = std::async(
+            std::launch::async, string_to_SPIRV, m_fragment_source.c_str(), desc.code.m_modules[1].m_stage,
+            GRAPHICS_API::OPENGL);
+
+        ShadingCode code;
+        code.m_modules.resize(2);
+        code.m_modules[0].m_stage = desc.code.m_modules[0].m_stage;
+        code.m_modules[0].m_code = s0.get();
+        code.m_modules[1].m_stage = desc.code.m_modules[1].m_stage;
+        code.m_modules[1].m_code = s1.get();
+
+        auto s = reflect(code);
 
         // std::vector<u32> vs = string_to_SPIRV(vertex_shader.c_str(), desc.code.m_modules[0].m_stage);
 
@@ -126,7 +144,51 @@ auto OpenGL_Shader::get_uniform_location(const std::string& name) const -> GLint
     return -1;
 }
 
-#include "opengl_wrapper.h"
+
+static auto to_string_gl_type(GLenum type) -> std::string {
+    std::string result = "";
+    switch (type) {
+        case GL_FLOAT: result = "float"; break;
+        case GL_FLOAT_VEC2: result = "vec2"; break;
+        case GL_FLOAT_VEC3: result = "vec3"; break;
+        case GL_FLOAT_VEC4: result = "vec4"; break;
+        case GL_INT: result = "int"; break;
+        case GL_INT_VEC2: result = "ivec2"; break;
+        case GL_INT_VEC3: result = "ivec3"; break;
+        case GL_INT_VEC4: result = "ivec4"; break;
+        case GL_UNSIGNED_INT: result = "uint"; break;
+        case GL_UNSIGNED_INT_VEC2: result = "uvec2"; break;
+        case GL_UNSIGNED_INT_VEC3: result = "uvec3"; break;
+        case GL_UNSIGNED_INT_VEC4: result = "uvec4"; break;
+        case GL_BOOL: result = "bool"; break;
+        case GL_BOOL_VEC2: result = "bvec2"; break;
+        case GL_BOOL_VEC3: result = "bvec3"; break;
+        case GL_BOOL_VEC4: result = "bvec4"; break;
+        case GL_FLOAT_MAT2: result = "mat2"; break;
+        case GL_FLOAT_MAT3: result = "mat3"; break;
+        case GL_FLOAT_MAT4: result = "mat4"; break;
+        case GL_FLOAT_MAT2x3: result = "mat2x3"; break;
+        case GL_FLOAT_MAT2x4: result = "mat2x4"; break;
+        case GL_FLOAT_MAT3x2: result = "mat3x2"; break;
+        case GL_FLOAT_MAT3x4: result = "mat3x4"; break;
+        case GL_FLOAT_MAT4x2: result = "mat4x2"; break;
+        case GL_FLOAT_MAT4x3: result = "mat4x3"; break;
+        case GL_SAMPLER_1D: result = "sampler1D"; break;
+        case GL_SAMPLER_2D: result = "sampler2D"; break;
+        case GL_SAMPLER_3D: result = "sampler3D"; break;
+        case GL_SAMPLER_CUBE: result = "samplerCube"; break;
+        case GL_SAMPLER_1D_SHADOW: result = "sampler1DShadow"; break;
+        case GL_SAMPLER_2D_SHADOW: result = "sampler2DShadow"; break;
+        case GL_SAMPLER_1D_ARRAY: result = "sampler1DArray"; break;
+        case GL_SAMPLER_2D_ARRAY: result = "sampler2DArray"; break;
+        case GL_SAMPLER_1D_ARRAY_SHADOW: result = "sampler1DArrayShadow"; break;
+        case GL_SAMPLER_2D_ARRAY_SHADOW: result = "sampler2DArray"; break;
+        case GL_SAMPLER_2D_MULTISAMPLE: result = "sampler2DMS"; break;
+        case GL_SAMPLER_2D_MULTISAMPLE_ARRAY: result = "sampler2DMSArray"; break;
+        default: Logger::err("Unknown type {}", type); assert(false);
+    }
+    return result;
+}
 
 auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::unordered_map<std::string, GL_Variable> {
     // variable_type = GL_ACTIVE_UNIFORMS | GL_ACTIVE_ATTRIBUTES
@@ -141,6 +203,7 @@ auto OpenGL_Shader::query_uniforms(const GLenum variable_type) const -> std::uno
         switch (variable_type) {
             case GL_ACTIVE_UNIFORMS: {
                 glGetActiveUniform(m_program.m_ID, i, sizeof(buffer), 0, &variables[i].size, &gl_type, buffer);
+                auto s = to_string_gl_type(gl_type);
                 GLint location = m_program.get_uniform_location(buffer);
                 if (location == -1) {
 
