@@ -91,15 +91,6 @@ consteval auto get_cpp_version() -> u32 {
         return version_raw;
     }
 }
-struct CompilerInfo {
-    struct Version {
-        int major;
-        int minor;
-        int patch;
-    };
-    const char* name;
-    Version     version;
-};
 
 consteval auto get_compiler_info() -> CompilerInfo {
 #if defined(__clang__)
@@ -207,10 +198,10 @@ Instance::Instance() {
     Logger::info("Logger initialized");
     Logger::info("JadeFrame is starting...");
 
-    auto ci = get_compiler_info();
-    auto pi = get_plattform_info();
-    auto ai = get_architecture_info();
-    auto li = get_cpp_version();
+    auto ci = m_compiler_info = get_compiler_info();
+    auto pi = m_platform_info = get_plattform_info();
+    auto ai = m_architecture_info = get_architecture_info();
+    auto li = m_cpp_version = get_cpp_version();
 
     Logger::info("Architecture: {}", ai);
     Logger::info("Plattform: {}", pi);

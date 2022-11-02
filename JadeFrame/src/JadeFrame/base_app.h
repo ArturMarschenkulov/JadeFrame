@@ -155,7 +155,15 @@ public:
     The instance is JadeFrames global scope, so to say. It can also be regarded as the first place to put stuff if one
    does not know where to put it.
 */
-
+struct CompilerInfo {
+    struct Version {
+        int major;
+        int minor;
+        int patch;
+    };
+    const char* name;
+    Version     version;
+};
 class Instance {
 public:
     Instance(const Instance&) = delete;
@@ -176,6 +184,11 @@ public:
     }
 
 public:
+    CompilerInfo m_compiler_info;
+    std::string  m_platform_info;
+    std::string  m_architecture_info;
+    u32          m_cpp_version;
+
     SystemManager m_system_manager;
     InputManager  m_input_manager;
 
