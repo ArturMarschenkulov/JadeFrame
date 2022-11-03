@@ -14,7 +14,7 @@ TextureHandle::TextureHandle(const std::string& path) {
     // flip textures on their y coordinate while loading
     stbi_set_flip_vertically_on_load(true);
     // i32 width, height, num_components;
-    m_data = stbi_load(path.c_str(), &m_size.width, &m_size.height, &m_num_components, 4);
+    m_data = stbi_load(path.c_str(), &m_size.width, &m_size.height, &m_num_components, 0);
     if (m_data == nullptr) { Logger::err("Failed to load texture: {} ", path); }
 }
 
