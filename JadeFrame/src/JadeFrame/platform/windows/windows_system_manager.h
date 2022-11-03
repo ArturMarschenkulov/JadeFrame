@@ -41,8 +41,8 @@ public:
         f64 previous = 0;
         f64 target = 0;
     };
-    Time time;
-    f32  max_FPS;
+    Time m_time;
+    f32  m_max_FPS;
 
 public:
     ::HMODULE m_instance;
