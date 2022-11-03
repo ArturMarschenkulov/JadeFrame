@@ -169,13 +169,14 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         const MaterialHandle&       mh = *command.material_handle;
 
         const opengl::Shader*      p_shader = static_cast<opengl::Shader*>(mh.m_shader_handle->m_handle);
-        const VertexData*         p_mesh = command.vertex_data;
-        const opengl::GPUMeshData* p_vertex_array = static_cast<opengl::GPUMeshData*>(command.m_GPU_mesh_data->m_handle);
+        const VertexData*          p_mesh = command.vertex_data;
+        const opengl::GPUMeshData* p_vertex_array =
+            static_cast<opengl::GPUMeshData*>(command.m_GPU_mesh_data->m_handle);
 
         p_shader->bind();
         if (mh.m_texture_handle != nullptr) {
             opengl::Texture& texture = *static_cast<opengl::Texture*>(mh.m_texture_handle->m_handle);
-            texture.bind();
+            texture.bind(0);
         }
 
         this->render_mesh(p_vertex_array, p_mesh);
@@ -203,7 +204,8 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     m_render_commands.clear();
 }
 
-auto OpenGL_Renderer::render_mesh(const opengl::GPUMeshData* vertex_array, const VertexData* vertex_data) const -> void {
+auto OpenGL_Renderer::render_mesh(const opengl::GPUMeshData* vertex_array, const VertexData* vertex_data) const
+    -> void {
     vertex_array->bind();
 
     if (vertex_data->m_indices.size() > 0) {

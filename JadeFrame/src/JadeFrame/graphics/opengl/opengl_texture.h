@@ -1,7 +1,6 @@
 #pragma once
 #include "JadeFrame/prelude.h"
 #include <glad/glad.h>
-#include "opengl_wrapper.h"
 #include "JadeFrame/math/vec.h"
 
 #include <string>
@@ -12,19 +11,44 @@ namespace opengl {
 
 class Texture {
 public:
-    Texture(void* data, v2u32 size, GLenum internal_format, GLenum format, GLenum type);
-    auto resize(u32 width, u32 height, u32 depth) -> void;
-    auto bind() const -> void;
-    auto unbind() const -> void;
+    Texture(const Texture&) = delete;
+    auto operator=(const Texture&) noexcept -> Texture& = delete;
+    auto operator=(Texture&&) noexcept -> Texture& = delete;
+
+private:
+    auto release() -> GLuint;
+    auto reset(GLuint id = 0) -> void;
 
 public:
-    OGLW_Texture<GL_TEXTURE_2D> m_texture;
+    Texture() = default;
+    Texture(void* data, v2u32 size, GLenum internal_format, GLenum format, GLenum type);
+    Texture(Texture&& other) noexcept;
+    ~Texture();
 
-    const GLenum m_internal_format;
-    const GLenum m_format;
-    const GLenum m_type;
+    auto resize(u32 width, u32 height, u32 depth) -> void;
+    auto bind(u32 unit) const -> void;
+    auto unbind() const -> void;
 
-    const v2u32 m_size;
+    auto generate_mipmap() const -> void;
+    auto set_texture_parameters(GLenum pname, GLint param) const -> void;
+    auto set_texture_image(
+        GLint level, GLint internalformat, u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
+        -> void;
+    auto set_texture_image(
+        GLint level, GLint internalformat, v2u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
+        -> void;
+    auto set_texture_image(
+        GLint level, GLint internalformat, v3u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
+        -> void;
+
+public:
+    GLuint m_id;
+
+    GLenum m_internal_format;
+    GLenum m_format;
+    GLenum m_type;
+
+    v2u32 m_size;
     // const GLuint m_width;
     // const GLuint m_height;
 };

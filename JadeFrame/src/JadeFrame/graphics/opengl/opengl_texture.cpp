@@ -28,30 +28,58 @@ Texture::Texture(void* data, v2u32 size, GLenum internal_format, GLenum format, 
     , m_internal_format(internal_format)
     , m_format(format)
     , m_type(type) {
+    glCreateTextures(GL_TEXTURE_2D, 1, &m_id);
 
-    m_texture.bind(0);
+    this->bind(0);
 
     GLenum filter_min = GL_LINEAR;
     GLenum filter_max = GL_LINEAR; // GL_NEAREST;
     GLenum wrap_s = GL_REPEAT;
     GLenum wrap_t = GL_REPEAT;
 
-    m_texture.set_texture_parameters(GL_TEXTURE_WRAP_S, wrap_s);
-    m_texture.set_texture_parameters(GL_TEXTURE_WRAP_T, wrap_t);
-    m_texture.set_texture_parameters(GL_TEXTURE_MIN_FILTER, filter_min);
-    m_texture.set_texture_parameters(GL_TEXTURE_MAG_FILTER, filter_max);
+    this->set_texture_parameters(GL_TEXTURE_WRAP_S, wrap_s);
+    this->set_texture_parameters(GL_TEXTURE_WRAP_T, wrap_t);
+    this->set_texture_parameters(GL_TEXTURE_MIN_FILTER, filter_min);
+    this->set_texture_parameters(GL_TEXTURE_MAG_FILTER, filter_max);
 
-    m_texture.set_texture_image(0, internal_format, size, 0, format, type, data);
+    this->set_texture_image(0, internal_format, size, 0, format, type, data);
     // if (m_mipmapping) {
-    m_texture.generate_mipmap();
+    this->generate_mipmap();
     //}
-    m_texture.unbind();
+    this->unbind();
+}
+Texture::Texture(Texture&& other) noexcept
+    : m_id(other.release())
+    , m_size(other.m_size)
+    , m_internal_format(other.m_internal_format)
+    , m_format(other.m_format)
+    , m_type(other.m_type) {}
+
+Texture::~Texture() { this->reset(); }
+
+auto Texture::generate_mipmap() const -> void { glGenerateTextureMipmap(m_id); }
+auto Texture::set_texture_parameters(GLenum pname, GLint param) const -> void {
+    glTextureParameteri(m_id, pname, param);
+}
+auto Texture::set_texture_image(
+    GLint level, GLint internalformat, u32 size, GLint border, GLenum format, GLenum type, const void* pixels) -> void {
+    glTexImage1D(GL_TEXTURE_2D, level, internalformat, size, border, format, type, pixels);
+}
+auto Texture::set_texture_image(
+    GLint level, GLint internalformat, v2u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
+    -> void {
+    glTexImage2D(GL_TEXTURE_2D, level, internalformat, size.x, size.y, border, format, type, pixels);
+}
+auto Texture::set_texture_image(
+    GLint level, GLint internalformat, v3u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
+    -> void {
+    glTexImage3D(GL_TEXTURE_2D, level, internalformat, size.x, size.y, size.z, border, format, type, pixels);
 }
 auto Texture::resize(u32 width, u32 height, u32 /*depth*/) -> void {
 
-    m_texture.bind(0);
+    this->bind(0);
     assert(width > 0 && height > 0);
-    m_texture.set_texture_image(0, m_internal_format, {width, height}, 0, m_format, m_type, 0);
+    this->set_texture_image(0, m_internal_format, {width, height}, 0, m_format, m_type, 0);
 
     // switch (m_target) {
     //	case GL_TEXTURE_1D:
@@ -70,60 +98,25 @@ auto Texture::resize(u32 width, u32 height, u32 /*depth*/) -> void {
     // }
 }
 
-auto Texture::bind() const -> void { m_texture.bind(0); }
-auto Texture::unbind() const -> void { m_texture.unbind(); }
+auto Texture::release() -> GLuint {
+    GLint id = m_id;
+    m_id = 0;
+    return id;
+}
+auto Texture::reset(GLuint id) -> void {
+    glDeleteTextures(1, &m_id);
+    m_id = id;
+}
+auto Texture::bind(u32 unit) const -> void {
+    glActiveTexture(GL_TEXTURE0 + unit);
+    glBindTexture(GL_TEXTURE_2D, m_id);
+    // m_texture.bind(0);
+}
+auto Texture::unbind() const -> void {
+    glBindTexture(GL_TEXTURE_2D, 0);
+    // m_texture.unbind();
+}
 
-struct OGLTexture {
-    auto create(const std::string& path) {
-        STBIImage image(path);
-        if (image.data) {
-
-            m_width = image.width;
-            m_height = image.height;
-
-            GLenum internal_format = 0;
-            GLenum data_format = 0;
-
-            switch (image.num_components) {
-                case 3: {
-                    internal_format = GL_RGB8;
-                    data_format = GL_RGB;
-                } break;
-                case 4: {
-                    internal_format = GL_RGBA8;
-                    data_format = GL_RGBA;
-                } break;
-                default: assert(false);
-            }
-
-
-            m_internal_format = internal_format;
-            m_data_format = data_format;
-
-
-            const GLenum target = GL_TEXTURE_2D;
-            const GLenum filter_min = GL_LINEAR;
-            const GLenum filter_max = GL_NEAREST;
-            const GLenum wrap_s = GL_REPEAT;
-            const GLenum wrap_t = GL_REPEAT;
-            m_texture.bind(0);
-
-            m_texture.set_texture_parameters(GL_TEXTURE_MIN_FILTER, filter_min);
-            m_texture.set_texture_parameters(GL_TEXTURE_MAG_FILTER, filter_max);
-            m_texture.set_texture_parameters(GL_TEXTURE_WRAP_S, wrap_s);
-            m_texture.set_texture_parameters(GL_TEXTURE_WRAP_T, wrap_t);
-            m_texture.generate_mipmap();
-            m_texture.unbind();
-        }
-    }
-
-public:
-    OGLW_Texture<GL_TEXTURE_2D> m_texture;
-    u32                         m_width;
-    u32                         m_height;
-    GLenum                      m_internal_format;
-    GLenum                      m_data_format;
-};
 
 } // namespace opengl
 } // namespace JadeFrame

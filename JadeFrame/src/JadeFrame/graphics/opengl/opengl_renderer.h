@@ -79,12 +79,12 @@ private:
     mutable std::deque<OpenGL_RenderCommand> m_render_commands;
 
     struct FB {
-        Object                      m_fb;
-        OGLW_Texture<GL_TEXTURE_2D> m_framebuffer_texture;
-        OGLW_Renderbuffer           m_framebuffer_renderbuffer;
-        OGLW_Framebuffer            m_framebuffer;
-        opengl::GPUMeshData*        m_framebuffer_rect;
-        ShaderHandle*               m_shader_handle_fb;
+        Object               m_fb;
+        opengl::Texture      m_framebuffer_texture;
+        OGLW_Renderbuffer    m_framebuffer_renderbuffer;
+        OGLW_Framebuffer     m_framebuffer;
+        opengl::GPUMeshData* m_framebuffer_rect;
+        ShaderHandle*        m_shader_handle_fb;
     } fb;
 };
 static_assert(is_renderer<OpenGL_Renderer>);

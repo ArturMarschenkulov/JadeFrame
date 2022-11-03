@@ -10,6 +10,7 @@
 #include "JadeFrame/prelude.h"
 #include "JadeFrame/math/vec.h"
 #include <glad/glad.h>
+#include "opengl_texture.h"
 
 #include <vector>
 #include <string>
@@ -224,101 +225,6 @@ private:
     auto reset(GLuint ID = 0) -> void;
 };
 
-
-/*******************
- *	TEXTURE
- *******************/
-template<GLenum texture_type>
-struct OGLW_Texture {
-    OGLW_Texture(const OGLW_Texture&) = delete;
-    auto operator=(const OGLW_Texture&) noexcept -> OGLW_Texture& = delete;
-    auto operator=(OGLW_Texture&&) noexcept -> OGLW_Texture& = delete;
-
-    OGLW_Texture() noexcept;
-    ~OGLW_Texture();
-    OGLW_Texture(OGLW_Texture&& other) noexcept = delete;
-
-    auto bind(u32 unit) const -> void;
-    auto unbind() const -> void;
-    auto generate_mipmap() const -> void;
-    auto set_texture_parameters(GLenum pname, GLint param) const -> void;
-    auto set_texture_image(
-        GLint level, GLint internalformat, u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
-        -> void;
-    auto set_texture_image(
-        GLint level, GLint internalformat, v2u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
-        -> void;
-    auto set_texture_image(
-        GLint level, GLint internalformat, v3u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
-        -> void;
-    GLuint m_ID;
-
-private:
-    auto release() -> GLuint;
-    auto reset(GLuint ID = 0) -> void;
-};
-
-
-template<GLenum texture_type>
-OGLW_Texture<texture_type>::OGLW_Texture() noexcept {
-    glCreateTextures(texture_type, 1, &m_ID);
-}
-template<GLenum texture_type>
-OGLW_Texture<texture_type>::~OGLW_Texture() {
-    this->reset();
-}
-// template<GLenum texture_type>
-// OGLW_Texture<texture_type>::OGLW_Texture(OGLW_Texture&& other) noexcept
-//	: m_ID(other.release()) {
-// }
-template<GLenum texture_type>
-auto OGLW_Texture<texture_type>::release() -> GLuint {
-    GLuint ret = m_ID;
-    m_ID = 0;
-    return ret;
-}
-template<GLenum texture_type>
-auto OGLW_Texture<texture_type>::reset(GLuint ID) -> void {
-    glDeleteTextures(1, &m_ID);
-    m_ID = ID;
-}
-template<GLenum texture_type>
-auto OGLW_Texture<texture_type>::bind(u32 unit) const -> void {
-    glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(texture_type, m_ID);
-}
-template<GLenum texture_type>
-auto OGLW_Texture<texture_type>::unbind() const -> void {
-    glBindTexture(texture_type, 0);
-}
-template<GLenum texture_type>
-auto OGLW_Texture<texture_type>::generate_mipmap() const -> void {
-    // glGenerateMipmap(texture_type);
-    glGenerateTextureMipmap(m_ID);
-}
-template<GLenum texture_type>
-auto OGLW_Texture<texture_type>::set_texture_parameters(GLenum pname, GLint param) const -> void {
-    glTextureParameteri(m_ID, pname, param);
-    // glTexParameteri(texture_type, pname, param);
-}
-template<GLenum texture_type>
-auto OGLW_Texture<texture_type>::set_texture_image(
-    GLint level, GLint internalformat, u32 size, GLint border, GLenum format, GLenum type, const void* pixels) -> void {
-    glTexImage1D(texture_type, level, internalformat, size, border, format, type, pixels);
-}
-template<GLenum texture_type>
-auto OGLW_Texture<texture_type>::set_texture_image(
-    GLint level, GLint internalformat, v2u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
-    -> void {
-    glTexImage2D(texture_type, level, internalformat, size.x, size.y, border, format, type, pixels);
-}
-template<GLenum texture_type>
-auto OGLW_Texture<texture_type>::set_texture_image(
-    GLint level, GLint internalformat, v3u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
-    -> void {
-    glTexImage3D(texture_type, level, internalformat, size.x, size.y, size.z, border, format, type, pixels);
-}
-
 /*******************
  *	RENDERBUFFER
  *******************/
@@ -381,7 +287,7 @@ public:
     OGLW_Framebuffer();
     ~OGLW_Framebuffer();
 
-    auto attach_texture(const OGLW_Texture<GL_TEXTURE_2D>& texture) const -> void;
+    auto attach_texture(const opengl::Texture& texture) const -> void;
     auto attach_renderbuffer(const OGLW_Renderbuffer& renderbuffer) const -> void;
     auto check_status() const -> GLenum;
     auto bind() const -> void;
@@ -398,8 +304,8 @@ private:
 
 inline OGLW_Framebuffer::OGLW_Framebuffer() { glCreateFramebuffers(1, &m_ID); }
 inline OGLW_Framebuffer::~OGLW_Framebuffer() { this->reset(); }
-inline auto OGLW_Framebuffer::attach_texture(const OGLW_Texture<GL_TEXTURE_2D>& texture) const -> void {
-    glNamedFramebufferTexture(m_ID, GL_COLOR_ATTACHMENT0, texture.m_ID, 0);
+inline auto OGLW_Framebuffer::attach_texture(const opengl::Texture& texture) const -> void {
+    glNamedFramebufferTexture(m_ID, GL_COLOR_ATTACHMENT0, texture.m_id, 0);
 }
 inline auto OGLW_Framebuffer::attach_renderbuffer(const OGLW_Renderbuffer& renderbuffer) const -> void {
     glNamedFramebufferRenderbuffer(m_ID, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer.m_ID);
