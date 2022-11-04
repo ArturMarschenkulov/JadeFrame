@@ -23,6 +23,7 @@ struct STBIImage {
 };
 namespace opengl {
 
+Texture::Texture() noexcept { glGenTextures(1, &m_id); }
 Texture::Texture(void* data, v2u32 size, GLenum internal_format, GLenum format, GLenum type)
     : m_size(size)
     , m_internal_format(internal_format)
@@ -110,11 +111,9 @@ auto Texture::reset(GLuint id) -> void {
 auto Texture::bind(u32 unit) const -> void {
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, m_id);
-    // m_texture.bind(0);
 }
 auto Texture::unbind() const -> void {
     glBindTexture(GL_TEXTURE_2D, 0);
-    // m_texture.unbind();
 }
 
 

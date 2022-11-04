@@ -192,7 +192,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     m_context.m_state.set_depth_test(false);
     {
 
-        static_cast<OpenGL_Shader*>(fb.m_shader_handle_fb->m_handle)->bind();
+        static_cast<opengl::Shader*>(fb.m_shader_handle_fb->m_handle)->bind();
         fb.m_framebuffer_texture.bind(0);
         fb.m_framebuffer_rect->m_vertex_array.bind();
 

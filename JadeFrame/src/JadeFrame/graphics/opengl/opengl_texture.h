@@ -20,7 +20,7 @@ private:
     auto reset(GLuint id = 0) -> void;
 
 public:
-    Texture() = default;
+    Texture() noexcept;
     Texture(void* data, v2u32 size, GLenum internal_format, GLenum format, GLenum type);
     Texture(Texture&& other) noexcept;
     ~Texture();
