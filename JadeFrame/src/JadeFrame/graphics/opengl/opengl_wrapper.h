@@ -224,19 +224,19 @@ private:
     auto release() -> GLuint;
     auto reset(GLuint ID = 0) -> void;
 };
-
+namespace opengl {
 /*******************
  *	RENDERBUFFER
  *******************/
 
-class OGLW_Renderbuffer {
+class Renderbuffer {
 public:
-    OGLW_Renderbuffer(const OGLW_Renderbuffer&) = delete;
-    auto operator=(const OGLW_Renderbuffer&) noexcept -> OGLW_Renderbuffer& = delete;
-    auto operator=(OGLW_Renderbuffer&&) noexcept -> OGLW_Renderbuffer& = delete;
+    Renderbuffer(const Renderbuffer&) = delete;
+    auto operator=(const Renderbuffer&) noexcept -> Renderbuffer& = delete;
+    auto operator=(Renderbuffer&&) noexcept -> Renderbuffer& = delete;
 
-    OGLW_Renderbuffer();
-    ~OGLW_Renderbuffer();
+    Renderbuffer();
+    ~Renderbuffer();
 
     auto store(GLenum internal_format, GLsizei width, GLsizei height) const -> void;
 
@@ -252,25 +252,26 @@ private:
 };
 
 
-inline OGLW_Renderbuffer::OGLW_Renderbuffer() { glCreateRenderbuffers(1, &m_ID); }
+inline Renderbuffer::Renderbuffer() { glCreateRenderbuffers(1, &m_ID); }
 
-inline OGLW_Renderbuffer::~OGLW_Renderbuffer() {}
+inline Renderbuffer::~Renderbuffer() {}
 
-inline auto OGLW_Renderbuffer::store(GLenum internal_format, GLsizei width, GLsizei height) const -> void {
+inline auto Renderbuffer::store(GLenum internal_format, GLsizei width, GLsizei height) const -> void {
     glNamedRenderbufferStorage(m_ID, internal_format, width, height);
 }
 
-inline auto OGLW_Renderbuffer::bind() const -> void { glBindRenderbuffer(GL_RENDERBUFFER, m_ID); }
+inline auto Renderbuffer::bind() const -> void { glBindRenderbuffer(GL_RENDERBUFFER, m_ID); }
 
-inline auto OGLW_Renderbuffer::unbind() const -> void { glBindRenderbuffer(GL_RENDERBUFFER, 0); }
+inline auto Renderbuffer::unbind() const -> void { glBindRenderbuffer(GL_RENDERBUFFER, 0); }
 
-inline auto OGLW_Renderbuffer::release() -> GLuint {
+inline auto Renderbuffer::release() -> GLuint {
     GLuint ret = m_ID;
     m_ID = 0;
     return ret;
 }
-inline auto OGLW_Renderbuffer::reset(GLuint ID) -> void {
-    glDeleteFramebuffers(1, &m_ID);
+inline auto Renderbuffer::reset(GLuint ID) -> void {
+    // glDeleteFramebuffers(1, &m_ID);
+    glDeleteRenderbuffers(1, &m_ID);
     m_ID = ID;
 }
 
@@ -278,17 +279,17 @@ inline auto OGLW_Renderbuffer::reset(GLuint ID) -> void {
  *	FRAMEBUFFER
  *******************/
 
-class OGLW_Framebuffer {
+class Framebuffer {
 public:
-    OGLW_Framebuffer(const OGLW_Framebuffer&) = delete;
-    auto operator=(const OGLW_Framebuffer&) noexcept -> OGLW_Framebuffer& = delete;
-    auto operator=(OGLW_Framebuffer&&) noexcept -> OGLW_Framebuffer& = delete;
+    Framebuffer(const Framebuffer&) = delete;
+    auto operator=(const Framebuffer&) noexcept -> Framebuffer& = delete;
+    auto operator=(Framebuffer&&) noexcept -> Framebuffer& = delete;
 
-    OGLW_Framebuffer();
-    ~OGLW_Framebuffer();
+    Framebuffer();
+    ~Framebuffer();
 
-    auto attach_texture(const opengl::Texture& texture) const -> void;
-    auto attach_renderbuffer(const OGLW_Renderbuffer& renderbuffer) const -> void;
+    auto attach_texture(const Texture& texture) const -> void;
+    auto attach_renderbuffer(const Renderbuffer& renderbuffer) const -> void;
     auto check_status() const -> GLenum;
     auto bind() const -> void;
     auto unbind() const -> void;
@@ -302,31 +303,31 @@ private:
 };
 
 
-inline OGLW_Framebuffer::OGLW_Framebuffer() { glCreateFramebuffers(1, &m_ID); }
-inline OGLW_Framebuffer::~OGLW_Framebuffer() { this->reset(); }
-inline auto OGLW_Framebuffer::attach_texture(const opengl::Texture& texture) const -> void {
+inline Framebuffer::Framebuffer() { glCreateFramebuffers(1, &m_ID); }
+inline Framebuffer::~Framebuffer() { this->reset(); }
+inline auto Framebuffer::attach_texture(const Texture& texture) const -> void {
     glNamedFramebufferTexture(m_ID, GL_COLOR_ATTACHMENT0, texture.m_id, 0);
 }
-inline auto OGLW_Framebuffer::attach_renderbuffer(const OGLW_Renderbuffer& renderbuffer) const -> void {
+inline auto Framebuffer::attach_renderbuffer(const Renderbuffer& renderbuffer) const -> void {
     glNamedFramebufferRenderbuffer(m_ID, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer.m_ID);
 }
-inline auto OGLW_Framebuffer::bind() const -> void { glBindFramebuffer(GL_FRAMEBUFFER, m_ID); }
+inline auto Framebuffer::bind() const -> void { glBindFramebuffer(GL_FRAMEBUFFER, m_ID); }
 
-inline auto OGLW_Framebuffer::unbind() const -> void { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+inline auto Framebuffer::unbind() const -> void { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
-inline auto OGLW_Framebuffer::check_status() const -> GLenum {
+inline auto Framebuffer::check_status() const -> GLenum {
     GLenum result = glCheckNamedFramebufferStatus(m_ID, GL_FRAMEBUFFER);
     return result;
 }
 
-inline auto OGLW_Framebuffer::release() -> GLuint {
+inline auto Framebuffer::release() -> GLuint {
     GLuint ret = m_ID;
     m_ID = 0;
     return ret;
 }
-inline auto OGLW_Framebuffer::reset(GLuint ID) -> void {
+inline auto Framebuffer::reset(GLuint ID) -> void {
     glDeleteFramebuffers(1, &m_ID);
     m_ID = ID;
 }
-
+} // namespace opengl
 } // namespace JadeFrame
