@@ -70,7 +70,7 @@ Those are projects where one has to actually write code.
 - [JUCE](https://github.com/juce-framework/JUCE)
 - [NoahGameFrame](https://github.com/ketoo/NoahGameFrame)
 - [olcConsoleGameEngine](https://github.com/OneLoneCoder/videos)
-- [olcPixelGameEngine](https://github.com/OneLoneCoder/olcPixelGameEngine)
+- [olcPixelGameEngine](https://github.com/OneLoneCoder/olcPixelGameEngine): This is intereseting because it is a renderer in the console. This can be used for my own terminal renderer.
 - [McEngine](https://github.com/McKay42/McEngine)
 - [HorizonEngine](https://github.com/FergusGriggs/HorizonEngine)
 - [SFML](https://github.com/SFML/SFML)
