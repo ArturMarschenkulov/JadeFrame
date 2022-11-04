@@ -12,7 +12,7 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
     : m_device_context(opengl::win32::init_device_context(window)) {
     auto m_render_context = opengl::win32::init_render_context(m_device_context);
 #elif __linux__
-    {
+{
     // : m_device_context(opengl::linux::init_device_context(window.m_window_handle)) {
     // auto m_render_context = opengl::linux::init_render_context(m_device_context);
 #endif
@@ -46,21 +46,27 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
     {
         const GLuint binding_point_0 = 0;
         m_uniform_buffers.emplace_back();
-        m_uniform_buffers[0].bind();
+        // m_uniform_buffers[0].bind();
+        m_uniform_buffers[0].init(*this, opengl::Buffer::TYPE::UNIFORM);
         m_uniform_buffers[0].reserve(1 * sizeof(Matrix4x4));
-        m_uniform_buffers[0].unbind();
+        // m_uniform_buffers[0].unbind();
         m_uniform_buffers[0].bind_base(binding_point_0);
 
         const GLuint binding_point_1 = 1;
         m_uniform_buffers.emplace_back();
-        m_uniform_buffers[1].bind();
+        // m_uniform_buffers[1].bind();
+        m_uniform_buffers[1].init(*this, opengl::Buffer::TYPE::UNIFORM);
         m_uniform_buffers[1].reserve(1 * sizeof(Matrix4x4));
-        m_uniform_buffers[1].unbind();
+        // m_uniform_buffers[1].unbind();
         m_uniform_buffers[1].bind_base(binding_point_1);
     }
 
     const v2u32& size = window->get_size();
     m_state.set_viewport(0, 0, size.x, size.y);
+
+    GLint max_texture_units;
+    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_texture_units);
+    m_texture_units.resize(max_texture_units, 0);
 }
 
 OpenGL_Context::~OpenGL_Context() {}

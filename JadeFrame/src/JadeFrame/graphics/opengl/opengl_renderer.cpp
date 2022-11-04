@@ -80,7 +80,10 @@ OpenGL_Renderer::OpenGL_Renderer(const IWindow* window)
         fb.m_framebuffer.unbind();
 
         const GLenum res = fb.m_framebuffer.check_status();
-        if (res != GL_FRAMEBUFFER_COMPLETE) assert(false);
+        if (res != GL_FRAMEBUFFER_COMPLETE) {
+            Logger::err("OpenGL_Renderer::OpenGL_Renderer: Framebuffer is not complete");
+            assert(false);
+        }
     }
 
 
@@ -93,7 +96,7 @@ OpenGL_Renderer::OpenGL_Renderer(const IWindow* window)
         {           "v_position", SHADER_TYPE::FLOAT_3},
         {"v_texture_coordinates", SHADER_TYPE::FLOAT_2}
     };
-    fb.m_framebuffer_rect = new opengl::GPUMeshData(vertex_data, layout);
+    fb.m_framebuffer_rect = new opengl::GPUMeshData(m_context, vertex_data, layout);
 
     ShaderHandle::DESC shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
@@ -121,7 +124,7 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
             vertex_format = obj.m_vertex_format;
         }
 
-        obj.m_GPU_mesh_data.m_handle = new opengl::GPUMeshData(*obj.m_vertex_data, vertex_format);
+        obj.m_GPU_mesh_data.m_handle = new opengl::GPUMeshData(m_context, *obj.m_vertex_data, vertex_format);
         obj.m_GPU_mesh_data.m_is_initialized = true;
     }
     MaterialHandle* mh = obj.m_material_handle;
@@ -160,9 +163,9 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     this->clear_background();
 
-    m_context.m_uniform_buffers[0].bind();
+    // m_context.m_uniform_buffers[0].bind();
     m_context.m_uniform_buffers[0].send({view_projection});
-    m_context.m_uniform_buffers[0].unbind();
+    // m_context.m_uniform_buffers[0].unbind();
 
     for (size_t i = 0; i < m_render_commands.size(); ++i) {
         const OpenGL_RenderCommand& command = m_render_commands[i];
@@ -182,9 +185,9 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         this->render_mesh(p_vertex_array, p_mesh);
 
         const Matrix4x4& transform = *command.transform;
-        m_context.m_uniform_buffers[1].bind();
+        // m_context.m_uniform_buffers[1].bind();
         m_context.m_uniform_buffers[1].send({transform});
-        m_context.m_uniform_buffers[1].unbind();
+        // m_context.m_uniform_buffers[1].unbind();
     }
 #if JF_FB
     fb.m_framebuffer.unbind();

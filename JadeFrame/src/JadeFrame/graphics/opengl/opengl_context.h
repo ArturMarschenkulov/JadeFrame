@@ -3,7 +3,7 @@
 #include <string>
 #include <utility>
 #include "JadeFrame/graphics/mesh.h" // For Color
-#include "opengl_wrapper.h"          // TODO: FOr SHADER_DATA_TYPE. Maybe move?
+#include "opengl_buffer.h"
 
 #ifdef _WIN32
 #include "JadeFrame/platform/windows/windows_window.h"
@@ -82,10 +82,10 @@ public:
 
 public:
 #ifdef WIN32
-    HDC   m_device_context; // NOTE: Windows specific!
+    HDC m_device_context; // NOTE: Windows specific!
 #elif __linux__
 #endif
-    auto  swap_buffers() -> void;
+    auto swap_buffers() -> void;
 
     mutable GL_State m_state;
 
@@ -101,6 +101,13 @@ public:
 
     GLint m_max_uniform_buffer_binding_points;
 
-    std::vector<OGLW_Buffer<GL_UNIFORM_BUFFER>> m_uniform_buffers;
+    std::vector<opengl::Buffer> m_uniform_buffers;
+
+    std::vector<GLuint> m_buffers;
+    GLuint              m_bound_buffer;
+
+    std::vector<u32> m_textures;
+    std::vector<u32> m_texture_units;
+    u32              m_active_texture_unit;
 };
 } // namespace JadeFrame

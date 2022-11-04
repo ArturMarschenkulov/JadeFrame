@@ -2,6 +2,7 @@
 #include "pch.h"
 
 #include "JadeFrame/graphics/mesh.h"
+#include "opengl_context.h"
 
 namespace JadeFrame {
 namespace opengl {
@@ -47,29 +48,48 @@ static auto SHADER_TYPE_get_component_count(const SHADER_TYPE type) -> u32 {
     return result;
 }
 
+auto Buffer::init(OpenGL_Context& context, TYPE type) -> void {
+    m_context = &context;
+    glCreateBuffers(1, &m_id);
+    m_context->m_buffers.push_back(m_id);
+    GLuint t;
+    switch (type) {
+        case TYPE::VERTEX: t = GL_ARRAY_BUFFER; break;
+        case TYPE::INDEX: t = GL_ELEMENT_ARRAY_BUFFER; break;
+        case TYPE::UNIFORM: t = GL_UNIFORM_BUFFER; break;
+        default: assert(false); break;
+    }
+    glBindBuffer(t, m_id);
+    m_type = type;
+    m_context->m_bound_buffer = m_id;
+}
 
 
-
-GPUMeshData::GPUMeshData(const VertexData& vertex_data, VertexFormat vertex_format, bool interleaved)
+GPUMeshData::GPUMeshData(
+    OpenGL_Context& context, const VertexData& vertex_data, VertexFormat vertex_format, bool interleaved)
     : m_vertex_buffer()
     , m_vertex_array()
     , m_index_buffer() {
 
 
+    m_vertex_buffer.init(context, Buffer::TYPE::VERTEX);
+    m_index_buffer.init(context, Buffer::TYPE::INDEX);
+
+
     const std::vector<f32> data = convert_into_data(vertex_data, interleaved);
-    m_vertex_buffer.bind();
+    // m_vertex_buffer.bind();
     m_vertex_buffer.send(data);
 
     m_vertex_array.bind();
     this->set_layout(vertex_format);
 
     if (vertex_data.m_indices.size() > 0) {
-        m_index_buffer.bind();
+        // m_index_buffer.bind();
         m_index_buffer.send(vertex_data.m_indices);
     }
     m_vertex_array.unbind();
-    m_index_buffer.unbind();
-    m_vertex_buffer.unbind();
+    // m_index_buffer.unbind();
+    // m_vertex_buffer.unbind();
 }
 
 auto GPUMeshData::bind() const -> void { m_vertex_array.bind(); }
