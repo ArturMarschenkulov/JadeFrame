@@ -80,7 +80,7 @@ struct OGLW_Shader {
     auto get_info_log(GLsizei max_length) -> std::string;
 
 public:
-    GLuint m_ID;
+    GLuint m_ID = 0;
 
 private:
     auto release() -> GLuint;
@@ -119,7 +119,7 @@ struct OGLW_Program {
     auto get_attribute_location(const std::string& name) const -> GLint;
 
 public:
-    GLuint m_ID;
+    GLuint m_ID = 0;
 
 private:
     auto release() -> GLuint;
@@ -145,7 +145,7 @@ public:
     auto unbind() const -> void;
 
 
-    GLuint m_ID;
+    GLuint m_ID = 0;
 
 private:
     auto release() -> GLuint;
@@ -184,10 +184,12 @@ class Framebuffer {
 public:
     Framebuffer(const Framebuffer&) = delete;
     auto operator=(const Framebuffer&) noexcept -> Framebuffer& = delete;
-    auto operator=(Framebuffer&&) noexcept -> Framebuffer& = delete;
 
     Framebuffer();
+    Framebuffer(OpenGL_Context& context);
     ~Framebuffer();
+    auto operator=(Framebuffer&&) noexcept -> Framebuffer&;
+
 
     auto attach_texture(const Texture& texture) const -> void;
     auto attach_renderbuffer(const Renderbuffer& renderbuffer) const -> void;
@@ -196,7 +198,7 @@ public:
     auto unbind() const -> void;
 
 
-    GLuint m_ID;
+    GLuint m_ID = 0;
 
 private:
     auto release() -> GLuint;
@@ -204,7 +206,15 @@ private:
 };
 
 
-inline Framebuffer::Framebuffer() { glCreateFramebuffers(1, &m_ID); }
+
+inline auto Framebuffer::operator=(Framebuffer&& other) noexcept -> Framebuffer& {
+    m_ID = other.release();
+    return *this;
+}
+inline Framebuffer::Framebuffer() {
+    // glCreateFramebuffers(1, &m_ID);
+}
+inline Framebuffer::Framebuffer(OpenGL_Context& context) { glCreateFramebuffers(1, &m_ID); }
 inline Framebuffer::~Framebuffer() { this->reset(); }
 inline auto Framebuffer::attach_texture(const Texture& texture) const -> void {
     glNamedFramebufferTexture(m_ID, GL_COLOR_ATTACHMENT0, texture.m_id, 0);

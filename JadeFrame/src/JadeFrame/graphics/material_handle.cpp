@@ -20,7 +20,7 @@ TextureHandle::TextureHandle(const std::string& path) {
 
 TextureHandle::~TextureHandle() { stbi_image_free(m_data); }
 
-auto TextureHandle::init() -> void {
+auto TextureHandle::init(void* context) -> void {
 
 
     switch (m_api) {
@@ -34,7 +34,7 @@ auto TextureHandle::init() -> void {
                     assert(false);
             }
             opengl::Texture* texture = new opengl::Texture(
-                m_data, {static_cast<u32>(m_size.width), static_cast<u32>(m_size.height)}, format, format,
+                *(OpenGL_Context*)context, m_data, {static_cast<u32>(m_size.width), static_cast<u32>(m_size.height)}, format, format,
                 GL_UNSIGNED_BYTE);
             m_handle = texture;
 
@@ -53,7 +53,7 @@ ShaderHandle::ShaderHandle(const DESC& desc) {
     m_vertex_format = desc.vertex_format;
 }
 
-auto ShaderHandle::init() -> void {
+auto ShaderHandle::init(void* context) -> void {
 
     // for (auto& m : m_code.m_modules) {
     //	if ((m.m_stage == SHADER_STAGE::VERTEX) || (m.m_stage == SHADER_STAGE::FRAGMENT)) {
@@ -84,11 +84,11 @@ auto ShaderHandle::init() -> void {
     }
 }
 
-auto MaterialHandle::init() const -> void {
+auto MaterialHandle::init(void* context) const -> void {
 
-    m_shader_handle->init();
+    m_shader_handle->init(context);
 
-    if (m_texture_handle != nullptr) { m_texture_handle->init(); }
+    if (m_texture_handle != nullptr) { m_texture_handle->init(context); }
 }
 
 } // namespace JadeFrame

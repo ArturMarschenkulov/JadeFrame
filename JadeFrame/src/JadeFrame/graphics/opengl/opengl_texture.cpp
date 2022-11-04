@@ -7,6 +7,7 @@
 #include "stb/stb_image.h"
 
 #include "JadeFrame/prelude.h"
+#include "opengl_context.h"
 
 namespace JadeFrame {
 
@@ -23,12 +24,20 @@ struct STBIImage {
 };
 namespace opengl {
 
-Texture::Texture() noexcept { glGenTextures(1, &m_id); }
-Texture::Texture(void* data, v2u32 size, GLenum internal_format, GLenum format, GLenum type)
+Texture::Texture() noexcept {
+    // glGenTextures(1, &m_id);
+}
+auto Texture::operator=(Texture&& other) noexcept -> Texture& {
+    m_id = other.release();
+    return *this;
+}
+Texture::Texture(OpenGL_Context& context) { glCreateTextures(GL_TEXTURE_2D, 1, &m_id); }
+Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, GLenum internal_format, GLenum format, GLenum type)
     : m_size(size)
     , m_internal_format(internal_format)
     , m_format(format)
     , m_type(type) {
+    m_context = &context;
     glCreateTextures(GL_TEXTURE_2D, 1, &m_id);
 
     this->bind(0);
@@ -112,9 +121,7 @@ auto Texture::bind(u32 unit) const -> void {
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, m_id);
 }
-auto Texture::unbind() const -> void {
-    glBindTexture(GL_TEXTURE_2D, 0);
-}
+auto Texture::unbind() const -> void { glBindTexture(GL_TEXTURE_2D, 0); }
 
 
 } // namespace opengl

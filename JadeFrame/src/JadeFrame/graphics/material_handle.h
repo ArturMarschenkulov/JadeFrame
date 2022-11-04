@@ -19,7 +19,7 @@ public:
 
     ~TextureHandle();
 
-    auto init() -> void;
+    auto init(void* context) -> void;
 
 public:
     u8*   m_data;
@@ -37,7 +37,7 @@ public:
     };
     ShaderHandle() = default;
     ShaderHandle(const DESC& desc);
-    auto init() -> void;
+    auto init(void* context) -> void;
 
 public:
     ShadingCode  m_code;
@@ -50,7 +50,7 @@ struct MaterialHandle {
     ShaderHandle*  m_shader_handle;
     TextureHandle* m_texture_handle;
 
-    auto init() const -> void;
+    auto init(void* context) const -> void;
 
     bool m_is_initialized = false;
 };

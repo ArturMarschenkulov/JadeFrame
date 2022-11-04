@@ -6,14 +6,14 @@
 #include <string>
 
 namespace JadeFrame {
-
+class OpenGL_Context;
 namespace opengl {
 
 class Texture {
 public:
     Texture(const Texture&) = delete;
     auto operator=(const Texture&) noexcept -> Texture& = delete;
-    auto operator=(Texture&&) noexcept -> Texture& = delete;
+    // auto operator=(Texture&&) noexcept -> Texture& = delete;
 
 private:
     auto release() -> GLuint;
@@ -21,8 +21,11 @@ private:
 
 public:
     Texture() noexcept;
-    Texture(void* data, v2u32 size, GLenum internal_format, GLenum format, GLenum type);
+    Texture(OpenGL_Context& context);
+    Texture(OpenGL_Context& context, void* data, v2u32 size, GLenum internal_format, GLenum format, GLenum type);
     Texture(Texture&& other) noexcept;
+
+    auto operator=(Texture&& other) noexcept -> Texture&;
     ~Texture();
 
     auto resize(u32 width, u32 height, u32 depth) -> void;
@@ -51,6 +54,7 @@ public:
     v2u32 m_size;
     // const GLuint m_width;
     // const GLuint m_height;
+    OpenGL_Context* m_context;
 };
 } // namespace opengl
 } // namespace JadeFrame

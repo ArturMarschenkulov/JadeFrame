@@ -33,7 +33,7 @@ auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const ->
 }
 
 // static auto
-// setup_framebuffer(OGLW_Framebuffer& buffer, OGLW_Texture<GL_TEXTURE_2D>& texture, OGLW_Renderbuffer& renderbuffer)
+// setup_framebuffer(Framebuffer& buffer, Texture<GL_TEXTURE_2D>& texture, Renderbuffer& renderbuffer)
 //     -> void {
 //     buffer.bind();
 
@@ -61,9 +61,11 @@ OpenGL_Renderer::OpenGL_Renderer(const IWindow* window)
     {
         // setup_framebuffer(m_framebuffer, m_framebuffer_texture, m_framebuffer_renderbuffer);
 
+        fb.m_framebuffer = opengl::Framebuffer(m_context);
         fb.m_framebuffer.bind();
 
         const v2u32 size = m_context.m_state.viewport[1];
+        fb.m_framebuffer_texture = opengl::Texture(m_context);
         fb.m_framebuffer_texture.bind(0);
 
         fb.m_framebuffer_texture.set_texture_image(0, GL_RGB, size, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -103,7 +105,7 @@ OpenGL_Renderer::OpenGL_Renderer(const IWindow* window)
     shader_handle_desc.vertex_format = layout;
     fb.m_shader_handle_fb = new ShaderHandle(shader_handle_desc);
     fb.m_shader_handle_fb->m_api = GRAPHICS_API::OPENGL;
-    fb.m_shader_handle_fb->init();
+    fb.m_shader_handle_fb->init(&m_context);
 }
 
 auto OpenGL_Renderer::present() -> void { m_context.swap_buffers(); }
@@ -133,12 +135,12 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
     if (mh->m_is_initialized == false) {
         // obj.m_material_handle->init();
         sh->m_api = GRAPHICS_API::OPENGL;
-        sh->init();
+        sh->init(&m_context);
         // obj.m_material_handle->m_shader_handle->m_handle = new OpenGL_Shader();
 
         if (th != nullptr) {
             th->m_api = GRAPHICS_API::OPENGL;
-            th->init();
+            th->init(&m_context);
         }
         obj.m_material_handle->m_is_initialized = true;
     }
