@@ -101,6 +101,12 @@ static auto check_compatiblity(
                 if (input_attributes[i].location != vertex_module->m_inputs[i].location) compatible = false;
             }
         } else {
+            auto s0 = input_attributes.size();
+            auto s1 = vertex_module->m_inputs.size();
+            Logger::err(
+                "Vertex input attributes count mismatch. `input_attributes.size()`: {} vs "
+                "`vertex_module->m_inputs.size()`: {}",
+                s0, s1);
             assert(false);
         }
 
@@ -121,16 +127,17 @@ auto Pipeline::init(
     // Convert GLSL to SPIRV and save it in member variables
     // TODO: Think whether to extract it to somewhere else
     {
-        std::vector<std::future<std::vector<u32>>> spirvs;
-        spirvs.resize(code.m_modules.size());
-        for (u32 i = 0; i < code.m_modules.size(); i++) {
-            const std::string& str = std::get<std::string>(code.m_modules[i].m_code);
-            spirvs[i] = std::async(std::launch::async, string_to_SPIRV, str, code.m_modules[i].m_stage, GRAPHICS_API::VULKAN);
-        }
-        m_code.m_modules.resize(spirvs.size());
+        // std::vector<std::future<std::vector<u32>>> spirvs;
+        // spirvs.resize(code.m_modules.size());
+        // for (u32 i = 0; i < code.m_modules.size(); i++) {
+        //     const std::string& str = std::get<std::string>(code.m_modules[i].m_code);
+        //     spirvs[i] = std::async(std::launch::async, string_to_SPIRV, str, code.m_modules[i].m_stage,
+        //     GRAPHICS_API::VULKAN);
+        // }
+        m_code.m_modules.resize(code.m_modules.size());
         for (u32 i = 0; i < m_code.m_modules.size(); i++) {
             m_code.m_modules[i].m_stage = code.m_modules[i].m_stage;
-            m_code.m_modules[i].m_code = spirvs[i].get();
+            m_code.m_modules[i].m_code = code.m_modules[i].m_code;
         }
     }
 
@@ -157,7 +164,7 @@ auto Pipeline::init(
         get_attribute_descriptions(vertex_format);
 
     bool compatible = check_compatiblity(reflected_code.m_modules, binding_description, attribute_descriptions);
-    JF_ASSERT(compatible == true, "");
+    JF_ASSERT(compatible == true, "The vertex format is not compatible with the vertex shader");
 
     std::vector<VkPushConstantRange> vulkan_push_constant_ranges(m_push_constant_ranges.size());
     for (u32 i = 0; i < m_push_constant_ranges.size(); i++) {
@@ -221,8 +228,7 @@ auto Pipeline::init(
         shader_stages[i].pNext = nullptr;
         shader_stages[i].flags = 0;
         shader_stages[i].stage = from_SHADER_STAGE(m_code.m_modules[i].m_stage);
-        shader_stages[i].module =
-            create_shader_module_from_spirv(device.m_handle, std::get<std::vector<u32>>(m_code.m_modules[i].m_code));
+        shader_stages[i].module = create_shader_module_from_spirv(device.m_handle, m_code.m_modules[i].m_code);
         shader_stages[i].pName = "main";
         shader_stages[i].pSpecializationInfo = nullptr;
     }

@@ -33,6 +33,24 @@ namespace JadeFrame {
 
 */
 
+/*
+    This comment will be about how to write shader code to make it as portable as possible across different APIs.
+    The idea is that the main dialect is the Vulkan dialect of GLSL. This can be compiled to the OpenGL dialect in case
+    of OpenGL or to HSHL in case of DirectX and its various versions.
+    Here I gather resources to achieve that goal.
+
+
+
+
+    Links:
+    https://www.khronos.org/assets/uploads/developers/library/2016-vulkan-devday-uk/10-Porting-to-Vulkan.pdf
+    https://community.arm.com/arm-community-blogs/b/graphics-gaming-and-vr-blog/posts/porting-a-graphics-engine-to-the-vulkan-api
+    https://on-demand.gputechconf.com/gtc/2016/events/vulkanday/Migrating_from_OpenGL_to_Vulkan.pdf
+    https://developer.nvidia.com/transitioning-opengl-vulkan
+    https://gpuopen.com/wp-content/uploads/2017/03/GDC2017-D3D12-And-Vulkan-Lessons-Learned.pdf
+
+*/
+
 
 static auto get_shader_framebuffer_test_0() {
 
@@ -230,8 +248,8 @@ layout(std140, set = 0, binding = 1) uniform Transform {
 void main() {
 	f_color = v_color;
 	f_texture_coord = v_texture_coord;
-	vec3 fragment_position = vec3(u_transform.model * vec4(v_position, 1.0));
-	gl_Position = u_camera.view_projection * u_transform.model * vec4(fragment_position, 1.0);
+	// vec3 fragment_position = vec3(u_transform.model * vec4(v_position, 1.0));
+	gl_Position = u_camera.view_projection * u_transform.model * vec4(v_position, 1.0);
 }
 	)";
     const char* fragment_shader =
@@ -243,13 +261,20 @@ layout(location = 1) in vec2 f_texture_coord;
 
 layout(location = 0) out vec4 o_color;
 
-layout(set = 0, binding = 2) uniform sampler2D u_texture_0;
+
+layout(set = 0, binding = 0) uniform sampler2D u_texture_0;
 
 void main() {
+    if(!gl_FrontFacing) {
+        o_color = vec4(1.0, 0.412, 0.7, 1.0);
+        return;
+    }
 	
-	//o_color = mix(f_color, texture(texture_0, f_texture_coord), 0.8);
+	// o_color = mix(f_color, texture(u_texture_0, f_texture_coord), 0.8);
 	o_color = texture(u_texture_0, f_texture_coord);
 	//o_color = f_color;
+
+
 }
 	)";
 
@@ -410,14 +435,15 @@ auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
         assert(false);
     }
 
+    //TODO: Make the graphics API not hardcoded
     auto [vs, fs] = shader_tuple;
     ShadingCode code;
     code.m_shading_language = SHADING_LANGUAGE::GLSL;
     code.m_modules.resize(2);
     code.m_modules[0].m_stage = SHADER_STAGE::VERTEX;
-    code.m_modules[0].m_code = vs;
+    code.m_modules[0].m_code = string_to_SPIRV(vs.c_str(), SHADER_STAGE::VERTEX, GRAPHICS_API::VULKAN);;
     code.m_modules[1].m_stage = SHADER_STAGE::FRAGMENT;
-    code.m_modules[1].m_code = fs;
+    code.m_modules[1].m_code = string_to_SPIRV(fs.c_str(), SHADER_STAGE::FRAGMENT, GRAPHICS_API::VULKAN);;
     return code;
 }
 } // namespace JadeFrame

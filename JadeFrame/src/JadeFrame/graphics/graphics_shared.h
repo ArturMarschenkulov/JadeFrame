@@ -10,6 +10,7 @@ namespace JadeFrame {
 class Windows_Window;
 class Object;
 class RGBAColor;
+class IWindow;
 
 
 
@@ -38,10 +39,11 @@ enum class SHADER_STAGE {
     COMPUTE,
 };
 
+// This struct saves the shader code. The common language is SPIRV.
 struct ShadingCode {
     struct Module {
-        using Code = std::variant<std::string, std::vector<u32>>;
-        Code         m_code;
+        using SPIRV = std::vector<u32>;
+        SPIRV        m_code;
         SHADER_STAGE m_stage;
     };
     SHADING_LANGUAGE    m_shading_language;
@@ -195,6 +197,8 @@ public:
 
 auto string_to_SPIRV(const std::string& code, SHADER_STAGE i, GRAPHICS_API api) -> std::vector<u32>;
 struct MaterialHandle;
+struct TextureHandle;
+struct ShaderHandle;
 class VertexData;
 class Object {
 public:
@@ -205,6 +209,35 @@ public:
     mutable GPUDataMeshHandle m_GPU_mesh_data;
 };
 
+
+class RenderSystem {
+public:
+    RenderSystem() = default;
+    RenderSystem(const RenderSystem&) = delete;
+
+    auto operator=(const RenderSystem&) -> RenderSystem& = delete;
+
+
+
+    RenderSystem(RenderSystem&&);
+    auto operator=(RenderSystem&&) -> RenderSystem&;
+
+    RenderSystem(GRAPHICS_API api, IWindow* window);
+    auto init(GRAPHICS_API api, IWindow* window) -> void;
+    ~RenderSystem();
+
+    auto register_texture(TextureHandle&& handle) -> u32;
+    auto register_shader(ShaderHandle&& handle) -> u32;
+
+public:
+    GRAPHICS_API m_api;
+    IRenderer*   m_renderer;
+
+    // NOTE: For now the key/id 0 refers to no texture or default texture
+    //     This is a bit of a hack, but it works for now.
+    std::map<u32, TextureHandle> m_registered_textures;
+    std::map<u32, ShaderHandle>  m_registered_shaders;
+};
 
 // --------------------------------------------
 
@@ -231,14 +264,13 @@ struct ReflectedCode {
     struct Module {
         SHADER_STAGE m_stage;
 
-        std::vector<Input>               m_inputs;
-        std::vector<UniformBuffer>       m_uniform_buffers;
-        std::vector<SampledImage>        m_sampled_images;
+        std::vector<Input>         m_inputs;
+        std::vector<UniformBuffer> m_uniform_buffers;
+        std::vector<SampledImage>  m_sampled_images;
         // std::vector<VkPushConstantRange> m_push_constant_ranges;
     };
     std::vector<Module> m_modules;
 };
 auto reflect(const ShadingCode& code) -> ReflectedCode;
-
 
 } // namespace JadeFrame

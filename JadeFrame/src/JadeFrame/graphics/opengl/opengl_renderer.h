@@ -51,10 +51,10 @@ public:
     std::vector<OpenGL_RenderCommand> m_render_commands;
 };
 
-
+class RenderSystem;
 class OpenGL_Renderer : public IRenderer {
 public:
-    OpenGL_Renderer(const IWindow* window);
+    OpenGL_Renderer(RenderSystem& system, const IWindow* window);
 
     virtual auto present() -> void override;
     virtual auto clear_background() -> void override;
@@ -74,8 +74,9 @@ public:
 private:
     auto render_mesh(const opengl::GPUMeshData* buffer_data, const VertexData* vertex_data) const -> void;
 
-private:
+public:
     OpenGL_Context                           m_context;
+    RenderSystem*                            m_system = nullptr;
     mutable std::deque<OpenGL_RenderCommand> m_render_commands;
 
     struct FB {
@@ -89,5 +90,4 @@ private:
 };
 static_assert(is_renderer<OpenGL_Renderer>);
 
-struct RenderSystem {};
 } // namespace JadeFrame

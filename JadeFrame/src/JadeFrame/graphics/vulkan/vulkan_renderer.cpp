@@ -10,8 +10,10 @@
 namespace JadeFrame {
 
 
-Vulkan_Renderer::Vulkan_Renderer(const IWindow* window)
-    : m_context(window) {}
+Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
+    : m_context(window) {
+    m_system = &system;
+}
 auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void { m_clear_color = color; }
 
 
@@ -27,31 +29,6 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
         obj.m_GPU_mesh_data.m_handle = new vulkan::Vulkan_GPUMeshData(d, *obj.m_vertex_data, obj.m_vertex_format);
         obj.m_GPU_mesh_data.m_is_initialized = true;
     }
-
-    MaterialHandle* mh = obj.m_material_handle;
-    ShaderHandle*   sh = mh->m_shader_handle;
-    if (mh->m_is_initialized == false) {
-        sh->m_api = GRAPHICS_API::VULKAN;
-
-        Vulkan_Shader::DESC shader_desc;
-        shader_desc.code = sh->m_code;
-        shader_desc.vertex_format = sh->m_vertex_format;
-        sh->m_handle = new Vulkan_Shader(d, shader_desc);
-
-        if (mh->m_texture_handle != nullptr) {
-            mh->m_texture_handle->m_api = GRAPHICS_API::VULKAN;
-            // mh->m_texture_handle->init();
-            vulkan::Vulkan_Texture* texture = new vulkan::Vulkan_Texture();
-            texture->init(
-                d, mh->m_texture_handle->m_data,
-                {static_cast<u32>(mh->m_texture_handle->m_size.x), static_cast<u32>(mh->m_texture_handle->m_size.y)},
-                VK_FORMAT_R8G8B8A8_SRGB);
-            mh->m_texture_handle->m_handle = texture;
-        }
-        mh->m_is_initialized = true;
-    }
-
-
 
     const Vulkan_RenderCommand command = {
         .transform = &obj.m_transform,
@@ -105,12 +82,14 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     cb.record([&] {
         cb.render_pass(framebuffer, render_pass, d.m_swapchain.m_extent, clear_value, [&] {
             for (u64 i = 0; i < m_render_commands.size(); i++) {
-                const auto& cmd = m_render_commands[i];
-                const auto& shader = *static_cast<Vulkan_Shader*>(cmd.material_handle->m_shader_handle->m_handle);
-                const auto& gpu_data = *static_cast<vulkan::Vulkan_GPUMeshData*>(cmd.m_GPU_mesh_data->m_handle);
-                const auto& vertex_data = *cmd.vertex_data;
-                const auto& transform = *cmd.transform;
-                VkBuffer    vertex_buffers[] = {gpu_data.m_vertex_buffer.m_handle};
+                const auto&           cmd = m_render_commands[i];
+                const MaterialHandle& mh = *cmd.material_handle;
+                auto&                 sh = m_system->m_registered_shaders[mh.m_shader_id];
+                const auto&           shader = *static_cast<Vulkan_Shader*>(sh.m_handle);
+                const auto&         gpu_data = *static_cast<vulkan::Vulkan_GPUMeshData*>(cmd.m_GPU_mesh_data->m_handle);
+                const auto&         vertex_data = *cmd.vertex_data;
+                const auto&         transform = *cmd.transform;
+                VkBuffer            vertex_buffers[] = {gpu_data.m_vertex_buffer.m_handle};
                 VkPipelineBindPoint bind_point = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
 

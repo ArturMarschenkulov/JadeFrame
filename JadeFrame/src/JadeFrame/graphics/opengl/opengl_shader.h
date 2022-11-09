@@ -1,6 +1,7 @@
 #pragma once
 #include <glad/glad.h>
-#include "opengl_buffer.h" // TODO: FOr SHADER_DATA_TYPE. Maybe move?
+
+#include "opengl_wrapper.h"
 #include "../shader_loader.h"
 
 #include "JadeFrame/math/mat_4.h"
@@ -15,12 +16,13 @@
 
 namespace JadeFrame {
 class Matrix4x4;
+class OpenGL_Context;
 
 namespace opengl {
 
 class Shader : public IShader {
 public:
-    Shader(const DESC& desc);
+    Shader(OpenGL_Context& context, const DESC& desc);
 
     Shader() = default;
     Shader(Shader&&) noexcept = delete;
@@ -38,6 +40,8 @@ private:
     OGLW_Shader  m_fragment_shader;
     std::string  m_vertex_source;
     std::string  m_fragment_source;
+
+    OpenGL_Context* m_context;
 
 
 public:

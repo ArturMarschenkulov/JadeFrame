@@ -14,35 +14,70 @@ TextureHandle::TextureHandle(const std::string& path) {
     // flip textures on their y coordinate while loading
     stbi_set_flip_vertically_on_load(true);
     // i32 width, height, num_components;
-    m_data = stbi_load(path.c_str(), &m_size.width, &m_size.height, &m_num_components, 0);
+    v2i32 size;
+    i32   num_components;
+
+    m_data = stbi_load(path.c_str(), &size.width, &size.height, &num_components, 0);
+    if (size.width >= 0 && size.height >= 0) {
+        m_size.height = size.height;
+        m_size.width = size.width;
+        m_num_components = num_components;
+        Logger::warn("Textire loaded at {}", fmt::ptr(m_data));
+    } else {
+        m_size = {0, 0};
+        m_num_components = 0;
+        Logger::warn("TextureHandle::TextureHandle: Failed to get size: {}", path.c_str());
+    }
     if (m_data == nullptr) { Logger::err("Failed to load texture: {} ", path); }
 }
+TextureHandle::TextureHandle(TextureHandle&& other) {
+    m_data = other.m_data;
+    m_size = other.m_size;
+    m_num_components = other.m_num_components;
+    m_api = other.m_api;
+    m_handle = other.m_handle;
 
-TextureHandle::~TextureHandle() { stbi_image_free(m_data); }
+    other.m_data = nullptr;
+    other.m_size = {0, 0};
+    other.m_num_components = 0;
+    other.m_api = GRAPHICS_API::UNDEFINED;
+    other.m_handle = nullptr;
+    // *this = std::move(other);
+}
+
+auto TextureHandle::operator=(TextureHandle&& other) -> TextureHandle& {
+    m_data = other.m_data;
+    m_size = other.m_size;
+    m_num_components = other.m_num_components;
+    m_api = other.m_api;
+    m_handle = other.m_handle;
+
+    other.m_data = nullptr;
+    other.m_size = {0, 0};
+    other.m_num_components = 0;
+    other.m_api = GRAPHICS_API::UNDEFINED;
+    other.m_handle = nullptr;
+    return *this;
+}
+
+
+TextureHandle::~TextureHandle() {
+    if (m_data != nullptr) { stbi_image_free(m_data); }
+}
 
 auto TextureHandle::init(void* context) -> void {
 
 
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            GLenum format = {};
-            switch (m_num_components) {
-                case 3: format = GL_RGB; break;
-                case 4: format = GL_RGBA; break;
-                default:
-                    Logger::err("TextureHandle::init() - Unsupported number of components: {}", m_num_components);
-                    assert(false);
-            }
-            opengl::Texture* texture = new opengl::Texture(
-                *(OpenGL_Context*)context, m_data, {static_cast<u32>(m_size.width), static_cast<u32>(m_size.height)}, format, format,
-                GL_UNSIGNED_BYTE);
+            opengl::Texture* texture = new opengl::Texture(*(OpenGL_Context*)context, m_data, m_size, m_num_components);
             m_handle = texture;
-
-
         } break;
         case GRAPHICS_API::VULKAN: {
-            /*		Vulkan_Texture* texture = new Vulkan_Texture();
-                            texture->init();*/
+            vulkan::Vulkan_Texture* texture = new vulkan::Vulkan_Texture();
+            auto                    ld = (vulkan::LogicalDevice*)m_handle;
+            texture->init(*ld, m_data, m_size, VK_FORMAT_R8G8B8A8_SRGB);
+            m_handle = texture;
         } break;
         default: assert(false);
     }
@@ -52,43 +87,48 @@ ShaderHandle::ShaderHandle(const DESC& desc) {
     m_code = desc.shading_code;
     m_vertex_format = desc.vertex_format;
 }
+ShaderHandle::ShaderHandle(ShaderHandle&& other) {
+    m_code = other.m_code;
+    m_vertex_format = other.m_vertex_format;
+    m_api = other.m_api;
+    m_handle = other.m_handle;
+
+    // other.m_code = nullptr;
+    // other.m_vertex_format = nullptr;
+    // other.m_api = GRAPHICS_API::UNDEFINED;
+    // other.m_handle = nullptr;
+}
+auto ShaderHandle::operator=(ShaderHandle&& other) -> ShaderHandle& {
+    m_code = other.m_code;
+    m_vertex_format = other.m_vertex_format;
+    m_api = other.m_api;
+    m_handle = other.m_handle;
+
+    // other.m_code = nullptr;
+    // other.m_vertex_format = nullptr;
+    // other.m_api = GRAPHICS_API::UNDEFINED;
+    // other.m_handle = nullptr;
+    return *this;
+}
 
 auto ShaderHandle::init(void* context) -> void {
 
-    // for (auto& m : m_code.m_modules) {
-    //	if ((m.m_stage == SHADER_STAGE::VERTEX) || (m.m_stage == SHADER_STAGE::FRAGMENT)) {
-    //		if(std::holds_alternative<std::string>(m.m_code) ||
-    // std::holds_alternative<std::vector<u32>>(m.m_code)) {
-    //			if(std::get<std::string>(m.m_code).empty() ||
-    // std::get<std::vector<u32>>(m.m_code).empty()) {
-    //				__debugbreak();
-    //			}
-    //		}
-    //	}
-    // }
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
             opengl::Shader::DESC shader_desc;
             shader_desc.code = m_code;
-            m_handle = new opengl::Shader(shader_desc);
+            shader_desc.vertex_format = m_vertex_format;
+            m_handle = new opengl::Shader(*(OpenGL_Context*)context, shader_desc);
 
         } break;
         case GRAPHICS_API::VULKAN: {
-            Logger::warn("lnlknm,lm. ");
             Vulkan_Shader::DESC shader_desc;
             shader_desc.code = m_code;
-            m_handle = new Vulkan_Shader(*(vulkan::LogicalDevice*)m_handle, shader_desc);
-            // m_handle = new Vulkan_Shader({ vertex_shader_code, fragment_shader_code });
+            shader_desc.vertex_format = m_vertex_format;
+            m_handle = new Vulkan_Shader(*(vulkan::LogicalDevice*)context, shader_desc);
         } break;
         default: assert(false);
     }
-}
-
-auto MaterialHandle::init(void* context) const -> void {
-
-    m_shader_handle->init(context);
-
-    if (m_texture_handle != nullptr) { m_texture_handle->init(context); }
 }
 
 } // namespace JadeFrame

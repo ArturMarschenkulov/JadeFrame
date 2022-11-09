@@ -56,8 +56,9 @@ auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const ->
 //     const GLenum res = buffer.check_status();
 //     if (res != GL_FRAMEBUFFER_COMPLETE) assert(false);
 // }
-OpenGL_Renderer::OpenGL_Renderer(const IWindow* window)
+OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     : m_context(window) {
+    m_system = &system;
     {
         // setup_framebuffer(m_framebuffer, m_framebuffer_texture, m_framebuffer_renderbuffer);
 
@@ -129,21 +130,6 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
         obj.m_GPU_mesh_data.m_handle = new opengl::GPUMeshData(m_context, *obj.m_vertex_data, vertex_format);
         obj.m_GPU_mesh_data.m_is_initialized = true;
     }
-    MaterialHandle* mh = obj.m_material_handle;
-    ShaderHandle*   sh = mh->m_shader_handle;
-    TextureHandle*  th = mh->m_texture_handle;
-    if (mh->m_is_initialized == false) {
-        // obj.m_material_handle->init();
-        sh->m_api = GRAPHICS_API::OPENGL;
-        sh->init(&m_context);
-        // obj.m_material_handle->m_shader_handle->m_handle = new OpenGL_Shader();
-
-        if (th != nullptr) {
-            th->m_api = GRAPHICS_API::OPENGL;
-            th->init(&m_context);
-        }
-        obj.m_material_handle->m_is_initialized = true;
-    }
 
 
     const OpenGL_RenderCommand command = {
@@ -173,14 +159,16 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         const OpenGL_RenderCommand& command = m_render_commands[i];
         const MaterialHandle&       mh = *command.material_handle;
 
-        const opengl::Shader*      p_shader = static_cast<opengl::Shader*>(mh.m_shader_handle->m_handle);
+        auto&                      sh = m_system->m_registered_shaders[mh.m_shader_id];
+        const opengl::Shader*      p_shader = static_cast<opengl::Shader*>(sh.m_handle);
         const VertexData*          p_mesh = command.vertex_data;
         const opengl::GPUMeshData* p_vertex_array =
             static_cast<opengl::GPUMeshData*>(command.m_GPU_mesh_data->m_handle);
 
         p_shader->bind();
-        if (mh.m_texture_handle != nullptr) {
-            opengl::Texture& texture = *static_cast<opengl::Texture*>(mh.m_texture_handle->m_handle);
+        if (mh.m_texture_id != 0) {
+            auto&            th = m_system->m_registered_textures[mh.m_texture_id];
+            opengl::Texture& texture = *static_cast<opengl::Texture*>(th.m_handle);
             texture.bind(0);
         }
 

@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "opengl_shader.h"
+#include "JadeFrame/utils/assert.h"
 
 
 #include "JadeFrame/math/mat_4.h"
@@ -37,79 +38,72 @@ static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
 // }
 namespace opengl {
 
-Shader::Shader(const DESC& desc)
+Shader::Shader(OpenGL_Context& context, const DESC& desc)
     : m_program()
     , m_vertex_shader(GL_VERTEX_SHADER)
     , m_fragment_shader(GL_FRAGMENT_SHADER) {
-
-    auto vertex_shader = std::get<std::string>(desc.code.m_modules[0].m_code);
-    auto fragment_shader = std::get<std::string>(desc.code.m_modules[1].m_code);
-    m_vertex_source = vertex_shader;
-    m_fragment_source = fragment_shader;
-    // Logger::trace("vertex shader: {}", vertex_shader);
-    // Logger::trace("fragment shader: {}", fragment_shader);
-    if constexpr (false) {
-
-        /*
-            NOTE: Strangely, on the laptops I tried it out, this function `glSpecializeShader` doesn't work.
-            I'm not sure why, but it seems to be a driver issue.
-            I'm leaving this here in case I ever get around to fixing it.
-        */
-        std::future<std::vector<u32>> vert_shader_spirv = std::async(
-            std::launch::async, string_to_SPIRV, m_vertex_source.c_str(), desc.code.m_modules[0].m_stage,
-            GRAPHICS_API::OPENGL);
-        std::future<std::vector<u32>> frag_shader_spirv = std::async(
-            std::launch::async, string_to_SPIRV, m_fragment_source.c_str(), desc.code.m_modules[1].m_stage,
-            GRAPHICS_API::OPENGL);
-
-        std::vector<u32> mvert_shader_spirv = vert_shader_spirv.get();
-        std::vector<u32> mfrag_shader_spirv = frag_shader_spirv.get();
+    m_context = &context;
 
 
-        // NOTE: On some machines the drives won't allow it!!
-        m_fragment_shader.set_binary(mfrag_shader_spirv);
-        m_fragment_shader.compile_binary();
+    JF_ASSERT(desc.code.m_modules.size() == 2, "OpenGL Shaders must have 2 modules for right now");
 
-        m_vertex_shader.set_binary(mvert_shader_spirv);
-        m_vertex_shader.compile_binary();
 
-        //__debugbreak();
-    } else {
-        m_vertex_shader.set_source(vertex_shader);
-        m_vertex_shader.compile();
 
-        m_fragment_shader.set_source(fragment_shader);
-        m_fragment_shader.compile();
+    using SPIRV = std::vector<JadeFrame::u32>;
 
-        auto s0 = std::async(
-            std::launch::async, string_to_SPIRV, m_vertex_source.c_str(), desc.code.m_modules[0].m_stage,
-            GRAPHICS_API::OPENGL);
-        auto s1 = std::async(
-            std::launch::async, string_to_SPIRV, m_fragment_source.c_str(), desc.code.m_modules[1].m_stage,
-            GRAPHICS_API::OPENGL);
+    std::array<std::string, 2> glsl_sources;
+    // from SPIRV to GLSL
+    spirv_cross::CompilerGLSL::Options options;
+    options.version = 450;
+    options.es = false;
+    options.vulkan_semantics = false;
+    for (int i = 0; i < desc.code.m_modules.size(); i++) {
+        auto& spirv = desc.code.m_modules[i].m_code;
 
-        ShadingCode code;
-        code.m_modules.resize(2);
-        code.m_modules[0].m_stage = desc.code.m_modules[0].m_stage;
-        code.m_modules[0].m_code = s0.get();
-        code.m_modules[1].m_stage = desc.code.m_modules[1].m_stage;
-        code.m_modules[1].m_code = s1.get();
-
-        auto s = reflect(code);
-
-        // std::vector<u32> vs = string_to_SPIRV(vertex_shader.c_str(), desc.code.m_modules[0].m_stage);
-
-        // spirv_cross::CompilerGLSL::Options options;
-        // options.version = 450;
-        // options.es = false;
-        // options.vulkan_semantics = true;
-        // spirv_cross::CompilerGLSL glsl(vs);
-        // glsl.set_common_options(options);
-        // Logger::trace("{}", glsl.compile());
-        // Logger::trace("====================");
-        // spirv_cross::CompilerHLSL hlsl(vs);
-        // Logger::trace("{}", hlsl.compile());
+        spirv_cross::CompilerGLSL glsl(spirv);
+        glsl.set_common_options(options);
+        glsl_sources[i] = glsl.compile();
     }
+
+    m_vertex_source = glsl_sources[0];
+    m_fragment_source = glsl_sources[1];
+
+    m_vertex_shader.set_source(m_vertex_source);
+    m_vertex_shader.compile();
+
+    m_fragment_shader.set_source(m_fragment_source);
+    m_fragment_shader.compile();
+
+
+    // // NOTE: On some machines the drives won't allow it!!
+    // m_fragment_shader.set_binary(mfrag_shader_spirv);
+    // m_fragment_shader.compile_binary();
+
+    // m_vertex_shader.set_binary(mvert_shader_spirv);
+    // m_vertex_shader.compile_binary();
+
+
+    // ShadingCode code;
+    // code.m_modules.resize(2);
+    // code.m_modules[0].m_stage = desc.code.m_modules[0].m_stage;
+    // code.m_modules[0].m_code = s0.get();
+    // code.m_modules[1].m_stage = desc.code.m_modules[1].m_stage;
+    // code.m_modules[1].m_code = s1.get();
+
+    // auto s = reflect(code);
+
+    // std::vector<u32> vs =
+    //     string_to_SPIRV(vertex_shader.c_str(), desc.code.m_modules[0].m_stage, GRAPHICS_API::OPENGL);
+
+    // spirv_cross::CompilerGLSL glsl(spirvs[0]);
+    // glsl.set_common_options(options);
+    // Logger::trace("{}", std::get<std::string>(desc.code.m_modules[0].m_code));
+    // Logger::trace("====================");
+    // Logger::trace("{}", glsl_sources[0]);
+    // Logger::trace("====================");
+    // spirv_cross::CompilerHLSL hlsl(spirvs[0]);
+    // Logger::trace("{}", hlsl.compile());
+
 
     m_program.attach(m_vertex_shader);
     m_program.attach(m_fragment_shader);
@@ -204,7 +198,7 @@ auto Shader::query_uniforms(const GLenum variable_type) const -> std::unordered_
         switch (variable_type) {
             case GL_ACTIVE_UNIFORMS: {
                 glGetActiveUniform(m_program.m_ID, i, sizeof(buffer), 0, &variables[i].size, &gl_type, buffer);
-                auto s = to_string_gl_type(gl_type);
+                auto  s = to_string_gl_type(gl_type);
                 GLint location = m_program.get_uniform_location(buffer);
                 if (location == -1) {
 

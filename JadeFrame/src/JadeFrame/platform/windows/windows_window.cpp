@@ -33,7 +33,7 @@ static auto window_resize_callback(Window& window, const EventMessage& wm) -> vo
     window.set_size(v2u32(LOWORD(wm.lParam), HIWORD(wm.lParam)));
 
     const v2u32& size = window.get_size();
-    auto&        renderer = Instance::get_singleton()->m_current_app_p->m_renderer;
+    auto&        renderer = Instance::get_singleton()->m_current_app_p->m_render_system.m_renderer;
     renderer->set_viewport(0, 0, size.width, size.height);
 
     // static i32 rrr = 1;

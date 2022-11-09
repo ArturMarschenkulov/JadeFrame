@@ -25,8 +25,9 @@ Example_Rotating_Primitive::Example_Rotating_Primitive(const DESC& desc)
     : BaseApp(desc) {}
 
 auto Example_Rotating_Primitive::on_init() -> void {
-    m_renderer->set_clear_color({0.2f, 0.0f, 0.0f, 1.0f});
+    m_render_system.m_renderer->set_clear_color({0.2f, 0.0f, 0.0f, 1.0f});
     m_camera.othographic_mode(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+    // m_camera.perspective_mode({1.0, 1.0, 1.0}, 1.0f, 0.1f, 100.0f);
 
 
     const f32   s = 0.5f;
@@ -58,10 +59,10 @@ auto Example_Rotating_Primitive::on_init() -> void {
         {   "v_color", SHADER_TYPE::FLOAT_4},
     };
     ShaderHandle::DESC shader_handle_desc;
-    shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("spirv_test_1");
+    shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("spirv_test_0");
     shader_handle_desc.vertex_format = m_obj.m_vertex_format;
-    m_material.m_shader_handle = new ShaderHandle(shader_handle_desc);
-    m_material.m_texture_handle = nullptr;
+    m_material.m_shader_id = m_render_system.register_shader(ShaderHandle(shader_handle_desc));
+    m_material.m_texture_id = 0;
 
     m_obj.m_material_handle = &m_material;
 
@@ -94,8 +95,8 @@ auto Example_Rotating_Primitive::on_draw() -> void {
     m_obj_2.m_transform = Matrix4x4::rotation_matrix(time * to_radians(45.0f), v3(0.0f, 0.0f, 1.0f));
 
 
-    m_renderer->submit(m_obj_2);
-    m_renderer->submit(m_obj);
+    m_render_system.m_renderer->submit(m_obj_2); // yellow triangle
+    m_render_system.m_renderer->submit(m_obj);   // rainbow triangle
 }
 using TestApp = Example_Rotating_Primitive;
 

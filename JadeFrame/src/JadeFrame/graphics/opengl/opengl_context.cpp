@@ -10,11 +10,23 @@ namespace JadeFrame {
 OpenGL_Context::OpenGL_Context(const IWindow* window)
 #ifdef WIN32
     : m_device_context(opengl::win32::init_device_context(window)) {
-    auto m_render_context = opengl::win32::init_render_context(m_device_context);
+    auto* win = static_cast<const JadeFrame::win32::Window*>(window);
+
+    m_device_context = ::GetDC(win->m_window_handle);
+
+    // loading wgl functions for render context creation
+    opengl::win32::load_wgl_funcs(win->m_instance_handle);
+
+
+    HGLRC render_context = opengl::win32::init_render_context(m_device_context);
+    opengl::win32::load_opengl_funcs(m_device_context, render_context);
+
 #elif __linux__
 {
     // : m_device_context(opengl::linux::init_device_context(window.m_window_handle)) {
     // auto m_render_context = opengl::linux::init_render_context(m_device_context);
+#else
+{
 #endif
 
     opengl::set_debug_mode(true);
@@ -43,6 +55,16 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
 
     // opengl::win32::swap_interval(0); //TODO: This is windows specific. Abstract this away
 
+
+
+    const v2u32& size = window->get_size();
+    m_state.set_viewport(0, 0, size.x, size.y);
+
+    GLint max_texture_units;
+    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_texture_units);
+    m_texture_units.resize(max_texture_units, 0);
+
+
     {
         const GLuint binding_point_0 = 0;
         m_uniform_buffers.emplace_back();
@@ -60,13 +82,6 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
         // m_uniform_buffers[1].unbind();
         m_uniform_buffers[1].bind_base(binding_point_1);
     }
-
-    const v2u32& size = window->get_size();
-    m_state.set_viewport(0, 0, size.x, size.y);
-
-    GLint max_texture_units;
-    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_texture_units);
-    m_texture_units.resize(max_texture_units, 0);
 }
 
 OpenGL_Context::~OpenGL_Context() {}

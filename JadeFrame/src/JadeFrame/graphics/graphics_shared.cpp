@@ -1,5 +1,8 @@
 #include "pch.h"
 #include "graphics_shared.h"
+#include "platform/platform_shared.h"
+#include "vulkan/vulkan_renderer.h"
+#include "opengl/opengl_renderer.h"
 JF_PRAGMA_PUSH
 #pragma warning(disable : 4006)
 #include "shaderc/shaderc.hpp"
@@ -73,6 +76,98 @@ auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage, GRAPHICS_API a
 }
 
 
+
+RenderSystem::RenderSystem(GRAPHICS_API api, IWindow* window) {
+    m_api = api;
+    switch (api) {
+        case GRAPHICS_API::OPENGL: {
+            m_renderer = new OpenGL_Renderer(*this, window);
+
+        } break;
+        case GRAPHICS_API::VULKAN: {
+            m_renderer = new Vulkan_Renderer(*this, window);
+        } break;
+        default: assert(false);
+    }
+}
+auto RenderSystem::init(GRAPHICS_API api, IWindow* window) -> void {
+    m_api = api;
+    switch (api) {
+        case GRAPHICS_API::OPENGL: {
+            m_renderer = new OpenGL_Renderer(*this, window);
+
+        } break;
+        case GRAPHICS_API::VULKAN: {
+            m_renderer = new Vulkan_Renderer(*this, window);
+        } break;
+        default: assert(false);
+    }
+}
+
+RenderSystem::~RenderSystem() {}
+
+RenderSystem::RenderSystem(RenderSystem&& other) {
+    m_api = other.m_api;
+    m_renderer = other.m_renderer;
+    m_registered_textures = std::move(other.m_registered_textures);
+    other.m_api = GRAPHICS_API::UNDEFINED;
+    other.m_renderer = nullptr;
+    other.m_registered_textures.clear();
+}
+auto RenderSystem::operator=(RenderSystem&& other) -> RenderSystem& {
+    m_api = other.m_api;
+    m_renderer = other.m_renderer;
+    m_registered_textures = std::move(other.m_registered_textures);
+    other.m_api = GRAPHICS_API::UNDEFINED;
+    other.m_renderer = nullptr;
+    other.m_registered_textures.clear();
+    return *this;
+}
+
+auto RenderSystem::register_texture(TextureHandle&& texture) -> u32 {
+    static u32 id = 1;
+    m_registered_textures[id] = std::move(texture);
+    switch (m_api) {
+        case GRAPHICS_API::OPENGL: {
+            OpenGL_Renderer* renderer = static_cast<OpenGL_Renderer*>(m_renderer);
+            m_registered_textures[id].m_api = m_api;
+            m_registered_textures[id].init(&renderer->m_context);
+        } break;
+        case GRAPHICS_API::VULKAN: {
+            Vulkan_Renderer* renderer = static_cast<Vulkan_Renderer*>(m_renderer);
+            auto ld = &renderer->m_context.m_instance.m_logical_device;
+            m_registered_textures[id].m_api = m_api;
+            m_registered_textures[id].init(ld);
+        } break;
+        default: assert(false);
+    }
+    u32 old_id = id;
+    id++;
+    return old_id;
+}
+auto RenderSystem::register_shader(ShaderHandle&& texture) -> u32 {
+    static u32 id = 1;
+    m_registered_shaders[id] = std::move(texture);
+    switch (m_api) {
+        case GRAPHICS_API::OPENGL: {
+            OpenGL_Renderer* renderer = static_cast<OpenGL_Renderer*>(m_renderer);
+            m_registered_shaders[id].m_api = m_api;
+            m_registered_shaders[id].init(&renderer->m_context);
+        } break;
+        case GRAPHICS_API::VULKAN: {
+            Vulkan_Renderer* renderer = static_cast<Vulkan_Renderer*>(m_renderer);
+            m_registered_shaders[id].m_api = m_api;
+            auto ld = &renderer->m_context.m_instance.m_logical_device;
+            m_registered_shaders[id].init(ld);
+        } break;
+        default: assert(false);
+    }
+    u32 old_id = id;
+    id++;
+    return old_id;
+}
+
+
 class RenderCommandQueue {
 public:
     typedef void (*RenderCommandFn)(void*);
@@ -120,6 +215,7 @@ private:
     u8* m_command_buffer_ptr;
     u32 m_command_count = 0;
 };
+
 
 
 
@@ -215,7 +311,7 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
     result.m_modules.resize(code.m_modules.size());
     for (u32 i = 0; i < code.m_modules.size(); i++) {
         auto& current_module = code.m_modules[i];
-        auto& current_module_code = std::get<std::vector<u32>>(current_module.m_code);
+        auto& current_module_code = current_module.m_code;
         auto& current_result_module = result.m_modules[i];
 
         spirv_cross::Compiler        compiler(current_module_code);

@@ -22,7 +22,7 @@ private:
 public:
     Texture() noexcept;
     Texture(OpenGL_Context& context);
-    Texture(OpenGL_Context& context, void* data, v2u32 size, GLenum internal_format, GLenum format, GLenum type);
+    Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_num);
     Texture(Texture&& other) noexcept;
 
     auto operator=(Texture&& other) noexcept -> Texture&;

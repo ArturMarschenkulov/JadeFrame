@@ -21,7 +21,7 @@ struct Vulkan_RenderCommand {
 
 class Vulkan_Renderer : public IRenderer {
 public:
-    Vulkan_Renderer(const IWindow* window);
+    Vulkan_Renderer(RenderSystem& system, const IWindow* window);
 
     virtual auto set_clear_color(const RGBAColor& color) -> void override;
 
@@ -34,8 +34,9 @@ public:
 
     // virtual auto main_loop() -> void override;
 
-private:
+public:
     Vulkan_Context                           m_context;
+    RenderSystem*                            m_system = nullptr;
     mutable std::deque<Vulkan_RenderCommand> m_render_commands;
 
 private: // NOTE: probably temporary

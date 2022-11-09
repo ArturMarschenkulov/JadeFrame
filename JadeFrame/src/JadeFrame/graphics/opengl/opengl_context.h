@@ -99,6 +99,7 @@ public:
     i32                      minor_version;
     i32                      num_extensions;
 
+    // limits
     GLint m_max_uniform_buffer_binding_points;
 
     std::vector<opengl::Buffer> m_uniform_buffers;

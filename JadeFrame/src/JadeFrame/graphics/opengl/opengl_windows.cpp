@@ -68,36 +68,43 @@ namespace win32 {
 auto init_device_context(const IWindow* window) -> HDC {
     auto win = static_cast<const JadeFrame::win32::Window*>(window);
 
-    static bool is_wgl_loaded = false;
-    if (is_wgl_loaded == false) { is_wgl_loaded = load(win->m_instance_handle); }
-
     HDC device_context = ::GetDC(win->m_window_handle);
     if (device_context == NULL) {
         Logger::err("GetDC(hWnd) failed! {}", ::GetLastError());
         assert(false);
     }
+
     return device_context;
 }
 
-auto init_render_context(HDC device_context) -> HGLRC {
-    win32::set_pixel_format(device_context);
-    HGLRC render_context = win32::create_render_context(device_context);
-    i32   result = gladLoadGL();
+auto load_opengl_funcs(HDC device_context, HGLRC render_context) -> bool {
+    // Load OpenGL functions with GLAD
+    const BOOL current_succes = wglMakeCurrent(device_context, render_context);
+    if (current_succes == false) {
+        Logger::log("wglMakeCurrent() failed. {}", ::GetLastError());
+        assert(false);
+    }
+    i32 result = gladLoadGL();
     if (result != 1) { Logger::err("gladLoadGL() failed.", ::GetLastError()); }
+    return true;
+}
+
+auto init_render_context(HDC device_context) -> HGLRC {
+    set_pixel_format(device_context);
+    HGLRC render_context = create_render_context(device_context);
     return render_context;
 }
-static auto load_wgl_functions() -> void {
+static auto get_proc_address_wgl_funcs() -> void {
     wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC*)wglGetProcAddress("wglChoosePixelFormatARB");
     wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC*)wglGetProcAddress("wglCreateContextAttribsARB");
     wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC*)wglGetProcAddress("wglSwapIntervalEXT");
     wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC*)wglGetProcAddress("wglGetExtensionsStringEXT");
 }
 
-auto load(HMODULE instance) -> bool {
-    const LPCWSTR window_class_name = L"OpenGL";
-
-    // dummy_window.registerr();
-    WNDCLASS window_class;
+auto load_wgl_funcs(HMODULE instance) -> bool {
+    // To load wgl functions we need to create a dummy window and context
+    const LPCWSTR class_name = L"Dummy OpenGL Window";
+    WNDCLASS      window_class;
     ZeroMemory(&window_class, sizeof(window_class));
     window_class.style = CS_OWNDC;
     window_class.lpfnWndProc = DefWindowProc;
@@ -108,54 +115,50 @@ auto load(HMODULE instance) -> bool {
     window_class.hCursor = LoadCursor(NULL, IDC_ARROW);
     window_class.hbrBackground = (HBRUSH)(COLOR_MENUTEXT);
     window_class.lpszMenuName = NULL;
-    window_class.lpszClassName = window_class_name;
+    window_class.lpszClassName = class_name;
     if (!::RegisterClassW(&window_class)) { Logger::log("RegisterClassW Failed! {}", ::GetLastError()); }
 
-    // dummy_window.create();
-    const HWND window_handle = CreateWindowExW(
+    const HWND window_handle = ::CreateWindowExW(
         0,
-        window_class_name, // window class
-        L"Fake Window",    // title
-        WS_POPUP,          // WS_CLIPSIBLINGS | WS_CLIPCHILDREN, // style
-        0, 0,              // position x, y
-        1, 1,              // width, height
-        NULL, NULL,        // parent window, menu
+        class_name,     // window class
+        L"Fake Window", // title
+        WS_POPUP,       // WS_CLIPSIBLINGS | WS_CLIPCHILDREN, // style
+        0, 0,           // position x, y
+        1, 1,           // width, height
+        NULL, NULL,     // parent window, menu
         instance, NULL);
     if (window_handle == NULL) assert(false);
     const HDC device_context = GetDC(window_handle);
     if (device_context == NULL) assert(false);
 
-    // dummy_window.set_pixel_format();
-    PIXELFORMATDESCRIPTOR desired_pixel_format;
-    ZeroMemory(&desired_pixel_format, sizeof(desired_pixel_format));
-    desired_pixel_format.nSize = sizeof(desired_pixel_format);
-    desired_pixel_format.nVersion = 1;
-    desired_pixel_format.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-    desired_pixel_format.iPixelType = PFD_TYPE_RGBA;
-    desired_pixel_format.cColorBits = 32;
-    desired_pixel_format.cAlphaBits = 8;
-    desired_pixel_format.cDepthBits = 24;
-    desired_pixel_format.iLayerType = PFD_MAIN_PLANE;
+    PIXELFORMATDESCRIPTOR format;
+    ZeroMemory(&format, sizeof(format));
+    format.nSize = sizeof(format);
+    format.nVersion = 1;
+    format.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+    format.iPixelType = PFD_TYPE_RGBA;
+    format.cColorBits = 32;
+    format.cAlphaBits = 8;
+    format.cDepthBits = 24;
+    format.iLayerType = PFD_MAIN_PLANE;
+    const i32 format_ID = ::ChoosePixelFormat(device_context, &format);
+    if (format_ID == 0) { assert(false); }
+    const BOOL result = ::SetPixelFormat(device_context, format_ID, &format);
+    if (result == FALSE) { assert(false); }
 
-    const i32 suggested_pixel_format_ID = ChoosePixelFormat(device_context, &desired_pixel_format);
-    if (suggested_pixel_format_ID == 0) { assert(false); }
-    const BOOL pixel_format_success = SetPixelFormat(device_context, suggested_pixel_format_ID, &desired_pixel_format);
-    if (pixel_format_success == FALSE) { assert(false); }
+    const HGLRC render_context = ::wglCreateContext(device_context);
+    /*BOOL current_succes =*/::wglMakeCurrent(device_context, render_context);
 
-    // dummy_window.create_render_context();
-    const HGLRC render_context = wglCreateContext(device_context);
-    /*BOOL current_succes =*/wglMakeCurrent(device_context, render_context);
+    get_proc_address_wgl_funcs();
 
-    load_wgl_functions();
 
-    // dummy_window.destroy();
-    wglMakeCurrent(NULL, NULL);
-    wglDeleteContext(render_context);
+
+    // We are done loading wgl functions, now we destroy everything related to the dummy context
+    ::wglMakeCurrent(NULL, NULL);
+    ::wglDeleteContext(render_context);
     ::ReleaseDC(window_handle, device_context);
     ::DestroyWindow(window_handle);
-
-    // dummy_window.unregister_();
-    ::UnregisterClassW(window_class_name, instance);
+    ::UnregisterClassW(class_name, instance);
 
     return true;
 }
@@ -163,69 +166,118 @@ auto load(HMODULE instance) -> bool {
 auto swap_interval(i32 i) -> void { wglSwapIntervalEXT(i); }
 
 auto set_pixel_format(const HDC& device_context) -> void {
+
+    // NOTE: There are 2 ways to set the pixel format:
+    // 1. Use `ChoosePixelFormat()`
+    // 2. Use `wglChoosePixelFormatARB()`
+    // `wglChoosePixelFormatARB()` supercedes `ChoosePixelFormat()`.
+    // Pixel formats can be grouped into 4 categories:
+    //     1. Accelerated pixel formats that are displayable
+    //     2. Accelerated pixel formats that are displayable and which have extended attributes
+    //     3. Generic pixel formats
+    //     4. Accelerated pixel formats that are non displayable
+    // ´ChoosePixelFormat()` only returns pixel formats from categories 1 and 3, while `wglChoosePixelFormatARB()`
+    //     returns pixel formats from all 4 categories.
+    // One needs `wglChoosePixelFormatARB()` if one wants sRGB framebuffers and multisampling.
+
+
+#if 0
+
+    PIXELFORMATDESCRIPTOR format = {};
+    format.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+    format.nVersion = 1;
+    format.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+    format.iPixelType = PFD_TYPE_RGBA;
+    format.cColorBits = 32;
+    format.cRedBits = 0;
+    format.cRedShift = 0;
+    format.cGreenBits = 0;
+    format.cGreenShift = 0;
+    format.cBlueBits = 0;
+    format.cBlueShift = 0;
+    format.cAlphaBits = 0; // 8
+    format.cAlphaShift = 0;
+    format.cAccumBits = 0;
+    format.cAccumRedBits = 0;
+    format.cAccumGreenBits = 0;
+    format.cAccumBlueBits = 0;
+    format.cAccumAlphaBits = 0;
+    format.cDepthBits = 24;
+    format.cStencilBits = 0;
+    format.cAuxBuffers = 0;
+    format.iLayerType = PFD_MAIN_PLANE;
+    format.bReserved = 0;
+    format.dwLayerMask = 0;
+    format.dwVisibleMask = 0;
+    format.dwDamageMask = 0;
+
+    i32 format_ID = ::ChoosePixelFormat(device_context, &format);
+
+#else
+
     const i32 pixel_attributes[] = {
         WGL_DRAW_TO_WINDOW_ARB,
-        GL_TRUE,
+        GL_TRUE, // draw to window
         WGL_SUPPORT_OPENGL_ARB,
-        GL_TRUE,
+        GL_TRUE, // support OpenGL
         WGL_DOUBLE_BUFFER_ARB,
-        GL_TRUE,
+        GL_TRUE, // double buffer
         WGL_PIXEL_TYPE_ARB,
-        WGL_TYPE_RGBA_ARB,
+        WGL_TYPE_RGBA_ARB, // RGBA type
         WGL_COLOR_BITS_ARB,
-        32,
+        32, // 32-bit color
         WGL_DEPTH_BITS_ARB,
-        24,
+        24, // 24-bit depth
         WGL_STENCIL_BITS_ARB,
-        8,
+        8, // 8-bit stencil
 
         WGL_ACCELERATION_ARB,
-        WGL_FULL_ACCELERATION_ARB,
+        WGL_FULL_ACCELERATION_ARB, // full acceleration
         WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB,
-        GL_TRUE,
+        GL_TRUE, // sRGB capable
         WGL_SWAP_METHOD_ARB,
-        WGL_SWAP_EXCHANGE_ARB,
+        WGL_SWAP_EXCHANGE_ARB, // swap exchange
         0,
     };
 
-    i32        format_descriptor_ID;
-    UINT       num_formats;
-    const bool status =
-        wglChoosePixelFormatARB(device_context, pixel_attributes, NULL, 1, &format_descriptor_ID, &num_formats);
+    i32  format_ID;
+    UINT num_formats;
+    bool status = ::wglChoosePixelFormatARB(device_context, pixel_attributes, NULL, 1, &format_ID, &num_formats);
     if (status == false || num_formats == 0) {
         Logger::log("wglChoosePixelFormatARB() failed. {}", ::GetLastError());
         return;
     }
 
-    PIXELFORMATDESCRIPTOR format_descriptor;
-    i32                   maximum_pixel_format_index =
-        DescribePixelFormat(device_context, format_descriptor_ID, sizeof(format_descriptor), &format_descriptor);
-    if (maximum_pixel_format_index == 0) { Logger::log("DescribePixelFormat() failed. {}", ::GetLastError()); }
-    BOOL result = SetPixelFormat(device_context, format_descriptor_ID, &format_descriptor);
+    // Note: Technically, this is not necessary, but it is good practice to set the pixel format
+    PIXELFORMATDESCRIPTOR format;
+    i32                   max_format_index = ::DescribePixelFormat(device_context, format_ID, sizeof(format), &format);
+    if (DescribePixelFormat == 0) { Logger::log("DescribePixelFormat() failed. {}", ::GetLastError()); }
+
+#endif
+
+    BOOL result = ::SetPixelFormat(device_context, format_ID, &format);
     if (result == FALSE) { Logger::log("SetPixelFormat() failed. {}", ::GetLastError()); }
 }
 
 auto create_render_context(HDC device_context) -> HGLRC {
-    const i32 major_min = 4, minor_min = 6;
-    i32       context_attributes[] = {
-              WGL_CONTEXT_MAJOR_VERSION_ARB,
-              major_min,
-              WGL_CONTEXT_MINOR_VERSION_ARB,
-              minor_min,
-              WGL_CONTEXT_FLAGS_ARB,
-              WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB |
-                  WGL_CONTEXT_DEBUG_BIT_ARB, // TODO check whether this UE4 part is relevant to us
-              WGL_CONTEXT_PROFILE_MASK_ARB,
-              WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-              0};
+    const i32 major_min = 4;
+    const i32 minor_min = 6;
+
+    i32 context_attributes[] = {
+        /*major_version*/ WGL_CONTEXT_MAJOR_VERSION_ARB,
+        major_min,
+        /*minor_version*/ WGL_CONTEXT_MINOR_VERSION_ARB,
+        minor_min,
+        /*context flags*/ WGL_CONTEXT_FLAGS_ARB,
+        WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB |
+            WGL_CONTEXT_DEBUG_BIT_ARB, // TODO check whether this UE4 part is relevant to us
+        /*profile type*/ WGL_CONTEXT_PROFILE_MASK_ARB,
+        WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+        0};
+
     const HGLRC render_context = wglCreateContextAttribsARB(device_context, 0, context_attributes);
     if (render_context == NULL) {
         Logger::log("wglCreateContextAttribsARB() failed. {}", ::GetLastError());
-        return NULL;
-    }
-    const BOOL current_succes = wglMakeCurrent(device_context, render_context);
-    if (current_succes == false) {
-        Logger::log("wglMakeCurrent() failed. {}", ::GetLastError());
         return NULL;
     }
     return render_context;

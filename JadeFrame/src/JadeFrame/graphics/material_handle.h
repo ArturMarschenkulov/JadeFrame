@@ -9,22 +9,23 @@ namespace JadeFrame {
 
 struct TextureHandle {
 public:
+    TextureHandle() = default;
+    ~TextureHandle();
+
     TextureHandle(const TextureHandle&) = delete;
     auto operator=(const TextureHandle&) -> TextureHandle& = delete;
-    auto operator=(TextureHandle&&) -> TextureHandle& = delete;
 
-    TextureHandle() = default;
-    TextureHandle(TextureHandle&&) = default;
+    TextureHandle(TextureHandle&& other);
+    auto operator=(TextureHandle&& other) -> TextureHandle&;
+
     TextureHandle(const std::string& path);
-
-    ~TextureHandle();
 
     auto init(void* context) -> void;
 
 public:
     u8*   m_data;
-    v2i32 m_size;
-    i32   m_num_components;
+    v2u32 m_size;
+    u32   m_num_components;
 
     GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
     void*        m_handle = nullptr;
@@ -35,8 +36,14 @@ public:
         ShadingCode  shading_code;
         VertexFormat vertex_format;
     };
+
     ShaderHandle() = default;
+    
+    ShaderHandle(ShaderHandle&& other);
+    auto operator=(ShaderHandle&& other) -> ShaderHandle&;
+
     ShaderHandle(const DESC& desc);
+
     auto init(void* context) -> void;
 
 public:
@@ -47,12 +54,8 @@ public:
     void*        m_handle = nullptr;
 };
 struct MaterialHandle {
-    ShaderHandle*  m_shader_handle;
-    TextureHandle* m_texture_handle;
-
-    auto init(void* context) const -> void;
-
-    bool m_is_initialized = false;
+    u32 m_shader_id = 0;
+    u32 m_texture_id = 0;
 };
 
 } // namespace JadeFrame
