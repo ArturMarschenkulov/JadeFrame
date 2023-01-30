@@ -33,9 +33,6 @@ static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
         default: assert(false); return {};
     }
 }
-// static auto check_glsl_variables(const std::unordered_map<std::string, OpenGL_Shader::GL_Variable>& ) -> void {
-//
-// }
 namespace opengl {
 
 Shader::Shader(OpenGL_Context& context, const DESC& desc)
@@ -123,24 +120,13 @@ Shader::Shader(OpenGL_Context& context, const DESC& desc)
     m_program.detach(m_vertex_shader);
     m_program.detach(m_fragment_shader);
 
-
-
-
-    m_uniforms = this->query_uniforms(GL_ACTIVE_UNIFORMS);
-    m_attributes = this->query_uniforms(GL_ACTIVE_ATTRIBUTES);
 }
 
 auto Shader::bind() const -> void { m_program.bind(); }
 auto Shader::unbind() const -> void { m_program.unbind(); }
 
-auto Shader::get_uniform_location(const std::string& name) const -> GLint {
-    if (m_uniforms.contains(name)) { return m_uniforms.at(name).location; }
-    assert(false);
-    return -1;
-}
 
-
-static auto to_string_gl_type(GLenum type) -> std::string {
+static auto gl_type_enum_to_string(GLenum type) -> std::string {
     std::string result = "";
     switch (type) {
         case GL_FLOAT: result = "float"; break;
@@ -183,59 +169,6 @@ static auto to_string_gl_type(GLenum type) -> std::string {
         default: Logger::err("Unknown type {}", type); assert(false);
     }
     return result;
-}
-
-auto Shader::query_uniforms(const GLenum variable_type) const -> std::unordered_map<std::string, GL_Variable> {
-    // variable_type = GL_ACTIVE_UNIFORMS | GL_ACTIVE_ATTRIBUTES
-
-    GLint                                        num_variables = m_program.get_info(variable_type);
-    std::vector<GL_Variable>                     variables(num_variables);
-    std::unordered_map<std::string, GL_Variable> variable_map;
-
-    for (i32 i = 0; i < num_variables; ++i) {
-        char   buffer[128];
-        GLenum gl_type;
-        switch (variable_type) {
-            case GL_ACTIVE_UNIFORMS: {
-                glGetActiveUniform(m_program.m_ID, i, sizeof(buffer), 0, &variables[i].size, &gl_type, buffer);
-                auto  s = to_string_gl_type(gl_type);
-                GLint location = m_program.get_uniform_location(buffer);
-                if (location == -1) {
-
-                } else {
-                    variables[i].location = location;
-                }
-            } break;
-            case GL_ACTIVE_ATTRIBUTES: {
-                glGetActiveAttrib(m_program.m_ID, i, sizeof(buffer), 0, &variables[i].size, &gl_type, buffer);
-                variables[i].location = m_program.get_attribute_location(buffer);
-            } break;
-            default:
-                assert(false);
-                gl_type = -1;
-                break;
-        }
-        variables[i].name = std::string(buffer);
-        variables[i].type = SHADER_TYPE_from_openGL_enum(gl_type);
-
-        { // TODO: It initializes the types for the variant type, for error checking. Consider whether this is
-          // neccessary.
-            GL_ValueVariant value_init;
-            switch (variables[i].type) {
-                case SHADER_TYPE::SAMPLER_2D: value_init = i32(); break;
-                case SHADER_TYPE::FLOAT: value_init = f32(); break;
-                case SHADER_TYPE::FLOAT_2: value_init = v2(); break;
-                case SHADER_TYPE::FLOAT_3: value_init = v3(); break;
-                case SHADER_TYPE::FLOAT_4: value_init = v4(); break;
-                case SHADER_TYPE::MAT_4: value_init = Matrix4x4(); break;
-                default: assert(false); break;
-            }
-            variables[i].value = value_init;
-        }
-
-        variable_map[variables[i].name] = variables[i];
-    }
-    return variable_map;
 }
 } // namespace opengl
 } // namespace JadeFrame

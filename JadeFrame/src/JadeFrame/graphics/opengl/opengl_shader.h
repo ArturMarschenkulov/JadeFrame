@@ -46,23 +46,6 @@ private:
     OpenGL_Context* m_context;
 
 
-public:
-    auto get_uniform_location(const std::string& name) const -> GLint;
-
-private:
-    using GL_ValueVariant = std::variant<i32, f32, v2, v3, v4, Matrix4x4>;
-    struct GL_Variable {
-        SHADER_TYPE     type;
-        std::string     name;
-        i32             size;
-        GLuint          location;
-        GL_ValueVariant value;
-    };
-    auto query_uniforms(const GLenum variable_type) const -> std::unordered_map<std::string, GL_Variable>;
-
-private:
-    std::unordered_map<std::string, GL_Variable> m_uniforms;
-    std::unordered_map<std::string, GL_Variable> m_attributes;
 };
 } // namespace opengl
 } // namespace JadeFrame
