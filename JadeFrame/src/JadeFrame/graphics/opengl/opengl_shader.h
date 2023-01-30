@@ -22,14 +22,16 @@ namespace opengl {
 
 class Shader : public IShader {
 public:
-    Shader(OpenGL_Context& context, const DESC& desc);
-
     Shader() = default;
-    Shader(Shader&&) noexcept = delete;
 
     Shader(const Shader&) = delete;
     auto operator=(const Shader&) -> Shader& = delete;
+
+    Shader(Shader&&) noexcept = delete;
     auto operator=(Shader&&) -> Shader& = delete;
+
+    Shader(OpenGL_Context& context, const DESC& desc);
+
 
     auto bind() const -> void;
     auto unbind() const -> void;

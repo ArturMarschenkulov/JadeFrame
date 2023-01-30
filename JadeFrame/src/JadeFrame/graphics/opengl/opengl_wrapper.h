@@ -21,7 +21,6 @@ namespace JadeFrame {
 
 
 
-
 /*******************
  *	VERTEX ARRAY
  *******************/
@@ -62,14 +61,18 @@ private:
 
 struct OGLW_Shader {
     OGLW_Shader() = default;
-    OGLW_Shader(OGLW_Shader&& other) noexcept = delete;
-    OGLW_Shader(const GLenum type);
-    // OGLW_Shader(const GLenum type, const std::string& source_code);
     ~OGLW_Shader();
 
     OGLW_Shader(const OGLW_Shader&) = delete;
     auto operator=(const OGLW_Shader&) -> OGLW_Shader& = delete;
+
+    OGLW_Shader(OGLW_Shader&& other) noexcept = delete;
     auto operator=(OGLW_Shader&&) -> OGLW_Shader& = delete;
+
+    OGLW_Shader(const GLenum type);
+    // OGLW_Shader(const GLenum type, const std::string& source_code);
+
+
 
 
     auto set_source(const std::string& source_code) -> void;
@@ -92,13 +95,15 @@ private:
  *******************/
 struct OGLW_Program {
     OGLW_Program();
-    OGLW_Program(OGLW_Program&& other) noexcept = delete;
+    ~OGLW_Program();
 
     OGLW_Program(const OGLW_Program&) = delete;
     auto operator=(const OGLW_Program&) -> OGLW_Program& = delete;
+
+    OGLW_Program(OGLW_Program&& other) noexcept = delete;
     auto operator=(OGLW_Program&&) -> OGLW_Program& = delete;
 
-    ~OGLW_Program();
+
 
     auto bind() const -> void;
     auto unbind() const -> void;
@@ -133,12 +138,15 @@ namespace opengl {
 
 class Renderbuffer {
 public:
-    Renderbuffer(const Renderbuffer&) = delete;
-    auto operator=(const Renderbuffer&) noexcept -> Renderbuffer& = delete;
-    auto operator=(Renderbuffer&&) noexcept -> Renderbuffer& = delete;
-
     Renderbuffer();
     ~Renderbuffer();
+
+    Renderbuffer(const Renderbuffer&) = delete;
+    auto operator=(const Renderbuffer&) noexcept -> Renderbuffer& = delete;
+
+    auto operator=(Renderbuffer&&) noexcept -> Renderbuffer& = delete;
+
+
 
     auto store(GLenum internal_format, GLsizei width, GLsizei height) const -> void;
 
@@ -183,14 +191,15 @@ inline auto Renderbuffer::reset(GLuint ID) -> void {
 
 class Framebuffer {
 public:
+    Framebuffer();
+    ~Framebuffer();
+
     Framebuffer(const Framebuffer&) = delete;
     auto operator=(const Framebuffer&) noexcept -> Framebuffer& = delete;
 
-    Framebuffer();
-    Framebuffer(OpenGL_Context& context);
-    ~Framebuffer();
     auto operator=(Framebuffer&&) noexcept -> Framebuffer&;
 
+    Framebuffer(OpenGL_Context& context);
 
     auto attach_texture(const Texture& texture) const -> void;
     auto attach_renderbuffer(const Renderbuffer& renderbuffer) const -> void;
