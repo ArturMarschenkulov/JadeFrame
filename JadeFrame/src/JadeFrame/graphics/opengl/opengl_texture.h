@@ -11,8 +11,6 @@ namespace opengl {
 
 class Texture {
 public:
-    Texture(const Texture&) = delete;
-    auto operator=(const Texture&) noexcept -> Texture& = delete;
     // auto operator=(Texture&&) noexcept -> Texture& = delete;
 
 private:
@@ -21,12 +19,16 @@ private:
 
 public:
     Texture() noexcept;
+    ~Texture();
+
+    Texture(const Texture&) = delete;
+    auto operator=(const Texture&) noexcept -> Texture& = delete;
+
+    Texture(Texture&& other) noexcept;
+    auto operator=(Texture&& other) noexcept -> Texture&;
+
     Texture(OpenGL_Context& context);
     Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_num);
-    Texture(Texture&& other) noexcept;
-
-    auto operator=(Texture&& other) noexcept -> Texture&;
-    ~Texture();
 
     auto resize(u32 width, u32 height, u32 depth) -> void;
     auto bind(u32 unit) const -> void;

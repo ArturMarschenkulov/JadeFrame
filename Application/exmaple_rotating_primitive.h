@@ -33,9 +33,9 @@ auto Example_Rotating_Primitive::on_init() -> void {
     const f32   s = 0.5f;
     VertexData* vertex_data = new VertexData();
     auto        pos_v1 = std::vector<v3>{
-               {+0, +s, 0.0f},
-               {+s, -s, 0.0f},
-               {-s, -s, 0.0f}
+        {+0, +s, 0.0f},
+        {+s, -s, 0.0f},
+        {-s, -s, 0.0f}
     };
     auto pos_v2 = std::vector<v3>{
         {-s, +s, 0.0f},
@@ -58,12 +58,17 @@ auto Example_Rotating_Primitive::on_init() -> void {
         {"v_position", SHADER_TYPE::FLOAT_3},
         {   "v_color", SHADER_TYPE::FLOAT_4},
     };
+    auto mesh_id_0 = m_render_system.register_mesh(m_obj.m_vertex_format, *m_obj.m_vertex_data);
+    m_obj.m_vertex_data_id = mesh_id_0;
+
     ShaderHandle::DESC shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("spirv_test_0");
     shader_handle_desc.vertex_format = m_obj.m_vertex_format;
-    m_material.m_shader_id = m_render_system.register_shader(ShaderHandle(shader_handle_desc));
-    m_material.m_texture_id = 0;
+    auto shader_id = m_render_system.register_shader(ShaderHandle(shader_handle_desc));
+    auto texture_id = 0;
 
+    m_material.m_shader_id = shader_id;
+    m_material.m_texture_id = texture_id;
     m_obj.m_material_handle = &m_material;
 
     VertexData* vertex_data_2 = new VertexData();
@@ -83,6 +88,8 @@ auto Example_Rotating_Primitive::on_init() -> void {
         {"v_position", SHADER_TYPE::FLOAT_3},
         {   "v_color", SHADER_TYPE::FLOAT_4},
     };
+    auto mesh_id_2 = m_render_system.register_mesh(m_obj_2.m_vertex_format, *m_obj_2.m_vertex_data);
+    m_obj_2.m_vertex_data_id = mesh_id_2;
 }
 auto Example_Rotating_Primitive::on_update() -> void {}
 auto Example_Rotating_Primitive::on_draw() -> void {

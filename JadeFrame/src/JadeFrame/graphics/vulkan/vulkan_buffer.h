@@ -33,7 +33,43 @@ public:
         STAGING
     };
     Buffer() = default;
+    ~Buffer() {}
+
+    Buffer(const Buffer&) = delete;
+    auto operator=(const Buffer&) -> Buffer& = delete;
+
+    Buffer(Buffer&& other) noexcept
+        : m_type(other.m_type)
+        , m_size(other.m_size)
+        , m_handle(other.m_handle)
+        , m_memory(other.m_memory)
+        , m_device(other.m_device) {
+
+        // other.m_type = TYPE::UNINIT;
+        other.m_size = 0;
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_memory = VK_NULL_HANDLE;
+        other.m_device = nullptr;
+    }
+    auto operator=(Buffer&& other) -> Buffer& {
+        // m_type = other.m_type;
+        m_size = other.m_size;
+        m_handle = other.m_handle;
+        m_memory = other.m_memory;
+        m_device = other.m_device;
+
+        // other.m_type = TYPE::UNINIT;
+        other.m_size = 0;
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_memory = VK_NULL_HANDLE;
+        other.m_device = nullptr;
+        return *this;
+    }
+
+
     Buffer(const Buffer::TYPE type);
+
+
     auto init(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data, size_t size) -> void;
     auto deinit() -> void;
     auto send(const Matrix4x4& m, VkDeviceSize offset) -> void;
@@ -60,9 +96,19 @@ public:
 
 class Vulkan_GPUMeshData {
 public:
+    Vulkan_GPUMeshData() = default;
+    ~Vulkan_GPUMeshData() = default;
+
+    Vulkan_GPUMeshData(const Vulkan_GPUMeshData&) = delete;
+    auto operator=(const Vulkan_GPUMeshData&) -> Vulkan_GPUMeshData& = delete;
+
+    //Vulkan_GPUMeshData(Vulkan_GPUMeshData&& other);
+    auto operator=(Vulkan_GPUMeshData&& other) -> Vulkan_GPUMeshData&;
+
     Vulkan_GPUMeshData(
-        const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat& vertex_format,
+        const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat vertex_format,
         bool interleaved = true);
+
     auto bind() const -> void;
     auto set_layout(const VertexFormat& vertex_format) -> void;
 
@@ -116,7 +162,7 @@ public:
 
     auto transition_layout(const Image& image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout)
         -> void;
-    auto copy_buffer_to_image(const Buffer buffer, const Image image, v2u32 size) -> void;
+    auto copy_buffer_to_image(const Buffer& buffer, const Image image, v2u32 size) -> void;
 
 public:
     Image                m_image;

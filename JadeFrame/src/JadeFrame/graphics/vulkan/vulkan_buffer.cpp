@@ -199,17 +199,14 @@ auto Buffer::init(const LogicalDevice& device, Buffer::TYPE buffer_type, void* d
 auto Buffer::deinit() -> void {
     vkDestroyBuffer(m_device->m_handle, m_handle, nullptr);
     vkFreeMemory(m_device->m_handle, m_memory, nullptr);
-    
+
     Logger::info("Destroyed Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
 
     m_handle = VK_NULL_HANDLE;
     m_memory = VK_NULL_HANDLE;
-
 }
 
-auto Buffer::send(const Matrix4x4& m, VkDeviceSize offset) -> void {
-    this->send((void*)&m, offset, sizeof(m));
-}
+auto Buffer::send(const Matrix4x4& m, VkDeviceSize offset) -> void { this->send((void*)&m, offset, sizeof(m)); }
 auto Buffer::send(void* data, VkDeviceSize offset, VkDeviceSize size) -> void {
     VkResult result;
 
@@ -262,9 +259,7 @@ auto Buffer::create_buffer(
     JF_ASSERT(result == VK_SUCCESS, "");
 
     result = vkBindBufferMemory(m_device->m_handle, buffer, buffer_memory, 0);
-    {
-        Logger::info("Created Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
-    }
+    { Logger::info("Created Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
 }
 
 auto Buffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size) -> void {
@@ -274,8 +269,7 @@ auto Buffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize 
     const CommandPool&         cp = m_device->m_command_pool;
     std::vector<CommandBuffer> command_buffer = cp.allocate_command_buffers(1);
 
-    command_buffer[0].record([&]
-    {
+    command_buffer[0].record([&] {
         const VkBufferCopy copy_region = {
             .srcOffset = 0,
             .dstOffset = 0,
@@ -305,17 +299,32 @@ auto Buffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize 
     cp.free_command_buffers(command_buffer);
 }
 Vulkan_GPUMeshData::Vulkan_GPUMeshData(
-    const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat& /*vertex_format*/,
+    const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat /*vertex_format*/,
     bool interleaved) {
     const std::vector<f32> data = convert_into_data(vertex_data, interleaved);
+    auto&                  i_data = vertex_data.m_indices;
 
     m_vertex_buffer.init(device, Buffer::TYPE::VERTEX, (void*)data.data(), sizeof(data[0]) * data.size());
     if (vertex_data.m_indices.size() > 0) {
-        m_index_buffer.init(
-            device, Buffer::TYPE::INDEX, (void*)vertex_data.m_indices.data(),
-            sizeof(vertex_data.m_indices[0]) * vertex_data.m_indices.size());
+        m_index_buffer.init(device, Buffer::TYPE::INDEX, (void*)i_data.data(), sizeof(i_data[0]) * i_data.size());
     }
 }
+
+auto Vulkan_GPUMeshData::operator=(Vulkan_GPUMeshData&& other) -> Vulkan_GPUMeshData& {
+    m_vertex_buffer = std::move(other.m_vertex_buffer);
+    m_index_buffer = std::move(other.m_index_buffer);
+
+    m_vertex_buffer = std::move(other.m_vertex_buffer);
+    m_index_buffer = std::move(other.m_index_buffer);
+    m_vertex_format = std::move(other.m_vertex_format);
+
+    return *this;
+}
+
+// Vulkan_GPUMeshData::Vulkan_GPUMeshData(Vulkan_GPUMeshData&& other) {
+//     *this = std::move(other);
+// }
+
 auto Vulkan_GPUMeshData::bind() const -> void {}
 auto Vulkan_GPUMeshData::set_layout(const VertexFormat& /*vertex_format*/) -> void {}
 
@@ -486,8 +495,7 @@ auto Vulkan_Texture::transition_layout(
 
     auto cb = d.m_command_pool.allocate_command_buffers(1);
 
-    cb[0].record([&]
-    {
+    cb[0].record([&] {
         VkImageMemoryBarrier barrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .srcAccessMask = 0,
@@ -540,12 +548,11 @@ auto Vulkan_Texture::transition_layout(
 
     d.m_command_pool.free_command_buffers(cb);
 }
-auto Vulkan_Texture::copy_buffer_to_image(const Buffer buffer, const Image image, v2u32 size) -> void {
+auto Vulkan_Texture::copy_buffer_to_image(const Buffer& buffer, const Image image, v2u32 size) -> void {
     const LogicalDevice& d = *m_device;
 
     auto cb = d.m_command_pool.allocate_command_buffers(1);
-    cb[0].record([&]
-    {
+    cb[0].record([&] {
         const VkBufferImageCopy region = {
             .bufferOffset = 0,
             .bufferRowLength = 0,

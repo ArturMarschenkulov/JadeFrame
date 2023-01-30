@@ -6,6 +6,10 @@
 namespace JadeFrame {
 
 
+auto OpenGL_Context::create_texture() -> opengl::Texture { return opengl::Texture(*this); }
+auto OpenGL_Context::create_texture(void* data, v2u32 size, u32 component_num) -> opengl::Texture {
+    return opengl::Texture(*this, data, size, component_num);
+}
 
 OpenGL_Context::OpenGL_Context(const IWindow* window)
 #ifdef WIN32

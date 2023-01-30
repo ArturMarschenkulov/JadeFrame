@@ -26,24 +26,33 @@ public:
         STAGING
     };
 
-
-    Buffer(const Buffer&) = delete;
-    auto operator=(const Buffer&) -> Buffer& = delete;
-    auto operator=(Buffer&&) -> Buffer& = delete;
-
     Buffer() {
         m_id = 0;
         m_type = TYPE::UNINIT;
         m_context = nullptr;
     }
+    ~Buffer() { this->reset(); }
+
+    Buffer(const Buffer&) = delete;
+    auto operator=(const Buffer&) -> Buffer& = delete;
+
     Buffer(Buffer&& other) noexcept
         : m_id(other.release()) {
 
-        // m_type = other.m_type;
-        // m_context = other.m_context;
-        // other.m_context = nullptr;
+        m_type = other.m_type;
+        m_context = other.m_context;
+
+        other.m_context = nullptr;
     }
-    ~Buffer() { this->reset(); }
+    auto operator=(Buffer&& other) -> Buffer& {
+        m_id = other.release();
+        m_type = other.m_type;
+        m_context = other.m_context;
+
+        other.m_context = nullptr;
+        return *this;
+    }
+
     auto init(OpenGL_Context& context, TYPE type) -> void;
 
     auto reserve(GLuint size_in_bytes) const -> void {
@@ -102,8 +111,19 @@ public:
 
 class GPUMeshData {
 public:
+    // auto operator=(const GPUMeshData& other) -> GPUMeshData&;
+    GPUMeshData() = default;
+    ~GPUMeshData() = default;
+
+    GPUMeshData(const GPUMeshData&) = delete;
+    auto operator=(const GPUMeshData&) -> GPUMeshData& = delete;
+
+    // GPUMeshData(GPUMeshData&& other);
+    auto operator=(GPUMeshData&& other) -> GPUMeshData&;
+
     GPUMeshData(
         OpenGL_Context& context, const VertexData& vertex_data, VertexFormat vertex_format, bool interleaved = true);
+    
     auto bind() const -> void;
     auto set_layout(const VertexFormat& vertex_format) -> void;
 

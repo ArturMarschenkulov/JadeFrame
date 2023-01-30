@@ -1,9 +1,9 @@
 #include <JadeFrame.h>
 
-//#include "example_0.h"
-//#include "example_empty.h"
+// #include "example_0.h"
+// #include "example_empty.h"
 #include "exmaple_rotating_primitive.h"
-//#include "example_texture_quad.h"
+// #include "example_texture_quad.h"
 
 #include <string>
 #include <iostream>
@@ -21,7 +21,6 @@ public:
 
 int main() {
 
-#if 1
 
     JadeFrame::Instance jade_frame;
 
@@ -35,5 +34,4 @@ int main() {
     GApp* app = jade_frame.request_app<GApp>(win_desc);
     jade_frame.run();
     return 0;
-#endif
 }

@@ -65,6 +65,17 @@ auto Buffer::init(OpenGL_Context& context, TYPE type) -> void {
 }
 
 
+auto GPUMeshData::operator=(GPUMeshData&& other) -> GPUMeshData& {
+    m_vertex_buffer = std::move(other.m_vertex_buffer);
+    m_index_buffer = std::move(other.m_index_buffer);
+
+    m_vertex_buffer = std::move(other.m_vertex_buffer);
+    m_vertex_array = std::move(other.m_vertex_array);
+    m_index_buffer = std::move(other.m_index_buffer);
+    m_vertex_format = std::move(other.m_vertex_format);
+
+    return *this;
+}
 GPUMeshData::GPUMeshData(
     OpenGL_Context& context, const VertexData& vertex_data, VertexFormat vertex_format, bool interleaved)
     : m_vertex_buffer()

@@ -8,6 +8,10 @@ OGLW_VertexArray::OGLW_VertexArray() { glCreateVertexArrays(1, &m_ID); }
 OGLW_VertexArray::~OGLW_VertexArray() { this->reset(); }
 OGLW_VertexArray::OGLW_VertexArray(OGLW_VertexArray&& other) noexcept
     : m_ID(other.release()) {}
+auto OGLW_VertexArray::operator=(OGLW_VertexArray&& other) -> OGLW_VertexArray& {
+    m_ID = other.release();
+    return *this;
+}
 auto OGLW_VertexArray::bind() const -> void {
     assert(m_ID != 0);
     glBindVertexArray(m_ID);

@@ -123,24 +123,12 @@ auto Pipeline::init(
     m_render_pass = &render_pass;
     m_descriptor_set_layout = &descriptor_set_layout;
 
-    VkResult result;
-    // Convert GLSL to SPIRV and save it in member variables
-    // TODO: Think whether to extract it to somewhere else
-    {
-        // std::vector<std::future<std::vector<u32>>> spirvs;
-        // spirvs.resize(code.m_modules.size());
-        // for (u32 i = 0; i < code.m_modules.size(); i++) {
-        //     const std::string& str = std::get<std::string>(code.m_modules[i].m_code);
-        //     spirvs[i] = std::async(std::launch::async, string_to_SPIRV, str, code.m_modules[i].m_stage,
-        //     GRAPHICS_API::VULKAN);
-        // }
-        m_code.m_modules.resize(code.m_modules.size());
-        for (u32 i = 0; i < m_code.m_modules.size(); i++) {
-            m_code.m_modules[i].m_stage = code.m_modules[i].m_stage;
-            m_code.m_modules[i].m_code = code.m_modules[i].m_code;
-        }
+    m_code.m_modules.resize(code.m_modules.size());
+    for (u32 i = 0; i < m_code.m_modules.size(); i++) {
+        m_code.m_modules[i].m_stage = code.m_modules[i].m_stage;
+        m_code.m_modules[i].m_code = code.m_modules[i].m_code;
     }
-
+    
     const ReflectedCode reflected_code = reflect(m_code);
 
     /*
@@ -152,7 +140,7 @@ auto Pipeline::init(
 
         set 0: projection and view matrix. point lights.
         set 1:
-        set 2: materials.
+        set 2: materials. textures. samplers.
         set 3: model matrix.
     */
     const std::array<DescriptorSetLayout, 4> set_layouts = extract_descriptor_set_layouts(device, reflected_code);
@@ -185,7 +173,7 @@ auto Pipeline::init(
         .pushConstantRangeCount = static_cast<u32>(vulkan_push_constant_ranges.size()),
         .pPushConstantRanges = vulkan_push_constant_ranges.data(),
     };
-    result = vkCreatePipelineLayout(device.m_handle, &pipeline_layout_info, nullptr, &m_layout);
+    VkResult result = vkCreatePipelineLayout(device.m_handle, &pipeline_layout_info, nullptr, &m_layout);
     if (result != VK_SUCCESS) assert(false);
 
     // Logging the pipeline layout

@@ -434,6 +434,31 @@ auto SystemManager::initialize() -> void {
         m_cpu_name = CPU_brand_string;
     }
     {
+        // The the GPU data without DirectX
+    }
+    {
+        std::array<int, 4> cpu_info = {0};
+        constexpr size_t   buffer_size = sizeof(i32) * cpu_info.size();
+
+        std::array<char, 64> CPU_brand_string = {0};
+
+        // The information you wanna query __cpuid for.
+        // https://learn.microsoft.com/en-us/cpp/intrinsics/cpuid-cpuidex?view=vs-2019
+        constexpr std::array<int, 3> function_ids = {
+            0x8000'0002, // Manufacturer
+            0x8000'0003, // Model       
+            0x8000'0004  // Clockspeed  
+        };
+
+        std::string cpu_name;
+        for (int i = 0; i < function_ids.size(); i++) {
+            __cpuid(cpu_info.data(), function_ids[i]);
+            std::memcpy(CPU_brand_string.data(), cpu_info.data(), buffer_size);
+            cpu_name += std::string(CPU_brand_string.data());
+        }
+        m_cpu_name = cpu_name;
+    }
+    {
         ::PSYSTEM_LOGICAL_PROCESSOR_INFORMATION buffer = nullptr;
         ::DWORD                                 return_length = 0;
         ::BOOL                                  done = FALSE;

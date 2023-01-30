@@ -56,6 +56,7 @@ auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const ->
 //     const GLenum res = buffer.check_status();
 //     if (res != GL_FRAMEBUFFER_COMPLETE) assert(false);
 // }
+#define JF_FB 1
 OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     : m_context(window) {
     m_system = &system;
@@ -66,7 +67,7 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
         fb.m_framebuffer.bind();
 
         const v2u32 size = m_context.m_state.viewport[1];
-        fb.m_framebuffer_texture = opengl::Texture(m_context);
+        fb.m_framebuffer_texture = m_context.create_texture();
         fb.m_framebuffer_texture.bind(0);
 
         fb.m_framebuffer_texture.set_texture_image(0, GL_RGB, size, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -88,6 +89,8 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
             assert(false);
         }
     }
+    assert(fb.m_framebuffer.m_ID != 0);
+    // assert(fb.m_framebuffer_texture.m_ID != 0);
 
 
 
@@ -104,39 +107,23 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     ShaderHandle::DESC shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
     shader_handle_desc.vertex_format = layout;
-    fb.m_shader_handle_fb = new ShaderHandle(shader_handle_desc);
-    fb.m_shader_handle_fb->m_api = GRAPHICS_API::OPENGL;
-    fb.m_shader_handle_fb->init(&m_context);
+#if JF_FB
+    fb.m_shader_id_fb = m_system->register_shader(shader_handle_desc);
+#endif
+    // fb.m_shader_handle_fb = new ShaderHandle(shader_handle_desc);
+    // fb.m_shader_handle_fb->m_api = GRAPHICS_API::OPENGL;
+    // fb.m_shader_handle_fb->init(&m_context);
 }
 
 auto OpenGL_Renderer::present() -> void { m_context.swap_buffers(); }
 auto OpenGL_Renderer::submit(const Object& obj) -> void {
-
-    if (obj.m_GPU_mesh_data.m_is_initialized == false) {
-        VertexFormat vertex_format;
-        // In case there is no buffer layout provided use a default one
-        if (obj.m_vertex_format.m_attributes.size() == 0) {
-            const VertexFormat vf = {
-                {     "v_position", SHADER_TYPE::FLOAT_3},
-                {        "v_color", SHADER_TYPE::FLOAT_4},
-                {"v_texture_coord", SHADER_TYPE::FLOAT_2},
-                {       "v_normal", SHADER_TYPE::FLOAT_3},
-            };
-            vertex_format = vf;
-        } else {
-            vertex_format = obj.m_vertex_format;
-        }
-
-        obj.m_GPU_mesh_data.m_handle = new opengl::GPUMeshData(m_context, *obj.m_vertex_data, vertex_format);
-        obj.m_GPU_mesh_data.m_is_initialized = true;
-    }
-
 
     const OpenGL_RenderCommand command = {
         .transform = &obj.m_transform,
         .vertex_data = obj.m_vertex_data,
         .material_handle = obj.m_material_handle,
         .m_GPU_mesh_data = &obj.m_GPU_mesh_data,
+        .m_GPU_mesh_data_id = obj.m_vertex_data_id,
     };
     m_render_commands.push_back(command);
 }
@@ -144,7 +131,7 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
 
 auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
-#define JF_FB 1
+
 #if JF_FB
     fb.m_framebuffer.bind();
 #endif
@@ -159,11 +146,12 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         const OpenGL_RenderCommand& command = m_render_commands[i];
         const MaterialHandle&       mh = *command.material_handle;
 
-        auto&                      sh = m_system->m_registered_shaders[mh.m_shader_id];
+        auto& sh = m_system->m_registered_shaders[mh.m_shader_id];
+        auto& mm = m_registered_meshes[command.m_GPU_mesh_data_id];
+
         const opengl::Shader*      p_shader = static_cast<opengl::Shader*>(sh.m_handle);
         const VertexData*          p_mesh = command.vertex_data;
-        const opengl::GPUMeshData* p_vertex_array =
-            static_cast<opengl::GPUMeshData*>(command.m_GPU_mesh_data->m_handle);
+        const opengl::GPUMeshData* p_vertex_array = &mm;
 
         p_shader->bind();
         if (mh.m_texture_id != 0) {
@@ -185,7 +173,9 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     m_context.m_state.set_depth_test(false);
     {
 
-        static_cast<opengl::Shader*>(fb.m_shader_handle_fb->m_handle)->bind();
+        // static_cast<opengl::Shader*>(fb.m_shader_handle_fb->m_handle)->bind();
+        auto& sh = m_system->m_registered_shaders[fb.m_shader_id_fb];
+        static_cast<opengl::Shader*>(sh.m_handle)->bind();
         fb.m_framebuffer_texture.bind(0);
         fb.m_framebuffer_rect->m_vertex_array.bind();
 

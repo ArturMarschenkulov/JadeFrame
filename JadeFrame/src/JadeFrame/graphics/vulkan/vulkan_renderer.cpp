@@ -52,11 +52,6 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     vulkan::RenderPass& render_pass = d.m_swapchain.m_render_pass;
 
-    const u64 alignment = m_context.m_instance.m_physical_device.m_properties.limits.minUniformBufferOffsetAlignment;
-    const u64 block_size = sizeof(Matrix4x4);
-    const u64 aligned_block_size = alignment > 0 ? (block_size + alignment - 1) & ~(alignment - 1) : block_size;
-
-
     d.wait_for_fence(curr_fence, VK_TRUE, UINT64_MAX);
     d.m_present_image_index = d.m_swapchain.acquire_next_image(&available_semaphore, nullptr);
 
@@ -71,6 +66,18 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     // Per Frame ubo
     d.m_ub_cam.send(view_projection, 0);
 
+
+    // const u64 alignment = m_context.m_instance.m_physical_device.m_properties.limits.minUniformBufferOffsetAlignment;
+    // const u64 block_size = sizeof(Matrix4x4);
+    // const u64 aligned_block_size = alignment > 0 ? (block_size + alignment - 1) & ~(alignment - 1) : block_size;
+
+    const u64 aligned_block_size = [&]() {
+        const u64 alignment =
+            m_context.m_instance.m_physical_device.m_properties.limits.minUniformBufferOffsetAlignment;
+        const u64 block_size = sizeof(Matrix4x4);
+        const u64 aligned_block_size = alignment > 0 ? (block_size + alignment - 1) & ~(alignment - 1) : block_size;
+        return aligned_block_size;
+    }();
     // Update ubo buffer and descriptor set when the amount of render commands changes
     if (m_render_commands.size() != 0 && m_render_commands.size() * aligned_block_size != d.m_ub_tran.m_size) {
         d.m_ub_tran.resize(m_render_commands.size() * aligned_block_size);

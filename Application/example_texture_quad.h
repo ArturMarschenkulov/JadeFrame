@@ -42,8 +42,6 @@ auto Example_Texture_Quad::on_init() -> void {
         RGBAColor::solid_black().set_opacity(0.1f)  //
     };
     vertex_data->m_normals = {};
-
-
     m_obj.m_vertex_data = vertex_data;
 
     m_obj.m_vertex_format = VertexFormat{
@@ -51,16 +49,24 @@ auto Example_Texture_Quad::on_init() -> void {
         {        "v_color", SHADER_TYPE::FLOAT_4},
         {"v_texture_coord", SHADER_TYPE::FLOAT_2},
     };
+    auto mesh_id = m_render_system.register_mesh(m_obj.m_vertex_format, *m_obj.m_vertex_data);
+    m_obj.m_vertex_data_id = mesh_id;
+
+
     ShaderHandle::DESC shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("with_texture_0");
     shader_handle_desc.vertex_format = m_obj.m_vertex_format;
-    m_material.m_shader_id = m_render_system.register_shader(std::move(ShaderHandle(shader_handle_desc)));
-
+    auto shader_id = m_render_system.register_shader(std::move(ShaderHandle(shader_handle_desc)));
 
     auto texture_path = "C:\\dev\\proj\\JadeFrame\\JadeFrame\\resource\\wall.jpg";
-    m_material.m_texture_id = m_render_system.register_texture(std::move(TextureHandle(texture_path)));
+    auto texture_id = m_render_system.register_texture(std::move(TextureHandle(texture_path)));
+    
+    
 
+    m_material.m_shader_id = shader_id;
+    m_material.m_texture_id = texture_id;
     m_obj.m_material_handle = &m_material;
+
     m_obj.m_transform = Matrix4x4{1.0f};
 }
 auto Example_Texture_Quad::on_update() -> void {}

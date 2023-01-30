@@ -29,11 +29,12 @@ class OGLW_VertexArray {
 public:
     OGLW_VertexArray();
     ~OGLW_VertexArray();
-    OGLW_VertexArray(OGLW_VertexArray&& other) noexcept;
 
     OGLW_VertexArray(OGLW_VertexArray&) = delete;
     auto operator=(const OGLW_VertexArray&) -> OGLW_VertexArray& = delete;
-    auto operator=(OGLW_VertexArray&&) -> OGLW_VertexArray& = delete;
+
+    OGLW_VertexArray(OGLW_VertexArray&& other) noexcept;
+    auto operator=(OGLW_VertexArray&&) -> OGLW_VertexArray&;
 
 
 

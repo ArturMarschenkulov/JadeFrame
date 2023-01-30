@@ -43,6 +43,7 @@ struct OpenGL_RenderCommand {
     const VertexData*        vertex_data = nullptr;
     MaterialHandle*          material_handle = nullptr;
     const GPUDataMeshHandle* m_GPU_mesh_data = nullptr;
+    const u32                m_GPU_mesh_data_id = 0;
 };
 class OpenGL_CommandBuffer {
 public:
@@ -79,13 +80,16 @@ public:
     RenderSystem*                            m_system = nullptr;
     mutable std::deque<OpenGL_RenderCommand> m_render_commands;
 
+    std::map<u32, opengl::GPUMeshData> m_registered_meshes;
+
     struct FB {
         Object               m_fb;
         opengl::Texture      m_framebuffer_texture;
         opengl::Renderbuffer m_framebuffer_renderbuffer;
         opengl::Framebuffer  m_framebuffer;
         opengl::GPUMeshData* m_framebuffer_rect;
-        ShaderHandle*        m_shader_handle_fb;
+        // ShaderHandle*        m_shader_handle_fb;
+        u32 m_shader_id_fb;
     } fb;
 };
 static_assert(is_renderer<OpenGL_Renderer>);

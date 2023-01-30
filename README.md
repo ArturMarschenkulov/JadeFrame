@@ -4,6 +4,11 @@ JadeFrame is a C++ Graphics Framework. The point of project is to understand low
 
 One of the main goals is to use as few external code as possible.
 
+Design goals:
+- as little external code as possible
+- clear code
+- performace is not critical
+- own abstractions
 # Building and running it
 The most generic way to build the project is:
 ```
@@ -43,6 +48,8 @@ The whole project should conform to the following naming convention:
 - Member variables should be in `snake_case`, but with a `m_` prefix.
 - Functions and member functions should be in `snake_case`.
 - For more complex classes, one should use Descriptor structs on constructors.
+
+That is very useful, because in case there is no syntax highlighting available for whatever reason, one can always know the kind of the symbol.
 ## Coding convention
 - trailing return type
 - use of own datatypes, especially primitive ones `i32`, `u8`, etc.

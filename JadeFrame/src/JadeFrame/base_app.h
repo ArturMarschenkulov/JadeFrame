@@ -10,7 +10,7 @@
 #include "platform/linux/linux_time_manager.h"
 #include "platform/linux/linux_window.h"
 #endif
-
+#include "JadeFrame/utils/logger.h"
 #include "JadeFrame/math/vec.h"
 #include "graphics/camera.h"
 #include "graphics/graphics_shared.h"
@@ -47,14 +47,14 @@ class IRenderer;
 
 
 /*
-        This is the storage of various resources which should be accessible
-   "globally" in JadeFrame.
-        TODO: Think whether std::unordered_map is the best way to store it.
-                Technically, it shoud be fine as accessing should not be a
-   frequent thing.
+    This is the storage of various resources which should be accessible
+    "globally" in JadeFrame.
+    TODO: Think whether std::unordered_map is the best way to store it.
+        Technically, it shoud be fine as accessing should not be a
+        frequent thing.
 
-        This struct should be used for all "default" stuff and should be able to
-   have custom stuff
+    This struct should be used for all "default" stuff and should be able to
+    have custom stuff
 */
 struct ResourceStorage {
 public:
@@ -83,9 +83,11 @@ public:
         const std::string& material_name, const std::string& shader_name, const std::string& texture_name) -> void {
 
         if (m_shader_handles.find(shader_name) != m_shader_handles.end()) {
-            m_material_handles[material_name].m_shader_handle = &m_shader_handles[shader_name];
+            //m_material_handles[material_name].m_shader_handle = &m_shader_handles[shader_name];
             if (m_texture_handles.find(texture_name) != m_texture_handles.end()) {
-                m_material_handles[material_name].m_texture_handle = &m_texture_handles[texture_name];
+                Logger::err("shoudln#t be reachable!!!!!!");
+                assert(false);
+                // m_material_handles[material_name].m_texture_handle = &m_texture_handles[texture_name];
                 return;
             } else if (texture_name == "") {
                 return;
@@ -142,8 +144,9 @@ public:
     std::map<WindowID, IWindow*> m_windows;
     IWindow*                     m_current_window_p = nullptr;
 
-    IRenderer* m_renderer = nullptr;
-    Camera     m_camera;
+    RenderSystem m_render_system;
+
+    Camera m_camera;
 
     GUI m_gui;
 
@@ -183,6 +186,12 @@ public:
         return (T*)m_apps.back();
     }
 
+    auto register_app(BaseApp* app) -> void {
+        // For now only one app is allowed
+        assert(m_apps.size() == 0);
+        m_apps.emplace_back(app);
+    }
+
 public:
     CompilerInfo m_compiler_info;
     std::string  m_platform_info;
@@ -192,7 +201,7 @@ public:
     SystemManager m_system_manager;
     InputManager  m_input_manager;
 
-    std::deque<BaseApp*> m_apps;
+    std::deque<BaseApp*> m_apps; // TODO: Consider whether there should be support for multiple apps
     // std::deque<BaseApp> m_apps;
 
     BaseApp* m_current_app_p = nullptr;
@@ -203,30 +212,3 @@ public:
 
 
 } // namespace JadeFrame
-
-/*
-        ********************
-        *
-        *
-        CLIENT PLACEHOLDER
-        *
-        *
-        ********************
-*/
-
-// namespace Test1 {
-// struct TestApp0 : public BaseApp {
-//	TestApp0(const std::string& title, const Vec2& size, const Vec2&
-// position = { -1, -1 }); 	virtual ~TestApp0() = default;
-//
-//	virtual auto on_init() -> void override;
-//	virtual auto on_update() -> void override;
-//	virtual auto on_draw() -> void override;
-//
-// public:
-//	ResourceStorage m_resources;
-//	std::deque<Mesh> m_meshes;
-//	std::vector<Object> m_objs;
-// };
-// }
-// using TestApp = Test1::TestApp0;

@@ -35,9 +35,10 @@ public:
     // virtual auto main_loop() -> void override;
 
 public:
-    Vulkan_Context                           m_context;
-    RenderSystem*                            m_system = nullptr;
-    mutable std::deque<Vulkan_RenderCommand> m_render_commands;
+    Vulkan_Context                            m_context;
+    RenderSystem*                             m_system = nullptr;
+    mutable std::deque<Vulkan_RenderCommand>  m_render_commands;
+    std::map<u32, vulkan::Vulkan_GPUMeshData> m_registered_meshes;
 
 private: // NOTE: probably temporary
     RGBAColor m_clear_color;

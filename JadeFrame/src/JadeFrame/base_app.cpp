@@ -14,18 +14,15 @@
 #include "JadeFrame/math/math.h"
 #include "JadeFrame/ptr/ptr.h"
 
-#include "graphics/opengl/opengl_renderer.h"
-#include "graphics/vulkan/vulkan_renderer.h"
-
 #include <utility>
 
 namespace JadeFrame {
 
 
 auto control_camera(Camera* self) -> void {
+    const f32           velocity = 0.1f;
+    const InputManager& i = Instance::get_singleton()->m_input_manager;
     if (self->m_mode == Camera::MODE::PERSPECTIVE) {
-        const f32           velocity = 0.1f;
-        const InputManager& i = Instance::get_singleton()->m_input_manager;
         if (i.is_key_down(KEY::E)) self->m_position += self->m_up * velocity;
         if (i.is_key_down(KEY::Q)) self->m_position -= self->m_up * velocity;
 
@@ -55,6 +52,21 @@ auto control_camera(Camera* self) -> void {
 
         self->m_right = self->m_forward.cross(self->m_world_up).get_normal();
         self->m_up = self->m_right.cross(self->m_forward).get_normal();
+    } else if (self->m_mode == Camera::MODE::ORTHOGRAPHIC) {
+        if (i.is_key_down(KEY::E)) self->m_position += self->m_up * velocity;
+        if (i.is_key_down(KEY::Q)) self->m_position -= self->m_up * velocity;
+
+        if (i.is_key_down(KEY::A)) self->m_position -= self->m_right * velocity;
+        if (i.is_key_down(KEY::D)) self->m_position += self->m_right * velocity;
+
+        if (i.is_key_down(KEY::S)) self->m_position -= self->m_forward * velocity;
+        if (i.is_key_down(KEY::W)) self->m_position += self->m_forward * velocity;
+
+        auto sensitivity = 10;
+        if (i.is_key_down(KEY::LEFT)) self->m_pitch += velocity * sensitivity;
+        if (i.is_key_down(KEY::RIGHT)) self->m_pitch -= velocity * sensitivity;
+        if (i.is_key_down(KEY::UP)) self->m_yaw += velocity * sensitivity;
+        if (i.is_key_down(KEY::DOWN)) self->m_yaw -= velocity * sensitivity;
     }
 }
 
@@ -193,41 +205,40 @@ auto to_double(const char* str) noexcept -> Result<double, std::errc> {
     // Returns a value
     return result;
 }
+
 Instance::Instance() {
     Logger::init();
     Logger::info("Logger initialized");
     Logger::info("JadeFrame is starting...");
-
-    auto ci = m_compiler_info = get_compiler_info();
-    auto pi = m_platform_info = get_plattform_info();
-    auto ai = m_architecture_info = get_architecture_info();
-    auto li = m_cpp_version = get_cpp_version();
-
-    Logger::info("Architecture: {}", ai);
-    Logger::info("Plattform: {}", pi);
-    Logger::info("Compiler: {} {}.{}.{}", ci.name, ci.version.major, ci.version.minor, ci.version.patch);
-    Logger::info("C++ Version: {}", li);
-
-    // test_modules();
-
-    // cpp::result<int, const char*> r;
-
-
-
-    // ptr::Scope<i32> p_to_100 = ptr::make_scope<i32>(100);
-    // auto            o = ptr::make_scope_noexcept<i32>(100); // Option<ptr::Scope<i32>>
-
-    // ptr::Scope<i32> p = std::move(p_to_100);
-
-    if (m_singleton == nullptr) {
-        m_singleton = this;
-        m_system_manager.initialize();
-        // m_input_manager.initialize();
-
-        m_system_manager.log();
-    } else {
+    if (m_singleton != nullptr) {
+        Logger::err("Instance already exists");
         assert(false);
+        return;
     }
+
+    const CompilerInfo& ci = m_compiler_info = get_compiler_info();
+    const std::string&  pi = m_platform_info = get_plattform_info();
+    const std::string&  ai = m_architecture_info = get_architecture_info();
+    const u32&          li = m_cpp_version = get_cpp_version();
+
+    Logger::info("Detected Plattform is '{}'", pi);
+    Logger::info("Detected Architecture is '{}'", ai);
+    Logger::info(
+        "Detected Compiler is '{}' with version '{}.{}.{}'", ci.name, ci.version.major, ci.version.minor,
+        ci.version.patch);
+    Logger::info("Detected C++ Version is '{}'", li);
+
+    // Logger::info("Architecture: {}", ai);
+    // Logger::info("Plattform   : {}", pi);
+    // Logger::info("Compiler    : {} {}.{}.{}", ci.name, ci.version.major, ci.version.minor, ci.version.patch);
+    // Logger::info("C++ Version : {}", li);
+
+
+    m_singleton = this;
+    m_system_manager.initialize();
+    // m_input_manager.initialize();
+
+    m_system_manager.log();
 }
 auto Instance::run() -> void {
     Logger::info("App Running");
@@ -243,35 +254,30 @@ auto Instance::run() -> void {
 //**************************************************************
 
 BaseApp::BaseApp(const DESC& desc) {
-    m_time_manager.initialize();
     Logger::info("Creating Window....");
-    IWindow::Desc win_desc;
-    win_desc.title = desc.title;
-    win_desc.size = desc.size;
-    win_desc.position = desc.position;
+    IWindow::Desc win_desc = {
+        .title = desc.title,
+        .size = desc.size,
+        .position = desc.position,
+    };
     auto i = Instance::get_singleton();
     m_windows[0] = i->m_system_manager.request_window(win_desc);
     m_current_window_p = m_windows[0];
 
+    Logger::info("Creating Renderer");
     GRAPHICS_API api = GRAPHICS_API::UNDEFINED;
     api = GRAPHICS_API::VULKAN;
     api = GRAPHICS_API::OPENGL;
+    m_render_system.init(api, m_windows[0]);
+    // m_render_system = m_system_manager.request_render_system(api, m_windows[0]);
 
-    Logger::info("Creating Renderer");
+
     const std::string& title = m_current_window_p->get_title();
-    switch (api) {
-        case GRAPHICS_API::OPENGL: {
-            m_renderer = new OpenGL_Renderer(m_windows[0]);
-            m_current_window_p->set_title(title + " OpenGL");
 
-        } break;
-        case GRAPHICS_API::VULKAN: {
-            m_renderer = new Vulkan_Renderer(m_windows[0]);
-            m_current_window_p->set_title(title + " Vulkan");
-        } break;
-        default: assert(false);
-    }
-    m_gui.init(m_current_window_p, api);
+    std::string new_title = title + " - " + to_string(api);
+
+    m_current_window_p->set_title(new_title);
+    // m_gui.init(m_current_window_p, api);
 }
 inline auto to_string(const Matrix4x4& m) -> std::string {
     std::string result;
@@ -285,30 +291,34 @@ inline auto to_string(const Matrix4x4& m) -> std::string {
     return result;
 }
 auto BaseApp::start() -> void {
+    // Before `this->on_init();` come all the default stuff
+    // The client can later override those in `this->on_init();`
     m_camera.othographic_mode(0, m_windows[0]->get_size().x, m_windows[0]->get_size().y, 0, -1, 1);
-
+    SystemManager& platform = Instance::get_singleton()->m_system_manager;
+    platform.set_target_FPS(60);
     this->on_init();
-    // m_renderer->main_loop();
 
-    i->m_system_manager.set_target_FPS(60);
+    IRenderer* renderer = m_render_system.m_renderer;
     while (m_is_running) {
-        const f64 delta_time = i->m_system_manager.calc_elapsed();
+        const f64 delta_time = platform.calc_elapsed();
         this->on_update();
+
         if (m_current_window_p->get_window_state() != IWindow::WINDOW_STATE::MINIMIZED) {
-            m_renderer->clear_background();
-            m_gui.new_frame();
+            renderer->clear_background();
+            // m_gui.new_frame();
 
             this->on_draw();
             const Matrix4x4& view_projection = m_camera.get_view_projection_matrix();
-            m_renderer->render(view_projection);
+            control_camera(&m_camera);
+            renderer->render(view_projection);
 
-            m_gui.render();
+            // m_gui.render();
 
-            m_renderer->present();
+            renderer->present();
             m_tick += 1;
         }
         this->poll_events();
-        i->m_system_manager.frame_control(delta_time);
+        platform.frame_control(delta_time);
     }
 }
 auto BaseApp::poll_events() -> void {
@@ -457,128 +467,128 @@ private:
     bool m_is_left;
 };
 
-struct Error {
-    std::error_code type;
-    VkResult        vk_result = VK_SUCCESS; // optional error value if a vulkan call failed
-};
-template<typename T>
-class Result {
-public:
-    Result(const T& value)
-        : m_value{value}
-        , m_init{true} {}
+// struct Error {
+//     std::error_code type;
+//     VkResult        vk_result = VK_SUCCESS; // optional error value if a vulkan call failed
+// };
+// template<typename T>
+// class Result {
+// public:
+//     Result(const T& value)
+//         : m_value{value}
+//         , m_init{true} {}
 
-    Result(T&& value)
-        : m_value{std::move(value)}
-        , m_init{true} {}
+//     Result(T&& value)
+//         : m_value{std::move(value)}
+//         , m_init{true} {}
 
-    Result(Error error)
-        : m_error{error}
-        , m_init{false} {}
+//     Result(Error error)
+//         : m_error{error}
+//         , m_init{false} {}
 
-    Result(std::error_code error_code, VkResult result = VK_SUCCESS)
-        : m_error{error_code, result}
-        , m_init{false} {}
+//     Result(std::error_code error_code, VkResult result = VK_SUCCESS)
+//         : m_error{error_code, result}
+//         , m_init{false} {}
 
-    ~Result() { destroy(); }
-    Result(Result const& expected)
-        : m_init(expected.m_init) {
-        if (m_init) {
-            new (&m_value) T{expected.m_value};
-        } else {
-            m_error = expected.m_error;
-        }
-    }
-    Result(Result&& expected)
-        : m_init(expected.m_init) {
-        if (m_init) {
-            new (&m_value) T{std::move(expected.m_value)};
-        } else {
-            m_error = std::move(expected.m_error);
-        }
-        expected.destroy();
-    }
+//     ~Result() { destroy(); }
+//     Result(Result const& expected)
+//         : m_init(expected.m_init) {
+//         if (m_init) {
+//             new (&m_value) T{expected.m_value};
+//         } else {
+//             m_error = expected.m_error;
+//         }
+//     }
+//     Result(Result&& expected)
+//         : m_init(expected.m_init) {
+//         if (m_init) {
+//             new (&m_value) T{std::move(expected.m_value)};
+//         } else {
+//             m_error = std::move(expected.m_error);
+//         }
+//         expected.destroy();
+//     }
 
-    Result& operator=(const T& expect) {
-        destroy();
-        m_init = true;
-        new (&m_value) T{expect};
-        return *this;
-    }
-    Result& operator=(T&& expect) {
-        destroy();
-        m_init = true;
-        new (&m_value) T{std::move(expect)};
-        return *this;
-    }
-    Result& operator=(const Error& error) {
-        destroy();
-        m_init = false;
-        m_error = error;
-        return *this;
-    }
-    Result& operator=(Error&& error) {
-        destroy();
-        m_init = false;
-        m_error = error;
-        return *this;
-    }
+//     Result& operator=(const T& expect) {
+//         destroy();
+//         m_init = true;
+//         new (&m_value) T{expect};
+//         return *this;
+//     }
+//     Result& operator=(T&& expect) {
+//         destroy();
+//         m_init = true;
+//         new (&m_value) T{std::move(expect)};
+//         return *this;
+//     }
+//     Result& operator=(const Error& error) {
+//         destroy();
+//         m_init = false;
+//         m_error = error;
+//         return *this;
+//     }
+//     Result& operator=(Error&& error) {
+//         destroy();
+//         m_init = false;
+//         m_error = error;
+//         return *this;
+//     }
 
-    const T* operator->() const {
-        assert(m_init);
-        return &m_value;
-    }
-    T* operator->() {
-        assert(m_init);
-        return &m_value;
-    }
-    const T& operator*() const& {
-        assert(m_init);
-        return m_value;
-    }
-    T& operator*() & {
-        assert(m_init);
-        return m_value;
-    }
-    T&& operator*() && {
-        assert(m_init);
-        return std::move(m_value);
-    }
-    const T& value() const& {
-        assert(m_init);
-        return m_value;
-    }
-    T& value() & {
-        assert(m_init);
-        return m_value;
-    }
-    const T&& value() const&& {
-        assert(m_init);
-        return std::move(m_value);
-    }
-    T&& value() && {
-        assert(m_init);
-        return std::move(m_value);
-    }
+//     const T* operator->() const {
+//         assert(m_init);
+//         return &m_value;
+//     }
+//     T* operator->() {
+//         assert(m_init);
+//         return &m_value;
+//     }
+//     const T& operator*() const& {
+//         assert(m_init);
+//         return m_value;
+//     }
+//     T& operator*() & {
+//         assert(m_init);
+//         return m_value;
+//     }
+//     T&& operator*() && {
+//         assert(m_init);
+//         return std::move(m_value);
+//     }
+//     const T& value() const& {
+//         assert(m_init);
+//         return m_value;
+//     }
+//     T& value() & {
+//         assert(m_init);
+//         return m_value;
+//     }
+//     const T&& value() const&& {
+//         assert(m_init);
+//         return std::move(m_value);
+//     }
+//     T&& value() && {
+//         assert(m_init);
+//         return std::move(m_value);
+//     }
 
-    std::error_code error() const {
-        assert(!m_init);
-        return m_error.type;
-    }
+//     std::error_code error() const {
+//         assert(!m_init);
+//         return m_error.type;
+//     }
 
-    bool     has_value() const { return m_init; }
-    explicit operator bool() const { return m_init; }
+//     bool     has_value() const { return m_init; }
+//     explicit operator bool() const { return m_init; }
 
-private:
-    void destroy() {
-        if (m_init) { m_value.~T(); }
-    }
-    union {
-        T     m_value;
-        Error m_error;
-    };
-    bool m_init;
-};
+// private:
+//     void destroy() {
+//         if (m_init) { m_value.~T(); }
+//     }
+//     union {
+//         T     m_value;
+//         Error m_error;
+//     };
+//     bool m_init;
+// };
 
 constexpr static auto hash(const char* str) -> size_t {
     const i64 p = 131;

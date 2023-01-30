@@ -105,15 +105,15 @@ add_dependencies(${PROJECT_NAME}
 )
 
 set(ADDITIONAL_LIBRARY_DEPENDENCIES
-    "JadeFrame"
+    JadeFrame
 )
 target_link_libraries(${PROJECT_NAME} 
     PRIVATE 
-        "${ADDITIONAL_LIBRARY_DEPENDENCIES}"
+        ${ADDITIONAL_LIBRARY_DEPENDENCIES}
 )
 
 target_link_directories(${PROJECT_NAME} 
     PRIVATE
-        "${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/"
+        ${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/
 )
 

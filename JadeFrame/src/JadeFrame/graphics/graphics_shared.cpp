@@ -135,7 +135,7 @@ auto RenderSystem::register_texture(TextureHandle&& texture) -> u32 {
         } break;
         case GRAPHICS_API::VULKAN: {
             Vulkan_Renderer* renderer = static_cast<Vulkan_Renderer*>(m_renderer);
-            auto ld = &renderer->m_context.m_instance.m_logical_device;
+            auto             ld = &renderer->m_context.m_instance.m_logical_device;
             m_registered_textures[id].m_api = m_api;
             m_registered_textures[id].init(ld);
         } break;
@@ -159,6 +159,38 @@ auto RenderSystem::register_shader(ShaderHandle&& texture) -> u32 {
             m_registered_shaders[id].m_api = m_api;
             auto ld = &renderer->m_context.m_instance.m_logical_device;
             m_registered_shaders[id].init(ld);
+        } break;
+        default: assert(false);
+    }
+    u32 old_id = id;
+    id++;
+    return old_id;
+}
+auto RenderSystem::register_mesh(const VertexFormat& format, const VertexData& data) -> u32 {
+    static u32   id = 1;
+    VertexFormat vertex_format;
+    // In case there is no buffer layout provided use a default one
+    if (format.m_attributes.size() == 0) {
+        const VertexFormat vf = {
+            {     "v_position", SHADER_TYPE::FLOAT_3},
+            {        "v_color", SHADER_TYPE::FLOAT_4},
+            {"v_texture_coord", SHADER_TYPE::FLOAT_2},
+            {       "v_normal", SHADER_TYPE::FLOAT_3},
+        };
+        vertex_format = vf;
+    } else {
+        vertex_format = format;
+    }
+    switch (m_api) {
+        case GRAPHICS_API::OPENGL: {
+
+            OpenGL_Renderer* renderer = static_cast<OpenGL_Renderer*>(m_renderer);
+            renderer->m_registered_meshes[id] = opengl::GPUMeshData(renderer->m_context, data, format);
+        } break;
+        case GRAPHICS_API::VULKAN: {
+            Vulkan_Renderer* renderer = static_cast<Vulkan_Renderer*>(m_renderer);
+            renderer->m_registered_meshes[id] =
+                vulkan::Vulkan_GPUMeshData{renderer->m_context.m_instance.m_logical_device, data, format};
         } break;
         default: assert(false);
     }

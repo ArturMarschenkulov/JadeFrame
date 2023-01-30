@@ -24,6 +24,19 @@ enum class GRAPHICS_API {
     SOFTWARE,
     TERMINAL,
 };
+inline auto to_string(GRAPHICS_API api) -> const char* {
+    switch (api) {
+        case GRAPHICS_API::UNDEFINED: return "UNDEFINED";
+        case GRAPHICS_API::OPENGL: return "OpenGL";
+        case GRAPHICS_API::VULKAN: return "Vulkan";
+        case GRAPHICS_API::D3D11: return "D3D11";
+        case GRAPHICS_API::D3D12: return "D3D12";
+        case GRAPHICS_API::METAL: return "Metal";
+        case GRAPHICS_API::SOFTWARE: return "Software";
+        case GRAPHICS_API::TERMINAL: return "Terminal";
+        default: assert(false); return "UNKNOWN";
+    }
+}
 enum class SHADING_LANGUAGE {
     // High level
     GLSL,
@@ -71,7 +84,6 @@ struct GPUDataMeshHandle {
 using ssss = const char*;
 template<typename T>
 concept is_renderer = requires(T& t) {
-
     { t.present() } -> std::same_as<void>;
     { t.clear_background() } -> std::same_as<void>;
     { t.render(std::declval<Matrix4x4>()) } -> std::same_as<void>;
@@ -175,9 +187,15 @@ class VertexFormat {
 public:
 public:
     VertexFormat() = default;
-    VertexFormat(const std::initializer_list<VertexAttribute>& attributes);
+
     VertexFormat(const VertexFormat&) = default;
     auto operator=(const VertexFormat&) -> VertexFormat& = default;
+
+    VertexFormat(VertexFormat&&) = default;
+    auto operator=(VertexFormat&&) -> VertexFormat& = default;
+
+    VertexFormat(const std::initializer_list<VertexAttribute>& attributes);
+
     auto calculate_offset_and_stride(std::vector<VertexAttribute>& attributes) -> void;
 
     std::vector<VertexAttribute> m_attributes;
@@ -202,6 +220,7 @@ struct ShaderHandle;
 class VertexData;
 class Object {
 public:
+    u32                       m_vertex_data_id;
     VertexData*               m_vertex_data;
     VertexFormat              m_vertex_format;
     MaterialHandle*           m_material_handle;
@@ -213,21 +232,21 @@ public:
 class RenderSystem {
 public:
     RenderSystem() = default;
+    ~RenderSystem();
+
     RenderSystem(const RenderSystem&) = delete;
-
     auto operator=(const RenderSystem&) -> RenderSystem& = delete;
-
-
 
     RenderSystem(RenderSystem&&);
     auto operator=(RenderSystem&&) -> RenderSystem&;
 
     RenderSystem(GRAPHICS_API api, IWindow* window);
+
     auto init(GRAPHICS_API api, IWindow* window) -> void;
-    ~RenderSystem();
 
     auto register_texture(TextureHandle&& handle) -> u32;
     auto register_shader(ShaderHandle&& handle) -> u32;
+    auto register_mesh(const VertexFormat& format, const VertexData& data) -> u32;
 
 public:
     GRAPHICS_API m_api;

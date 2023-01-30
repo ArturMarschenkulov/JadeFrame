@@ -1,6 +1,7 @@
 #include "material_handle.h"
 #include "opengl/opengl_shader.h"
 #include "opengl/opengl_texture.h"
+#include "opengl/opengl_context.h"
 #include "pch.h"
 #include "stb/stb_image.h"
 #include "vulkan/vulkan_buffer.h"
@@ -70,7 +71,10 @@ auto TextureHandle::init(void* context) -> void {
 
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            opengl::Texture* texture = new opengl::Texture(*(OpenGL_Context*)context, m_data, m_size, m_num_components);
+            auto& ctx = *(OpenGL_Context*)context;
+            auto texture = new opengl::Texture(ctx.create_texture(m_data, m_size, m_num_components));
+            // auto texture = std::make_unique<opengl::Texture>(ctx.create_texture(m_data, m_size, m_num_components));
+
             m_handle = texture;
         } break;
         case GRAPHICS_API::VULKAN: {
