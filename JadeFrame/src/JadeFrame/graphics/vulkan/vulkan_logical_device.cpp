@@ -258,9 +258,8 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
 
     m_descriptor_sets.resize(2);
     m_descriptor_sets[0] = m_main_descriptor_pool.allocate_descriptor_set(m_descriptor_set_layout_global);
-    m_descriptor_sets[1] = m_main_descriptor_pool.allocate_descriptor_set(m_descriptor_set_layout_draw_call);
-    // m_descriptor_sets = m_main_descriptor_pool.allocate_descriptor_sets(m_descriptor_set_layout_0, 1);
     m_descriptor_sets[0].add_uniform_buffer(0, m_ub_cam, 0, sizeof(Matrix4x4));
+    m_descriptor_sets[1] = m_main_descriptor_pool.allocate_descriptor_set(m_descriptor_set_layout_draw_call);
     m_descriptor_sets[1].add_uniform_buffer(0, m_ub_tran, 0, sizeof(Matrix4x4));
     for (int i = 0; i < m_descriptor_sets.size(); i++) { m_descriptor_sets[i].update(); }
 }

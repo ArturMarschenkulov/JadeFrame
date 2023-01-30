@@ -70,6 +70,10 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
 
 
     {
+        //TODO: Right now this is heard coded to 2 binding points. This should be dynamic using reflection
+        //TODO: This is also the wrong place for this. This should be in the renderer or shader.
+
+        // Camera
         const GLuint binding_point_0 = 0;
         m_uniform_buffers.emplace_back();
         // m_uniform_buffers[0].bind();
@@ -78,6 +82,7 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
         // m_uniform_buffers[0].unbind();
         m_uniform_buffers[0].bind_base(binding_point_0);
 
+        // Transform
         const GLuint binding_point_1 = 1;
         m_uniform_buffers.emplace_back();
         // m_uniform_buffers[1].bind();

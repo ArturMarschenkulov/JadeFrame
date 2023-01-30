@@ -114,14 +114,6 @@ auto OGLW_Program::get_uniform_block_index(const char* name) const -> GLuint {
 auto OGLW_Program::set_uniform_block_binding(GLuint index, GLuint binding_point) const -> void {
     glUniformBlockBinding(m_ID, index, binding_point);
 }
-auto OGLW_Program::get_uniform_location(const std::string& name) const -> GLint {
-    GLint location = glGetUniformLocation(m_ID, name.c_str());
-    return location;
-}
-auto OGLW_Program::get_attribute_location(const std::string& name) const -> GLint {
-    GLint location = glGetAttribLocation(m_ID, name.c_str());
-    return location;
-}
 
 auto OGLW_Program::get_info(GLenum pname) const -> GLint {
     // GL_DELETE_STATUS, GL_LINK_STATUS, GL_VALIDATE_STATUS, GL_INFO_LOG_LENGTH, GL_ATTACHED_SHADERS,

@@ -120,10 +120,6 @@ struct OGLW_Program {
 
     auto get_info_log() const -> std::string;
 
-    // Introspection
-    auto get_uniform_location(const std::string& name) const -> GLint;
-    auto get_attribute_location(const std::string& name) const -> GLint;
-
 public:
     GLuint m_ID = 0;
 
