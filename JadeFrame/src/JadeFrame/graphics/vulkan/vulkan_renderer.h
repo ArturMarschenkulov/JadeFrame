@@ -36,6 +36,7 @@ public:
 
 public:
     Vulkan_Context                            m_context;
+    vulkan::LogicalDevice*                    m_logical_device;
     RenderSystem*                             m_system = nullptr;
     mutable std::deque<Vulkan_RenderCommand>  m_render_commands;
     std::map<u32, vulkan::Vulkan_GPUMeshData> m_registered_meshes;

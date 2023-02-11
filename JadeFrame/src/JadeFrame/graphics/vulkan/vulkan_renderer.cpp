@@ -13,6 +13,7 @@ namespace JadeFrame {
 Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
     : m_context(window) {
     m_system = &system;
+    m_logical_device = &m_context.m_instance.m_logical_device;
 }
 auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void { m_clear_color = color; }
 
@@ -21,7 +22,7 @@ auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void { m_clear_
 auto Vulkan_Renderer::clear_background() -> void {}
 
 auto Vulkan_Renderer::submit(const Object& obj) -> void {
-    const vulkan::LogicalDevice& d = m_context.m_instance.m_logical_device;
+    const vulkan::LogicalDevice& d = *m_logical_device;
 
     if (false == obj.m_GPU_mesh_data.m_is_initialized) {
         assert(obj.m_vertex_format.m_attributes.size() > 0);
@@ -42,7 +43,7 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
 auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     Logger::info("start of frame rendering");
-    vulkan::LogicalDevice& d = m_context.m_instance.m_logical_device;
+    vulkan::LogicalDevice& d = *m_logical_device;
     const RGBAColor        c = m_clear_color;
     const VkClearValue     clear_value = VkClearValue{c.r, c.g, c.b, c.a};
 
@@ -67,8 +68,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     d.m_ub_cam.send(view_projection, 0);
 
     const u64 aligned_block_size = [&]() {
-        const u64 alignment =
-            m_context.m_instance.m_physical_device.m_properties.limits.minUniformBufferOffsetAlignment;
+        const u64 alignment = m_logical_device->m_physical_device->m_properties.limits.minUniformBufferOffsetAlignment;
         const u64 block_size = sizeof(Matrix4x4);
         const u64 aligned_block_size = alignment > 0 ? (block_size + alignment - 1) & ~(alignment - 1) : block_size;
         return aligned_block_size;
@@ -128,7 +128,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 }
 
 auto Vulkan_Renderer::present() -> void {
-    vulkan::LogicalDevice& d = m_context.m_instance.m_logical_device;
+    vulkan::LogicalDevice& d = *m_logical_device;
     vulkan::Semaphore&     finished_semaphore = d.m_render_finished_semaphores[d.m_current_frame];
 
     VkResult result = d.m_present_queue.present(d.m_present_image_index, d.m_swapchain, &finished_semaphore);
