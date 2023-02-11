@@ -22,18 +22,17 @@ class RenderPass;
 class Pipeline {
 public:
     auto init(
-        const LogicalDevice& device, const VkExtent2D& extend, const DescriptorSetLayout& descriptor_layout,
-        const RenderPass& render_pass, const ShadingCode& code, const VertexFormat& vertex_format) -> void;
+        const LogicalDevice& device, const VkExtent2D& extend, const RenderPass& render_pass, const ShadingCode& code,
+        const VertexFormat& vertex_format) -> void;
     auto deinit() -> void;
 
     auto operator=(const Pipeline& pipeline);
 
 public:
-    VkPipeline                 m_handle;
-    VkPipelineLayout           m_layout;
-    const LogicalDevice*       m_device = nullptr;
-    const RenderPass*          m_render_pass = nullptr;
-    const DescriptorSetLayout* m_descriptor_set_layout = nullptr;
+    VkPipeline           m_handle;
+    VkPipelineLayout     m_layout;
+    const LogicalDevice* m_device = nullptr;
+    const RenderPass*    m_render_pass = nullptr;
 
 
     std::array<DescriptorSetLayout, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> m_set_layouts;
@@ -48,6 +47,7 @@ public:
         u32                   size = 0;
     };
     std::vector<PushConstantRange> m_push_constant_ranges;
+    ReflectedCode                  m_reflected_code;
 };
 } // namespace vulkan
 } // namespace JadeFrame

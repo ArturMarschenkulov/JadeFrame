@@ -117,11 +117,10 @@ static auto check_compatiblity(
     return compatible;
 }
 auto Pipeline::init(
-    const LogicalDevice& device, const VkExtent2D& extent, const DescriptorSetLayout& descriptor_set_layout,
-    const RenderPass& render_pass, const ShadingCode& code, const VertexFormat& vertex_format) -> void {
+    const LogicalDevice& device, const VkExtent2D& extent, const RenderPass& render_pass, const ShadingCode& code,
+    const VertexFormat& vertex_format) -> void {
     m_device = &device;
     m_render_pass = &render_pass;
-    m_descriptor_set_layout = &descriptor_set_layout;
 
     m_code.m_modules.resize(code.m_modules.size());
     for (u32 i = 0; i < m_code.m_modules.size(); i++) {
@@ -130,6 +129,7 @@ auto Pipeline::init(
     }
     
     const ReflectedCode reflected_code = reflect(m_code);
+    m_reflected_code = reflected_code;
 
     /*
         There are always 4 descriptor set layouts. They are grouped by binding frequency.

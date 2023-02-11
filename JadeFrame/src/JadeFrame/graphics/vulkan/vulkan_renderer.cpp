@@ -14,6 +14,55 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
     : m_context(window) {
     m_system = &system;
     m_logical_device = &m_context.m_instance.m_logical_device;
+
+
+
+    // TODO: The below part has to be moved!
+    // The descriptor set pool creation has to be done a renderer.
+    // The descriptor set layout creation has to be done in a shader.
+
+
+
+    // Create main descriptor pool, which should have all kinds of types. In the future maybe make it more specific.
+    u32 descriptor_count = 1000;
+    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptor_count});
+    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, descriptor_count});
+    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, descriptor_count});
+    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, descriptor_count});
+    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, descriptor_count});
+    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, descriptor_count});
+    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptor_count});
+    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_SAMPLER, descriptor_count});
+    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, descriptor_count});
+    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, descriptor_count});
+    m_main_descriptor_pool.init(*m_logical_device, 4);
+
+
+    /*
+        The part below should probably be somewhere else, as they are highly dependent on the shader code.
+        One has to find a way to make it more dynamic.
+    */
+
+    // Uniform stuff
+    m_ub_cam.init(*m_logical_device, vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+    m_ub_tran.init(*m_logical_device, vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+
+    m_descriptor_set_layout_global.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
+    m_descriptor_set_layout_global.init(*m_logical_device);
+
+    m_descriptor_set_layout_draw_call.add_binding(
+        0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_VERTEX_BIT);
+    m_descriptor_set_layout_draw_call.init(*m_logical_device);
+
+    // TODO: Maybe move the descriptor code to `vulkan_renderer.cpp`?
+
+
+    m_descriptor_sets.resize(2);
+    m_descriptor_sets[0] = m_main_descriptor_pool.allocate_descriptor_set(m_descriptor_set_layout_global);
+    m_descriptor_sets[0].add_uniform_buffer(0, m_ub_cam, 0, sizeof(Matrix4x4));
+    m_descriptor_sets[1] = m_main_descriptor_pool.allocate_descriptor_set(m_descriptor_set_layout_draw_call);
+    m_descriptor_sets[1].add_uniform_buffer(0, m_ub_tran, 0, sizeof(Matrix4x4));
+    for (int i = 0; i < m_descriptor_sets.size(); i++) { m_descriptor_sets[i].update(); }
 }
 auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void { m_clear_color = color; }
 
@@ -65,7 +114,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     vulkan::Framebuffer&   framebuffer = d.m_swapchain.m_framebuffers[d.m_present_image_index];
 
     // Per Frame ubo
-    d.m_ub_cam.send(view_projection, 0);
+    m_ub_cam.send(view_projection, 0);
 
     const u64 aligned_block_size = [&]() {
         const u64 alignment = m_logical_device->m_physical_device->m_properties.limits.minUniformBufferOffsetAlignment;
@@ -73,12 +122,12 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         const u64 aligned_block_size = alignment > 0 ? (block_size + alignment - 1) & ~(alignment - 1) : block_size;
         return aligned_block_size;
     }();
-    
+
     // Update ubo buffer and descriptor set when the amount of render commands changes
-    if (m_render_commands.size() != 0 && m_render_commands.size() * aligned_block_size != d.m_ub_tran.m_size) {
-        d.m_ub_tran.resize(m_render_commands.size() * aligned_block_size);
-        d.m_descriptor_sets[1].readd_uniform_buffer(0, d.m_ub_tran);
-        for (int i = 0; i < d.m_descriptor_sets.size(); i++) { d.m_descriptor_sets[i].update(); }
+    if (m_render_commands.size() != 0 && m_render_commands.size() * aligned_block_size != m_ub_tran.m_size) {
+        m_ub_tran.resize(m_render_commands.size() * aligned_block_size);
+        m_descriptor_sets[1].readd_uniform_buffer(0, m_ub_tran);
+        for (int i = 0; i < m_descriptor_sets.size(); i++) { m_descriptor_sets[i].update(); }
     }
 
     // cb.record_begin();
@@ -99,13 +148,13 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
                 VkDeviceSize              offsets[] = {0, 0};
 
                 // Per DrawCall ubo
-                d.m_ub_tran.send(transform, offset);
+                m_ub_tran.send(transform, offset);
 
 
                 cb.bind_pipeline(bind_point, pipeline);
                 cb.bind_vertex_buffers(0, 1, vertex_buffers, offsets);
-                cb.bind_descriptor_sets(bind_point, pipeline, 0, d.m_descriptor_sets[0], &offset);
-                cb.bind_descriptor_sets(bind_point, pipeline, 3, d.m_descriptor_sets[1], &offset);
+                cb.bind_descriptor_sets(bind_point, pipeline, 0, m_descriptor_sets[0], &offset);
+                cb.bind_descriptor_sets(bind_point, pipeline, 3, m_descriptor_sets[1], &offset);
 
 
                 if (vertex_data.m_indices.size() > 0) {

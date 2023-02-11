@@ -78,16 +78,6 @@ public: // Swapchain stuff
     // RenderPass m_render_pass;
 
 
-    // TODO: Move the descriptor stuff to the shader code
-public: // Descriptor set
-    DescriptorPool      m_main_descriptor_pool;
-    DescriptorSetLayout m_descriptor_set_layout_global;
-    DescriptorSetLayout m_descriptor_set_layout_draw_call;
-    
-
-    std::vector<DescriptorSet> m_descriptor_sets;
-    Buffer                     m_ub_cam = {Buffer::TYPE::UNIFORM};
-    Buffer                     m_ub_tran = {Buffer::TYPE::UNIFORM};
 
 public:
     CommandPool                m_command_pool;

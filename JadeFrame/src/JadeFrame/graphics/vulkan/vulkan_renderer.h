@@ -43,5 +43,16 @@ public:
 
 private: // NOTE: probably temporary
     RGBAColor m_clear_color;
+
+    // TODO: Move the descriptor stuff to the shader code
+public: // Descriptor set
+    vulkan::DescriptorPool      m_main_descriptor_pool;
+    vulkan::DescriptorSetLayout m_descriptor_set_layout_global;
+    vulkan::DescriptorSetLayout m_descriptor_set_layout_draw_call;
+
+
+    std::vector<vulkan::DescriptorSet> m_descriptor_sets;
+    vulkan::Buffer                     m_ub_cam = {vulkan::Buffer::TYPE::UNIFORM};
+    vulkan::Buffer                     m_ub_tran = {vulkan::Buffer::TYPE::UNIFORM};
 };
 } // namespace JadeFrame

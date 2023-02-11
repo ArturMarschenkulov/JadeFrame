@@ -222,46 +222,6 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
         m_in_flight_fences[i].init(*this);
     }
 
-    // Create main descriptor pool, which should have all kinds of types. In the future maybe make it more specific.
-    u32 descriptor_count = 1000;
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_SAMPLER, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, descriptor_count});
-    m_main_descriptor_pool.init(*this, 4);
-
-
-    /*
-        The part below should probably be somewhere else, as they are highly dependent on the shader code.
-        One has to find a way to make it more dynamic.
-    */
-
-    // Uniform stuff
-    m_ub_cam.init(*this, Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
-    m_ub_tran.init(*this, Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
-
-    m_descriptor_set_layout_global.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
-    m_descriptor_set_layout_global.init(*this);
-
-    m_descriptor_set_layout_draw_call.add_binding(
-        0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_VERTEX_BIT);
-    m_descriptor_set_layout_draw_call.init(*this);
-
-    // TODO: Maybe move the descriptor code to `vulkan_renderer.cpp`?
-
-
-    m_descriptor_sets.resize(2);
-    m_descriptor_sets[0] = m_main_descriptor_pool.allocate_descriptor_set(m_descriptor_set_layout_global);
-    m_descriptor_sets[0].add_uniform_buffer(0, m_ub_cam, 0, sizeof(Matrix4x4));
-    m_descriptor_sets[1] = m_main_descriptor_pool.allocate_descriptor_set(m_descriptor_set_layout_draw_call);
-    m_descriptor_sets[1].add_uniform_buffer(0, m_ub_tran, 0, sizeof(Matrix4x4));
-    for (int i = 0; i < m_descriptor_sets.size(); i++) { m_descriptor_sets[i].update(); }
 }
 
 auto LogicalDevice::deinit() -> void {

@@ -9,9 +9,10 @@ Vulkan_Shader::Vulkan_Shader(const vulkan::LogicalDevice& device, const DESC& de
     m_device = &device;
     Logger::info("Creating Vulkan shader");
     m_pipeline.init(
-        device, device.m_swapchain.m_extent, device.m_descriptor_set_layout_global, device.m_swapchain.m_render_pass,
+        device, device.m_swapchain.m_extent, device.m_swapchain.m_render_pass,
         desc.code, desc.vertex_format);
     Logger::info("Created Vulkan shader");
+    m_reflected_code = m_pipeline.m_reflected_code;
 }
 
 } // namespace JadeFrame
