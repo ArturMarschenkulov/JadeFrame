@@ -69,11 +69,11 @@ auto DescriptorSet::update() -> void {
     infos.resize(m_descriptors.size());
     for (u32 i = 0; i < m_descriptors.size(); i++) { infos[i] = m_descriptors[i].buffer_info; }
 
-    std::vector<VkWriteDescriptorSet> wdss;
-    wdss.reserve(m_descriptors.size());
+    std::vector<VkWriteDescriptorSet> sets;
+    sets.reserve(m_descriptors.size());
     for (u32 i = 0; i < m_descriptors.size(); i++) {
 
-        const VkWriteDescriptorSet wds = {
+        const VkWriteDescriptorSet set = {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .pNext = nullptr,
             .dstSet = m_handle,
@@ -87,10 +87,10 @@ auto DescriptorSet::update() -> void {
             .pBufferInfo = &infos[i],
             .pTexelBufferView = nullptr,
         };
-        wdss.push_back(wds);
+        sets.push_back(set);
     }
 
-    vkUpdateDescriptorSets(m_device->m_handle, static_cast<u32>(wdss.size()), wdss.data(), 0, nullptr);
+    vkUpdateDescriptorSets(m_device->m_handle, static_cast<u32>(sets.size()), sets.data(), 0, nullptr);
 }
 
 
@@ -235,10 +235,11 @@ auto DescriptorPool::allocate_descriptor_sets(const DescriptorSetLayout& descrip
         set.m_layout = &descriptor_set_layout;
         set.m_descriptors.resize(descriptor_set_layout.m_bindings.size());
         for (u32 j = 0; j < descriptor_set_layout.m_bindings.size(); j++) {
-            Descriptor& descr = set.m_descriptors[j];
-            descr.binding = descriptor_set_layout.m_bindings[j].binding;
-            descr.stage_flags = descriptor_set_layout.m_bindings[j].stageFlags;
-            descr.type = descriptor_set_layout.m_bindings[j].descriptorType;
+            Descriptor&                         descr = set.m_descriptors[j];
+            const VkDescriptorSetLayoutBinding& binding = descriptor_set_layout.m_bindings[j];
+            descr.binding = binding.binding;
+            descr.stage_flags = binding.stageFlags;
+            descr.type = binding.descriptorType;
         }
     }
     {
