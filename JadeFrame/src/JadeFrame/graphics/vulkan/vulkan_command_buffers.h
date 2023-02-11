@@ -51,9 +51,19 @@ public:
 
 
     auto bind_pipeline(const VkPipelineBindPoint bind_point, const Pipeline& pipeline) -> void;
-    auto bind_vertex_buffers(u32 first_binding, u32 binding_count, const Buffer& buffers, const VkDeviceSize* offsets)
+    auto bind_vertex_buffers(u32 first_binding, u32 binding_count, const VkBuffer* buffers, const VkDeviceSize* offsets)
         -> void;
     auto bind_vertex_buffers(const VkBuffer* buffers, const VkDeviceSize* offsets) -> void;
+    auto bind_descriptor_sets(
+        const VkPipelineBindPoint bind_point, const Pipeline& pipeline, u32 first_set,
+        const DescriptorSet& descriptor_set, const u32* offset) -> void;
+
+
+    auto bind_index_buffer(const Buffer& buffer, VkDeviceSize offset) -> void;
+
+    auto draw(u32 vertex_count, u32 instance_count, u32 first_vertex, u32 first_instance) -> void;
+    auto draw_indexed(u32 index_count, u32 instance_count, u32 first_index, u32 vertex_offset, u32 first_instance)
+        -> void;
 
 public:
     enum class STAGE {

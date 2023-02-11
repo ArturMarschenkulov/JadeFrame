@@ -88,64 +88,31 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
                 const auto&           cmd = m_render_commands[i];
                 const MaterialHandle& mh = *cmd.material_handle;
                 auto&                 sh = m_system->m_registered_shaders[mh.m_shader_id];
-                const auto&           shader = *static_cast<Vulkan_Shader*>(sh.m_handle);
-                const auto&         gpu_data = *static_cast<vulkan::Vulkan_GPUMeshData*>(cmd.m_GPU_mesh_data->m_handle);
-                const auto&         vertex_data = *cmd.vertex_data;
-                const auto&         transform = *cmd.transform;
-                VkBuffer            vertex_buffers[] = {gpu_data.m_vertex_buffer.m_handle};
-                VkPipelineBindPoint bind_point = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
-
-                const u32    offset = static_cast<u32>(aligned_block_size * i);
-                VkDeviceSize offsets[] = {0, 0};
+                const auto& pipeline = static_cast<Vulkan_Shader*>(sh.m_handle)->m_pipeline;
+                const auto& gpu_data = *static_cast<vulkan::Vulkan_GPUMeshData*>(cmd.m_GPU_mesh_data->m_handle);
+                const auto& vertex_data = *cmd.vertex_data;
+                const auto& transform = *cmd.transform;
+                VkBuffer    vertex_buffers[] = {gpu_data.m_vertex_buffer.m_handle};
+                const VkPipelineBindPoint bind_point = VK_PIPELINE_BIND_POINT_GRAPHICS;
+                const u32                 offset = static_cast<u32>(aligned_block_size * i);
+                VkDeviceSize              offsets[] = {0, 0};
 
                 // Per DrawCall ubo
                 d.m_ub_tran.send(transform, offset);
 
-                vkCmdBindPipeline(
-                    cb.m_handle,               // commandBuffer
-                    bind_point,                // pipelineBindPoint
-                    shader.m_pipeline.m_handle // pipeline
-                );
 
-                vkCmdBindVertexBuffers(
-                    cb.m_handle,    // commandBuffer
-                    0,              // firstBinding
-                    1,              // bindingCount
-                    vertex_buffers, // pBuffers
-                    offsets         // pOffsets
-                );
-
-                vkCmdBindDescriptorSets(
-                    cb.m_handle,                                      // commandBuffer
-                    bind_point,                                       // pipelineBindPoint
-                    shader.m_pipeline.m_layout,                       // layout
-                    0,                                                // firstSet
-                    1,                                                // descriptorSetCount
-                    &d.m_descriptor_sets[0].m_handle,                 // pDescriptorSets
-                    d.m_descriptor_sets[0].m_layout->m_dynamic_count, // dynamicOffsetCount
-                    &offset                                           // pDynamicOffsets
-                );
-
-                vkCmdBindDescriptorSets(
-                    cb.m_handle,                                      // commandBuffer
-                    bind_point,                                       // pipelineBindPoint
-                    shader.m_pipeline.m_layout,                       // layout
-                    3,                                                // firstSet
-                    1,                                                // descriptorSetCount
-                    &d.m_descriptor_sets[1].m_handle,                 // pDescriptorSets
-                    d.m_descriptor_sets[1].m_layout->m_dynamic_count, // dynamicOffsetCount
-                    &offset                                           // pDynamicOffsets
-                );
-
-
+                cb.bind_pipeline(bind_point, pipeline);
+                cb.bind_vertex_buffers(0, 1, vertex_buffers, offsets);
+                cb.bind_descriptor_sets(bind_point, pipeline, 0, d.m_descriptor_sets[0], &offset);
+                cb.bind_descriptor_sets(bind_point, pipeline, 3, d.m_descriptor_sets[1], &offset);
 
 
                 if (vertex_data.m_indices.size() > 0) {
-                    vkCmdBindIndexBuffer(cb.m_handle, gpu_data.m_index_buffer.m_handle, 0, VK_INDEX_TYPE_UINT32);
-                    vkCmdDrawIndexed(cb.m_handle, static_cast<u32>(vertex_data.m_indices.size()), 1, 0, 0, 0);
+                    cb.bind_index_buffer(gpu_data.m_index_buffer, 0);
+                    cb.draw_indexed(static_cast<u32>(vertex_data.m_indices.size()), 1, 0, 0, 0);
                 } else {
-                    vkCmdDraw(cb.m_handle, static_cast<u32>(vertex_data.m_positions.size()), 1, 0, 0);
+                    cb.draw(static_cast<u32>(vertex_data.m_positions.size()), 1, 0, 0);
                 }
             } //
         });

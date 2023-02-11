@@ -67,10 +67,71 @@ auto CommandBuffer::copy_buffer(const Buffer& src, const Buffer& dst, u32 region
 
 
 auto CommandBuffer::bind_pipeline(const VkPipelineBindPoint bind_point, const Pipeline& pipeline) -> void {
-    vkCmdBindPipeline(m_handle, bind_point, pipeline.m_handle);
+    vkCmdBindPipeline(
+        m_handle,         // commandBuffer
+        bind_point,       // pipelineBindPoint
+        pipeline.m_handle // pipeline
+    );
 }
 
+auto CommandBuffer::bind_vertex_buffers(
+    u32 first_binding, u32 binding_count, const VkBuffer* buffers, const VkDeviceSize* offsets) -> void {
+    vkCmdBindVertexBuffers(
+        m_handle,      // commandBuffer
+        first_binding, // firstBinding
+        binding_count, // bindingCount
+        buffers,       // pBuffers
+        offsets        // pOffsets
+    );
+}
 
+auto CommandBuffer::bind_descriptor_sets(
+    const VkPipelineBindPoint bind_point, const Pipeline& pipeline, u32 first_set, const DescriptorSet& descriptor_set,
+    const u32* offset) -> void {
+
+    // JF_ASSERT(descriptor_set_count == descriptor_set.m_descriptors.size(), "");
+
+    vkCmdBindDescriptorSets(
+        m_handle,                                 // commandBuffer
+        bind_point,                               // pipelineBindPoint
+        pipeline.m_layout,                        // layout
+        first_set,                                // firstSet
+        descriptor_set.m_descriptors.size(),      // descriptorSetCount
+        &descriptor_set.m_handle,                 // pDescriptorSets
+        descriptor_set.m_layout->m_dynamic_count, // dynamicOffsetCount
+        offset                                    // pDynamicOffsets
+    );
+}
+
+auto CommandBuffer::bind_index_buffer(const Buffer& buffer, VkDeviceSize offset) -> void {
+    vkCmdBindIndexBuffer(
+        m_handle,            // commandBuffer
+        buffer.m_handle,     // buffer
+        offset,              // offset
+        VK_INDEX_TYPE_UINT32 // indexType
+    );
+}
+
+auto CommandBuffer::draw(u32 vertex_count, u32 instance_count, u32 first_vertex, u32 first_instance) -> void {
+    vkCmdDraw(
+        m_handle,       // commandBuffer
+        vertex_count,   // vertexCount
+        instance_count, // instanceCount
+        first_vertex,   // firstVertex
+        first_instance  // firstInstance
+    );
+}
+auto CommandBuffer::draw_indexed(
+    u32 index_count, u32 instance_count, u32 first_index, u32 vertex_offset, u32 first_instance) -> void {
+    vkCmdDrawIndexed(
+        m_handle,       // commandBuffer
+        index_count,    // indexCount
+        instance_count, // instanceCount
+        first_index,    // firstIndex
+        vertex_offset,  // vertexOffset
+        first_instance  // firstInstance
+    );
+}
 
 static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFlags& flag) -> std::string {
     std::string result = "{ ";
