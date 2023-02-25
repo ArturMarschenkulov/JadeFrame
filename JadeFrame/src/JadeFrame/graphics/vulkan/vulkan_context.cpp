@@ -158,7 +158,7 @@ auto VulkanInstance::init(const IWindow* window_handle) -> void {
     const VkApplicationInfo app_info = {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pNext = nullptr,
-        .pApplicationName = "Hello Triangle",
+        .pApplicationName = "JadeFrame Application",
         .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
         .pEngineName = "JadeFrame",
         .engineVersion = VK_MAKE_VERSION(1, 0, 0),

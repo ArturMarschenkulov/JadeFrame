@@ -438,7 +438,7 @@ auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
     //TODO: Make the graphics API not hardcoded
     auto [vs, fs] = shader_tuple;
     ShadingCode code;
-    auto api = GRAPHICS_API::OPENGL;
+    auto api = GRAPHICS_API::VULKAN;
     code.m_shading_language = SHADING_LANGUAGE::GLSL;
     code.m_modules.resize(2);
     code.m_modules[0].m_stage = SHADER_STAGE::VERTEX;

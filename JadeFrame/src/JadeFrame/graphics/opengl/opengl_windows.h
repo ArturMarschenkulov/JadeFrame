@@ -13,7 +13,7 @@ namespace win32 {
 auto init_device_context(const IWindow* window) -> HDC;
 auto init_render_context(HDC device_context) -> HGLRC;
 auto load_wgl_funcs(HMODULE module) -> bool;
-auto load_opengl_funcs(HDC device_context, HGLRC render_context) -> bool;
+auto load_opengl_funcs(/*HDC device_context, HGLRC render_context*/) -> bool;
 auto swap_interval(i32) -> void;
 auto set_pixel_format(const HDC& device_context) -> void;
 auto create_render_context(HDC device_context) -> HGLRC;

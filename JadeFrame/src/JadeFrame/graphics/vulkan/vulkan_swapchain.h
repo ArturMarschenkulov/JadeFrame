@@ -54,12 +54,24 @@ public:
 
 class Swapchain {
 public:
+    Swapchain() = default;
+    ~Swapchain() = default;
+
+    Swapchain(const Swapchain&) = delete;
+    auto operator=(const Swapchain&) -> Swapchain& = delete;
+
+    Swapchain(Swapchain&& other) = default;
+    auto operator=(Swapchain&& other) -> Swapchain& = default;
+
+
     auto init(LogicalDevice& device, const Surface& surface) -> void;
     auto deinit() -> void;
     auto recreate() -> void;
 
     auto acquire_next_image(const Semaphore* semaphore, const Fence* fence, VkResult& result) -> u32;
     auto acquire_next_image(const Semaphore* semaphore, const Fence* fence) -> u32;
+
+    auto query_images() -> std::vector<Image>;
 
 public:
     VkSwapchainKHR m_handle = VK_NULL_HANDLE;

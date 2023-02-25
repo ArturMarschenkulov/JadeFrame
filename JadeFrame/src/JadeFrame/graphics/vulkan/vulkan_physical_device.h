@@ -59,7 +59,7 @@ public:
     // Extension stuff
     std::vector<VkExtensionProperties> m_extension_properties;
     std::vector<const char*>           m_device_extensions = {
-                  VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
     bool m_extension_support;
 };

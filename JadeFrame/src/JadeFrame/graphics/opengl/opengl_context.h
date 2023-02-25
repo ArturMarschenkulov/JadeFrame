@@ -108,7 +108,7 @@ public:
     // limits
     GLint m_max_uniform_buffer_binding_points;
 
-    std::vector<opengl::Buffer> m_uniform_buffers;
+    // std::vector<opengl::Buffer> m_uniform_buffers;
 
     std::vector<GLuint> m_buffers;
     GLuint              m_bound_buffer;

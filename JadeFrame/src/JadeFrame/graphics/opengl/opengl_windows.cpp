@@ -77,13 +77,15 @@ auto init_device_context(const IWindow* window) -> HDC {
     return device_context;
 }
 
-auto load_opengl_funcs(HDC device_context, HGLRC render_context) -> bool {
+auto load_opengl_funcs(/*HDC device_context, HGLRC render_context*/) -> bool {
+
+    // const BOOL current_succes = wglMakeCurrent(device_context, render_context);
+    // if (current_succes == false) {
+    //     Logger::log("wglMakeCurrent() failed. {}", ::GetLastError());
+    //     assert(false);
+    // }
+
     // Load OpenGL functions with GLAD
-    const BOOL current_succes = wglMakeCurrent(device_context, render_context);
-    if (current_succes == false) {
-        Logger::log("wglMakeCurrent() failed. {}", ::GetLastError());
-        assert(false);
-    }
     i32 result = gladLoadGL();
     if (result != 1) { Logger::err("gladLoadGL() failed.", ::GetLastError()); }
     return true;
@@ -107,12 +109,12 @@ auto load_wgl_funcs(HMODULE instance) -> bool {
     WNDCLASS      window_class;
     ZeroMemory(&window_class, sizeof(window_class));
     window_class.style = CS_OWNDC;
-    window_class.lpfnWndProc = DefWindowProc;
+    window_class.lpfnWndProc = DefWindowProcW;
     window_class.cbClsExtra = 0;
     window_class.cbWndExtra = 0;
     window_class.hInstance = instance;
-    window_class.hIcon = LoadIcon(NULL, IDI_WINLOGO);
-    window_class.hCursor = LoadCursor(NULL, IDC_ARROW);
+    window_class.hIcon = LoadIconW(NULL, IDI_WINLOGO);
+    window_class.hCursor = LoadCursorW(NULL, IDC_ARROW);
     window_class.hbrBackground = (HBRUSH)(COLOR_MENUTEXT);
     window_class.lpszMenuName = NULL;
     window_class.lpszClassName = class_name;

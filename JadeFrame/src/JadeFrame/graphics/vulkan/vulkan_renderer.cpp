@@ -18,24 +18,26 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
 
 
     // TODO: The below part has to be moved!
-    // The descriptor set pool creation has to be done a renderer.
+    // The descriptor set pool creation has to be done in a renderer.
     // The descriptor set layout creation has to be done in a shader.
 
 
 
     // Create main descriptor pool, which should have all kinds of types. In the future maybe make it more specific.
-    u32 descriptor_count = 1000;
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_SAMPLER, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, descriptor_count});
-    m_main_descriptor_pool.add_pool_size({VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, descriptor_count});
-    m_main_descriptor_pool.init(*m_logical_device, 4);
+    u32                               descriptor_count = 1000;
+    std::vector<VkDescriptorPoolSize> pool_sizes = {
+        {        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptor_count},
+        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, descriptor_count},
+        {  VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, descriptor_count},
+        {        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, descriptor_count},
+        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, descriptor_count},
+        {  VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, descriptor_count},
+        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptor_count},
+        {               VK_DESCRIPTOR_TYPE_SAMPLER, descriptor_count},
+        {         VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, descriptor_count},
+        {         VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, descriptor_count},
+    };
+    m_main_descriptor_pool = m_logical_device->create_descriptor_pool(4, pool_sizes);
 
 
     /*
@@ -44,15 +46,19 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
     */
 
     // Uniform stuff
-    m_ub_cam.init(*m_logical_device, vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
-    m_ub_tran.init(*m_logical_device, vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+    m_ub_cam = m_logical_device->create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+    m_ub_tran = m_logical_device->create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
 
-    m_descriptor_set_layout_global.add_binding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT);
-    m_descriptor_set_layout_global.init(*m_logical_device);
+    std::vector<vulkan::DescriptorSetLayout::Binding> bindings_global = {
+        {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT},
+    };
+    m_descriptor_set_layout_global = m_logical_device->create_descriptor_set_layout(bindings_global);
 
-    m_descriptor_set_layout_draw_call.add_binding(
-        0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_VERTEX_BIT);
-    m_descriptor_set_layout_draw_call.init(*m_logical_device);
+
+    std::vector<vulkan::DescriptorSetLayout::Binding> bindings_draw_call = {
+        {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_VERTEX_BIT},
+    };
+    m_descriptor_set_layout_draw_call = m_logical_device->create_descriptor_set_layout(bindings_draw_call);
 
     // TODO: Maybe move the descriptor code to `vulkan_renderer.cpp`?
 
@@ -91,27 +97,24 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
 
 auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
-    Logger::info("start of frame rendering");
     vulkan::LogicalDevice& d = *m_logical_device;
     const RGBAColor        c = m_clear_color;
     const VkClearValue     clear_value = VkClearValue{c.r, c.g, c.b, c.a};
 
-    vulkan::Fence&     curr_fence = d.m_in_flight_fences[d.m_current_frame];
-    vulkan::Semaphore& available_semaphore = d.m_image_available_semaphores[d.m_current_frame];
-    vulkan::Semaphore& finished_semaphore = d.m_render_finished_semaphores[d.m_current_frame];
+    vulkan::Fence&     fence_curr = d.m_in_flight_fences[d.m_current_frame];
+    vulkan::Semaphore& sem_available = d.m_image_available_semaphores[d.m_current_frame];
+    vulkan::Semaphore& sem_finished = d.m_render_finished_semaphores[d.m_current_frame];
 
-    vulkan::RenderPass& render_pass = d.m_swapchain.m_render_pass;
 
-    d.wait_for_fence(curr_fence, VK_TRUE, UINT64_MAX);
-    d.m_present_image_index = d.m_swapchain.acquire_next_image(&available_semaphore, nullptr);
+
+    d.wait_for_fence(fence_curr, VK_TRUE, UINT64_MAX);
+    d.m_present_image_index = d.m_swapchain.acquire_next_image(&sem_available, nullptr);
 
     if (d.m_swapchain.m_is_recreated == true) {
         d.m_swapchain.m_is_recreated = false;
         return;
     }
-    // const VulkanImage& image = d.m_swapchain.m_images[image_index];
-    vulkan::CommandBuffer& cb = d.m_command_buffers[d.m_present_image_index];
-    vulkan::Framebuffer&   framebuffer = d.m_swapchain.m_framebuffers[d.m_present_image_index];
+
 
     // Per Frame ubo
     m_ub_cam.send(view_projection, 0);
@@ -130,7 +133,11 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         for (int i = 0; i < m_descriptor_sets.size(); i++) { m_descriptor_sets[i].update(); }
     }
 
-    // cb.record_begin();
+    // const VulkanImage& image = d.m_swapchain.m_images[image_index];
+    vulkan::CommandBuffer& cb = d.m_command_buffers[d.m_present_image_index];
+    vulkan::Framebuffer&   framebuffer = d.m_swapchain.m_framebuffers[d.m_present_image_index];
+    vulkan::RenderPass&    render_pass = d.m_swapchain.m_render_pass;
+
     cb.record([&] {
         cb.render_pass(framebuffer, render_pass, d.m_swapchain.m_extent, clear_value, [&] {
             for (u64 i = 0; i < m_render_commands.size(); i++) {
@@ -163,24 +170,21 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
                 } else {
                     cb.draw(static_cast<u32>(vertex_data.m_positions.size()), 1, 0, 0);
                 }
-            } //
+            }
         });
-        // cb.render_pass_end();
     });
-    // cb.record_end();
 
-    curr_fence.reset();
-    d.m_graphics_queue.submit(cb, &available_semaphore, &finished_semaphore, &curr_fence);
+    fence_curr.reset();
+    d.m_graphics_queue.submit(cb, &sem_available, &sem_finished, &fence_curr);
 
     m_render_commands.clear();
-    std::cout << "Rendered frame" << std::endl;
 }
 
 auto Vulkan_Renderer::present() -> void {
     vulkan::LogicalDevice& d = *m_logical_device;
-    vulkan::Semaphore&     finished_semaphore = d.m_render_finished_semaphores[d.m_current_frame];
+    vulkan::Semaphore&     sem_finished = d.m_render_finished_semaphores[d.m_current_frame];
 
-    VkResult result = d.m_present_queue.present(d.m_present_image_index, d.m_swapchain, &finished_semaphore);
+    VkResult result = d.m_present_queue.present(d.m_present_image_index, d.m_swapchain, &sem_finished);
     {
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || d.m_framebuffer_resized) {
             d.m_framebuffer_resized = false;

@@ -27,16 +27,20 @@ class PhysicalDevice;
 class Queue {
 public:
     Queue() = default;
+    ~Queue() = default;
     Queue(const Queue&) = delete;
+    auto operator=(const Queue&) -> Queue& = delete;
+
     Queue(Queue&& other)
         : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE)) {}
-    auto operator=(const Queue&) -> Queue& = delete;
     auto operator=(Queue&& other) -> Queue& {
         if (this != &other) { m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE); }
         return *this;
     }
 
     Queue(const LogicalDevice& device, u32 queue_family_index, u32 queue_index);
+
+public:
     auto submit(const VkSubmitInfo& submit_info, const Fence* p_fence) const -> void;
     auto submit(
         const CommandBuffer& cmd_buffer, const Semaphore* wait_semaphore, const Semaphore* signal_semaphore,
@@ -70,21 +74,33 @@ public:
     Queue m_graphics_queue;
     Queue m_present_queue;
 
+
+
 public: // Swapchain stuff
+    auto create_swapchain() -> Swapchain;
     auto recreate_swapchain() -> void;
     auto cleanup_swapchain() -> void;
 
     Swapchain m_swapchain;
     // RenderPass m_render_pass;
 
+public:
+    // auto create_image() -> vulkan::Image;
+    auto create_image_view(Image& image, VkFormat) -> ImageView;
+
 
 
 public:
+    auto create_command_pool(const QueueFamilyIndex& queue_family_index) -> CommandPool;
+
     CommandPool                m_command_pool;
     std::vector<CommandBuffer> m_command_buffers;
 
 
 public: // synchro objects
+    auto create_semaphore() -> Semaphore;
+    auto create_fence(bool signaled) -> Fence;
+
     std::vector<Semaphore> m_image_available_semaphores;
     std::vector<Semaphore> m_render_finished_semaphores;
     std::vector<Fence>     m_in_flight_fences;
@@ -95,6 +111,14 @@ public: // Misc
     bool   m_framebuffer_resized = false;
 
 
+public:
+    auto create_buffer(Buffer::TYPE buffer_type, void* data, size_t size) -> Buffer;
+
+    auto create_descriptor_pool(u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes) -> DescriptorPool;
+    auto create_descriptor_set_layout(std::vector<vulkan::DescriptorSetLayout::Binding>& bindings)
+        -> DescriptorSetLayout;
+
+    auto query_queues(u32 queue_family_index, u32 queue_index) -> Queue;
 
 
     //	// To be removed

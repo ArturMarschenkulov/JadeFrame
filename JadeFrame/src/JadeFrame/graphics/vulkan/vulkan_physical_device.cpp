@@ -194,15 +194,15 @@ auto PhysicalDevice::query_queue_families(const Surface& surface) -> std::vector
 
     vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, nullptr);
 
-    std::vector<VkQueueFamilyProperties> queue_family_properties;
-    queue_family_properties.resize(count);
-    vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, queue_family_properties.data());
+    std::vector<VkQueueFamilyProperties> properties;
+    properties.resize(count);
+    vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, properties.data());
 
     std::vector<QueueFamily> families;
     families.resize(count);
     for (u32 i = 0; i < count; i++) {
         families[i].m_index = i;
-        families[i].m_properties = queue_family_properties[i];
+        families[i].m_properties = properties[i];
         vkGetPhysicalDeviceSurfaceSupportKHR(
             m_handle, families[i].m_index, surface.m_handle, &families[i].m_present_support);
     }

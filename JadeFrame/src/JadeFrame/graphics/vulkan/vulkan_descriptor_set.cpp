@@ -21,14 +21,6 @@ class LogicalDevice;
 auto DescriptorSet::add_uniform_buffer(u32 binding, const Buffer& buffer, VkDeviceSize offset, VkDeviceSize range)
     -> void {
     JF_ASSERT(buffer.m_size < from_kibibyte(64), "Guaranteed only between 16K and 64K");
-    // Descriptor d = {
-    //	.buffer_info = {
-    //		.buffer = buffer.m_handle,
-    //		.offset = offset,
-    //		.range = range,
-    //	},
-    //	.binding = binding
-    // };
     Descriptor d;
     d.buffer_info.buffer = buffer.m_handle;
     d.buffer_info.offset = offset;
@@ -47,10 +39,14 @@ auto DescriptorSet::add_uniform_buffer(u32 binding, const Buffer& buffer, VkDevi
         if (m_descriptors[i].binding == d.binding) {
             found = true;
             m_descriptors[i].buffer_info = d.buffer_info;
-            // infos[i] = d.info;
         }
     }
     JF_ASSERT(found == true, "");
+
+    // auto it = std::find_if(m_descriptors.begin(), m_descriptors.end(), [binding](const Descriptor& desc) {
+    //     return desc.binding == binding;
+    // });
+    // JF_ASSERT(it != m_descriptors.end(), "");
 }
 auto DescriptorSet::readd_uniform_buffer(u32 binding, const Buffer& buffer) -> void {
 
@@ -124,10 +120,16 @@ auto DescriptorSetLayout::add_binding(
     }
 }
 
-auto DescriptorSetLayout::init(const LogicalDevice& device) -> void {
+auto DescriptorSetLayout::init(const LogicalDevice& device, std::vector<Binding> bindings) -> void {
 
     m_device = &device;
     VkResult result;
+
+    for (int i = 0; i < bindings.size(); i++) {
+        this->add_binding(
+            bindings[i].binding, bindings[i].descriptor_type, bindings[i].descriptor_count, bindings[i].stage_flags,
+            bindings[i].p_immutable_samplers);
+    }
 
     const VkDescriptorSetLayoutCreateInfo layout_info = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -170,10 +172,14 @@ auto DescriptorPool::add_pool_size(const VkDescriptorPoolSize& pool_size) -> voi
     }
 }
 
+auto DescriptorPool::init(const LogicalDevice& device, u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes)
+    -> void {
 
-auto DescriptorPool::init(const LogicalDevice& device, u32 max_sets) -> void {
     m_device = &device;
-    VkResult                         result;
+    VkResult result;
+
+    for (int i = 0; i < pool_sizes.size(); i++) { this->add_pool_size(pool_sizes[i]); }
+
     const VkDescriptorPoolCreateInfo pool_info = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .pNext = nullptr,
@@ -262,7 +268,7 @@ auto DescriptorPool::allocate_descriptor_sets(const DescriptorSetLayout& descrip
 }
 
 auto DescriptorPool::allocate_descriptor_set(const DescriptorSetLayout& descriptor_set_layout) -> DescriptorSet {
-    return this->allocate_descriptor_sets(descriptor_set_layout, 1)[0];
+    return std::move(this->allocate_descriptor_sets(descriptor_set_layout, 1)[0]);
 }
 
 auto DescriptorPool::free_descriptor_sets(const std::vector<DescriptorSet>& /*descriptor_sets*/) -> void {

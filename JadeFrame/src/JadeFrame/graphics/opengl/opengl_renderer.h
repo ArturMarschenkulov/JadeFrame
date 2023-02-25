@@ -91,6 +91,8 @@ public:
         // ShaderHandle*        m_shader_handle_fb;
         u32 m_shader_id_fb;
     } fb;
+
+    std::vector<opengl::Buffer> m_uniform_buffers;
 };
 static_assert(is_renderer<OpenGL_Renderer>);
 

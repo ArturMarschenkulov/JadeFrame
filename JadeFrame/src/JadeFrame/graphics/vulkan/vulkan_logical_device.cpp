@@ -152,6 +152,30 @@ auto LogicalDevice::wait_for_fences(const std::vector<Fence>& fences, bool wait_
     if (result != VK_SUCCESS) assert(false);
 }
 
+auto LogicalDevice::query_queues(u32 queue_family_index, u32 queue_index) -> Queue {
+    Queue queue(*this, queue_family_index, queue_index);
+    return queue;
+}
+
+auto LogicalDevice::create_buffer(Buffer::TYPE buffer_type, void* data, size_t size) -> Buffer {
+    Buffer buffer = {buffer_type};
+    buffer.init(*this, buffer_type, data, size);
+    return buffer;
+}
+auto LogicalDevice::create_descriptor_pool(u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes)
+    -> DescriptorPool {
+    DescriptorPool pool;
+    pool.init(*this, max_sets, pool_sizes);
+    return pool;
+}
+
+auto LogicalDevice::create_descriptor_set_layout(std::vector<vulkan::DescriptorSetLayout::Binding>& bindings)
+    -> DescriptorSetLayout {
+    DescriptorSetLayout layout;
+    layout.init(*this, bindings);
+    return layout;
+}
+
 auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& physical_device) -> void {
     m_physical_device = &physical_device;
     m_instance = &instance;
@@ -195,17 +219,16 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
 
 
 
-
-    m_graphics_queue = Queue(*this, indices.m_graphics_family.value(), 0);
-    m_present_queue = Queue(*this, indices.m_present_family.value(), 0);
+    m_graphics_queue = this->query_queues(indices.m_graphics_family.value(), 0);
+    m_present_queue = this->query_queues(indices.m_present_family.value(), 0);
 
 
     // Swapchain stuff
-    m_swapchain.init(*this, m_instance->m_surface);
+    m_swapchain = this->create_swapchain();
     const u32 swapchain_image_amount = static_cast<u32>(m_swapchain.m_images.size());
 
     // Commad Buffer stuff
-    m_command_pool.init(*this, m_physical_device->m_queue_family_indices.m_graphics_family.value());
+    m_command_pool = this->create_command_pool(m_physical_device->m_queue_family_indices.m_graphics_family.value());
     m_command_buffers = m_command_pool.allocate_command_buffers(static_cast<u32>(m_swapchain.m_framebuffers.size()));
 
     Logger::debug("maxBoundDescriptorSets: {}", m_physical_device->m_properties.limits.maxBoundDescriptorSets);
@@ -217,11 +240,39 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
     m_in_flight_fences.resize(MAX_FRAMES_IN_FLIGHT);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        m_image_available_semaphores[i].init(*this);
-        m_render_finished_semaphores[i].init(*this);
-        m_in_flight_fences[i].init(*this);
+        m_image_available_semaphores[i] = this->create_semaphore();
+        m_render_finished_semaphores[i] = this->create_semaphore();
+        m_in_flight_fences[i] = this->create_fence(true);
     }
+}
 
+auto LogicalDevice::create_semaphore() -> Semaphore {
+    Semaphore semaphore;
+    semaphore.init(*this);
+    return semaphore;
+}
+auto LogicalDevice::create_fence(bool signaled) -> Fence {
+    Fence fence;
+    fence.init(*this, signaled);
+    return fence;
+}
+
+auto LogicalDevice::create_command_pool(const QueueFamilyIndex& queue_family_index) -> CommandPool {
+    CommandPool cp;
+    cp.init(*this, queue_family_index);
+    return cp;
+}
+
+auto LogicalDevice::create_swapchain() -> Swapchain {
+    Swapchain sc;
+    sc.init(*this, m_instance->m_surface);
+    return sc;
+}
+
+auto LogicalDevice::create_image_view(Image& image, VkFormat format) -> ImageView {
+    ImageView iv;
+    iv.init(*this, image, format);
+    return iv;
 }
 
 auto LogicalDevice::deinit() -> void {

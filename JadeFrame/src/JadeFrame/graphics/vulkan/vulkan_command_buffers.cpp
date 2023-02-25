@@ -192,7 +192,7 @@ auto CommandPool::allocate_command_buffers(u32 amount) const -> std::vector<Comm
     }
     return command_buffers;
 }
-auto CommandPool::allocate_command_buffer() const -> CommandBuffer { return this->allocate_command_buffers(1)[0]; }
+auto CommandPool::allocate_command_buffer() const -> CommandBuffer { return std::move(this->allocate_command_buffers(1)[0]); }
 auto CommandPool::free_command_buffers(const std::vector<CommandBuffer>& command_buffers) const -> void {
     for (u32 i = 0; i < command_buffers.size(); i++) {
         vkFreeCommandBuffers(m_device->m_handle, m_handle, 1, &command_buffers[i].m_handle);

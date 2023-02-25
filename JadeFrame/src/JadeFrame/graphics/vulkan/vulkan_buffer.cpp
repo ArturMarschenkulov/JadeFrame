@@ -143,10 +143,23 @@ auto LogicalDevice::create_texture_sampler() -> void {
 Buffer::Buffer(const Buffer::TYPE type)
     : m_type(type) {}
 
+
+auto to_string(const Buffer::TYPE type) -> const char* {
+    switch (type) {
+        case Buffer::TYPE::VERTEX: return "VERTEX";
+        case Buffer::TYPE::INDEX: return "INDEX";
+        case Buffer::TYPE::UNIFORM: return "UNIFORM";
+        case Buffer::TYPE::STAGING: return "STAGING";
+        case Buffer::TYPE::UNINIT: return "UNINIT";
+        default: return "UNKNOWN";
+    }
+}
+
 auto Buffer::init(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data, size_t size) -> void {
     /*VkResult result;*/
     m_device = &device;
     m_size = size;
+    m_type = buffer_type;
 
     bool                  b_with_staging_buffer = false;
     VkBufferUsageFlags    usage = {};
@@ -167,7 +180,8 @@ auto Buffer::init(const LogicalDevice& device, Buffer::TYPE buffer_type, void* d
             properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
         } break;
         case Buffer::TYPE::UNIFORM: {
-            JF_ASSERT(m_type == Buffer::TYPE::UNIFORM, "");
+            Logger::info("ccc {}", to_string(m_type));
+            JF_ASSERT(m_type == Buffer::TYPE::UNIFORM, "Expected uniform buffer, got something else");
             b_with_staging_buffer = false;
             usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
             properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
@@ -548,7 +562,7 @@ auto Vulkan_Texture::transition_layout(
 
     d.m_command_pool.free_command_buffers(cb);
 }
-auto Vulkan_Texture::copy_buffer_to_image(const Buffer& buffer, const Image image, v2u32 size) -> void {
+auto Vulkan_Texture::copy_buffer_to_image(const Buffer& buffer, const Image& image, v2u32 size) -> void {
     const LogicalDevice& d = *m_device;
 
     auto cb = d.m_command_pool.allocate_command_buffers(1);

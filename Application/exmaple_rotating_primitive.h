@@ -62,7 +62,11 @@ auto Example_Rotating_Primitive::on_init() -> void {
     m_obj.m_vertex_data_id = mesh_id_0;
 
     ShaderHandle::DESC shader_handle_desc;
-    shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("spirv_test_0");
+    if (m_render_system.m_api == GRAPHICS_API::VULKAN) {
+        shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("spirv_test_1");
+    } else if (m_render_system.m_api == GRAPHICS_API::OPENGL) {
+        shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("spirv_test_0");
+    }
     shader_handle_desc.vertex_format = m_obj.m_vertex_format;
     auto shader_id = m_render_system.register_shader(ShaderHandle(shader_handle_desc));
     auto texture_id = 0;

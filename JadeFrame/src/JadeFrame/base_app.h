@@ -123,6 +123,7 @@ public:
         std::string title;
         v2u32       size;
         v2u32       position = {0, 0};
+        GRAPHICS_API api;
     };
     BaseApp() = default;
     BaseApp(const DESC& desc);

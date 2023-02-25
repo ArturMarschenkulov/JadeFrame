@@ -46,6 +46,7 @@ private: // NOTE: probably temporary
 
     // TODO: Move the descriptor stuff to the shader code
 public: // Descriptor set
+
     vulkan::DescriptorPool      m_main_descriptor_pool;
     vulkan::DescriptorSetLayout m_descriptor_set_layout_global;
     vulkan::DescriptorSetLayout m_descriptor_set_layout_draw_call;

@@ -31,31 +31,6 @@ auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const ->
 
     //__debugbreak();
 }
-
-// static auto
-// setup_framebuffer(Framebuffer& buffer, Texture<GL_TEXTURE_2D>& texture, Renderbuffer& renderbuffer)
-//     -> void {
-//     buffer.bind();
-
-//     const v2i32 size; // = m_context.m_cache.viewport[1];
-//     texture.bind(0);
-
-//     texture.set_texture_image_2D(0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-//     texture.set_texture_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//     texture.set_texture_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//     texture.set_texture_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-//     texture.set_texture_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-//     buffer.attach_texture(texture);
-
-//     renderbuffer.bind();
-//     renderbuffer.store(GL_DEPTH24_STENCIL8, size.x, size.y);
-//     buffer.attach_renderbuffer(renderbuffer);
-
-//     buffer.unbind();
-
-//     const GLenum res = buffer.check_status();
-//     if (res != GL_FRAMEBUFFER_COMPLETE) assert(false);
-// }
 #define JF_FB 1
 OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     : m_context(window) {
@@ -89,8 +64,6 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
             assert(false);
         }
     }
-    assert(fb.m_framebuffer.m_ID != 0);
-    // assert(fb.m_framebuffer_texture.m_ID != 0);
 
 
 
@@ -110,9 +83,26 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
 #if JF_FB
     fb.m_shader_id_fb = m_system->register_shader(shader_handle_desc);
 #endif
-    // fb.m_shader_handle_fb = new ShaderHandle(shader_handle_desc);
-    // fb.m_shader_handle_fb->m_api = GRAPHICS_API::OPENGL;
-    // fb.m_shader_handle_fb->init(&m_context);
+
+
+    {
+        // TODO: Right now this is heard coded to 2 binding points. This should be dynamic using reflection
+        // TODO: This is also the wrong place for this. This should be in the renderer or shader.
+
+        // Camera
+        const GLuint binding_point_0 = 0;
+        m_uniform_buffers.emplace_back();
+        m_uniform_buffers[0].init(m_context, opengl::Buffer::TYPE::UNIFORM);
+        m_uniform_buffers[0].reserve(1 * sizeof(Matrix4x4));
+        m_uniform_buffers[0].bind_base(binding_point_0);
+
+        // Transform
+        const GLuint binding_point_1 = 1;
+        m_uniform_buffers.emplace_back();
+        m_uniform_buffers[1].init(m_context, opengl::Buffer::TYPE::UNIFORM);
+        m_uniform_buffers[1].reserve(1 * sizeof(Matrix4x4));
+        m_uniform_buffers[1].bind_base(binding_point_1);
+    }
 }
 
 auto OpenGL_Renderer::present() -> void { m_context.swap_buffers(); }
@@ -138,9 +128,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     this->clear_background();
 
-    // m_context.m_uniform_buffers[0].bind();
-    m_context.m_uniform_buffers[0].send({view_projection});
-    // m_context.m_uniform_buffers[0].unbind();
+    m_uniform_buffers[0].send({view_projection});
 
     for (size_t i = 0; i < m_render_commands.size(); ++i) {
         const OpenGL_RenderCommand& command = m_render_commands[i];
@@ -163,9 +151,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         this->render_mesh(p_vertex_array, p_mesh);
 
         const Matrix4x4& transform = *command.transform;
-        // m_context.m_uniform_buffers[1].bind();
-        m_context.m_uniform_buffers[1].send({transform});
-        // m_context.m_uniform_buffers[1].unbind();
+        m_uniform_buffers[1].send({transform});
     }
 #if JF_FB
     fb.m_framebuffer.unbind();

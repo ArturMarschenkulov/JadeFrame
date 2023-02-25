@@ -9,7 +9,7 @@ namespace vulkan {
 class LogicalDevice;
 class Fence {
 public:
-    auto init(const LogicalDevice& device) -> void;
+    auto init(const LogicalDevice& device, bool signaled) -> void;
     auto deinit() -> void;
     auto wait_for_fences() -> void;
     auto reset() -> void;

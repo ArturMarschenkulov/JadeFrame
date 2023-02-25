@@ -33,32 +33,32 @@ public:
         STAGING
     };
     Buffer() = default;
-    ~Buffer() {}
+    ~Buffer() = default;
 
     Buffer(const Buffer&) = delete;
     auto operator=(const Buffer&) -> Buffer& = delete;
 
-    Buffer(Buffer&& other) noexcept
+    Buffer(Buffer&& other)
         : m_type(other.m_type)
         , m_size(other.m_size)
         , m_handle(other.m_handle)
         , m_memory(other.m_memory)
         , m_device(other.m_device) {
 
-        // other.m_type = TYPE::UNINIT;
+        other.m_type = TYPE::UNINIT;
         other.m_size = 0;
         other.m_handle = VK_NULL_HANDLE;
         other.m_memory = VK_NULL_HANDLE;
         other.m_device = nullptr;
     }
     auto operator=(Buffer&& other) -> Buffer& {
-        // m_type = other.m_type;
+        m_type = other.m_type;
         m_size = other.m_size;
         m_handle = other.m_handle;
         m_memory = other.m_memory;
         m_device = other.m_device;
 
-        // other.m_type = TYPE::UNINIT;
+        other.m_type = TYPE::UNINIT;
         other.m_size = 0;
         other.m_handle = VK_NULL_HANDLE;
         other.m_memory = VK_NULL_HANDLE;
@@ -72,6 +72,7 @@ public:
 
     auto init(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data, size_t size) -> void;
     auto deinit() -> void;
+    
     auto send(const Matrix4x4& m, VkDeviceSize offset) -> void;
     auto send(void* data, VkDeviceSize offset, VkDeviceSize size) -> void;
     auto resize(size_t size) -> void;
@@ -83,7 +84,7 @@ private:
     auto copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size) -> void;
 
 public:
-    const Buffer::TYPE m_type = Buffer::TYPE::UNINIT;
+    /*const*/ Buffer::TYPE m_type = Buffer::TYPE::UNINIT;
     //	VkBufferUsageFlags m_usage = 0;
     VkDeviceSize m_size = 0;
 
@@ -102,7 +103,7 @@ public:
     Vulkan_GPUMeshData(const Vulkan_GPUMeshData&) = delete;
     auto operator=(const Vulkan_GPUMeshData&) -> Vulkan_GPUMeshData& = delete;
 
-    //Vulkan_GPUMeshData(Vulkan_GPUMeshData&& other);
+    // Vulkan_GPUMeshData(Vulkan_GPUMeshData&& other);
     auto operator=(Vulkan_GPUMeshData&& other) -> Vulkan_GPUMeshData&;
 
     Vulkan_GPUMeshData(
@@ -124,6 +125,33 @@ public:
         REGULAR,
         SWAPCHAIN
     };
+    Image() = default;
+    ~Image() {
+        if (m_handle != VK_NULL_HANDLE) { this->deinit(); }
+    }
+    Image(const Image&) = delete;
+    auto operator=(const Image&) -> Image& = delete;
+    Image(Image&& other) noexcept
+        : m_handle(other.m_handle)
+        , m_device(other.m_device)
+        , m_memory(other.m_memory)
+        , m_source(other.m_source) {
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_device = nullptr;
+        other.m_memory = VK_NULL_HANDLE;
+        other.m_source = SOURCE::REGULAR;
+    }
+    auto operator=(Image&& other) -> Image& {
+        m_handle = other.m_handle;
+        m_device = other.m_device;
+        m_memory = other.m_memory;
+        m_source = other.m_source;
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_device = nullptr;
+        other.m_memory = VK_NULL_HANDLE;
+        other.m_source = SOURCE::REGULAR;
+        return *this;
+    }
     auto init(const LogicalDevice& device, const v2u32& extent, VkFormat format, VkImageUsageFlags usage) -> void;
     auto init(const LogicalDevice& device, VkImage image) -> void;
     auto deinit() -> void;
@@ -136,6 +164,32 @@ public:
 
 class ImageView {
 public:
+    ImageView() = default;
+    ~ImageView() {
+        if (m_handle != VK_NULL_HANDLE) { this->deinit(); }
+    }
+
+    ImageView(const ImageView&) = delete;
+    auto operator=(const ImageView&) -> ImageView& = delete;
+
+    ImageView(ImageView&& other) noexcept
+        : m_handle(other.m_handle)
+        , m_device(other.m_device)
+        , m_image(other.m_image) {
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_device = nullptr;
+        other.m_image = nullptr;
+    }
+    auto operator=(ImageView&& other) -> ImageView& {
+        m_handle = other.m_handle;
+        m_device = other.m_device;
+        m_image = other.m_image;
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_device = nullptr;
+        other.m_image = nullptr;
+        return *this;
+    }
+
     auto init(const LogicalDevice& device, const Image& image, VkFormat format) -> void;
     auto deinit() -> void;
 
@@ -148,6 +202,13 @@ public:
 
 class Sampler {
 public:
+    Sampler() = default;
+    ~Sampler() = default;
+    Sampler(const Sampler&) = delete;
+    auto operator=(const Sampler&) -> Sampler& = delete;
+    Sampler(Sampler&&) = delete;
+    auto operator=(Sampler&&) -> Sampler& = delete;
+
     auto init(const LogicalDevice& device) -> void;
     auto deinit() -> void;
 
@@ -157,12 +218,19 @@ public:
 };
 class Vulkan_Texture {
 public:
+    Vulkan_Texture() = default;
+    ~Vulkan_Texture() = default;
+    Vulkan_Texture(const Vulkan_Texture&) = delete;
+    auto operator=(const Vulkan_Texture&) -> Vulkan_Texture& = delete;
+    Vulkan_Texture(Vulkan_Texture&&) = delete;
+    auto operator=(Vulkan_Texture&&) -> Vulkan_Texture& = delete;
+
     auto init(const LogicalDevice& device, void* data, v2u32 size, VkFormat) -> void;
     auto deinit() -> void;
 
     auto transition_layout(const Image& image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout)
         -> void;
-    auto copy_buffer_to_image(const Buffer& buffer, const Image image, v2u32 size) -> void;
+    auto copy_buffer_to_image(const Buffer& buffer, const Image& image, v2u32 size) -> void;
 
 public:
     Image                m_image;

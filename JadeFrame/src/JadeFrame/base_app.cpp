@@ -266,8 +266,9 @@ BaseApp::BaseApp(const DESC& desc) {
 
     Logger::info("Creating Renderer");
     GRAPHICS_API api = GRAPHICS_API::UNDEFINED;
-    api = GRAPHICS_API::VULKAN;
-    api = GRAPHICS_API::OPENGL;
+    // api = GRAPHICS_API::VULKAN;
+    // api = GRAPHICS_API::OPENGL;
+    api = desc.api;
     m_render_system.init(api, m_windows[0]);
     // m_render_system = m_system_manager.request_render_system(api, m_windows[0]);
 

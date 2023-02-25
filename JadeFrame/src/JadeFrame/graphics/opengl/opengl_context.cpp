@@ -6,6 +6,7 @@
 namespace JadeFrame {
 
 
+
 auto OpenGL_Context::create_texture() -> opengl::Texture { return opengl::Texture(*this); }
 auto OpenGL_Context::create_texture(void* data, v2u32 size, u32 component_num) -> opengl::Texture {
     return opengl::Texture(*this, data, size, component_num);
@@ -13,17 +14,19 @@ auto OpenGL_Context::create_texture(void* data, v2u32 size, u32 component_num) -
 
 OpenGL_Context::OpenGL_Context(const IWindow* window)
 #ifdef WIN32
-    : m_device_context(opengl::win32::init_device_context(window)) {
+{
     auto* win = static_cast<const JadeFrame::win32::Window*>(window);
 
-    m_device_context = ::GetDC(win->m_window_handle);
 
+    // NOTE: This function might have to be moved, as in theory one could have multiple contexts.
+    // NOTE: Think about removing the parameter from this function then just using the global instance handle.
     // loading wgl functions for render context creation
     opengl::win32::load_wgl_funcs(win->m_instance_handle);
 
-
+    m_device_context = ::GetDC(win->m_window_handle);
     HGLRC render_context = opengl::win32::init_render_context(m_device_context);
-    opengl::win32::load_opengl_funcs(m_device_context, render_context);
+    wglMakeCurrent(m_device_context, render_context);
+    opengl::win32::load_opengl_funcs(/*m_device_context, render_context*/);
 
 #elif __linux__
 {
@@ -67,30 +70,6 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
     GLint max_texture_units;
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_texture_units);
     m_texture_units.resize(max_texture_units, 0);
-
-
-    {
-        //TODO: Right now this is heard coded to 2 binding points. This should be dynamic using reflection
-        //TODO: This is also the wrong place for this. This should be in the renderer or shader.
-
-        // Camera
-        const GLuint binding_point_0 = 0;
-        m_uniform_buffers.emplace_back();
-        // m_uniform_buffers[0].bind();
-        m_uniform_buffers[0].init(*this, opengl::Buffer::TYPE::UNIFORM);
-        m_uniform_buffers[0].reserve(1 * sizeof(Matrix4x4));
-        // m_uniform_buffers[0].unbind();
-        m_uniform_buffers[0].bind_base(binding_point_0);
-
-        // Transform
-        const GLuint binding_point_1 = 1;
-        m_uniform_buffers.emplace_back();
-        // m_uniform_buffers[1].bind();
-        m_uniform_buffers[1].init(*this, opengl::Buffer::TYPE::UNIFORM);
-        m_uniform_buffers[1].reserve(1 * sizeof(Matrix4x4));
-        // m_uniform_buffers[1].unbind();
-        m_uniform_buffers[1].bind_base(binding_point_1);
-    }
 }
 
 OpenGL_Context::~OpenGL_Context() {}

@@ -4,14 +4,14 @@
 #include "JadeFrame/utils/assert.h"
 namespace JadeFrame {
 namespace vulkan {
-auto Fence::init(const LogicalDevice& device) -> void {
+auto Fence::init(const LogicalDevice& device, bool signaled) -> void {
     m_device = &device;
     VkResult result;
 
     const VkFenceCreateInfo create_info = {
         .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
         .pNext = nullptr,
-        .flags = VK_FENCE_CREATE_SIGNALED_BIT,
+        .flags = signaled ? VK_FENCE_CREATE_SIGNALED_BIT : (VkFenceCreateFlags)0,
     };
 
     result = vkCreateFence(device.m_handle, &create_info, nullptr, &m_handle);

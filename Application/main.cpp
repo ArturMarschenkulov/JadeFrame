@@ -26,12 +26,13 @@ int main() {
 
     using GApp = JadeFrame::TestApp;
 
-    GApp::DESC win_desc;
-    win_desc.title = "Test";
-    win_desc.size.width = 800;  // = 1280;
-    win_desc.size.height = 800; // = 720;
+    GApp::DESC app_desc;
+    app_desc.title = "Test";
+    app_desc.size.width = 800;  // = 1280;
+    app_desc.size.height = 800; // = 720;
+    app_desc.api = JadeFrame::GRAPHICS_API::OPENGL;
 
-    GApp* app = jade_frame.request_app<GApp>(win_desc);
+    GApp* app = jade_frame.request_app<GApp>(app_desc);
     jade_frame.run();
     return 0;
 }

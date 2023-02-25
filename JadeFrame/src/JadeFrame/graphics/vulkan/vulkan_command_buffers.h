@@ -23,6 +23,36 @@ class CommandPool;
 
 class CommandBuffer {
 public:
+    CommandBuffer() = default;
+    ~CommandBuffer() = default;
+    CommandBuffer(const CommandBuffer&) = delete;
+    auto operator=(const CommandBuffer&) -> CommandBuffer& = delete;
+    CommandBuffer(CommandBuffer&& other) {
+        this->m_handle = other.m_handle;
+        this->m_alloc_info = other.m_alloc_info;
+        this->m_device = other.m_device;
+        this->m_command_pool = other.m_command_pool;
+        this->m_stage = other.m_stage;
+
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_device = nullptr;
+        other.m_command_pool = nullptr;
+        other.m_stage = STAGE::INVALID;
+    }
+    auto operator=(CommandBuffer&& other) -> CommandBuffer& {
+        this->m_handle = other.m_handle;
+        this->m_alloc_info = other.m_alloc_info;
+        this->m_device = other.m_device;
+        this->m_command_pool = other.m_command_pool;
+        this->m_stage = other.m_stage;
+
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_device = nullptr;
+        other.m_command_pool = nullptr;
+        other.m_stage = STAGE::INVALID;
+        return *this;
+    }
+
     auto record_begin() -> void;
     auto record_end() -> void;
     auto render_pass_begin(
@@ -32,17 +62,17 @@ public:
 
     template<typename Func>
     auto record(Func&& func) -> void {
-        record_begin();
+        this->record_begin();
         func();
-        record_end();
+        this->record_end();
     }
     template<typename Func>
     auto render_pass(
         const Framebuffer& framebuffer, const RenderPass& render_pass, const VkExtent2D& swapchain, VkClearValue color,
         Func&& func) -> void {
-        render_pass_begin(framebuffer, render_pass, swapchain, color);
+        this->render_pass_begin(framebuffer, render_pass, swapchain, color);
         func();
-        render_pass_end();
+        this->render_pass_end();
     }
 
     auto reset() -> void;
@@ -67,9 +97,9 @@ public:
 
 public:
     enum class STAGE {
-        INITIAL,
-        RECORDING,
-        EXCECUTABLE,
+        INITIAL,     // after vkBegineCommandBuffer, before vkCmdBeginRenderPass
+        RECORDING,   // after vkCmdBeginRenderPass, before vkCmdEndRenderPass
+        EXCECUTABLE, // after vkEndCommandBuffer, before vkQueueSubmit
         PENDING,
         INVALID
     };
@@ -83,6 +113,28 @@ public:
 using QueueFamilyIndex = u32;
 class CommandPool {
 public:
+    CommandPool() = default;
+    ~CommandPool() = default;
+    CommandPool(const CommandPool&) = delete;
+    auto operator=(const CommandPool&) -> CommandPool& = delete;
+    CommandPool(CommandPool&& other) {
+        this->m_handle = other.m_handle;
+        this->m_create_info = other.m_create_info;
+        this->m_device = other.m_device;
+
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_device = nullptr;
+    }
+    auto operator=(CommandPool&& other) -> CommandPool& {
+        this->m_handle = other.m_handle;
+        this->m_create_info = other.m_create_info;
+        this->m_device = other.m_device;
+
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_device = nullptr;
+        return *this;
+    }
+
     auto init(const LogicalDevice& device, const QueueFamilyIndex& queue_family_index) -> void;
     auto deinit() -> void;
 

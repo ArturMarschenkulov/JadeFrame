@@ -21,17 +21,18 @@ class PhysicalDevice;
 }
 class VulkanInstance {
 
+
+public:
+    VulkanInstance() = default;
+    auto init(const IWindow* window_handle) -> void;
+    auto deinit() -> void;
+
 private:
     auto query_layers() -> std::vector<VkLayerProperties>;
     auto query_extensions() -> std::vector<VkExtensionProperties>;
     auto query_physical_devices() -> std::vector<vulkan::PhysicalDevice>;
     auto setup_debug() -> void;
     auto check_validation_layer_support(const std::vector<VkLayerProperties>& available_layers) -> bool;
-
-public:
-    VulkanInstance() = default;
-    auto init(const IWindow* window_handle) -> void;
-    auto deinit() -> void;
 
 public:
     VkInstance      m_instance = VK_NULL_HANDLE;
@@ -57,14 +58,16 @@ public:
 };
 
 struct Vulkan_Context {
+    Vulkan_Context() = default;
+    ~Vulkan_Context();
+
     Vulkan_Context(const Vulkan_Context&) = delete;
-    Vulkan_Context(Vulkan_Context&&) = delete;
     auto operator=(const Vulkan_Context&) -> Vulkan_Context& = delete;
+
+    Vulkan_Context(Vulkan_Context&&) = delete;
     auto operator=(Vulkan_Context&&) -> Vulkan_Context& = delete;
 
-    Vulkan_Context() = default;
     Vulkan_Context(const IWindow* window);
-    ~Vulkan_Context();
 
 public:
     VulkanInstance m_instance;

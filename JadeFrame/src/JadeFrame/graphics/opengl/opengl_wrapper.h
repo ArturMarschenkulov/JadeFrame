@@ -204,11 +204,13 @@ public:
     auto unbind() const -> void;
 
 
-    GLuint m_ID = 0;
 
 private:
     auto release() -> GLuint;
     auto reset(GLuint ID = 0) -> void;
+
+public:
+    GLuint m_ID = 0;
 };
 
 

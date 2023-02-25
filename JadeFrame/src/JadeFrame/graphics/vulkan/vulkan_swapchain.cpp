@@ -49,7 +49,7 @@ static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities
         return available_capabilities.currentExtent;
     } else {
 #ifdef _WIN32
-        RECT        area;
+        RECT       area;
         const HWND wh = (const HWND)swapchain.m_surface->m_window_handle->get();
         GetClientRect(wh, &area);
         i32 width = area.right;
@@ -189,20 +189,12 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     JF_ASSERT(result == VK_SUCCESS, "");
 
 
-
-
-    std::vector<VkImage> images;
-    result = vkGetSwapchainImagesKHR(device.m_handle, m_handle, &image_count, nullptr);
-    JF_ASSERT(result == VK_SUCCESS, "");
-    images.resize(image_count);
-    result = vkGetSwapchainImagesKHR(device.m_handle, m_handle, &image_count, images.data());
-    JF_ASSERT(result == VK_SUCCESS, "");
-
-    m_images.resize(image_count);
-    for (u32 i = 0; i < m_images.size(); i++) { m_images[i].init(device, images[i]); }
-
-    m_image_views.resize(image_count);
-    for (u32 i = 0; i < m_images.size(); i++) { m_image_views[i].init(device, m_images[i], surface_format.format); }
+    m_images = this->query_images();
+    assert(m_images.size() == image_count);
+    m_image_views.resize(m_images.size());
+    for (u32 i = 0; i < m_images.size(); i++) {
+        m_image_views[i] = device.create_image_view(m_images[i], surface_format.format);
+    }
 
     m_render_pass.init(device, m_image_format);
 
@@ -210,6 +202,21 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     for (size_t i = 0; i < m_image_views.size(); i++) {
         m_framebuffers[i].init(*m_device, m_image_views[i], m_render_pass, m_extent);
     }
+}
+
+auto Swapchain::query_images() -> std::vector<Image> {
+    std::vector<VkImage> images;
+    u32                  image_count;
+
+    vkGetSwapchainImagesKHR(m_device->m_handle, m_handle, &image_count, nullptr);
+    images.resize(image_count);
+    vkGetSwapchainImagesKHR(m_device->m_handle, m_handle, &image_count, images.data());
+
+    std::vector<Image> result;
+    result.resize(image_count);
+    for (u32 i = 0; i < image_count; i++) { result[i].init(*m_device, images[i]); }
+
+    return result;
 }
 
 auto Swapchain::deinit() -> void {
