@@ -59,7 +59,7 @@ static auto extract_descriptor_set_layouts(const LogicalDevice& device, const Re
 
     std::array<DescriptorSetLayout, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> set_layouts;
 
-    std::vector<std::vector<DescriptorSetLayout::Binding>> bindings_set(static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX));
+    std::array<std::vector<DescriptorSetLayout::Binding>, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> bindings_set;
     for (u32 i = 0; i < code.m_modules.size(); i++) {
         auto& module = code.m_modules[i];
 
@@ -69,7 +69,6 @@ static auto extract_descriptor_set_layouts(const LogicalDevice& device, const Re
             const VkDescriptorType& type = buffer.set == static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::PER_OBJECT)
                                                ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
                                                : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            // set_layouts[buffer.set].add_binding(buffer.binding, type, 1, from_SHADER_STAGE(module.m_stage));
             bindings_set[buffer.set].emplace_back(buffer.binding, type, 1, from_SHADER_STAGE(module.m_stage));
         }
     }
