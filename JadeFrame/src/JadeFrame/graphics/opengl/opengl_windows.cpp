@@ -262,27 +262,41 @@ auto set_pixel_format(const HDC& device_context) -> void {
 }
 
 auto create_render_context(HDC device_context) -> HGLRC {
-    const i32 major_min = 4;
-    const i32 minor_min = 6;
+    constexpr bool extended_context = false;
 
-    i32 context_attributes[] = {
-        /*major_version*/ WGL_CONTEXT_MAJOR_VERSION_ARB,
-        major_min,
-        /*minor_version*/ WGL_CONTEXT_MINOR_VERSION_ARB,
-        minor_min,
-        /*context flags*/ WGL_CONTEXT_FLAGS_ARB,
-        WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB |
-            WGL_CONTEXT_DEBUG_BIT_ARB, // TODO check whether this UE4 part is relevant to us
-        /*profile type*/ WGL_CONTEXT_PROFILE_MASK_ARB,
-        WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-        0};
+    if (extended_context == true) {
 
-    const HGLRC render_context = wglCreateContextAttribsARB(device_context, 0, context_attributes);
-    if (render_context == NULL) {
-        Logger::log("wglCreateContextAttribsARB() failed. {}", ::GetLastError());
-        return NULL;
+
+
+        const i32 major_min = 4;
+        const i32 minor_min = 6;
+
+        i32 context_attributes[] = {
+            /*major_version*/ WGL_CONTEXT_MAJOR_VERSION_ARB,
+            major_min,
+            /*minor_version*/ WGL_CONTEXT_MINOR_VERSION_ARB,
+            minor_min,
+            /*context flags*/ WGL_CONTEXT_FLAGS_ARB,
+            WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB |
+                WGL_CONTEXT_DEBUG_BIT_ARB, // TODO check whether this UE4 part is relevant to us
+            /*profile type*/ WGL_CONTEXT_PROFILE_MASK_ARB,
+            WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            0};
+
+        const HGLRC render_context = wglCreateContextAttribsARB(device_context, 0, context_attributes);
+        if (render_context == NULL) {
+            Logger::log("wglCreateContextAttribsARB() failed. {}", ::GetLastError());
+            return NULL;
+        }
+        return render_context;
+    } else {
+        const HGLRC render_context = ::wglCreateContext(device_context);
+        if (render_context == NULL) {
+            Logger::log("wglCreateContext() failed. {}", ::GetLastError());
+            return NULL;
+        }
+        return render_context;
     }
-    return render_context;
 }
 } // namespace win32
 } // namespace opengl
