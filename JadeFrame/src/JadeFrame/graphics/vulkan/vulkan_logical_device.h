@@ -5,6 +5,7 @@
 #include "vulkan_swapchain.h"
 #include "vulkan_pipeline.h"
 #include "vulkan_buffer.h"
+#include "vulkan_shader.h"
 #include "vulkan_descriptor_set.h"
 #include "vulkan_sync_object.h"
 #include "vulkan_command_buffers.h"
@@ -120,6 +121,7 @@ public:
 
     auto query_queues(u32 queue_family_index, u32 queue_index) -> Queue;
 
+    auto create_shader(const Vulkan_Shader::DESC& desc) -> Vulkan_Shader;
 
     //	// To be removed
 public: // texture stuff

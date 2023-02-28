@@ -176,6 +176,11 @@ auto LogicalDevice::create_descriptor_set_layout(std::vector<vulkan::DescriptorS
     return layout;
 }
 
+auto LogicalDevice::create_shader(const Vulkan_Shader::DESC& desc) -> Vulkan_Shader {
+    Vulkan_Shader shader(*this, desc);
+    return shader;
+}
+
 auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& physical_device) -> void {
     m_physical_device = &physical_device;
     m_instance = &instance;

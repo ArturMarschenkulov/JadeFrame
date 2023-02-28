@@ -52,6 +52,55 @@ enum class SHADER_STAGE {
     COMPUTE,
 };
 
+
+enum class SHADER_TYPE {
+    NONE = 0,
+    FLOAT,
+    FLOAT_2,
+    FLOAT_3,
+    FLOAT_4,
+    MAT_3,
+    MAT_4,
+    INT,
+    INT_2,
+    INT_3,
+    INT_4,
+    BOOL,
+    SAMPLER_1D,
+    SAMPLER_2D,
+    SAMPLER_3D,
+    SAMPLER_CUBE,
+};
+
+struct VertexAttribute {
+    std::string name;
+    SHADER_TYPE type;
+    u32         size;
+    size_t      offset;
+    bool        normalized;
+
+    VertexAttribute(const std::string& name, SHADER_TYPE type, bool normalized = false);
+};
+
+class VertexFormat {
+public:
+public:
+    VertexFormat() = default;
+
+    VertexFormat(const VertexFormat&) = default;
+    auto operator=(const VertexFormat&) -> VertexFormat& = default;
+
+    VertexFormat(VertexFormat&&) = default;
+    auto operator=(VertexFormat&&) -> VertexFormat& = default;
+
+    VertexFormat(const std::initializer_list<VertexAttribute>& attributes);
+
+    auto calculate_offset_and_stride(std::vector<VertexAttribute>& attributes) -> void;
+
+    std::vector<VertexAttribute> m_attributes;
+    u32                          m_stride = 0;
+};
+
 // This struct saves the shader code. The common language is SPIRV.
 struct ShadingCode {
     struct Module {
@@ -62,6 +111,62 @@ struct ShadingCode {
     SHADING_LANGUAGE    m_shading_language;
     std::vector<Module> m_modules;
 };
+
+struct TextureHandle {
+public:
+    TextureHandle() = default;
+    ~TextureHandle();
+
+    TextureHandle(const TextureHandle&) = delete;
+    auto operator=(const TextureHandle&) -> TextureHandle& = delete;
+
+    TextureHandle(TextureHandle&& other);
+    auto operator=(TextureHandle&& other) -> TextureHandle&;
+
+    TextureHandle(const std::string& path);
+
+    auto init(void* context) -> void;
+
+public:
+    u8*   m_data;
+    v2u32 m_size;
+    u32   m_num_components;
+
+    GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
+    void*        m_handle = nullptr;
+};
+struct ShaderHandle {
+public:
+    struct DESC {
+        ShadingCode  shading_code;
+        VertexFormat vertex_format;
+    };
+
+    ShaderHandle() = default;
+    ~ShaderHandle() = default;
+
+    ShaderHandle(ShaderHandle&& other);
+    auto operator=(ShaderHandle&& other) -> ShaderHandle&;
+
+    ShaderHandle(const DESC& desc);
+
+    auto init(void* context) -> void;
+
+public:
+    ShadingCode  m_code;
+    VertexFormat m_vertex_format;
+
+    GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
+    void*        m_handle = nullptr;
+};
+
+struct MaterialHandle {
+    u32 m_shader_id = 0;
+    u32 m_texture_id = 0;
+};
+
+// This struct saves the shader code. The common language is SPIRV.
+
 
 struct ShaderModule {
     SHADING_LANGUAGE shading_language;
@@ -84,14 +189,14 @@ struct GPUDataMeshHandle {
 using ssss = const char*;
 template<typename T>
 concept is_renderer = requires(T& t) {
-    { t.present() } -> std::same_as<void>;
-    { t.clear_background() } -> std::same_as<void>;
-    { t.render(std::declval<Matrix4x4>()) } -> std::same_as<void>;
-    { t.submit(std::declval<Object>()) } -> std::same_as<void>;
-    { t.set_clear_color(std::declval<RGBAColor>()) } -> std::same_as<void>;
-    { t.set_viewport(u32{}, u32{}, u32{}, u32{}) } -> std::same_as<void>;
-    { t.take_screenshot(std::declval<char*>()) } -> std::same_as<void>;
-};
+                          { t.present() } -> std::same_as<void>;
+                          { t.clear_background() } -> std::same_as<void>;
+                          { t.render(std::declval<Matrix4x4>()) } -> std::same_as<void>;
+                          { t.submit(std::declval<Object>()) } -> std::same_as<void>;
+                          { t.set_clear_color(std::declval<RGBAColor>()) } -> std::same_as<void>;
+                          { t.set_viewport(u32{}, u32{}, u32{}, u32{}) } -> std::same_as<void>;
+                          { t.take_screenshot(std::declval<char*>()) } -> std::same_as<void>;
+                      };
 class IRenderer {
 public: // client stuff
     virtual auto submit(const Object& obj) -> void = 0;
@@ -133,24 +238,7 @@ public: // more internal stuff
 //	f32 m_point_size;
 //	f32 m_line_width;
 //};
-enum class SHADER_TYPE {
-    NONE = 0,
-    FLOAT,
-    FLOAT_2,
-    FLOAT_3,
-    FLOAT_4,
-    MAT_3,
-    MAT_4,
-    INT,
-    INT_2,
-    INT_3,
-    INT_4,
-    BOOL,
-    SAMPLER_1D,
-    SAMPLER_2D,
-    SAMPLER_3D,
-    SAMPLER_CUBE,
-};
+
 inline auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
     u32 result;
     switch (type) {
@@ -173,34 +261,7 @@ inline auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
     return result;
 }
 
-struct VertexAttribute {
-    std::string name;
-    SHADER_TYPE type;
-    u32         size;
-    size_t      offset;
-    bool        normalized;
 
-    VertexAttribute(const std::string& name, SHADER_TYPE type, bool normalized = false);
-};
-
-class VertexFormat {
-public:
-public:
-    VertexFormat() = default;
-
-    VertexFormat(const VertexFormat&) = default;
-    auto operator=(const VertexFormat&) -> VertexFormat& = default;
-
-    VertexFormat(VertexFormat&&) = default;
-    auto operator=(VertexFormat&&) -> VertexFormat& = default;
-
-    VertexFormat(const std::initializer_list<VertexAttribute>& attributes);
-
-    auto calculate_offset_and_stride(std::vector<VertexAttribute>& attributes) -> void;
-
-    std::vector<VertexAttribute> m_attributes;
-    u32                          m_stride = 0;
-};
 
 class IShader {
 public:
@@ -245,7 +306,7 @@ public:
     auto init(GRAPHICS_API api, IWindow* window) -> void;
 
     auto register_texture(TextureHandle&& handle) -> u32;
-    auto register_shader(ShaderHandle&& handle) -> u32;
+    auto register_shader(const ShaderHandle::DESC& handle) -> u32;
     auto register_mesh(const VertexFormat& format, const VertexData& data) -> u32;
 
 public:
