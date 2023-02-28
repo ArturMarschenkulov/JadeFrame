@@ -267,6 +267,12 @@ struct ReflectedCode {
         u32         size; // in bytes
         SHADER_TYPE type;
     };
+    struct Output {
+        std::string name;
+        u32         location;
+        u32         size; // in bytes
+        SHADER_TYPE type;
+    };
     struct SampledImage {
         std::string name;
         u32         binding = 0;
@@ -284,6 +290,7 @@ struct ReflectedCode {
         SHADER_STAGE m_stage;
 
         std::vector<Input>         m_inputs;
+        std::vector<Output>        m_outputs;
         std::vector<UniformBuffer> m_uniform_buffers;
         std::vector<SampledImage>  m_sampled_images;
         // std::vector<VkPushConstantRange> m_push_constant_ranges;

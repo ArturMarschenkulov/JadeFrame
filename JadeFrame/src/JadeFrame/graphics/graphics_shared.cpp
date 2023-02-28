@@ -371,6 +371,25 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
             inputs[j].type = to_SHADER_TYPE(buffer_type, buffer_type.vecsize, buffer_type.columns);
         }
 
+        result.m_modules[i].m_outputs.resize(resources.stage_inputs.size());
+        for (u32 j = 0; j < resources.stage_outputs.size(); j++) {
+            const spirv_cross::Resource& resource = resources.stage_outputs[j];
+
+            const std::string& name = resource.name;
+
+            const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
+            const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
+            i32                          member_count = static_cast<u32>(buffer_type.member_types.size());
+            u32                          location = compiler.get_decoration(resource.id, spv::DecorationLocation);
+            u32                          size = (buffer_type.width / 8) * buffer_type.vecsize * buffer_type.columns;
+
+            std::vector<ReflectedCode::Output>& outputs = current_result_module.m_outputs;
+            outputs[j].name = name;
+            outputs[j].location = location;
+            outputs[j].size = size;
+            outputs[j].type = to_SHADER_TYPE(buffer_type, buffer_type.vecsize, buffer_type.columns);
+        }
+
         result.m_modules[i].m_uniform_buffers.resize(resources.uniform_buffers.size());
         for (u32 j = 0; j < resources.uniform_buffers.size(); j++) {
             const spirv_cross::Resource& resource = resources.uniform_buffers[j];
