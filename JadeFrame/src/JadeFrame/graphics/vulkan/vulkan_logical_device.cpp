@@ -234,7 +234,7 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
 
     // Commad Buffer stuff
     m_command_pool = this->create_command_pool(m_physical_device->m_queue_family_indices.m_graphics_family.value());
-    m_command_buffers = m_command_pool.allocate_command_buffers(static_cast<u32>(m_swapchain.m_framebuffers.size()));
+    m_command_buffers = m_command_pool.allocate_buffers(static_cast<u32>(m_swapchain.m_framebuffers.size()));
 
     Logger::debug("maxBoundDescriptorSets: {}", m_physical_device->m_properties.limits.maxBoundDescriptorSets);
     JF_ASSERT(m_physical_device->m_properties.limits.maxBoundDescriptorSets >= 4, "");

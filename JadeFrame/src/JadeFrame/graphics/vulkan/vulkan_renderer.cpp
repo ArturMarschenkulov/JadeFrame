@@ -37,7 +37,7 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
         {         VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, descriptor_count},
         {         VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, descriptor_count},
     };
-    m_descriptor_pool = m_logical_device->create_descriptor_pool(4, pool_sizes);
+    m_set_pool = m_logical_device->create_descriptor_pool(4, pool_sizes);
 
 
     /*
@@ -112,9 +112,9 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     // Update ubo buffer and descriptor set when the amount of render commands changes
     if (m_render_commands.size() != 0 && m_render_commands.size() * aligned_block_size != m_ub_tran.m_size) {
         m_ub_tran.resize(m_render_commands.size() * aligned_block_size);
-        m_descriptor_sets[3].rebind_uniform_buffer(0, m_ub_tran);
-        for (int i = 0; i < m_descriptor_sets.size(); i++) {
-            if (m_descriptor_sets[i].m_descriptors.size() > 0) { m_descriptor_sets[i].update(); }
+        m_sets[3].rebind_uniform_buffer(0, m_ub_tran);
+        for (int i = 0; i < m_sets.size(); i++) {
+            if (m_sets[i].m_descriptors.size() > 0) { m_sets[i].update(); }
         }
     }
 
@@ -145,8 +145,8 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
                 cb.bind_pipeline(bind_point, pipeline);
                 cb.bind_vertex_buffers(0, 1, vertex_buffers, offsets);
-                cb.bind_descriptor_sets(bind_point, pipeline, 0, m_descriptor_sets[0], &offset);
-                cb.bind_descriptor_sets(bind_point, pipeline, 3, m_descriptor_sets[3], &offset);
+                cb.bind_descriptor_sets(bind_point, pipeline, 0, m_sets[0], &offset);
+                cb.bind_descriptor_sets(bind_point, pipeline, 3, m_sets[3], &offset);
 
 
                 if (vertex_data.m_indices.size() > 0) {

@@ -208,7 +208,7 @@ auto DescriptorPool::deinit() -> void {
     { Logger::info("Destroyed descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
 }
 
-auto DescriptorPool::allocate_descriptor_sets(const DescriptorSetLayout& descriptor_set_layout, u32 amount)
+auto DescriptorPool::allocate_sets(const DescriptorSetLayout& descriptor_set_layout, u32 amount)
     -> std::vector<DescriptorSet> {
     VkResult                           result;
     std::vector<VkDescriptorSetLayout> layouts(amount, descriptor_set_layout.m_handle);
@@ -267,11 +267,11 @@ auto DescriptorPool::allocate_descriptor_sets(const DescriptorSetLayout& descrip
     return sets;
 }
 
-auto DescriptorPool::allocate_descriptor_set(const DescriptorSetLayout& descriptor_set_layout) -> DescriptorSet {
-    return std::move(this->allocate_descriptor_sets(descriptor_set_layout, 1)[0]);
+auto DescriptorPool::allocate_set(const DescriptorSetLayout& descriptor_set_layout) -> DescriptorSet {
+    return std::move(this->allocate_sets(descriptor_set_layout, 1)[0]);
 }
 
-auto DescriptorPool::free_descriptor_sets(const std::vector<DescriptorSet>& /*descriptor_sets*/) -> void {
+auto DescriptorPool::free_sets(const std::vector<DescriptorSet>& /*descriptor_sets*/) -> void {
     // for(u32 i = 0; i < descriptor_sets.size(); i++) {
     //	VkResult result;
     //	result = vkFreeDescriptorSets(m_device->m_handle, m_handle, 1, &descriptor_sets[i].m_handle);
@@ -284,7 +284,7 @@ auto DescriptorPool::free_descriptor_sets(const std::vector<DescriptorSet>& /*de
     { Logger::info("Destroyed descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
 }
 
-auto DescriptorPool::free_descriptor_set(const DescriptorSet& descriptor_set) -> void {
+auto DescriptorPool::free_set(const DescriptorSet& descriptor_set) -> void {
     VkResult result;
     result = vkFreeDescriptorSets(m_device->m_handle, m_handle, 1, &descriptor_set.m_handle);
     if (result != VK_SUCCESS) assert(false);

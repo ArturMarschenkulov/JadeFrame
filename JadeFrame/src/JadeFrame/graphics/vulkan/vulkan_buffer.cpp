@@ -280,16 +280,16 @@ auto Buffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize 
     VkResult result;
 
 
-    const CommandPool&         cp = m_device->m_command_pool;
-    std::vector<CommandBuffer> command_buffer = cp.allocate_command_buffers(1);
+    const CommandPool& cp = m_device->m_command_pool;
+    CommandBuffer      command_buffer = cp.allocate_buffer();
 
-    command_buffer[0].record([&] {
+    command_buffer.record([&] {
         const VkBufferCopy copy_region = {
             .srcOffset = 0,
             .dstOffset = 0,
             .size = size,
         };
-        vkCmdCopyBuffer(command_buffer[0].m_handle, src_buffer, dst_buffer, 1, &copy_region);
+        vkCmdCopyBuffer(command_buffer.m_handle, src_buffer, dst_buffer, 1, &copy_region);
     });
     // command_buffer[0].record_end();
 
@@ -300,7 +300,7 @@ auto Buffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize 
         .pWaitSemaphores = {},
         .pWaitDstStageMask = {},
         .commandBufferCount = 1,
-        .pCommandBuffers = &command_buffer[0].m_handle,
+        .pCommandBuffers = &command_buffer.m_handle,
         .signalSemaphoreCount = {},
         .pSignalSemaphores = {},
     };
@@ -310,7 +310,7 @@ auto Buffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize 
     result = vkQueueWaitIdle(m_device->m_graphics_queue.m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 
-    cp.free_command_buffers(command_buffer);
+    cp.free_buffer(command_buffer);
 }
 Vulkan_GPUMeshData::Vulkan_GPUMeshData(
     const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat /*vertex_format*/,
@@ -507,9 +507,9 @@ auto Vulkan_Texture::transition_layout(
     const Image& image, VkFormat /*format*/, VkImageLayout old_layout, VkImageLayout new_layout) -> void {
     const LogicalDevice& d = *m_device;
 
-    auto cb = d.m_command_pool.allocate_command_buffers(1);
+    auto cb = d.m_command_pool.allocate_buffer();
 
-    cb[0].record([&] {
+    cb.record([&] {
         VkImageMemoryBarrier barrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .srcAccessMask = 0,
@@ -548,25 +548,25 @@ auto Vulkan_Texture::transition_layout(
             assert(false);
         }
 
-        vkCmdPipelineBarrier(cb[0].m_handle, source_stage, destination_stage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+        vkCmdPipelineBarrier(cb.m_handle, source_stage, destination_stage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
     });
     // cb[0].record_end();
 
     const VkSubmitInfo submit_info = {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .commandBufferCount = 1,
-        .pCommandBuffers = &cb[0].m_handle,
+        .pCommandBuffers = &cb.m_handle,
     };
     d.m_graphics_queue.submit(submit_info, VK_NULL_HANDLE);
     d.m_graphics_queue.wait_idle();
 
-    d.m_command_pool.free_command_buffers(cb);
+    d.m_command_pool.free_buffer(cb);
 }
 auto Vulkan_Texture::copy_buffer_to_image(const Buffer& buffer, const Image& image, v2u32 size) -> void {
     const LogicalDevice& d = *m_device;
 
-    auto cb = d.m_command_pool.allocate_command_buffers(1);
-    cb[0].record([&] {
+    auto cb = d.m_command_pool.allocate_buffer();
+    cb.record([&] {
         const VkBufferImageCopy region = {
             .bufferOffset = 0,
             .bufferRowLength = 0,
@@ -578,20 +578,20 @@ auto Vulkan_Texture::copy_buffer_to_image(const Buffer& buffer, const Image& ima
         };
 
         vkCmdCopyBufferToImage(
-            cb[0].m_handle, buffer.m_handle, image.m_handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+            cb.m_handle, buffer.m_handle, image.m_handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
     });
     // cb[0].record_end();
 
     const VkSubmitInfo submit_info = {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .commandBufferCount = 1,
-        .pCommandBuffers = &cb[0].m_handle,
+        .pCommandBuffers = &cb.m_handle,
     };
     // d.m_graphics_queue.submit(submit_info, VK_NULL_HANDLE);
-    d.m_graphics_queue.submit(cb[0], nullptr, nullptr, nullptr);
+    d.m_graphics_queue.submit(cb, nullptr, nullptr, nullptr);
     d.m_graphics_queue.wait_idle();
 
-    d.m_command_pool.free_command_buffers(cb);
+    d.m_command_pool.free_buffer(cb);
 }
 } // namespace vulkan
 } // namespace JadeFrame

@@ -138,9 +138,10 @@ public:
     auto init(const LogicalDevice& device, const QueueFamilyIndex& queue_family_index) -> void;
     auto deinit() -> void;
 
-    auto allocate_command_buffers(u32 amount) const -> std::vector<CommandBuffer>;
-    auto allocate_command_buffer() const -> CommandBuffer;
-    auto free_command_buffers(const std::vector<CommandBuffer>& command_buffers) const -> void;
+    auto allocate_buffers(u32 amount) const -> std::vector<CommandBuffer>;
+    auto allocate_buffer() const -> CommandBuffer;
+    auto free_buffers(const std::vector<CommandBuffer>& command_buffers) const -> void;
+    auto free_buffer(const CommandBuffer& command_buffer) const -> void;
 
 public:
     const LogicalDevice*    m_device = nullptr;

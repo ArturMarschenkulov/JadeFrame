@@ -305,7 +305,7 @@ auto RenderSystem::register_shader(const ShaderHandle::DESC& shader_desc) -> u32
 
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            OpenGL_Renderer* renderer = static_cast<OpenGL_Renderer*>(m_renderer);
+            OpenGL_Renderer*     renderer = static_cast<OpenGL_Renderer*>(m_renderer);
             opengl::Shader::DESC shader_desc;
             shader_desc.code = ogl(m_registered_shaders[id].m_code);
             shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
@@ -326,14 +326,14 @@ auto RenderSystem::register_shader(const ShaderHandle::DESC& shader_desc) -> u32
 
             auto* sh = (Vulkan_Shader*)m_registered_shaders[id].m_handle;
             for (int i = 0; i < sh->m_pipeline.m_set_layouts.size(); i++) {
-                r->m_descriptor_sets[i] = r->m_descriptor_pool.allocate_descriptor_set(sh->m_pipeline.m_set_layouts[i]);
+                r->m_sets[i] = r->m_set_pool.allocate_set(sh->m_pipeline.m_set_layouts[i]);
             }
 
             // TODO: Remove this hard coded code later on
-            r->m_descriptor_sets[0].bind_uniform_buffer(0, r->m_ub_cam, 0, sizeof(Matrix4x4));
-            r->m_descriptor_sets[3].bind_uniform_buffer(0, r->m_ub_tran, 0, sizeof(Matrix4x4));
+            r->m_sets[0].bind_uniform_buffer(0, r->m_ub_cam, 0, sizeof(Matrix4x4));
+            r->m_sets[3].bind_uniform_buffer(0, r->m_ub_tran, 0, sizeof(Matrix4x4));
 
-            for (int i = 0; i < r->m_descriptor_sets.size(); i++) { r->m_descriptor_sets[i].update(); }
+            for (int i = 0; i < r->m_sets.size(); i++) { r->m_sets[i].update(); }
 
 
             auto shader = m_registered_shaders[id].m_handle;

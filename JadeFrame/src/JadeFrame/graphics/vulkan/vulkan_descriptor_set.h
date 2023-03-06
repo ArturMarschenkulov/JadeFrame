@@ -133,6 +133,7 @@ public:
 public:
     auto init(const LogicalDevice& device, std::vector<Binding> bindings) -> void;
     auto deinit() -> void;
+
 private:
     auto add_binding(
         u32 binding, VkDescriptorType descriptor_type, u32 descriptor_count, VkShaderStageFlags stage_flags,
@@ -177,11 +178,11 @@ public:
 
     auto add_pool_size(const VkDescriptorPoolSize& pool_size) -> void;
 
-    auto allocate_descriptor_sets(const DescriptorSetLayout& descriptor_set_layout, u32 image_amount)
+    auto allocate_sets(const DescriptorSetLayout& descriptor_set_layout, u32 image_amount)
         -> std::vector<DescriptorSet>;
-    auto allocate_descriptor_set(const DescriptorSetLayout& descriptor_set_layout) -> DescriptorSet;
-    auto free_descriptor_sets(const std::vector<DescriptorSet>& descriptor_sets) -> void;
-    auto free_descriptor_set(const DescriptorSet& descriptor_sets) -> void;
+    auto allocate_set(const DescriptorSetLayout& descriptor_set_layout) -> DescriptorSet;
+    auto free_sets(const std::vector<DescriptorSet>& descriptor_sets) -> void;
+    auto free_set(const DescriptorSet& descriptor_sets) -> void;
 
 public:
     const LogicalDevice*              m_device = nullptr;
