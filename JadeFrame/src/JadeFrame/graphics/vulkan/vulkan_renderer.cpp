@@ -129,8 +129,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     // Update ubo buffer and descriptor set when the amount of render commands changes
     if (m_render_commands.size() != 0 && m_render_commands.size() * aligned_block_size != m_ub_tran.m_size) {
         m_ub_tran.resize(m_render_commands.size() * aligned_block_size);
-        m_descriptor_sets[1].readd_uniform_buffer(0, m_ub_tran);
-        for (int i = 0; i < m_descriptor_sets.size(); i++) { m_descriptor_sets[i].update(); }
+        m_descriptor_sets[3].rebind_uniform_buffer(0, m_ub_tran);
     }
 
     // const VulkanImage& image = d.m_swapchain.m_images[image_index];

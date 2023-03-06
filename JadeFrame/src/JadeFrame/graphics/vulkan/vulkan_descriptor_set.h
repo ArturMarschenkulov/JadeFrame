@@ -107,8 +107,8 @@ public:
     }
 
     auto update() -> void;
-    auto add_uniform_buffer(u32 binding, const Buffer& buffer, VkDeviceSize offset, VkDeviceSize range) -> void;
-    auto readd_uniform_buffer(u32 binding, const Buffer& buffer) -> void;
+    auto bind_uniform_buffer(u32 binding, const Buffer& buffer, VkDeviceSize offset, VkDeviceSize range) -> void;
+    auto rebind_uniform_buffer(u32 binding, const Buffer& buffer) -> void;
 
 public:
     VkDescriptorSet            m_handle;

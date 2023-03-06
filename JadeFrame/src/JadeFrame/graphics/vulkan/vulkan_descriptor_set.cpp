@@ -18,7 +18,7 @@ class LogicalDevice;
 /*---------------------------
         Descriptor Set
 ---------------------------*/
-auto DescriptorSet::add_uniform_buffer(u32 binding, const Buffer& buffer, VkDeviceSize offset, VkDeviceSize range)
+auto DescriptorSet::bind_uniform_buffer(u32 binding, const Buffer& buffer, VkDeviceSize offset, VkDeviceSize range)
     -> void {
     JF_ASSERT(buffer.m_size < from_kibibyte(64), "Guaranteed only between 16K and 64K");
     Descriptor d;
@@ -48,7 +48,7 @@ auto DescriptorSet::add_uniform_buffer(u32 binding, const Buffer& buffer, VkDevi
     // });
     // JF_ASSERT(it != m_descriptors.end(), "");
 }
-auto DescriptorSet::readd_uniform_buffer(u32 binding, const Buffer& buffer) -> void {
+auto DescriptorSet::rebind_uniform_buffer(u32 binding, const Buffer& buffer) -> void {
 
     for (u32 i = 0; i < m_descriptors.size(); i++) {
         if (m_descriptors[i].binding == binding) {
