@@ -72,7 +72,9 @@ static auto extract_descriptor_set_layouts(const LogicalDevice& device, const Re
             bindings_set[buffer.set].emplace_back(buffer.binding, type, 1, from_SHADER_STAGE(module.m_stage));
         }
     }
-    for (u32 i = 0; i < set_layouts.size(); i++) { set_layouts[i].init(device, bindings_set[i]); }
+    for (u32 i = 0; i < set_layouts.size(); i++) {
+        set_layouts[i] = device.create_descriptor_set_layout(bindings_set[i]);
+    }
     return set_layouts;
 }
 
@@ -146,7 +148,7 @@ auto Pipeline::init(
         set 3: model matrix.
     */
     const std::array<DescriptorSetLayout, 4> set_layouts = extract_descriptor_set_layouts(device, reflected_code);
-
+    m_set_layouts = set_layouts;
 
 
     const VkVertexInputBindingDescription                binding_description = get_binding_description(vertex_format);

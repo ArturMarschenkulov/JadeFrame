@@ -124,27 +124,6 @@ auto ShaderHandle::operator=(ShaderHandle&& other) -> ShaderHandle& {
     return *this;
 }
 
-auto ShaderHandle::init(void* context) -> void {
-
-    switch (m_api) {
-        case GRAPHICS_API::OPENGL: {
-            opengl::Shader::DESC shader_desc;
-            shader_desc.code = m_code;
-            shader_desc.vertex_format = m_vertex_format;
-            m_handle = new opengl::Shader(*(OpenGL_Context*)context, shader_desc);
-
-        } break;
-        case GRAPHICS_API::VULKAN: {
-            Vulkan_Shader::DESC shader_desc;
-            shader_desc.code = m_code;
-            shader_desc.vertex_format = m_vertex_format;
-            m_handle = new Vulkan_Shader(*(vulkan::LogicalDevice*)context, shader_desc);
-            // m_handle = &((vulkan::LogicalDevice*)context)->create_shader(shader_desc);
-        } break;
-        default: assert(false);
-    }
-}
-
 VertexAttribute::VertexAttribute(const std::string& name, SHADER_TYPE type, bool normalized)
     : name(name)
     , type(type)
@@ -265,7 +244,7 @@ auto RenderSystem::register_texture(TextureHandle&& texture) -> u32 {
         } break;
         case GRAPHICS_API::VULKAN: {
             Vulkan_Renderer* renderer = static_cast<Vulkan_Renderer*>(m_renderer);
-            auto             ld = &renderer->m_context.m_instance.m_logical_device;
+            auto             ld = &renderer->m_logical_device;
             m_registered_textures[id].m_api = m_api;
             m_registered_textures[id].init(ld);
         } break;
@@ -275,21 +254,87 @@ auto RenderSystem::register_texture(TextureHandle&& texture) -> u32 {
     id++;
     return old_id;
 }
+
+
+static auto ogl(const ShadingCode& code) -> ShadingCode {
+
+    spirv_cross::CompilerGLSL::Options options;
+    options.version = 450;
+    options.es = false;
+    options.vulkan_semantics = true;
+    spirv_cross::CompilerGLSL compiler = spirv_cross::CompilerGLSL(code.m_modules[0].m_code);
+
+    compiler.set_common_options(options);
+    spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+
+    std::array<std::vector<spirv_cross::Resource*>, 4> dd;
+    for (u32 j = 0; j < resources.uniform_buffers.size(); j++) {
+        spirv_cross::Resource& resource = resources.uniform_buffers[j];
+
+        u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+        u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+        JF_ASSERT(set <= 3, "As of right now, only 4 descriptor sets are supported. (0, 1, 2, 3)");
+
+        dd[set].push_back(&resource);
+    }
+
+    u32 binding = 0;
+    for (u32 i = 0; i < dd.size(); i++) {
+        for (u32 j = 0; j < dd[i].size(); j++) {
+            // compiler.unset_decoration(dd[i][j]->id, spv::DecorationDescriptorSet);
+            compiler.set_decoration(dd[i][j]->id, spv::DecorationDescriptorSet, 0);
+            compiler.set_decoration(dd[i][j]->id, spv::DecorationBinding, binding);
+            binding++;
+        }
+    }
+    auto source = compiler.compile();
+
+    // Logger::info("\nLLLLLLLLLLLLL GLSL:\n {}", source.c_str());
+    auto new_code = code;
+    new_code.m_modules[0].m_code = string_to_SPIRV(source, SHADER_STAGE::VERTEX, GRAPHICS_API::OPENGL);
+    return new_code;
+}
+
 auto RenderSystem::register_shader(const ShaderHandle::DESC& shader_desc) -> u32 {
     static u32 id = 1;
-    m_registered_shaders[id] = ShaderHandle(std::move(shader_desc));
+
+    m_registered_shaders[id].m_code = shader_desc.shading_code;
+    m_registered_shaders[id].m_vertex_format = shader_desc.vertex_format;
     m_registered_shaders[id].m_api = m_api;
+
 
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
             OpenGL_Renderer* renderer = static_cast<OpenGL_Renderer*>(m_renderer);
-            m_registered_shaders[id].init(&renderer->m_context);
+            opengl::Shader::DESC shader_desc;
+            shader_desc.code = ogl(m_registered_shaders[id].m_code);
+            shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
+
+
+            m_registered_shaders[id].m_handle = new opengl::Shader(*(OpenGL_Context*)&renderer->m_context, shader_desc);
         } break;
         case GRAPHICS_API::VULKAN: {
-            Vulkan_Renderer* renderer = static_cast<Vulkan_Renderer*>(m_renderer);
+            Vulkan_Renderer* r = static_cast<Vulkan_Renderer*>(m_renderer);
 
-            auto ld = &renderer->m_context.m_instance.m_logical_device;
-            m_registered_shaders[id].init(ld);
+            auto ld = r->m_logical_device;
+
+            Vulkan_Shader::DESC shader_desc;
+            shader_desc.code = m_registered_shaders[id].m_code;
+            shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
+            m_registered_shaders[id].m_handle = new Vulkan_Shader(*(vulkan::LogicalDevice*)ld, shader_desc);
+
+
+            auto* sh = (Vulkan_Shader*)m_registered_shaders[id].m_handle;
+            for (int i = 0; i < sh->m_pipeline.m_set_layouts.size(); i++) {
+                r->m_descriptor_sets[i] = r->m_descriptor_pool.allocate_descriptor_set(sh->m_pipeline.m_set_layouts[i]);
+            }
+
+            // TODO: Remove this hard coded code later on
+            r->m_descriptor_sets[0].bind_uniform_buffer(0, r->m_ub_cam, 0, sizeof(Matrix4x4));
+            r->m_descriptor_sets[3].bind_uniform_buffer(0, r->m_ub_tran, 0, sizeof(Matrix4x4));
+
+            for (int i = 0; i < r->m_descriptor_sets.size(); i++) { r->m_descriptor_sets[i].update(); }
+
 
             auto shader = m_registered_shaders[id].m_handle;
         } break;
@@ -322,8 +367,7 @@ auto RenderSystem::register_mesh(const VertexFormat& format, const VertexData& d
         } break;
         case GRAPHICS_API::VULKAN: {
             Vulkan_Renderer* renderer = static_cast<Vulkan_Renderer*>(m_renderer);
-            renderer->m_registered_meshes[id] =
-                vulkan::Vulkan_GPUMeshData{renderer->m_context.m_instance.m_logical_device, data, format};
+            renderer->m_registered_meshes[id] = vulkan::Vulkan_GPUMeshData{*renderer->m_logical_device, data, format};
         } break;
         default: assert(false);
     }

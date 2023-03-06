@@ -46,14 +46,11 @@ private: // NOTE: probably temporary
 
     // TODO: Move the descriptor stuff to the shader code
 public: // Descriptor set
-
-    vulkan::DescriptorPool      m_main_descriptor_pool;
-    vulkan::DescriptorSetLayout m_descriptor_set_layout_global;
-    vulkan::DescriptorSetLayout m_descriptor_set_layout_draw_call;
+    vulkan::DescriptorPool m_descriptor_pool;
+    std::array<vulkan::DescriptorSet, static_cast<u8>(vulkan::DESCRIPTOR_SET_FREQUENCY::MAX)>       m_descriptor_sets;
 
 
-    std::vector<vulkan::DescriptorSet> m_descriptor_sets;
-    vulkan::Buffer                     m_ub_cam = {vulkan::Buffer::TYPE::UNIFORM};
-    vulkan::Buffer                     m_ub_tran = {vulkan::Buffer::TYPE::UNIFORM};
+    vulkan::Buffer m_ub_cam = {vulkan::Buffer::TYPE::UNIFORM};
+    vulkan::Buffer m_ub_tran = {vulkan::Buffer::TYPE::UNIFORM};
 };
 } // namespace JadeFrame

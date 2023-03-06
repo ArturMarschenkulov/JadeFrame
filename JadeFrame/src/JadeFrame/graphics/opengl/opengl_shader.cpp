@@ -53,13 +53,14 @@ Shader::Shader(OpenGL_Context& context, const DESC& desc)
     spirv_cross::CompilerGLSL::Options options;
     options.version = 450;
     options.es = false;
-    options.vulkan_semantics = false;
+    options.vulkan_semantics = true;
     for (int i = 0; i < desc.code.m_modules.size(); i++) {
         auto& spirv = desc.code.m_modules[i].m_code;
 
         spirv_cross::CompilerGLSL glsl(spirv);
         glsl.set_common_options(options);
         glsl_sources[i] = glsl.compile();
+        // Logger::info("\nKKKKKKKKKKKKKKKKKKKKKKKKK----\n{}----\n", glsl_sources[i]);
     }
 
     m_vertex_source = glsl_sources[0];
@@ -119,7 +120,6 @@ Shader::Shader(OpenGL_Context& context, const DESC& desc)
 
     m_program.detach(m_vertex_shader);
     m_program.detach(m_fragment_shader);
-
 }
 
 auto Shader::bind() const -> void { m_program.bind(); }

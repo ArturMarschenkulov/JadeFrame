@@ -116,7 +116,7 @@ public:
     auto create_buffer(Buffer::TYPE buffer_type, void* data, size_t size) -> Buffer;
 
     auto create_descriptor_pool(u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes) -> DescriptorPool;
-    auto create_descriptor_set_layout(std::vector<vulkan::DescriptorSetLayout::Binding>& bindings)
+    auto create_descriptor_set_layout(std::vector<vulkan::DescriptorSetLayout::Binding>& bindings) const
         -> DescriptorSetLayout;
 
     auto query_queues(u32 queue_family_index, u32 queue_index) -> Queue;

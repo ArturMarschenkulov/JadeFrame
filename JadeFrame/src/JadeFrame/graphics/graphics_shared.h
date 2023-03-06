@@ -150,8 +150,6 @@ public:
 
     ShaderHandle(const DESC& desc);
 
-    auto init(void* context) -> void;
-
 public:
     ShadingCode  m_code;
     VertexFormat m_vertex_format;

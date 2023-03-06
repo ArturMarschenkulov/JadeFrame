@@ -169,7 +169,7 @@ auto LogicalDevice::create_descriptor_pool(u32 max_sets, std::vector<VkDescripto
     return pool;
 }
 
-auto LogicalDevice::create_descriptor_set_layout(std::vector<vulkan::DescriptorSetLayout::Binding>& bindings)
+auto LogicalDevice::create_descriptor_set_layout(std::vector<vulkan::DescriptorSetLayout::Binding>& bindings) const
     -> DescriptorSetLayout {
     DescriptorSetLayout layout;
     layout.init(*this, bindings);

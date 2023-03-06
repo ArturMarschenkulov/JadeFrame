@@ -37,7 +37,7 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
         {         VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, descriptor_count},
         {         VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, descriptor_count},
     };
-    m_main_descriptor_pool = m_logical_device->create_descriptor_pool(4, pool_sizes);
+    m_descriptor_pool = m_logical_device->create_descriptor_pool(4, pool_sizes);
 
 
     /*
@@ -49,26 +49,9 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
     m_ub_cam = m_logical_device->create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
     m_ub_tran = m_logical_device->create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
 
-    std::vector<vulkan::DescriptorSetLayout::Binding> bindings_global = {
-        {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT},
-    };
-    m_descriptor_set_layout_global = m_logical_device->create_descriptor_set_layout(bindings_global);
 
-
-    std::vector<vulkan::DescriptorSetLayout::Binding> bindings_draw_call = {
-        {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_VERTEX_BIT},
-    };
-    m_descriptor_set_layout_draw_call = m_logical_device->create_descriptor_set_layout(bindings_draw_call);
 
     // TODO: Maybe move the descriptor code to `vulkan_renderer.cpp`?
-
-
-    m_descriptor_sets.resize(2);
-    m_descriptor_sets[0] = m_main_descriptor_pool.allocate_descriptor_set(m_descriptor_set_layout_global);
-    m_descriptor_sets[0].add_uniform_buffer(0, m_ub_cam, 0, sizeof(Matrix4x4));
-    m_descriptor_sets[1] = m_main_descriptor_pool.allocate_descriptor_set(m_descriptor_set_layout_draw_call);
-    m_descriptor_sets[1].add_uniform_buffer(0, m_ub_tran, 0, sizeof(Matrix4x4));
-    for (int i = 0; i < m_descriptor_sets.size(); i++) { m_descriptor_sets[i].update(); }
 }
 auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void { m_clear_color = color; }
 
@@ -130,6 +113,9 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     if (m_render_commands.size() != 0 && m_render_commands.size() * aligned_block_size != m_ub_tran.m_size) {
         m_ub_tran.resize(m_render_commands.size() * aligned_block_size);
         m_descriptor_sets[3].rebind_uniform_buffer(0, m_ub_tran);
+        for (int i = 0; i < m_descriptor_sets.size(); i++) {
+            if (m_descriptor_sets[i].m_descriptors.size() > 0) { m_descriptor_sets[i].update(); }
+        }
     }
 
     // const VulkanImage& image = d.m_swapchain.m_images[image_index];
@@ -160,7 +146,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
                 cb.bind_pipeline(bind_point, pipeline);
                 cb.bind_vertex_buffers(0, 1, vertex_buffers, offsets);
                 cb.bind_descriptor_sets(bind_point, pipeline, 0, m_descriptor_sets[0], &offset);
-                cb.bind_descriptor_sets(bind_point, pipeline, 3, m_descriptor_sets[1], &offset);
+                cb.bind_descriptor_sets(bind_point, pipeline, 3, m_descriptor_sets[3], &offset);
 
 
                 if (vertex_data.m_indices.size() > 0) {

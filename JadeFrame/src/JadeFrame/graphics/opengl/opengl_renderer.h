@@ -88,11 +88,11 @@ public:
         opengl::Renderbuffer m_framebuffer_renderbuffer;
         opengl::Framebuffer  m_framebuffer;
         opengl::GPUMeshData* m_framebuffer_rect;
-        // ShaderHandle*        m_shader_handle_fb;
         u32 m_shader_id_fb;
     } fb;
 
     std::vector<opengl::Buffer> m_uniform_buffers;
+    std::array<opengl::Buffer, 4> m_descriptor_sets;
 };
 static_assert(is_renderer<OpenGL_Renderer>);
 
