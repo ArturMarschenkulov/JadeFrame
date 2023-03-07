@@ -109,12 +109,12 @@ auto load_wgl_funcs(HMODULE instance) -> bool {
     WNDCLASS      window_class;
     ZeroMemory(&window_class, sizeof(window_class));
     window_class.style = CS_OWNDC;
-    window_class.lpfnWndProc = DefWindowProcW;
+    window_class.lpfnWndProc = ::DefWindowProcW;
     window_class.cbClsExtra = 0;
     window_class.cbWndExtra = 0;
     window_class.hInstance = instance;
-    window_class.hIcon = LoadIconW(NULL, IDI_WINLOGO);
-    window_class.hCursor = LoadCursorW(NULL, IDC_ARROW);
+    window_class.hIcon = ::LoadIconW(NULL, IDI_WINLOGO);
+    window_class.hCursor = ::LoadCursorW(NULL, IDC_ARROW);
     window_class.hbrBackground = (HBRUSH)(COLOR_MENUTEXT);
     window_class.lpszMenuName = NULL;
     window_class.lpszClassName = class_name;
@@ -130,7 +130,7 @@ auto load_wgl_funcs(HMODULE instance) -> bool {
         NULL, NULL,     // parent window, menu
         instance, NULL);
     if (window_handle == NULL) assert(false);
-    const HDC device_context = GetDC(window_handle);
+    const HDC device_context = ::GetDC(window_handle);
     if (device_context == NULL) assert(false);
 
     PIXELFORMATDESCRIPTOR format;
@@ -272,16 +272,25 @@ auto create_render_context(HDC device_context) -> HGLRC {
         const i32 minor_min = 6;
 
         i32 context_attributes[] = {
-            /*major_version*/ WGL_CONTEXT_MAJOR_VERSION_ARB,
-            major_min,
-            /*minor_version*/ WGL_CONTEXT_MINOR_VERSION_ARB,
-            minor_min,
-            /*context flags*/ WGL_CONTEXT_FLAGS_ARB,
-            WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB |
-                WGL_CONTEXT_DEBUG_BIT_ARB, // TODO check whether this UE4 part is relevant to us
-            /*profile type*/ WGL_CONTEXT_PROFILE_MASK_ARB,
-            WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            WGL_CONTEXT_MAJOR_VERSION_ARB,
+            major_min, /*major_version*/
+            WGL_CONTEXT_MINOR_VERSION_ARB,
+            minor_min, /*minor_version*/
+            WGL_CONTEXT_FLAGS_ARB,
+            WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB, /*context flags*/
+            WGL_CONTEXT_PROFILE_MASK_ARB,
+            WGL_CONTEXT_CORE_PROFILE_BIT_ARB, /*profile type*/
             0};
+        // std::vector<i32> attribs;
+        // attribs.push_back(WGL_CONTEXT_MAJOR_VERSION_ARB); // major version
+        // attribs.push_back(major_min);
+        // attribs.push_back(WGL_CONTEXT_MINOR_VERSION_ARB); // minor version
+        // attribs.push_back(minor_min);
+        // attribs.push_back(WGL_CONTEXT_FLAGS_ARB); // context flags
+        // attribs.push_back(WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB);
+        // attribs.push_back(WGL_CONTEXT_PROFILE_MASK_ARB); // profile type
+        // attribs.push_back(WGL_CONTEXT_CORE_PROFILE_BIT_ARB);
+        // attribs.push_back(0);
 
         const HGLRC render_context = wglCreateContextAttribsARB(device_context, 0, context_attributes);
         if (render_context == NULL) {

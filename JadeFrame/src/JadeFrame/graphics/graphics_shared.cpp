@@ -289,7 +289,6 @@ static auto ogl(const ShadingCode& code) -> ShadingCode {
     }
     auto source = compiler.compile();
 
-    // Logger::info("\nLLLLLLLLLLLLL GLSL:\n {}", source.c_str());
     auto new_code = code;
     new_code.m_modules[0].m_code = string_to_SPIRV(source, SHADER_STAGE::VERTEX, GRAPHICS_API::OPENGL);
     return new_code;
@@ -332,11 +331,8 @@ auto RenderSystem::register_shader(const ShaderHandle::DESC& shader_desc) -> u32
             // TODO: Remove this hard coded code later on
             r->m_sets[0].bind_uniform_buffer(0, r->m_ub_cam, 0, sizeof(Matrix4x4));
             r->m_sets[3].bind_uniform_buffer(0, r->m_ub_tran, 0, sizeof(Matrix4x4));
-
             for (int i = 0; i < r->m_sets.size(); i++) { r->m_sets[i].update(); }
 
-
-            auto shader = m_registered_shaders[id].m_handle;
         } break;
         default: assert(false);
     }

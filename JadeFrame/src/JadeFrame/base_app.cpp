@@ -265,17 +265,13 @@ BaseApp::BaseApp(const DESC& desc) {
     m_current_window_p = m_windows[0];
 
     Logger::info("Creating Renderer");
-    GRAPHICS_API api = GRAPHICS_API::UNDEFINED;
-    // api = GRAPHICS_API::VULKAN;
-    // api = GRAPHICS_API::OPENGL;
-    api = desc.api;
-    m_render_system.init(api, m_windows[0]);
+    m_render_system.init(desc.api, m_windows[0]);
     // m_render_system = m_system_manager.request_render_system(api, m_windows[0]);
 
 
     const std::string& title = m_current_window_p->get_title();
 
-    std::string new_title = title + " - " + to_string(api);
+    std::string new_title = title + " - " + to_string(desc.api);
 
     m_current_window_p->set_title(new_title);
     // m_gui.init(m_current_window_p, api);

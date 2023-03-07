@@ -211,10 +211,9 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
               .flags = 0,
               .queueCreateInfoCount = static_cast<u32>(queue_create_infos.size()),
               .pQueueCreateInfos = queue_create_infos.data(),
-              .enabledLayerCount =
-            instance.m_enable_validation_layers ? static_cast<uint32_t>(instance.m_desired_layer_names.size()) : 0,
-              .ppEnabledLayerNames = instance.m_enable_validation_layers ? instance.m_desired_layer_names.data() : nullptr,
-              .enabledExtensionCount = static_cast<u32>(instance.m_physical_device.m_device_extensions.size()),
+              .enabledLayerCount = 0,         // this is deprecated and ignored
+              .ppEnabledLayerNames = nullptr, // this is deprecated and ignored
+              .enabledExtensionCount = static_cast<u32>(physical_device.m_device_extensions.size()),
               .ppEnabledExtensionNames = physical_device.m_device_extensions.data(),
               .pEnabledFeatures = &devices_features,
     };
