@@ -52,3 +52,13 @@ Those are projects where one has to actually write code.
 - [toy](https://github.com/hugoam/toy)
 - [cinder](https://github.com/cinder/Cinder)
 - [tinyrenderer](https://github.com/ssloy/tinyrenderer): implements a software render API similar to OpenGL.
+
+
+# Ideas
+## Software renderer
+The problem is actually finding enough resources for writing such a renderer.
+
+Here will be a collection of useful resources for this.
+- [tinyrenderer](https://github.com/ssloy/tinyrenderer):
+- [olcConsoleGameEngine](https://github.com/OneLoneCoder/Javidx9/tree/master/ConsoleGameEngine):
+- [Handmade Hero](https://github.com/HandmadeHero/cpp)
