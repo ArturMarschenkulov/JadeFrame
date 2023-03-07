@@ -1,0 +1,1 @@
+This 'doc' folder contains meta information about this project. Like the various conventions, design goals and inspirations.
