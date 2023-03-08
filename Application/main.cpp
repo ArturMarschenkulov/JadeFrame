@@ -2,8 +2,9 @@
 
 // #include "example_0.h"
 // #include "example_empty.h"
-#include "exmaple_rotating_primitive.h"
+// #include "exmaple_rotating_primitive.h"
 // #include "example_texture_quad.h"
+#include "example_hello_triangle.h"
 
 #include <string>
 #include <iostream>
