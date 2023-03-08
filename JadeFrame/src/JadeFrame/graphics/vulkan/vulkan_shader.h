@@ -20,7 +20,7 @@ public:
     Vulkan_Shader(Vulkan_Shader&&) noexcept = default;
     auto operator=(Vulkan_Shader&&) -> Vulkan_Shader& = delete;
 
-    Vulkan_Shader(const vulkan::LogicalDevice& device, const DESC& desc);
+    Vulkan_Shader(const vulkan::LogicalDevice& device, const Desc& desc);
 
 public:
     vulkan::Pipeline             m_pipeline;

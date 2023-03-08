@@ -7,7 +7,7 @@ namespace JadeFrame {
 
 struct Example_Rotating_Primitive : public BaseApp {
 
-    Example_Rotating_Primitive(const DESC& desc);
+    Example_Rotating_Primitive(const Desc& desc);
     virtual ~Example_Rotating_Primitive() = default;
 
     virtual auto on_init() -> void override;
@@ -21,7 +21,7 @@ public:
     MaterialHandle m_material;
 };
 
-Example_Rotating_Primitive::Example_Rotating_Primitive(const DESC& desc)
+Example_Rotating_Primitive::Example_Rotating_Primitive(const Desc& desc)
     : BaseApp(desc) {}
 
 auto Example_Rotating_Primitive::on_init() -> void {

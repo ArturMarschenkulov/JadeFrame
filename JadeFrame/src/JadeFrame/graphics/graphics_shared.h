@@ -137,7 +137,7 @@ public:
 };
 struct ShaderHandle {
 public:
-    struct DESC {
+    struct Desc {
         ShadingCode  shading_code;
         VertexFormat vertex_format;
     };
@@ -148,7 +148,7 @@ public:
     ShaderHandle(ShaderHandle&& other);
     auto operator=(ShaderHandle&& other) -> ShaderHandle&;
 
-    ShaderHandle(const DESC& desc);
+    ShaderHandle(const Desc& desc);
 
 public:
     ShadingCode  m_code;
@@ -263,7 +263,7 @@ inline auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
 
 class IShader {
 public:
-    struct DESC {
+    struct Desc {
         SHADING_LANGUAGE shading_language;
         ShadingCode      code;
         VertexFormat     vertex_format;
@@ -304,7 +304,7 @@ public:
     auto init(GRAPHICS_API api, IWindow* window) -> void;
 
     auto register_texture(TextureHandle&& handle) -> u32;
-    auto register_shader(const ShaderHandle::DESC& handle) -> u32;
+    auto register_shader(const ShaderHandle::Desc& handle) -> u32;
     auto register_mesh(const VertexFormat& format, const VertexData& data) -> u32;
 
 public:

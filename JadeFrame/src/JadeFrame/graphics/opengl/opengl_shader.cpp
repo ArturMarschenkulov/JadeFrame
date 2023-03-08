@@ -35,7 +35,7 @@ static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
 }
 namespace opengl {
 
-Shader::Shader(OpenGL_Context& context, const DESC& desc)
+Shader::Shader(OpenGL_Context& context, const Desc& desc)
     : m_program()
     , m_vertex_shader(GL_VERTEX_SHADER)
     , m_fragment_shader(GL_FRAGMENT_SHADER) {

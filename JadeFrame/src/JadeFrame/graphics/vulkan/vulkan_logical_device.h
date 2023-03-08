@@ -121,7 +121,7 @@ public:
 
     auto query_queues(u32 queue_family_index, u32 queue_index) -> Queue;
 
-    auto create_shader(const Vulkan_Shader::DESC& desc) -> Vulkan_Shader;
+    auto create_shader(const Vulkan_Shader::Desc& desc) -> Vulkan_Shader;
 
     //	// To be removed
 public: // texture stuff

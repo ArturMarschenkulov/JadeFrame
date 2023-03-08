@@ -4,7 +4,7 @@
 namespace JadeFrame {
 
 struct Example_Texture_Quad : public BaseApp {
-    Example_Texture_Quad(const DESC& desc);
+    Example_Texture_Quad(const Desc& desc);
     virtual ~Example_Texture_Quad() = default;
 
     virtual auto on_init() -> void override;
@@ -16,7 +16,7 @@ public:
     MaterialHandle m_material;
 };
 
-Example_Texture_Quad::Example_Texture_Quad(const DESC& desc)
+Example_Texture_Quad::Example_Texture_Quad(const Desc& desc)
     : BaseApp(desc) {}
 
 auto Example_Texture_Quad::on_init() -> void {

@@ -96,7 +96,7 @@ auto TextureHandle::init(void* context) -> void {
     }
 }
 
-ShaderHandle::ShaderHandle(const DESC& desc) {
+ShaderHandle::ShaderHandle(const Desc& desc) {
     m_code = desc.shading_code;
     m_vertex_format = desc.vertex_format;
 }
@@ -294,7 +294,7 @@ static auto ogl(const ShadingCode& code) -> ShadingCode {
     return new_code;
 }
 
-auto RenderSystem::register_shader(const ShaderHandle::DESC& shader_desc) -> u32 {
+auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32 {
     static u32 id = 1;
 
     m_registered_shaders[id].m_code = shader_desc.shading_code;
@@ -305,7 +305,7 @@ auto RenderSystem::register_shader(const ShaderHandle::DESC& shader_desc) -> u32
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
             OpenGL_Renderer*     renderer = static_cast<OpenGL_Renderer*>(m_renderer);
-            opengl::Shader::DESC shader_desc;
+            opengl::Shader::Desc shader_desc;
             shader_desc.code = ogl(m_registered_shaders[id].m_code);
             shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
 
@@ -317,7 +317,7 @@ auto RenderSystem::register_shader(const ShaderHandle::DESC& shader_desc) -> u32
 
             auto ld = r->m_logical_device;
 
-            Vulkan_Shader::DESC shader_desc;
+            Vulkan_Shader::Desc shader_desc;
             shader_desc.code = m_registered_shaders[id].m_code;
             shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
             m_registered_shaders[id].m_handle = new Vulkan_Shader(*(vulkan::LogicalDevice*)ld, shader_desc);

@@ -99,7 +99,7 @@ struct Thingy {
 };
 
 struct Example_0 : public BaseApp {
-	Example_0(const DESC& desc);
+	Example_0(const Desc& desc);
 	virtual ~Example_0() = default;
 
 	virtual auto on_init() -> void override;
@@ -113,7 +113,7 @@ public:
 };
 
 
-Example_0::Example_0(const DESC& desc)
+Example_0::Example_0(const Desc& desc)
 	: BaseApp(desc) {
 }
 

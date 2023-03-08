@@ -11,7 +11,7 @@
 class App : public JadeFrame::BaseApp {
 public:
 public:
-    App(DESC desc)
+    App(Desc desc)
         : BaseApp(desc) {}
     virtual auto on_init() -> void override {}
     virtual auto on_update() -> void override {}
@@ -26,7 +26,7 @@ int main() {
 
     using GApp = JadeFrame::TestApp;
 
-    GApp::DESC app_desc;
+    GApp::Desc app_desc;
     app_desc.title = "Test";
     app_desc.size.width = 800;  // = 1280;
     app_desc.size.height = 800; // = 720;

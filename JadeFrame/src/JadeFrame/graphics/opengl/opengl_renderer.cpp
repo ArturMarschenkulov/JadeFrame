@@ -77,7 +77,7 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     };
     fb.m_framebuffer_rect = new opengl::GPUMeshData(m_context, vertex_data, layout);
 
-    ShaderHandle::DESC shader_handle_desc;
+    ShaderHandle::Desc shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
     shader_handle_desc.vertex_format = layout;
 #if JF_FB
@@ -132,7 +132,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     for (size_t i = 0; i < m_render_commands.size(); ++i) {
         const OpenGL_RenderCommand& command = m_render_commands[i];
-        const MaterialHandle&       mh = *command.material_handle;
+        const MaterialHandle&       mh = command.material_handle;
 
         auto& sh = m_system->m_registered_shaders[mh.m_shader_id];
         auto& mm = m_registered_meshes[command.m_GPU_mesh_data_id];

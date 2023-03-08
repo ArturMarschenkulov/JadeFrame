@@ -30,7 +30,7 @@ public:
     Shader(Shader&&) noexcept = delete;
     auto operator=(Shader&&) -> Shader& = delete;
 
-    Shader(OpenGL_Context& context, const DESC& desc);
+    Shader(OpenGL_Context& context, const Desc& desc);
 
 
     auto bind() const -> void;
@@ -44,8 +44,6 @@ private:
     std::string  m_fragment_source;
 
     OpenGL_Context* m_context;
-
-
 };
 } // namespace opengl
 } // namespace JadeFrame

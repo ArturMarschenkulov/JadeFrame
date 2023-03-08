@@ -2,7 +2,7 @@
 #include<JadeFrame.h>
 namespace JadeFrame {
 struct Example_Empty : public BaseApp {
-	Example_Empty(const DESC& desc);
+	Example_Empty(const Desc& desc);
 	virtual ~Example_Empty() = default;
 
 	virtual auto on_init() -> void override;
@@ -15,7 +15,7 @@ public:
 };
 
 
-Example_Empty::Example_Empty(const DESC& desc)
+Example_Empty::Example_Empty(const Desc& desc)
 	: BaseApp(desc) {
 	//m_current_app_p = reinterpret_cast<Example_Empty*>(this);
 }
