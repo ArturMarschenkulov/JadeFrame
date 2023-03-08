@@ -127,7 +127,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         cb.render_pass(framebuffer, render_pass, d.m_swapchain.m_extent, clear_value, [&] {
             for (u64 i = 0; i < m_render_commands.size(); i++) {
                 const auto&           cmd = m_render_commands[i];
-                const MaterialHandle& mh = *cmd.material_handle;
+                const MaterialHandle& mh = cmd.material_handle;
                 auto&                 sh = m_system->m_registered_shaders[mh.m_shader_id];
 
                 const auto& pipeline = static_cast<Vulkan_Shader*>(sh.m_handle)->m_pipeline;

@@ -41,7 +41,7 @@ struct OpenGL_Material {
 struct OpenGL_RenderCommand {
     const Matrix4x4*         transform = nullptr;
     const VertexData*        vertex_data = nullptr;
-    MaterialHandle*          material_handle = nullptr;
+    MaterialHandle           material_handle = {0, 0};
     const GPUDataMeshHandle* m_GPU_mesh_data = nullptr;
     const u32                m_GPU_mesh_data_id = 0;
 };
@@ -88,10 +88,10 @@ public:
         opengl::Renderbuffer m_framebuffer_renderbuffer;
         opengl::Framebuffer  m_framebuffer;
         opengl::GPUMeshData* m_framebuffer_rect;
-        u32 m_shader_id_fb;
+        u32                  m_shader_id_fb;
     } fb;
 
-    std::vector<opengl::Buffer> m_uniform_buffers;
+    std::vector<opengl::Buffer>   m_uniform_buffers;
     std::array<opengl::Buffer, 4> m_descriptor_sets;
 };
 static_assert(is_renderer<OpenGL_Renderer>);

@@ -282,7 +282,7 @@ public:
     u32                       m_vertex_data_id;
     VertexData*               m_vertex_data;
     VertexFormat              m_vertex_format;
-    MaterialHandle*           m_material_handle;
+    MaterialHandle            m_material_handle;
     Matrix4x4                 m_transform;
     mutable GPUDataMeshHandle m_GPU_mesh_data;
 };
