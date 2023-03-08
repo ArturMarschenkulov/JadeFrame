@@ -3,7 +3,6 @@
 #include<JadeFrame/math/math.h>
 #include<JadeFrame/gui.h>
 #include<JadeFrame/utils/utils.h>
-#include<JadeFrame/graphics/material_handle.h>
 
 namespace JadeFrame {
 struct Drop {

@@ -9,7 +9,6 @@
 #include "JadeFrame/math/mat_4.h"
 #include "JadeFrame/graphics/mesh.h"
 #include "JadeFrame/graphics/graphics_shared.h"
-#include "JadeFrame/graphics/material_handle.h"
 #include "../graphics_shared.h"
 
 #include <vector>

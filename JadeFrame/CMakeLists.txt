@@ -85,11 +85,9 @@ set(Files_Graphics
     "src/JadeFrame/graphics/camera.h"
 
     "src/JadeFrame/graphics/graphics_shared.h"
-    "src/JadeFrame/graphics/material_handle.h"
     "src/JadeFrame/graphics/mesh.h"
     "src/JadeFrame/graphics/camera.cpp"
     "src/JadeFrame/graphics/graphics_shared.cpp"
-    "src/JadeFrame/graphics/material_handle.cpp"
     "src/JadeFrame/graphics/mesh.cpp"
     "src/JadeFrame/graphics/shader_loader.h"
     "src/JadeFrame/graphics/shader_loader.cpp"

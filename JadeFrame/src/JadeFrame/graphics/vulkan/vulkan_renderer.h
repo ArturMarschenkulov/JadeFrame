@@ -3,7 +3,6 @@
 #include "../mesh.h"
 #include "vulkan_context.h"
 
-#include "../material_handle.h"
 #include "../graphics_shared.h"
 namespace JadeFrame {
 

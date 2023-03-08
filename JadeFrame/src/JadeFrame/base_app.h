@@ -14,7 +14,6 @@
 #include "JadeFrame/math/vec.h"
 #include "graphics/camera.h"
 #include "graphics/graphics_shared.h"
-#include "graphics/material_handle.h"
 #include "JadeFrame/graphics/mesh.h"
 #include "gui.h"
 
