@@ -62,3 +62,6 @@ Here will be a collection of useful resources for this.
 - [tinyrenderer](https://github.com/ssloy/tinyrenderer):
 - [olcConsoleGameEngine](https://github.com/OneLoneCoder/Javidx9/tree/master/ConsoleGameEngine):
 - [Handmade Hero](https://github.com/HandmadeHero/cpp)
+- [BennyQBD/3DSoftwareRenderer](https://github.com/BennyQBD/3DSoftwareRenderer)
+- [thebennybox's yt video](https://www.youtube.com/watch?v=V2vjePWZ1GI)
+- [zauonlok renderer](https://github.com/zauonlok/renderer)
