@@ -7,7 +7,6 @@ set(Files
     "math.h"
     "vec.h"
 
-    "mat_4.cpp"
     "math.cpp"
     "vec.cpp"
 )

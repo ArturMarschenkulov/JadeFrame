@@ -113,7 +113,6 @@ set(Files_Math
     "src/JadeFrame/math/math.h"
     "src/JadeFrame/math/vec.h"
 
-    "src/JadeFrame/math/mat_4.cpp"
     "src/JadeFrame/math/math.cpp"
     "src/JadeFrame/math/vec.cpp"
 )

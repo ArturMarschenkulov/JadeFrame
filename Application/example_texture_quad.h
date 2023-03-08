@@ -53,7 +53,7 @@ auto Example_Texture_Quad::on_init() -> void {
     m_obj.m_vertex_data_id = mesh_id;
 
 
-    ShaderHandle::DESC shader_handle_desc;
+    ShaderHandle::Desc shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("with_texture_0");
     shader_handle_desc.vertex_format = m_obj.m_vertex_format;
     auto shader_id = m_render_system.register_shader(std::move(ShaderHandle(shader_handle_desc)));

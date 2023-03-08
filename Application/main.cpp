@@ -31,7 +31,7 @@ int main() {
     app_desc.title = "Test";
     app_desc.size.width = 800;  // = 1280;
     app_desc.size.height = 800; // = 720;
-    app_desc.api = JadeFrame::GRAPHICS_API::OPENGL;
+    app_desc.api = JadeFrame::GRAPHICS_API::VULKAN;
 
     GApp* app = jade_frame.request_app<GApp>(app_desc);
     jade_frame.run();

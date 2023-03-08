@@ -83,7 +83,7 @@ public:
         const std::string& material_name, const std::string& shader_name, const std::string& texture_name) -> void {
 
         if (m_shader_handles.find(shader_name) != m_shader_handles.end()) {
-            //m_material_handles[material_name].m_shader_handle = &m_shader_handles[shader_name];
+            // m_material_handles[material_name].m_shader_handle = &m_shader_handles[shader_name];
             if (m_texture_handles.find(texture_name) != m_texture_handles.end()) {
                 Logger::err("shoudln#t be reachable!!!!!!");
                 assert(false);
@@ -119,14 +119,14 @@ private:
 
 class BaseApp {
 public:
-    struct DESC {
-        std::string title;
-        v2u32       size;
-        v2u32       position = {0, 0};
+    struct Desc {
+        std::string  title;
+        v2u32        size;
+        v2u32        position = {0, 0};
         GRAPHICS_API api;
     };
     BaseApp() = default;
-    BaseApp(const DESC& desc);
+    BaseApp(const Desc& desc);
     virtual ~BaseApp() = default;
 
     virtual auto on_init() -> void = 0;
@@ -170,17 +170,21 @@ struct CompilerInfo {
 };
 class Instance {
 public:
+    Instance();
+    ~Instance() = default;
+
     Instance(const Instance&) = delete;
-    Instance(Instance&&) = delete;
     auto operator=(const Instance&) -> Instance& = delete;
+
+    Instance(Instance&&) = delete;
     auto operator=(Instance&&) -> Instance& = delete;
 
-    Instance();
+
     auto        run() -> void;
     static auto get_singleton() -> Instance*;
 
     template<typename T>
-    auto request_app(BaseApp::DESC desc) -> T* {
+    auto request_app(BaseApp::Desc desc) -> T* {
         // For now only one app is allowed
         assert(m_apps.size() == 0);
         m_apps.emplace_back(new T(desc));

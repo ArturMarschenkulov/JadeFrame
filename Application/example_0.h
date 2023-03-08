@@ -15,7 +15,7 @@ struct Drop {
 		const f32 rando = static_cast<f32>(get_random_number(1, 30));
 		y_speed = static_cast<f32>(map_range(rando, 1, 30, 1, 3));
 
-		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 80.0f, 1.0f }) * Matrix4x4::translation_matrix({ x, y, 0.0f });
+		obj.m_transform = Matrix4x4::scale({ 10.0f, 80.0f, 1.0f }) * Matrix4x4::translation({ x, y, 0.0f });
 		VertexData& m = app->m_resources.get_mesh("rectangle");
 		for (auto& position : m.m_positions) {
 			m.m_colors.push_back({ 138_u8, 43_u8, 226_u8, 255_u8 });
@@ -28,7 +28,7 @@ struct Drop {
 
 	auto fall() -> void {
 		y = y + y_speed;
-		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 80.0f, 1.0f }) * Matrix4x4::translation_matrix({ x, y, 0.0f });
+		obj.m_transform = Matrix4x4::scale({ 10.0f, 80.0f, 1.0f }) * Matrix4x4::translation({ x, y, 0.0f });
 		const f32 window_height = Instance::get_singleton()->m_current_app_p->m_current_window_p->get_size().y;
 		if (y >= window_height) {
 			y = -100;
@@ -50,7 +50,7 @@ struct Checkerbox {
 		const f32 window_width = app->m_current_window_p->get_size().x;
 		x = pos.x;
 		y = pos.y;
-		obj.m_transform = Matrix4x4::scale_matrix({ size, size, 1.0f }) * Matrix4x4::translation_matrix({ pos.x, pos.y, 0.0f });
+		obj.m_transform = Matrix4x4::scale({ size, size, 1.0f }) * Matrix4x4::translation({ pos.x, pos.y, 0.0f });
 		VertexData& m = app->m_resources.get_mesh("rectangle");// .set_color({ 138_u8, 43_u8, 226_u8, 255_u8 });
 		for (auto& position : m.m_positions) {
 			m.m_colors.push_back({ 138_u8, 43_u8, 226_u8, 255_u8 });
@@ -75,7 +75,7 @@ struct Thingy {
 
 		pos.x = static_cast<f32>(get_random_number(0, window_width));
 
-		obj.m_transform = Matrix4x4::scale_matrix({ 1.0f, 1.0f, 1.0f }) * Matrix4x4::translation_matrix({ pos.x, pos.y, 0.0f });
+		obj.m_transform = Matrix4x4::scale({ 1.0f, 1.0f, 1.0f }) * Matrix4x4::translation({ pos.x, pos.y, 0.0f });
 		VertexData& m = app->m_resources.get_mesh("rectangle_1");// .set_color({ 138_u8, 43_u8, 226_u8, 255_u8 });
 		for (auto& position : m.m_positions) {
 			m.m_colors.push_back({ 138_u8, 43_u8, 226_u8, 255_u8 });
@@ -90,7 +90,7 @@ struct Thingy {
 		auto& im = Instance::get_singleton()->m_input_manager;
 		const v2 mp = im.get_mouse_position();
 
-		obj.m_transform = Matrix4x4::scale_matrix({ 10.0f, 10.0f, 1.0f }) * Matrix4x4::translation_matrix({ mp.x, mp.y, 0.0f });
+		obj.m_transform = Matrix4x4::scale({ 10.0f, 10.0f, 1.0f }) * Matrix4x4::translation({ mp.x, mp.y, 0.0f });
 	}
 
 	Object obj = {};
@@ -127,13 +127,13 @@ auto Example_0::on_init() -> void {
 	{
 		const char* wall_picture_path = "C:\\DEV\\Projects\\JadeFrame\\JadeFrame\\resource\\wall.jpg";
 		m_resources.set_texture_handle("wall", wall_picture_path);
-		ShaderHandle::DESC sh_0;
+		ShaderHandle::Desc sh_0;
 		sh_0.shading_code = GLSLCodeLoader::get_by_name("flat_0");
 		m_resources.set_shader_handle("flat_shader_0", ShaderHandle(sh_0));
-		ShaderHandle::DESC sh_1;
+		ShaderHandle::Desc sh_1;
 		sh_1.shading_code = GLSLCodeLoader::get_by_name("flat_0");
 		m_resources.set_shader_handle("flat_shader_0_test_0", ShaderHandle(sh_1));
-		ShaderHandle::DESC sh_2;
+		ShaderHandle::Desc sh_2;
 		sh_2.shading_code = GLSLCodeLoader::get_by_name("flat_0");
 		m_resources.set_shader_handle("framebuffer_shader_0", ShaderHandle(sh_2));
 

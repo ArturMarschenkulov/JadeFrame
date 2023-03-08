@@ -215,6 +215,7 @@ Instance::Instance() {
         assert(false);
         return;
     }
+    m_singleton = this;
 
     const CompilerInfo& ci = m_compiler_info = get_compiler_info();
     const std::string&  pi = m_platform_info = get_plattform_info();
@@ -228,13 +229,6 @@ Instance::Instance() {
         ci.version.patch);
     Logger::info("Detected C++ Version is '{}'", li);
 
-    // Logger::info("Architecture: {}", ai);
-    // Logger::info("Plattform   : {}", pi);
-    // Logger::info("Compiler    : {} {}.{}.{}", ci.name, ci.version.major, ci.version.minor, ci.version.patch);
-    // Logger::info("C++ Version : {}", li);
-
-
-    m_singleton = this;
     m_system_manager.initialize();
     // m_input_manager.initialize();
 
@@ -253,7 +247,7 @@ auto Instance::run() -> void {
 // BaseApp
 //**************************************************************
 
-BaseApp::BaseApp(const DESC& desc) {
+BaseApp::BaseApp(const Desc& desc) {
     Logger::info("Creating Window....");
     IWindow::Desc win_desc = {
         .title = desc.title,
@@ -329,7 +323,7 @@ auto BaseApp::poll_events() -> void {
 namespace T1 {
 
 template<class T>
-requires std::same_as<T, bool>
+    requires std::same_as<T, bool>
 auto init_memory(T& data) -> void {
     static_assert(!std::is_pointer<T>::value, "'init_memory' does not allow pointertypes");
 
