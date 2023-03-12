@@ -83,14 +83,14 @@ public:
 
     struct FB {
         Object               m_fb;
-        opengl::Texture      m_framebuffer_texture;
+        opengl::Texture*     m_framebuffer_texture;
         opengl::Renderbuffer m_framebuffer_renderbuffer;
         opengl::Framebuffer  m_framebuffer;
         opengl::GPUMeshData* m_framebuffer_rect;
         u32                  m_shader_id_fb;
     } fb;
 
-    std::vector<opengl::Buffer>   m_uniform_buffers;
+    std::vector<opengl::Buffer*>  m_uniform_buffers;
     std::array<opengl::Buffer, 4> m_descriptor_sets;
 };
 static_assert(is_renderer<OpenGL_Renderer>);

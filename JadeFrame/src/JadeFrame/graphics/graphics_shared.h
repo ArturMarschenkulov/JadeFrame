@@ -5,12 +5,35 @@
 #include <variant>
 
 
+
 namespace JadeFrame {
 
 class Windows_Window;
 class Object;
 class RGBAColor;
 class IWindow;
+
+
+struct Image {
+    Image() = default;
+    ~Image();
+    Image(const Image&) = delete;
+    Image(Image&& other) noexcept {
+        data = other.data;
+        width = other.width;
+        height = other.height;
+        num_components = other.num_components;
+        other.data = nullptr;
+    }
+
+    static auto load(const std::string& path) -> Image;
+
+
+    u8* data = nullptr;
+    i32 width = 0;
+    i32 height = 0;
+    i32 num_components = 0;
+};
 
 
 
@@ -55,22 +78,83 @@ enum class SHADER_STAGE {
 
 enum class SHADER_TYPE {
     NONE = 0,
-    FLOAT,
-    FLOAT_2,
-    FLOAT_3,
-    FLOAT_4,
-    MAT_3,
-    MAT_4,
-    INT,
-    INT_2,
-    INT_3,
-    INT_4,
+    // Scalars
+    I32,
+    U32,
+    F64,
+    F32,
     BOOL,
+
+    // Vectors
+    I32_2,
+    I32_3,
+    I32_4,
+
+    F32_2,
+    F32_3,
+    F32_4,
+
+    // Matrices, for now only nxn matrices are supported
+    M_F32_2,
+    M_F32_3,
+    M_F32_4,
+
+    // Opaque types
     SAMPLER_1D,
     SAMPLER_2D,
     SAMPLER_3D,
     SAMPLER_CUBE,
 };
+
+inline auto is_scalar(SHADER_TYPE type) -> bool {
+    switch (type) {
+        case SHADER_TYPE::I32:
+        case SHADER_TYPE::U32:
+        case SHADER_TYPE::F64:
+        case SHADER_TYPE::F32:
+        case SHADER_TYPE::BOOL: return true;
+        default: return false;
+    }
+}
+inline auto get_component_count(const SHADER_TYPE type) -> u32 {
+    u32 result;
+    switch (type) {
+        case SHADER_TYPE::F32:
+        case SHADER_TYPE::I32:
+        case SHADER_TYPE::BOOL: result = 1; break;
+
+        case SHADER_TYPE::F32_2:
+        case SHADER_TYPE::I32_2: result = 2; break;
+
+        case SHADER_TYPE::F32_3:
+        case SHADER_TYPE::M_F32_3: // 3* float3
+        case SHADER_TYPE::I32_3: result = 3; break;
+
+        case SHADER_TYPE::F32_4:
+        case SHADER_TYPE::M_F32_4: // 4* float4
+        case SHADER_TYPE::I32_4: result = 4; break;
+
+        default:
+            assert(false);
+            result = 0;
+            break;
+    }
+    return result;
+}
+inline auto is_vector(SHADER_TYPE type) -> bool {
+    switch (type) {
+        case SHADER_TYPE::I32_2:
+        case SHADER_TYPE::I32_3:
+        case SHADER_TYPE::I32_4:
+        case SHADER_TYPE::F32_2:
+        case SHADER_TYPE::F32_3:
+        case SHADER_TYPE::F32_4: return true;
+        default: return false;
+    }
+}
+
+
+auto to_string(SHADER_TYPE type) -> const char*;
 
 struct VertexAttribute {
     std::string name;
@@ -123,7 +207,7 @@ public:
     TextureHandle(TextureHandle&& other);
     auto operator=(TextureHandle&& other) -> TextureHandle&;
 
-    TextureHandle(const std::string& path);
+    TextureHandle(const Image& image);
 
     auto init(void* context) -> void;
 
@@ -240,16 +324,16 @@ public: // more internal stuff
 inline auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
     u32 result;
     switch (type) {
-        case SHADER_TYPE::FLOAT: result = 4; break;
-        case SHADER_TYPE::FLOAT_2: result = 4 * 2; break;
-        case SHADER_TYPE::FLOAT_3: result = 4 * 3; break;
-        case SHADER_TYPE::FLOAT_4: result = 4 * 4; break;
-        case SHADER_TYPE::MAT_3: result = 4 * 3 * 3; break;
-        case SHADER_TYPE::MAT_4: result = 4 * 4 * 4; break;
-        case SHADER_TYPE::INT: result = 4; break;
-        case SHADER_TYPE::INT_2: result = 4 * 2; break;
-        case SHADER_TYPE::INT_3: result = 4 * 3; break;
-        case SHADER_TYPE::INT_4: result = 4 * 4; break;
+        case SHADER_TYPE::F32: result = 4; break;
+        case SHADER_TYPE::F32_2: result = 4 * 2; break;
+        case SHADER_TYPE::F32_3: result = 4 * 3; break;
+        case SHADER_TYPE::F32_4: result = 4 * 4; break;
+        case SHADER_TYPE::M_F32_3: result = 4 * 3 * 3; break;
+        case SHADER_TYPE::M_F32_4: result = 4 * 4 * 4; break;
+        case SHADER_TYPE::I32: result = 4; break;
+        case SHADER_TYPE::I32_2: result = 4 * 2; break;
+        case SHADER_TYPE::I32_3: result = 4 * 3; break;
+        case SHADER_TYPE::I32_4: result = 4 * 4; break;
         case SHADER_TYPE::BOOL: result = 1; break;
         default:
             assert(false);
@@ -334,16 +418,23 @@ struct ReflectedCode {
     };
     struct SampledImage {
         std::string name;
-        u32         binding = 0;
-        u32         set = 0;
-        u32         DescriptorSet = 0;
-        u32         ArraySize = 0;
+        u32         binding;
+        u32         set;
+        u32         size;
     };
     struct UniformBuffer {
         std::string name;
         u32         size;
         u32         binding;
         u32         set;
+
+        struct Member {
+            std::string name;
+            u32         offset;
+            u32         size;
+            SHADER_TYPE type;
+        };
+        std::vector<Member> members;
     };
     struct Module {
         SHADER_STAGE m_stage;

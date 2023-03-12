@@ -157,7 +157,7 @@ auto LogicalDevice::query_queues(u32 queue_family_index, u32 queue_index) -> Que
     return queue;
 }
 
-auto LogicalDevice::create_buffer(Buffer::TYPE buffer_type, void* data, size_t size) -> Buffer {
+auto LogicalDevice::create_buffer(Buffer::TYPE buffer_type, void* data, size_t size) const -> Buffer {
     Buffer buffer = {buffer_type};
     buffer.init(*this, buffer_type, data, size);
     return buffer;

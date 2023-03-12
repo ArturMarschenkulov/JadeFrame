@@ -24,6 +24,20 @@ public:
     }
     auto operator!=(const RGBAColor& color) const -> bool { return !(*this == color); }
 
+    static auto from_hex(u32 hex) -> RGBAColor {
+        auto red = (hex >> 24) & 0xFF;
+        auto green = (hex >> 16) & 0xFF;
+        auto blue = (hex >> 8) & 0xFF;
+        auto alpha = (hex >> 0) & 0xFF;
+        return RGBAColor((u8)red, (u8)green, (u8)blue, (u8)alpha);
+    }
+    auto to_hex() const -> u32 {
+        auto red = (u8)(r * 256.0f);
+        auto green = (u8)(g * 256.0f);
+        auto blue = (u8)(b * 256.0f);
+        auto alpha = (u8)(a * 256.0f);
+        return (red << 24) | (green << 16) | (blue << 8) | (alpha << 0);
+    }
     static auto solid_black() -> RGBAColor { return RGBAColor(0.0f, 0.0f, 0.0f, 1.0f); }
     static auto solid_grey() -> RGBAColor { return RGBAColor(0.5f, 0.5f, 0.5f, 1.0f); }
     static auto solid_white() -> RGBAColor { return RGBAColor(1.0f, 1.0f, 1.0f, 1.0f); }
@@ -58,13 +72,7 @@ public:
     std::vector<v3>        m_normals;
 
     std::vector<u32> m_indices;
-};
 
-auto convert_into_data(const VertexData& vertex_data, const bool interleaved) -> std::vector<f32>;
-
-
-class VertexDataFactory {
-public:
     struct Desc {
         bool has_position = true; // NOTE: Probably unneccessary
         bool has_texture_coordinates = true;
@@ -80,4 +88,7 @@ public:
 
     static auto make_cube(const v3& pos, const v3& size) -> VertexData;
 };
+
+auto convert_into_data(const VertexData& vertex_data, const bool interleaved) -> std::vector<f32>;
+
 } // namespace JadeFrame

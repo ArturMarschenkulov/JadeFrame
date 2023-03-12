@@ -241,7 +241,7 @@ layout(std140, set = 0, binding = 0) uniform Camera {
     mat4 view_projection;
 } u_camera;
 
-layout(std140, set = 0, binding = 1) uniform Transform {
+layout(std140, set = 3, binding = 0) uniform Transform {
 	mat4 model;
 } u_transform;
 
@@ -262,7 +262,7 @@ layout(location = 1) in vec2 f_texture_coord;
 layout(location = 0) out vec4 o_color;
 
 
-layout(set = 0, binding = 0) uniform sampler2D u_texture_0;
+layout(set = 2, binding = 0) uniform sampler2D u_texture_0;
 
 void main() {
     if(!gl_FrontFacing) {
@@ -416,7 +416,7 @@ void main()
 auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
     std::tuple<std::string, std::string> shader_tuple;
     if (name == "flat_0") {
-        shader_tuple = get_default_shader_flat_0();
+        shader_tuple = get_shader_spirv_test_1();
     } else if (name == "with_texture_0") {
         shader_tuple = get_default_shader_with_texture();
     } else if (name == "depth_testing_0") {
@@ -432,13 +432,14 @@ auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
     } else if (name == "framebuffer_test") {
         shader_tuple = get_shader_framebuffer_test_0();
     } else {
+        Logger::err("GLSLCodeLoader::get_by_name: Shader with name {} not found", name);
         assert(false);
     }
 
-    //TODO: Make the graphics API not hardcoded
+    // TODO: Make the graphics API not hardcoded
     auto [vs, fs] = shader_tuple;
     ShadingCode code;
-    auto api = GRAPHICS_API::VULKAN;
+    auto        api = GRAPHICS_API::VULKAN;
     code.m_shading_language = SHADING_LANGUAGE::GLSL;
     code.m_modules.resize(2);
     code.m_modules[0].m_stage = SHADER_STAGE::VERTEX;

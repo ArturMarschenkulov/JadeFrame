@@ -26,6 +26,7 @@ auto DescriptorSet::bind_uniform_buffer(u32 binding, const Buffer& buffer, VkDev
     d.buffer_info.offset = offset;
     d.buffer_info.range = range;
     d.binding = binding;
+    d.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
 
     JF_ASSERT(d.buffer_info.offset < buffer.m_size, "");
@@ -59,6 +60,25 @@ auto DescriptorSet::rebind_uniform_buffer(u32 binding, const Buffer& buffer) -> 
     assert(false);
     return;
 }
+auto DescriptorSet::bind_combined_image_sampler(u32 binding, const Vulkan_Texture& texture) -> void {
+    Descriptor d;
+    d.image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    d.image_info.imageView = texture.m_image_view.m_handle;
+    d.image_info.sampler = texture.m_sampler.m_handle;
+    d.binding = binding;
+    d.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+
+    // Find according to binding.
+    bool found = false;
+    for (u32 i = 0; i < m_descriptors.size(); i++) {
+        if (m_descriptors[i].binding == d.binding) {
+            found = true;
+            m_descriptors[i].image_info = d.image_info;
+        }
+    }
+    JF_ASSERT(found == true, "");
+}
+
 auto DescriptorSet::update() -> void {
 
     std::vector<VkDescriptorBufferInfo> infos;

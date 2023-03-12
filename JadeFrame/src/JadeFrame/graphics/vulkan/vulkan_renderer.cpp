@@ -146,6 +146,8 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
                 cb.bind_pipeline(bind_point, pipeline);
                 cb.bind_vertex_buffers(0, 1, vertex_buffers, offsets);
                 cb.bind_descriptor_sets(bind_point, pipeline, 0, m_sets[0], &offset);
+                // cb.bind_descriptor_sets(bind_point, pipeline, 1, m_sets[1], &offset);
+                // cb.bind_descriptor_sets(bind_point, pipeline, 2, m_sets[2], &offset);
                 cb.bind_descriptor_sets(bind_point, pipeline, 3, m_sets[3], &offset);
 
 

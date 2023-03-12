@@ -8,27 +8,13 @@
 #include "JadeFrame/utils/assert.h"
 
 namespace JadeFrame {
-#include "stb/stb_image.h"
 
-struct STBIImage {
-    STBIImage(const std::string& path) {
-        // flip textures on their y coordinate while loading
-        stbi_set_flip_vertically_on_load(true);
-        // i32 width, height, num_components;
-        data = stbi_load(path.c_str(), &width, &height, &num_components, 0); // STBI_rgb_alpha
-    }
-    ~STBIImage() { stbi_image_free(data); }
-    i32            width;
-    i32            height;
-    i32            num_components;
-    unsigned char* data;
-};
 namespace vulkan {
 
 auto LogicalDevice::create_texture_image(const std::string& path) -> void {
     /*VkResult result;*/
 
-    STBIImage image(path);
+    JadeFrame::Image image = JadeFrame::Image::load(path);
 
 
     if (image.data) {
@@ -42,7 +28,7 @@ auto LogicalDevice::create_texture_image(const std::string& path) -> void {
         this->create_image(
             {static_cast<u32>(image.width), static_cast<u32>(image.height)}, VK_FORMAT_R8G8B8A8_SRGB,
             VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_texture_image.m_handle, m_texture_image_Memory);
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_texture_image.m_handle, m_texture_image_memory);
 
         // this->transition_image_layout(
         //	m_texture_image.m_handle,
@@ -316,9 +302,10 @@ Vulkan_GPUMeshData::Vulkan_GPUMeshData(
     const std::vector<f32> data = convert_into_data(vertex_data, interleaved);
     auto&                  i_data = vertex_data.m_indices;
 
-    m_vertex_buffer.init(device, Buffer::TYPE::VERTEX, (void*)data.data(), sizeof(data[0]) * data.size());
+    m_vertex_buffer = device.create_buffer(Buffer::TYPE::VERTEX, (void*)data.data(), sizeof(data[0]) * data.size());
     if (vertex_data.m_indices.size() > 0) {
-        m_index_buffer.init(device, Buffer::TYPE::INDEX, (void*)i_data.data(), sizeof(i_data[0]) * i_data.size());
+        m_index_buffer =
+            device.create_buffer(Buffer::TYPE::INDEX, (void*)i_data.data(), sizeof(i_data[0]) * i_data.size());
     }
 }
 

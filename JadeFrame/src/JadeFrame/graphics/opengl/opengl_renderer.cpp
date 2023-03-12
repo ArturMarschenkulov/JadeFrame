@@ -43,14 +43,14 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
 
         const v2u32 size = m_context.m_state.viewport[1];
         fb.m_framebuffer_texture = m_context.create_texture();
-        fb.m_framebuffer_texture.bind(0);
+        fb.m_framebuffer_texture->bind(0);
 
-        fb.m_framebuffer_texture.set_texture_image(0, GL_RGB, size, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-        fb.m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        fb.m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        fb.m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        fb.m_framebuffer_texture.set_texture_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        fb.m_framebuffer.attach_texture(fb.m_framebuffer_texture);
+        fb.m_framebuffer_texture->set_texture_image(0, GL_RGB, size, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        fb.m_framebuffer_texture->set_texture_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        fb.m_framebuffer_texture->set_texture_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        fb.m_framebuffer_texture->set_texture_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        fb.m_framebuffer_texture->set_texture_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        fb.m_framebuffer.attach_texture(*fb.m_framebuffer_texture);
 
         fb.m_framebuffer_renderbuffer.bind();
         fb.m_framebuffer_renderbuffer.store(GL_DEPTH24_STENCIL8, size.x, size.y);
@@ -67,13 +67,13 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
 
 
 
-    VertexDataFactory::Desc vdf_desc;
+    VertexData::Desc vdf_desc;
     vdf_desc.has_normals = false;
-    VertexData vertex_data = VertexDataFactory::make_rectangle({-1.0f, -1.0f, 0.0f}, {2.0f, 2.0f, 0.0f}, vdf_desc);
+    VertexData vertex_data = VertexData::make_rectangle({-1.0f, -1.0f, 0.0f}, {2.0f, 2.0f, 0.0f}, vdf_desc);
 
     VertexFormat layout = {
-        {           "v_position", SHADER_TYPE::FLOAT_3},
-        {"v_texture_coordinates", SHADER_TYPE::FLOAT_2}
+        {           "v_position", SHADER_TYPE::F32_3},
+        {"v_texture_coordinates", SHADER_TYPE::F32_2}
     };
     fb.m_framebuffer_rect = new opengl::GPUMeshData(m_context, vertex_data, layout);
 
@@ -92,16 +92,18 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
         // Camera
         const GLuint binding_point_0 = 0;
         m_uniform_buffers.emplace_back();
-        m_uniform_buffers[0].init(m_context, opengl::Buffer::TYPE::UNIFORM);
-        m_uniform_buffers[0].reserve(1 * sizeof(Matrix4x4));
-        m_uniform_buffers[0].bind_base(binding_point_0);
+        m_uniform_buffers[0] = m_context.create_buffer(opengl::Buffer::TYPE::UNIFORM);
+        // m_uniform_buffers[0].init(m_context, opengl::Buffer::TYPE::UNIFORM);
+        m_uniform_buffers[0]->reserve(1 * sizeof(Matrix4x4));
+        m_uniform_buffers[0]->bind_base(binding_point_0);
 
         // Transform
         const GLuint binding_point_1 = 1;
         m_uniform_buffers.emplace_back();
-        m_uniform_buffers[1].init(m_context, opengl::Buffer::TYPE::UNIFORM);
-        m_uniform_buffers[1].reserve(1 * sizeof(Matrix4x4));
-        m_uniform_buffers[1].bind_base(binding_point_1);
+        m_uniform_buffers[1] = m_context.create_buffer(opengl::Buffer::TYPE::UNIFORM);
+        // m_uniform_buffers[1].init(m_context, opengl::Buffer::TYPE::UNIFORM);
+        m_uniform_buffers[1]->reserve(1 * sizeof(Matrix4x4));
+        m_uniform_buffers[1]->bind_base(binding_point_1);
     }
 }
 
@@ -128,7 +130,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     this->clear_background();
 
-    m_uniform_buffers[0].send({view_projection});
+    m_uniform_buffers[0]->send({view_projection});
 
     for (size_t i = 0; i < m_render_commands.size(); ++i) {
         const OpenGL_RenderCommand& command = m_render_commands[i];
@@ -148,10 +150,10 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
             texture.bind(0);
         }
 
-        this->render_mesh(p_vertex_array, p_mesh);
-
         const Matrix4x4& transform = *command.transform;
-        m_uniform_buffers[1].send({transform});
+        m_uniform_buffers[1]->send({transform});
+
+        this->render_mesh(p_vertex_array, p_mesh);
     }
 #if JF_FB
     fb.m_framebuffer.unbind();
@@ -162,7 +164,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         // static_cast<opengl::Shader*>(fb.m_shader_handle_fb->m_handle)->bind();
         auto& sh = m_system->m_registered_shaders[fb.m_shader_id_fb];
         static_cast<opengl::Shader*>(sh.m_handle)->bind();
-        fb.m_framebuffer_texture.bind(0);
+        fb.m_framebuffer_texture->bind(0);
         fb.m_framebuffer_rect->m_vertex_array.bind();
 
         glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -195,15 +197,15 @@ auto OpenGL_Renderer::render_mesh(const opengl::GPUMeshData* vertex_array, const
 
 
 auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
-    GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
+    GLint vp[4];
+    glGetIntegerv(GL_VIEWPORT, vp);
 
-    i32 x = viewport[0];
-    i32 y = viewport[1];
-    i32 width = viewport[2];
-    i32 height = viewport[3];
+    i32 x = vp[0];
+    i32 y = vp[1];
+    i32 width = vp[2];
+    i32 height = vp[3];
 
-    char* data = (char*)malloc((size_t)(width * height * 3));
+    u8* data = (u8*)malloc((size_t)(width * height * 3));
     if (!data) {
         Logger::log("data failed");
         return;
@@ -212,7 +214,7 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
 
-    auto c = [](const char* filename, i32 width, i32 height, char* data) {
+    auto c = [](const char* filename, i32 width, i32 height, u8* data) {
         stbi_write_png(filename, width, height, 3, data, 0);
         free(data);
     };

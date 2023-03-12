@@ -234,6 +234,7 @@ public:
 
 public:
     Image                m_image;
+    ImageView            m_image_view;
     const LogicalDevice* m_device;
     Sampler              m_sampler;
 };

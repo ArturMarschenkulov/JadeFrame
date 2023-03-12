@@ -3,8 +3,7 @@
 #include "opengl_texture.h"
 
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb/stb_image.h"
+
 
 #include "JadeFrame/prelude.h"
 #include "opengl_context.h"
@@ -12,17 +11,8 @@
 
 namespace JadeFrame {
 
-struct STBIImage {
-    STBIImage(const std::string& path) {
-        // flip textures on their y coordinate while loading
-        stbi_set_flip_vertically_on_load(true);
-        // i32 width, height, num_components;
-        data = stbi_load(path.c_str(), &width, &height, &num_components, 0);
-    }
-    ~STBIImage() { stbi_image_free(data); }
-    i32            width, height, num_components;
-    unsigned char* data;
-};
+
+
 namespace opengl {
 
 Texture::Texture() noexcept {

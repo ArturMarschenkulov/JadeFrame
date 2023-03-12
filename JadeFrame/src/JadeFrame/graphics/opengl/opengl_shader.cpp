@@ -24,11 +24,11 @@
 namespace JadeFrame {
 static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
     switch (type) {
-        case GL_FLOAT: return SHADER_TYPE::FLOAT; break;
-        case GL_FLOAT_VEC2: return SHADER_TYPE::FLOAT_2; break;
-        case GL_FLOAT_VEC3: return SHADER_TYPE::FLOAT_3; break;
-        case GL_FLOAT_VEC4: return SHADER_TYPE::FLOAT_4; break;
-        case GL_FLOAT_MAT4: return SHADER_TYPE::MAT_4; break;
+        case GL_FLOAT: return SHADER_TYPE::F32; break;
+        case GL_FLOAT_VEC2: return SHADER_TYPE::F32_2; break;
+        case GL_FLOAT_VEC3: return SHADER_TYPE::F32_3; break;
+        case GL_FLOAT_VEC4: return SHADER_TYPE::F32_4; break;
+        case GL_FLOAT_MAT4: return SHADER_TYPE::M_F32_4; break;
         case GL_SAMPLER_2D: return SHADER_TYPE::SAMPLER_2D; break;
         default: assert(false); return {};
     }
@@ -60,7 +60,6 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
         spirv_cross::CompilerGLSL glsl(spirv);
         glsl.set_common_options(options);
         glsl_sources[i] = glsl.compile();
-        // Logger::info("\nKKKKKKKKKKKKKKKKKKKKKKKKK----\n{}----\n", glsl_sources[i]);
     }
 
     m_vertex_source = glsl_sources[0];
@@ -102,6 +101,30 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     // spirv_cross::CompilerHLSL hlsl(spirvs[0]);
     // Logger::trace("{}", hlsl.compile());
 
+    auto ref = reflect(desc.code);
+    for (int i = 0; i < ref.m_modules[0].m_inputs.size(); i++) {
+        auto& input = ref.m_modules[0].m_inputs[i];
+
+        Shader::VertexAttribute attribs;
+        attribs.name = input.name;
+        attribs.type = input.type;
+        attribs.location = input.location;
+        attribs.size = input.size;
+        m_vertex_attributes.push_back(attribs);
+    }
+
+    for (int i = 0; i < ref.m_modules.size(); i++) {
+        auto& module = ref.m_modules[i];
+        for (int j = 0; j < module.m_uniform_buffers.size(); j++) {
+            auto& uniform_buffer = module.m_uniform_buffers[j];
+
+            Shader::Uniform uniform;
+            uniform.name = uniform_buffer.name;
+            // uniform.type = uniform_buffer.type;
+            uniform.size = uniform_buffer.size;
+            uniform.location = uniform_buffer.binding;
+        }
+    }
 
     m_program.attach(m_vertex_shader);
     m_program.attach(m_fragment_shader);

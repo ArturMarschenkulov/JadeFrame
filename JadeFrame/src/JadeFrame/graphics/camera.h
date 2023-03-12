@@ -17,6 +17,9 @@ public:
     auto
     othographic_mode(const f32 left, const f32 right, const f32 buttom, const f32 top, const f32 near_, const f32 far_)
         -> void;
+
+    auto perspective_mode(const v3& position, const f32 fov, const f32 aspect, const v2f32 nf) -> void;
+    auto othographic_mode(const v2f32 lr, const v2f32 bt, const v2f32 nf) -> void;
     auto get_projection_matrix() const -> Matrix4x4;
     auto get_view_matrix() const -> Matrix4x4;
     auto get_view_projection_matrix() const -> Matrix4x4;

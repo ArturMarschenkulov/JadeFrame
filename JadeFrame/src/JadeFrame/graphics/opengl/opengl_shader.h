@@ -23,6 +23,7 @@ namespace opengl {
 class Shader : public IShader {
 public:
     Shader() = default;
+    ~Shader() = default;
 
     Shader(const Shader&) = delete;
     auto operator=(const Shader&) -> Shader& = delete;
@@ -44,6 +45,21 @@ private:
     std::string  m_fragment_source;
 
     OpenGL_Context* m_context;
+
+    struct Uniform {
+        SHADER_TYPE type;
+        std::string name;
+        i32         size;
+        u32         location;
+    };
+    struct VertexAttribute {
+        SHADER_TYPE type;
+        std::string name;
+        i32         size;
+        u32         location;
+    };
+    std::vector<Uniform>         m_uniforms;
+    std::vector<VertexAttribute> m_vertex_attributes;
 };
 } // namespace opengl
 } // namespace JadeFrame

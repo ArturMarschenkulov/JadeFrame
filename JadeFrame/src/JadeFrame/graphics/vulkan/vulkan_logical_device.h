@@ -113,7 +113,7 @@ public: // Misc
 
 
 public:
-    auto create_buffer(Buffer::TYPE buffer_type, void* data, size_t size) -> Buffer;
+    auto create_buffer(Buffer::TYPE buffer_type, void* data, size_t size) const -> Buffer;
 
     auto create_descriptor_pool(u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes) -> DescriptorPool;
     auto create_descriptor_set_layout(std::vector<vulkan::DescriptorSetLayout::Binding>& bindings) const
@@ -132,7 +132,7 @@ public: // texture stuff
     // auto copy_buffer_to_image(VkBuffer buffer, VkImage image, u32 width, u32 height) -> void;
     Image m_texture_image;
     // VkImage m_texture_image;
-    VkDeviceMemory m_texture_image_Memory;
+    VkDeviceMemory m_texture_image_memory;
 
     // auto create_image_view(VkImage image, VkFormat format)->VkImageView;
     auto create_texture_image_view() -> void;

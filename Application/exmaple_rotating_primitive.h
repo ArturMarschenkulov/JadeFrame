@@ -48,8 +48,8 @@ auto Example_Rotating_Primitive::on_init() -> void {
     m_obj.m_vertex_data = vertex_data;
 
     m_obj.m_vertex_format = VertexFormat{
-        {"v_position", SHADER_TYPE::FLOAT_3},
-        {   "v_color", SHADER_TYPE::FLOAT_4},
+        {"v_position", SHADER_TYPE::F32_3},
+        {   "v_color", SHADER_TYPE::F32_4},
     };
     auto mesh_id_0 = m_render_system.register_mesh(m_obj.m_vertex_format, *m_obj.m_vertex_data);
     m_obj.m_vertex_data_id = mesh_id_0;
@@ -77,8 +77,8 @@ auto Example_Rotating_Primitive::on_init() -> void {
     m_obj_2.m_material_handle = material;
     m_obj_2.m_vertex_data = vertex_data_2;
     m_obj_2.m_vertex_format = VertexFormat{
-        {"v_position", SHADER_TYPE::FLOAT_3},
-        {   "v_color", SHADER_TYPE::FLOAT_4},
+        {"v_position", SHADER_TYPE::F32_3},
+        {   "v_color", SHADER_TYPE::F32_4},
     };
     auto mesh_id_2 = m_render_system.register_mesh(m_obj_2.m_vertex_format, *m_obj_2.m_vertex_data);
     m_obj_2.m_vertex_data_id = mesh_id_2;
@@ -90,8 +90,8 @@ auto Example_Rotating_Primitive::on_draw() -> void {
     auto current_time = std::chrono::high_resolution_clock::now();
     f32  time = std::chrono::duration<f32, std::chrono::seconds::period>(current_time - start_time).count();
 
-    m_obj.m_transform = Matrix4x4::rotation_matrix(time * to_radians(90.0f), v3(0.0f, 0.0f, 1.0f));
-    m_obj_2.m_transform = Matrix4x4::rotation_matrix(time * to_radians(45.0f), v3(0.0f, 0.0f, 1.0f));
+    m_obj.m_transform = Matrix4x4::rotation(time * to_radians(90.0f), v3(0.0f, 0.0f, 1.0f));
+    m_obj_2.m_transform = Matrix4x4::rotation(time * to_radians(45.0f), v3(0.0f, 0.0f, 1.0f));
 
 
     m_render_system.m_renderer->submit(m_obj_2); // yellow triangle

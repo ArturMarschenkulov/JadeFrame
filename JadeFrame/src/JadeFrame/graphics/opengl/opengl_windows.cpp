@@ -217,34 +217,35 @@ auto set_pixel_format(const HDC& device_context) -> void {
 
 #else
 
-    const i32 pixel_attributes[] = {
-        WGL_DRAW_TO_WINDOW_ARB,
-        GL_TRUE, // draw to window
-        WGL_SUPPORT_OPENGL_ARB,
-        GL_TRUE, // support OpenGL
-        WGL_DOUBLE_BUFFER_ARB,
-        GL_TRUE, // double buffer
-        WGL_PIXEL_TYPE_ARB,
-        WGL_TYPE_RGBA_ARB, // RGBA type
-        WGL_COLOR_BITS_ARB,
-        32, // 32-bit color
-        WGL_DEPTH_BITS_ARB,
-        24, // 24-bit depth
-        WGL_STENCIL_BITS_ARB,
-        8, // 8-bit stencil
+    std::vector<i32> pixel_attributes;
+    pixel_attributes.push_back(WGL_DRAW_TO_WINDOW_ARB); // draw to window
+    pixel_attributes.push_back(GL_TRUE);
+    pixel_attributes.push_back(WGL_SUPPORT_OPENGL_ARB); // support OpenGL
+    pixel_attributes.push_back(GL_TRUE);
+    pixel_attributes.push_back(WGL_DOUBLE_BUFFER_ARB); // double buffer
+    pixel_attributes.push_back(GL_TRUE);
+    pixel_attributes.push_back(WGL_PIXEL_TYPE_ARB); // RGBA type
+    pixel_attributes.push_back(WGL_TYPE_RGBA_ARB);
+    pixel_attributes.push_back(WGL_COLOR_BITS_ARB); // 32-bit color
+    pixel_attributes.push_back(32);
+    pixel_attributes.push_back(WGL_DEPTH_BITS_ARB); // 24-bit depth
+    pixel_attributes.push_back(24);
+    pixel_attributes.push_back(WGL_STENCIL_BITS_ARB); // 8-bit stencil
+    pixel_attributes.push_back(8);
+    pixel_attributes.push_back(WGL_ACCELERATION_ARB); // full acceleration
+    pixel_attributes.push_back(WGL_FULL_ACCELERATION_ARB);
+    pixel_attributes.push_back(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB); // sRGB capable
+    pixel_attributes.push_back(GL_TRUE);
+    pixel_attributes.push_back(WGL_SWAP_METHOD_ARB); // swap exchange
+    pixel_attributes.push_back(WGL_SWAP_EXCHANGE_ARB);
+    pixel_attributes.push_back(0);
 
-        WGL_ACCELERATION_ARB,
-        WGL_FULL_ACCELERATION_ARB, // full acceleration
-        WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB,
-        GL_TRUE, // sRGB capable
-        WGL_SWAP_METHOD_ARB,
-        WGL_SWAP_EXCHANGE_ARB, // swap exchange
-        0,
-    };
+
+
 
     i32  format_ID;
     UINT num_formats;
-    bool status = ::wglChoosePixelFormatARB(device_context, pixel_attributes, NULL, 1, &format_ID, &num_formats);
+    bool status = ::wglChoosePixelFormatARB(device_context, pixel_attributes.data(), NULL, 1, &format_ID, &num_formats);
     if (status == false || num_formats == 0) {
         Logger::log("wglChoosePixelFormatARB() failed. {}", ::GetLastError());
         return;
@@ -265,34 +266,21 @@ auto create_render_context(HDC device_context) -> HGLRC {
     constexpr bool extended_context = false;
 
     if (extended_context == true) {
-
-
-
         const i32 major_min = 4;
         const i32 minor_min = 6;
 
-        i32 context_attributes[] = {
-            WGL_CONTEXT_MAJOR_VERSION_ARB,
-            major_min, /*major_version*/
-            WGL_CONTEXT_MINOR_VERSION_ARB,
-            minor_min, /*minor_version*/
-            WGL_CONTEXT_FLAGS_ARB,
-            WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB, /*context flags*/
-            WGL_CONTEXT_PROFILE_MASK_ARB,
-            WGL_CONTEXT_CORE_PROFILE_BIT_ARB, /*profile type*/
-            0};
-        // std::vector<i32> attribs;
-        // attribs.push_back(WGL_CONTEXT_MAJOR_VERSION_ARB); // major version
-        // attribs.push_back(major_min);
-        // attribs.push_back(WGL_CONTEXT_MINOR_VERSION_ARB); // minor version
-        // attribs.push_back(minor_min);
-        // attribs.push_back(WGL_CONTEXT_FLAGS_ARB); // context flags
-        // attribs.push_back(WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB);
-        // attribs.push_back(WGL_CONTEXT_PROFILE_MASK_ARB); // profile type
-        // attribs.push_back(WGL_CONTEXT_CORE_PROFILE_BIT_ARB);
-        // attribs.push_back(0);
+        std::vector<i32> context_attributes;
+        context_attributes.push_back(WGL_CONTEXT_MAJOR_VERSION_ARB); // major version
+        context_attributes.push_back(major_min);
+        context_attributes.push_back(WGL_CONTEXT_MINOR_VERSION_ARB); // minor version
+        context_attributes.push_back(minor_min);
+        context_attributes.push_back(WGL_CONTEXT_FLAGS_ARB); // context flags
+        context_attributes.push_back(WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB);
+        context_attributes.push_back(WGL_CONTEXT_PROFILE_MASK_ARB); // profile type
+        context_attributes.push_back(WGL_CONTEXT_CORE_PROFILE_BIT_ARB);
+        context_attributes.push_back(0);
 
-        const HGLRC render_context = wglCreateContextAttribsARB(device_context, 0, context_attributes);
+        const HGLRC render_context = wglCreateContextAttribsARB(device_context, 0, context_attributes.data());
         if (render_context == NULL) {
             Logger::log("wglCreateContextAttribsARB() failed. {}", ::GetLastError());
             return NULL;

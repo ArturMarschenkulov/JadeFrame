@@ -15,6 +15,7 @@
 #include "graphics/camera.h"
 #include "graphics/graphics_shared.h"
 #include "JadeFrame/graphics/mesh.h"
+#include "JadeFrame/graphics/shader_loader.h"
 #include "gui.h"
 
 #include <deque>
@@ -67,11 +68,11 @@ public:
         return m_shader_handles.at(name);
     }
 
-    auto set_texture_handle(const std::string& name, const std::string& path) -> void {
-        // m_shaders.insert({ name, shader });
-        m_texture_handles.emplace(name, path);
-        // m_texture_handles.emplace(name, std::move(texture));
-    }
+    // auto set_texture_handle(const std::string& name, const std::string& path) -> void {
+    //     // m_shaders.insert({ name, shader });
+    //     m_texture_handles.emplace(name, path);
+    //     // m_texture_handles.emplace(name, std::move(texture));
+    // }
     auto get_texture_handle(const std::string& name) -> TextureHandle& {
         if (m_texture_handles.find(name) != m_texture_handles.end()) { return m_texture_handles.at(name); }
         assert(false);

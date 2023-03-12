@@ -72,6 +72,15 @@ static auto extract_descriptor_set_layouts(const LogicalDevice& device, const Re
                                                : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             bindings_set[buffer.set].emplace_back(buffer.binding, type, 1, from_SHADER_STAGE(module.m_stage));
         }
+
+        for (u32 j = 0; j < module.m_sampled_images.size(); j++) {
+            const auto& image = module.m_sampled_images[j];
+
+            const VkDescriptorType& type = image.set == static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::PER_OBJECT)
+                                               ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+                                               : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            bindings_set[image.set].emplace_back(image.binding, type, 1, from_SHADER_STAGE(module.m_stage));
+        }
     }
     for (u32 i = 0; i < set_layouts.size(); i++) {
         set_layouts[i] = device.create_descriptor_set_layout(bindings_set[i]);

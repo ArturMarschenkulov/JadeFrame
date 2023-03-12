@@ -55,6 +55,15 @@ Those are projects where one has to actually write code.
 
 
 # Ideas
+## Graphics abstraction resources
+https://www.lei.chat/posts/hlsl-for-vulkan-resources/
+https://github.com/KhronosGroup/Vulkan-Guide/blob/main/chapters/hlsl.adoc
+https://learn.microsoft.com/en-us/windows/uwp/gaming/port-from-opengl-es-2-0-to-directx-11-1
+https://community.arm.com/arm-community-blogs/b/graphics-gaming-and-vr-blog/posts/porting-a-graphics-engine-to-the-vulkan-api
+https://www.vulkan.org/porting
+https://developer.nvidia.com/transitioning-opengl-vulkan
+https://gpuopen.com/learn/porting-detroit-1/
+
 ## Software renderer
 The problem is actually finding enough resources for writing such a renderer.
 

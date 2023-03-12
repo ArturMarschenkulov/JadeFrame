@@ -8,8 +8,8 @@ auto Camera::perspective_mode(const v3& position, const f32 fov, const f32 aspec
     m_mode = MODE::PERSPECTIVE;
     // probably move to constructor
     m_position = position;
-    m_forward = {0.0f, 1.0f, 0.0f};
-    m_world_up = {0.0f, 0.0f, 1.0f};
+    m_forward = {0.0f, 1.0f, 0.0f};  // y is forward
+    m_world_up = {0.0f, 0.0f, 1.0f}; // z is up
 
     m_projection_matrix = Matrix4x4::perspective_projection(fov, aspect, zNear, zFar);
 

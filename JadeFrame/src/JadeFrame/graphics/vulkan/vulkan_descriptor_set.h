@@ -9,6 +9,7 @@ namespace JadeFrame {
 namespace vulkan {
 class LogicalDevice;
 class Buffer;
+class Vulkan_Texture;
 class DescriptorSetLayout;
 class DescriptorPool;
 
@@ -109,6 +110,7 @@ public:
     auto update() -> void;
     auto bind_uniform_buffer(u32 binding, const Buffer& buffer, VkDeviceSize offset, VkDeviceSize range) -> void;
     auto rebind_uniform_buffer(u32 binding, const Buffer& buffer) -> void;
+    auto bind_combined_image_sampler(u32 binding, const Vulkan_Texture& texture) -> void;
 
 public:
     VkDescriptorSet            m_handle;

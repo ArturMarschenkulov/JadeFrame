@@ -87,9 +87,10 @@ public:
 #endif
     auto swap_buffers() -> void;
 
-// Resource creation
-    auto create_texture() -> opengl::Texture;
-    auto create_texture(void* data, v2u32 size, u32 component_num) -> opengl::Texture;
+    // Resource creation
+    auto create_texture() -> opengl::Texture*;
+    auto create_texture(void* data, v2u32 size, u32 component_num) -> opengl::Texture*;
+    auto create_buffer(opengl::Buffer::TYPE type) -> opengl::Buffer*;
 
 
 public:
