@@ -20,7 +20,8 @@ namespace JadeFrame {
 namespace vulkan {
 
 
-static auto create_shader_module_from_spirv(VkDevice device, const std::vector<u32>& spirv) -> VkShaderModule {
+static auto create_shader_module_from_spirv(const LogicalDevice& device, const std::vector<u32>& spirv)
+    -> VkShaderModule {
     VkResult                       result;
     const VkShaderModuleCreateInfo create_info = {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
@@ -31,7 +32,7 @@ static auto create_shader_module_from_spirv(VkDevice device, const std::vector<u
     };
 
     VkShaderModule shader_module;
-    result = vkCreateShaderModule(device, &create_info, nullptr, &shader_module);
+    result = vkCreateShaderModule(device.m_handle, &create_info, nullptr, &shader_module);
     if (result != VK_SUCCESS) assert(false);
     return shader_module;
 }
@@ -100,9 +101,10 @@ static auto check_compatiblity(
 
         if (input_attributes.size() == vertex_module->m_inputs.size()) {
             for (u32 i = 0; i < input_attributes.size(); i++) {
-                if (input_attributes[i].format != SHADER_TYPE_to_VkFormat(vertex_module->m_inputs[i].type))
+                if (input_attributes[i].format != SHADER_TYPE_to_VkFormat(vertex_module->m_inputs[i].type)) {
                     compatible = false;
-                if (input_attributes[i].location != vertex_module->m_inputs[i].location) compatible = false;
+                }
+                if (input_attributes[i].location != vertex_module->m_inputs[i].location) { compatible = false; }
             }
         } else {
             auto s0 = input_attributes.size();
@@ -158,14 +160,14 @@ auto Pipeline::init(
     bool compatible = check_compatiblity(reflected_code.m_modules, binding_description, attribute_descriptions);
     JF_ASSERT(compatible == true, "The vertex format is not compatible with the vertex shader");
 
-    std::vector<VkPushConstantRange> vulkan_push_constant_ranges(m_push_constant_ranges.size());
+    std::vector<VkPushConstantRange> push_constant_ranges(m_push_constant_ranges.size());
     for (u32 i = 0; i < m_push_constant_ranges.size(); i++) {
-        const PushConstantRange& push_constant_range = m_push_constant_ranges[i];
-        VkPushConstantRange&     vulkan_push_constant_range = vulkan_push_constant_ranges[i];
+        const PushConstantRange& range = m_push_constant_ranges[i];
+        VkPushConstantRange&     vulkan_range = push_constant_ranges[i];
 
-        vulkan_push_constant_range.stageFlags = push_constant_range.shader_stage;
-        vulkan_push_constant_range.offset = push_constant_range.offset;
-        vulkan_push_constant_range.size = push_constant_range.size;
+        vulkan_range.stageFlags = range.shader_stage;
+        vulkan_range.offset = range.offset;
+        vulkan_range.size = range.size;
     }
     VkDescriptorSetLayout set_layout_handles[4];
     for (u32 i = 0; i < set_layouts.size(); i++) { set_layout_handles[i] = set_layouts[i].m_handle; }
@@ -174,8 +176,8 @@ auto Pipeline::init(
         .pNext = nullptr,
         .setLayoutCount = set_layouts.size(),
         .pSetLayouts = set_layout_handles,
-        .pushConstantRangeCount = static_cast<u32>(vulkan_push_constant_ranges.size()),
-        .pPushConstantRanges = vulkan_push_constant_ranges.data(),
+        .pushConstantRangeCount = static_cast<u32>(push_constant_ranges.size()),
+        .pPushConstantRanges = push_constant_ranges.data(),
     };
     VkResult result = vkCreatePipelineLayout(device.m_handle, &pipeline_layout_info, nullptr, &m_layout);
     if (result != VK_SUCCESS) assert(false);
@@ -204,9 +206,9 @@ auto Pipeline::init(
                 Logger::info("\t\t-Stage: {}", to_string_from_shader_stage_flags(binding.stageFlags));
             }
         }
-        Logger::info("Push constant ranges count: {}", vulkan_push_constant_ranges.size());
-        for (u32 i = 0; i < vulkan_push_constant_ranges.size(); i++) {
-            const VkPushConstantRange& push_constant_range = vulkan_push_constant_ranges[i];
+        Logger::info("Push constant ranges count: {}", push_constant_ranges.size());
+        for (u32 i = 0; i < push_constant_ranges.size(); i++) {
+            const VkPushConstantRange& push_constant_range = push_constant_ranges[i];
             Logger::info("\tPush constant range: {}", i);
             Logger::info("\t\tStage: {}", to_string_from_shader_stage_flags(push_constant_range.stageFlags));
             Logger::info("\t\tOffset: {}", push_constant_range.offset);
@@ -220,7 +222,7 @@ auto Pipeline::init(
         shader_stages[i].pNext = nullptr;
         shader_stages[i].flags = 0;
         shader_stages[i].stage = from_SHADER_STAGE(m_code.m_modules[i].m_stage);
-        shader_stages[i].module = create_shader_module_from_spirv(device.m_handle, m_code.m_modules[i].m_code);
+        shader_stages[i].module = create_shader_module_from_spirv(device, m_code.m_modules[i].m_code);
         shader_stages[i].pName = "main";
         shader_stages[i].pSpecializationInfo = nullptr;
     }

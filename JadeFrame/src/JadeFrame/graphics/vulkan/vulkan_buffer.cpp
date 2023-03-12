@@ -95,8 +95,7 @@ auto LogicalDevice::create_image(
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
         .pNext = nullptr,
         .allocationSize = mem_requirements.size,
-        .memoryTypeIndex =
-            m_physical_device->vulkan::PhysicalDevice::find_memory_type(mem_requirements.memoryTypeBits, properties),
+        .memoryTypeIndex = m_physical_device->find_memory_type(mem_requirements.memoryTypeBits, properties),
     };
     result = vkAllocateMemory(m_handle, &alloc_info, nullptr, &image_memory);
     JF_ASSERT(result == VK_SUCCESS, "");
@@ -265,8 +264,7 @@ auto Buffer::create_buffer(
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
         .pNext = nullptr,
         .allocationSize = mem_requirements.size,
-        .memoryTypeIndex = m_device->m_physical_device->vulkan::PhysicalDevice::find_memory_type(
-            mem_requirements.memoryTypeBits, properties),
+        .memoryTypeIndex = m_device->m_physical_device->find_memory_type(mem_requirements.memoryTypeBits, properties),
     };
 
     result = vkAllocateMemory(m_device->m_handle, &alloc_info, nullptr, &buffer_memory);
@@ -281,17 +279,17 @@ auto Buffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize 
 
 
     const CommandPool& cp = m_device->m_command_pool;
-    CommandBuffer      command_buffer = cp.allocate_buffer();
+    CommandBuffer      buffer = cp.allocate_buffer();
 
-    command_buffer.record([&] {
+    buffer.record([&] {
         const VkBufferCopy copy_region = {
             .srcOffset = 0,
             .dstOffset = 0,
             .size = size,
         };
-        vkCmdCopyBuffer(command_buffer.m_handle, src_buffer, dst_buffer, 1, &copy_region);
+        vkCmdCopyBuffer(buffer.m_handle, src_buffer, dst_buffer, 1, &copy_region);
     });
-    // command_buffer[0].record_end();
+    // buffer[0].record_end();
 
     const VkSubmitInfo submit_info = {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -300,7 +298,7 @@ auto Buffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize 
         .pWaitSemaphores = {},
         .pWaitDstStageMask = {},
         .commandBufferCount = 1,
-        .pCommandBuffers = &command_buffer.m_handle,
+        .pCommandBuffers = &buffer.m_handle,
         .signalSemaphoreCount = {},
         .pSignalSemaphores = {},
     };
@@ -310,7 +308,7 @@ auto Buffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize 
     result = vkQueueWaitIdle(m_device->m_graphics_queue.m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 
-    cp.free_buffer(command_buffer);
+    cp.free_buffer(buffer);
 }
 Vulkan_GPUMeshData::Vulkan_GPUMeshData(
     const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat /*vertex_format*/,
@@ -384,7 +382,7 @@ auto Image::init(const LogicalDevice& device, const v2u32& size, VkFormat format
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
         .pNext = nullptr,
         .allocationSize = mem_requirements.size,
-        .memoryTypeIndex = device.m_physical_device->vulkan::PhysicalDevice::find_memory_type(
+        .memoryTypeIndex = device.m_physical_device->find_memory_type(
             mem_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),
     };
 
