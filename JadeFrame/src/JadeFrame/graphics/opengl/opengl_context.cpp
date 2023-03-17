@@ -94,6 +94,7 @@ auto GL_State::set_default() -> void {
     this->set_blending(true);
     this->set_polygon_mode(POLYGON_FACE::FRONT_AND_BACK, POLYGON_MODE::FILL);
     this->set_face_culling(false, GL_BACK);
+    glEnable(GL_FRAMEBUFFER_SRGB);
 }
 
 auto GL_State::set_blending(bool enable, BLENDING_FACTOR sfactor, BLENDING_FACTOR dfactor) -> void {
