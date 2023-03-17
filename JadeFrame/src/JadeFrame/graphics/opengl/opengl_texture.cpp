@@ -62,12 +62,12 @@ Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_
     GLenum wrap_s = GL_REPEAT;
     GLenum wrap_t = GL_REPEAT;
 
-    this->set_texture_parameters(GL_TEXTURE_WRAP_S, wrap_s);
-    this->set_texture_parameters(GL_TEXTURE_WRAP_T, wrap_t);
-    this->set_texture_parameters(GL_TEXTURE_MIN_FILTER, filter_min);
-    this->set_texture_parameters(GL_TEXTURE_MAG_FILTER, filter_max);
+    this->set_parameters(GL_TEXTURE_WRAP_S, wrap_s);
+    this->set_parameters(GL_TEXTURE_WRAP_T, wrap_t);
+    this->set_parameters(GL_TEXTURE_MIN_FILTER, filter_min);
+    this->set_parameters(GL_TEXTURE_MAG_FILTER, filter_max);
 
-    this->set_texture_image(0, format_, size, 0, format_, m_type, data);
+    this->set_image(0, format_, size, 0, format_, m_type, data);
     // if (m_mipmapping) {
     this->generate_mipmap();
     //}
@@ -83,19 +83,17 @@ Texture::Texture(Texture&& other) noexcept
 Texture::~Texture() { this->reset(); }
 
 auto Texture::generate_mipmap() const -> void { glGenerateTextureMipmap(m_id); }
-auto Texture::set_texture_parameters(GLenum pname, GLint param) const -> void {
-    glTextureParameteri(m_id, pname, param);
-}
-auto Texture::set_texture_image(
+auto Texture::set_parameters(GLenum pname, GLint param) const -> void { glTextureParameteri(m_id, pname, param); }
+auto Texture::set_image(
     GLint level, GLint internalformat, u32 size, GLint border, GLenum format, GLenum type, const void* pixels) -> void {
     glTexImage1D(GL_TEXTURE_2D, level, internalformat, size, border, format, type, pixels);
 }
-auto Texture::set_texture_image(
+auto Texture::set_image(
     GLint level, GLint internalformat, v2u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
     -> void {
     glTexImage2D(GL_TEXTURE_2D, level, internalformat, size.x, size.y, border, format, type, pixels);
 }
-auto Texture::set_texture_image(
+auto Texture::set_image(
     GLint level, GLint internalformat, v3u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
     -> void {
     glTexImage3D(GL_TEXTURE_2D, level, internalformat, size.x, size.y, size.z, border, format, type, pixels);
@@ -104,7 +102,7 @@ auto Texture::resize(u32 width, u32 height, u32 /*depth*/) -> void {
 
     this->bind(0);
     assert(width > 0 && height > 0);
-    this->set_texture_image(0, m_internal_format, {width, height}, 0, m_format, m_type, 0);
+    this->set_image(0, m_internal_format, {width, height}, 0, m_format, m_type, 0);
 
     // switch (m_target) {
     //	case GL_TEXTURE_1D:

@@ -87,7 +87,7 @@ public:
         opengl::Renderbuffer m_framebuffer_renderbuffer;
         opengl::Framebuffer  m_framebuffer;
         opengl::GPUMeshData* m_framebuffer_rect;
-        u32                  m_shader_id_fb;
+        u32                  m_shader;
     } fb;
 
     std::vector<opengl::Buffer*>  m_uniform_buffers;

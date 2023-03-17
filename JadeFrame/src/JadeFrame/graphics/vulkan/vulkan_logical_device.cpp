@@ -134,7 +134,6 @@ auto LogicalDevice::recreate_swapchain() -> void {
 }
 auto LogicalDevice::cleanup_swapchain() -> void {
 
-    // m_render_pass.deinit();
     m_swapchain.deinit();
 }
 
@@ -289,7 +288,6 @@ auto LogicalDevice::deinit() -> void {
     }
 
     m_command_pool.deinit();
-    // m_render_pass.deinit();
     m_swapchain.deinit();
     result = vkDeviceWaitIdle(m_handle);
     if (result != VK_SUCCESS) assert(false);

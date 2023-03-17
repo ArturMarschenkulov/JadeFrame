@@ -35,14 +35,14 @@ public:
     auto unbind() const -> void;
 
     auto generate_mipmap() const -> void;
-    auto set_texture_parameters(GLenum pname, GLint param) const -> void;
-    auto set_texture_image(
-        GLint level, GLint internalformat, u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
+    auto set_parameters(GLenum pname, GLint param) const -> void;
+    auto
+    set_image(GLint level, GLint internalformat, u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
         -> void;
-    auto set_texture_image(
+    auto set_image(
         GLint level, GLint internalformat, v2u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
         -> void;
-    auto set_texture_image(
+    auto set_image(
         GLint level, GLint internalformat, v3u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
         -> void;
 

@@ -45,11 +45,11 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
         fb.m_framebuffer_texture = m_context.create_texture();
         fb.m_framebuffer_texture->bind(0);
 
-        fb.m_framebuffer_texture->set_texture_image(0, GL_RGB, size, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-        fb.m_framebuffer_texture->set_texture_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        fb.m_framebuffer_texture->set_texture_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        fb.m_framebuffer_texture->set_texture_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        fb.m_framebuffer_texture->set_texture_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        fb.m_framebuffer_texture->set_image(0, GL_RGB, size, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        fb.m_framebuffer_texture->set_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        fb.m_framebuffer_texture->set_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        fb.m_framebuffer_texture->set_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        fb.m_framebuffer_texture->set_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         fb.m_framebuffer.attach_texture(*fb.m_framebuffer_texture);
 
         fb.m_framebuffer_renderbuffer.bind();
@@ -81,7 +81,7 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
     shader_handle_desc.vertex_format = layout;
 #if JF_FB
-    fb.m_shader_id_fb = m_system->register_shader(shader_handle_desc);
+    fb.m_shader = m_system->register_shader(shader_handle_desc);
 #endif
 
 
@@ -162,8 +162,9 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     {
 
         // static_cast<opengl::Shader*>(fb.m_shader_handle_fb->m_handle)->bind();
-        auto& sh = m_system->m_registered_shaders[fb.m_shader_id_fb];
-        static_cast<opengl::Shader*>(sh.m_handle)->bind();
+        ShaderHandle&   sh_ = m_system->m_registered_shaders[fb.m_shader];
+        opengl::Shader* sh = static_cast<opengl::Shader*>(sh_.m_handle);
+        sh->bind();
         fb.m_framebuffer_texture->bind(0);
         fb.m_framebuffer_rect->m_vertex_array.bind();
 
