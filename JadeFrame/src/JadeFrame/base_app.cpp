@@ -299,8 +299,8 @@ auto BaseApp::start() -> void {
             // m_gui.new_frame();
 
             this->on_draw();
-            const Matrix4x4& view_projection = m_camera.get_view_projection_matrix();
-            control_camera(&m_camera);
+            const Matrix4x4& view_projection = m_camera.get_view_projection();
+            // control_camera(&m_camera);
             renderer->render(view_projection);
 
             // m_gui.render();

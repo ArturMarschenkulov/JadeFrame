@@ -36,12 +36,12 @@ auto Camera::othographic_mode(f32 left, f32 right, f32 bottom, f32 top, f32 near
     m_up = {0.0f, 1.0f, 0.0f};
 }
 
-auto Camera::get_projection_matrix() const -> Matrix4x4 { return m_projection_matrix; }
-auto Camera::get_view_matrix() const -> Matrix4x4 {
+auto Camera::get_projection() const -> Matrix4x4 { return m_projection_matrix; }
+auto Camera::get_view() const -> Matrix4x4 {
     return Matrix4x4::look_at(m_position, m_position + m_forward, m_up);
 }
 
-auto Camera::get_view_projection_matrix() const -> Matrix4x4 {
-    return this->get_view_matrix() * this->get_projection_matrix();
+auto Camera::get_view_projection() const -> Matrix4x4 {
+    return this->get_view() * this->get_projection();
 }
 } // namespace JadeFrame
