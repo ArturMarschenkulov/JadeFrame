@@ -81,52 +81,19 @@ layout(location = 0) out vec4 o_color;
 
 layout(binding = 0) uniform sampler2D u_screen_texture;
 
+float convert_srgb_to_linear(float rgba_val) {
+    return rgba_val <= 0.04045f 
+        ? rgba_val / 12.92f 
+        : pow((rgba_val + 0.055f) / 1.055f, 2.4f);
+}
+
 void main() {
+    float gamma = 2.2;
 	o_color = texture(u_screen_texture,  f_texture_coordinate);
-}
-	)";
-
-    return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
-}
-
-
-static auto get_shader_spirv_test_0() -> std::tuple<std::string, std::string> {
-    static const char* vertex_shader =
-        R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout(location = 0) in vec3 v_position;
-layout(location = 1) in vec4 v_color;
-
-layout(location = 0) out vec4 f_color;
-
-layout(std140, set = 0, binding = 0) uniform Camera {
-    mat4 view_projection;
-} u_camera;
-
-layout(std140, set = 0, binding = 1) uniform Transform {
-	mat4 model;
-} u_transform;
-
-void main() {
-	gl_Position = u_camera.view_projection * u_transform.model * vec4(v_position, 1.0);
-
-	f_color = v_color;
-}
-)";
-
-    static const char* fragment_shader =
-        R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout(location = 0) in vec4 f_color;
-
-layout(location = 0) out vec4 o_color;
-
-void main() {
-    o_color = f_color;
+    o_color.x = convert_srgb_to_linear(o_color.x);
+    o_color.y = convert_srgb_to_linear(o_color.y);
+    o_color.z = convert_srgb_to_linear(o_color.z);
+    // o_color = vec4(pow(o_color.xyz, vec3(gamma)), o_color.w);
 }
 )";
 
@@ -176,12 +143,58 @@ layout(location = 0) in vec4 f_color;
 layout(location = 0) out vec4 o_color;
 
 void main() {
+    // float gamma = 1.0;
+    // o_color = vec4(pow(f_color.xyz, vec3(gamma)), f_color.w);
     o_color = f_color;
 }
 )";
 
     return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
+
+static auto get_shader_spirv_test_0() -> std::tuple<std::string, std::string> {
+    static const char* vertex_shader =
+        R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout(location = 0) in vec3 v_position;
+layout(location = 1) in vec4 v_color;
+
+layout(location = 0) out vec4 f_color;
+
+layout(std140, set = 0, binding = 0) uniform Camera {
+    mat4 view_projection;
+} u_camera;
+
+layout(std140, set = 0, binding = 1) uniform Transform {
+	mat4 model;
+} u_transform;
+
+void main() {
+	gl_Position = u_camera.view_projection * u_transform.model * vec4(v_position, 1.0);
+
+	f_color = v_color;
+}
+)";
+
+    static const char* fragment_shader =
+        R"(
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout(location = 0) in vec4 f_color;
+
+layout(location = 0) out vec4 o_color;
+
+void main() {
+    o_color = f_color;
+}
+)";
+
+    return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
+}
+
 
 static auto get_default_shader_flat_0() -> std::tuple<std::string, std::string> {
     const char* vertex_shader =
