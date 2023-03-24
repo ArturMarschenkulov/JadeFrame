@@ -86,18 +86,18 @@ enum class SHADER_TYPE {
     BOOL,
 
     // Vectors
-    I32_2,
-    I32_3,
-    I32_4,
+    V_2_I32,
+    V_3_I32,
+    V_4_I32,
 
-    F32_2,
-    F32_3,
-    F32_4,
+    V_2_F32,
+    V_3_F32,
+    V_4_F32,
 
     // Matrices, for now only nxn matrices are supported
-    M_F32_2,
-    M_F32_3,
-    M_F32_4,
+    M_2_2_F32,
+    M_3_3_F32,
+    M_4_4_F32,
 
     // Opaque types
     SAMPLER_1D,
@@ -123,16 +123,16 @@ inline auto get_component_count(const SHADER_TYPE type) -> u32 {
         case SHADER_TYPE::I32:
         case SHADER_TYPE::BOOL: result = 1; break;
 
-        case SHADER_TYPE::F32_2:
-        case SHADER_TYPE::I32_2: result = 2; break;
+        case SHADER_TYPE::V_2_F32:
+        case SHADER_TYPE::V_2_I32: result = 2; break;
 
-        case SHADER_TYPE::F32_3:
-        case SHADER_TYPE::M_F32_3: // 3* float3
-        case SHADER_TYPE::I32_3: result = 3; break;
+        case SHADER_TYPE::V_3_F32:
+        case SHADER_TYPE::M_3_3_F32: // 3* float3
+        case SHADER_TYPE::V_3_I32: result = 3; break;
 
-        case SHADER_TYPE::F32_4:
-        case SHADER_TYPE::M_F32_4: // 4* float4
-        case SHADER_TYPE::I32_4: result = 4; break;
+        case SHADER_TYPE::V_4_F32:
+        case SHADER_TYPE::M_4_4_F32: // 4* float4
+        case SHADER_TYPE::V_4_I32: result = 4; break;
 
         default:
             assert(false);
@@ -143,12 +143,12 @@ inline auto get_component_count(const SHADER_TYPE type) -> u32 {
 }
 inline auto is_vector(SHADER_TYPE type) -> bool {
     switch (type) {
-        case SHADER_TYPE::I32_2:
-        case SHADER_TYPE::I32_3:
-        case SHADER_TYPE::I32_4:
-        case SHADER_TYPE::F32_2:
-        case SHADER_TYPE::F32_3:
-        case SHADER_TYPE::F32_4: return true;
+        case SHADER_TYPE::V_2_I32:
+        case SHADER_TYPE::V_3_I32:
+        case SHADER_TYPE::V_4_I32:
+        case SHADER_TYPE::V_2_F32:
+        case SHADER_TYPE::V_3_F32:
+        case SHADER_TYPE::V_4_F32: return true;
         default: return false;
     }
 }
@@ -325,15 +325,15 @@ inline auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
     u32 result;
     switch (type) {
         case SHADER_TYPE::F32: result = 4; break;
-        case SHADER_TYPE::F32_2: result = 4 * 2; break;
-        case SHADER_TYPE::F32_3: result = 4 * 3; break;
-        case SHADER_TYPE::F32_4: result = 4 * 4; break;
-        case SHADER_TYPE::M_F32_3: result = 4 * 3 * 3; break;
-        case SHADER_TYPE::M_F32_4: result = 4 * 4 * 4; break;
+        case SHADER_TYPE::V_2_F32: result = 4 * 2; break;
+        case SHADER_TYPE::V_3_F32: result = 4 * 3; break;
+        case SHADER_TYPE::V_4_F32: result = 4 * 4; break;
+        case SHADER_TYPE::M_3_3_F32: result = 4 * 3 * 3; break;
+        case SHADER_TYPE::M_4_4_F32: result = 4 * 4 * 4; break;
         case SHADER_TYPE::I32: result = 4; break;
-        case SHADER_TYPE::I32_2: result = 4 * 2; break;
-        case SHADER_TYPE::I32_3: result = 4 * 3; break;
-        case SHADER_TYPE::I32_4: result = 4 * 4; break;
+        case SHADER_TYPE::V_2_I32: result = 4 * 2; break;
+        case SHADER_TYPE::V_3_I32: result = 4 * 3; break;
+        case SHADER_TYPE::V_4_I32: result = 4 * 4; break;
         case SHADER_TYPE::BOOL: result = 1; break;
         default:
             assert(false);

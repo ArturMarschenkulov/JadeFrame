@@ -72,8 +72,8 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     VertexData vertex_data = VertexData::make_rectangle({-1.0f, -1.0f, 0.0f}, {2.0f, 2.0f, 0.0f}, vdf_desc);
 
     VertexFormat layout = {
-        {           "v_position", SHADER_TYPE::F32_3},
-        {"v_texture_coordinates", SHADER_TYPE::F32_2}
+        {           "v_position", SHADER_TYPE::V_3_F32},
+        {"v_texture_coordinates", SHADER_TYPE::V_2_F32}
     };
     fb.m_framebuffer_rect = new opengl::GPUMeshData(m_context, vertex_data, layout);
 

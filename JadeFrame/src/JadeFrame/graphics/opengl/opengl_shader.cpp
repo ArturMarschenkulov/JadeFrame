@@ -25,10 +25,10 @@ namespace JadeFrame {
 static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
     switch (type) {
         case GL_FLOAT: return SHADER_TYPE::F32; break;
-        case GL_FLOAT_VEC2: return SHADER_TYPE::F32_2; break;
-        case GL_FLOAT_VEC3: return SHADER_TYPE::F32_3; break;
-        case GL_FLOAT_VEC4: return SHADER_TYPE::F32_4; break;
-        case GL_FLOAT_MAT4: return SHADER_TYPE::M_F32_4; break;
+        case GL_FLOAT_VEC2: return SHADER_TYPE::V_2_F32; break;
+        case GL_FLOAT_VEC3: return SHADER_TYPE::V_3_F32; break;
+        case GL_FLOAT_VEC4: return SHADER_TYPE::V_4_F32; break;
+        case GL_FLOAT_MAT4: return SHADER_TYPE::M_4_4_F32; break;
         case GL_SAMPLER_2D: return SHADER_TYPE::SAMPLER_2D; break;
         default: assert(false); return {};
     }

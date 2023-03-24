@@ -285,10 +285,10 @@ auto RenderSystem::register_mesh(const VertexFormat& format, const VertexData& d
         Logger::warn("No vertex format provided, using default one. (v_position float3, v_color float4, "
                      "v_texture_coord float2, v_normal float3");
         const VertexFormat vf = {
-            {     "v_position", SHADER_TYPE::F32_3},
-            {        "v_color", SHADER_TYPE::F32_4},
-            {"v_texture_coord", SHADER_TYPE::F32_2},
-            {       "v_normal", SHADER_TYPE::F32_3},
+            {     "v_position", SHADER_TYPE::V_3_F32},
+            {        "v_color", SHADER_TYPE::V_4_F32},
+            {"v_texture_coord", SHADER_TYPE::V_2_F32},
+            {       "v_normal", SHADER_TYPE::V_3_F32},
         };
         vertex_format = vf;
     } else {
@@ -462,7 +462,7 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
     if (columns == 1) {
         switch (type.basetype) {
             case spirv_cross::SPIRType::Float: {
-                SHADER_TYPE arr[] = {SHADER_TYPE::F32, SHADER_TYPE::F32_2, SHADER_TYPE::F32_3, SHADER_TYPE::F32_4};
+                SHADER_TYPE arr[] = {SHADER_TYPE::F32, SHADER_TYPE::V_2_F32, SHADER_TYPE::V_3_F32, SHADER_TYPE::V_4_F32};
                 result = arr[rows - 1];
             } break;
             default: JF_ASSERT(false, "this should not be reached!");
@@ -473,7 +473,7 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
                 JF_UNIMPLEMENTED("matrix types with different row and column count are not supported yet!");
             }
             case spirv_cross::SPIRType::Float: {
-                SHADER_TYPE arr[] = {SHADER_TYPE::M_F32_2, SHADER_TYPE::M_F32_3, SHADER_TYPE::M_F32_4};
+                SHADER_TYPE arr[] = {SHADER_TYPE::M_2_2_F32, SHADER_TYPE::M_3_3_F32, SHADER_TYPE::M_4_4_F32};
 
                 result = arr[rows - 2];
             } break;
@@ -488,15 +488,15 @@ auto to_string(SHADER_TYPE type) -> const char* {
     switch (type) {
         case SHADER_TYPE::NONE: return "NONE";
         case SHADER_TYPE::F32: return "F32";
-        case SHADER_TYPE::F32_2: return "F32_2";
-        case SHADER_TYPE::F32_3: return "F32_3";
-        case SHADER_TYPE::F32_4: return "F32_4";
-        case SHADER_TYPE::M_F32_3: return "M_F32_3";
-        case SHADER_TYPE::M_F32_4: return "M_F32_4";
+        case SHADER_TYPE::V_2_F32: return "F32_2";
+        case SHADER_TYPE::V_3_F32: return "F32_3";
+        case SHADER_TYPE::V_4_F32: return "F32_4";
+        case SHADER_TYPE::M_3_3_F32: return "M_F32_3";
+        case SHADER_TYPE::M_4_4_F32: return "M_F32_4";
         case SHADER_TYPE::I32: return "I32";
-        case SHADER_TYPE::I32_2: return "I32_2";
-        case SHADER_TYPE::I32_3: return "I32_3";
-        case SHADER_TYPE::I32_4: return "I32_4";
+        case SHADER_TYPE::V_2_I32: return "I32_2";
+        case SHADER_TYPE::V_3_I32: return "I32_3";
+        case SHADER_TYPE::V_4_I32: return "I32_4";
         case SHADER_TYPE::BOOL: return "BOOL";
         case SHADER_TYPE::SAMPLER_1D: return "SAMPLER_1D";
         case SHADER_TYPE::SAMPLER_2D: return "SAMPLER_2D";

@@ -40,13 +40,13 @@ inline auto SHADER_TYPE_to_VkFormat(const SHADER_TYPE& shader_type) -> VkFormat 
     VkFormat result = VK_FORMAT_UNDEFINED;
 
     switch (shader_type) {
-        case SHADER_TYPE::F32_2: {
+        case SHADER_TYPE::V_2_F32: {
             result = VK_FORMAT_R32G32_SFLOAT;
         } break;
-        case SHADER_TYPE::F32_3: {
+        case SHADER_TYPE::V_3_F32: {
             result = VK_FORMAT_R32G32B32_SFLOAT;
         } break;
-        case SHADER_TYPE::F32_4: {
+        case SHADER_TYPE::V_4_F32: {
             result = VK_FORMAT_R32G32B32A32_SFLOAT;
         } break;
         default: JF_ASSERT(false, "not implemented yet!");
