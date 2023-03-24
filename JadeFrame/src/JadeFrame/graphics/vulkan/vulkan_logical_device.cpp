@@ -248,6 +248,12 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
     m_swapchain = this->create_swapchain();
     const u32 swapchain_image_amount = static_cast<u32>(m_swapchain.m_images.size());
 
+    m_render_pass = this->create_render_pass(m_swapchain.m_image_format);
+
+    m_framebuffers.resize(swapchain_image_amount);
+    for (size_t i = 0; i < swapchain_image_amount; i++) {
+        m_framebuffers[i] = this->create_framebuffer(m_swapchain.m_image_views[i], m_render_pass, m_swapchain.m_extent);
+    }
     // Commad Buffer stuff
     m_command_pool = this->create_command_pool(m_physical_device->m_queue_family_indices.m_graphics_family.value());
     m_command_buffers = m_command_pool.allocate_buffers(static_cast<u32>(m_swapchain.m_framebuffers.size()));
@@ -298,6 +304,8 @@ auto LogicalDevice::create_image_view(Image& image, VkFormat format) -> ImageVie
 
 auto LogicalDevice::deinit() -> void {
     VkResult result;
+    for (uint32_t i = 0; i < m_framebuffers.size(); i++) { m_framebuffers[i].deinit(); }
+    m_render_pass.deinit();
     this->cleanup_swapchain();
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         m_render_finished_semaphores[i].deinit();

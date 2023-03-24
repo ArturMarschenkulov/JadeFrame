@@ -120,8 +120,8 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     // const VulkanImage& image = d.m_swapchain.m_images[image_index];
     vulkan::CommandBuffer& cb = d.m_command_buffers[d.m_present_image_index];
-    vulkan::Framebuffer&   framebuffer = d.m_swapchain.m_framebuffers[d.m_present_image_index];
-    vulkan::RenderPass&    render_pass = d.m_swapchain.m_render_pass;
+    vulkan::Framebuffer&   framebuffer = d.m_framebuffers[d.m_present_image_index];
+    vulkan::RenderPass&    render_pass = d.m_render_pass;
 
     cb.record([&] {
         cb.render_pass(framebuffer, render_pass, d.m_swapchain.m_extent, clear_value, [&] {

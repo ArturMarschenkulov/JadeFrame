@@ -195,13 +195,6 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     for (u32 i = 0; i < m_images.size(); i++) {
         m_image_views[i] = device.create_image_view(m_images[i], surface_format.format);
     }
-
-    m_render_pass.init(device, m_image_format);
-
-    m_framebuffers.resize(m_image_views.size());
-    for (size_t i = 0; i < m_image_views.size(); i++) {
-        m_framebuffers[i].init(*m_device, m_image_views[i], m_render_pass, m_extent);
-    }
 }
 
 auto Swapchain::query_images() -> std::vector<Image> {
@@ -220,8 +213,6 @@ auto Swapchain::query_images() -> std::vector<Image> {
 }
 
 auto Swapchain::deinit() -> void {
-    for (uint32_t i = 0; i < m_framebuffers.size(); i++) { m_framebuffers[i].deinit(); }
-    m_render_pass.deinit();
     for (uint32_t i = 0; i < m_image_views.size(); i++) { m_image_views[i].deinit(); }
 
     vkDestroySwapchainKHR(m_device->m_handle, m_handle, nullptr);

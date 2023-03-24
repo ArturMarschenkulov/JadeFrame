@@ -92,10 +92,8 @@ public:
     LogicalDevice* m_device = nullptr;
     const Surface* m_surface = nullptr;
 
-    std::vector<Image>       m_images;
-    std::vector<ImageView>   m_image_views;
-    RenderPass               m_render_pass;
-    std::vector<Framebuffer> m_framebuffers;
+    std::vector<Image>     m_images;
+    std::vector<ImageView> m_image_views;
 
     VkFormat   m_image_format;
     VkExtent2D m_extent;

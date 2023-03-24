@@ -92,7 +92,8 @@ public: // Swapchain stuff
     auto cleanup_swapchain() -> void;
 
     Swapchain m_swapchain;
-    // RenderPass m_render_pass;
+    RenderPass               m_render_pass;
+    std::vector<Framebuffer> m_framebuffers;
 
 public:
     // auto create_image() -> vulkan::Image;
