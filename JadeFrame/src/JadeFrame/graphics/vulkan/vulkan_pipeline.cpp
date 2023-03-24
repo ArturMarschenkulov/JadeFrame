@@ -52,34 +52,53 @@ static auto from_SHADER_STAGE(SHADER_STAGE stage) -> VkShaderStageFlagBits {
     return result;
 }
 
-
+static auto get_uniform_buffer_type(FREQUENCY freq) -> VkDescriptorType {
+    VkDescriptorType result = {};
+    switch (freq) {
+        case FREQUENCY::PER_OBJECT: {
+            result = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+        } break;
+        case FREQUENCY::PER_FRAME: {
+            result = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        } break;
+        default: assert(false);
+    }
+    return result;
+}
+static auto get_sampled_image_type(FREQUENCY freq) -> VkDescriptorType {
+    VkDescriptorType result = {};
+    switch (freq) {
+        case FREQUENCY::PER_OBJECT: {
+            result = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        } break;
+        case FREQUENCY::PER_FRAME: {
+            result = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        } break;
+        default: result = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    }
+    return result;
+}
 
 
 static auto extract_descriptor_set_layouts(const LogicalDevice& device, const ReflectedCode& code)
-    -> std::array<DescriptorSetLayout, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> {
+    -> std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)> {
 
-    std::array<DescriptorSetLayout, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> set_layouts;
+    // TODO: Needs more checking.
+    constexpr u8 max_sets = static_cast<u8>(FREQUENCY::MAX);
 
-    std::array<std::vector<DescriptorSetLayout::Binding>, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> bindings_set;
-    for (u32 i = 0; i < code.m_modules.size(); i++) {
-        auto& module = code.m_modules[i];
+    std::array<DescriptorSetLayout, max_sets>                       set_layouts;
+    std::array<std::vector<DescriptorSetLayout::Binding>, max_sets> bindings_set;
 
-        for (u32 j = 0; j < module.m_uniform_buffers.size(); j++) {
-            const auto& buffer = module.m_uniform_buffers[j];
+    for (const auto& module : code.m_modules) {
+        const auto stage = from_SHADER_STAGE(module.m_stage);
 
-            const VkDescriptorType& type = buffer.set == static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::PER_OBJECT)
-                                               ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
-                                               : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            bindings_set[buffer.set].emplace_back(buffer.binding, type, 1, from_SHADER_STAGE(module.m_stage));
+        for (const auto& buffer : module.m_uniform_buffers) {
+            auto type = get_uniform_buffer_type(static_cast<FREQUENCY>(buffer.set));
+            bindings_set[buffer.set].emplace_back(buffer.binding, type, 1, stage);
         }
-
-        for (u32 j = 0; j < module.m_sampled_images.size(); j++) {
-            const auto& image = module.m_sampled_images[j];
-
-            const VkDescriptorType& type = image.set == static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::PER_OBJECT)
-                                               ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
-                                               : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            bindings_set[image.set].emplace_back(image.binding, type, 1, from_SHADER_STAGE(module.m_stage));
+        for (const auto& image : module.m_sampled_images) {
+            auto type = get_sampled_image_type(static_cast<FREQUENCY>(image.set));
+            bindings_set[image.set].emplace_back(image.binding, type, 1, stage);
         }
     }
     for (u32 i = 0; i < set_layouts.size(); i++) {

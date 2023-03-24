@@ -14,7 +14,7 @@ class DescriptorSetLayout;
 class DescriptorPool;
 
 
-enum class DESCRIPTOR_SET_FREQUENCY : u8 {
+enum class FREQUENCY : u8 {
     PER_FRAME,
     PER_PASS,
     PER_MATERIAL,

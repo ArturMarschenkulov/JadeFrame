@@ -35,8 +35,8 @@ public:
     const RenderPass*    m_render_pass = nullptr;
 
 
-    std::array<DescriptorSetLayout, static_cast<u8>(DESCRIPTOR_SET_FREQUENCY::MAX)> m_set_layouts;
-    ShadingCode                                                                     m_code;
+    std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)> m_set_layouts;
+    ShadingCode                                                      m_code;
 
     bool m_is_compiled = false;
 
