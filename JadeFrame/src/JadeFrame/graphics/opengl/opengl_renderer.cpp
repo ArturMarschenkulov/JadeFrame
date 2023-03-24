@@ -28,8 +28,6 @@ auto OpenGL_Renderer::clear_background() -> void {
 }
 auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void {
     m_context.m_state.set_viewport(x, y, width, height);
-
-    //__debugbreak();
 }
 #define JF_FB 1
 OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)

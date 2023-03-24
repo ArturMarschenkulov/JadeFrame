@@ -435,8 +435,7 @@ auto SystemManager::initialize() -> void {
     }
     {
         // The the GPU data without DirectX
-    }
-    {
+    } {
         std::array<int, 4> cpu_info = {0};
         constexpr size_t   buffer_size = sizeof(i32) * cpu_info.size();
 
@@ -446,8 +445,8 @@ auto SystemManager::initialize() -> void {
         // https://learn.microsoft.com/en-us/cpp/intrinsics/cpuid-cpuidex?view=vs-2019
         constexpr std::array<int, 3> function_ids = {
             0x8000'0002, // Manufacturer
-            0x8000'0003, // Model       
-            0x8000'0004  // Clockspeed  
+            0x8000'0003, // Model
+            0x8000'0004  // Clockspeed
         };
 
         std::string cpu_name;
@@ -513,7 +512,6 @@ auto SystemManager::initialize() -> void {
                     processor_package_count++;
                     break;
                     // default:
-                    //	__debugbreak();
                 case RelationNumaNode:
                     // Non-NUMA systems report a single record of this type.
                     break;
@@ -535,8 +533,6 @@ auto SystemManager::initialize() -> void {
         m_L1_cache_size = processor_L1_cache_size;
         m_L2_cache_size = processor_L2_cache_size;
         m_L3_cache_size = processor_L3_cache_size;
-
-        //__debugbreak();
     }
     {
         SYSTEM_INFO siSysInfo;

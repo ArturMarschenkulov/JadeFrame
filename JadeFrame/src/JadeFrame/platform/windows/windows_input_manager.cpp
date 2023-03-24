@@ -223,7 +223,6 @@ auto InputManager::key_callback(const EventMessage& wm) -> void {
     if (m_current_key_state[static_cast<u32>(KEY::ESCAPE)] == INPUT_STATE::PRESSED) {
         if (::MessageBoxW(wm.hWnd, L"Quit through ESC?", L"My application", MB_OKCANCEL) == IDOK) {
             Logger::log("WinInputManager::key_callback(); WM_QUIT");
-            //__debugbreak();
             Instance::get_singleton()->m_current_app_p->m_is_running = false;
             ::PostQuitMessage(0);
             // DestroyWindow(hwnd);
@@ -309,7 +308,7 @@ static auto convert_buttons_from_JF_to_imgui(BUTTON button) -> i32 {
 //		//case BUTTON::LEFT: result = 0; break;
 //		//case BUTTON::RIGHT: result = 1; break;
 //		//case BUTTON::MIDDLE: result = 4; break;
-//		default: result = -1; __debugbreak(); break;
+//		default: result = -1; assert(false); break;
 //	}
 //	return result;
 // }
@@ -360,7 +359,7 @@ auto InputManager::mouse_button_callback(const EventMessage& wm) -> void {
     i32 mposy = GET_Y_LPARAM(lParam);
     m_mouse_posiition.x = static_cast<f32>(mposx);
     m_mouse_posiition.y = static_cast<f32>(mposy);
-    if (is_key_down(KEY::L)) { __debugbreak(); }
+    if (is_key_down(KEY::L)) { assert(false); }
     // io.DeltaTime = 1.0f / 60.0f;
 }
 

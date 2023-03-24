@@ -35,12 +35,6 @@ static auto window_resize_callback(Window& window, const EventMessage& wm) -> vo
     const v2u32& size = window.get_size();
     auto&        renderer = Instance::get_singleton()->m_current_app_p->m_render_system.m_renderer;
     renderer->set_viewport(0, 0, size.width, size.height);
-
-    // static i32 rrr = 1;
-    // if (rrr % 20 == 0) {
-    //	__debugbreak();
-    // }
-    // rrr++;
 }
 static auto window_move_callback(Window& window, const EventMessage& wm) -> void {
     // NOTE: wParam is not used
@@ -238,9 +232,7 @@ Window::Window(const Window::Desc& desc, ::HMODULE instance) {
     }
 }
 
-auto Window::get() const -> void* {
-    return reinterpret_cast<void*>(m_window_handle);
-}
+auto Window::get() const -> void* { return reinterpret_cast<void*>(m_window_handle); }
 
 Window::~Window() { ::DestroyWindow(m_window_handle); }
 

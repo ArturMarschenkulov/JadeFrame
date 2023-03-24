@@ -53,7 +53,6 @@ auto OGLW_Shader::compile_binary() -> void {
         I'm leaving this here in case I ever get around to fixing it.
     */
     glSpecializeShader(m_ID, "main", 0, nullptr, nullptr);
-    //__debugbreak();
 }
 auto OGLW_Shader::get_info(GLenum pname) -> GLint {
     GLint result;

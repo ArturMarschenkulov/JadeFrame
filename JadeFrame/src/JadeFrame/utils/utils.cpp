@@ -103,9 +103,7 @@ static auto submit(FuncT&& func) -> void {
     auto storage_buffer = rcq.allocate(render_cmd, sizeof(func));
     new (storage_buffer) FuncT(std::forward<FuncT>(func));
 
-    //__debugbreak();
     rcq.execute();
-    //__debugbreak();
 }
 
 // template<typename BaseType, typename SubType>
