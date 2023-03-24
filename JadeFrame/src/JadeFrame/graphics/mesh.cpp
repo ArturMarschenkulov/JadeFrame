@@ -252,8 +252,8 @@ auto VertexData::make_cube(const v3& pos, const v3& size) -> VertexData {
         // front face +z
         vertex_data.m_texture_coordinates[06] = {+0.0f, +0.0f};
         vertex_data.m_texture_coordinates[07] = {+0.0f, +0.0f};
-        vertex_data.m_texture_coordinates[8] = {+0.0f, +0.0f};
-        vertex_data.m_texture_coordinates[9] = {+0.0f, +0.0f};
+        vertex_data.m_texture_coordinates[+8] = {+0.0f, +0.0f};
+        vertex_data.m_texture_coordinates[+9] = {+0.0f, +0.0f};
         vertex_data.m_texture_coordinates[10] = {+0.0f, +0.0f};
         vertex_data.m_texture_coordinates[11] = {+0.0f, +0.0f};
 
@@ -292,53 +292,17 @@ auto VertexData::make_cube(const v3& pos, const v3& size) -> VertexData {
 
 
     vertex_data.m_normals.resize(36);
-    // back face
-    vertex_data.m_normals[00] = {+0.0f, +0.0f, -1.0f};
-    vertex_data.m_normals[01] = {+0.0f, +0.0f, -1.0f};
-    vertex_data.m_normals[02] = {+0.0f, +0.0f, -1.0f};
-    vertex_data.m_normals[03] = {+0.0f, +0.0f, -1.0f};
-    vertex_data.m_normals[04] = {+0.0f, +0.0f, -1.0f};
-    vertex_data.m_normals[05] = {+0.0f, +0.0f, -1.0f};
+    for (int i = 0; i < vertex_data.m_normals.size(); i++) {
+        std::array<v3, 6> s;
+        s[0] = {+0.0f, +0.0f, -1.0f}; // back
+        s[1] = {+0.0f, +0.0f, +1.0f}; // front
+        s[2] = {-1.0f, +0.0f, +0.0f}; // left
+        s[3] = {+1.0f, +0.0f, +0.0f}; // right
+        s[4] = {+0.0f, -1.0f, +0.0f}; // bottom
+        s[5] = {+0.0f, +1.0f, +0.0f}; // up
 
-    // front face
-    vertex_data.m_normals[06] = {+0.0f, +0.0f, +1.0f};
-    vertex_data.m_normals[07] = {+0.0f, +0.0f, +1.0f};
-    vertex_data.m_normals[8] = {+0.0f, +0.0f, +1.0f};
-    vertex_data.m_normals[9] = {+0.0f, +0.0f, +1.0f};
-    vertex_data.m_normals[10] = {+0.0f, +0.0f, +1.0f};
-    vertex_data.m_normals[11] = {+0.0f, +0.0f, +1.0f};
-
-    // left face
-    vertex_data.m_normals[12] = {-1.0f, +0.0f, +0.0f};
-    vertex_data.m_normals[13] = {-1.0f, +0.0f, +0.0f};
-    vertex_data.m_normals[14] = {-1.0f, +0.0f, +0.0f};
-    vertex_data.m_normals[15] = {-1.0f, +0.0f, +0.0f};
-    vertex_data.m_normals[16] = {-1.0f, +0.0f, +0.0f};
-    vertex_data.m_normals[17] = {-1.0f, +0.0f, +0.0f};
-
-    // right face
-    vertex_data.m_normals[18] = {+1.0f, +0.0f, +0.0f};
-    vertex_data.m_normals[19] = {+1.0f, +0.0f, +0.0f};
-    vertex_data.m_normals[20] = {+1.0f, +0.0f, +0.0f};
-    vertex_data.m_normals[21] = {+1.0f, +0.0f, +0.0f};
-    vertex_data.m_normals[22] = {+1.0f, +0.0f, +0.0f};
-    vertex_data.m_normals[23] = {+1.0f, +0.0f, +0.0f};
-
-    // bottom face
-    vertex_data.m_normals[24] = {+0.0f, -1.0f, +0.0f};
-    vertex_data.m_normals[25] = {+0.0f, -1.0f, +0.0f};
-    vertex_data.m_normals[26] = {+0.0f, -1.0f, +0.0f};
-    vertex_data.m_normals[27] = {+0.0f, -1.0f, +0.0f};
-    vertex_data.m_normals[28] = {+0.0f, -1.0f, +0.0f};
-    vertex_data.m_normals[29] = {+0.0f, -1.0f, +0.0f};
-
-    // top face
-    vertex_data.m_normals[30] = {-1.0f, +1.0f, -1.0f};
-    vertex_data.m_normals[31] = {-1.0f, +1.0f, -1.0f};
-    vertex_data.m_normals[32] = {-1.0f, +1.0f, -1.0f};
-    vertex_data.m_normals[33] = {-1.0f, +1.0f, -1.0f};
-    vertex_data.m_normals[34] = {-1.0f, +1.0f, -1.0f};
-    vertex_data.m_normals[35] = {-1.0f, +1.0f, -1.0f};
+        vertex_data.m_normals[i] = s[i / 6];
+    };
     return vertex_data;
 }
 } // namespace JadeFrame

@@ -16,13 +16,6 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
     m_logical_device = &m_context.m_instance.m_logical_device;
 
 
-
-    // TODO: The below part has to be moved!
-    // The descriptor set pool creation has to be done in a renderer.
-    // The descriptor set layout creation has to be done in a shader.
-
-
-
     // Create main descriptor pool, which should have all kinds of types. In the future maybe make it more specific.
     u32                               descriptor_count = 1000;
     std::vector<VkDescriptorPoolSize> pool_sizes = {
@@ -48,10 +41,6 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
     // Uniform stuff
     m_ub_cam = m_logical_device->create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
     m_ub_tran = m_logical_device->create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
-
-
-
-    // TODO: Maybe move the descriptor code to `vulkan_renderer.cpp`?
 }
 auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void { m_clear_color = color; }
 
@@ -118,7 +107,6 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         }
     }
 
-    // const VulkanImage& image = d.m_swapchain.m_images[image_index];
     vulkan::CommandBuffer& cb = d.m_command_buffers[d.m_present_image_index];
     vulkan::Framebuffer&   framebuffer = d.m_framebuffers[d.m_present_image_index];
     vulkan::RenderPass&    render_pass = d.m_render_pass;
@@ -172,17 +160,13 @@ auto Vulkan_Renderer::present() -> void {
     vulkan::Semaphore&     sem_finished = d.m_render_finished_semaphores[d.m_current_frame];
 
     VkResult result = d.m_present_queue.present(d.m_present_image_index, d.m_swapchain, &sem_finished);
-    {
-        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || d.m_framebuffer_resized) {
-            d.m_framebuffer_resized = false;
-            std::cout << "recreate because of vkQueuePresentKHR" << std::endl;
-            //__debugbreak();
-            // d.recreate_swapchain();
-            d.m_swapchain.recreate();
-        } else if (result != VK_SUCCESS) {
-            std::cout << "failed to present swap chain image!" << std::endl;
-            assert(false);
-        }
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || d.m_framebuffer_resized) {
+        d.m_framebuffer_resized = false;
+        Logger::debug("recreate because of vkQueuePresentKHR");
+        d.m_swapchain.recreate();
+    } else if (result != VK_SUCCESS) {
+        Logger::err("failed to present swap chain image!");
+        assert(false);
     }
 
     d.m_current_frame = (d.m_current_frame + 1) % 2 /*MAX_FRAMES_IN_FLIGHT*/;

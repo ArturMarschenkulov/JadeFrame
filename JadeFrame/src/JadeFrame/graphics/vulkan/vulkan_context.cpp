@@ -141,11 +141,11 @@ auto VulkanInstance::init(const IWindow* window_handle) -> void {
     VkValidationFeatureEnableEXT enables[] = {VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT};
     VkValidationFeaturesEXT      features = {};
     features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+    features.pNext = VK_NULL_HANDLE;
     features.enabledValidationFeatureCount = 1;
     features.pEnabledValidationFeatures = enables;
-
-    // VkInstanceCreateInfo info = {};
-    // info.pNext = &features;
+    features.disabledValidationFeatureCount = 0;
+    features.pDisabledValidationFeatures = VK_NULL_HANDLE;
 
     m_available_layers = this->query_layers();
     m_available_extensions = this->query_extensions();

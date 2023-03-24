@@ -174,16 +174,18 @@ auto DescriptorSetLayout::add_binding(
     u32 binding, VkDescriptorType descriptor_type, u32 descriptor_count, VkShaderStageFlags stage_flags,
     const VkSampler* p_immutable_samplers) -> void {
     JF_ASSERT(m_handle == VK_NULL_HANDLE, "");
-    const VkDescriptorSetLayoutBinding dslb = {
+    const VkDescriptorSetLayoutBinding layout = {
         .binding = binding,
         .descriptorType = descriptor_type,
         .descriptorCount = descriptor_count,
         .stageFlags = stage_flags,
         .pImmutableSamplers = p_immutable_samplers};
-    if (dslb.descriptorType == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT && !(dslb.descriptorCount % 4 == 0)) {
+
+    if (layout.descriptorType == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT && !(layout.descriptorCount % 4 == 0)) {
+        Logger::err("Inline uniform block must be a multiple of 4");
         assert(false);
     }
-    m_bindings.push_back(dslb);
+    m_bindings.push_back(layout);
 
     switch (descriptor_type) {
         case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
@@ -369,11 +371,11 @@ auto DescriptorPool::free_sets(const std::vector<DescriptorSet>& /*descriptor_se
     // for(u32 i = 0; i < descriptor_sets.size(); i++) {
     //	VkResult result;
     //	result = vkFreeDescriptorSets(m_device->m_handle, m_handle, 1, &descriptor_sets[i].m_handle);
-    //	if (result != VK_SUCCESS) __debugbreak();
+    //	if (result != VK_SUCCESS) assert(false);
     // }
     // VkResult result;
     // result = vkResetDescriptorPool(m_device->m_handle, m_handle, 0);
-    // if (result != VK_SUCCESS) __debugbreak();
+    // if (result != VK_SUCCESS) assert(false);
     vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr);
     { Logger::info("Destroyed descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
 }

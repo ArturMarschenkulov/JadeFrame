@@ -257,11 +257,11 @@ auto Swapchain::acquire_next_image(const Semaphore* semaphore, const Fence* fenc
     );
     if (result != VK_SUCCESS) {
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-            std::cout << "VK_ERROR_OUT_OF_DATE_KHR" << std::endl;
+            Logger::debug("recreate because of vkAcquireNextImageKHR");
             this->recreate();
             m_is_recreated = true;
         } else if (result == VK_SUBOPTIMAL_KHR) {
-            std::cout << "VK_SUBOPTIMAL_KHR" << std::endl;
+            Logger::debug("suboptimal");
             // this->recreate();
         } else {
             throw std::runtime_error("failed to acquire swap chain image!");

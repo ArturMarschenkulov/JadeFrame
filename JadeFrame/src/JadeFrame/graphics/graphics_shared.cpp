@@ -241,13 +241,13 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
 
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            OpenGL_Renderer*     renderer = static_cast<OpenGL_Renderer*>(m_renderer);
+            OpenGL_Renderer*     r = static_cast<OpenGL_Renderer*>(m_renderer);
             opengl::Shader::Desc shader_desc;
             shader_desc.code = ogl(m_registered_shaders[id].m_code);
             shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
 
 
-            m_registered_shaders[id].m_handle = new opengl::Shader(*(OpenGL_Context*)&renderer->m_context, shader_desc);
+            m_registered_shaders[id].m_handle = new opengl::Shader(*(OpenGL_Context*)&r->m_context, shader_desc);
         } break;
         case GRAPHICS_API::VULKAN: {
             Vulkan_Renderer* r = static_cast<Vulkan_Renderer*>(m_renderer);

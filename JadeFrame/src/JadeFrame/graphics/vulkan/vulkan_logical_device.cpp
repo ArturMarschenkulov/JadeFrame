@@ -96,8 +96,6 @@ auto Queue::present(VkPresentInfoKHR info) const -> VkResult {
 }
 
 auto Queue::present(const u32& index, const Swapchain& swapchain, const Semaphore* semaphore) const -> VkResult {
-    /*VkResult result;*/
-
     const VkPresentInfoKHR info = {
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .pNext = nullptr,
@@ -110,16 +108,6 @@ auto Queue::present(const u32& index, const Swapchain& swapchain, const Semaphor
     };
 
     return vkQueuePresentKHR(m_handle, &info);
-    // if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR /*|| d.m_framebuffer_resized*/) {
-    //	/*d.m_framebuffer_resized = false;*/
-    //	std::cout << "recreate because of vkQueuePresentKHR" << std::endl;
-    //	//__debugbreak();
-    //	//d.recreate_swapchain();
-    //	this->recreate();
-    // } else if (result != VK_SUCCESS) {
-    //	std::cout << "failed to present swap chain image!" << std::endl;
-    //	__debugbreak();
-    // }
 }
 
 /*---------------------------
@@ -149,10 +137,7 @@ auto LogicalDevice::recreate_swapchain() -> void {
 
     m_swapchain.init(*this, m_instance->m_surface);
 }
-auto LogicalDevice::cleanup_swapchain() -> void {
-
-    m_swapchain.deinit();
-}
+auto LogicalDevice::cleanup_swapchain() -> void { m_swapchain.deinit(); }
 
 auto LogicalDevice::wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) -> void {
     VkResult result;
