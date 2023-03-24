@@ -1,5 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.h>
+#include "vulkan_logical_device.h"
 
 
 #include "JadeFrame/prelude.h"
@@ -40,6 +41,8 @@ public:
     auto find_queue_families(const std::vector<QueueFamily>& queue_families) -> QueueFamilyIndices;
     auto find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32;
     auto query_queue_families(const Surface& surface) -> std::vector<QueueFamily>;
+
+    auto create_logical_device() -> LogicalDevice;
 
 public:
     VkPhysicalDevice m_handle;

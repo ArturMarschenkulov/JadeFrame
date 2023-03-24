@@ -245,7 +245,7 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
 
 
     // Swapchain stuff
-    m_swapchain = this->create_swapchain();
+    m_swapchain = this->create_swapchain(surface);
     const u32 swapchain_image_amount = static_cast<u32>(m_swapchain.m_images.size());
 
     m_render_pass = this->create_render_pass(m_swapchain.m_image_format);
@@ -290,7 +290,7 @@ auto LogicalDevice::create_command_pool(const QueueFamilyIndex& queue_family_ind
     return cp;
 }
 
-auto LogicalDevice::create_swapchain() -> Swapchain {
+auto LogicalDevice::create_swapchain(const Surface& surface) -> Swapchain {
     Swapchain sc;
     sc.init(*this, m_instance->m_surface);
     return sc;
@@ -300,6 +300,18 @@ auto LogicalDevice::create_image_view(Image& image, VkFormat format) -> ImageVie
     ImageView iv;
     iv.init(*this, image, format);
     return iv;
+}
+
+auto LogicalDevice::create_render_pass(VkFormat image_format) -> RenderPass {
+    RenderPass rp;
+    rp.init(*this, image_format);
+    return rp;
+}
+auto LogicalDevice::create_framebuffer(const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent)
+    -> Framebuffer {
+    Framebuffer fb;
+    fb.init(*this, image_view, render_pass, extent);
+    return fb;
 }
 
 auto LogicalDevice::deinit() -> void {

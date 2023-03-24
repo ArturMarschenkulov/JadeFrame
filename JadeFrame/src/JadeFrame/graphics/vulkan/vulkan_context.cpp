@@ -215,8 +215,7 @@ auto VulkanInstance::init(const IWindow* window_handle) -> void {
         result = vkCreateDebugUtilsMessengerEXT_(m_instance, &info, nullptr, &m_debug_messenger);
         if (result != VK_SUCCESS) assert(false);
     }
-
-    m_surface.init(m_instance, window_handle);
+    m_surface = this->create_surface(window_handle);
 
 
     Logger::debug("Querying Physical Devices");
@@ -227,7 +226,8 @@ auto VulkanInstance::init(const IWindow* window_handle) -> void {
         if (is_device_suitable(m_physical_devices[i])) { m_physical_device = m_physical_devices[i]; }
     }
 
-    m_logical_device.init(*this, m_physical_device);
+    m_logical_device.init(*this, m_physical_device, m_surface);
+    // m_logical_device = m_physical_device.create_logical_device();
     Logger::trace("VulkanInstance::init end");
 }
 
@@ -235,6 +235,12 @@ auto VulkanInstance::deinit() -> void {
     if (m_enable_validation_layers) { vkDestroyDebugUtilsMessengerEXT_(m_instance, m_debug_messenger, nullptr); }
     m_surface.deinit();
     vkDestroyInstance(m_instance, nullptr);
+}
+
+auto VulkanInstance::create_surface(const IWindow* window_handle) -> vulkan::Surface {
+    vulkan::Surface surface;
+    surface.init(m_instance, window_handle);
+    return surface;
 }
 
 Vulkan_Context::Vulkan_Context(const IWindow* window) {

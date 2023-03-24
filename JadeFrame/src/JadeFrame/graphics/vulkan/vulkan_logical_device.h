@@ -87,11 +87,16 @@ public:
 
 
 public: // Swapchain stuff
-    auto create_swapchain() -> Swapchain;
+    auto create_swapchain(const Surface& surface) -> Swapchain;
     auto recreate_swapchain() -> void;
     auto cleanup_swapchain() -> void;
 
     Swapchain m_swapchain;
+
+    auto create_render_pass(VkFormat image_format) -> RenderPass;
+    auto create_framebuffer(const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent)
+        -> Framebuffer;
+
     RenderPass               m_render_pass;
     std::vector<Framebuffer> m_framebuffers;
 

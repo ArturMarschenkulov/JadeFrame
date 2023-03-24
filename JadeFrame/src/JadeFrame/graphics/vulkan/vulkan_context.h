@@ -40,6 +40,8 @@ private:
     auto setup_debug() -> void;
     auto check_validation_layer_support(const std::vector<VkLayerProperties>& available_layers) -> bool;
 
+    auto create_surface(const IWindow* window_handle) -> vulkan::Surface;
+
 public:
     VkInstance      m_instance = VK_NULL_HANDLE;
     vulkan::Surface m_surface;
