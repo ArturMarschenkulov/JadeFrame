@@ -28,6 +28,8 @@ add_library(GraphicsAPI_Vulkan
     "vulkan_sync_object.cpp"
 )
 
+target_precompile_headers(GraphicsAPI_Vulkan PRIVATE pch.h)
+
 # PROJECT_SOURCE_DIR
 target_include_directories(GraphicsAPI_Vulkan
     PUBLIC
