@@ -9,6 +9,7 @@ set(Header_Files
     "example_texture_quad.h"
     "exmaple_rotating_primitive.h"
     "example_hello_triangle.h"
+    "example_moving_primitive.h"
 )
 source_group("Header Files" FILES ${Header_Files})
 

@@ -44,8 +44,8 @@ auto Example_Hello_Triangle::on_init() -> void {
     m_obj.m_vertex_data = vertex_data;
 
     m_obj.m_vertex_format = VertexFormat{
-        {"v_position", SHADER_TYPE::F32_3},
-        {   "v_color", SHADER_TYPE::F32_4},
+        {"v_position", SHADER_TYPE::V_3_F32},
+        {   "v_color", SHADER_TYPE::V_4_F32},
     };
     m_obj.m_vertex_data_id = m_render_system.register_mesh(m_obj.m_vertex_format, *m_obj.m_vertex_data);
 

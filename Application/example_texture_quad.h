@@ -45,9 +45,9 @@ auto Example_Texture_Quad::on_init() -> void {
     m_obj.m_vertex_data = vertex_data;
 
     m_obj.m_vertex_format = VertexFormat{
-        {     "v_position", SHADER_TYPE::F32_3},
-        {        "v_color", SHADER_TYPE::F32_4},
-        {"v_texture_coord", SHADER_TYPE::F32_2},
+        {     "v_position", SHADER_TYPE::V_3_F32},
+        {        "v_color", SHADER_TYPE::V_4_F32},
+        {"v_texture_coord", SHADER_TYPE::V_2_F32},
     };
     auto mesh_id = m_render_system.register_mesh(m_obj.m_vertex_format, *m_obj.m_vertex_data);
     m_obj.m_vertex_data_id = mesh_id;
