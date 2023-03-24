@@ -136,9 +136,20 @@ auto DescriptorSet::bind_combined_image_sampler(u32 binding, const Vulkan_Textur
 
 auto DescriptorSet::update() -> void {
 
-    std::vector<VkDescriptorBufferInfo> infos;
-    infos.resize(m_descriptors.size());
-    for (u32 i = 0; i < m_descriptors.size(); i++) { infos[i] = m_descriptors[i].buffer_info; }
+    union Info {
+        VkDescriptorBufferInfo buffer_info;
+        VkDescriptorImageInfo  image_info;
+    };
+    std::vector<VkDescriptorBufferInfo> buffer_infos;
+    std::vector<VkDescriptorImageInfo>  image_infos;
+    for (u32 i = 0; i < m_descriptors.size(); i++) {
+
+        if (is_image(m_descriptors[i])) {
+            image_infos.push_back(m_descriptors[i].image_info);
+        } else {
+            buffer_infos.push_back(m_descriptors[i].buffer_info);
+        }
+    }
 
     std::vector<VkWriteDescriptorSet> sets;
     sets.reserve(m_descriptors.size());
@@ -150,18 +161,22 @@ auto DescriptorSet::update() -> void {
             .dstSet = m_handle,
             .dstBinding = m_descriptors[i].binding,
             .dstArrayElement = 0,
-            .descriptorCount = 1 /*static_cast<u32>(m_descriptors.size())*/,
-            .descriptorType =
-                m_descriptors[i]
-                    .type, // m_binding_map.at(m_descriptors[i].binding).descriptorType,//VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .pImageInfo = nullptr,
-            .pBufferInfo = &infos[i],
+            .descriptorCount = 1,
+            .descriptorType = m_descriptors[i].type,
+            .pImageInfo = image_infos.data(),
+            .pBufferInfo = buffer_infos.data(),
             .pTexelBufferView = nullptr,
         };
         sets.push_back(set);
     }
 
-    vkUpdateDescriptorSets(m_device->m_handle, static_cast<u32>(sets.size()), sets.data(), 0, nullptr);
+    vkUpdateDescriptorSets(
+        m_device->m_handle,            // device
+        static_cast<u32>(sets.size()), // descriptorWriteCount
+        sets.data(),                   // pDescriptorWrites
+        0,                             // descriptorCopyCount
+        nullptr                        // pDescriptorCopies
+    );
 }
 
 

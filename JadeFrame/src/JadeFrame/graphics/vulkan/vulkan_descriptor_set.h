@@ -40,7 +40,7 @@ struct Descriptor {
     VkShaderStageFlags stage_flags;
     u32                binding;
 };
-inline auto is_image(Descriptor d) -> bool {
+inline auto is_image(const Descriptor& d) -> bool {
     switch (d.type) {
         case VK_DESCRIPTOR_TYPE_SAMPLER:
         case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
