@@ -11,10 +11,10 @@ auto OpenGL_Context::create_texture() -> opengl::Texture* { return new opengl::T
 auto OpenGL_Context::create_texture(void* data, v2u32 size, u32 component_num) -> opengl::Texture* {
     return new opengl::Texture(*this, data, size, component_num);
 }
-auto OpenGL_Context::create_buffer(opengl::Buffer::TYPE type) -> opengl::Buffer* {
-    opengl::Buffer* b = new opengl::Buffer();
-    b->init(*this, type);
-    return b;
+
+auto OpenGL_Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 size) -> opengl::Buffer* {
+    opengl::Buffer* buffer = new opengl::Buffer(*this, type, data, size);
+    return buffer;
 }
 
 OpenGL_Context::OpenGL_Context(const IWindow* window)

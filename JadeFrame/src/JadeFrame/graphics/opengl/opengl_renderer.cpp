@@ -86,24 +86,16 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
 
 
     {
-        // TODO: Right now this is heard coded to 2 binding points. This should be dynamic using reflection
-        // TODO: This is also the wrong place for this. This should be in the renderer or shader.
-
-        // Camera
         const GLuint binding_point_0 = 0;
-        m_uniform_buffers.emplace_back();
-        m_uniform_buffers[0] = m_context.create_buffer(opengl::Buffer::TYPE::UNIFORM);
-        // m_uniform_buffers[0].init(m_context, opengl::Buffer::TYPE::UNIFORM);
-        m_uniform_buffers[0]->reserve(1 * sizeof(Matrix4x4));
-        m_uniform_buffers[0]->bind_base(binding_point_0);
-
-        // Transform
         const GLuint binding_point_1 = 1;
-        m_uniform_buffers.emplace_back();
-        m_uniform_buffers[1] = m_context.create_buffer(opengl::Buffer::TYPE::UNIFORM);
-        // m_uniform_buffers[1].init(m_context, opengl::Buffer::TYPE::UNIFORM);
-        m_uniform_buffers[1]->reserve(1 * sizeof(Matrix4x4));
-        m_uniform_buffers[1]->bind_base(binding_point_1);
+
+        auto cam_ubo = m_context.create_buffer(opengl::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+        cam_ubo->bind_base(binding_point_0);
+        m_uniform_buffers.push_back(cam_ubo);
+
+        auto transform_ubo = m_context.create_buffer(opengl::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+        transform_ubo->bind_base(binding_point_1);
+        m_uniform_buffers.push_back(transform_ubo);
     }
 }
 
@@ -130,7 +122,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     this->clear_background();
 
-    m_uniform_buffers[0]->send({view_projection});
+    m_uniform_buffers[0]->update({view_projection});
 
     for (size_t i = 0; i < m_render_commands.size(); ++i) {
         const OpenGL_RenderCommand& command = m_render_commands[i];
@@ -151,7 +143,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         }
 
         const Matrix4x4& transform = *command.transform;
-        m_uniform_buffers[1]->send({transform});
+        m_uniform_buffers[1]->update({transform});
 
         this->render_mesh(p_vertex_array, p_mesh);
     }

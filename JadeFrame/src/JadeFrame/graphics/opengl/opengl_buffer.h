@@ -26,54 +26,38 @@ public:
         STAGING
     };
 
-    Buffer() {
-        m_id = 0;
-        m_type = TYPE::UNINIT;
-        m_context = nullptr;
-    }
-    ~Buffer() { this->reset(); }
-
+    Buffer();
+    ~Buffer();
     Buffer(const Buffer&) = delete;
     auto operator=(const Buffer&) -> Buffer& = delete;
+    Buffer(Buffer&& other) noexcept;
+    auto operator=(Buffer&& other) -> Buffer&;
 
-    Buffer(Buffer&& other) noexcept
-        : m_id(other.release()) {
+    Buffer(OpenGL_Context& context, TYPE type, void* data, GLuint size);
 
-        m_type = other.m_type;
-        m_context = other.m_context;
-
-        other.m_context = nullptr;
-    }
-    auto operator=(Buffer&& other) -> Buffer& {
-        m_id = other.release();
-        m_type = other.m_type;
-        m_context = other.m_context;
-
-        other.m_context = nullptr;
-        return *this;
-    }
-
+private:
     auto init(OpenGL_Context& context, TYPE type) -> void;
+    auto alloc(void* data, GLuint size) const -> void;
+    auto reserve(GLuint size) const -> void;
 
-    auto reserve(GLuint size_in_bytes) const -> void {
-        // if NULL is passed in as data, it only reserves size_in_bytes bytes.
-        // glBufferData(buffer_type, size_in_bytes, NULL, GL_STATIC_DRAW);
-        glNamedBufferData(m_id, size_in_bytes, NULL, GL_STATIC_DRAW);
+    template<typename U>
+    auto alloc(const std::initializer_list<U>& data) const -> void {
+        this->alloc((void*)data.begin(), data.size() * sizeof(U));
     }
     template<typename U>
-    auto send(const std::initializer_list<U>& data) const -> void {
-        // glBufferData(buffer_type, data.size() * sizeof(U), data.data(), GL_STATIC_DRAW);
-        glNamedBufferData(m_id, data.size() * sizeof(U), data.begin(), GL_STATIC_DRAW);
+    auto alloc(const std::vector<U>& data) const -> void {
+        this->alloc((void*)data.data(), data.size() * sizeof(U));
     }
+
+public:
+    auto update(const void* data, GLint offset, GLuint size) const -> void;
+    // auto update(GLuint size, const void* data) const -> void { this->update(data, 0, size); }
+
     template<typename U>
-    auto send(const std::vector<U>& data) const -> void {
-        // glBufferData(buffer_type, data.size() * sizeof(U), data.data(), GL_STATIC_DRAW);
-        glNamedBufferData(m_id, data.size() * sizeof(U), data.data(), GL_STATIC_DRAW);
+    auto update(const std::initializer_list<U>& data) const -> void {
+        this->update((void*)data.begin(), 0, data.size() * sizeof(U));
     }
-    auto update(GLuint size_in_bytes, const void* data) const -> void {
-        // glBufferSubData(buffer_type, 0, size_in_bytes, data);
-        glNamedBufferSubData(m_id, 0, size_in_bytes, data);
-    }
+
     auto bind_base(GLuint binding_point) const -> void {
         if (m_type == TYPE::UNIFORM) {
             glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_id);

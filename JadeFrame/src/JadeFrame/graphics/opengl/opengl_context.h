@@ -90,7 +90,7 @@ public:
     // Resource creation
     auto create_texture() -> opengl::Texture*;
     auto create_texture(void* data, v2u32 size, u32 component_num) -> opengl::Texture*;
-    auto create_buffer(opengl::Buffer::TYPE type) -> opengl::Buffer*;
+    auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size) -> opengl::Buffer*;
 
 
 public:
