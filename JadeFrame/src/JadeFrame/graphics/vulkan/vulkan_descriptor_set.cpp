@@ -15,9 +15,64 @@ namespace JadeFrame {
 
 namespace vulkan {
 class LogicalDevice;
+
+/*---------------------------
+        Descriptor
+---------------------------*/
+
+Descriptor::Descriptor(Descriptor&& other) {
+    this->buffer_info = other.buffer_info;
+    this->image_info = other.image_info;
+    this->type = other.type;
+    this->stage_flags = other.stage_flags;
+    this->binding = other.binding;
+
+    other.buffer_info = {};
+    other.image_info = {};
+    other.type = VK_DESCRIPTOR_TYPE_MAX_ENUM;
+    other.stage_flags = 0;
+    other.binding = 0;
+}
+auto Descriptor::operator=(Descriptor&& other) -> Descriptor& {
+    this->buffer_info = other.buffer_info;
+    this->image_info = other.image_info;
+    this->type = other.type;
+    this->stage_flags = other.stage_flags;
+    this->binding = other.binding;
+
+    other.buffer_info = {};
+    other.image_info = {};
+    other.type = VK_DESCRIPTOR_TYPE_MAX_ENUM;
+    other.stage_flags = 0;
+    other.binding = 0;
+    return *this;
+}
+
 /*---------------------------
         Descriptor Set
 ---------------------------*/
+
+DescriptorSet::DescriptorSet(DescriptorSet&& other) {
+    this->m_handle = other.m_handle;
+    this->m_device = other.m_device;
+    this->m_layout = other.m_layout;
+    this->m_descriptors = std::move(other.m_descriptors);
+
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+    other.m_layout = nullptr;
+}
+auto DescriptorSet::operator=(DescriptorSet&& other) -> DescriptorSet& {
+    this->m_handle = other.m_handle;
+    this->m_device = other.m_device;
+    this->m_layout = other.m_layout;
+    this->m_descriptors = std::move(other.m_descriptors);
+
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+    other.m_layout = nullptr;
+    return *this;
+}
 auto DescriptorSet::bind_uniform_buffer(u32 binding, const Buffer& buffer, VkDeviceSize offset, VkDeviceSize range)
     -> void {
     JF_ASSERT(buffer.m_size < from_kibibyte(64), "Guaranteed only between 16K and 64K");
@@ -180,6 +235,25 @@ auto DescriptorSetLayout::deinit() -> void {
 /*---------------------------
         Descriptor Pool
 ---------------------------*/
+
+DescriptorPool::DescriptorPool(DescriptorPool&& other) {
+    this->m_device = other.m_device;
+    this->m_handle = other.m_handle;
+    this->m_pool_sizes = std::move(other.m_pool_sizes);
+
+    other.m_device = nullptr;
+    other.m_handle = VK_NULL_HANDLE;
+}
+auto DescriptorPool::operator=(DescriptorPool&& other) -> DescriptorPool& {
+    this->m_device = other.m_device;
+    this->m_handle = other.m_handle;
+    this->m_pool_sizes = std::move(other.m_pool_sizes);
+
+    other.m_device = nullptr;
+    other.m_handle = VK_NULL_HANDLE;
+    return *this;
+}
+
 auto DescriptorPool::add_pool_size(const VkDescriptorPoolSize& pool_size) -> void {
     JF_ASSERT(m_handle == VK_NULL_HANDLE, "");
     JF_ASSERT(pool_size.descriptorCount > 0, "");

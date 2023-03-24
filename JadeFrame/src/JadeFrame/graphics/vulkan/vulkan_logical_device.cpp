@@ -126,6 +126,23 @@ auto Queue::present(const u32& index, const Swapchain& swapchain, const Semaphor
         Logical Device
 ---------------------------*/
 
+LogicalDevice::~LogicalDevice() {
+    if (m_handle != VK_NULL_HANDLE) { deinit(); }
+}
+LogicalDevice::LogicalDevice(LogicalDevice&& other) {
+    m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+    m_instance = std::exchange(other.m_instance, nullptr);
+    m_physical_device = std::exchange(other.m_physical_device, nullptr);
+}
+auto LogicalDevice::operator=(LogicalDevice&& other) -> LogicalDevice& {
+    if (this != &other) {
+        m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+        m_instance = std::exchange(other.m_instance, nullptr);
+        m_physical_device = std::exchange(other.m_physical_device, nullptr);
+    }
+    return *this;
+}
+
 auto LogicalDevice::recreate_swapchain() -> void {
     vkDeviceWaitIdle(m_handle);
     m_swapchain.deinit();
@@ -180,7 +197,8 @@ auto LogicalDevice::create_shader(const Vulkan_Shader::Desc& desc) -> Vulkan_Sha
     return shader;
 }
 
-auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& physical_device) -> void {
+auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& physical_device, const Surface& surface)
+    -> void {
     m_physical_device = &physical_device;
     m_instance = &instance;
 

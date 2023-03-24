@@ -61,7 +61,16 @@ public:
 class LogicalDevice {
 private:
 public:
-    auto init(const VulkanInstance& instance, const PhysicalDevice& physical_device) -> void;
+    LogicalDevice() = default;
+    ~LogicalDevice();
+
+    LogicalDevice(const LogicalDevice&) = delete;
+    auto operator=(const LogicalDevice&) -> LogicalDevice& = delete;
+
+    LogicalDevice(LogicalDevice&& other);
+    auto operator=(LogicalDevice&& other) -> LogicalDevice&;
+
+    auto init(const VulkanInstance& instance, const PhysicalDevice& physical_device, const Surface& surface) -> void;
     auto deinit() -> void;
 
     auto wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) -> void;

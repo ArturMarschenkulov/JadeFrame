@@ -34,38 +34,10 @@ public:
     };
     Buffer() = default;
     ~Buffer() = default;
-
     Buffer(const Buffer&) = delete;
     auto operator=(const Buffer&) -> Buffer& = delete;
-
-    Buffer(Buffer&& other)
-        : m_type(other.m_type)
-        , m_size(other.m_size)
-        , m_handle(other.m_handle)
-        , m_memory(other.m_memory)
-        , m_device(other.m_device) {
-
-        other.m_type = TYPE::UNINIT;
-        other.m_size = 0;
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_memory = VK_NULL_HANDLE;
-        other.m_device = nullptr;
-    }
-    auto operator=(Buffer&& other) -> Buffer& {
-        m_type = other.m_type;
-        m_size = other.m_size;
-        m_handle = other.m_handle;
-        m_memory = other.m_memory;
-        m_device = other.m_device;
-
-        other.m_type = TYPE::UNINIT;
-        other.m_size = 0;
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_memory = VK_NULL_HANDLE;
-        other.m_device = nullptr;
-        return *this;
-    }
-
+    Buffer(Buffer&& other);
+    auto operator=(Buffer&& other) -> Buffer&;
 
     Buffer(const Buffer::TYPE type);
 
@@ -126,32 +98,12 @@ public:
         SWAPCHAIN
     };
     Image() = default;
-    ~Image() {
-        if (m_handle != VK_NULL_HANDLE) { this->deinit(); }
-    }
+    ~Image();
     Image(const Image&) = delete;
     auto operator=(const Image&) -> Image& = delete;
-    Image(Image&& other) noexcept
-        : m_handle(other.m_handle)
-        , m_device(other.m_device)
-        , m_memory(other.m_memory)
-        , m_source(other.m_source) {
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_device = nullptr;
-        other.m_memory = VK_NULL_HANDLE;
-        other.m_source = SOURCE::REGULAR;
-    }
-    auto operator=(Image&& other) -> Image& {
-        m_handle = other.m_handle;
-        m_device = other.m_device;
-        m_memory = other.m_memory;
-        m_source = other.m_source;
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_device = nullptr;
-        other.m_memory = VK_NULL_HANDLE;
-        other.m_source = SOURCE::REGULAR;
-        return *this;
-    }
+    Image(Image&& other) noexcept;
+    auto operator=(Image&& other) -> Image&;
+
     auto init(const LogicalDevice& device, const v2u32& extent, VkFormat format, VkImageUsageFlags usage) -> void;
     auto init(const LogicalDevice& device, VkImage image) -> void;
     auto deinit() -> void;
@@ -165,30 +117,11 @@ public:
 class ImageView {
 public:
     ImageView() = default;
-    ~ImageView() {
-        if (m_handle != VK_NULL_HANDLE) { this->deinit(); }
-    }
-
+    ~ImageView();
     ImageView(const ImageView&) = delete;
     auto operator=(const ImageView&) -> ImageView& = delete;
-
-    ImageView(ImageView&& other) noexcept
-        : m_handle(other.m_handle)
-        , m_device(other.m_device)
-        , m_image(other.m_image) {
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_device = nullptr;
-        other.m_image = nullptr;
-    }
-    auto operator=(ImageView&& other) -> ImageView& {
-        m_handle = other.m_handle;
-        m_device = other.m_device;
-        m_image = other.m_image;
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_device = nullptr;
-        other.m_image = nullptr;
-        return *this;
-    }
+    ImageView(ImageView&& other) noexcept;
+    auto operator=(ImageView&& other) -> ImageView&;
 
     auto init(const LogicalDevice& device, const Image& image, VkFormat format) -> void;
     auto deinit() -> void;

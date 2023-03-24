@@ -11,6 +11,37 @@ namespace JadeFrame {
 
 namespace vulkan {
 
+
+/*---------------------------
+    Command Buffer
+---------------------------*/
+CommandBuffer::CommandBuffer(CommandBuffer&& other) {
+    this->m_handle = other.m_handle;
+    this->m_alloc_info = other.m_alloc_info;
+    this->m_device = other.m_device;
+    this->m_command_pool = other.m_command_pool;
+    this->m_stage = other.m_stage;
+
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+    other.m_command_pool = nullptr;
+    other.m_stage = STAGE::INVALID;
+}
+auto CommandBuffer::operator=(CommandBuffer&& other) -> CommandBuffer& {
+    this->m_handle = other.m_handle;
+    this->m_alloc_info = other.m_alloc_info;
+    this->m_device = other.m_device;
+    this->m_command_pool = other.m_command_pool;
+    this->m_stage = other.m_stage;
+
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+    other.m_command_pool = nullptr;
+    other.m_stage = STAGE::INVALID;
+    return *this;
+}
+
+
 auto CommandBuffer::record_begin() -> void {
     VkResult                       result;
     const VkCommandBufferBeginInfo begin_info = {
@@ -141,6 +172,30 @@ static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFl
     result += "}";
     return result;
 }
+
+/*---------------------------
+    Command Pool
+---------------------------*/
+
+
+CommandPool::CommandPool(CommandPool&& other) {
+    this->m_handle = other.m_handle;
+    this->m_create_info = other.m_create_info;
+    this->m_device = other.m_device;
+
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+}
+auto CommandPool::operator=(CommandPool&& other) -> CommandPool& {
+    this->m_handle = other.m_handle;
+    this->m_create_info = other.m_create_info;
+    this->m_device = other.m_device;
+
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+    return *this;
+}
+
 auto CommandPool::init(const LogicalDevice& device, const QueueFamilyIndex& queue_family_index) -> void {
     m_device = &device;
     VkResult result;

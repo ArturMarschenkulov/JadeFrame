@@ -124,6 +124,38 @@ auto LogicalDevice::create_texture_sampler() -> void {
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
+/*---------------------------
+    Buffer
+---------------------------*/
+
+Buffer::Buffer(Buffer&& other)
+    : m_type(other.m_type)
+    , m_size(other.m_size)
+    , m_handle(other.m_handle)
+    , m_memory(other.m_memory)
+    , m_device(other.m_device) {
+
+    other.m_type = TYPE::UNINIT;
+    other.m_size = 0;
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_memory = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+}
+auto Buffer::operator=(Buffer&& other) -> Buffer& {
+    m_type = other.m_type;
+    m_size = other.m_size;
+    m_handle = other.m_handle;
+    m_memory = other.m_memory;
+    m_device = other.m_device;
+
+    other.m_type = TYPE::UNINIT;
+    other.m_size = 0;
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_memory = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+    return *this;
+}
+
 
 Buffer::Buffer(const Buffer::TYPE type)
     : m_type(type) {}
@@ -327,7 +359,33 @@ auto Vulkan_GPUMeshData::operator=(Vulkan_GPUMeshData&& other) -> Vulkan_GPUMesh
 auto Vulkan_GPUMeshData::bind() const -> void {}
 auto Vulkan_GPUMeshData::set_layout(const VertexFormat& /*vertex_format*/) -> void {}
 
-
+/*---------------------------
+    Image
+---------------------------*/
+Image::~Image() {
+    if (m_handle != VK_NULL_HANDLE) { this->deinit(); }
+}
+Image::Image(Image&& other) noexcept
+    : m_handle(other.m_handle)
+    , m_device(other.m_device)
+    , m_memory(other.m_memory)
+    , m_source(other.m_source) {
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+    other.m_memory = VK_NULL_HANDLE;
+    other.m_source = SOURCE::REGULAR;
+}
+auto Image::operator=(Image&& other) -> Image& {
+    m_handle = other.m_handle;
+    m_device = other.m_device;
+    m_memory = other.m_memory;
+    m_source = other.m_source;
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+    other.m_memory = VK_NULL_HANDLE;
+    other.m_source = SOURCE::REGULAR;
+    return *this;
+}
 
 auto Image::init(const LogicalDevice& device, const v2u32& size, VkFormat format, VkImageUsageFlags usage) -> void {
     m_device = &device;
@@ -394,6 +452,31 @@ auto Image::deinit() -> void {
         } break;
         default: JF_ASSERT(false, "");
     }
+}
+
+/*---------------------------
+    Image View
+---------------------------*/
+
+ImageView::~ImageView() {
+    if (m_handle != VK_NULL_HANDLE) { this->deinit(); }
+}
+ImageView::ImageView(ImageView&& other) noexcept
+    : m_handle(other.m_handle)
+    , m_device(other.m_device)
+    , m_image(other.m_image) {
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+    other.m_image = nullptr;
+}
+auto ImageView::operator=(ImageView&& other) -> ImageView& {
+    m_handle = other.m_handle;
+    m_device = other.m_device;
+    m_image = other.m_image;
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+    other.m_image = nullptr;
+    return *this;
 }
 
 auto ImageView::init(const LogicalDevice& device, const Image& image, VkFormat format) -> void {

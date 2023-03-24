@@ -28,33 +28,8 @@ struct Descriptor {
     ~Descriptor() = default;
     Descriptor(const Descriptor&) = delete;
     auto operator=(const Descriptor&) -> Descriptor& = delete;
-    Descriptor(Descriptor&& other) {
-        this->buffer_info = other.buffer_info;
-        this->image_info = other.image_info;
-        this->type = other.type;
-        this->stage_flags = other.stage_flags;
-        this->binding = other.binding;
-
-        other.buffer_info = {};
-        other.image_info = {};
-        other.type = VK_DESCRIPTOR_TYPE_MAX_ENUM;
-        other.stage_flags = 0;
-        other.binding = 0;
-    }
-    auto operator=(Descriptor&& other) -> Descriptor& {
-        this->buffer_info = other.buffer_info;
-        this->image_info = other.image_info;
-        this->type = other.type;
-        this->stage_flags = other.stage_flags;
-        this->binding = other.binding;
-
-        other.buffer_info = {};
-        other.image_info = {};
-        other.type = VK_DESCRIPTOR_TYPE_MAX_ENUM;
-        other.stage_flags = 0;
-        other.binding = 0;
-        return *this;
-    }
+    Descriptor(Descriptor&& other);
+    auto operator=(Descriptor&& other) -> Descriptor&;
 
 
     union {
@@ -85,27 +60,8 @@ public:
     ~DescriptorSet() = default;
     DescriptorSet(const DescriptorSet&) = delete;
     auto operator=(const DescriptorSet&) -> DescriptorSet& = delete;
-    DescriptorSet(DescriptorSet&& other) {
-        this->m_handle = other.m_handle;
-        this->m_device = other.m_device;
-        this->m_layout = other.m_layout;
-        this->m_descriptors = std::move(other.m_descriptors);
-
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_device = nullptr;
-        other.m_layout = nullptr;
-    }
-    auto operator=(DescriptorSet&& other) -> DescriptorSet& {
-        this->m_handle = other.m_handle;
-        this->m_device = other.m_device;
-        this->m_layout = other.m_layout;
-        this->m_descriptors = std::move(other.m_descriptors);
-
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_device = nullptr;
-        other.m_layout = nullptr;
-        return *this;
-    }
+    DescriptorSet(DescriptorSet&& other);
+    auto operator=(DescriptorSet&& other) -> DescriptorSet&;
 
     auto update() -> void;
     auto bind_uniform_buffer(u32 binding, const Buffer& buffer, VkDeviceSize offset, VkDeviceSize range) -> void;
@@ -157,23 +113,8 @@ public:
     DescriptorPool(const DescriptorPool&) = delete;
     auto operator=(const DescriptorPool&) -> DescriptorPool& = delete;
 
-    DescriptorPool(DescriptorPool&& other) {
-        this->m_device = other.m_device;
-        this->m_handle = other.m_handle;
-        this->m_pool_sizes = std::move(other.m_pool_sizes);
-
-        other.m_device = nullptr;
-        other.m_handle = VK_NULL_HANDLE;
-    }
-    auto operator=(DescriptorPool&& other) -> DescriptorPool& {
-        this->m_device = other.m_device;
-        this->m_handle = other.m_handle;
-        this->m_pool_sizes = std::move(other.m_pool_sizes);
-
-        other.m_device = nullptr;
-        other.m_handle = VK_NULL_HANDLE;
-        return *this;
-    }
+    DescriptorPool(DescriptorPool&& other);
+    auto operator=(DescriptorPool&& other) -> DescriptorPool&;
 
     auto init(const LogicalDevice& device, u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes) -> void;
     auto deinit() -> void;

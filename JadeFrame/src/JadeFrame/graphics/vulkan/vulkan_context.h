@@ -24,6 +24,12 @@ class VulkanInstance {
 
 public:
     VulkanInstance() = default;
+    ~VulkanInstance() = default;
+    VulkanInstance(const VulkanInstance&) = delete;
+    auto operator=(const VulkanInstance&) -> VulkanInstance& = delete;
+    VulkanInstance(VulkanInstance&& other) = delete;
+    auto operator=(VulkanInstance&& other) -> VulkanInstance& = delete;
+
     auto init(const IWindow* window_handle) -> void;
     auto deinit() -> void;
 
