@@ -50,11 +50,12 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
         fb.m_framebuffer_texture->set_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         fb.m_framebuffer_texture->set_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         fb.m_framebuffer_texture->set_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        fb.m_framebuffer.attach_texture(*fb.m_framebuffer_texture);
 
         fb.m_framebuffer_renderbuffer.bind();
         fb.m_framebuffer_renderbuffer.store(GL_DEPTH24_STENCIL8, size.x, size.y);
-        fb.m_framebuffer.attach_renderbuffer(fb.m_framebuffer_renderbuffer);
+
+        fb.m_framebuffer.attach_texture(opengl::ATTACHMENT::COLOR, 0, *fb.m_framebuffer_texture);
+        fb.m_framebuffer.attach_renderbuffer(opengl::ATTACHMENT::DEPTH_STENCIL, 0, fb.m_framebuffer_renderbuffer);
 
         fb.m_framebuffer.unbind();
 

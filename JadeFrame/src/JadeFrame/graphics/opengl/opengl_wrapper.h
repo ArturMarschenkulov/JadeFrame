@@ -185,6 +185,13 @@ inline auto Renderbuffer::reset(GLuint ID) -> void {
  *	FRAMEBUFFER
  *******************/
 
+
+enum class ATTACHMENT {
+    COLOR,
+    DEPTH,
+    STENCIL,
+    DEPTH_STENCIL,
+};
 class Framebuffer {
 public:
     Framebuffer();
@@ -197,8 +204,8 @@ public:
 
     Framebuffer(OpenGL_Context& context);
 
-    auto attach_texture(const Texture& texture) const -> void;
-    auto attach_renderbuffer(const Renderbuffer& renderbuffer) const -> void;
+    auto attach_texture(ATTACHMENT attachment, u32 i, const Texture& texture) const -> void;
+    auto attach_renderbuffer(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer) const -> void;
     auto check_status() const -> GLenum;
     auto bind() const -> void;
     auto unbind() const -> void;
@@ -224,11 +231,37 @@ inline Framebuffer::Framebuffer() {
 }
 inline Framebuffer::Framebuffer(OpenGL_Context& context) { glCreateFramebuffers(1, &m_ID); }
 inline Framebuffer::~Framebuffer() { this->reset(); }
-inline auto Framebuffer::attach_texture(const Texture& texture) const -> void {
-    glNamedFramebufferTexture(m_ID, GL_COLOR_ATTACHMENT0, texture.m_id, 0);
+inline auto Framebuffer::attach_texture(ATTACHMENT attachment, u32 i, const Texture& texture) const -> void {
+
+    assert(i < GL_MAX_COLOR_ATTACHMENTS - 1);
+
+    i32 attachment_point = 0;
+    if (attachment == ATTACHMENT::COLOR) {
+        attachment_point = GL_COLOR_ATTACHMENT0 + i;
+    } else if (attachment == ATTACHMENT::DEPTH) {
+        attachment_point = GL_DEPTH_ATTACHMENT;
+    } else if (attachment == ATTACHMENT::STENCIL) {
+        attachment_point = GL_STENCIL_ATTACHMENT;
+    } else if (attachment == ATTACHMENT::DEPTH_STENCIL) {
+        attachment_point = GL_DEPTH_STENCIL_ATTACHMENT;
+    }
+    glNamedFramebufferTexture(m_ID, attachment_point, texture.m_id, 0);
 }
-inline auto Framebuffer::attach_renderbuffer(const Renderbuffer& renderbuffer) const -> void {
-    glNamedFramebufferRenderbuffer(m_ID, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer.m_ID);
+inline auto Framebuffer::attach_renderbuffer(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer) const
+    -> void {
+    assert(i < GL_MAX_COLOR_ATTACHMENTS - 1);
+
+    i32 attachment_point = 0;
+    if (attachment == ATTACHMENT::COLOR) {
+        attachment_point = GL_COLOR_ATTACHMENT0 + i;
+    } else if (attachment == ATTACHMENT::DEPTH) {
+        attachment_point = GL_DEPTH_ATTACHMENT;
+    } else if (attachment == ATTACHMENT::STENCIL) {
+        attachment_point = GL_STENCIL_ATTACHMENT;
+    } else if (attachment == ATTACHMENT::DEPTH_STENCIL) {
+        attachment_point = GL_DEPTH_STENCIL_ATTACHMENT;
+    }
+    glNamedFramebufferRenderbuffer(m_ID, attachment_point, GL_RENDERBUFFER, renderbuffer.m_ID);
 }
 inline auto Framebuffer::bind() const -> void { glBindFramebuffer(GL_FRAMEBUFFER, m_ID); }
 
