@@ -39,15 +39,16 @@ target_link_libraries(GraphicsAPI_OpenGL
         spirv-cross-msl
         JadeFrame
 )
+
+target_compile_definitions(GraphicsAPI_OpenGL PRIVATE
+    $<$<CONFIG:Debug>:_DEBUG>
+    $<$<CONFIG:Release>:NDEBUG>
+    _CRT_SECURE_NO_WARNINGS
+    _CONSOLE
+    UNICODE
+    _UNICODE
+)
 if(MSVC)
-    target_compile_definitions(GraphicsAPI_OpenGL PRIVATE
-        $<$<CONFIG:Debug>:_DEBUG>
-        $<$<CONFIG:Release>:NDEBUG>
-        _CRT_SECURE_NO_WARNINGS
-        _CONSOLE
-        UNICODE
-        _UNICODE
-    )
     target_compile_options(GraphicsAPI_OpenGL PRIVATE
         /EHsc
         /Z7
@@ -55,14 +56,6 @@ if(MSVC)
         /W4
     )
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_definitions(GraphicsAPI_OpenGL PRIVATE
-        $<$<CONFIG:Debug>:_DEBUG>
-        $<$<CONFIG:Release>:NDEBUG>
-        _CRT_SECURE_NO_WARNINGS
-        _CONSOLE
-        UNICODE
-        _UNICODE
-    )
     target_compile_options(GraphicsAPI_OpenGL PRIVATE
         -Wall 
         -Wextra 
