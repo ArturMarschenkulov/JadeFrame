@@ -25,6 +25,22 @@ namespace JadeFrame {
 Image::~Image() {
     if (data != nullptr) { stbi_image_free(data); }
 }
+Image::Image(Image&& other) noexcept {
+    data = other.data;
+    width = other.width;
+    height = other.height;
+    num_components = other.num_components;
+    other.data = nullptr;
+}
+Image& Image::operator=(Image&& other) noexcept {
+    data = other.data;
+    width = other.width;
+    height = other.height;
+    num_components = other.num_components;
+    other.data = nullptr;
+    return *this;
+}
+
 auto Image::load(const std::string& path) -> Image {
     stbi_set_flip_vertically_on_load(true);
     i32 width, height, num_components;

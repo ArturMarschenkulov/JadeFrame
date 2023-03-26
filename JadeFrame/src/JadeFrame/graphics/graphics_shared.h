@@ -18,13 +18,9 @@ struct Image {
     Image() = default;
     ~Image();
     Image(const Image&) = delete;
-    Image(Image&& other) noexcept {
-        data = other.data;
-        width = other.width;
-        height = other.height;
-        num_components = other.num_components;
-        other.data = nullptr;
-    }
+    auto operator=(const Image&) -> Image& = delete;
+    Image(Image&& other) noexcept;
+    auto operator=(Image&& other) noexcept -> Image&;
 
     static auto load(const std::string& path) -> Image;
 
@@ -105,7 +101,34 @@ enum class SHADER_TYPE {
     SAMPLER_3D,
     SAMPLER_CUBE,
 };
-
+inline auto get_underlying_type(SHADER_TYPE type) -> SHADER_TYPE {
+    SHADER_TYPE result;
+    switch (type) {
+        case SHADER_TYPE::I32:
+        case SHADER_TYPE::V_2_I32:
+        case SHADER_TYPE::V_3_I32:
+        case SHADER_TYPE::V_4_I32: result = SHADER_TYPE::I32; break;
+        case SHADER_TYPE::U32: result = SHADER_TYPE::U32; break;
+        case SHADER_TYPE::F64: result = SHADER_TYPE::F64; break;
+        case SHADER_TYPE::F32:
+        case SHADER_TYPE::V_2_F32:
+        case SHADER_TYPE::V_3_F32:
+        case SHADER_TYPE::V_4_F32:
+        case SHADER_TYPE::M_2_2_F32:
+        case SHADER_TYPE::M_3_3_F32:
+        case SHADER_TYPE::M_4_4_F32: result = SHADER_TYPE::F32; break;
+        case SHADER_TYPE::BOOL: result = SHADER_TYPE::BOOL; break;
+        case SHADER_TYPE::SAMPLER_1D: result = SHADER_TYPE::SAMPLER_1D; break;
+        case SHADER_TYPE::SAMPLER_2D: result = SHADER_TYPE::SAMPLER_2D; break;
+        case SHADER_TYPE::SAMPLER_3D: result = SHADER_TYPE::SAMPLER_3D; break;
+        case SHADER_TYPE::SAMPLER_CUBE: result = SHADER_TYPE::SAMPLER_CUBE; break;
+        default:
+            assert(false);
+            result = SHADER_TYPE::NONE;
+            break;
+    }
+    return result;
+}
 inline auto is_scalar(SHADER_TYPE type) -> bool {
     switch (type) {
         case SHADER_TYPE::I32:
@@ -170,10 +193,8 @@ class VertexFormat {
 public:
 public:
     VertexFormat() = default;
-
     VertexFormat(const VertexFormat&) = default;
     auto operator=(const VertexFormat&) -> VertexFormat& = default;
-
     VertexFormat(VertexFormat&&) = default;
     auto operator=(VertexFormat&&) -> VertexFormat& = default;
 
@@ -200,10 +221,8 @@ struct TextureHandle {
 public:
     TextureHandle() = default;
     ~TextureHandle();
-
     TextureHandle(const TextureHandle&) = delete;
     auto operator=(const TextureHandle&) -> TextureHandle& = delete;
-
     TextureHandle(TextureHandle&& other);
     auto operator=(TextureHandle&& other) -> TextureHandle&;
 
@@ -221,17 +240,17 @@ public:
 };
 struct ShaderHandle {
 public:
+    ShaderHandle() = default;
+    ~ShaderHandle() = default;
+    ShaderHandle(const ShaderHandle&) = delete;
+    auto operator=(const ShaderHandle&) -> ShaderHandle& = delete;
+    ShaderHandle(ShaderHandle&& other);
+    auto operator=(ShaderHandle&& other) -> ShaderHandle&;
+
     struct Desc {
         ShadingCode  shading_code;
         VertexFormat vertex_format;
     };
-
-    ShaderHandle() = default;
-    ~ShaderHandle() = default;
-
-    ShaderHandle(ShaderHandle&& other);
-    auto operator=(ShaderHandle&& other) -> ShaderHandle&;
-
     ShaderHandle(const Desc& desc);
 
 public:
@@ -376,10 +395,8 @@ class RenderSystem {
 public:
     RenderSystem() = default;
     ~RenderSystem();
-
     RenderSystem(const RenderSystem&) = delete;
     auto operator=(const RenderSystem&) -> RenderSystem& = delete;
-
     RenderSystem(RenderSystem&&);
     auto operator=(RenderSystem&&) -> RenderSystem&;
 
