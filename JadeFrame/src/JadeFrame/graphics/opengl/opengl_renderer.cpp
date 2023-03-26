@@ -34,30 +34,26 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     : m_context(window) {
     m_system = &system;
     {
-        // setup_framebuffer(m_framebuffer, m_framebuffer_texture, m_framebuffer_renderbuffer);
-
-        fb.m_framebuffer = opengl::Framebuffer(m_context);
-        fb.m_framebuffer.bind();
+        fb.m_framebuffer = m_context.create_framebuffer();
 
         const v2u32 size = m_context.m_state.viewport[1];
-        fb.m_framebuffer_texture = m_context.create_texture();
-        fb.m_framebuffer_texture->bind(0);
 
-        fb.m_framebuffer_texture->set_image(0, GL_RGB, size, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-        fb.m_framebuffer_texture->set_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        fb.m_framebuffer_texture->set_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        fb.m_framebuffer_texture->set_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        fb.m_framebuffer_texture->set_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        fb.m_texture = m_context.create_texture();
+        fb.m_texture->bind(0);
+        fb.m_texture->set_image(0, GL_RGB, size, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        fb.m_texture->set_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        fb.m_texture->set_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        fb.m_texture->set_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        fb.m_texture->set_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        fb.m_framebuffer_renderbuffer.bind();
-        fb.m_framebuffer_renderbuffer.store(GL_DEPTH24_STENCIL8, size.x, size.y);
+        fb.m_renderbuffer = m_context.create_renderbuffer();
+        fb.m_renderbuffer->store(GL_DEPTH24_STENCIL8, size.x, size.y);
 
-        fb.m_framebuffer.attach_texture(opengl::ATTACHMENT::COLOR, 0, *fb.m_framebuffer_texture);
-        fb.m_framebuffer.attach_renderbuffer(opengl::ATTACHMENT::DEPTH_STENCIL, 0, fb.m_framebuffer_renderbuffer);
+        fb.m_framebuffer->attach_texture(opengl::ATTACHMENT::COLOR, 0, *fb.m_texture);
+        fb.m_framebuffer->attach_renderbuffer(opengl::ATTACHMENT::DEPTH_STENCIL, 0, *fb.m_renderbuffer);
 
-        fb.m_framebuffer.unbind();
 
-        const GLenum res = fb.m_framebuffer.check_status();
+        const GLenum res = fb.m_framebuffer->check_status();
         if (res != GL_FRAMEBUFFER_COMPLETE) {
             Logger::err("OpenGL_Renderer::OpenGL_Renderer: Framebuffer is not complete");
             assert(false);
@@ -116,7 +112,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
 
 #if JF_FB
-    fb.m_framebuffer.bind();
+    fb.m_framebuffer->bind();
 #endif
 
     this->clear_background();
@@ -147,7 +143,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         this->render_mesh(p_vertex_array, p_mesh);
     }
 #if JF_FB
-    fb.m_framebuffer.unbind();
+    fb.m_framebuffer->unbind();
     // GL_State old_state = m_context.m_state;
     m_context.m_state.set_depth_test(false);
     {
@@ -156,7 +152,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         ShaderHandle&   sh_ = m_system->m_registered_shaders[fb.m_shader];
         opengl::Shader* sh = static_cast<opengl::Shader*>(sh_.m_handle);
         sh->bind();
-        fb.m_framebuffer_texture->bind(0);
+        fb.m_texture->bind(0);
         fb.m_framebuffer_rect->m_vertex_array.bind();
 
         glDrawArrays(GL_TRIANGLES, 0, 6);

@@ -16,6 +16,15 @@ auto OpenGL_Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 si
     opengl::Buffer* buffer = new opengl::Buffer(*this, type, data, size);
     return buffer;
 }
+auto OpenGL_Context::create_framebuffer() -> opengl::Framebuffer* {
+    opengl::Framebuffer* buffer = new opengl::Framebuffer(*this);
+    return buffer;
+}
+auto OpenGL_Context::create_renderbuffer() -> opengl::Renderbuffer* {
+    opengl::Renderbuffer* buffer = new opengl::Renderbuffer();
+    return buffer;
+}
+
 
 OpenGL_Context::OpenGL_Context(const IWindow* window)
 #ifdef WIN32

@@ -91,7 +91,8 @@ public:
     auto create_texture() -> opengl::Texture*;
     auto create_texture(void* data, v2u32 size, u32 component_num) -> opengl::Texture*;
     auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size) -> opengl::Buffer*;
-
+    auto create_framebuffer() -> opengl::Framebuffer*;
+    auto create_renderbuffer() -> opengl::Renderbuffer*;
 
 public:
     mutable GL_State m_state;

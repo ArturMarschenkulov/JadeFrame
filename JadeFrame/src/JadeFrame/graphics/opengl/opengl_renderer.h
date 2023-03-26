@@ -82,12 +82,12 @@ public:
     std::map<u32, opengl::GPUMeshData> m_registered_meshes;
 
     struct FB {
-        Object               m_fb;
-        opengl::Texture*     m_framebuffer_texture;
-        opengl::Renderbuffer m_framebuffer_renderbuffer;
-        opengl::Framebuffer  m_framebuffer;
-        opengl::GPUMeshData* m_framebuffer_rect;
-        u32                  m_shader;
+        Object                m_fb;
+        opengl::Texture*      m_texture;
+        opengl::Renderbuffer* m_renderbuffer;
+        opengl::Framebuffer*  m_framebuffer;
+        opengl::GPUMeshData*  m_framebuffer_rect;
+        u32                   m_shader;
     } fb;
 
     std::vector<opengl::Buffer*>  m_uniform_buffers;
