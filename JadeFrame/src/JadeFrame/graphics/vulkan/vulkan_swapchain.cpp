@@ -10,7 +10,7 @@
 #include "vulkan_context.h"
 #include "vulkan_sync_object.h"
 #include "JadeFrame/utils/assert.h"
-#include "platform/windows/windows_window.h"
+#include "JadeFrame/platform/windows/windows_window.h"
 
 #undef min
 #undef max

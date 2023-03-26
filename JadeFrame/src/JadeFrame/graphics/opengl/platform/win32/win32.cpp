@@ -3,7 +3,7 @@
 
 #include "JadeFrame/prelude.h"
 #include "JadeFrame/platform/windows/windows_window.h"
-#include "opengl_windows.h"
+#include "win32.h"
 #include <glad/glad.h>
 
 #pragma comment(lib, "opengl32.lib")

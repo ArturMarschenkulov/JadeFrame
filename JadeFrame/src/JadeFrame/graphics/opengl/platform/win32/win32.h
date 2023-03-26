@@ -1,3 +1,4 @@
+
 #pragma once
 #ifdef _WIN32
 #include "Windows.h"
@@ -8,6 +9,7 @@
 */
 
 namespace JadeFrame {
+class IWindow;
 namespace opengl {
 namespace win32 {
 auto init_device_context(const IWindow* window) -> HDC;

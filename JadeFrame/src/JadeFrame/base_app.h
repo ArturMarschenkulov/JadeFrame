@@ -1,14 +1,14 @@
 #pragma once
 
 #if _WIN32 || _WIN64
-#include "platform/windows/windows_input_manager.h"
-#include "platform/windows/windows_system_manager.h"
-#include "platform/windows/windows_window.h"
+#include "JadeFrame/platform/windows/windows_input_manager.h"
+#include "JadeFrame/platform/windows/windows_system_manager.h"
+#include "JadeFrame/platform/windows/windows_window.h"
 #elif __linux__
-#include "platform/linux/linux_input_manager.h"
-#include "platform/linux/linux_system_manager.h"
-#include "platform/linux/linux_time_manager.h"
-#include "platform/linux/linux_window.h"
+#include "JadeFrame/platform/linux/linux_input_manager.h"
+#include "JadeFrame/platform/linux/linux_system_manager.h"
+#include "JadeFrame/platform/linux/linux_time_manager.h"
+#include "JadeFrame/platform/linux/linux_window.h"
 #endif
 #include "JadeFrame/utils/logger.h"
 #include "JadeFrame/math/vec.h"

@@ -26,6 +26,9 @@ add_library(GraphicsAPI_Vulkan
     "vulkan_surface.cpp"
     "vulkan_swapchain.cpp"
     "vulkan_sync_object.cpp"
+
+    "platform/win32/surface.h"
+    "platform/win32/surface.cpp"
 )
 
 target_precompile_headers(GraphicsAPI_Vulkan PRIVATE pch.h)
@@ -34,7 +37,6 @@ target_precompile_headers(GraphicsAPI_Vulkan PRIVATE pch.h)
 target_include_directories(GraphicsAPI_Vulkan
     PUBLIC
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/JadeFrame/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include
 

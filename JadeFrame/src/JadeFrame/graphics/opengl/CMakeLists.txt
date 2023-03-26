@@ -15,14 +15,13 @@ add_library(GraphicsAPI_OpenGL
     "opengl_texture.cpp"
     "opengl_wrapper.cpp"
 
-    "opengl_windows.h"
-    "opengl_windows.cpp"
+    "platform/win32/win32.h"
+    "platform/win32/win32.cpp"
 )
 
 target_include_directories(GraphicsAPI_OpenGL
     PUBLIC
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/JadeFrame/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glad/include/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/

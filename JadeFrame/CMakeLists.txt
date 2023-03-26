@@ -182,7 +182,6 @@ set(ROOT_NAMESPACE JadeFrame)
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/JadeFrame/src
     ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern
-    ${CMAKE_SOURCE_DIR}/JadeFrame/src/JadeFrame
     
 
     

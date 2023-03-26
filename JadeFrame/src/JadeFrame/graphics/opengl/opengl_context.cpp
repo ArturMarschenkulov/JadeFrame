@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "opengl_context.h"
 #include "opengl_debug.h"
-#include "opengl_windows.h"
+#include "platform/win32/win32.h"
 
 namespace JadeFrame {
 
