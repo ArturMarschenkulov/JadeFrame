@@ -13,6 +13,7 @@ set(CMAKE_EXE_LINKER_FLAGS "-lc++abi -lpthread")
 project(
     JadeFrame
     VERSION 0.0.1
+    DESCRIPTION "JadeFrame: A cross platoform graphics framework"
     LANGUAGES C CXX
 )
 
