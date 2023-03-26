@@ -72,11 +72,14 @@ auto VulkanInstance::check_validation_layer_support(const std::vector<VkLayerPro
     return true;
 }
 
-static auto is_device_suitable(vulkan::PhysicalDevice physical_device) -> bool {
+static auto is_device_suitable(const vulkan::PhysicalDevice& physical_device, vulkan::Surface& surface) -> bool {
+
+    auto formats = physical_device.query_surface_formats(surface);
+    auto present_modes = physical_device.query_surface_present_modes(surface);
+
     bool swapchain_adequate = false;
     if (physical_device.m_extension_support == true) {
-        swapchain_adequate = !physical_device.m_surface_support_details.m_formats.empty() &&
-                             !physical_device.m_surface_support_details.m_present_modes.empty();
+        swapchain_adequate = !formats.empty() && !present_modes.empty();
     }
     return physical_device.m_queue_family_indices.is_complete() && physical_device.m_extension_support &&
            swapchain_adequate;
@@ -223,7 +226,7 @@ auto VulkanInstance::init(const IWindow* window_handle) -> void {
     m_physical_devices = this->query_physical_devices();
     for (u32 i = 0; i < m_physical_devices.size(); i++) { m_physical_devices[i].init(*this, m_surface); }
     for (u32 i = 0; i < m_physical_devices.size(); i++) {
-        if (is_device_suitable(m_physical_devices[i])) { m_physical_device = m_physical_devices[i]; }
+        if (is_device_suitable(m_physical_devices[i], m_surface)) { m_physical_device = m_physical_devices[i]; }
     }
 
     m_logical_device.init(*this, m_physical_device, m_surface);
