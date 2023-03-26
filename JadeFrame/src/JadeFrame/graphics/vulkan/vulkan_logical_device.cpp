@@ -277,7 +277,7 @@ auto LogicalDevice::create_command_pool(const QueueFamilyIndex& queue_family_ind
 
 auto LogicalDevice::create_swapchain(const Surface& surface) -> Swapchain {
     Swapchain sc;
-    sc.init(*this, m_instance->m_surface);
+    sc.init(*this, surface);
     return sc;
 }
 
