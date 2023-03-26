@@ -462,7 +462,8 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
     if (columns == 1) {
         switch (type.basetype) {
             case spirv_cross::SPIRType::Float: {
-                SHADER_TYPE arr[] = {SHADER_TYPE::F32, SHADER_TYPE::V_2_F32, SHADER_TYPE::V_3_F32, SHADER_TYPE::V_4_F32};
+                SHADER_TYPE arr[] = {
+                    SHADER_TYPE::F32, SHADER_TYPE::V_2_F32, SHADER_TYPE::V_3_F32, SHADER_TYPE::V_4_F32};
                 result = arr[rows - 1];
             } break;
             default: JF_ASSERT(false, "this should not be reached!");

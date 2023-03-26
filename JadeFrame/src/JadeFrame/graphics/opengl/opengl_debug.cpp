@@ -48,7 +48,7 @@ auto opengl_message_callback(
 
     if (0) {
         Logger::log(
-            "GL_ERR: Source: {} | Type: {} | ID: {} | Severity {} | Message {}", _source, _type, _id, _severity,
+            "GL_ERR: Source: {} | Type: {} | ID: {} | Severity: {} | Message: {}", _source, _type, _id, _severity,
             message);
     } else {
         Logger::log(

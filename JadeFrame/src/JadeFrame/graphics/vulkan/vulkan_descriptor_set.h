@@ -74,8 +74,6 @@ public:
     const DescriptorSetLayout* m_layout = nullptr;
 
     std::vector<Descriptor> m_descriptors;
-
-    // su32 m_dynamic_count;
 };
 
 class DescriptorSetLayout {

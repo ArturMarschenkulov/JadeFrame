@@ -8,14 +8,9 @@
 
 namespace JadeFrame {
 
-#ifdef _WIN32
 
 class IWindow;
 
-#elif __linux__
-class Linux_Window;
-using Window = Linux_Window;
-#endif
 namespace vulkan {
 class PhysicalDevice;
 }
