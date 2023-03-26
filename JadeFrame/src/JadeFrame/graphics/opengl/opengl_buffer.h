@@ -18,6 +18,13 @@ namespace opengl {
 
 class Buffer {
 public:
+    Buffer();
+    ~Buffer();
+    Buffer(const Buffer&) = delete;
+    auto operator=(const Buffer&) -> Buffer& = delete;
+    Buffer(Buffer&& other) noexcept;
+    auto operator=(Buffer&& other) -> Buffer&;
+
     enum class TYPE {
         UNINIT, // TODO: find ways to remove it
         VERTEX,
@@ -26,17 +33,9 @@ public:
         STAGING
     };
 
-    Buffer();
-    ~Buffer();
-    Buffer(const Buffer&) = delete;
-    auto operator=(const Buffer&) -> Buffer& = delete;
-    Buffer(Buffer&& other) noexcept;
-    auto operator=(Buffer&& other) -> Buffer&;
-
     Buffer(OpenGL_Context& context, TYPE type, void* data, GLuint size);
 
 private:
-    auto init(OpenGL_Context& context, TYPE type) -> void;
     auto alloc(void* data, GLuint size) const -> void;
     auto reserve(GLuint size) const -> void;
 
@@ -51,30 +50,15 @@ private:
 
 public:
     auto update(const void* data, GLint offset, GLuint size) const -> void;
-    // auto update(GLuint size, const void* data) const -> void { this->update(data, 0, size); }
+
 
     template<typename U>
     auto update(const std::initializer_list<U>& data) const -> void {
         this->update((void*)data.begin(), 0, data.size() * sizeof(U));
     }
 
-    auto bind_base(GLuint binding_point) const -> void {
-        if (m_type == TYPE::UNIFORM) {
-            glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_id);
-        } else {
-            Logger::err("Buffer::bind_base() called on non-uniform buffer, only works with uniform buffers");
-            assert(false);
-        }
-    }
-
-    auto bind_buffer_range(GLuint index, GLintptr offset, GLsizeiptr size) const -> void {
-        if (m_type == TYPE::UNIFORM) {
-            glBindBufferRange(GL_UNIFORM_BUFFER, index, m_id, offset, size);
-        } else {
-            Logger::err("Buffer::bind_buffer_range() called on non-uniform buffer, only works with uniform buffers");
-            assert(false);
-        }
-    }
+    auto bind_base(GLuint binding_point) const -> void;
+    auto bind_buffer_range(GLuint index, GLintptr offset, GLsizeiptr size) const -> void;
 
 private:
     auto release() -> GLuint {
@@ -91,6 +75,7 @@ public:
     GLuint          m_id;
     TYPE            m_type;
     OpenGL_Context* m_context;
+    size_t          m_size;
 };
 
 class GPUMeshData {

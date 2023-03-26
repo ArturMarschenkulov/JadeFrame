@@ -22,10 +22,14 @@ static auto SHADER_TYPE_to_openGL_type(const SHADER_TYPE type) -> GLenum {
     return result;
 }
 
+/*---------------------------
+    Buffer
+---------------------------*/
 Buffer::Buffer() {
     m_id = 0;
     m_type = TYPE::UNINIT;
     m_context = nullptr;
+    m_size = 0;
 }
 Buffer::~Buffer() { this->reset(); }
 
@@ -34,56 +38,84 @@ Buffer::Buffer(Buffer&& other) noexcept
 
     m_type = other.m_type;
     m_context = other.m_context;
+    m_size = other.m_size;
 
     other.m_context = nullptr;
+    other.m_size = 0;
 }
 auto Buffer::operator=(Buffer&& other) -> Buffer& {
     m_id = other.release();
     m_type = other.m_type;
     m_context = other.m_context;
+    m_size = other.m_size;
 
     other.m_context = nullptr;
+    other.m_size = 0;
     return *this;
 }
 
 Buffer::Buffer(OpenGL_Context& context, TYPE type, void* data, GLuint size) {
-    this->init(context, type);
-    this->alloc(data, size);
-}
-
-
-auto Buffer::init(OpenGL_Context& context, TYPE type) -> void {
     m_context = &context;
+    m_type = type;
+    m_size = size;
     glCreateBuffers(1, &m_id);
-    m_context->m_buffers.push_back(m_id);
-    GLuint t;
+
+
+    GLuint kind;
     switch (type) {
-        case TYPE::VERTEX: t = GL_ARRAY_BUFFER; break;
-        case TYPE::INDEX: t = GL_ELEMENT_ARRAY_BUFFER; break;
-        case TYPE::UNIFORM: t = GL_UNIFORM_BUFFER; break;
+        case TYPE::VERTEX: kind = GL_ARRAY_BUFFER; break;
+        case TYPE::INDEX: kind = GL_ELEMENT_ARRAY_BUFFER; break;
+        case TYPE::UNIFORM: kind = GL_UNIFORM_BUFFER; break;
         default: assert(false); break;
     }
-    glBindBuffer(t, m_id);
-    m_type = type;
+    glBindBuffer(kind, m_id);
+
+    this->alloc(data, size);
+
+    // TODO: Move this registering into OpenGL_Context?
+    m_context->m_buffers.push_back(m_id);
     m_context->m_bound_buffer = m_id;
 }
 
 
 auto Buffer::reserve(GLuint size) const -> void {
-    // if NULL is passed in as data, it only reserves size_in_bytes bytes.
-    // glBufferData(buffer_type, size_in_bytes, NULL, GL_STATIC_DRAW);
-    // glNamedBufferData(m_id, size, NULL, GL_STATIC_DRAW);
-    this->alloc(nullptr, size);
+    if (size > m_size) { this->alloc(nullptr, size); }
 }
 auto Buffer::alloc(void* data, GLuint size) const -> void {
-    // glBufferData(buffer_type, size, data, GL_STATIC_DRAW);
-    glNamedBufferData(m_id, size, data, GL_STATIC_DRAW);
+    i32 usage;
+    switch (m_type) {
+        case TYPE::UNIFORM: usage = GL_DYNAMIC_DRAW; break;
+        default: usage = GL_STATIC_DRAW; break;
+    }
+    glNamedBufferData(m_id, size, data, usage);
 }
 auto Buffer::update(const void* data, GLint offset, GLuint size) const -> void {
     // glBufferSubData(buffer_type, offset, size, data);
     glNamedBufferSubData(m_id, offset, size, data);
 }
 
+
+auto Buffer::bind_base(GLuint binding_point) const -> void {
+    if (m_type == TYPE::UNIFORM) {
+        glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_id);
+    } else {
+        Logger::err("Buffer::bind_base() called on non-uniform buffer, only works with uniform buffers");
+        assert(false);
+    }
+}
+
+auto Buffer::bind_buffer_range(GLuint index, GLintptr offset, GLsizeiptr size) const -> void {
+    if (m_type == TYPE::UNIFORM) {
+        glBindBufferRange(GL_UNIFORM_BUFFER, index, m_id, offset, size);
+    } else {
+        Logger::err("Buffer::bind_buffer_range() called on non-uniform buffer, only works with uniform buffers");
+        assert(false);
+    }
+}
+
+/*---------------------------
+    GPUMeshData
+---------------------------*/
 
 auto GPUMeshData::operator=(GPUMeshData&& other) -> GPUMeshData& {
     m_vertex_buffer = std::move(other.m_vertex_buffer);
