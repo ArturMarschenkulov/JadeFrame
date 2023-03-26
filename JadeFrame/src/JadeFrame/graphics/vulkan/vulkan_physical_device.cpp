@@ -6,9 +6,6 @@
 
 #include <set>
 #include <string>
-#ifdef _WIN32
-#include "Windows.h" // TODO: Try to remove it. Used in "choose_swap_extent()"
-#endif
 #include "JadeFrame/utils/logger.h"
 
 #undef min
@@ -30,41 +27,9 @@ static auto to_format_string_queue_family(const QueueFamily& queue_family) -> st
     return result;
 }
 
-static auto query_surface_support_details(const PhysicalDevice& physical_device, const Surface& surface)
-    -> SurfaceSupportDetails {
-    VkResult              result;
-    SurfaceSupportDetails surface_support_details;
-    u32                   count = 0;
-
-    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
-        physical_device.m_handle, surface.m_handle, &surface_support_details.m_capabilities);
 
 
 
-    result = vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device.m_handle, surface.m_handle, &count, nullptr);
-    if (VK_SUCCESS != result || (count == 0)) assert(false);
-
-    surface_support_details.m_formats.resize(count);
-    result = vkGetPhysicalDeviceSurfaceFormatsKHR(
-        physical_device.m_handle, surface.m_handle, &count, surface_support_details.m_formats.data());
-    if (VK_SUCCESS != result) assert(false);
-
-
-
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device.m_handle, surface.m_handle, &count, nullptr);
-    if (VK_SUCCESS != result || (count == 0)) assert(false);
-
-    surface_support_details.m_present_modes.resize(count);
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(
-        physical_device.m_handle, surface.m_handle, &count, surface_support_details.m_present_modes.data());
-    if (VK_SUCCESS != result) assert(false);
-
-    return surface_support_details;
-}
-// template<typename Flag>
-// auto decode_bitmask(const Flag&) -> std::vector<Flag> {
-//
-// }
 auto to_string(uint8_t pipeline_cache_UUID[16]) -> std::string {
     std::string result;
     for (auto i = 0; i < 16; ++i) {
@@ -90,14 +55,77 @@ auto to_string_vendor_id(uint32_t vendor_id) -> std::string {
         default: return "Unknown";
     }
 }
+
+auto PhysicalDevice::query_surface_capabilities(const Surface& surface) const -> VkSurfaceCapabilitiesKHR {
+    VkSurfaceCapabilitiesKHR result;
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_handle, &result);
+    return result;
+}
+
+auto PhysicalDevice::query_surface_formats(const Surface& surface) const -> std::vector<VkSurfaceFormatKHR> {
+    u32      count = 0;
+    VkResult result;
+    result = vkGetPhysicalDeviceSurfaceFormatsKHR(m_handle, surface.m_handle, &count, nullptr);
+    if (VK_SUCCESS != result || (count == 0)) assert(false);
+
+    std::vector<VkSurfaceFormatKHR> formats(count);
+    result = vkGetPhysicalDeviceSurfaceFormatsKHR(m_handle, surface.m_handle, &count, formats.data());
+    if (VK_SUCCESS != result) assert(false);
+    return formats;
+}
+
+auto PhysicalDevice::query_surface_present_modes(const Surface& surface) const -> std::vector<VkPresentModeKHR> {
+    u32      count = 0;
+    VkResult result;
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(m_handle, surface.m_handle, &count, nullptr);
+    if (VK_SUCCESS != result || (count == 0)) assert(false);
+
+    std::vector<VkPresentModeKHR> present_modes(count);
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(m_handle, surface.m_handle, &count, present_modes.data());
+    if (VK_SUCCESS != result) assert(false);
+    return present_modes;
+}
+
+auto PhysicalDevice::query_memory_properties() -> VkPhysicalDeviceMemoryProperties {
+    VkPhysicalDeviceMemoryProperties memory_properties;
+    vkGetPhysicalDeviceMemoryProperties(m_handle, &memory_properties);
+    return memory_properties;
+}
+
+auto PhysicalDevice::query_properties() -> VkPhysicalDeviceProperties {
+    VkPhysicalDeviceProperties properties;
+    vkGetPhysicalDeviceProperties(m_handle, &properties);
+    return properties;
+}
+
+auto PhysicalDevice::query_features() -> VkPhysicalDeviceFeatures {
+    VkPhysicalDeviceFeatures features;
+    vkGetPhysicalDeviceFeatures(m_handle, &features);
+    return features;
+}
+
+auto PhysicalDevice::query_extension_properties() -> std::vector<VkExtensionProperties> {
+    std::vector<VkExtensionProperties> extension_properties;
+
+    VkResult result;
+    u32      count = 0;
+
+    result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, nullptr);
+    extension_properties.resize(count);
+    result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, extension_properties.data());
+    if (VK_SUCCESS != result) assert(false);
+    return extension_properties;
+}
+
 auto PhysicalDevice::init(VulkanInstance& instance, const Surface& surface) -> void {
     m_instance_p = &instance;
-    VkResult result;
-    vkGetPhysicalDeviceProperties(m_handle, &m_properties);
-    vkGetPhysicalDeviceFeatures(m_handle, &m_features);
-    vkGetPhysicalDeviceMemoryProperties(m_handle, &m_memory_properties);
+    m_properties = this->query_properties();
+    m_features = this->query_features();
+    m_memory_properties = this->query_memory_properties();
 
-    m_surface_support_details = query_surface_support_details(*this, surface);
+    m_surface_support_details.m_capabilities = this->query_surface_capabilities(surface);
+    m_surface_support_details.m_formats = this->query_surface_formats(surface);
+    m_surface_support_details.m_present_modes = this->query_surface_present_modes(surface);
 
     /*
         Quick Vulkan Queue Family Guide:
@@ -113,17 +141,8 @@ auto PhysicalDevice::init(VulkanInstance& instance, const Surface& surface) -> v
     */
     m_queue_families = this->query_queue_families(surface);
     m_queue_family_indices = this->find_queue_families(m_queue_families);
+    m_extension_properties = this->query_extension_properties();
 
-
-
-
-    { // Query_extension_properties
-        u32 count = 0;
-        result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, nullptr);
-        m_extension_properties.resize(count);
-        result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, m_extension_properties.data());
-        if (VK_SUCCESS != result) assert(false);
-    }
     m_extension_support = this->check_extension_support(m_device_extensions);
 
     {

@@ -42,7 +42,7 @@ static auto choose_present_mode(const std::vector<VkPresentModeKHR>& available_s
     assert(!"Should not reach here!");
     return {};
 }
-static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities, const Swapchain& swapchain)
+static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities, const Surface& surface)
     -> VkExtent2D {
     // vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_surface, &m_surface_capabilities);
     if (false /*m_surface_capabilities.currentExtent.width != UINT32_MAX*/) {
@@ -50,7 +50,7 @@ static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities
     } else {
 #ifdef _WIN32
         RECT       area;
-        const HWND wh = (const HWND)swapchain.m_surface->m_window_handle->get();
+        const HWND wh = (const HWND)surface.m_window_handle->get();
         GetClientRect(wh, &area);
         i32 width = area.right;
         i32 height = area.bottom;
@@ -140,19 +140,19 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     m_device = &device;
     m_surface = &surface;
 
-    VkResult                     result;
-    const PhysicalDevice*        gpu = device.m_physical_device;
-    const SurfaceSupportDetails& surface_details = gpu->m_surface_support_details;
+    VkResult              result;
+    const PhysicalDevice* gpu = device.m_physical_device;
 
-    u32 image_count = surface_details.m_capabilities.minImageCount + 1;
-    if (surface_details.m_capabilities.maxImageCount > 0 &&
-        image_count > surface_details.m_capabilities.maxImageCount) {
-        image_count = surface_details.m_capabilities.maxImageCount;
-    }
+    auto formats = gpu->query_surface_formats(surface);
+    auto present_modes = gpu->query_surface_present_modes(surface);
+    auto caps = gpu->query_surface_capabilities(surface);
 
-    const VkSurfaceFormatKHR surface_format = choose_surface_format(surface_details.m_formats);
-    const VkPresentModeKHR   present_mode = choose_present_mode(surface_details.m_present_modes);
-    const VkExtent2D         extent = choose_extent(surface_details.m_capabilities, *this);
+    u32 image_count = caps.minImageCount + 1;
+    if (caps.maxImageCount > 0 && image_count > caps.maxImageCount) { image_count = caps.maxImageCount; }
+
+    const VkSurfaceFormatKHR surface_format = choose_surface_format(formats);
+    const VkPresentModeKHR   present_mode = choose_present_mode(present_modes);
+    const VkExtent2D         extent = choose_extent(caps, surface);
     m_image_format = surface_format.format;
     m_extent = extent;
 
@@ -173,7 +173,7 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     create_info.queueFamilyIndexCount = 0;
     create_info.pQueueFamilyIndices = nullptr;
-    create_info.preTransform = gpu->m_surface_support_details.m_capabilities.currentTransform;
+    create_info.preTransform = caps.currentTransform;
     create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     create_info.presentMode = present_mode;
     create_info.clipped = VK_TRUE;
