@@ -31,6 +31,8 @@ struct Descriptor {
     Descriptor(Descriptor&& other);
     auto operator=(Descriptor&& other) -> Descriptor&;
 
+    Descriptor(const Buffer& buffer, VkDeviceSize offset, VkDeviceSize range, VkDescriptorSetLayoutBinding binding);
+
 
     union {
         VkDescriptorBufferInfo buffer_info;
@@ -40,19 +42,7 @@ struct Descriptor {
     VkShaderStageFlags stage_flags;
     u32                binding;
 };
-inline auto is_image(const Descriptor& d) -> bool {
-    switch (d.type) {
-        case VK_DESCRIPTOR_TYPE_SAMPLER:
-        case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
-        case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-        case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-        case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
-            return true;
-            break;
-            // case VK_DESCRIPTOR_TYPE_SAMPLER:
-        default: return false;
-    }
-}
+
 
 class DescriptorSet {
 public:
@@ -63,10 +53,12 @@ public:
     DescriptorSet(DescriptorSet&& other);
     auto operator=(DescriptorSet&& other) -> DescriptorSet&;
 
+    DescriptorSet(const LogicalDevice& device, VkDescriptorSet handle, const DescriptorSetLayout& layout);
+
     auto update() -> void;
     auto bind_uniform_buffer(u32 binding, const Buffer& buffer, VkDeviceSize offset, VkDeviceSize range) -> void;
-    auto rebind_uniform_buffer(u32 binding, const Buffer& buffer) -> void;
     auto bind_combined_image_sampler(u32 binding, const Vulkan_Texture& texture) -> void;
+    auto rebind_uniform_buffer(u32 binding, const Buffer& buffer) -> void;
 
 public:
     VkDescriptorSet            m_handle;
@@ -80,14 +72,22 @@ class DescriptorSetLayout {
 public:
     struct Binding {
         u32                binding;
-        VkDescriptorType   descriptor_type;
-        u32                descriptor_count;
+        VkDescriptorType   type;
+        u32                count;
         VkShaderStageFlags stage_flags;
         const VkSampler*   p_immutable_samplers = nullptr;
     };
 
 public:
-    auto init(const LogicalDevice& device, std::vector<Binding> bindings) -> void;
+    DescriptorSetLayout() = default;
+    ~DescriptorSetLayout() = default;
+    DescriptorSetLayout(const DescriptorSetLayout&) = delete;
+    auto operator=(const DescriptorSetLayout&) -> DescriptorSetLayout& = delete;
+    DescriptorSetLayout(DescriptorSetLayout&& other) = default;
+    auto operator=(DescriptorSetLayout&& other) -> DescriptorSetLayout& = default;
+
+    DescriptorSetLayout(const LogicalDevice& device, std::vector<Binding> bindings);
+    // auto init(const LogicalDevice& device, std::vector<Binding> bindings) -> void;
     auto deinit() -> void;
 
 private:

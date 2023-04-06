@@ -177,8 +177,8 @@ auto Pipeline::init(
         set 2: materials. textures. samplers.
         set 3: model matrix.
     */
-    const std::array<DescriptorSetLayout, 4> set_layouts = extract_descriptor_set_layouts(device, reflected_code);
-    m_set_layouts = set_layouts;
+    std::array<DescriptorSetLayout, 4> set_layouts = extract_descriptor_set_layouts(device, reflected_code);
+    m_set_layouts = std::move(set_layouts);
 
 
     const VkVertexInputBindingDescription                binding_description = get_binding_description(vertex_format);
@@ -198,11 +198,11 @@ auto Pipeline::init(
         vulkan_range.size = range.size;
     }
     VkDescriptorSetLayout set_layout_handles[4];
-    for (u32 i = 0; i < set_layouts.size(); i++) { set_layout_handles[i] = set_layouts[i].m_handle; }
+    for (u32 i = 0; i < m_set_layouts.size(); i++) { set_layout_handles[i] = m_set_layouts[i].m_handle; }
     const VkPipelineLayoutCreateInfo pipeline_layout_info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .pNext = nullptr,
-        .setLayoutCount = set_layouts.size(),
+        .setLayoutCount = static_cast<u32>(m_set_layouts.size()),
         .pSetLayouts = set_layout_handles,
         .pushConstantRangeCount = static_cast<u32>(push_constant_ranges.size()),
         .pPushConstantRanges = push_constant_ranges.data(),
@@ -214,8 +214,8 @@ auto Pipeline::init(
     {
         std::string offset = "  ";
         Logger::info("Created Pipeline Layout {} at {}", fmt::ptr(this), fmt::ptr(m_layout));
-        Logger::info("\tSet Layouts count: {}", set_layouts.size());
-        for (u32 i = 0; i < set_layouts.size(); i++) {
+        Logger::info("\tSet Layouts count: {}", m_set_layouts.size());
+        for (u32 i = 0; i < m_set_layouts.size(); i++) {
             std::string layout_str;
             switch (i) {
                 case 0: layout_str = "Global"; break;
@@ -225,7 +225,7 @@ auto Pipeline::init(
                 default: layout_str = "Unknown"; break;
             }
             Logger::info("\t-Set layout: {} {}", i, layout_str);
-            const DescriptorSetLayout& set_layout = set_layouts[i];
+            const DescriptorSetLayout& set_layout = m_set_layouts[i];
             for (u32 j = 0; j < set_layout.m_bindings.size(); j++) {
                 const VkDescriptorSetLayoutBinding& binding = set_layout.m_bindings[j];
                 Logger::info("\t\tBinding: {}", binding.binding);

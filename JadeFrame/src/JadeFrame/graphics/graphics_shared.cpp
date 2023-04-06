@@ -255,25 +255,23 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
             m_registered_shaders[id].m_handle = new opengl::Shader(*(OpenGL_Context*)&r->m_context, shader_desc);
         } break;
         case GRAPHICS_API::VULKAN: {
-            Vulkan_Renderer* r = static_cast<Vulkan_Renderer*>(m_renderer);
+            Vulkan_Renderer*       ren = static_cast<Vulkan_Renderer*>(m_renderer);
+            vulkan::LogicalDevice* ctx = ren->m_logical_device;
 
-            auto ld = r->m_logical_device;
 
             Vulkan_Shader::Desc shader_desc;
             shader_desc.code = m_registered_shaders[id].m_code;
             shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
-            m_registered_shaders[id].m_handle = new Vulkan_Shader(*(vulkan::LogicalDevice*)ld, shader_desc);
 
-
-            auto* sh = (Vulkan_Shader*)m_registered_shaders[id].m_handle;
-            for (int i = 0; i < sh->m_pipeline.m_set_layouts.size(); i++) {
-                r->m_sets[i] = r->m_set_pool.allocate_set(sh->m_pipeline.m_set_layouts[i]);
+            Vulkan_Shader* shader = new Vulkan_Shader(*ctx, shader_desc);
+            m_registered_shaders[id].m_handle = shader;
+            for (int i = 0; i < shader->m_pipeline.m_set_layouts.size(); i++) {
+                shader->m_sets[i] = ren->m_set_pool.allocate_set(shader->m_pipeline.m_set_layouts[i]);
             }
 
             // TODO: Remove this hard coded code later on
-            r->m_sets[0].bind_uniform_buffer(0, r->m_ub_cam, 0, sizeof(Matrix4x4));
-            r->m_sets[3].bind_uniform_buffer(0, r->m_ub_tran, 0, sizeof(Matrix4x4));
-            for (int i = 0; i < r->m_sets.size(); i++) { r->m_sets[i].update(); }
+            shader->bind_buffer(0, 0, ren->m_ub_cam, 0, sizeof(Matrix4x4));
+            shader->bind_buffer(3, 0, ren->m_ub_tran, 0, sizeof(Matrix4x4));
 
         } break;
         default: assert(false);
@@ -306,9 +304,8 @@ auto RenderSystem::register_mesh(const VertexFormat& format, const VertexData& d
             renderer->m_registered_meshes[id] = opengl::GPUMeshData(renderer->m_context, data, vertex_format);
         } break;
         case GRAPHICS_API::VULKAN: {
-            Vulkan_Renderer* renderer = static_cast<Vulkan_Renderer*>(m_renderer);
-            renderer->m_registered_meshes[id] =
-                vulkan::Vulkan_GPUMeshData{*renderer->m_logical_device, data, vertex_format};
+            Vulkan_Renderer* r = static_cast<Vulkan_Renderer*>(m_renderer);
+            r->m_registered_meshes[id] = vulkan::GPUMeshData{*r->m_logical_device, data, vertex_format};
         } break;
         default: assert(false);
     }

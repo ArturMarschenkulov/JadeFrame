@@ -39,14 +39,14 @@ public:
     Buffer(Buffer&& other);
     auto operator=(Buffer&& other) -> Buffer&;
 
-    Buffer(const Buffer::TYPE type);
+    Buffer(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data, size_t size);
 
-
+    // NOTE: To be removed. Only used for resizing
     auto init(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data, size_t size) -> void;
     auto deinit() -> void;
-    
-    auto send(const Matrix4x4& m, VkDeviceSize offset) -> void;
-    auto send(void* data, VkDeviceSize offset, VkDeviceSize size) -> void;
+
+    auto write(const Matrix4x4& m, VkDeviceSize offset) -> void;
+    auto write(void* data, VkDeviceSize offset, VkDeviceSize size) -> void;
     auto resize(size_t size) -> void;
 
 private:
@@ -67,18 +67,18 @@ public:
 };
 
 
-class Vulkan_GPUMeshData {
+class GPUMeshData {
 public:
-    Vulkan_GPUMeshData() = default;
-    ~Vulkan_GPUMeshData() = default;
+    GPUMeshData() = default;
+    ~GPUMeshData() = default;
 
-    Vulkan_GPUMeshData(const Vulkan_GPUMeshData&) = delete;
-    auto operator=(const Vulkan_GPUMeshData&) -> Vulkan_GPUMeshData& = delete;
+    GPUMeshData(const GPUMeshData&) = delete;
+    auto operator=(const GPUMeshData&) -> GPUMeshData& = delete;
 
     // Vulkan_GPUMeshData(Vulkan_GPUMeshData&& other);
-    auto operator=(Vulkan_GPUMeshData&& other) -> Vulkan_GPUMeshData&;
+    auto operator=(GPUMeshData&& other) -> GPUMeshData&;
 
-    Vulkan_GPUMeshData(
+    GPUMeshData(
         const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat vertex_format,
         bool interleaved = true);
 
@@ -86,8 +86,8 @@ public:
     auto set_layout(const VertexFormat& vertex_format) -> void;
 
 public:
-    Buffer       m_vertex_buffer = Buffer::TYPE::VERTEX;
-    Buffer       m_index_buffer = Buffer::TYPE::INDEX;
+    Buffer       m_vertex_buffer;
+    Buffer       m_index_buffer;
     VertexFormat m_vertex_format;
 };
 

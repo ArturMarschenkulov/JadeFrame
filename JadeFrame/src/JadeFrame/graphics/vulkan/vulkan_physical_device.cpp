@@ -229,6 +229,8 @@ auto PhysicalDevice::query_queue_families(const Surface& surface) -> std::vector
     return families;
 }
 
+auto PhysicalDevice::query_limits() const -> VkPhysicalDeviceLimits { return m_properties.limits; }
+
 auto PhysicalDevice::create_logical_device() -> LogicalDevice {
     LogicalDevice ld;
     ld.init(*m_instance_p, *this, m_instance_p->m_surface);

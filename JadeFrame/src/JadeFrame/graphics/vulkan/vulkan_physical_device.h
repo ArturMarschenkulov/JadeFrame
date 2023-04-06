@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 #include "vulkan_logical_device.h"
+#include "JadeFrame/utils/option.h"
 
 
 #include "JadeFrame/prelude.h"
@@ -50,6 +51,8 @@ public:
     auto query_surface_present_modes(const Surface& surface) const -> std::vector<VkPresentModeKHR>;
 
     auto query_extension_properties() -> std::vector<VkExtensionProperties>;
+
+    auto query_limits() const -> VkPhysicalDeviceLimits;
 
 
     auto create_logical_device() -> LogicalDevice;

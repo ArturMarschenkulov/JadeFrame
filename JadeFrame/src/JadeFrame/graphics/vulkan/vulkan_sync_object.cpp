@@ -4,7 +4,8 @@
 #include "JadeFrame/utils/assert.h"
 namespace JadeFrame {
 namespace vulkan {
-auto Fence::init(const LogicalDevice& device, bool signaled) -> void {
+
+Fence::Fence(const LogicalDevice& device, bool signaled) {
     m_device = &device;
     VkResult result;
 
@@ -40,7 +41,8 @@ auto Fence::is_signaled() -> bool {
         default: JF_ASSERT(false, ""); return false;
     }
 }
-auto Semaphore::init(const LogicalDevice& device) -> void {
+
+Semaphore::Semaphore(const LogicalDevice& device) {
     m_device = &device;
     VkResult result;
 

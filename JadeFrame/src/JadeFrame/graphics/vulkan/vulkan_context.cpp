@@ -226,10 +226,13 @@ auto VulkanInstance::init(const IWindow* window_handle) -> void {
     m_physical_devices = this->query_physical_devices();
     for (u32 i = 0; i < m_physical_devices.size(); i++) { m_physical_devices[i].init(*this, m_surface); }
     for (u32 i = 0; i < m_physical_devices.size(); i++) {
-        if (is_device_suitable(m_physical_devices[i], m_surface)) { m_physical_device = m_physical_devices[i]; }
+        if (is_device_suitable(m_physical_devices[i], m_surface)) {
+            m_physical_device = &m_physical_devices[i];
+            break;
+        }
     }
 
-    m_logical_device.init(*this, m_physical_device, m_surface);
+    m_logical_device.init(*this, *m_physical_device, m_surface);
     // m_logical_device = m_physical_device.create_logical_device();
     Logger::trace("VulkanInstance::init end");
 }

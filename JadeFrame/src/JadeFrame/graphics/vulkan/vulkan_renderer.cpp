@@ -39,8 +39,8 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
     */
 
     // Uniform stuff
-    m_ub_cam = m_logical_device->create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
     m_ub_tran = m_logical_device->create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+    m_ub_cam = m_logical_device->create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
 }
 auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void { m_clear_color = color; }
 
@@ -54,7 +54,7 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
     if (false == obj.m_GPU_mesh_data.m_is_initialized) {
         assert(obj.m_vertex_format.m_attributes.size() > 0);
 
-        obj.m_GPU_mesh_data.m_handle = new vulkan::Vulkan_GPUMeshData(d, *obj.m_vertex_data, obj.m_vertex_format);
+        obj.m_GPU_mesh_data.m_handle = new vulkan::GPUMeshData(d, *obj.m_vertex_data, obj.m_vertex_format);
         obj.m_GPU_mesh_data.m_is_initialized = true;
     }
 
@@ -67,17 +67,35 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
     m_render_commands.push_back(command);
 }
 
+
+auto get_aligned_block_size(const u64 block_size, const u64 alignment) -> u64 {
+#if 0 // more efficient
+        const u64 new_val = (block_size + alignment - 1) & ~(alignment - 1);
+        const u64 aligned_block_size = alignment > 0 ? new_val : block_size;
+#else // more readable
+      // if 'block_size' is already aligned, then 'new_val' will be equal to 'block_size'
+    const u64 new_val = (block_size + alignment - (block_size % alignment));
+    const u64 aligned_block_size = (block_size % alignment == 0) ? block_size : new_val;
+#endif
+    return aligned_block_size;
+}
+
+struct Frame {
+    vulkan::Fence     fence;
+    vulkan::Semaphore sem_available;
+    vulkan::Semaphore sem_finished;
+};
 auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
-    vulkan::LogicalDevice& d = *m_logical_device;
-    const RGBAColor        c = m_clear_color;
-    const VkClearValue     clear_value = VkClearValue{c.r, c.g, c.b, c.a};
+    vulkan::LogicalDevice&        d = *m_logical_device;
+    const vulkan::PhysicalDevice* pd = d.m_physical_device;
+
+    const RGBAColor    c = m_clear_color;
+    const VkClearValue clear_value = VkClearValue{c.r, c.g, c.b, c.a};
 
     vulkan::Fence&     fence_curr = d.m_in_flight_fences[d.m_current_frame];
     vulkan::Semaphore& sem_available = d.m_image_available_semaphores[d.m_current_frame];
     vulkan::Semaphore& sem_finished = d.m_render_finished_semaphores[d.m_current_frame];
-
-
 
     d.wait_for_fence(fence_curr, VK_TRUE, UINT64_MAX);
     d.m_present_image_index = d.m_swapchain.acquire_next_image(&sem_available, nullptr);
@@ -87,25 +105,11 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         return;
     }
 
-
     // Per Frame ubo
-    m_ub_cam.send(view_projection, 0);
+    m_ub_cam.write(view_projection, 0);
 
-    const u64 aligned_block_size = [&]() {
-        const u64 alignment = m_logical_device->m_physical_device->m_properties.limits.minUniformBufferOffsetAlignment;
-        const u64 block_size = sizeof(Matrix4x4);
-        const u64 aligned_block_size = alignment > 0 ? (block_size + alignment - 1) & ~(alignment - 1) : block_size;
-        return aligned_block_size;
-    }();
-
-    // Update ubo buffer and descriptor set when the amount of render commands changes
-    if (m_render_commands.size() != 0 && m_render_commands.size() * aligned_block_size != m_ub_tran.m_size) {
-        m_ub_tran.resize(m_render_commands.size() * aligned_block_size);
-        m_sets[3].rebind_uniform_buffer(0, m_ub_tran);
-        for (int i = 0; i < m_sets.size(); i++) {
-            if (m_sets[i].m_descriptors.size() > 0) { m_sets[i].update(); }
-        }
-    }
+    const u64 dyn_alignment =
+        get_aligned_block_size(sizeof(Matrix4x4), pd->query_limits().minUniformBufferOffsetAlignment);
 
     vulkan::CommandBuffer& cb = d.m_command_buffers[d.m_present_image_index];
     vulkan::Framebuffer&   framebuffer = d.m_framebuffers[d.m_present_image_index];
@@ -114,36 +118,43 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     cb.record([&] {
         cb.render_pass(framebuffer, render_pass, d.m_swapchain.m_extent, clear_value, [&] {
             for (u64 i = 0; i < m_render_commands.size(); i++) {
-                const auto&           cmd = m_render_commands[i];
-                const MaterialHandle& mh = cmd.material_handle;
-                auto&                 sh = m_system->m_registered_shaders[mh.m_shader_id];
+                const auto&         cmd = m_render_commands[i];
+                const ShaderHandle& shader_handle = m_system->m_registered_shaders[cmd.material_handle.m_shader_id];
+                Vulkan_Shader*      shader = static_cast<Vulkan_Shader*>(shader_handle.m_handle);
+                const auto&         gpu_data = *static_cast<vulkan::GPUMeshData*>(cmd.m_GPU_mesh_data->m_handle);
 
-                const auto& pipeline = static_cast<Vulkan_Shader*>(sh.m_handle)->m_pipeline;
-                const auto& gpu_data = *static_cast<vulkan::Vulkan_GPUMeshData*>(cmd.m_GPU_mesh_data->m_handle);
-                const auto& vertex_data = *cmd.vertex_data;
-                const auto& transform = *cmd.transform;
-                VkBuffer    vertex_buffers[] = {gpu_data.m_vertex_buffer.m_handle};
+
+                VkBuffer                  vertex_buffers[] = {gpu_data.m_vertex_buffer.m_handle};
                 const VkPipelineBindPoint bind_point = VK_PIPELINE_BIND_POINT_GRAPHICS;
-                const u32                 offset = static_cast<u32>(aligned_block_size * i);
+                const u32                 offset = static_cast<u32>(dyn_alignment * i);
                 VkDeviceSize              offsets[] = {0, 0};
 
+                // Update ubo buffer and descriptor set when the amount of render commands changes
+                const size_t num_commands = m_render_commands.size();
+                if (num_commands * dyn_alignment != m_ub_tran.m_size) {
+                    if (num_commands != 0) {
+                        m_ub_tran.resize(num_commands * dyn_alignment);
+                        shader->rebind_buffer(3, 0, m_ub_tran);
+                    }
+                }
+
                 // Per DrawCall ubo
-                m_ub_tran.send(transform, offset);
+                m_ub_tran.write(*cmd.transform, offset);
 
 
-                cb.bind_pipeline(bind_point, pipeline);
+                cb.bind_pipeline(bind_point, shader->m_pipeline);
                 cb.bind_vertex_buffers(0, 1, vertex_buffers, offsets);
-                cb.bind_descriptor_sets(bind_point, pipeline, 0, m_sets[0], &offset);
-                // cb.bind_descriptor_sets(bind_point, pipeline, 1, m_sets[1], &offset);
-                // cb.bind_descriptor_sets(bind_point, pipeline, 2, m_sets[2], &offset);
-                cb.bind_descriptor_sets(bind_point, pipeline, 3, m_sets[3], &offset);
+                cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 0, shader->m_sets[0], &offset);
+                // cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 1, shader->m_sets[1], &offset);
+                // cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 2, shader->m_sets[2], &offset);
+                cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 3, shader->m_sets[3], &offset);
 
 
-                if (vertex_data.m_indices.size() > 0) {
+                if (cmd.vertex_data->m_indices.size() > 0) {
                     cb.bind_index_buffer(gpu_data.m_index_buffer, 0);
-                    cb.draw_indexed(static_cast<u32>(vertex_data.m_indices.size()), 1, 0, 0, 0);
+                    cb.draw_indexed(static_cast<u32>(cmd.vertex_data->m_indices.size()), 1, 0, 0, 0);
                 } else {
-                    cb.draw(static_cast<u32>(vertex_data.m_positions.size()), 1, 0, 0);
+                    cb.draw(static_cast<u32>(cmd.vertex_data->m_positions.size()), 1, 0, 0);
                 }
             }
         });
@@ -169,7 +180,8 @@ auto Vulkan_Renderer::present() -> void {
         assert(false);
     }
 
-    d.m_current_frame = (d.m_current_frame + 1) % 2 /*MAX_FRAMES_IN_FLIGHT*/;
+    // auto max_frames_in_flight = d.m_swapchain.m_images.size() - 1;
+    d.m_current_frame = (d.m_current_frame + 1) % 1 /*MAX_FRAMES_IN_FLIGHT*/;
 }
 
 

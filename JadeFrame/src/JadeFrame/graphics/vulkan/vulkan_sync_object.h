@@ -7,9 +7,19 @@ namespace JadeFrame {
 
 namespace vulkan {
 class LogicalDevice;
+
+// synchronizes GPU-to-CPU tasks
 class Fence {
 public:
-    auto init(const LogicalDevice& device, bool signaled) -> void;
+    Fence() = default;
+    ~Fence() = default;
+    Fence(const Fence&) = delete;
+    auto operator=(const Fence&) -> Fence& = delete;
+    Fence(Fence&&) = default;
+    auto operator=(Fence&&) -> Fence& = default;
+
+    Fence(const LogicalDevice& device, bool signaled);
+
     auto deinit() -> void;
     auto wait_for_fences() -> void;
     auto reset() -> void;
@@ -19,9 +29,18 @@ public:
     const LogicalDevice* m_device = nullptr;
 };
 
+// synchronizes GPU tasks.
 class Semaphore {
 public:
-    auto init(const LogicalDevice& device) -> void;
+    Semaphore() = default;
+    ~Semaphore() = default;
+    Semaphore(const Semaphore&) = delete;
+    auto operator=(const Semaphore&) -> Semaphore& = delete;
+    Semaphore(Semaphore&&) = default;
+    auto operator=(Semaphore&&) -> Semaphore& = default;
+
+    Semaphore(const LogicalDevice& device);
+
     auto deinit() -> void;
 
     VkSemaphore          m_handle = VK_NULL_HANDLE;

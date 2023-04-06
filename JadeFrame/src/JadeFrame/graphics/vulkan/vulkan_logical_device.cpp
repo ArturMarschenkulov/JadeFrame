@@ -17,7 +17,7 @@
 
 namespace JadeFrame {
 
-static const i32 MAX_FRAMES_IN_FLIGHT = 2;
+static const i32 MAX_FRAMES_IN_FLIGHT = 1;
 
 static auto VkResult_to_string(VkResult x) {
     std::string str;
@@ -42,7 +42,7 @@ static auto VkResult_to_string(VkResult x) {
         JF_SET_ENUM_STRING(str, VK_ERROR_OUT_OF_DATE_KHR);
         break;
         default:
-            assert(false);
+            JF_ASSERT(false, "Unknown VkResult");
             str = "";
             break;
     }
@@ -60,12 +60,19 @@ Queue::Queue(const LogicalDevice& device, u32 queue_family_index, u32 queue_inde
 }
 auto Queue::submit(const VkSubmitInfo& submit_info, const Fence* p_fence) const -> void {
     VkResult result;
-    result = vkQueueSubmit(m_handle, 1, &submit_info, p_fence->m_handle);
+    result = vkQueueSubmit(m_handle, 1, &submit_info, p_fence ? p_fence->m_handle : nullptr);
     if (result != VK_SUCCESS) assert(false);
 }
 auto Queue::submit(
     const CommandBuffer& cmd_buffer, const Semaphore* wait_semaphore, const Semaphore* signal_semaphore,
     const Fence* fence) const -> void {
+
+    // Short description
+    // 1. Wait for the wait_semaphore to be signaled
+    // 2. Execute the command buffer
+    // 3. Signal the signal_semaphore
+    // 4. Wait for the fence to be signaled
+
     VkPipelineStageFlags wait_stages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     const VkSubmitInfo   submit_info = {
           .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -99,14 +106,13 @@ auto Queue::present(const u32& index, const Swapchain& swapchain, const Semaphor
     const VkPresentInfoKHR info = {
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .pNext = nullptr,
-        .waitSemaphoreCount = 1,
-        .pWaitSemaphores = &semaphore->m_handle,
+        .waitSemaphoreCount = semaphore ? 1_u32 : 0_u32,
+        .pWaitSemaphores = semaphore ? &semaphore->m_handle : VK_NULL_HANDLE,
         .swapchainCount = 1,
         .pSwapchains = &swapchain.m_handle,
         .pImageIndices = &index,
         .pResults = nullptr,
     };
-
     return vkQueuePresentKHR(m_handle, &info);
 }
 
@@ -159,8 +165,7 @@ auto LogicalDevice::query_queues(u32 queue_family_index, u32 queue_index) -> Que
 }
 
 auto LogicalDevice::create_buffer(Buffer::TYPE buffer_type, void* data, size_t size) const -> Buffer {
-    Buffer buffer = {buffer_type};
-    buffer.init(*this, buffer_type, data, size);
+    Buffer buffer(*this, buffer_type, data, size);
     return buffer;
 }
 auto LogicalDevice::create_descriptor_pool(u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes)
@@ -172,14 +177,12 @@ auto LogicalDevice::create_descriptor_pool(u32 max_sets, std::vector<VkDescripto
 
 auto LogicalDevice::create_descriptor_set_layout(std::vector<vulkan::DescriptorSetLayout::Binding>& bindings) const
     -> DescriptorSetLayout {
-    DescriptorSetLayout layout;
-    layout.init(*this, bindings);
+    DescriptorSetLayout layout(*this, bindings);
     return layout;
 }
 
 auto LogicalDevice::create_shader(const Vulkan_Shader::Desc& desc) -> Vulkan_Shader {
-    Vulkan_Shader shader(*this, desc);
-    return shader;
+    return Vulkan_Shader(*this, desc);
 }
 
 auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& physical_device, const Surface& surface)
@@ -259,13 +262,11 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
 }
 
 auto LogicalDevice::create_semaphore() -> Semaphore {
-    Semaphore semaphore;
-    semaphore.init(*this);
+    Semaphore semaphore(*this);
     return semaphore;
 }
 auto LogicalDevice::create_fence(bool signaled) -> Fence {
-    Fence fence;
-    fence.init(*this, signaled);
+    Fence fence(*this, signaled);
     return fence;
 }
 

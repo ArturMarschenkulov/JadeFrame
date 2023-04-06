@@ -34,22 +34,21 @@ public:
     // virtual auto main_loop() -> void override;
 
 public:
-    Vulkan_Context                            m_context;
-    vulkan::LogicalDevice*                    m_logical_device;
-    RenderSystem*                             m_system = nullptr;
-    mutable std::deque<Vulkan_RenderCommand>  m_render_commands;
-    std::map<u32, vulkan::Vulkan_GPUMeshData> m_registered_meshes;
+    Vulkan_Context                           m_context;
+    vulkan::LogicalDevice*                   m_logical_device;
+    RenderSystem*                            m_system = nullptr;
+    mutable std::deque<Vulkan_RenderCommand> m_render_commands;
+    std::map<u32, vulkan::GPUMeshData>       m_registered_meshes;
 
 private: // NOTE: probably temporary
     RGBAColor m_clear_color;
 
     // TODO: Move the descriptor stuff to the shader code
 public: // Descriptor set
-    vulkan::DescriptorPool                                                     m_set_pool;
-    std::array<vulkan::DescriptorSet, static_cast<u8>(vulkan::FREQUENCY::MAX)> m_sets;
+    vulkan::DescriptorPool m_set_pool;
 
 
-    vulkan::Buffer m_ub_cam = {vulkan::Buffer::TYPE::UNIFORM};
-    vulkan::Buffer m_ub_tran = {vulkan::Buffer::TYPE::UNIFORM};
+    vulkan::Buffer m_ub_cam;
+    vulkan::Buffer m_ub_tran;
 };
 } // namespace JadeFrame

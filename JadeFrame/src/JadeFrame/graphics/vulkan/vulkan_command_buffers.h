@@ -11,7 +11,6 @@ namespace JadeFrame {
 
 
 namespace vulkan {
-class QueueFamilyIndices;
 class RenderPass;
 class Framebuffer;
 class LogicalDevice;

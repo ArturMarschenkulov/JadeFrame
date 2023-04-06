@@ -56,9 +56,9 @@ public:
 #endif
 
     std::vector<vulkan::PhysicalDevice> m_physical_devices;
-    vulkan::PhysicalDevice              m_physical_device;
+    vulkan::PhysicalDevice*              m_physical_device;
     vulkan::LogicalDevice               m_logical_device;
-    
+
 public:
     static auto default_allocator() -> VkAllocationCallbacks* { return nullptr; }
 };

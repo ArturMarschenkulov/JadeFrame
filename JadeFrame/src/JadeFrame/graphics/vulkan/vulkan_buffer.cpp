@@ -20,10 +20,9 @@ auto LogicalDevice::create_texture_image(const std::string& path) -> void {
     if (image.data) {
         VkDeviceSize image_size = image.width * image.height * image.num_components;
 
-        vulkan::Buffer staging_buffer = {vulkan::Buffer::TYPE::STAGING};
-        staging_buffer.init(*this, vulkan::Buffer::TYPE::STAGING, nullptr, image_size);
+        vulkan::Buffer staging_buffer(*this, vulkan::Buffer::TYPE::STAGING, nullptr, image_size);
 
-        staging_buffer.send(image.data, 0, image_size);
+        staging_buffer.write(image.data, 0, image_size);
 
         this->create_image(
             {static_cast<u32>(image.width), static_cast<u32>(image.height)}, VK_FORMAT_R8G8B8A8_SRGB,
@@ -157,8 +156,58 @@ auto Buffer::operator=(Buffer&& other) -> Buffer& {
 }
 
 
-Buffer::Buffer(const Buffer::TYPE type)
-    : m_type(type) {}
+
+Buffer::Buffer(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data, size_t size) {
+    /*VkResult result;*/
+    m_device = &device;
+    m_size = size;
+    m_type = buffer_type;
+
+    bool                  b_with_staging_buffer = false;
+    VkBufferUsageFlags    usage = {};
+    VkMemoryPropertyFlags properties = {};
+
+    switch (buffer_type) {
+        case Buffer::TYPE::VERTEX: {
+            JF_ASSERT(m_type == Buffer::TYPE::VERTEX, "");
+            b_with_staging_buffer = true;
+            usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+            properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        } break;
+        case Buffer::TYPE::INDEX: {
+            JF_ASSERT(m_type == Buffer::TYPE::INDEX, "");
+            if (m_type != Buffer::TYPE::INDEX) JF_ASSERT(false, "");
+            b_with_staging_buffer = true;
+            usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+            properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        } break;
+        case Buffer::TYPE::UNIFORM: {
+            JF_ASSERT(m_type == Buffer::TYPE::UNIFORM, "Expected uniform buffer, got something else");
+            b_with_staging_buffer = false;
+            usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+            properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        } break;
+        case Buffer::TYPE::STAGING: {
+            JF_ASSERT(m_type == Buffer::TYPE::STAGING, "");
+            b_with_staging_buffer = false;
+            usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+            properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        } break;
+        default: JF_ASSERT(false, ""); break;
+    }
+
+    if (b_with_staging_buffer == true) {
+        Buffer staging_buffer(device, Buffer::TYPE::STAGING, nullptr, size);
+        staging_buffer.write(data, 0, size);
+
+        this->create_buffer(size, usage, properties, m_handle, m_memory);
+        this->copy_buffer(staging_buffer.m_handle, m_handle, size);
+        staging_buffer.deinit();
+    } else {
+        assert(data == nullptr);
+        this->create_buffer(size, usage, properties, m_handle, m_memory);
+    }
+}
 
 
 auto to_string(const Buffer::TYPE type) -> const char* {
@@ -197,7 +246,6 @@ auto Buffer::init(const LogicalDevice& device, Buffer::TYPE buffer_type, void* d
             properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
         } break;
         case Buffer::TYPE::UNIFORM: {
-            Logger::info("ccc {}", to_string(m_type));
             JF_ASSERT(m_type == Buffer::TYPE::UNIFORM, "Expected uniform buffer, got something else");
             b_with_staging_buffer = false;
             usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
@@ -213,9 +261,8 @@ auto Buffer::init(const LogicalDevice& device, Buffer::TYPE buffer_type, void* d
     }
 
     if (b_with_staging_buffer == true) {
-        Buffer staging_buffer = {Buffer::TYPE::STAGING};
-        staging_buffer.init(device, Buffer::TYPE::STAGING, nullptr, size);
-        staging_buffer.send(data, 0, size);
+        Buffer staging_buffer(device, Buffer::TYPE::STAGING, nullptr, size);
+        staging_buffer.write(data, 0, size);
 
         this->create_buffer(size, usage, properties, m_handle, m_memory);
         this->copy_buffer(staging_buffer.m_handle, m_handle, size);
@@ -237,8 +284,8 @@ auto Buffer::deinit() -> void {
     m_memory = VK_NULL_HANDLE;
 }
 
-auto Buffer::send(const Matrix4x4& m, VkDeviceSize offset) -> void { this->send((void*)&m, offset, sizeof(m)); }
-auto Buffer::send(void* data, VkDeviceSize offset, VkDeviceSize size) -> void {
+auto Buffer::write(const Matrix4x4& m, VkDeviceSize offset) -> void { this->write((void*)&m, offset, sizeof(m)); }
+auto Buffer::write(void* data, VkDeviceSize offset, VkDeviceSize size) -> void {
     VkResult result;
 
     void* mapped_data;
@@ -293,19 +340,17 @@ auto Buffer::create_buffer(
 }
 
 auto Buffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size) -> void {
-    VkResult result;
+    const CommandPool& cmd_pool = m_device->m_command_pool;
 
+    CommandBuffer cmd = cmd_pool.allocate_buffer();
 
-    const CommandPool& cp = m_device->m_command_pool;
-    CommandBuffer      buffer = cp.allocate_buffer();
-
-    buffer.record([&] {
+    cmd.record([&] {
         const VkBufferCopy copy_region = {
             .srcOffset = 0,
             .dstOffset = 0,
             .size = size,
         };
-        vkCmdCopyBuffer(buffer.m_handle, src_buffer, dst_buffer, 1, &copy_region);
+        vkCmdCopyBuffer(cmd.m_handle, src_buffer, dst_buffer, 1, &copy_region);
     });
     // buffer[0].record_end();
 
@@ -316,32 +361,35 @@ auto Buffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize 
         .pWaitSemaphores = {},
         .pWaitDstStageMask = {},
         .commandBufferCount = 1,
-        .pCommandBuffers = &buffer.m_handle,
+        .pCommandBuffers = &cmd.m_handle,
         .signalSemaphoreCount = {},
         .pSignalSemaphores = {},
     };
 
-    result = vkQueueSubmit(m_device->m_graphics_queue.m_handle, 1, &submit_info, VK_NULL_HANDLE);
-    JF_ASSERT(result == VK_SUCCESS, "");
-    result = vkQueueWaitIdle(m_device->m_graphics_queue.m_handle);
-    JF_ASSERT(result == VK_SUCCESS, "");
+    m_device->m_graphics_queue.submit(submit_info, nullptr);
+    m_device->m_graphics_queue.wait_idle();
 
-    cp.free_buffer(buffer);
+
+    cmd_pool.free_buffer(cmd);
 }
-Vulkan_GPUMeshData::Vulkan_GPUMeshData(
+GPUMeshData::GPUMeshData(
     const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat /*vertex_format*/,
     bool interleaved) {
-    const std::vector<f32> data = convert_into_data(vertex_data, interleaved);
-    auto&                  i_data = vertex_data.m_indices;
+    const std::vector<f32> data_ = convert_into_data(vertex_data, interleaved);
 
-    m_vertex_buffer = device.create_buffer(Buffer::TYPE::VERTEX, (void*)data.data(), sizeof(data[0]) * data.size());
+    auto data = (void*)data_.data();
+    auto size = sizeof(data_[0]) * data_.size();
+    m_vertex_buffer = device.create_buffer(Buffer::TYPE::VERTEX, data, size);
+
     if (vertex_data.m_indices.size() > 0) {
-        m_index_buffer =
-            device.create_buffer(Buffer::TYPE::INDEX, (void*)i_data.data(), sizeof(i_data[0]) * i_data.size());
+        auto& i_data = vertex_data.m_indices;
+        auto  data = (void*)i_data.data();
+        auto  size = sizeof(i_data[0]) * i_data.size();
+        m_index_buffer = device.create_buffer(Buffer::TYPE::INDEX, data, size);
     }
 }
 
-auto Vulkan_GPUMeshData::operator=(Vulkan_GPUMeshData&& other) -> Vulkan_GPUMeshData& {
+auto GPUMeshData::operator=(GPUMeshData&& other) -> GPUMeshData& {
     m_vertex_buffer = std::move(other.m_vertex_buffer);
     m_index_buffer = std::move(other.m_index_buffer);
 
@@ -356,8 +404,8 @@ auto Vulkan_GPUMeshData::operator=(Vulkan_GPUMeshData&& other) -> Vulkan_GPUMesh
 //     *this = std::move(other);
 // }
 
-auto Vulkan_GPUMeshData::bind() const -> void {}
-auto Vulkan_GPUMeshData::set_layout(const VertexFormat& /*vertex_format*/) -> void {}
+auto GPUMeshData::bind() const -> void {}
+auto GPUMeshData::set_layout(const VertexFormat& /*vertex_format*/) -> void {}
 
 /*---------------------------
     Image
@@ -552,9 +600,8 @@ auto Vulkan_Texture::init(const LogicalDevice& device, void* data, v2u32 size, V
     m_device = &device;
 
     VkDeviceSize image_size = size.width * size.height * 3 /*image.num_components*/;
-    Buffer       staging_buffer = {Buffer::TYPE::STAGING};
-    staging_buffer.init(device, Buffer::TYPE::STAGING, nullptr, image_size);
-    staging_buffer.send(data, 0, image_size);
+    Buffer       staging_buffer(device, Buffer::TYPE::STAGING, nullptr, image_size);
+    staging_buffer.write(data, 0, image_size);
 
     // Image image;
     m_image.init(device, size, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);

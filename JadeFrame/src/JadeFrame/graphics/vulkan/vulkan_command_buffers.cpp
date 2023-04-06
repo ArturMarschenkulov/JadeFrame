@@ -127,7 +127,7 @@ auto CommandBuffer::bind_descriptor_sets(
         bind_point,                               // pipelineBindPoint
         pipeline.m_layout,                        // layout
         first_set,                                // firstSet
-        descriptor_set.m_descriptors.size(),      // descriptorSetCount
+        1,                                        // descriptor_set.m_descriptors.size(),      // descriptorSetCount
         &descriptor_set.m_handle,                 // pDescriptorSets
         descriptor_set.m_layout->m_dynamic_count, // dynamicOffsetCount
         offset                                    // pDynamicOffsets
@@ -204,7 +204,7 @@ auto CommandPool::init(const LogicalDevice& device, const QueueFamilyIndex& queu
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         .pNext = nullptr,
         .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, // Optional
-        .queueFamilyIndex = queue_family_index /*queue_family_indices.m_graphics_family.value()*/,
+        .queueFamilyIndex = queue_family_index /*queue_family_indices.m_graphics_family.unwrap()*/,
     };
 
     result = vkCreateCommandPool(device.m_handle, &pool_info, nullptr, &m_handle);
