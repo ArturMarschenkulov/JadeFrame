@@ -91,6 +91,8 @@ set(Files_Graphics
     "src/JadeFrame/graphics/mesh.cpp"
     "src/JadeFrame/graphics/shader_loader.h"
     "src/JadeFrame/graphics/shader_loader.cpp"
+    "src/JadeFrame/graphics/reflect.h"
+    "src/JadeFrame/graphics/reflect.cpp"
 
 
     "src/JadeFrame/graphics/software/software_renderer.h"

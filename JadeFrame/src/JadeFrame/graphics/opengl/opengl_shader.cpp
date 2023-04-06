@@ -9,6 +9,7 @@
 #include "../shader_loader.h"
 
 #include "../graphics_shared.h"
+#include "../reflect.h"
 #include <future>
 
 #include <array>
