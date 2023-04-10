@@ -49,12 +49,12 @@ private:
     }
 
 public:
-    auto update(const void* data, GLint offset, GLuint size) const -> void;
+    auto write(const void* data, GLint offset, GLuint size) const -> void;
 
 
     template<typename U>
-    auto update(const std::initializer_list<U>& data) const -> void {
-        this->update((void*)data.begin(), 0, data.size() * sizeof(U));
+    auto write(const std::initializer_list<U>& data) const -> void {
+        this->write((void*)data.begin(), 0, data.size() * sizeof(U));
     }
 
     auto bind_base(GLuint binding_point) const -> void;

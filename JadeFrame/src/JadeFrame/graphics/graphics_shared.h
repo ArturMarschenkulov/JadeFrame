@@ -198,6 +198,8 @@ public:
     VertexFormat(VertexFormat&&) = default;
     auto operator=(VertexFormat&&) -> VertexFormat& = default;
 
+    static auto default_format() -> VertexFormat;
+
     VertexFormat(const std::initializer_list<VertexAttribute>& attributes);
 
     auto calculate_offset_and_stride(std::vector<VertexAttribute>& attributes) -> void;
@@ -252,6 +254,8 @@ public:
         VertexFormat vertex_format;
     };
     ShaderHandle(const Desc& desc);
+
+    auto set_uniform(const std::string& name, const void* data, size_t size) -> void;
 
 public:
     ShadingCode  m_code;

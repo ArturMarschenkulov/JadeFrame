@@ -15,6 +15,10 @@
 
 namespace JadeFrame {
 
+/*---------------------------
+    Image
+---------------------------*/
+
 Image::~Image() {
     if (data != nullptr) { stbi_image_free(data); }
 }
@@ -46,6 +50,10 @@ auto Image::load(const std::string& path) -> Image {
     img.num_components = num_components;
     return img;
 }
+
+/*---------------------------
+    Texture Handle
+---------------------------*/
 
 TextureHandle::TextureHandle(const Image& img) {
     m_data = img.data;
@@ -106,6 +114,10 @@ auto TextureHandle::init(void* context) -> void {
     }
 }
 
+/*---------------------------
+    ShaderHandle
+---------------------------*/
+
 ShaderHandle::ShaderHandle(const Desc& desc) {
     m_code = desc.shading_code;
     m_vertex_format = desc.vertex_format;
@@ -134,6 +146,29 @@ auto ShaderHandle::operator=(ShaderHandle&& other) -> ShaderHandle& {
     return *this;
 }
 
+auto ShaderHandle::set_uniform(const std::string& name, const void* data, size_t size) -> void {
+    switch (m_api) {
+        case GRAPHICS_API::OPENGL: {
+            auto shader = (opengl::Shader*)m_handle;
+            // shader->set_uniform(name, data, size);
+        } break;
+        case GRAPHICS_API::VULKAN: {
+            auto shader = (Vulkan_Shader*)m_handle;
+            auto [set, binding] = shader->get_location(name);
+            // shader->bind_buffer(set, binding, data, size);
+            // shader->m_sets[set].bind_uniform_buffer(binding, data, size);
+            // shader->set_uniform(name, data, size);
+
+        } break;
+        default: assert(false);
+    }
+}
+
+
+/*---------------------------
+    VertexAttribute
+---------------------------*/
+
 VertexAttribute::VertexAttribute(const std::string& name, SHADER_TYPE type, bool normalized)
     : name(name)
     , type(type)
@@ -141,10 +176,23 @@ VertexAttribute::VertexAttribute(const std::string& name, SHADER_TYPE type, bool
     , offset(0)
     , normalized(normalized) {}
 
+/*---------------------------
+    VertexFormat
+---------------------------*/
 VertexFormat::VertexFormat(const std::initializer_list<VertexAttribute>& attributes)
     : m_attributes(attributes) {
     this->calculate_offset_and_stride(m_attributes);
 }
+auto VertexFormat::default_format() -> VertexFormat {
+    const VertexFormat result = {
+        {     "v_position", SHADER_TYPE::V_3_F32},
+        {        "v_color", SHADER_TYPE::V_4_F32},
+        {"v_texture_coord", SHADER_TYPE::V_2_F32},
+        {       "v_normal", SHADER_TYPE::V_3_F32},
+    };
+    return result;
+}
+
 auto VertexFormat::calculate_offset_and_stride(std::vector<VertexAttribute>& attributes) -> void {
     size_t offset = 0;
     m_stride = 0;
@@ -155,7 +203,9 @@ auto VertexFormat::calculate_offset_and_stride(std::vector<VertexAttribute>& att
     }
 }
 
-
+/*---------------------------
+    RenderSystem
+---------------------------*/
 
 
 RenderSystem::RenderSystem(GRAPHICS_API api, IWindow* window) {
@@ -246,13 +296,15 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
 
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            OpenGL_Renderer*     r = static_cast<OpenGL_Renderer*>(m_renderer);
+            OpenGL_Renderer* ren = static_cast<OpenGL_Renderer*>(m_renderer);
+            auto             ctx = (OpenGL_Context*)&ren->m_context;
+
             opengl::Shader::Desc shader_desc;
             shader_desc.code = ogl(m_registered_shaders[id].m_code);
             shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
 
-
-            m_registered_shaders[id].m_handle = new opengl::Shader(*(OpenGL_Context*)&r->m_context, shader_desc);
+            opengl::Shader* shader = new opengl::Shader(*ctx, shader_desc);
+            m_registered_shaders[id].m_handle = shader;
         } break;
         case GRAPHICS_API::VULKAN: {
             Vulkan_Renderer*       ren = static_cast<Vulkan_Renderer*>(m_renderer);
@@ -287,21 +339,14 @@ auto RenderSystem::register_mesh(const VertexFormat& format, const VertexData& d
     if (format.m_attributes.size() == 0) {
         Logger::warn("No vertex format provided, using default one. (v_position float3, v_color float4, "
                      "v_texture_coord float2, v_normal float3");
-        const VertexFormat vf = {
-            {     "v_position", SHADER_TYPE::V_3_F32},
-            {        "v_color", SHADER_TYPE::V_4_F32},
-            {"v_texture_coord", SHADER_TYPE::V_2_F32},
-            {       "v_normal", SHADER_TYPE::V_3_F32},
-        };
-        vertex_format = vf;
+        vertex_format = VertexFormat::default_format();
     } else {
         vertex_format = format;
     }
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-
-            OpenGL_Renderer* renderer = static_cast<OpenGL_Renderer*>(m_renderer);
-            renderer->m_registered_meshes[id] = opengl::GPUMeshData(renderer->m_context, data, vertex_format);
+            OpenGL_Renderer* r = static_cast<OpenGL_Renderer*>(m_renderer);
+            r->m_registered_meshes[id] = opengl::GPUMeshData(r->m_context, data, vertex_format);
         } break;
         case GRAPHICS_API::VULKAN: {
             Vulkan_Renderer* r = static_cast<Vulkan_Renderer*>(m_renderer);

@@ -10,6 +10,8 @@
 namespace JadeFrame {
 
 
+static const i32 MAX_FRAMES_IN_FLIGHT = 1;
+
 Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
     : m_context(window) {
     m_system = &system;
@@ -41,6 +43,10 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
     // Uniform stuff
     m_ub_tran = m_logical_device->create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
     m_ub_cam = m_logical_device->create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+
+    // Sync objects stuff
+    m_frames.resize(MAX_FRAMES_IN_FLIGHT);
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) { m_frames[i].init(m_logical_device); }
 }
 auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void { m_clear_color = color; }
 
@@ -73,32 +79,18 @@ auto get_aligned_block_size(const u64 block_size, const u64 alignment) -> u64 {
         const u64 new_val = (block_size + alignment - 1) & ~(alignment - 1);
         const u64 aligned_block_size = alignment > 0 ? new_val : block_size;
 #else // more readable
-      // if 'block_size' is already aligned, then 'new_val' will be equal to 'block_size'
     const u64 new_val = (block_size + alignment - (block_size % alignment));
     const u64 aligned_block_size = (block_size % alignment == 0) ? block_size : new_val;
 #endif
     return aligned_block_size;
 }
 
-struct Frame {
-    vulkan::Fence     fence;
-    vulkan::Semaphore sem_available;
-    vulkan::Semaphore sem_finished;
-};
 auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
-
     vulkan::LogicalDevice&        d = *m_logical_device;
     const vulkan::PhysicalDevice* pd = d.m_physical_device;
 
-    const RGBAColor    c = m_clear_color;
-    const VkClearValue clear_value = VkClearValue{c.r, c.g, c.b, c.a};
+    m_frames[m_frame_index].acquire_image(d.m_swapchain);
 
-    vulkan::Fence&     fence_curr = d.m_in_flight_fences[d.m_current_frame];
-    vulkan::Semaphore& sem_available = d.m_image_available_semaphores[d.m_current_frame];
-    vulkan::Semaphore& sem_finished = d.m_render_finished_semaphores[d.m_current_frame];
-
-    d.wait_for_fence(fence_curr, VK_TRUE, UINT64_MAX);
-    d.m_present_image_index = d.m_swapchain.acquire_next_image(&sem_available, nullptr);
 
     if (d.m_swapchain.m_is_recreated == true) {
         d.m_swapchain.m_is_recreated = false;
@@ -111,12 +103,13 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     const u64 dyn_alignment =
         get_aligned_block_size(sizeof(Matrix4x4), pd->query_limits().minUniformBufferOffsetAlignment);
 
-    vulkan::CommandBuffer& cb = d.m_command_buffers[d.m_present_image_index];
-    vulkan::Framebuffer&   framebuffer = d.m_framebuffers[d.m_present_image_index];
-    vulkan::RenderPass&    render_pass = d.m_render_pass;
-
+    vulkan::CommandBuffer& cb = m_frames[m_frame_index].cmd;
     cb.record([&] {
-        cb.render_pass(framebuffer, render_pass, d.m_swapchain.m_extent, clear_value, [&] {
+        vulkan::Framebuffer& framebuffer = d.m_framebuffers[m_frames[m_frame_index].index];
+        const RGBAColor      c = m_clear_color;
+        const VkClearValue   clear_value = VkClearValue{c.r, c.g, c.b, c.a};
+
+        cb.render_pass(framebuffer, d.m_render_pass, d.m_swapchain.m_extent, clear_value, [&] {
             for (u64 i = 0; i < m_render_commands.size(); i++) {
                 const auto&         cmd = m_render_commands[i];
                 const ShaderHandle& shader_handle = m_system->m_registered_shaders[cmd.material_handle.m_shader_id];
@@ -160,17 +153,18 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         });
     });
 
-    fence_curr.reset();
-    d.m_graphics_queue.submit(cb, &sem_available, &sem_finished, &fence_curr);
+    m_frames[m_frame_index].submit(d.m_graphics_queue);
+
 
     m_render_commands.clear();
 }
 
 auto Vulkan_Renderer::present() -> void {
     vulkan::LogicalDevice& d = *m_logical_device;
-    vulkan::Semaphore&     sem_finished = d.m_render_finished_semaphores[d.m_current_frame];
 
-    VkResult result = d.m_present_queue.present(d.m_present_image_index, d.m_swapchain, &sem_finished);
+    vulkan::Semaphore& sem_render_finished = m_frames[m_frame_index].sem_finished;
+
+    VkResult result = d.m_present_queue.present(m_frames[m_frame_index].index, d.m_swapchain, &sem_render_finished);
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || d.m_framebuffer_resized) {
         d.m_framebuffer_resized = false;
         Logger::debug("recreate because of vkQueuePresentKHR");
@@ -181,7 +175,7 @@ auto Vulkan_Renderer::present() -> void {
     }
 
     // auto max_frames_in_flight = d.m_swapchain.m_images.size() - 1;
-    d.m_current_frame = (d.m_current_frame + 1) % 1 /*MAX_FRAMES_IN_FLIGHT*/;
+    m_frame_index = (m_frame_index + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 

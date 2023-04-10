@@ -7,7 +7,6 @@
 #include "vulkan_buffer.h"
 #include "vulkan_shader.h"
 #include "vulkan_descriptor_set.h"
-#include "vulkan_sync_object.h"
 #include "vulkan_command_buffers.h"
 
 
@@ -25,6 +24,8 @@ namespace vulkan {
 class LogicalDevice;
 class Pipeline;
 class PhysicalDevice;
+class Fence;
+class Semaphore;
 class Queue {
 public:
     Queue() = default;
@@ -109,18 +110,13 @@ public:
 public:
     auto create_command_pool(const QueueFamilyIndex& queue_family_index) -> CommandPool;
 
-    CommandPool                m_command_pool;
-    std::vector<CommandBuffer> m_command_buffers;
-
-
+    CommandPool m_command_pool;
 public: // synchro objects
     auto create_semaphore() const -> Semaphore;
     auto create_fence(bool signaled) const -> Fence;
 
 public: // Misc
-    u32    m_present_image_index = 0;
-    size_t m_current_frame = 0;
-    bool   m_framebuffer_resized = false;
+    bool m_framebuffer_resized = false;
 
 
 public:

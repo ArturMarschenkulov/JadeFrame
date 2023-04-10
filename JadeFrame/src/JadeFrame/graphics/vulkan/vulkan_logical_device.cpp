@@ -3,6 +3,7 @@
 #include "vulkan_physical_device.h"
 #include "vulkan_context.h"
 #include "vulkan_buffer.h"
+#include "vulkan_sync_object.h"
 
 #include "JadeFrame/math/mat_4.h"
 #include "JadeFrame/math/math.h"
@@ -17,7 +18,6 @@
 
 namespace JadeFrame {
 
-static const i32 MAX_FRAMES_IN_FLIGHT = 1;
 
 static auto VkResult_to_string(VkResult x) {
     std::string str;
@@ -244,28 +244,17 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
     }
     // Commad Buffer stuff
     m_command_pool = this->create_command_pool(m_physical_device->m_queue_family_indices.m_graphics_family.value());
-    m_command_buffers = m_command_pool.allocate_buffers(static_cast<u32>(m_framebuffers.size()));
+
 
     Logger::debug("maxBoundDescriptorSets: {}", m_physical_device->m_properties.limits.maxBoundDescriptorSets);
     JF_ASSERT(m_physical_device->m_properties.limits.maxBoundDescriptorSets >= 4, "");
-
-    // Sync objects stuff
-    m_image_available_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    m_render_finished_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    m_in_flight_fences.resize(MAX_FRAMES_IN_FLIGHT);
-
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        m_image_available_semaphores[i] = this->create_semaphore();
-        m_render_finished_semaphores[i] = this->create_semaphore();
-        m_in_flight_fences[i] = this->create_fence(true);
-    }
 }
 
-auto LogicalDevice::create_semaphore() -> Semaphore {
+auto LogicalDevice::create_semaphore() const -> Semaphore {
     Semaphore semaphore(*this);
     return semaphore;
 }
-auto LogicalDevice::create_fence(bool signaled) -> Fence {
+auto LogicalDevice::create_fence(bool signaled) const -> Fence {
     Fence fence(*this, signaled);
     return fence;
 }
@@ -289,14 +278,12 @@ auto LogicalDevice::create_image_view(Image& image, VkFormat format) -> ImageVie
 }
 
 auto LogicalDevice::create_render_pass(VkFormat image_format) -> RenderPass {
-    RenderPass rp;
-    rp.init(*this, image_format);
+    RenderPass rp(*this, image_format);
     return rp;
 }
 auto LogicalDevice::create_framebuffer(const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent)
     -> Framebuffer {
-    Framebuffer fb;
-    fb.init(*this, image_view, render_pass, extent);
+    Framebuffer fb(*this, image_view, render_pass, extent);
     return fb;
 }
 
@@ -305,11 +292,7 @@ auto LogicalDevice::deinit() -> void {
     for (uint32_t i = 0; i < m_framebuffers.size(); i++) { m_framebuffers[i].deinit(); }
     m_render_pass.deinit();
     this->cleanup_swapchain();
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        m_render_finished_semaphores[i].deinit();
-        m_image_available_semaphores[i].deinit();
-        m_in_flight_fences[i].deinit();
-    }
+
 
     m_command_pool.deinit();
     m_swapchain.deinit();

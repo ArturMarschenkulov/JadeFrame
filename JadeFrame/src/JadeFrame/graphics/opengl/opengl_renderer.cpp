@@ -117,7 +117,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     this->clear_background();
 
-    m_uniform_buffers[0]->update({view_projection});
+    m_uniform_buffers[0]->write({view_projection});
 
     for (size_t i = 0; i < m_render_commands.size(); ++i) {
         const OpenGL_RenderCommand& command = m_render_commands[i];
@@ -138,7 +138,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         }
 
         const Matrix4x4& transform = *command.transform;
-        m_uniform_buffers[1]->update({transform});
+        m_uniform_buffers[1]->write({transform});
 
         this->render_mesh(p_vertex_array, p_mesh);
     }

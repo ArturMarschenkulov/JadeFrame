@@ -89,7 +89,7 @@ auto Buffer::alloc(void* data, GLuint size) const -> void {
     }
     glNamedBufferData(m_id, size, data, usage);
 }
-auto Buffer::update(const void* data, GLint offset, GLuint size) const -> void {
+auto Buffer::write(const void* data, GLint offset, GLuint size) const -> void {
     // glBufferSubData(buffer_type, offset, size, data);
     glNamedBufferSubData(m_id, offset, size, data);
 }
