@@ -145,12 +145,12 @@ auto LogicalDevice::recreate_swapchain() -> void {
 }
 auto LogicalDevice::cleanup_swapchain() -> void { m_swapchain.deinit(); }
 
-auto LogicalDevice::wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) -> void {
+auto LogicalDevice::wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) const -> void {
     VkResult result;
     result = vkWaitForFences(m_handle, 1, &fences.m_handle, wait_all, timeout);
     if (result != VK_SUCCESS) assert(false);
 }
-auto LogicalDevice::wait_for_fences(const std::vector<Fence>& fences, bool wait_all, u64 timeout) -> void {
+auto LogicalDevice::wait_for_fences(const std::vector<Fence>& fences, bool wait_all, u64 timeout) const -> void {
     assert(fences.size() < 5);
     std::array<VkFence, 5> vk_fences;
     for (u32 i = 0; i < fences.size(); ++i) { vk_fences[i] = fences[i].m_handle; }

@@ -73,8 +73,8 @@ public:
     auto init(const VulkanInstance& instance, const PhysicalDevice& physical_device, const Surface& surface) -> void;
     auto deinit() -> void;
 
-    auto wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) -> void;
-    auto wait_for_fences(const std::vector<Fence>& fences, bool wait_all, u64 timeout) -> void;
+    auto wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) const -> void;
+    auto wait_for_fences(const std::vector<Fence>& fences, bool wait_all, u64 timeout) const -> void;
 
 public:
     VkDevice              m_handle = VK_NULL_HANDLE;
@@ -114,12 +114,8 @@ public:
 
 
 public: // synchro objects
-    auto create_semaphore() -> Semaphore;
-    auto create_fence(bool signaled) -> Fence;
-
-    std::vector<Semaphore> m_image_available_semaphores;
-    std::vector<Semaphore> m_render_finished_semaphores;
-    std::vector<Fence>     m_in_flight_fences;
+    auto create_semaphore() const -> Semaphore;
+    auto create_fence(bool signaled) const -> Fence;
 
 public: // Misc
     u32    m_present_image_index = 0;
