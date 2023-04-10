@@ -225,7 +225,7 @@ auto Swapchain::recreate() -> void {
     this->init(*m_device, m_device->m_instance->m_surface);
 }
 
-auto Swapchain::acquire_next_image(const Semaphore* semaphore, const Fence* fence, VkResult& out_result) -> u32 {
+auto Swapchain::acquire_image_index(const Semaphore* semaphore, const Fence* fence, VkResult& out_result) -> u32 {
     u32         image_index;
     VkSemaphore p_semaphore = semaphore == nullptr ? VK_NULL_HANDLE : semaphore->m_handle;
     VkFence     p_fence = fence == nullptr ? VK_NULL_HANDLE : fence->m_handle;
@@ -241,7 +241,7 @@ auto Swapchain::acquire_next_image(const Semaphore* semaphore, const Fence* fenc
     return image_index;
 }
 
-auto Swapchain::acquire_next_image(const Semaphore* semaphore, const Fence* fence) -> u32 {
+auto Swapchain::acquire_image_index(const Semaphore* semaphore, const Fence* fence) -> u32 {
     VkResult    result;
     u32         image_index;
     VkSemaphore p_semaphore = semaphore == nullptr ? VK_NULL_HANDLE : semaphore->m_handle;

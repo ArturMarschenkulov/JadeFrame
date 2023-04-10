@@ -82,8 +82,8 @@ public:
     auto deinit() -> void;
     auto recreate() -> void;
 
-    auto acquire_next_image(const Semaphore* semaphore, const Fence* fence, VkResult& result) -> u32;
-    auto acquire_next_image(const Semaphore* semaphore, const Fence* fence) -> u32;
+    auto acquire_image_index(const Semaphore* semaphore, const Fence* fence, VkResult& result) -> u32;
+    auto acquire_image_index(const Semaphore* semaphore, const Fence* fence) -> u32;
 
     auto query_images() -> std::vector<Image>;
 
