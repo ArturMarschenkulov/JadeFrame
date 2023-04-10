@@ -35,7 +35,7 @@ public:
     RenderPass(RenderPass&& other) = default;
     auto operator=(RenderPass&& other) -> RenderPass& = default;
 
-    auto init(const LogicalDevice& device, VkFormat image_format) -> void;
+    RenderPass(const LogicalDevice& device, VkFormat image_format);
     auto deinit() -> void;
 
 public:
@@ -52,9 +52,9 @@ public:
     Framebuffer(Framebuffer&& other) = default;
     auto operator=(Framebuffer&& other) -> Framebuffer& = default;
 
-    auto
-    init(const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent)
-        -> void;
+
+    Framebuffer(
+        const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent);
     auto deinit() -> void;
 
 public:

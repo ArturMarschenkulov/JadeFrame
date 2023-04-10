@@ -81,7 +81,7 @@ static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities
         Render Pass
 ---------------------------*/
 
-auto RenderPass::init(const LogicalDevice& device, VkFormat image_format) -> void {
+RenderPass::RenderPass(const LogicalDevice& device, VkFormat image_format) {
     m_device = &device;
     VkResult result;
 
@@ -274,9 +274,8 @@ auto Swapchain::acquire_next_image(const Semaphore* semaphore, const Fence* fenc
         Framebuffer
 ---------------------------*/
 
-auto Framebuffer::init(
-    const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent)
-    -> void {
+Framebuffer::Framebuffer(
+    const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent) {
     m_device = &device;
     m_image_view = &image_view;
     m_render_pass = &render_pass;
