@@ -129,25 +129,6 @@ public:
     auto query_queues(u32 queue_family_index, u32 queue_index) -> Queue;
 
     auto create_shader(const Vulkan_Shader::Desc& desc) -> Vulkan_Shader;
-
-    //	// To be removed
-public: // texture stuff
-    auto create_texture_image(const std::string& path) -> void;
-    auto create_image(
-        v2u32 size, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
-        VkImage& image, VkDeviceMemory& imageMemory) -> void;
-    // auto copy_buffer_to_image(VkBuffer buffer, VkImage image, u32 width, u32 height) -> void;
-    Image m_texture_image;
-    // VkImage m_texture_image;
-    VkDeviceMemory m_texture_image_memory;
-
-    // auto create_image_view(VkImage image, VkFormat format)->VkImageView;
-    auto create_texture_image_view() -> void;
-    auto create_texture_sampler() -> void;
-
-    ImageView m_texture_image_view;
-    // VkImageView m_texture_image_view;
-    VkSampler m_texture_sampler;
 };
 
 } // namespace vulkan
