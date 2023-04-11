@@ -57,18 +57,11 @@ auto Vulkan_Renderer::clear_background() -> void {}
 auto Vulkan_Renderer::submit(const Object& obj) -> void {
     const vulkan::LogicalDevice& d = *m_logical_device;
 
-    if (false == obj.m_GPU_mesh_data.m_is_initialized) {
-        assert(obj.m_vertex_format.m_attributes.size() > 0);
-
-        obj.m_GPU_mesh_data.m_handle = new vulkan::GPUMeshData(d, *obj.m_vertex_data, obj.m_vertex_format);
-        obj.m_GPU_mesh_data.m_is_initialized = true;
-    }
-
     const Vulkan_RenderCommand command = {
         .transform = &obj.m_transform,
         .vertex_data = obj.m_vertex_data,
         .material_handle = obj.m_material_handle,
-        .m_GPU_mesh_data = &obj.m_GPU_mesh_data,
+        .m_GPU_mesh_data_id = obj.m_vertex_data_id,
     };
     m_render_commands.push_back(command);
 }
@@ -111,16 +104,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
         cb.render_pass(framebuffer, d.m_render_pass, d.m_swapchain.m_extent, clear_value, [&] {
             for (u64 i = 0; i < m_render_commands.size(); i++) {
-                const auto&         cmd = m_render_commands[i];
-                const ShaderHandle& shader_handle = m_system->m_registered_shaders[cmd.material_handle.m_shader_id];
-                Vulkan_Shader*      shader = static_cast<Vulkan_Shader*>(shader_handle.m_handle);
-                const auto&         gpu_data = *static_cast<vulkan::GPUMeshData*>(cmd.m_GPU_mesh_data->m_handle);
-
-
-                VkBuffer                  vertex_buffers[] = {gpu_data.m_vertex_buffer.m_handle};
-                const VkPipelineBindPoint bind_point = VK_PIPELINE_BIND_POINT_GRAPHICS;
-                const u32                 offset = static_cast<u32>(dyn_alignment * i);
-                VkDeviceSize              offsets[] = {0, 0};
+                vulkan::GPUMeshData& gpu_data = m_registered_meshes[cmd.m_GPU_mesh_data_id];
 
                 // Update ubo buffer and descriptor set when the amount of render commands changes
                 const size_t num_commands = m_render_commands.size();

@@ -41,7 +41,6 @@ struct OpenGL_RenderCommand {
     const Matrix4x4*         transform = nullptr;
     const VertexData*        vertex_data = nullptr;
     MaterialHandle           material_handle = {0, 0};
-    const GPUDataMeshHandle* m_GPU_mesh_data = nullptr;
     const u32                m_GPU_mesh_data_id = 0;
 };
 class OpenGL_CommandBuffer {

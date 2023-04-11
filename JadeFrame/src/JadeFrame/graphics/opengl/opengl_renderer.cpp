@@ -101,7 +101,6 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
         .transform = &obj.m_transform,
         .vertex_data = obj.m_vertex_data,
         .material_handle = obj.m_material_handle,
-        .m_GPU_mesh_data = &obj.m_GPU_mesh_data,
         .m_GPU_mesh_data_id = obj.m_vertex_data_id,
     };
     m_render_commands.push_back(command);
