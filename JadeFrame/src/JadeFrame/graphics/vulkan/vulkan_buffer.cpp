@@ -389,21 +389,6 @@ GPUMeshData::GPUMeshData(
     }
 }
 
-auto GPUMeshData::operator=(GPUMeshData&& other) -> GPUMeshData& {
-    m_vertex_buffer = std::move(other.m_vertex_buffer);
-    m_index_buffer = std::move(other.m_index_buffer);
-
-    m_vertex_buffer = std::move(other.m_vertex_buffer);
-    m_index_buffer = std::move(other.m_index_buffer);
-    m_vertex_format = std::move(other.m_vertex_format);
-
-    return *this;
-}
-
-// Vulkan_GPUMeshData::Vulkan_GPUMeshData(Vulkan_GPUMeshData&& other) {
-//     *this = std::move(other);
-// }
-
 auto GPUMeshData::bind() const -> void {}
 auto GPUMeshData::set_layout(const VertexFormat& /*vertex_format*/) -> void {}
 
@@ -595,23 +580,27 @@ auto Sampler::deinit() -> void {}
         Texture
 ---------------------------*/
 
-
-auto Vulkan_Texture::init(const LogicalDevice& device, void* data, v2u32 size, VkFormat format) -> void {
+Vulkan_Texture::Vulkan_Texture(const LogicalDevice& device, void* data, v2u32 size, VkFormat format) {
     m_device = &device;
-
-    VkDeviceSize image_size = size.width * size.height * 3 /*image.num_components*/;
+    u32 comp_count = 0;
+    if (format == VK_FORMAT_R8G8B8_SRGB) {
+        comp_count = 3;
+    } else if (format == VK_FORMAT_R8G8B8A8_SRGB) {
+        comp_count = 4;
+    } else {
+        assert(false);
+    }
+    VkDeviceSize image_size = size.width * size.height * comp_count;
     Buffer       staging_buffer(device, Buffer::TYPE::STAGING, nullptr, image_size);
     staging_buffer.write(data, 0, image_size);
 
     // Image image;
     m_image.init(device, size, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
-    this->transition_layout(
-        m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    this->transition_layout(m_image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     this->copy_buffer_to_image(staging_buffer, m_image, size);
     this->transition_layout(
-        m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        m_image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     staging_buffer.deinit();
 

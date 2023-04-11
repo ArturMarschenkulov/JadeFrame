@@ -71,12 +71,10 @@ class GPUMeshData {
 public:
     GPUMeshData() = default;
     ~GPUMeshData() = default;
-
     GPUMeshData(const GPUMeshData&) = delete;
     auto operator=(const GPUMeshData&) -> GPUMeshData& = delete;
-
-    // Vulkan_GPUMeshData(Vulkan_GPUMeshData&& other);
-    auto operator=(GPUMeshData&& other) -> GPUMeshData&;
+    GPUMeshData(GPUMeshData&& other) = default;
+    auto operator=(GPUMeshData&& other) -> GPUMeshData& = default;
 
     GPUMeshData(
         const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat vertex_format,
@@ -158,7 +156,8 @@ public:
     Vulkan_Texture(Vulkan_Texture&&) = delete;
     auto operator=(Vulkan_Texture&&) -> Vulkan_Texture& = delete;
 
-    auto init(const LogicalDevice& device, void* data, v2u32 size, VkFormat) -> void;
+    Vulkan_Texture(const LogicalDevice& device, void* data, v2u32 size, VkFormat);
+
     auto deinit() -> void;
 
     auto transition_layout(const Image& image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout)
