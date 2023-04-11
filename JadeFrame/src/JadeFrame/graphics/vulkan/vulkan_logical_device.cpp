@@ -67,27 +67,22 @@ auto Queue::submit(
     const CommandBuffer& cmd_buffer, const Semaphore* wait_semaphore, const Semaphore* signal_semaphore,
     const Fence* fence) const -> void {
 
-    // Short description
-    // 1. Wait for the wait_semaphore to be signaled
-    // 2. Execute the command buffer
-    // 3. Signal the signal_semaphore
-    // 4. Wait for the fence to be signaled
+    VkFence fence_handle = fence ? fence->m_handle : 0;
 
     VkPipelineStageFlags wait_stages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     const VkSubmitInfo   submit_info = {
           .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
           .pNext = nullptr,
-          .waitSemaphoreCount = 1,
-          .pWaitSemaphores = &wait_semaphore->m_handle,
+          .waitSemaphoreCount = wait_semaphore ? 1_u32 : 0,
+          .pWaitSemaphores = wait_semaphore ? &wait_semaphore->m_handle : 0,
           .pWaitDstStageMask = wait_stages,
           .commandBufferCount = 1,
           .pCommandBuffers = &cmd_buffer.m_handle,
-          .signalSemaphoreCount = 1,
-          .pSignalSemaphores = &signal_semaphore->m_handle,
+          .signalSemaphoreCount = signal_semaphore ? 1_u32 : 0,
+          .pSignalSemaphores = signal_semaphore ? &signal_semaphore->m_handle : 0,
     };
-    /*this->submit(submit_info);*/
     VkResult result;
-    result = vkQueueSubmit(m_handle, 1, &submit_info, fence->m_handle);
+    result = vkQueueSubmit(m_handle, 1, &submit_info, fence_handle);
     if (result != VK_SUCCESS) JF_ASSERT(false, to_string(result));
     cmd_buffer.m_stage = CommandBuffer::STAGE::PENDING;
 }
