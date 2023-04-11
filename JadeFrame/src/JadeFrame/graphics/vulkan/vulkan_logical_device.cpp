@@ -204,18 +204,17 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
         queue_create_infos.push_back(queue_create_info);
     }
 
-    const VkPhysicalDeviceFeatures devices_features = {};
-    const VkDeviceCreateInfo       create_info = {
-              .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-              .pNext = nullptr,
-              .flags = 0,
-              .queueCreateInfoCount = static_cast<u32>(queue_create_infos.size()),
-              .pQueueCreateInfos = queue_create_infos.data(),
-              .enabledLayerCount = 0,         // this is deprecated and ignored
-              .ppEnabledLayerNames = nullptr, // this is deprecated and ignored
-              .enabledExtensionCount = static_cast<u32>(physical_device.m_device_extensions.size()),
-              .ppEnabledExtensionNames = physical_device.m_device_extensions.data(),
-              .pEnabledFeatures = &devices_features,
+    const VkDeviceCreateInfo create_info = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .queueCreateInfoCount = static_cast<u32>(queue_create_infos.size()),
+        .pQueueCreateInfos = queue_create_infos.data(),
+        .enabledLayerCount = 0,         // this is deprecated and ignored
+        .ppEnabledLayerNames = nullptr, // this is deprecated and ignored
+        .enabledExtensionCount = static_cast<u32>(physical_device.m_device_extensions.size()),
+        .ppEnabledExtensionNames = physical_device.m_device_extensions.data(),
+        .pEnabledFeatures = &physical_device.m_features,
     };
 
     result = vkCreateDevice(physical_device.m_handle, &create_info, nullptr, &m_handle);

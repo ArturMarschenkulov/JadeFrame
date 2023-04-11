@@ -449,7 +449,7 @@ auto Sampler::init(const LogicalDevice& device) -> void {
         .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
         .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
         .mipLodBias = 0.0f,
-        .anisotropyEnable = VK_TRUE,
+        .anisotropyEnable = device.m_physical_device->m_features.samplerAnisotropy == VK_TRUE ? VK_TRUE : VK_FALSE,
         .maxAnisotropy = device.m_physical_device->m_properties.limits.maxSamplerAnisotropy,
         .compareEnable = VK_FALSE,
         .compareOp = VK_COMPARE_OP_ALWAYS,
