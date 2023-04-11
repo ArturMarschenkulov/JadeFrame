@@ -103,9 +103,9 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     const u64 dyn_alignment =
         get_aligned_block_size(sizeof(Matrix4x4), pd->query_limits().minUniformBufferOffsetAlignment);
 
-    vulkan::CommandBuffer& cb = m_frames[m_frame_index].cmd;
+    vulkan::CommandBuffer& cb = m_frames[m_frame_index].m_cmd;
     cb.record([&] {
-        vulkan::Framebuffer& framebuffer = d.m_framebuffers[m_frames[m_frame_index].index];
+        vulkan::Framebuffer& framebuffer = d.m_framebuffers[m_frames[m_frame_index].m_index];
         const RGBAColor      c = m_clear_color;
         const VkClearValue   clear_value = VkClearValue{c.r, c.g, c.b, c.a};
 
@@ -162,9 +162,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 auto Vulkan_Renderer::present() -> void {
     vulkan::LogicalDevice& d = *m_logical_device;
 
-    vulkan::Semaphore& sem_render_finished = m_frames[m_frame_index].sem_finished;
-
-    VkResult result = d.m_present_queue.present(m_frames[m_frame_index].index, d.m_swapchain, &sem_render_finished);
+    VkResult result = m_frames[m_frame_index].present(d.m_present_queue, d.m_swapchain);
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || d.m_framebuffer_resized) {
         d.m_framebuffer_resized = false;
         Logger::debug("recreate because of vkQueuePresentKHR");

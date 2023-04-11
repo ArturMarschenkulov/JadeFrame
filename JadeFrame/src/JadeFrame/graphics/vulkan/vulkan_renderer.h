@@ -54,31 +54,34 @@ public: // Descriptor set
 
 public:
     struct Frame {
-        vulkan::LogicalDevice* device;
-        u32                    index;
+        vulkan::LogicalDevice* m_device;
+        u32                    m_index;
 
-        vulkan::CommandBuffer cmd;
+        vulkan::CommandBuffer m_cmd;
 
-        vulkan::Fence     fence;
-        vulkan::Semaphore sem_available;
-        vulkan::Semaphore sem_finished;
+        vulkan::Fence     m_fence;
+        vulkan::Semaphore m_sem_available;
+        vulkan::Semaphore m_sem_finished;
 
         auto init(vulkan::LogicalDevice* device) -> void {
-            device = device;
-            index = 0;
-            fence = device->create_fence(true);
-            sem_available = device->create_semaphore();
-            sem_finished = device->create_semaphore();
-            cmd = device->m_command_pool.allocate_buffer();
+            m_device = device;
+            m_index = 0;
+            m_fence = device->create_fence(true);
+            m_sem_available = device->create_semaphore();
+            m_sem_finished = device->create_semaphore();
+            m_cmd = device->m_command_pool.allocate_buffer();
         }
         auto acquire_image(vulkan::Swapchain& swapchain) -> void {
-            device->wait_for_fence(fence, VK_TRUE, UINT64_MAX);
-            index = swapchain.acquire_image_index(&sem_available, nullptr);
+            m_device->wait_for_fence(m_fence, VK_TRUE, UINT64_MAX);
+            m_index = swapchain.acquire_image_index(&m_sem_available, nullptr);
         }
 
         auto submit(vulkan::Queue& queue) -> void {
-            fence.reset();
-            queue.submit(cmd, &sem_available, &sem_finished, &fence);
+            m_fence.reset();
+            queue.submit(m_cmd, &m_sem_available, &m_sem_finished, &m_fence);
+        }
+        auto present(vulkan::Queue& queue, vulkan::Swapchain& swapchain) -> VkResult {
+            return queue.present(m_index, swapchain, &m_sem_finished);
         }
     };
     std::vector<Frame> m_frames;
