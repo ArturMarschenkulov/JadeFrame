@@ -85,6 +85,7 @@ public:
     Queue m_graphics_queue;
     Queue m_present_queue;
 
+    DescriptorPool m_set_pool;
 
 
 public: // Swapchain stuff

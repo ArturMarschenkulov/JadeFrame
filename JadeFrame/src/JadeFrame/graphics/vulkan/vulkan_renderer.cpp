@@ -18,23 +18,6 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
     m_logical_device = &m_context.m_instance.m_logical_device;
 
 
-    // Create main descriptor pool, which should have all kinds of types. In the future maybe make it more specific.
-    u32                               descriptor_count = 1000;
-    std::vector<VkDescriptorPoolSize> pool_sizes = {
-        {        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptor_count},
-        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, descriptor_count},
-        {  VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, descriptor_count},
-        {        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, descriptor_count},
-        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, descriptor_count},
-        {  VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, descriptor_count},
-        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptor_count},
-        {               VK_DESCRIPTOR_TYPE_SAMPLER, descriptor_count},
-        {         VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, descriptor_count},
-        {         VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, descriptor_count},
-    };
-    m_set_pool = m_logical_device->create_descriptor_pool(4, pool_sizes);
-
-
     /*
         The part below should probably be somewhere else, as they are highly dependent on the shader code.
         One has to find a way to make it more dynamic.

@@ -225,6 +225,21 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
     m_graphics_queue = this->query_queues(indices.m_graphics_family.value(), 0);
     m_present_queue = this->query_queues(indices.m_present_family.value(), 0);
 
+    m_command_pool = this->create_command_pool(m_physical_device->m_queue_family_indices.m_graphics_family.value());
+    u32                               descriptor_count = 1000;
+    std::vector<VkDescriptorPoolSize> pool_sizes = {
+        {        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptor_count},
+        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, descriptor_count},
+        {  VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, descriptor_count},
+        {        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, descriptor_count},
+        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, descriptor_count},
+        {  VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, descriptor_count},
+        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptor_count},
+        {               VK_DESCRIPTOR_TYPE_SAMPLER, descriptor_count},
+        {         VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, descriptor_count},
+        {         VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, descriptor_count},
+    };
+    m_set_pool = this->create_descriptor_pool(4, pool_sizes);
 
     // Swapchain stuff
     m_swapchain = this->create_swapchain(surface);

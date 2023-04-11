@@ -46,7 +46,7 @@ private: // NOTE: probably temporary
 
     // TODO: Move the descriptor stuff to the shader code
 public: // Descriptor set
-    vulkan::DescriptorPool m_set_pool;
+
 
 
     vulkan::Buffer m_ub_cam;
