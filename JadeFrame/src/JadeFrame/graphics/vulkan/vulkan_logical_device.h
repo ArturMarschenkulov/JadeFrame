@@ -74,17 +74,25 @@ public:
     auto init(const VulkanInstance& instance, const PhysicalDevice& physical_device, const Surface& surface) -> void;
     auto deinit() -> void;
 
-    auto wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) const -> void;
-    auto wait_for_fences(const std::vector<Fence>& fences, bool wait_all, u64 timeout) const -> void;
-
 public:
     VkDevice              m_handle = VK_NULL_HANDLE;
     const VulkanInstance* m_instance = nullptr;
     const PhysicalDevice* m_physical_device = nullptr;
 
+public:
+    auto query_queues(u32 queue_family_index, u32 queue_index) -> Queue;
+
     Queue m_graphics_queue;
     Queue m_present_queue;
 
+public:
+    auto create_command_pool(const QueueFamilyIndex& queue_family_index) -> CommandPool;
+
+    CommandPool m_command_pool;
+
+    auto create_descriptor_pool(u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes) -> DescriptorPool;
+    auto create_descriptor_set_layout(std::vector<vulkan::DescriptorSetLayout::Binding>& bindings) const
+        -> DescriptorSetLayout;
     DescriptorPool m_set_pool;
 
 
@@ -92,13 +100,11 @@ public: // Swapchain stuff
     auto create_swapchain(const Surface& surface) -> Swapchain;
     auto recreate_swapchain() -> void;
     auto cleanup_swapchain() -> void;
-
-    Swapchain m_swapchain;
-
     auto create_render_pass(VkFormat image_format) -> RenderPass;
     auto create_framebuffer(const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent)
         -> Framebuffer;
 
+    Swapchain                m_swapchain;
     RenderPass               m_render_pass;
     std::vector<Framebuffer> m_framebuffers;
 
@@ -106,15 +112,11 @@ public:
     // auto create_image() -> vulkan::Image;
     auto create_image_view(Image& image, VkFormat) -> ImageView;
 
-
-
-public:
-    auto create_command_pool(const QueueFamilyIndex& queue_family_index) -> CommandPool;
-
-    CommandPool m_command_pool;
 public: // synchro objects
     auto create_semaphore() const -> Semaphore;
     auto create_fence(bool signaled) const -> Fence;
+    auto wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) const -> void;
+    auto wait_for_fences(const std::vector<Fence>& fences, bool wait_all, u64 timeout) const -> void;
 
 public: // Misc
     bool m_framebuffer_resized = false;
@@ -122,12 +124,6 @@ public: // Misc
 
 public:
     auto create_buffer(Buffer::TYPE buffer_type, void* data, size_t size) const -> Buffer;
-
-    auto create_descriptor_pool(u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes) -> DescriptorPool;
-    auto create_descriptor_set_layout(std::vector<vulkan::DescriptorSetLayout::Binding>& bindings) const
-        -> DescriptorSetLayout;
-
-    auto query_queues(u32 queue_family_index, u32 queue_index) -> Queue;
 
     auto create_shader(const Vulkan_Shader::Desc& desc) -> Vulkan_Shader;
 };

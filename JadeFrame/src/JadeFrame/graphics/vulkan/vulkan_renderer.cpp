@@ -87,6 +87,9 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
         cb.render_pass(framebuffer, d.m_render_pass, d.m_swapchain.m_extent, clear_value, [&] {
             for (u64 i = 0; i < m_render_commands.size(); i++) {
+                const auto&          cmd = m_render_commands[i];
+                const ShaderHandle&  shader_handle = m_system->m_registered_shaders[cmd.material_handle.m_shader_id];
+                Vulkan_Shader*       shader = static_cast<Vulkan_Shader*>(shader_handle.m_handle);
                 vulkan::GPUMeshData& gpu_data = m_registered_meshes[cmd.m_GPU_mesh_data_id];
 
                 // Update ubo buffer and descriptor set when the amount of render commands changes
@@ -98,16 +101,20 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
                     }
                 }
 
+                const u32 dyn_offset = static_cast<u32>(dyn_alignment * i);
+
                 // Per DrawCall ubo
-                m_ub_tran.write(*cmd.transform, offset);
+                m_ub_tran.write(*cmd.transform, dyn_offset);
 
 
+                const VkPipelineBindPoint bind_point = VK_PIPELINE_BIND_POINT_GRAPHICS;
+                VkDeviceSize              offsets[] = {0, 0};
                 cb.bind_pipeline(bind_point, shader->m_pipeline);
-                cb.bind_vertex_buffers(0, 1, vertex_buffers, offsets);
-                cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 0, shader->m_sets[0], &offset);
-                // cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 1, shader->m_sets[1], &offset);
-                // cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 2, shader->m_sets[2], &offset);
-                cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 3, shader->m_sets[3], &offset);
+                cb.bind_vertex_buffers(0, 1, &gpu_data.m_vertex_buffer.m_handle, offsets);
+                cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 0, shader->m_sets[0], &dyn_offset);
+                // cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 1, shader->m_sets[1], &dyn_offset);
+                cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 2, shader->m_sets[2], &dyn_offset);
+                cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 3, shader->m_sets[3], &dyn_offset);
 
 
                 if (cmd.vertex_data->m_indices.size() > 0) {

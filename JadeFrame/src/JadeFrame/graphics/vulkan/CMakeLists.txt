@@ -48,6 +48,14 @@ target_link_libraries(GraphicsAPI_Vulkan
         stb
         spdlog
 )
+target_link_options(GraphicsAPI_Vulkan
+    PUBLIC
+        /incremental
+        # /NODEFAULTLIB:LIBCMT
+        # /NODEFAULTLIB:LIBCMTD
+        # /NODEFAULTLIB:MSVCRT
+        # /NODEFAULTLIB:MSVCRTD
+)
 
 target_compile_definitions(GraphicsAPI_Vulkan PRIVATE
     $<$<CONFIG:Debug>:_DEBUG>
@@ -63,6 +71,7 @@ if(MSVC)
         /Z7
         /Od
         /W4
+        /MP
     )
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 

@@ -110,6 +110,7 @@ public:
     const LogicalDevice* m_device = nullptr;
     VkDeviceMemory       m_memory;
     SOURCE               m_source;
+    v2u32                m_size;
 };
 
 class ImageView {

@@ -311,6 +311,8 @@ auto Image::operator=(Image&& other) -> Image& {
 auto Image::init(const LogicalDevice& device, const v2u32& size, VkFormat format, VkImageUsageFlags usage) -> void {
     m_device = &device;
     m_source = SOURCE::REGULAR;
+    m_size = size;
+    VkImageFormatProperties props;
 
     VkResult                result;
     const VkImageCreateInfo image_info = {

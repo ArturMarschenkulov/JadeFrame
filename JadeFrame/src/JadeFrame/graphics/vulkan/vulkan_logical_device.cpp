@@ -220,7 +220,10 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
     result = vkCreateDevice(physical_device.m_handle, &create_info, nullptr, &m_handle);
     if (result != VK_SUCCESS) assert(false);
 
-
+    Logger::debug("maxBoundDescriptorSets: {}", m_physical_device->m_properties.limits.maxBoundDescriptorSets);
+    JF_ASSERT(
+        m_physical_device->m_properties.limits.maxBoundDescriptorSets >= 4,
+        "maxBoundDescriptorSets too low, it must be at least 4");
 
     m_graphics_queue = this->query_queues(indices.m_graphics_family.value(), 0);
     m_present_queue = this->query_queues(indices.m_present_family.value(), 0);
@@ -251,12 +254,6 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
     for (size_t i = 0; i < swapchain_image_amount; i++) {
         m_framebuffers[i] = this->create_framebuffer(m_swapchain.m_image_views[i], m_render_pass, m_swapchain.m_extent);
     }
-    // Commad Buffer stuff
-    m_command_pool = this->create_command_pool(m_physical_device->m_queue_family_indices.m_graphics_family.value());
-
-
-    Logger::debug("maxBoundDescriptorSets: {}", m_physical_device->m_properties.limits.maxBoundDescriptorSets);
-    JF_ASSERT(m_physical_device->m_properties.limits.maxBoundDescriptorSets >= 4, "");
 }
 
 auto LogicalDevice::create_semaphore() const -> Semaphore {
