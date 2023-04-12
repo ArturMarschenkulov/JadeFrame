@@ -37,11 +37,28 @@ Image& Image::operator=(Image&& other) noexcept {
     other.data = nullptr;
     return *this;
 }
-
+static auto add_fourth_components(u8* data, i32 width, i32 height, i32 num_components) -> u8* {
+    u8* new_data = new u8[width * height * 4];
+    for (i32 i = 0; i < width * height; i++) {
+        new_data[i * 4 + 0] = data[i * num_components + 0];
+        new_data[i * 4 + 1] = data[i * num_components + 1];
+        new_data[i * 4 + 2] = data[i * num_components + 2];
+        new_data[i * 4 + 3] = 255;
+    }
+    return new_data;
+}
 auto Image::load(const std::string& path) -> Image {
     stbi_set_flip_vertically_on_load(true);
     i32 width, height, num_components;
     u8* data = stbi_load(path.c_str(), &width, &height, &num_components, 0);
+
+    // NOTE: we force 3 components to 4 components
+    if (num_components == 3) {
+        u8* data_ = add_fourth_components(data, width, height, num_components);
+        num_components = 4;
+        stbi_image_free(data);
+        data = data_;
+    }
 
     Image img;
     img.data = data;
