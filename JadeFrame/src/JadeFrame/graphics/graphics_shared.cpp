@@ -122,9 +122,8 @@ auto TextureHandle::init(void* context) -> void {
             m_handle = ctx.create_texture(m_data, m_size, m_num_components);
         } break;
         case GRAPHICS_API::VULKAN: {
-            vulkan::Vulkan_Texture* texture = new vulkan::Vulkan_Texture();
             auto                    ld = (vulkan::LogicalDevice*)m_handle;
-            texture->init(*ld, m_data, m_size, VK_FORMAT_R8G8B8A8_SRGB);
+            vulkan::Vulkan_Texture* texture = new vulkan::Vulkan_Texture(*ld, m_data, m_size, VK_FORMAT_R8G8B8A8_SRGB);
             m_handle = texture;
         } break;
         default: assert(false);
@@ -289,12 +288,14 @@ auto RenderSystem::register_texture(TextureHandle&& texture) -> u32 {
             Vulkan_Renderer* renderer = static_cast<Vulkan_Renderer*>(m_renderer);
             auto             ld = renderer->m_logical_device;
             m_registered_textures[id].m_api = m_api;
-            // m_registered_textures[id].init(ld);
-            auto& t = m_registered_textures[id];
-
-            vulkan::Vulkan_Texture* texture = new vulkan::Vulkan_Texture();
-            texture->init(*ld, t.m_data, t.m_size, VK_FORMAT_R8G8B8A8_SRGB);
-            t.m_handle = texture;
+            auto&    t = m_registered_textures[id];
+            VkFormat format;
+            switch (t.m_num_components) {
+                case 3: format = VK_FORMAT_R8G8B8_SRGB; break;
+                case 4: format = VK_FORMAT_R8G8B8A8_SRGB; break;
+                default: assert(false);
+            }
+            t.m_handle = new vulkan::Vulkan_Texture(*ld, t.m_data, t.m_size, format);
         } break;
         default: assert(false);
     }
@@ -335,10 +336,10 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
             Vulkan_Shader* shader = new Vulkan_Shader(*ctx, shader_desc);
             m_registered_shaders[id].m_handle = shader;
             for (int i = 0; i < shader->m_pipeline.m_set_layouts.size(); i++) {
-                shader->m_sets[i] = ren->m_set_pool.allocate_set(shader->m_pipeline.m_set_layouts[i]);
+                shader->m_sets[i] = ctx->m_set_pool.allocate_set(shader->m_pipeline.m_set_layouts[i]);
             }
 
-            // TODO: Remove this hard coded code later on
+            // TODO: Remove this hard coded code later on.
             shader->bind_buffer(0, 0, ren->m_ub_cam, 0, sizeof(Matrix4x4));
             shader->bind_buffer(3, 0, ren->m_ub_tran, 0, sizeof(Matrix4x4));
 
