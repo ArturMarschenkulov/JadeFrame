@@ -9,6 +9,7 @@ namespace vulkan {
 class LogicalDevice;
 class Buffer;
 } // namespace vulkan
+class Vulkan_Renderer;
 class Vulkan_Shader : public IShader {
     // private:
     //	Vulkan_Shader(const vulkan::LogicalDevice& device, const GLSLCode& code);
@@ -20,7 +21,7 @@ public:
     Vulkan_Shader(Vulkan_Shader&&) noexcept = default;
     auto operator=(Vulkan_Shader&&) -> Vulkan_Shader& = default;
 
-    Vulkan_Shader(const vulkan::LogicalDevice& device, const Desc& desc);
+    Vulkan_Shader(const vulkan::LogicalDevice& device, const Vulkan_Renderer& renderer, const Desc& desc);
 
     auto bind_buffer(u32 set, u32 binding, const vulkan::Buffer& buffer, VkDeviceSize offset, VkDeviceSize range)
         -> void;

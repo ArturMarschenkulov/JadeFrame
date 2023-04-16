@@ -132,13 +132,6 @@ auto LogicalDevice::operator=(LogicalDevice&& other) -> LogicalDevice& {
     return *this;
 }
 
-auto LogicalDevice::recreate_swapchain() -> void {
-    vkDeviceWaitIdle(m_handle);
-    m_swapchain.deinit();
-
-    m_swapchain.init(*this, m_instance->m_surface);
-}
-auto LogicalDevice::cleanup_swapchain() -> void { m_swapchain.deinit(); }
 
 auto LogicalDevice::wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) const -> void {
     VkResult result;
@@ -176,8 +169,8 @@ auto LogicalDevice::create_descriptor_set_layout(std::vector<vulkan::DescriptorS
     return layout;
 }
 
-auto LogicalDevice::create_shader(const Vulkan_Shader::Desc& desc) -> Vulkan_Shader {
-    return Vulkan_Shader(*this, desc);
+auto LogicalDevice::create_shader(const Vulkan_Renderer& renderer, const Vulkan_Shader::Desc& desc) -> Vulkan_Shader {
+    return Vulkan_Shader(*this, renderer, desc);
 }
 
 auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& physical_device, const Surface& surface)
@@ -243,17 +236,6 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
         {         VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, descriptor_count},
     };
     m_set_pool = this->create_descriptor_pool(4, pool_sizes);
-
-    // Swapchain stuff
-    m_swapchain = this->create_swapchain(surface);
-    const u32 swapchain_image_amount = static_cast<u32>(m_swapchain.m_images.size());
-
-    m_render_pass = this->create_render_pass(m_swapchain.m_image_format);
-
-    m_framebuffers.resize(swapchain_image_amount);
-    for (size_t i = 0; i < swapchain_image_amount; i++) {
-        m_framebuffers[i] = this->create_framebuffer(m_swapchain.m_image_views[i], m_render_pass, m_swapchain.m_extent);
-    }
 }
 
 auto LogicalDevice::create_semaphore() const -> Semaphore {
@@ -295,13 +277,9 @@ auto LogicalDevice::create_framebuffer(const ImageView& image_view, const Render
 
 auto LogicalDevice::deinit() -> void {
     VkResult result;
-    for (uint32_t i = 0; i < m_framebuffers.size(); i++) { m_framebuffers[i].deinit(); }
-    m_render_pass.deinit();
-    this->cleanup_swapchain();
 
 
     m_command_pool.deinit();
-    m_swapchain.deinit();
     result = vkDeviceWaitIdle(m_handle);
     if (result != VK_SUCCESS) assert(false);
     vkDestroyDevice(m_handle, nullptr);

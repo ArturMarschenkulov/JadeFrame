@@ -17,6 +17,17 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
     m_system = &system;
     m_logical_device = &m_context.m_instance.m_logical_device;
 
+    // Swapchain stuff
+    m_swapchain = m_logical_device->create_swapchain(m_context.m_instance.m_surface);
+    const u32 swapchain_image_amount = static_cast<u32>(m_swapchain.m_images.size());
+
+    m_render_pass = m_logical_device->create_render_pass(m_swapchain.m_image_format);
+
+    m_framebuffers.resize(swapchain_image_amount);
+    for (size_t i = 0; i < swapchain_image_amount; i++) {
+        m_framebuffers[i] =
+            m_logical_device->create_framebuffer(m_swapchain.m_image_views[i], m_render_pass, m_swapchain.m_extent);
+    }
 
     /*
         The part below should probably be somewhere else, as they are highly dependent on the shader code.
@@ -27,7 +38,6 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
     m_ub_tran = m_logical_device->create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
     m_ub_cam = m_logical_device->create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
 
-    // Sync objects stuff
     m_frames.resize(MAX_FRAMES_IN_FLIGHT);
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) { m_frames[i].init(m_logical_device); }
 }
@@ -61,15 +71,24 @@ auto get_aligned_block_size(const u64 block_size, const u64 alignment) -> u64 {
     return aligned_block_size;
 }
 
+auto Vulkan_Renderer::recreate_swapchain() -> void {
+    vkDeviceWaitIdle(m_logical_device->m_handle);
+    m_swapchain.deinit();
+
+    m_swapchain.init(*m_logical_device, m_logical_device->m_instance->m_surface);
+}
+auto Vulkan_Renderer::cleanup_swapchain() -> void { m_swapchain.deinit(); }
+
+
 auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     vulkan::LogicalDevice&        d = *m_logical_device;
     const vulkan::PhysicalDevice* pd = d.m_physical_device;
 
-    m_frames[m_frame_index].acquire_image(d.m_swapchain);
+    m_frames[m_frame_index].acquire_image(m_swapchain);
 
 
-    if (d.m_swapchain.m_is_recreated == true) {
-        d.m_swapchain.m_is_recreated = false;
+    if (m_swapchain.m_is_recreated == true) {
+        m_swapchain.m_is_recreated = false;
         return;
     }
 
@@ -81,11 +100,11 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     vulkan::CommandBuffer& cb = m_frames[m_frame_index].m_cmd;
     cb.record([&] {
-        vulkan::Framebuffer& framebuffer = d.m_framebuffers[m_frames[m_frame_index].m_index];
+        vulkan::Framebuffer& framebuffer = m_framebuffers[m_frames[m_frame_index].m_index];
         const RGBAColor      c = m_clear_color;
         const VkClearValue   clear_value = VkClearValue{c.r, c.g, c.b, c.a};
 
-        cb.render_pass(framebuffer, d.m_render_pass, d.m_swapchain.m_extent, clear_value, [&] {
+        cb.render_pass(framebuffer, m_render_pass, m_swapchain.m_extent, clear_value, [&] {
             for (u64 i = 0; i < m_render_commands.size(); i++) {
                 const auto&          cmd = m_render_commands[i];
                 const ShaderHandle&  shader_handle = m_system->m_registered_shaders[cmd.material_handle.m_shader_id];
@@ -136,11 +155,11 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 auto Vulkan_Renderer::present() -> void {
     vulkan::LogicalDevice& d = *m_logical_device;
 
-    VkResult result = m_frames[m_frame_index].present(d.m_present_queue, d.m_swapchain);
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || d.m_framebuffer_resized) {
-        d.m_framebuffer_resized = false;
+    VkResult result = m_frames[m_frame_index].present(d.m_present_queue, m_swapchain);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_framebuffer_resized) {
+        m_framebuffer_resized = false;
         Logger::debug("recreate because of vkQueuePresentKHR");
-        d.m_swapchain.recreate();
+        m_swapchain.recreate();
     } else if (result != VK_SUCCESS) {
         Logger::err("failed to present swap chain image!");
         assert(false);

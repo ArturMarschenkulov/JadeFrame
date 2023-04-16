@@ -82,5 +82,14 @@ public:
     };
     std::vector<Frame> m_frames;
     size_t             m_frame_index = 0;
+
+
+    auto recreate_swapchain() -> void;
+    auto cleanup_swapchain() -> void;
+
+    vulkan::Swapchain                m_swapchain;
+    vulkan::RenderPass               m_render_pass;
+    std::vector<vulkan::Framebuffer> m_framebuffers;
+    bool m_framebuffer_resized = false;
 };
 } // namespace JadeFrame

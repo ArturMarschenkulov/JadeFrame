@@ -17,6 +17,7 @@
 
 namespace JadeFrame {
 class VulkanInstance;
+class Vulkan_Renderer;
 
 
 
@@ -98,15 +99,9 @@ public:
 
 public: // Swapchain stuff
     auto create_swapchain(const Surface& surface) -> Swapchain;
-    auto recreate_swapchain() -> void;
-    auto cleanup_swapchain() -> void;
     auto create_render_pass(VkFormat image_format) -> RenderPass;
     auto create_framebuffer(const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent)
         -> Framebuffer;
-
-    Swapchain                m_swapchain;
-    RenderPass               m_render_pass;
-    std::vector<Framebuffer> m_framebuffers;
 
 public:
     // auto create_image() -> vulkan::Image;
@@ -119,13 +114,10 @@ public: // synchro objects
     auto wait_for_fences(const std::vector<Fence>& fences, bool wait_all, u64 timeout) const -> void;
 
 public: // Misc
-    bool m_framebuffer_resized = false;
-
-
 public:
     auto create_buffer(Buffer::TYPE buffer_type, void* data, size_t size) const -> Buffer;
 
-    auto create_shader(const Vulkan_Shader::Desc& desc) -> Vulkan_Shader;
+    auto create_shader(const Vulkan_Renderer& renderer, const Vulkan_Shader::Desc& desc) -> Vulkan_Shader;
 };
 
 } // namespace vulkan
