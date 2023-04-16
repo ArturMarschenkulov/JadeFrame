@@ -15,10 +15,10 @@ auto custom_simple_hash_0(const std::string& str) -> u32;
 auto get_random_number(i32 begin, i32 end) -> i32;
 auto map_range(f64 x, f64 in_min, f64 in_max, f64 out_min, f64 out_max) -> f64;
 
-inline auto from_kibibyte(u64 value) -> u64 { return value * 1024; }
-inline auto from_mebibyte(u64 value) -> u64 { return from_kibibyte(value) * 1024; }
-inline auto from_gibibyte(u64 value) -> u64 { return from_mebibyte(value) * 1024; }
-inline auto from_tebibyte(u64 value) -> u64 { return from_gibibyte(value) * 1024; }
+auto from_kibibyte(u64 value) -> u64;
+auto from_mebibyte(u64 value) -> u64;
+auto from_gibibyte(u64 value) -> u64;
+auto from_tebibyte(u64 value) -> u64;
 
 // auto byte_to_kibi(u64 value) -> u64 {
 //	return value * 1024;

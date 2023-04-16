@@ -56,6 +56,24 @@ auto to_string_vendor_id(uint32_t vendor_id) -> std::string {
     }
 }
 
+static auto query_queue_family_properties(const PhysicalDevice& physical_device)
+    -> std::vector<VkQueueFamilyProperties> {
+    u32 count = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(physical_device.m_handle, &count, nullptr);
+    std::vector<VkQueueFamilyProperties> properties;
+    properties.resize(count);
+    vkGetPhysicalDeviceQueueFamilyProperties(physical_device.m_handle, &count, properties.data());
+    return properties;
+}
+
+static auto query_surface_support(const PhysicalDevice& physical_device, u32 queue_family_index, const Surface& surface)
+    -> bool {
+    VkBool32 present_support = false;
+    vkGetPhysicalDeviceSurfaceSupportKHR(
+        physical_device.m_handle, queue_family_index, surface.m_handle, &present_support);
+    return present_support;
+}
+
 auto PhysicalDevice::query_surface_capabilities(const Surface& surface) const -> VkSurfaceCapabilitiesKHR {
     VkSurfaceCapabilitiesKHR result;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_handle, &result);
@@ -123,10 +141,6 @@ auto PhysicalDevice::init(VulkanInstance& instance, const Surface& surface) -> v
     m_features = this->query_features();
     m_memory_properties = this->query_memory_properties();
 
-    m_surface_support_details.m_capabilities = this->query_surface_capabilities(surface);
-    m_surface_support_details.m_formats = this->query_surface_formats(surface);
-    m_surface_support_details.m_present_modes = this->query_surface_present_modes(surface);
-
     /*
         Quick Vulkan Queue Family Guide:
         - Graphics: Used for rendering. (VK_QUEUE_GRAPHICS_BIT)
@@ -139,8 +153,8 @@ auto PhysicalDevice::init(VulkanInstance& instance, const Surface& surface) -> v
         Our GPU/Physical device has to be able to at least do graphics and presenting.
 
     */
-    m_queue_families = this->query_queue_families(surface);
-    m_queue_family_indices = this->find_queue_families(m_queue_families);
+    m_queue_families = this->query_queue_families();
+    m_queue_family_indices = this->find_queue_families(m_queue_families, surface);
     m_extension_properties = this->query_extension_properties();
 
     m_extension_support = this->check_extension_support(m_device_extensions);
@@ -182,23 +196,23 @@ auto PhysicalDevice::check_extension_support(const std::vector<const char*>& ext
     return required_extensions.empty();
 }
 
-
-auto PhysicalDevice::find_queue_families(const std::vector<QueueFamily>& queue_families) -> QueueFamilyIndices {
+auto PhysicalDevice::find_queue_families(const std::vector<QueueFamily>& queue_families, const Surface& surface)
+    -> QueueFamilyIndices {
 
     QueueFamilyIndices indices;
     for (u32 i = 0; i < queue_families.size(); i++) {
         if (queue_families[i].m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             indices.m_graphics_family = queue_families[i].m_index;
         }
-        VkBool32 present_support = false;
-        present_support = queue_families[i].m_present_support;
 
-
+        VkBool32 present_support = query_surface_support(*this, i, surface);
         if (present_support) { indices.m_present_family = queue_families[i].m_index; }
+
         if (indices.is_complete()) { break; }
     }
     return indices;
 }
+
 auto PhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32 {
     const VkPhysicalDeviceMemoryProperties& mem_props = m_memory_properties;
     for (u32 i = 0; i < mem_props.memoryTypeCount; i++) {
@@ -208,22 +222,15 @@ auto PhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFlags pro
     }
     throw std::runtime_error("failed to find suitable memory type!");
 }
-auto PhysicalDevice::query_queue_families(const Surface& surface) -> std::vector<QueueFamily> {
-    u32 count = 0;
 
-    vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, nullptr);
-
-    std::vector<VkQueueFamilyProperties> properties;
-    properties.resize(count);
-    vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, properties.data());
+auto PhysicalDevice::query_queue_families() -> std::vector<QueueFamily> {
+    std::vector<VkQueueFamilyProperties> properties = query_queue_family_properties(*this);
 
     std::vector<QueueFamily> families;
-    families.resize(count);
-    for (u32 i = 0; i < count; i++) {
+    families.resize(properties.size());
+    for (u32 i = 0; i < properties.size(); i++) {
         families[i].m_index = i;
         families[i].m_properties = properties[i];
-        vkGetPhysicalDeviceSurfaceSupportKHR(
-            m_handle, families[i].m_index, surface.m_handle, &families[i].m_present_support);
     }
 
     return families;

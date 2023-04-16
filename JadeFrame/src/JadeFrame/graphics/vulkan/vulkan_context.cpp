@@ -58,18 +58,29 @@ static auto vulkan_get_device_type_string(const VkPhysicalDeviceType& device_typ
     }
     return result;
 }
-auto VulkanInstance::check_validation_layer_support(const std::vector<VkLayerProperties>& available_layers) -> bool {
+auto VulkanInstance::check_validation_layer_support(const std::vector<VkLayerProperties>& layers) -> bool {
+#if 1
     for (u32 i = 0; i < m_desired_layer_names.size(); i++) {
-        bool layer_found = false;
-        for (u32 j = 0; j < available_layers.size(); j++) {
-            if (strcmp(m_desired_layer_names[i], available_layers[j].layerName) == 0) {
-                layer_found = true;
+        bool found = false;
+        for (u32 j = 0; j < layers.size(); j++) {
+            if (strcmp(m_desired_layer_names[i], layers[j].layerName) == 0) {
+                found = true;
                 break;
             }
         }
-        if (layer_found == false) { return false; }
+        if (!found) { return false; }
     }
     return true;
+#else
+    for (const auto& desired_layer_name : m_desired_layer_names) {
+        bool layer_found = std::any_of(layers.begin(), layers.end(), [&desired_layer_name](const auto& a_layer) {
+            return strcmp(desired_layer_name, a_layer.layerName) == 0;
+        });
+
+        if (!layer_found) { return false; }
+    }
+    return true;
+#endif
 }
 
 static auto is_device_suitable(const vulkan::PhysicalDevice& physical_device, vulkan::Surface& surface) -> bool {
@@ -150,14 +161,6 @@ auto VulkanInstance::init(const IWindow* window_handle) -> void {
     features.disabledValidationFeatureCount = 0;
     features.pDisabledValidationFeatures = VK_NULL_HANDLE;
 
-    m_available_layers = this->query_layers();
-    m_available_extensions = this->query_extensions();
-
-    if (m_enable_validation_layers && !this->check_validation_layer_support(m_available_layers)) {
-        throw std::runtime_error("validation layers requested, but not available!");
-    }
-
-
     const VkApplicationInfo app_info = {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pNext = nullptr,
@@ -168,18 +171,26 @@ auto VulkanInstance::init(const IWindow* window_handle) -> void {
         .apiVersion = VK_API_VERSION_1_2,
     };
 
-
-    std::vector<const char*> layer_names;
-    layer_names.resize(m_available_layers.size());
-    for (u32 i = 0; i < m_available_layers.size(); i++) { layer_names[i] = m_available_layers[i].layerName; }
-    std::vector<const char*> extension_names;
-    extension_names.resize(m_available_extensions.size());
-    for (u32 i = 0; i < m_available_extensions.size(); i++) {
-        extension_names[i] = m_available_extensions[i].extensionName;
+    // layers
+    m_layers = this->query_layers();
+    if (m_enable_validation_layers && !this->check_validation_layer_support(m_layers)) {
+        throw std::runtime_error("validation layers requested, but not available!");
     }
+    std::vector<const char*> layer_names;
+    layer_names.resize(m_layers.size());
+    for (u32 i = 0; i < m_layers.size(); i++) { layer_names[i] = m_layers[i].layerName; }
     {
         Logger::debug("Printing Layer names:");
         for (auto& layer_name : layer_names) { Logger::debug("\t{}", layer_name); }
+    }
+
+    // extensions
+    // std::vector<VkExtensionProperties> extensions = this->query_extensions();
+    m_extensions = this->query_extensions();
+    std::vector<const char*> extension_names;
+    extension_names.resize(m_extensions.size());
+    for (u32 i = 0; i < m_extensions.size(); i++) { extension_names[i] = m_extensions[i].extensionName; }
+    {
         Logger::debug("Printing Extension names:");
         for (auto& extension_name : extension_names) { Logger::debug("\t{}", extension_name); }
     }
@@ -188,9 +199,9 @@ auto VulkanInstance::init(const IWindow* window_handle) -> void {
         .pNext = nullptr,
         .flags = 0,
         .pApplicationInfo = &app_info,
-        .enabledLayerCount = static_cast<u32>(m_available_layers.size()),
+        .enabledLayerCount = static_cast<u32>(m_layers.size()),
         .ppEnabledLayerNames = layer_names.data(),
-        .enabledExtensionCount = static_cast<u32>(m_available_extensions.size()),
+        .enabledExtensionCount = static_cast<u32>(m_extensions.size()),
         .ppEnabledExtensionNames = extension_names.data(),
     };
 

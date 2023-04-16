@@ -26,6 +26,10 @@ auto map_range(const f64 x, const f64 in_min, const f64 in_max, const f64 out_mi
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+auto from_kibibyte(u64 value) -> u64 { return value * 1024; }
+auto from_mebibyte(u64 value) -> u64 { return from_kibibyte(value) * 1024; }
+auto from_gibibyte(u64 value) -> u64 { return from_mebibyte(value) * 1024; }
+auto from_tebibyte(u64 value) -> u64 { return from_gibibyte(value) * 1024; }
 
 // Here I experiment with ideas
 

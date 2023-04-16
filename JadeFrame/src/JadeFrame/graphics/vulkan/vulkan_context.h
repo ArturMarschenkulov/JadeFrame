@@ -41,12 +41,12 @@ public:
     VkInstance      m_instance = VK_NULL_HANDLE;
     vulkan::Surface m_surface;
 
-    std::vector<VkLayerProperties> m_available_layers;
+    std::vector<VkLayerProperties> m_layers;
     const std::vector<const char*> m_desired_layer_names = {
         "VK_LAYER_KHRONOS_validation" /*, "VK_LAYER_LUNARG_monitor"*/};
     // std::vector<VkLayerProperties> m_desired_layers;
 
-    std::vector<VkExtensionProperties> m_available_extensions;
+    std::vector<VkExtensionProperties> m_extensions;
 
     VkDebugUtilsMessengerEXT m_debug_messenger = VK_NULL_HANDLE;
 #ifdef NDEBUG
@@ -56,7 +56,7 @@ public:
 #endif
 
     std::vector<vulkan::PhysicalDevice> m_physical_devices;
-    vulkan::PhysicalDevice*              m_physical_device;
+    vulkan::PhysicalDevice*             m_physical_device;
     vulkan::LogicalDevice               m_logical_device;
 
 public:

@@ -33,17 +33,13 @@ public:
         STAGING
     };
     Buffer() = default;
-    ~Buffer() = default;
+    ~Buffer();
     Buffer(const Buffer&) = delete;
     auto operator=(const Buffer&) -> Buffer& = delete;
     Buffer(Buffer&& other);
     auto operator=(Buffer&& other) -> Buffer&;
 
     Buffer(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data, size_t size);
-
-    // NOTE: To be removed. Only used for resizing
-    auto init(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data, size_t size) -> void;
-    auto deinit() -> void;
 
     auto write(const Matrix4x4& m, VkDeviceSize offset) -> void;
     auto write(void* data, VkDeviceSize offset, VkDeviceSize size) -> void;
@@ -53,7 +49,7 @@ private:
     auto create_buffer(
         VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
         VkDeviceMemory& buffer_memory) -> void;
-    auto copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size) -> void;
+    auto copy_buffer(const Buffer& src_buffer, const Buffer& dst_buffer, VkDeviceSize size) -> void;
 
 public:
     /*const*/ Buffer::TYPE m_type = Buffer::TYPE::UNINIT;

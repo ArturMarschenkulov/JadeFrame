@@ -44,11 +44,7 @@ public:
 private: // NOTE: probably temporary
     RGBAColor m_clear_color;
 
-    // TODO: Move the descriptor stuff to the shader code
-public: // Descriptor set
-
-
-
+public:
     vulkan::Buffer m_ub_cam;
     vulkan::Buffer m_ub_tran;
 

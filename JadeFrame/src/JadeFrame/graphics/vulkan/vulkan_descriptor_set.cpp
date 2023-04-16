@@ -101,24 +101,52 @@ DescriptorSet::DescriptorSet(const LogicalDevice& device, VkDescriptorSet handle
 
 
 static auto is_image(VkDescriptorType type) -> bool {
+    bool result = false;
     switch (type) {
         case VK_DESCRIPTOR_TYPE_SAMPLER:
         case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
         case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
         case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
         case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
-            return true;
+            result = true;
             break;
             // case VK_DESCRIPTOR_TYPE_SAMPLER:
-        default: return false;
+        default: result = false;
     }
+    return result;
 }
-
+static auto is_sampler(VkDescriptorType type) -> bool {
+    bool result = false;
+    switch (type) {
+        case VK_DESCRIPTOR_TYPE_SAMPLER: result = true; break;
+        default: result = false;
+    }
+    return result;
+}
 static auto is_uniform(VkDescriptorType type) -> bool {
     bool result = false;
     switch (type) {
         case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
         case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC: result = true; break;
+        default: result = false;
+    }
+    return result;
+}
+static auto is_storage(VkDescriptorType type) -> bool {
+    bool result = false;
+    switch (type) {
+        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC: result = true; break;
+        default: result = false;
+    }
+    return result;
+}
+static auto is_buffer(VkDescriptorType type) -> bool { return is_uniform(type) || is_storage(type); }
+static auto is_dynamic(VkDescriptorType type) -> bool {
+    bool result = false;
+    switch (type) {
+        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC: result = true; break;
         default: result = false;
     }
     return result;
@@ -246,11 +274,8 @@ auto DescriptorSetLayout::add_binding(
     }
     m_bindings.push_back(layout);
 
-    switch (descriptor_type) {
-        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC: m_dynamic_count++; break;
-        default:;
-    }
+    if (is_dynamic(descriptor_type)) { m_dynamic_count++; }
+
     {
         // Logger::info()
     }
@@ -286,39 +311,6 @@ DescriptorSetLayout::DescriptorSetLayout(const LogicalDevice& device, std::vecto
         }
     }
 }
-
-// auto DescriptorSetLayout::init(const LogicalDevice& device, std::vector<Binding> bindings) -> void {
-
-//     m_device = &device;
-//     VkResult result;
-
-//     for (int i = 0; i < bindings.size(); i++) {
-//         this->add_binding(
-//             bindings[i].binding, bindings[i].type, bindings[i].count, bindings[i].stage_flags,
-//             bindings[i].p_immutable_samplers);
-//     }
-
-//     const VkDescriptorSetLayoutCreateInfo layout_info = {
-//         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-//         .pNext = nullptr,
-//         .flags = 0,
-//         .bindingCount = static_cast<u32>(m_bindings.size()),
-//         .pBindings = m_bindings.data(),
-//     };
-
-//     result = vkCreateDescriptorSetLayout(device.m_handle, &layout_info, nullptr, &m_handle);
-//     if (result != VK_SUCCESS) assert(false);
-//     {
-//         Logger::info("Created descriptor set layout {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
-//         Logger::info("\tBindings: {}", m_bindings.size());
-//         for (const auto& b : m_bindings) {
-//             Logger::info("\t\tBinding: {}", b.binding);
-//             Logger::info("\t\t-Descriptor Type: {}", to_string(b.descriptorType));
-//             Logger::info("\t\t-Descriptor Count: {}", b.descriptorCount);
-//             Logger::info("\t\t-Stage Flags: {}", to_string_from_shader_stage_flags(b.stageFlags));
-//         }
-//     }
-// }
 auto DescriptorSetLayout::deinit() -> void {
     vkDestroyDescriptorSetLayout(m_device->m_handle, m_handle, nullptr);
     { Logger::info("Destroyed descriptor set layout {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }

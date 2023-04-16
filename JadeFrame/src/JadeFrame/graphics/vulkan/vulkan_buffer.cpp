@@ -43,133 +43,38 @@ auto Buffer::operator=(Buffer&& other) -> Buffer& {
     return *this;
 }
 
-
-
 Buffer::Buffer(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data, size_t size) {
     /*VkResult result;*/
     m_device = &device;
     m_size = size;
     m_type = buffer_type;
 
-    bool                  b_with_staging_buffer = false;
-    VkBufferUsageFlags    usage = {};
-    VkMemoryPropertyFlags properties = {};
-
-    switch (buffer_type) {
-        case Buffer::TYPE::VERTEX: {
-            JF_ASSERT(m_type == Buffer::TYPE::VERTEX, "");
-            b_with_staging_buffer = true;
-            usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-            properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-        } break;
-        case Buffer::TYPE::INDEX: {
-            JF_ASSERT(m_type == Buffer::TYPE::INDEX, "");
-            if (m_type != Buffer::TYPE::INDEX) JF_ASSERT(false, "");
-            b_with_staging_buffer = true;
-            usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-            properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-        } break;
-        case Buffer::TYPE::UNIFORM: {
-            JF_ASSERT(m_type == Buffer::TYPE::UNIFORM, "Expected uniform buffer, got something else");
-            b_with_staging_buffer = false;
-            usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-            properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        } break;
-        case Buffer::TYPE::STAGING: {
-            JF_ASSERT(m_type == Buffer::TYPE::STAGING, "");
-            b_with_staging_buffer = false;
-            usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-            properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        } break;
-        default: JF_ASSERT(false, ""); break;
-    }
+    bool                  b_with_staging_buffer = does_use_staging_buffer(buffer_type);
+    VkBufferUsageFlags    usage = get_usage(buffer_type);
+    VkMemoryPropertyFlags properties = get_properties(buffer_type);
 
     if (b_with_staging_buffer == true) {
-        Buffer staging_buffer(device, Buffer::TYPE::STAGING, nullptr, size);
+        Buffer staging_buffer = device.create_buffer(Buffer::TYPE::STAGING, nullptr, size);
         staging_buffer.write(data, 0, size);
 
         this->create_buffer(size, usage, properties, m_handle, m_memory);
-        this->copy_buffer(staging_buffer.m_handle, m_handle, size);
-        staging_buffer.deinit();
+        this->copy_buffer(staging_buffer, *this, size);
     } else {
         assert(data == nullptr);
         this->create_buffer(size, usage, properties, m_handle, m_memory);
     }
 }
 
+Buffer::~Buffer() {
+    if (m_handle != VK_NULL_HANDLE) {
+        vkDestroyBuffer(m_device->m_handle, m_handle, nullptr);
+        vkFreeMemory(m_device->m_handle, m_memory, nullptr);
 
-auto to_string(const Buffer::TYPE type) -> const char* {
-    switch (type) {
-        case Buffer::TYPE::VERTEX: return "VERTEX";
-        case Buffer::TYPE::INDEX: return "INDEX";
-        case Buffer::TYPE::UNIFORM: return "UNIFORM";
-        case Buffer::TYPE::STAGING: return "STAGING";
-        case Buffer::TYPE::UNINIT: return "UNINIT";
-        default: return "UNKNOWN";
+        Logger::info("Destroyed Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
+
+        m_handle = VK_NULL_HANDLE;
+        m_memory = VK_NULL_HANDLE;
     }
-}
-
-auto Buffer::init(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data, size_t size) -> void {
-    /*VkResult result;*/
-    m_device = &device;
-    m_size = size;
-    m_type = buffer_type;
-
-    bool                  b_with_staging_buffer = false;
-    VkBufferUsageFlags    usage = {};
-    VkMemoryPropertyFlags properties = {};
-
-    switch (buffer_type) {
-        case Buffer::TYPE::VERTEX: {
-            JF_ASSERT(m_type == Buffer::TYPE::VERTEX, "");
-            b_with_staging_buffer = true;
-            usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-            properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-        } break;
-        case Buffer::TYPE::INDEX: {
-            JF_ASSERT(m_type == Buffer::TYPE::INDEX, "");
-            if (m_type != Buffer::TYPE::INDEX) JF_ASSERT(false, "");
-            b_with_staging_buffer = true;
-            usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-            properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-        } break;
-        case Buffer::TYPE::UNIFORM: {
-            JF_ASSERT(m_type == Buffer::TYPE::UNIFORM, "Expected uniform buffer, got something else");
-            b_with_staging_buffer = false;
-            usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-            properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        } break;
-        case Buffer::TYPE::STAGING: {
-            JF_ASSERT(m_type == Buffer::TYPE::STAGING, "");
-            b_with_staging_buffer = false;
-            usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-            properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        } break;
-        default: JF_ASSERT(false, ""); break;
-    }
-
-    if (b_with_staging_buffer == true) {
-        Buffer staging_buffer(device, Buffer::TYPE::STAGING, nullptr, size);
-        staging_buffer.write(data, 0, size);
-
-        this->create_buffer(size, usage, properties, m_handle, m_memory);
-        this->copy_buffer(staging_buffer.m_handle, m_handle, size);
-        staging_buffer.deinit();
-    } else {
-        assert(data == nullptr);
-        this->create_buffer(size, usage, properties, m_handle, m_memory);
-    }
-}
-
-
-auto Buffer::deinit() -> void {
-    vkDestroyBuffer(m_device->m_handle, m_handle, nullptr);
-    vkFreeMemory(m_device->m_handle, m_memory, nullptr);
-
-    Logger::info("Destroyed Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
-
-    m_handle = VK_NULL_HANDLE;
-    m_memory = VK_NULL_HANDLE;
 }
 
 auto Buffer::write(const Matrix4x4& m, VkDeviceSize offset) -> void { this->write((void*)&m, offset, sizeof(m)); }
@@ -187,8 +92,8 @@ auto Buffer::resize(size_t size) -> void {
     assert(m_type == TYPE::UNIFORM);
     if (size == m_size) return;
 
-    this->deinit();
-    this->init(*m_device, m_type, nullptr, size);
+    this->~Buffer();
+    *this = Buffer(*m_device, m_type, nullptr, size);
 }
 
 auto Buffer::create_buffer(
@@ -227,7 +132,7 @@ auto Buffer::create_buffer(
     { Logger::info("Created Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
 }
 
-auto Buffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize size) -> void {
+auto Buffer::copy_buffer(const Buffer& src_buffer, const Buffer& dst_buffer, VkDeviceSize size) -> void {
     const CommandPool& cmd_pool = m_device->m_command_pool;
 
     CommandBuffer cmd = cmd_pool.allocate_buffer();
@@ -238,7 +143,7 @@ auto Buffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize 
             .dstOffset = 0,
             .size = size,
         };
-        vkCmdCopyBuffer(cmd.m_handle, src_buffer, dst_buffer, 1, &copy_region);
+        vkCmdCopyBuffer(cmd.m_handle, src_buffer.m_handle, dst_buffer.m_handle, 1, &copy_region);
     });
     // buffer[0].record_end();
 
@@ -260,19 +165,20 @@ auto Buffer::copy_buffer(VkBuffer src_buffer, VkBuffer dst_buffer, VkDeviceSize 
 
     cmd_pool.free_buffer(cmd);
 }
-GPUMeshData::GPUMeshData(
-    const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat /*vertex_format*/,
-    bool interleaved) {
-    const std::vector<f32> data_ = convert_into_data(vertex_data, interleaved);
 
-    auto data = (void*)data_.data();
-    auto size = sizeof(data_[0]) * data_.size();
+GPUMeshData::GPUMeshData(
+    const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat, bool interleaved) {
+
+    const std::vector<f32> flat_data = convert_into_data(vertex_data, interleaved);
+
+    void*  data = (void*)flat_data.data();
+    size_t size = sizeof(flat_data[0]) * flat_data.size();
     m_vertex_buffer = device.create_buffer(Buffer::TYPE::VERTEX, data, size);
 
     if (vertex_data.m_indices.size() > 0) {
-        auto& i_data = vertex_data.m_indices;
-        auto  data = (void*)i_data.data();
-        auto  size = sizeof(i_data[0]) * i_data.size();
+        auto&  i_data = vertex_data.m_indices;
+        void*  data = (void*)i_data.data();
+        size_t size = sizeof(i_data[0]) * i_data.size();
         m_index_buffer = device.create_buffer(Buffer::TYPE::INDEX, data, size);
     }
 }
@@ -491,8 +397,6 @@ Vulkan_Texture::Vulkan_Texture(const LogicalDevice& device, void* data, v2u32 si
     this->copy_buffer_to_image(staging_buffer, m_image, size);
     this->transition_layout(
         m_image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-    staging_buffer.deinit();
 
     m_sampler.init(device);
 }

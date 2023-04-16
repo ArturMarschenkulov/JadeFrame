@@ -29,23 +29,20 @@ public:
     u32                     m_queue_amount;
     VkBool32                m_present_support;
 };
-struct SurfaceSupportDetails {
-    VkSurfaceCapabilitiesKHR        m_capabilities;
-    std::vector<VkSurfaceFormatKHR> m_formats;
-    std::vector<VkPresentModeKHR>   m_present_modes;
-};
+
 class PhysicalDevice {
 private:
 public:
     auto init(VulkanInstance& instance, const Surface& surface) -> void;
     auto check_extension_support(const std::vector<const char*>& extensions) -> bool;
-    auto find_queue_families(const std::vector<QueueFamily>& queue_families) -> QueueFamilyIndices;
+    auto find_queue_families(const std::vector<QueueFamily>& queue_families, const Surface& surface)
+        -> QueueFamilyIndices;
     auto find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32;
 
     auto query_memory_properties() -> VkPhysicalDeviceMemoryProperties;
     auto query_properties() -> VkPhysicalDeviceProperties;
     auto query_features() -> VkPhysicalDeviceFeatures;
-    auto query_queue_families(const Surface& surface) -> std::vector<QueueFamily>;
+    auto query_queue_families() -> std::vector<QueueFamily>;
     auto query_surface_capabilities(const Surface& surface) const -> VkSurfaceCapabilitiesKHR;
     auto query_surface_formats(const Surface& surface) const -> std::vector<VkSurfaceFormatKHR>;
     auto query_surface_present_modes(const Surface& surface) const -> std::vector<VkPresentModeKHR>;
@@ -64,8 +61,6 @@ public:
     VkPhysicalDeviceProperties       m_properties = {};
     VkPhysicalDeviceFeatures         m_features = {};
     VkPhysicalDeviceMemoryProperties m_memory_properties = {};
-    // Surface
-    SurfaceSupportDetails m_surface_support_details;
 
     // Queue stuff
     std::vector<QueueFamily>             m_queue_families;
