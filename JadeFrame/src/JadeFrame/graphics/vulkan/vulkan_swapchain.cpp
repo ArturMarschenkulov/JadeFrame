@@ -179,7 +179,7 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     create_info.presentMode = present_mode;
     create_info.clipped = VK_TRUE;
     create_info.oldSwapchain = VK_NULL_HANDLE;
-    if (indices.m_graphics_family != indices.m_present_family) {
+    if (!is_same_queue_family) {
         create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         create_info.queueFamilyIndexCount = 2;
         create_info.pQueueFamilyIndices = queue_family_indices;
