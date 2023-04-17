@@ -8,7 +8,28 @@
 namespace JadeFrame {
 namespace vulkan {
 // namespace win32 {
-auto Surface::init(VkInstance instance, const IWindow* window_handle) -> void {
+
+Surface::Surface(Surface&& other)
+    : m_handle(other.m_handle)
+    , m_window_handle(other.m_window_handle)
+    , m_instance(other.m_instance) {
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_window_handle = nullptr;
+    other.m_instance = nullptr;
+}
+auto Surface::operator=(Surface&& other) -> Surface& {
+    if (this != &other) {
+        m_handle = other.m_handle;
+        m_window_handle = other.m_window_handle;
+        m_instance = other.m_instance;
+
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_window_handle = nullptr;
+        other.m_instance = nullptr;
+    }
+    return *this;
+}
+Surface::Surface(VkInstance instance, const IWindow* window_handle) {
     Logger::trace("Surface::init start");
     m_window_handle = window_handle;
 
@@ -21,7 +42,9 @@ auto Surface::init(VkInstance instance, const IWindow* window_handle) -> void {
     Logger::trace("Surface::init end");
 }
 
-auto Surface::deinit() -> void { vkDestroySurfaceKHR(m_instance, m_handle, nullptr); }
+Surface::~Surface() {
+    if (m_handle != VK_NULL_HANDLE) { vkDestroySurfaceKHR(m_instance, m_handle, nullptr); }
+}
 
 //} // namespace win32
 } // namespace vulkan

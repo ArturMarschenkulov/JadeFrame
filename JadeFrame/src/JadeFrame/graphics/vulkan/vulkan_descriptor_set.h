@@ -87,7 +87,6 @@ public:
     auto operator=(DescriptorSetLayout&& other) -> DescriptorSetLayout& = default;
 
     DescriptorSetLayout(const LogicalDevice& device, std::vector<Binding> bindings);
-    // auto init(const LogicalDevice& device, std::vector<Binding> bindings) -> void;
     auto deinit() -> void;
 
 private:
@@ -106,17 +105,15 @@ public:
 class DescriptorPool {
 public:
     DescriptorPool() = default;
-    ~DescriptorPool() = default;
-
+    ~DescriptorPool();
     DescriptorPool(const DescriptorPool&) = delete;
     auto operator=(const DescriptorPool&) -> DescriptorPool& = delete;
-
     DescriptorPool(DescriptorPool&& other);
     auto operator=(DescriptorPool&& other) -> DescriptorPool&;
+public:
+    DescriptorPool(const LogicalDevice& device, u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes);
 
-    auto init(const LogicalDevice& device, u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes) -> void;
-    auto deinit() -> void;
-
+public:
     auto add_pool_size(const VkDescriptorPoolSize& pool_size) -> void;
 
     auto allocate_sets(const DescriptorSetLayout& descriptor_set_layout, u32 image_amount)

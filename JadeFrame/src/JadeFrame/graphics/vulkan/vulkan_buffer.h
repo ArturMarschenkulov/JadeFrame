@@ -118,8 +118,8 @@ public:
     ImageView(ImageView&& other) noexcept;
     auto operator=(ImageView&& other) -> ImageView&;
 
-    auto init(const LogicalDevice& device, const Image& image, VkFormat format) -> void;
-    auto deinit() -> void;
+public:
+    ImageView(const LogicalDevice& device, const Image& image, VkFormat format);
 
 public:
     VkImageView          m_handle = VK_NULL_HANDLE;

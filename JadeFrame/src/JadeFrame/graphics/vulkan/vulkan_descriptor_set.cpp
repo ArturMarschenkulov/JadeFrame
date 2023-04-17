@@ -329,12 +329,14 @@ DescriptorPool::DescriptorPool(DescriptorPool&& other) {
     other.m_handle = VK_NULL_HANDLE;
 }
 auto DescriptorPool::operator=(DescriptorPool&& other) -> DescriptorPool& {
-    this->m_device = other.m_device;
-    this->m_handle = other.m_handle;
-    this->m_pool_sizes = std::move(other.m_pool_sizes);
+    if (this != &other) {
+        this->m_device = other.m_device;
+        this->m_handle = other.m_handle;
+        this->m_pool_sizes = std::move(other.m_pool_sizes);
 
-    other.m_device = nullptr;
-    other.m_handle = VK_NULL_HANDLE;
+        other.m_device = nullptr;
+        other.m_handle = VK_NULL_HANDLE;
+    }
     return *this;
 }
 
@@ -350,8 +352,8 @@ auto DescriptorPool::add_pool_size(const VkDescriptorPoolSize& pool_size) -> voi
     }
 }
 
-auto DescriptorPool::init(const LogicalDevice& device, u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes)
-    -> void {
+DescriptorPool::DescriptorPool(
+    const LogicalDevice& device, u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes) {
 
     m_device = &device;
     VkResult result;
@@ -381,9 +383,11 @@ auto DescriptorPool::init(const LogicalDevice& device, u32 max_sets, std::vector
     }
 }
 
-auto DescriptorPool::deinit() -> void {
-    vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr);
-    { Logger::info("Destroyed descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
+DescriptorPool::~DescriptorPool() {
+    if (m_handle != VK_NULL_HANDLE) {
+        vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr);
+        { Logger::info("Destroyed descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
+    }
 }
 
 auto DescriptorPool::allocate_sets(const DescriptorSetLayout& layout, u32 amount) -> std::vector<DescriptorSet> {

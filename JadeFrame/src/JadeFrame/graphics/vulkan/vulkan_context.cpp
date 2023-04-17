@@ -250,13 +250,11 @@ auto VulkanInstance::init(const IWindow* window_handle) -> void {
 
 auto VulkanInstance::deinit() -> void {
     if (m_enable_validation_layers) { vkDestroyDebugUtilsMessengerEXT_(m_instance, m_debug_messenger, nullptr); }
-    m_surface.deinit();
     vkDestroyInstance(m_instance, nullptr);
 }
 
 auto VulkanInstance::create_surface(const IWindow* window_handle) -> vulkan::Surface {
-    vulkan::Surface surface;
-    surface.init(m_instance, window_handle);
+    vulkan::Surface surface(m_instance, window_handle);
     return surface;
 }
 

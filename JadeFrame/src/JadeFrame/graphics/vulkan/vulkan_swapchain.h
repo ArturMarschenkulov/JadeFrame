@@ -70,14 +70,11 @@ class Swapchain {
 public:
     Swapchain() = default;
     ~Swapchain() = default;
-
     Swapchain(const Swapchain&) = delete;
     auto operator=(const Swapchain&) -> Swapchain& = delete;
-
     Swapchain(Swapchain&& other) = default;
     auto operator=(Swapchain&& other) -> Swapchain& = default;
-
-
+public:
     auto init(LogicalDevice& device, const Surface& surface) -> void;
     auto deinit() -> void;
     auto recreate() -> void;

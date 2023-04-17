@@ -213,11 +213,7 @@ auto Swapchain::query_images() -> std::vector<Image> {
     return result;
 }
 
-auto Swapchain::deinit() -> void {
-    for (uint32_t i = 0; i < m_image_views.size(); i++) { m_image_views[i].deinit(); }
-
-    vkDestroySwapchainKHR(m_device->m_handle, m_handle, nullptr);
-}
+auto Swapchain::deinit() -> void { vkDestroySwapchainKHR(m_device->m_handle, m_handle, nullptr); }
 
 auto Swapchain::recreate() -> void {
     vkDeviceWaitIdle(m_device->m_handle);

@@ -187,16 +187,19 @@ CommandPool::CommandPool(CommandPool&& other) {
     other.m_device = nullptr;
 }
 auto CommandPool::operator=(CommandPool&& other) -> CommandPool& {
-    this->m_handle = other.m_handle;
-    this->m_create_info = other.m_create_info;
-    this->m_device = other.m_device;
+    if (this != &other) {
+        this->m_handle = other.m_handle;
+        this->m_create_info = other.m_create_info;
+        this->m_device = other.m_device;
 
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_create_info = {};
+        other.m_device = nullptr;
+    }
     return *this;
 }
 
-auto CommandPool::init(const LogicalDevice& device, const QueueFamilyIndex& queue_family_index) -> void {
+CommandPool::CommandPool(const LogicalDevice& device, const QueueFamilyIndex& queue_family_index) {
     m_device = &device;
     VkResult result;
 
@@ -217,7 +220,9 @@ auto CommandPool::init(const LogicalDevice& device, const QueueFamilyIndex& queu
     m_create_info = pool_info;
 }
 
-auto CommandPool::deinit() -> void { vkDestroyCommandPool(m_device->m_handle, m_handle, nullptr); }
+CommandPool::~CommandPool() {
+    if (m_handle != VK_NULL_HANDLE) { vkDestroyCommandPool(m_device->m_handle, m_handle, nullptr); }
+}
 
 auto CommandPool::allocate_buffers(u32 amount) const -> std::vector<CommandBuffer> {
     VkResult result;

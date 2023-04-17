@@ -14,8 +14,14 @@ namespace vulkan {
 class Surface {
 private:
 public:
-    auto init(VkInstance instance, const IWindow* window_handle) -> void;
-    auto deinit() -> void;
+    Surface() = default;
+    ~Surface();
+    Surface(const Surface&) = delete;
+    auto operator=(const Surface&) -> Surface& = delete;
+    Surface(Surface&& other);
+    auto operator=(Surface&& other) -> Surface&;
+
+    Surface(VkInstance instance, const IWindow* window_handle);
 
 public:
     VkSurfaceKHR   m_handle = VK_NULL_HANDLE;

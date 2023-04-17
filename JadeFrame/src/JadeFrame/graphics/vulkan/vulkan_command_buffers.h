@@ -90,15 +90,16 @@ using QueueFamilyIndex = u32;
 class CommandPool {
 public:
     CommandPool() = default;
-    ~CommandPool() = default;
+    ~CommandPool();
     CommandPool(const CommandPool&) = delete;
     auto operator=(const CommandPool&) -> CommandPool& = delete;
     CommandPool(CommandPool&& other);
     auto operator=(CommandPool&& other) -> CommandPool&;
 
-    auto init(const LogicalDevice& device, const QueueFamilyIndex& queue_family_index) -> void;
-    auto deinit() -> void;
+public:
+    CommandPool(const LogicalDevice& device, const QueueFamilyIndex& queue_family_index);
 
+public:
     auto allocate_buffers(u32 amount) const -> std::vector<CommandBuffer>;
     auto allocate_buffer() const -> CommandBuffer;
     auto free_buffers(const std::vector<CommandBuffer>& command_buffers) const -> void;

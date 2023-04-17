@@ -158,8 +158,7 @@ auto LogicalDevice::create_buffer(Buffer::TYPE buffer_type, void* data, size_t s
 }
 auto LogicalDevice::create_descriptor_pool(u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes)
     -> DescriptorPool {
-    DescriptorPool pool;
-    pool.init(*this, max_sets, pool_sizes);
+    DescriptorPool pool(*this, max_sets, pool_sizes);
     return pool;
 }
 
@@ -248,8 +247,7 @@ auto LogicalDevice::create_fence(bool signaled) const -> Fence {
 }
 
 auto LogicalDevice::create_command_pool(const QueueFamilyIndex& queue_family_index) -> CommandPool {
-    CommandPool cp;
-    cp.init(*this, queue_family_index);
+    CommandPool cp(*this, queue_family_index);
     return cp;
 }
 
@@ -260,8 +258,7 @@ auto LogicalDevice::create_swapchain(const Surface& surface) -> Swapchain {
 }
 
 auto LogicalDevice::create_image_view(Image& image, VkFormat format) -> ImageView {
-    ImageView iv;
-    iv.init(*this, image, format);
+    ImageView iv(*this, image, format);
     return iv;
 }
 
@@ -279,7 +276,6 @@ auto LogicalDevice::deinit() -> void {
     VkResult result;
 
 
-    m_command_pool.deinit();
     result = vkDeviceWaitIdle(m_handle);
     if (result != VK_SUCCESS) assert(false);
     vkDestroyDevice(m_handle, nullptr);

@@ -15,6 +15,56 @@ namespace vulkan {
     Buffer
 ---------------------------*/
 
+auto to_string(const Buffer::TYPE type) -> const char* {
+    switch (type) {
+        case Buffer::TYPE::VERTEX: return "VERTEX";
+        case Buffer::TYPE::INDEX: return "INDEX";
+        case Buffer::TYPE::UNIFORM: return "UNIFORM";
+        case Buffer::TYPE::STAGING: return "STAGING";
+        case Buffer::TYPE::UNINIT: return "UNINIT";
+        default: return "UNKNOWN";
+    }
+}
+
+static auto does_use_staging_buffer(const Buffer::TYPE type) -> bool {
+    bool result = false;
+    switch (type) {
+        case Buffer::TYPE::VERTEX: result = true; break;
+        case Buffer::TYPE::INDEX: result = true; break;
+        case Buffer::TYPE::UNIFORM: result = false; break;
+        case Buffer::TYPE::STAGING: result = false; break;
+        case Buffer::TYPE::UNINIT: result = false; break;
+        default: JF_ASSERT(false, ""); break;
+    }
+    return result;
+}
+static auto get_usage(const Buffer::TYPE type) -> VkBufferUsageFlags {
+    VkBufferUsageFlags result = {};
+    switch (type) {
+        case Buffer::TYPE::VERTEX: result = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT; break;
+        case Buffer::TYPE::INDEX: result = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT; break;
+        case Buffer::TYPE::UNIFORM: result = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; break;
+        case Buffer::TYPE::STAGING: result = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; break;
+        case Buffer::TYPE::UNINIT: result = 0; break;
+        default: JF_ASSERT(false, ""); break;
+    }
+    return result;
+}
+static auto get_properties(const Buffer::TYPE type) -> VkMemoryPropertyFlags {
+    VkMemoryPropertyFlags result = {};
+    switch (type) {
+        case Buffer::TYPE::VERTEX:
+        case Buffer::TYPE::INDEX: result = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT; break;
+        case Buffer::TYPE::UNIFORM:
+        case Buffer::TYPE::STAGING:
+            result = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            break;
+        case Buffer::TYPE::UNINIT: result = 0; break;
+        default: JF_ASSERT(false, ""); break;
+    }
+    return result;
+}
+
 Buffer::Buffer(Buffer&& other)
     : m_type(other.m_type)
     , m_size(other.m_size)
@@ -287,9 +337,6 @@ auto Image::deinit() -> void {
     Image View
 ---------------------------*/
 
-ImageView::~ImageView() {
-    if (m_handle != VK_NULL_HANDLE) { this->deinit(); }
-}
 ImageView::ImageView(ImageView&& other) noexcept
     : m_handle(other.m_handle)
     , m_device(other.m_device)
@@ -299,16 +346,18 @@ ImageView::ImageView(ImageView&& other) noexcept
     other.m_image = nullptr;
 }
 auto ImageView::operator=(ImageView&& other) -> ImageView& {
-    m_handle = other.m_handle;
-    m_device = other.m_device;
-    m_image = other.m_image;
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
-    other.m_image = nullptr;
+    if (this != &other) {
+        m_handle = other.m_handle;
+        m_device = other.m_device;
+        m_image = other.m_image;
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_device = nullptr;
+        other.m_image = nullptr;
+    }
     return *this;
 }
 
-auto ImageView::init(const LogicalDevice& device, const Image& image, VkFormat format) -> void {
+ImageView::ImageView(const LogicalDevice& device, const Image& image, VkFormat format) {
     m_device = &device;
     m_image = &image;
     VkResult              result;
@@ -336,7 +385,9 @@ auto ImageView::init(const LogicalDevice& device, const Image& image, VkFormat f
     result = vkCreateImageView(device.m_handle, &create_info, nullptr, &m_handle);
     if (result != VK_SUCCESS) assert(false);
 }
-auto ImageView::deinit() -> void { vkDestroyImageView(m_device->m_handle, m_handle, nullptr); }
+ImageView::~ImageView() {
+    if (m_handle != VK_NULL_HANDLE) { vkDestroyImageView(m_device->m_handle, m_handle, nullptr); }
+}
 
 /*---------------------------
         Sampler
