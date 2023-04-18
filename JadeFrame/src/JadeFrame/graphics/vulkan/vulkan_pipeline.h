@@ -22,12 +22,17 @@ class RenderPass;
 
 class Pipeline {
 public:
-    auto init(
-        const LogicalDevice& device, const VkExtent2D& extend, const RenderPass& render_pass, const ShadingCode& code,
-        const VertexFormat& vertex_format) -> void;
-    auto deinit() -> void;
+    Pipeline() = default;
+    ~Pipeline();
+    Pipeline(const Pipeline&) = delete;
+    auto operator=(const Pipeline& pipeline) = delete;
+    Pipeline(Pipeline&& other) noexcept;
+    auto operator=(Pipeline&& other) noexcept -> Pipeline&;
 
-    auto operator=(const Pipeline& pipeline);
+public:
+    Pipeline(
+        const LogicalDevice& device, const VkExtent2D& extend, const RenderPass& render_pass, const ShadingCode& code,
+        const VertexFormat& vertex_format);
 
 public:
     VkPipeline           m_handle;

@@ -10,7 +10,8 @@ namespace JadeFrame {
 Vulkan_Shader::Vulkan_Shader(const vulkan::LogicalDevice& device, const Vulkan_Renderer& renderer, const Desc& desc) {
     m_device = &device;
     Logger::info("Creating Vulkan shader");
-    m_pipeline.init(device, renderer.m_swapchain.m_extent, renderer.m_render_pass, desc.code, desc.vertex_format);
+    m_pipeline =
+        vulkan::Pipeline(device, renderer.m_swapchain.m_extent, renderer.m_render_pass, desc.code, desc.vertex_format);
     Logger::info("Created Vulkan shader");
     m_reflected_code = m_pipeline.m_reflected_code;
     for (auto& module : m_reflected_code.m_modules) {

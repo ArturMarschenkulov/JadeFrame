@@ -150,9 +150,62 @@ static auto check_compatiblity(
 
     return compatible;
 }
-auto Pipeline::init(
+
+Pipeline::Pipeline(Pipeline&& other) noexcept
+    : m_handle(other.m_handle)
+    , m_layout(std::move(other.m_layout))
+    , m_device(other.m_device)
+    , m_render_pass(other.m_render_pass)
+    , m_set_layouts(std::move(other.m_set_layouts))
+    , m_code(std::move(other.m_code))
+    , m_is_compiled(other.m_is_compiled)
+    , m_push_constant_ranges(other.m_push_constant_ranges)
+    , m_reflected_code(other.m_reflected_code) {
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_layout = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+    other.m_render_pass = nullptr;
+    other.m_set_layouts = {};
+    other.m_code = {};
+    other.m_is_compiled = false;
+    other.m_push_constant_ranges.clear();
+    other.m_reflected_code = {};
+}
+auto Pipeline::operator=(Pipeline&& other) noexcept -> Pipeline& {
+    if (this != &other) {
+        m_handle = other.m_handle;
+        m_layout = std::move(other.m_layout);
+        m_device = other.m_device;
+        m_render_pass = other.m_render_pass;
+        m_set_layouts = std::move(other.m_set_layouts);
+        m_code = std::move(other.m_code);
+        m_is_compiled = other.m_is_compiled;
+        m_push_constant_ranges = other.m_push_constant_ranges;
+        m_reflected_code = other.m_reflected_code;
+
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_layout = VK_NULL_HANDLE;
+        other.m_device = nullptr;
+        other.m_render_pass = nullptr;
+        other.m_set_layouts = {};
+        other.m_code = {};
+        other.m_is_compiled = false;
+        other.m_push_constant_ranges.clear();
+        other.m_reflected_code = {};
+    }
+    return *this;
+}
+
+Pipeline::~Pipeline() {
+    if (m_handle != VK_NULL_HANDLE) {
+        vkDestroyPipeline(m_device->m_handle, m_handle, nullptr);
+        vkDestroyPipelineLayout(m_device->m_handle, m_layout, nullptr);
+    }
+}
+
+Pipeline::Pipeline(
     const LogicalDevice& device, const VkExtent2D& extent, const RenderPass& render_pass, const ShadingCode& code,
-    const VertexFormat& vertex_format) -> void {
+    const VertexFormat& vertex_format) {
     m_device = &device;
     m_render_pass = &render_pass;
 
@@ -390,11 +443,6 @@ auto Pipeline::init(
     m_device = &device;
 }
 
-auto Pipeline::deinit() -> void {
-    vkDestroyPipeline(m_device->m_handle, m_handle, nullptr);
-    vkDestroyPipelineLayout(m_device->m_handle, m_layout, nullptr);
-}
 
-auto Pipeline::operator=(const Pipeline& /*o*/) { assert(false); }
 } // namespace vulkan
 } // namespace JadeFrame
