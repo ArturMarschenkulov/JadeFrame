@@ -239,38 +239,59 @@ auto GPUMeshData::set_layout(const VertexFormat& /*vertex_format*/) -> void {}
 /*---------------------------
     Image
 ---------------------------*/
-Image::~Image() {
-    if (m_handle != VK_NULL_HANDLE) { this->deinit(); }
-}
+
 Image::Image(Image&& other) noexcept
     : m_handle(other.m_handle)
     , m_device(other.m_device)
     , m_memory(other.m_memory)
-    , m_source(other.m_source) {
+    , m_source(other.m_source)
+    , m_size(other.m_size) {
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = nullptr;
     other.m_memory = VK_NULL_HANDLE;
     other.m_source = SOURCE::REGULAR;
+    other.m_size = {0, 0};
 }
-auto Image::operator=(Image&& other) -> Image& {
-    m_handle = other.m_handle;
-    m_device = other.m_device;
-    m_memory = other.m_memory;
-    m_source = other.m_source;
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
-    other.m_memory = VK_NULL_HANDLE;
-    other.m_source = SOURCE::REGULAR;
+auto Image::operator=(Image&& other) noexcept -> Image& {
+    if (this != &other) {
+        m_handle = other.m_handle;
+        m_device = other.m_device;
+        m_memory = other.m_memory;
+        m_source = other.m_source;
+        m_size = other.m_size;
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_device = nullptr;
+        other.m_memory = VK_NULL_HANDLE;
+        other.m_source = SOURCE::REGULAR;
+        other.m_size = {0, 0};
+    }
     return *this;
 }
 
-auto Image::init(const LogicalDevice& device, const v2u32& size, VkFormat format, VkImageUsageFlags usage) -> void {
+Image::~Image() {
+    if (m_handle != VK_NULL_HANDLE) {
+        switch (m_source) {
+            case SOURCE::REGULAR: {
+                JF_ASSERT(false, "");
+            } break;
+            case SOURCE::SWAPCHAIN: {
+
+            } break;
+            default: JF_ASSERT(false, "");
+        }
+    }
+}
+
+Image::Image(const LogicalDevice& device, const v2u32& size, VkFormat format, VkImageUsageFlags usage) {
     m_device = &device;
     m_source = SOURCE::REGULAR;
     m_size = size;
     VkImageFormatProperties props;
 
-    VkResult                result;
+    VkResult result;
+    result = vkGetPhysicalDeviceImageFormatProperties(
+        device.m_physical_device->m_handle, format, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, usage, 0, &props);
+
     const VkImageCreateInfo image_info = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = nullptr,
@@ -316,21 +337,10 @@ auto Image::init(const LogicalDevice& device, const v2u32& size, VkFormat format
     result = vkBindImageMemory(device.m_handle, m_handle, m_memory, 0);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
-auto Image::init(const LogicalDevice& device, VkImage image) -> void {
+Image::Image(const LogicalDevice& device, VkImage image) {
     m_device = &device;
     m_handle = image;
     m_source = SOURCE::SWAPCHAIN;
-}
-auto Image::deinit() -> void {
-    switch (m_source) {
-        case SOURCE::REGULAR: {
-            JF_ASSERT(false, "");
-        } break;
-        case SOURCE::SWAPCHAIN: {
-
-        } break;
-        default: JF_ASSERT(false, "");
-    }
 }
 
 /*---------------------------
@@ -345,7 +355,7 @@ ImageView::ImageView(ImageView&& other) noexcept
     other.m_device = nullptr;
     other.m_image = nullptr;
 }
-auto ImageView::operator=(ImageView&& other) -> ImageView& {
+auto ImageView::operator=(ImageView&& other) noexcept -> ImageView& {
     if (this != &other) {
         m_handle = other.m_handle;
         m_device = other.m_device;
@@ -442,7 +452,7 @@ Vulkan_Texture::Vulkan_Texture(const LogicalDevice& device, void* data, v2u32 si
     staging_buffer.write(data, 0, image_size);
 
     // Image image;
-    m_image.init(device, size, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+    m_image = Image(device, size, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
     this->transition_layout(m_image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     this->copy_buffer_to_image(staging_buffer, m_image, size);

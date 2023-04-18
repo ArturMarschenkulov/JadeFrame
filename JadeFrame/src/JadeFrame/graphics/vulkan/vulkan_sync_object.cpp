@@ -5,6 +5,24 @@
 namespace JadeFrame {
 namespace vulkan {
 
+Fence::Fence(Fence&& other)
+    : m_handle(VK_NULL_HANDLE)
+    , m_device(nullptr) {
+
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+}
+auto Fence::operator=(Fence&& other) -> Fence& {
+    if (this != &other) {
+        m_handle = other.m_handle;
+        m_device = other.m_device;
+
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_device = nullptr;
+    }
+    return *this;
+}
+
 Fence::Fence(const LogicalDevice& device, bool signaled) {
     m_device = &device;
     VkResult result;
@@ -19,7 +37,9 @@ Fence::Fence(const LogicalDevice& device, bool signaled) {
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
-auto Fence::deinit() -> void { vkDestroyFence(m_device->m_handle, m_handle, nullptr); }
+Fence::~Fence() {
+    if (m_handle != VK_NULL_HANDLE) { vkDestroyFence(m_device->m_handle, m_handle, nullptr); }
+}
 
 auto Fence::wait_for_fences() -> void {
     VkResult result;
@@ -41,6 +61,25 @@ auto Fence::is_signaled() -> bool {
         default: JF_ASSERT(false, ""); return false;
     }
 }
+Semaphore::Semaphore(Semaphore&& other)
+    : m_handle(VK_NULL_HANDLE)
+    , m_device(nullptr) {
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+}
+auto Semaphore::operator=(Semaphore&& other) -> Semaphore& {
+    if (this != &other) {
+        m_handle = other.m_handle;
+        m_device = other.m_device;
+
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_device = nullptr;
+    }
+    return *this;
+}
+Semaphore::~Semaphore() {
+    if (m_handle != VK_NULL_HANDLE) { vkDestroySemaphore(m_device->m_handle, m_handle, nullptr); }
+}
 
 Semaphore::Semaphore(const LogicalDevice& device) {
     m_device = &device;
@@ -56,6 +95,6 @@ Semaphore::Semaphore(const LogicalDevice& device) {
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
-auto Semaphore::deinit() -> void { vkDestroySemaphore(m_device->m_handle, m_handle, nullptr); }
+
 } // namespace vulkan
 } // namespace JadeFrame

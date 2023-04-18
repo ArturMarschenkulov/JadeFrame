@@ -29,14 +29,13 @@ class RenderPass;
 class RenderPass {
 public:
     RenderPass() = default;
-    ~RenderPass() = default;
+    ~RenderPass();
     RenderPass(const RenderPass&) = delete;
     auto operator=(const RenderPass&) -> RenderPass& = delete;
-    RenderPass(RenderPass&& other) = default;
-    auto operator=(RenderPass&& other) -> RenderPass& = default;
+    RenderPass(RenderPass&& other);
+    auto operator=(RenderPass&& other) -> RenderPass&;
 
     RenderPass(const LogicalDevice& device, VkFormat image_format);
-    auto deinit() -> void;
 
 public:
     VkRenderPass         m_handle = VK_NULL_HANDLE;
@@ -46,16 +45,15 @@ public:
 class Framebuffer {
 public:
     Framebuffer() = default;
-    ~Framebuffer() = default;
+    ~Framebuffer();
     Framebuffer(const Framebuffer&) = delete;
     auto operator=(const Framebuffer&) -> Framebuffer& = delete;
-    Framebuffer(Framebuffer&& other) = default;
-    auto operator=(Framebuffer&& other) -> Framebuffer& = default;
+    Framebuffer(Framebuffer&& other);
+    auto operator=(Framebuffer&& other) -> Framebuffer&;
 
-
+public:
     Framebuffer(
         const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent);
-    auto deinit() -> void;
 
 public:
     VkFramebuffer        m_handle;

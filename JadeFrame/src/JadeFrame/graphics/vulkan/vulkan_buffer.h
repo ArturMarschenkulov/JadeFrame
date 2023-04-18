@@ -96,12 +96,13 @@ public:
     Image(const Image&) = delete;
     auto operator=(const Image&) -> Image& = delete;
     Image(Image&& other) noexcept;
-    auto operator=(Image&& other) -> Image&;
+    auto operator=(Image&& other) noexcept -> Image&;
 
-    auto init(const LogicalDevice& device, const v2u32& extent, VkFormat format, VkImageUsageFlags usage) -> void;
-    auto init(const LogicalDevice& device, VkImage image) -> void;
-    auto deinit() -> void;
+public:
+    Image(const LogicalDevice& device, const v2u32& extent, VkFormat format, VkImageUsageFlags usage);
+    Image(const LogicalDevice& device, VkImage image);
 
+public:
     VkImage              m_handle = VK_NULL_HANDLE;
     const LogicalDevice* m_device = nullptr;
     VkDeviceMemory       m_memory;
@@ -116,7 +117,7 @@ public:
     ImageView(const ImageView&) = delete;
     auto operator=(const ImageView&) -> ImageView& = delete;
     ImageView(ImageView&& other) noexcept;
-    auto operator=(ImageView&& other) -> ImageView&;
+    auto operator=(ImageView&& other) noexcept -> ImageView&;
 
 public:
     ImageView(const LogicalDevice& device, const Image& image, VkFormat format);

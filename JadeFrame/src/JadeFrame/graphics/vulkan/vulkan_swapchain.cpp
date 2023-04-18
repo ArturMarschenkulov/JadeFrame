@@ -81,6 +81,23 @@ static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities
         Render Pass
 ---------------------------*/
 
+RenderPass::RenderPass(RenderPass&& other)
+    : m_handle(other.m_handle)
+    , m_device(other.m_device) {
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+}
+auto RenderPass::operator=(RenderPass&& other) -> RenderPass& {
+    m_handle = other.m_handle;
+    m_device = other.m_device;
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+    return *this;
+}
+RenderPass::~RenderPass() {
+    if (m_handle != VK_NULL_HANDLE) { vkDestroyRenderPass(m_device->m_handle, m_handle, nullptr); }
+}
+
 RenderPass::RenderPass(const LogicalDevice& device, VkFormat image_format) {
     m_device = &device;
     VkResult result;
@@ -130,7 +147,6 @@ RenderPass::RenderPass(const LogicalDevice& device, VkFormat image_format) {
     result = vkCreateRenderPass(device.m_handle, &render_pass_info, nullptr, &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
-auto RenderPass::deinit() -> void { vkDestroyRenderPass(m_device->m_handle, m_handle, nullptr); }
 
 /*---------------------------
         Swapchain
@@ -208,7 +224,7 @@ auto Swapchain::query_images() -> std::vector<Image> {
 
     std::vector<Image> result;
     result.resize(image_count);
-    for (u32 i = 0; i < image_count; i++) { result[i].init(*m_device, images[i]); }
+    for (u32 i = 0; i < image_count; i++) { result[i] = Image(*m_device, images[i]); }
 
     return result;
 }
@@ -271,6 +287,35 @@ auto Swapchain::acquire_image_index(const Semaphore* semaphore, const Fence* fen
         Framebuffer
 ---------------------------*/
 
+Framebuffer::Framebuffer(Framebuffer&& other)
+    : m_handle(other.m_handle)
+    , m_device(other.m_device)
+    , m_image_view(other.m_image_view)
+    , m_render_pass(other.m_render_pass) {
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+    other.m_image_view = nullptr;
+    other.m_render_pass = nullptr;
+}
+auto Framebuffer::operator=(Framebuffer&& other) -> Framebuffer& {
+    
+    m_handle = other.m_handle;
+    m_device = other.m_device;
+    m_image_view = other.m_image_view;
+    m_render_pass = other.m_render_pass;
+
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_device = nullptr;
+    other.m_image_view = nullptr;
+    other.m_render_pass = nullptr;
+
+    return *this;
+}
+
+Framebuffer::~Framebuffer() {
+    if (m_handle != VK_NULL_HANDLE) { vkDestroyFramebuffer(m_device->m_handle, m_handle, nullptr); }
+}
+
 Framebuffer::Framebuffer(
     const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent) {
     m_device = &device;
@@ -296,6 +341,5 @@ Framebuffer::Framebuffer(
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
-auto Framebuffer::deinit() -> void { vkDestroyFramebuffer(m_device->m_handle, m_handle, nullptr); }
 } // namespace vulkan
 } // namespace JadeFrame

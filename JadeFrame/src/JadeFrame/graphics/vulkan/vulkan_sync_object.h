@@ -12,15 +12,14 @@ class LogicalDevice;
 class Fence {
 public:
     Fence() = default;
-    ~Fence() = default;
+    ~Fence();
     Fence(const Fence&) = delete;
     auto operator=(const Fence&) -> Fence& = delete;
-    Fence(Fence&&) = default;
-    auto operator=(Fence&&) -> Fence& = default;
+    Fence(Fence&&);
+    auto operator=(Fence&&) -> Fence&;
 
     Fence(const LogicalDevice& device, bool signaled);
 
-    auto deinit() -> void;
     auto wait_for_fences() -> void;
     auto reset() -> void;
     auto is_signaled() -> bool;
@@ -33,15 +32,13 @@ public:
 class Semaphore {
 public:
     Semaphore() = default;
-    ~Semaphore() = default;
+    ~Semaphore();
     Semaphore(const Semaphore&) = delete;
     auto operator=(const Semaphore&) -> Semaphore& = delete;
-    Semaphore(Semaphore&&) = default;
-    auto operator=(Semaphore&&) -> Semaphore& = default;
+    Semaphore(Semaphore&&);
+    auto operator=(Semaphore&&) -> Semaphore&;
 
     Semaphore(const LogicalDevice& device);
-
-    auto deinit() -> void;
 
     VkSemaphore          m_handle = VK_NULL_HANDLE;
     const LogicalDevice* m_device = nullptr;

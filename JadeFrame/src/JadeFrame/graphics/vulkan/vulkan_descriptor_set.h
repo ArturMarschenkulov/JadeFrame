@@ -80,14 +80,14 @@ public:
 
 public:
     DescriptorSetLayout() = default;
-    ~DescriptorSetLayout() = default;
+    ~DescriptorSetLayout();
     DescriptorSetLayout(const DescriptorSetLayout&) = delete;
     auto operator=(const DescriptorSetLayout&) -> DescriptorSetLayout& = delete;
-    DescriptorSetLayout(DescriptorSetLayout&& other) = default;
-    auto operator=(DescriptorSetLayout&& other) -> DescriptorSetLayout& = default;
+    DescriptorSetLayout(DescriptorSetLayout&& other);
+    auto operator=(DescriptorSetLayout&& other) -> DescriptorSetLayout&;
 
+public:
     DescriptorSetLayout(const LogicalDevice& device, std::vector<Binding> bindings);
-    auto deinit() -> void;
 
 private:
     auto add_binding(
@@ -110,6 +110,7 @@ public:
     auto operator=(const DescriptorPool&) -> DescriptorPool& = delete;
     DescriptorPool(DescriptorPool&& other);
     auto operator=(DescriptorPool&& other) -> DescriptorPool&;
+
 public:
     DescriptorPool(const LogicalDevice& device, u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes);
 

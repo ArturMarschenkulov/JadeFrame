@@ -257,29 +257,39 @@ auto DescriptorSet::update() -> void {
     Descriptor Set Layout
 ---------------------------*/
 
-auto DescriptorSetLayout::add_binding(
-    u32 binding, VkDescriptorType descriptor_type, u32 descriptor_count, VkShaderStageFlags stage_flags,
-    const VkSampler* p_immutable_samplers) -> void {
-    JF_ASSERT(m_handle == VK_NULL_HANDLE, "");
-    const VkDescriptorSetLayoutBinding layout = {
-        .binding = binding,
-        .descriptorType = descriptor_type,
-        .descriptorCount = descriptor_count,
-        .stageFlags = stage_flags,
-        .pImmutableSamplers = p_immutable_samplers};
+DescriptorSetLayout::DescriptorSetLayout(DescriptorSetLayout&& other)
+    : m_device(other.m_device)
+    , m_handle(other.m_handle)
+    , m_bindings(std::move(other.m_bindings))
+    , m_dynamic_count(other.m_dynamic_count) {
+    other.m_device = nullptr;
+    other.m_handle = VK_NULL_HANDLE;
+    other.m_bindings = {};
+    other.m_dynamic_count = 0;
+}
 
-    if (layout.descriptorType == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT && !(layout.descriptorCount % 4 == 0)) {
-        Logger::err("Inline uniform block must be a multiple of 4");
-        assert(false);
+auto DescriptorSetLayout::operator=(DescriptorSetLayout&& other) -> DescriptorSetLayout& {
+    if (this != &other) {
+        this->m_device = other.m_device;
+        this->m_handle = other.m_handle;
+        this->m_bindings = std::move(other.m_bindings);
+        this->m_dynamic_count = other.m_dynamic_count;
+
+        other.m_device = nullptr;
+        other.m_handle = VK_NULL_HANDLE;
+        other.m_bindings = {};
+        other.m_dynamic_count = 0;
     }
-    m_bindings.push_back(layout);
+    return *this;
+}
 
-    if (is_dynamic(descriptor_type)) { m_dynamic_count++; }
-
-    {
-        // Logger::info()
+DescriptorSetLayout::~DescriptorSetLayout() {
+    if (m_handle != VK_NULL_HANDLE) {
+        vkDestroyDescriptorSetLayout(m_device->m_handle, m_handle, nullptr);
+        { Logger::info("Destroyed descriptor set layout {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
     }
 }
+
 DescriptorSetLayout::DescriptorSetLayout(const LogicalDevice& device, std::vector<Binding> bindings) {
     m_device = &device;
     VkResult result;
@@ -311,9 +321,29 @@ DescriptorSetLayout::DescriptorSetLayout(const LogicalDevice& device, std::vecto
         }
     }
 }
-auto DescriptorSetLayout::deinit() -> void {
-    vkDestroyDescriptorSetLayout(m_device->m_handle, m_handle, nullptr);
-    { Logger::info("Destroyed descriptor set layout {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
+
+auto DescriptorSetLayout::add_binding(
+    u32 binding, VkDescriptorType descriptor_type, u32 descriptor_count, VkShaderStageFlags stage_flags,
+    const VkSampler* p_immutable_samplers) -> void {
+    JF_ASSERT(m_handle == VK_NULL_HANDLE, "");
+    const VkDescriptorSetLayoutBinding layout = {
+        .binding = binding,
+        .descriptorType = descriptor_type,
+        .descriptorCount = descriptor_count,
+        .stageFlags = stage_flags,
+        .pImmutableSamplers = p_immutable_samplers};
+
+    if (layout.descriptorType == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT && !(layout.descriptorCount % 4 == 0)) {
+        Logger::err("Inline uniform block must be a multiple of 4");
+        assert(false);
+    }
+    m_bindings.push_back(layout);
+
+    if (is_dynamic(descriptor_type)) { m_dynamic_count++; }
+
+    {
+        // Logger::info()
+    }
 }
 
 /*---------------------------
