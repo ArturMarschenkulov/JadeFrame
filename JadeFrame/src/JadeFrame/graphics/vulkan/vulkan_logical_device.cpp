@@ -172,7 +172,7 @@ auto LogicalDevice::create_shader(const Vulkan_Renderer& renderer, const Vulkan_
     return Vulkan_Shader(*this, renderer, desc);
 }
 
-auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& physical_device, const Surface& surface)
+auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physical_device, const Surface& surface)
     -> void {
     m_physical_device = &physical_device;
     m_instance = &instance;
@@ -209,7 +209,7 @@ auto LogicalDevice::init(const VulkanInstance& instance, const PhysicalDevice& p
         .pEnabledFeatures = &physical_device.m_features,
     };
 
-    result = vkCreateDevice(physical_device.m_handle, &create_info, nullptr, &m_handle);
+    result = vkCreateDevice(physical_device.m_handle, &create_info, Instance::allocator(), &m_handle);
     if (result != VK_SUCCESS) assert(false);
 
     Logger::debug("maxBoundDescriptorSets: {}", m_physical_device->m_properties.limits.maxBoundDescriptorSets);
@@ -274,8 +274,6 @@ auto LogicalDevice::create_framebuffer(const ImageView& image_view, const Render
 
 auto LogicalDevice::deinit() -> void {
     VkResult result;
-
-
     result = vkDeviceWaitIdle(m_handle);
     if (result != VK_SUCCESS) assert(false);
     vkDestroyDevice(m_handle, nullptr);

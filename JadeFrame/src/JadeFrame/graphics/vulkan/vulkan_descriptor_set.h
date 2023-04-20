@@ -47,7 +47,7 @@ struct Descriptor {
 class DescriptorSet {
 public:
     DescriptorSet() = default;
-    ~DescriptorSet() = default;
+    ~DescriptorSet();
     DescriptorSet(const DescriptorSet&) = delete;
     auto operator=(const DescriptorSet&) -> DescriptorSet& = delete;
     DescriptorSet(DescriptorSet&& other);
@@ -87,7 +87,7 @@ public:
     auto operator=(DescriptorSetLayout&& other) -> DescriptorSetLayout&;
 
 public:
-    DescriptorSetLayout(const LogicalDevice& device, std::vector<Binding> bindings);
+    DescriptorSetLayout(const LogicalDevice& device, const std::vector<Binding>& bindings);
 
 private:
     auto add_binding(

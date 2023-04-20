@@ -13,17 +13,17 @@ class IWindow;
 
 namespace vulkan {
 class PhysicalDevice;
-}
-class VulkanInstance {
+
+class Instance {
 
 
 public:
-    VulkanInstance() = default;
-    ~VulkanInstance() = default;
-    VulkanInstance(const VulkanInstance&) = delete;
-    auto operator=(const VulkanInstance&) -> VulkanInstance& = delete;
-    VulkanInstance(VulkanInstance&& other) = delete;
-    auto operator=(VulkanInstance&& other) -> VulkanInstance& = delete;
+    Instance() = default;
+    ~Instance() = default;
+    Instance(const Instance&) = delete;
+    auto operator=(const Instance&) -> Instance& = delete;
+    Instance(Instance&& other) = delete;
+    auto operator=(Instance&& other) -> Instance& = delete;
 
     auto init(const IWindow* window_handle) -> void;
     auto deinit() -> void;
@@ -38,8 +38,8 @@ private:
     auto create_surface(const IWindow* window_handle) -> vulkan::Surface;
 
 public:
-    VkInstance      m_instance = VK_NULL_HANDLE;
-    vulkan::Surface m_surface;
+    VkInstance m_instance = VK_NULL_HANDLE;
+    Surface    m_surface;
 
     std::vector<VkLayerProperties> m_layers;
     const std::vector<const char*> m_desired_layer_names = {
@@ -55,13 +55,15 @@ public:
     const bool m_enable_validation_layers = true;
 #endif
 
-    std::vector<vulkan::PhysicalDevice> m_physical_devices;
-    vulkan::PhysicalDevice*             m_physical_device;
-    vulkan::LogicalDevice               m_logical_device;
+    std::vector<PhysicalDevice> m_physical_devices;
+    vulkan::PhysicalDevice*     m_physical_device;
+    vulkan::LogicalDevice       m_logical_device;
 
 public:
-    static auto default_allocator() -> VkAllocationCallbacks* { return nullptr; }
+    static auto allocator() -> VkAllocationCallbacks*;
+    static auto default_allocator() -> VkAllocationCallbacks*;
 };
+} // namespace vulkan
 
 struct Vulkan_Context {
     Vulkan_Context() = default;
@@ -76,8 +78,8 @@ struct Vulkan_Context {
     Vulkan_Context(const IWindow* window);
 
 public:
-    VulkanInstance m_instance;
-    const IWindow* m_window_handle;
+    vulkan::Instance m_instance;
+    const IWindow*   m_window_handle;
 
 public:
 };

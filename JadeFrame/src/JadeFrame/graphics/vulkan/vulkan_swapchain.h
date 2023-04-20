@@ -10,9 +10,10 @@
 namespace JadeFrame {
 
 
-class VulkanInstance;
+
 
 namespace vulkan {
+class Instance;
 class LogicalDevice;
 class Semaphore;
 class Fence;
@@ -72,6 +73,7 @@ public:
     auto operator=(const Swapchain&) -> Swapchain& = delete;
     Swapchain(Swapchain&& other) = default;
     auto operator=(Swapchain&& other) -> Swapchain& = default;
+
 public:
     auto init(LogicalDevice& device, const Surface& surface) -> void;
     auto deinit() -> void;

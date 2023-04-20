@@ -186,7 +186,156 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
 auto temp_cmp_0(const ReflectedCode::Input& i0, const ReflectedCode::Input& i1) -> bool {
     return i0.location < i1.location;
 }
+auto temp_cmp_1(const ReflectedModule::Input& i0, const ReflectedModule::Input& i1) -> bool {
+    return i0.location < i1.location;
+}
 auto temp_cmp(ReflectedCode::Output i0, ReflectedCode::Output i1) -> bool { return i0.location < i1.location; }
+
+auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
+    ReflectedModule result = {};
+    // result.m_stage = current_module.m_stage;
+
+    spirv_cross::Compiler        compiler(code);
+    spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+
+    debug_print_resources(resources);
+
+    result.m_inputs.resize(resources.stage_inputs.size());
+    for (u32 j = 0; j < resources.stage_inputs.size(); j++) {
+        const spirv_cross::Resource& resource = resources.stage_inputs[j];
+
+
+        const std::string& name = resource.name;
+
+        const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
+        const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
+        i32                          member_count = static_cast<u32>(buffer_type.member_types.size());
+        u32                          location = compiler.get_decoration(resource.id, spv::DecorationLocation);
+        u32                          size = (buffer_type.width / 8) * buffer_type.vecsize * buffer_type.columns;
+
+        std::vector<ReflectedModule::Input>& inputs = result.m_inputs;
+        inputs[j].name = name;
+        inputs[j].location = location;
+        inputs[j].size = size;
+        inputs[j].type = to_SHADER_TYPE(buffer_type, buffer_type.vecsize, buffer_type.columns);
+    }
+
+
+
+    result.m_outputs.resize(resources.stage_inputs.size());
+    for (u32 j = 0; j < resources.stage_outputs.size(); j++) {
+        const spirv_cross::Resource& resource = resources.stage_outputs[j];
+
+        const std::string& name = resource.name;
+
+
+
+        const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
+        const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
+        i32                          member_count = static_cast<u32>(buffer_type.member_types.size());
+        u32                          location = compiler.get_decoration(resource.id, spv::DecorationLocation);
+        u32                          size = (buffer_type.width / 8) * buffer_type.vecsize * buffer_type.columns;
+
+        std::vector<ReflectedModule::Output>& outputs = result.m_outputs;
+        outputs[j].name = name;
+        outputs[j].location = location;
+        outputs[j].size = size;
+        outputs[j].type = to_SHADER_TYPE(buffer_type, buffer_type.vecsize, buffer_type.columns);
+    }
+
+    result.m_uniform_buffers.resize(resources.uniform_buffers.size());
+    for (u32 j = 0; j < resources.uniform_buffers.size(); j++) {
+        const spirv_cross::Resource& resource = resources.uniform_buffers[j];
+
+        const std::string&           name = resource.name;
+        const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
+        const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
+
+        Logger::info(
+            "the uniform buffer {} has {} members. base id {}, id {}", name, buffer_type.member_types.size(),
+            resource.base_type_id, resource.type_id);
+
+        u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+        u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+        u32 size = static_cast<u32>(compiler.get_declared_struct_size(buffer_type));
+
+        std::vector<ReflectedModule::UniformBuffer>& uniform_buffers = result.m_uniform_buffers;
+        uniform_buffers[j].binding = binding;
+        uniform_buffers[j].set = set;
+        uniform_buffers[j].name = name;
+        uniform_buffers[j].size = size;
+
+        JF_ASSERT(base_type.member_types.size() > 0, "this uniform buffer doesn't have any members");
+        for (u32 jj = 0; jj < base_type.member_types.size(); jj++) {
+            const spirv_cross::SPIRType& member_type = compiler.get_type(base_type.member_types[jj]);
+            const std::string&           member_name = compiler.get_member_name(resource.base_type_id, jj);
+            u32 member_size = static_cast<u32>(compiler.get_declared_struct_member_size(buffer_type, jj));
+            u32 member_offset = static_cast<u32>(compiler.type_struct_member_offset(buffer_type, jj));
+
+
+            ReflectedModule::UniformBuffer::Member member = {};
+            member.name = member_name;
+            member.size = member_size;
+            member.offset = member_offset;
+            member.type = to_SHADER_TYPE(member_type, member_type.vecsize, member_type.columns);
+            Logger::info(
+                "\tthe member {}.{} has, type {}, size {} and offset {}", name, member_name, to_string(member.type),
+                member_size, member_offset);
+
+            uniform_buffers[j].members.push_back(member);
+        }
+        compiler.get_member_name(resource.base_type_id, 0);
+        compiler.get_declared_struct_size(compiler.get_type(resource.base_type_id));
+    }
+
+
+    result.m_sampled_images.resize(resources.sampled_images.size());
+    for (u32 j = 0; j < resources.sampled_images.size(); j++) {
+        const spirv_cross::Resource& resource = resources.sampled_images[j];
+
+        const std::string&           name = resource.name;
+        const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
+        const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
+        i32                          member_count = static_cast<u32>(buffer_type.member_types.size());
+        u32                          binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+        u32                          set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+        u32 descriptor_set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+
+        u32 dimension = base_type.image.dim;
+        u32 array_size = buffer_type.array[0];
+
+        if (array_size == 0) {
+            array_size = 1;
+        } else {
+            assert(false);
+        }
+        std::vector<ReflectedModule::SampledImage>& sampled_images = result.m_sampled_images;
+        sampled_images[j].binding = binding;
+        sampled_images[j].set = set;
+        sampled_images[j].name = name;
+    }
+    std::sort(result.m_inputs.begin(), result.m_inputs.end(), temp_cmp_1);
+    // std::sort(result.m_outputs.begin(), result.m_outputs.end(), temp_cmp);
+
+
+
+    // result.m_push_constant_ranges.resize(resources.push_constant_buffers.size());
+    // for (u32 j = 0; j < resources.push_constant_buffers.size(); j++) {
+    //     const spirv_cross::Resource& resource = resources.push_constant_buffers[j];
+
+    //     const std::string&           buffer_name = resource.name;
+    //     const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.base_type_id);
+    //     u32                          buffer_size = (u32)compiler.get_declared_struct_size(buffer_type);
+    //     u32                          member_count = uint32_t(buffer_type.member_types.size());
+    //     u32                          buffer_offset = 0;
+
+    //     std::vector<VkPushConstantRange>& push_constant_ranges = result.m_push_constant_ranges;
+    //     push_constant_ranges[j].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    //     push_constant_ranges[j].size = buffer_size - buffer_offset;
+    //     push_constant_ranges[j].offset = buffer_offset;
+    // }
+    return result;
+}
 auto reflect(const ShadingCode& code) -> ReflectedCode {
     ReflectedCode result = {};
 

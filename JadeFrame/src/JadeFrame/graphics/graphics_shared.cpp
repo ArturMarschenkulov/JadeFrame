@@ -69,6 +69,51 @@ auto Image::load(const std::string& path) -> Image {
 }
 
 /*---------------------------
+    GPUBuffer
+----------------------------*/
+GPUBuffer::~GPUBuffer() {}
+GPUBuffer::GPUBuffer(GPUBuffer&& other) {}
+auto GPUBuffer::operator=(GPUBuffer&& other) -> GPUBuffer& { return *this; }
+
+
+static auto to_opengl(GPUBuffer::TYPE type) -> opengl::Buffer::TYPE {
+    opengl::Buffer::TYPE result;
+    switch (type) {
+        case GPUBuffer::TYPE::VERTEX: result = opengl::Buffer::TYPE::VERTEX; break;
+        case GPUBuffer::TYPE::INDEX: result = opengl::Buffer::TYPE::INDEX; break;
+        case GPUBuffer::TYPE::UNIFORM: result = opengl::Buffer::TYPE::UNIFORM; break;
+        default: JF_UNREACHABLE();
+    }
+    return result;
+}
+static auto to_vulkan(GPUBuffer::TYPE type) -> vulkan::Buffer::TYPE {
+    vulkan::Buffer::TYPE result;
+    switch (type) {
+        case GPUBuffer::TYPE::VERTEX: result = vulkan::Buffer::TYPE::VERTEX; break;
+        case GPUBuffer::TYPE::INDEX: result = vulkan::Buffer::TYPE::INDEX; break;
+        case GPUBuffer::TYPE::UNIFORM: result = vulkan::Buffer::TYPE::UNIFORM; break;
+        // case GPUBuffer::TYPE::STORAGE: result = vulkan::Buffer::TYPE::STORAGE; break;
+        default: JF_UNREACHABLE();
+    }
+    return result;
+}
+GPUBuffer::GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage) {
+
+    switch (system->m_api) {
+        case GRAPHICS_API::OPENGL: {
+            auto&       ctx = *(OpenGL_Context*)system->m_renderer;
+            const auto& x = ctx.create_buffer(to_opengl(usage), data, size);
+            m_handle = (void*)x;
+        } break;
+        case GRAPHICS_API::VULKAN: {
+            auto* ctx = ((Vulkan_Renderer*)system->m_renderer)->m_logical_device;
+            ctx->create_buffer(to_vulkan(usage), data, size);
+        } break;
+        default: assert(false);
+    }
+}
+
+/*---------------------------
     Texture Handle
 ---------------------------*/
 

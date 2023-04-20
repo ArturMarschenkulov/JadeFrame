@@ -135,7 +135,7 @@ auto PhysicalDevice::query_extension_properties() -> std::vector<VkExtensionProp
     return extension_properties;
 }
 
-auto PhysicalDevice::init(VulkanInstance& instance, const Surface& surface) -> void {
+auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
     m_instance_p = &instance;
     m_properties = this->query_properties();
     m_features = this->query_features();

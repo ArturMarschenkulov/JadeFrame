@@ -58,7 +58,12 @@ static auto vulkan_get_device_type_string(const VkPhysicalDeviceType& device_typ
     }
     return result;
 }
-auto VulkanInstance::check_validation_layer_support(const std::vector<VkLayerProperties>& layers) -> bool {
+
+namespace vulkan {
+auto Instance::allocator() -> VkAllocationCallbacks* { return Instance::default_allocator(); }
+auto Instance::default_allocator() -> VkAllocationCallbacks* { return nullptr; }
+
+auto Instance::check_validation_layer_support(const std::vector<VkLayerProperties>& layers) -> bool {
 #if 1
     for (u32 i = 0; i < m_desired_layer_names.size(); i++) {
         bool found = false;
@@ -96,7 +101,7 @@ static auto is_device_suitable(const vulkan::PhysicalDevice& physical_device, vu
            swapchain_adequate;
 }
 
-auto VulkanInstance::query_layers() -> std::vector<VkLayerProperties> {
+auto Instance::query_layers() -> std::vector<VkLayerProperties> {
     u32 layer_count;
     vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
     std::vector<VkLayerProperties> available_layers;
@@ -106,7 +111,7 @@ auto VulkanInstance::query_layers() -> std::vector<VkLayerProperties> {
     return available_layers;
 }
 
-auto VulkanInstance::query_extensions() -> std::vector<VkExtensionProperties> {
+auto Instance::query_extensions() -> std::vector<VkExtensionProperties> {
     VkResult result;
 
     u32 extension_count = 0;
@@ -121,7 +126,7 @@ auto VulkanInstance::query_extensions() -> std::vector<VkExtensionProperties> {
     return extensions;
 }
 
-auto VulkanInstance::query_physical_devices() -> std::vector<vulkan::PhysicalDevice> {
+auto Instance::query_physical_devices() -> std::vector<vulkan::PhysicalDevice> {
     u32 device_count = 0;
     vkEnumeratePhysicalDevices(m_instance, &device_count, nullptr);
     if (device_count == 0) assert(false);
@@ -137,18 +142,18 @@ auto VulkanInstance::query_physical_devices() -> std::vector<vulkan::PhysicalDev
     return physical_devices;
 }
 
-auto VulkanInstance::setup_debug() -> void {
+auto Instance::setup_debug() -> void {
     VkResult result;
     if (!m_enable_validation_layers) return;
     VkDebugUtilsMessengerCreateInfoEXT create_info;
     vulkan::populate_debug_messenger_create_info(create_info);
 
-    result = vkCreateDebugUtilsMessengerEXT_(m_instance, &create_info, nullptr, &m_debug_messenger);
+    result = vkCreateDebugUtilsMessengerEXT_(m_instance, &create_info, Instance::allocator(), &m_debug_messenger);
     if (result != VK_SUCCESS) assert(false);
 }
 
-auto VulkanInstance::init(const IWindow* window_handle) -> void {
-    Logger::trace("VulkanInstance::init start");
+auto Instance::init(const IWindow* window_handle) -> void {
+    Logger::trace("Instance::init start");
 
     VkResult result;
 
@@ -218,7 +223,7 @@ auto VulkanInstance::init(const IWindow* window_handle) -> void {
         create_info.pNext = nullptr;
     }
 
-    result = vkCreateInstance(&create_info, nullptr, &m_instance);
+    result = vkCreateInstance(&create_info, Instance::allocator(), &m_instance);
     if (result != VK_SUCCESS) assert(false);
 
     { Logger::info("Created Vulkan Instance {} at {}", fmt::ptr(this), fmt::ptr(m_instance)); }
@@ -226,7 +231,7 @@ auto VulkanInstance::init(const IWindow* window_handle) -> void {
         VkDebugUtilsMessengerCreateInfoEXT info;
         vulkan::populate_debug_messenger_create_info(info);
 
-        result = vkCreateDebugUtilsMessengerEXT_(m_instance, &info, nullptr, &m_debug_messenger);
+        result = vkCreateDebugUtilsMessengerEXT_(m_instance, &info, Instance::allocator(), &m_debug_messenger);
         if (result != VK_SUCCESS) assert(false);
     }
     m_surface = this->create_surface(window_handle);
@@ -245,18 +250,21 @@ auto VulkanInstance::init(const IWindow* window_handle) -> void {
 
     m_logical_device.init(*this, *m_physical_device, m_surface);
     // m_logical_device = m_physical_device.create_logical_device();
-    Logger::trace("VulkanInstance::init end");
+    Logger::trace("Instance::init end");
 }
 
-auto VulkanInstance::deinit() -> void {
-    if (m_enable_validation_layers) { vkDestroyDebugUtilsMessengerEXT_(m_instance, m_debug_messenger, nullptr); }
+auto Instance::deinit() -> void {
+    if (m_enable_validation_layers) {
+        vkDestroyDebugUtilsMessengerEXT_(m_instance, m_debug_messenger, Instance::allocator());
+    }
     vkDestroyInstance(m_instance, nullptr);
 }
 
-auto VulkanInstance::create_surface(const IWindow* window_handle) -> vulkan::Surface {
+auto Instance::create_surface(const IWindow* window_handle) -> vulkan::Surface {
     vulkan::Surface surface(m_instance, window_handle);
     return surface;
 }
+} // namespace vulkan
 
 Vulkan_Context::Vulkan_Context(const IWindow* window) {
     m_window_handle = window;

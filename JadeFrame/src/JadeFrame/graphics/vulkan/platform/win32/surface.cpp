@@ -1,4 +1,5 @@
 #include "surface.h"
+#include "../../vulkan_context.h"
 
 #include "JadeFrame/platform/windows/windows_window.h"
 
@@ -17,7 +18,7 @@ auto create_surface(VkInstance instance, const IWindow* window_handle) -> VkSurf
     };
     VkSurfaceKHR handle;
 
-    VkResult result = vkCreateWin32SurfaceKHR(instance, &create_info, nullptr, &handle);
+    VkResult result = vkCreateWin32SurfaceKHR(instance, &create_info, Instance::allocator(), &handle);
     if (result != VK_SUCCESS) {
         assert(false);
         throw std::runtime_error("failed to create window surface!");

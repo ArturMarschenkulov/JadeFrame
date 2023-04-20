@@ -16,12 +16,13 @@
 #include <vector>
 
 namespace JadeFrame {
-class VulkanInstance;
+
 class Vulkan_Renderer;
 
 
 
 namespace vulkan {
+class Instance;
 class LogicalDevice;
 class Pipeline;
 class PhysicalDevice;
@@ -72,12 +73,12 @@ public:
     LogicalDevice(LogicalDevice&& other);
     auto operator=(LogicalDevice&& other) -> LogicalDevice&;
 
-    auto init(const VulkanInstance& instance, const PhysicalDevice& physical_device, const Surface& surface) -> void;
+    auto init(const Instance& instance, const PhysicalDevice& physical_device, const Surface& surface) -> void;
     auto deinit() -> void;
 
 public:
     VkDevice              m_handle = VK_NULL_HANDLE;
-    const VulkanInstance* m_instance = nullptr;
+    const Instance*       m_instance = nullptr;
     const PhysicalDevice* m_physical_device = nullptr;
 
 public:

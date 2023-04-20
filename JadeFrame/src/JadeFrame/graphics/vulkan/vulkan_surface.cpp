@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "vulkan_surface.h"
+#include "vulkan_context.h"
 #include "JadeFrame/platform/windows/windows_window.h"
 #include "platform/win32/surface.h"
 
@@ -43,7 +44,7 @@ Surface::Surface(VkInstance instance, const IWindow* window_handle) {
 }
 
 Surface::~Surface() {
-    if (m_handle != VK_NULL_HANDLE) { vkDestroySurfaceKHR(m_instance, m_handle, nullptr); }
+    if (m_handle != VK_NULL_HANDLE) { vkDestroySurfaceKHR(m_instance, m_handle, Instance::allocator()); }
 }
 
 //} // namespace win32

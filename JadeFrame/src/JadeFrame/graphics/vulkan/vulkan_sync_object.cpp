@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "vulkan_sync_object.h"
 #include "vulkan_logical_device.h"
+#include "vulkan_context.h"
+
 #include "JadeFrame/utils/assert.h"
 namespace JadeFrame {
 namespace vulkan {
@@ -33,7 +35,7 @@ Fence::Fence(const LogicalDevice& device, bool signaled) {
         .flags = signaled ? VK_FENCE_CREATE_SIGNALED_BIT : (VkFenceCreateFlags)0,
     };
 
-    result = vkCreateFence(device.m_handle, &create_info, nullptr, &m_handle);
+    result = vkCreateFence(device.m_handle, &create_info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
@@ -91,7 +93,7 @@ Semaphore::Semaphore(const LogicalDevice& device) {
         .flags = 0,
     };
 
-    result = vkCreateSemaphore(device.m_handle, &create_info, nullptr, &m_handle);
+    result = vkCreateSemaphore(device.m_handle, &create_info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 

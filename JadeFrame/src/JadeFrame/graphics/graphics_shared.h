@@ -265,6 +265,7 @@ public:
     void*        m_handle = nullptr;
 };
 
+
 struct MaterialHandle {
     u32 m_shader_id = 0;
     u32 m_texture_id = 0;
@@ -284,6 +285,34 @@ struct GPUDataMeshHandle {
 
     mutable bool m_is_initialized = false;
 };
+
+class RenderSystem;
+class GPUBuffer {
+public:
+    enum TYPE {
+        UNINIT, // TODO: find ways to remove it
+        VERTEX,
+        INDEX,
+        UNIFORM,
+        STAGING
+    };
+    GPUBuffer() = default;
+    ~GPUBuffer();
+    GPUBuffer(const GPUBuffer&) = delete;
+    auto operator=(const GPUBuffer&) -> GPUBuffer& = delete;
+    GPUBuffer(GPUBuffer&& other);
+    auto operator=(GPUBuffer&& other) -> GPUBuffer&;
+
+    GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage);
+
+public:
+    RenderSystem* m_system;
+    GRAPHICS_API  m_api = GRAPHICS_API::UNDEFINED;
+    void*         m_handle = nullptr;
+    size_t        m_size = 0;
+    TYPE          m_type = TYPE::UNINIT;
+};
+
 
 
 /*
@@ -316,33 +345,6 @@ public: // more internal stuff
     virtual auto render(const Matrix4x4& view_projection) -> void = 0;
     virtual auto present() -> void = 0;
 };
-
-
-
-
-//
-// struct RasterizerState {
-//	enum FILL_MODE {
-//	} m_fill_mode;
-//	enum CULL_MODE {
-//	} m_cull_mode;
-//	f32 front_ccw;
-//	f32 m_rasterizer_discard;
-//
-//
-//	f32 m_depth_bias;
-//	f32 m_slope_scaled_bias;
-//	f32 m_offset_clamp;
-//	f32 m_clip_setup;
-//
-//	f32 m_depth_clamp;
-//	f32 m_scissor;
-//	f32 m_provoking_vertex;
-//	f32 m_clip_distance;
-//
-//	f32 m_point_size;
-//	f32 m_line_width;
-//};
 
 inline auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
     u32 result;

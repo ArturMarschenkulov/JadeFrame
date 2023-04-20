@@ -60,7 +60,7 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
 }
 
 
-auto get_aligned_block_size(const u64 block_size, const u64 alignment) -> u64 {
+static auto get_aligned_block_size(const u64 block_size, const u64 alignment) -> u64 {
 #if 0 // more efficient
         const u64 new_val = (block_size + alignment - 1) & ~(alignment - 1);
         const u64 aligned_block_size = alignment > 0 ? new_val : block_size;

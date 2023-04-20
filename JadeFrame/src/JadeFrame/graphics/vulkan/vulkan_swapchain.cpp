@@ -144,7 +144,7 @@ RenderPass::RenderPass(const LogicalDevice& device, VkFormat image_format) {
         .pDependencies = {},
     };
 
-    result = vkCreateRenderPass(device.m_handle, &render_pass_info, nullptr, &m_handle);
+    result = vkCreateRenderPass(device.m_handle, &render_pass_info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
@@ -202,7 +202,7 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     } else {
         create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     }
-    result = vkCreateSwapchainKHR(device.m_handle, &create_info, nullptr, &m_handle);
+    result = vkCreateSwapchainKHR(device.m_handle, &create_info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 
 
@@ -215,15 +215,15 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
 }
 
 auto Swapchain::query_images() -> std::vector<Image> {
-    std::vector<VkImage> images;
-    u32                  image_count;
+    u32 image_count;
 
     vkGetSwapchainImagesKHR(m_device->m_handle, m_handle, &image_count, nullptr);
+    std::vector<VkImage> images(image_count);
     images.resize(image_count);
     vkGetSwapchainImagesKHR(m_device->m_handle, m_handle, &image_count, images.data());
 
     std::vector<Image> result;
-    result.resize(image_count);
+    result.resize(images.size());
     for (u32 i = 0; i < image_count; i++) { result[i] = Image(*m_device, images[i]); }
 
     return result;
@@ -298,7 +298,7 @@ Framebuffer::Framebuffer(Framebuffer&& other)
     other.m_render_pass = nullptr;
 }
 auto Framebuffer::operator=(Framebuffer&& other) -> Framebuffer& {
-    
+
     m_handle = other.m_handle;
     m_device = other.m_device;
     m_image_view = other.m_image_view;
@@ -337,7 +337,7 @@ Framebuffer::Framebuffer(
         .layers = 1,
     };
 
-    result = vkCreateFramebuffer(device.m_handle, &framebuffer_info, nullptr, &m_handle);
+    result = vkCreateFramebuffer(device.m_handle, &framebuffer_info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 

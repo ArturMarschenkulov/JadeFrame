@@ -3,13 +3,48 @@
 
 #include "vulkan_logical_device.h"
 #include "vulkan_physical_device.h"
+#include "vulkan_context.h"
 
 #include "JadeFrame/math/mat_4.h"
 #include "JadeFrame/utils/assert.h"
+#include "JadeFrame/utils/utils.h"
 
 namespace JadeFrame {
 
 namespace vulkan {
+struct Memory {
+    struct Block {
+        VkDeviceMemory       memory;
+        u32                  size;
+        VkMemoryRequirements mem_reqs;
+    };
+    auto push_buffer(const LogicalDevice* device, VkBuffer buffer) -> void {
+        m_device = device;
+        VkMemoryRequirements mem_reqs;
+        vkGetBufferMemoryRequirements(m_device->m_handle, buffer, &mem_reqs);
+
+        if (m_blocks.empty()) {
+            auto default_size = from_mebibyte(256);
+
+            VkMemoryAllocateInfo alloc_info = {};
+            alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            alloc_info.pNext = nullptr;
+            alloc_info.allocationSize = default_size <= mem_reqs.size ? mem_reqs.size : default_size;
+            alloc_info.memoryTypeIndex = m_device->m_physical_device->find_memory_type(
+                mem_reqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+            VkDeviceMemory memory;
+            vkAllocateMemory(m_device->m_handle, &alloc_info, Instance::allocator(), &memory);
+            m_blocks.push_back(memory);
+        }
+    }
+    const LogicalDevice*        m_device;
+    std::vector<VkDeviceMemory> m_blocks;
+};
+
+static Memory g_memory;
+
+
 
 /*---------------------------
     Buffer
@@ -117,8 +152,8 @@ Buffer::Buffer(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data
 
 Buffer::~Buffer() {
     if (m_handle != VK_NULL_HANDLE) {
-        vkDestroyBuffer(m_device->m_handle, m_handle, nullptr);
-        vkFreeMemory(m_device->m_handle, m_memory, nullptr);
+        vkDestroyBuffer(m_device->m_handle, m_handle, Instance::allocator());
+        vkFreeMemory(m_device->m_handle, m_memory, Instance::allocator());
 
         Logger::info("Destroyed Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
 
@@ -161,9 +196,11 @@ auto Buffer::create_buffer(
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
     };
-    result = vkCreateBuffer(m_device->m_handle, &buffer_info, nullptr, &buffer);
+    result = vkCreateBuffer(m_device->m_handle, &buffer_info, Instance::allocator(), &buffer);
     JF_ASSERT(result == VK_SUCCESS, "");
     m_handle = buffer;
+
+    g_memory.push_buffer(m_device, buffer);
 
     VkMemoryRequirements mem_requirements;
     vkGetBufferMemoryRequirements(m_device->m_handle, buffer, &mem_requirements);
@@ -175,7 +212,7 @@ auto Buffer::create_buffer(
         .memoryTypeIndex = m_device->m_physical_device->find_memory_type(mem_requirements.memoryTypeBits, properties),
     };
 
-    result = vkAllocateMemory(m_device->m_handle, &alloc_info, nullptr, &buffer_memory);
+    result = vkAllocateMemory(m_device->m_handle, &alloc_info, Instance::allocator(), &buffer_memory);
     JF_ASSERT(result == VK_SUCCESS, "");
 
     result = vkBindBufferMemory(m_device->m_handle, buffer, buffer_memory, 0);
@@ -310,7 +347,7 @@ Image::Image(const LogicalDevice& device, const v2u32& size, VkFormat format, Vk
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
 
-    result = vkCreateImage(device.m_handle, &image_info, nullptr, &m_handle);
+    result = vkCreateImage(device.m_handle, &image_info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
     {
         Logger::info("Created image {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
@@ -331,7 +368,7 @@ Image::Image(const LogicalDevice& device, const v2u32& size, VkFormat format, Vk
             mem_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),
     };
 
-    result = vkAllocateMemory(device.m_handle, &alloc_info, nullptr, &m_memory);
+    result = vkAllocateMemory(device.m_handle, &alloc_info, Instance::allocator(), &m_memory);
     JF_ASSERT(result == VK_SUCCESS, "");
 
     result = vkBindImageMemory(device.m_handle, m_handle, m_memory, 0);
@@ -392,11 +429,11 @@ ImageView::ImageView(const LogicalDevice& device, const Image& image, VkFormat f
                          }
     };
 
-    result = vkCreateImageView(device.m_handle, &create_info, nullptr, &m_handle);
+    result = vkCreateImageView(device.m_handle, &create_info, Instance::allocator(), &m_handle);
     if (result != VK_SUCCESS) assert(false);
 }
 ImageView::~ImageView() {
-    if (m_handle != VK_NULL_HANDLE) { vkDestroyImageView(m_device->m_handle, m_handle, nullptr); }
+    if (m_handle != VK_NULL_HANDLE) { vkDestroyImageView(m_device->m_handle, m_handle, Instance::allocator()); }
 }
 
 /*---------------------------
@@ -427,7 +464,7 @@ auto Sampler::init(const LogicalDevice& device) -> void {
         .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
         .unnormalizedCoordinates = VK_FALSE,
     };
-    result = vkCreateSampler(device.m_handle, &samplerInfo, nullptr, &m_handle);
+    result = vkCreateSampler(device.m_handle, &samplerInfo, Instance::allocator(), &m_handle);
     if (result != VK_SUCCESS) assert(false);
 }
 

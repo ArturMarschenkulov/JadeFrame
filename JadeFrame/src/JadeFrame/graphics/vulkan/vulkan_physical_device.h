@@ -11,8 +11,9 @@
 
 namespace JadeFrame {
 
-class VulkanInstance;
+
 namespace vulkan {
+class Instance;
 class Surface;
 
 using QueueFamilyIndex = u32;
@@ -33,7 +34,7 @@ public:
 class PhysicalDevice {
 private:
 public:
-    auto init(VulkanInstance& instance, const Surface& surface) -> void;
+    auto init(Instance& instance, const Surface& surface) -> void;
     auto check_extension_support(const std::vector<const char*>& extensions) -> bool;
     auto find_queue_families(const std::vector<QueueFamily>& queue_families, const Surface& surface)
         -> QueueFamilyIndices;
@@ -56,7 +57,7 @@ public:
 
 public:
     VkPhysicalDevice m_handle;
-    VulkanInstance*  m_instance_p = nullptr;
+    Instance*        m_instance_p = nullptr;
 
     VkPhysicalDeviceProperties       m_properties = {};
     VkPhysicalDeviceFeatures         m_features = {};

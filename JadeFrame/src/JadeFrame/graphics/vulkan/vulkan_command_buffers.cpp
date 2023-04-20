@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "vulkan_logical_device.h"
+#include "vulkan_context.h"
 #include "vulkan_command_buffers.h"
 #include "vulkan_swapchain.h"
 #include "vulkan_pipeline.h"
@@ -125,7 +126,7 @@ auto CommandBuffer::bind_descriptor_sets(
     vkCmdBindDescriptorSets(
         m_handle,                                 // commandBuffer
         bind_point,                               // pipelineBindPoint
-        pipeline.m_layout,                        // layout
+        pipeline.m_layout.m_handle,               // layout
         first_set,                                // firstSet
         1,                                        // descriptor_set.m_descriptors.size(),      // descriptorSetCount
         &descriptor_set.m_handle,                 // pDescriptorSets
@@ -210,7 +211,7 @@ CommandPool::CommandPool(const LogicalDevice& device, const QueueFamilyIndex& qu
         .queueFamilyIndex = queue_family_index /*queue_family_indices.m_graphics_family.unwrap()*/,
     };
 
-    result = vkCreateCommandPool(device.m_handle, &pool_info, nullptr, &m_handle);
+    result = vkCreateCommandPool(device.m_handle, &pool_info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
     {
         Logger::info("Created Command Pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
@@ -221,7 +222,7 @@ CommandPool::CommandPool(const LogicalDevice& device, const QueueFamilyIndex& qu
 }
 
 CommandPool::~CommandPool() {
-    if (m_handle != VK_NULL_HANDLE) { vkDestroyCommandPool(m_device->m_handle, m_handle, nullptr); }
+    if (m_handle != VK_NULL_HANDLE) { vkDestroyCommandPool(m_device->m_handle, m_handle, Instance::allocator()); }
 }
 
 auto CommandPool::allocate_buffers(u32 amount) const -> std::vector<CommandBuffer> {

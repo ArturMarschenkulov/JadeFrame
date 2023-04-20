@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "vulkan_descriptor_set.h"
 #include "vulkan_logical_device.h"
+#include "vulkan_context.h"
 #include "vulkan_physical_device.h"
 #include "vulkan_buffer.h"
 #include "JadeFrame/utils/utils.h"
@@ -65,6 +66,12 @@ Descriptor::Descriptor(
 /*---------------------------
         Descriptor Set
 ---------------------------*/
+
+DescriptorSet::~DescriptorSet() {
+    // if (m_handle != VK_NULL_HANDLE) {
+    //     vkFreeDescriptorSets(m_device->m_handle, m_layout->m_pool->m_handle, 1, &m_handle);
+    // }
+}
 
 DescriptorSet::DescriptorSet(DescriptorSet&& other) {
     this->m_handle = other.m_handle;
@@ -262,6 +269,7 @@ DescriptorSetLayout::DescriptorSetLayout(DescriptorSetLayout&& other)
     , m_handle(other.m_handle)
     , m_bindings(std::move(other.m_bindings))
     , m_dynamic_count(other.m_dynamic_count) {
+
     other.m_device = nullptr;
     other.m_handle = VK_NULL_HANDLE;
     other.m_bindings = {};
@@ -285,12 +293,12 @@ auto DescriptorSetLayout::operator=(DescriptorSetLayout&& other) -> DescriptorSe
 
 DescriptorSetLayout::~DescriptorSetLayout() {
     if (m_handle != VK_NULL_HANDLE) {
-        vkDestroyDescriptorSetLayout(m_device->m_handle, m_handle, nullptr);
+        vkDestroyDescriptorSetLayout(m_device->m_handle, m_handle, Instance::allocator());
         { Logger::info("Destroyed descriptor set layout {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
     }
 }
 
-DescriptorSetLayout::DescriptorSetLayout(const LogicalDevice& device, std::vector<Binding> bindings) {
+DescriptorSetLayout::DescriptorSetLayout(const LogicalDevice& device, const std::vector<Binding>& bindings) {
     m_device = &device;
     VkResult result;
 
@@ -308,7 +316,7 @@ DescriptorSetLayout::DescriptorSetLayout(const LogicalDevice& device, std::vecto
         .pBindings = m_bindings.data(),
     };
 
-    result = vkCreateDescriptorSetLayout(device.m_handle, &layout_info, nullptr, &m_handle);
+    result = vkCreateDescriptorSetLayout(device.m_handle, &layout_info, Instance::allocator(), &m_handle);
     if (result != VK_SUCCESS) assert(false);
     {
         Logger::info("Created descriptor set layout {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
@@ -401,7 +409,7 @@ DescriptorPool::DescriptorPool(
     JF_ASSERT(pool_info.maxSets > 0, "");
     JF_ASSERT(pool_info.poolSizeCount > 0, "");
 
-    result = vkCreateDescriptorPool(device.m_handle, &pool_info, nullptr, &m_handle);
+    result = vkCreateDescriptorPool(device.m_handle, &pool_info, Instance::allocator(), &m_handle);
     if (result != VK_SUCCESS) assert(false);
     {
         Logger::info("Created descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
@@ -415,7 +423,7 @@ DescriptorPool::DescriptorPool(
 
 DescriptorPool::~DescriptorPool() {
     if (m_handle != VK_NULL_HANDLE) {
-        vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr);
+        vkDestroyDescriptorPool(m_device->m_handle, m_handle, Instance::allocator());
         { Logger::info("Destroyed descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
     }
 }
@@ -477,7 +485,7 @@ auto DescriptorPool::free_sets(const std::vector<DescriptorSet>& /*descriptor_se
     // VkResult result;
     // result = vkResetDescriptorPool(m_device->m_handle, m_handle, 0);
     // if (result != VK_SUCCESS) assert(false);
-    vkDestroyDescriptorPool(m_device->m_handle, m_handle, nullptr);
+    vkDestroyDescriptorPool(m_device->m_handle, m_handle, Instance::allocator());
     { Logger::info("Destroyed descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
 }
 
