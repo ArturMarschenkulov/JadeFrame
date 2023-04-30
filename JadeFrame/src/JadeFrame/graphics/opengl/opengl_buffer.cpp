@@ -140,48 +140,13 @@ GPUMeshData::GPUMeshData(
     u64   data_size = flat_data.size() * sizeof(f32);
     m_vertex_buffer = context.create_buffer(Buffer::TYPE::VERTEX, data, data_size);
 
-    m_vertex_array.bind();
-    this->set_layout(vertex_format);
 
     if (vertex_data.m_indices.size() > 0) {
         void* data = (void*)vertex_data.m_indices.data();
         u64   data_size = vertex_data.m_indices.size() * sizeof(u32);
         m_index_buffer = context.create_buffer(Buffer::TYPE::INDEX, data, data_size);
     }
-    m_vertex_array.unbind();
-}
-
-auto GPUMeshData::bind() const -> void { m_vertex_array.bind(); }
-
-auto GPUMeshData::set_layout(const VertexFormat& vertex_format) -> void {
-    m_vertex_format = vertex_format;
-
-    i32 vertex_buffer_index = 0;
-    for (size_t i = 0; i != vertex_format.m_attributes.size(); i++) {
-        const VertexAttribute& attribute = vertex_format.m_attributes[i];
-
-        switch (attribute.type) {
-            case SHADER_TYPE::F32:
-            case SHADER_TYPE::V_2_F32:
-            case SHADER_TYPE::V_3_F32:
-            case SHADER_TYPE::V_4_F32: {
-                glEnableVertexAttribArray(vertex_buffer_index);
-                // glEnableVertexArrayAttrib(m_ID, vertex_buffer_index);
-                glVertexAttribPointer(
-                    vertex_buffer_index,
-                    get_component_count(attribute.type), // element.get_component_count(),
-                    SHADER_TYPE_to_openGL_type(attribute.type), attribute.normalized ? GL_TRUE : GL_FALSE,
-                    vertex_format.m_stride,
-                    (const void*)attribute.offset // reinterpret_cast<const void*>(element.offset)
-                );
-
-            } break;
-            default: {
-                assert(false);
-            }
-        }
-        vertex_buffer_index++;
-    }
+    m_vertex_array = OGLW_VertexArray(&context, vertex_format);
 }
 
 } // namespace opengl

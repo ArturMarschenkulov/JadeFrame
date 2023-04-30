@@ -93,14 +93,12 @@ public:
     GPUMeshData(
         OpenGL_Context& context, const VertexData& vertex_data, VertexFormat vertex_format, bool interleaved = true);
 
-    auto bind() const -> void;
-    auto set_layout(const VertexFormat& vertex_format) -> void;
-
 public: // private:
-    Buffer*          m_vertex_buffer;
+    Buffer*      m_vertex_buffer;
+    Buffer*      m_index_buffer;
+    VertexFormat m_vertex_format;
+
     OGLW_VertexArray m_vertex_array;
-    Buffer*          m_index_buffer;
-    VertexFormat     m_vertex_format;
 };
 } // namespace opengl
 } // namespace JadeFrame

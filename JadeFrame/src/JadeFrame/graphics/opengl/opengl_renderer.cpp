@@ -152,6 +152,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         opengl::Shader* sh = static_cast<opengl::Shader*>(sh_.m_handle);
         sh->bind();
         fb.m_texture->bind(0);
+        fb.m_framebuffer_rect->m_vertex_array.bind_buffer(*fb.m_framebuffer_rect->m_vertex_buffer);
         fb.m_framebuffer_rect->m_vertex_array.bind();
 
         glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -164,7 +165,8 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
 auto OpenGL_Renderer::render_mesh(const opengl::GPUMeshData* vertex_array, const VertexData* vertex_data) const
     -> void {
-    vertex_array->bind();
+    vertex_array->m_vertex_array.bind_buffer(*vertex_array->m_vertex_buffer);
+    vertex_array->m_vertex_array.bind();
 
     if (vertex_data->m_indices.size() > 0) {
         glDrawElements(

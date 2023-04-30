@@ -11,6 +11,7 @@
 #include "JadeFrame/math/vec.h"
 #include <glad/glad.h>
 #include "opengl_texture.h"
+#include "../graphics_shared.h"
 
 #include <vector>
 #include <string>
@@ -24,35 +25,36 @@ namespace JadeFrame {
 /*******************
  *	VERTEX ARRAY
  *******************/
+class VertexFormat;
+namespace opengl {
+class Buffer;
+}
+class OpenGL_Context;
 class OGLW_VertexArray {
 public:
     OGLW_VertexArray();
     ~OGLW_VertexArray();
-
     OGLW_VertexArray(OGLW_VertexArray&) = delete;
     auto operator=(const OGLW_VertexArray&) -> OGLW_VertexArray& = delete;
-
     OGLW_VertexArray(OGLW_VertexArray&& other) noexcept;
     auto operator=(OGLW_VertexArray&&) -> OGLW_VertexArray&;
 
-
+    OGLW_VertexArray(OpenGL_Context* context, const VertexFormat& vertex_format);
 
     auto bind() const -> void;
     auto unbind() const -> void;
 
+    auto bind_buffer(const opengl::Buffer& buffer) const -> void;
+    auto set_layout(const VertexFormat& vertex_format) -> void;
+
+private:
+    auto enable_attrib(const u32 index) const -> void;
+    auto set_attrib_format(const u32 index, const SHADER_TYPE type, const bool count, const u32 offset) const -> void;
+    auto set_attrib_binding(const u32 index, const u32 binding) const -> void;
 private:
     GLuint m_ID;
 
-private:
-    auto release() -> GLuint {
-        GLuint ret = m_ID;
-        m_ID = 0;
-        return ret;
-    }
-    auto reset(GLuint ID = 0) -> void {
-        glDeleteVertexArrays(1, &m_ID);
-        m_ID = ID;
-    }
+    VertexFormat m_vertex_format;
 };
 
 /*******************
