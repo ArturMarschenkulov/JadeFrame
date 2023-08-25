@@ -218,25 +218,35 @@ auto set_pixel_format(const HDC& device_context) -> void {
 #else
 
     std::vector<i32> pixel_attributes;
-    pixel_attributes.push_back(WGL_DRAW_TO_WINDOW_ARB); // draw to window
+    // draw to window
+    pixel_attributes.push_back(WGL_DRAW_TO_WINDOW_ARB);
     pixel_attributes.push_back(GL_TRUE);
-    pixel_attributes.push_back(WGL_SUPPORT_OPENGL_ARB); // support OpenGL
+    // support OpenGL
+    pixel_attributes.push_back(WGL_SUPPORT_OPENGL_ARB);
     pixel_attributes.push_back(GL_TRUE);
-    pixel_attributes.push_back(WGL_DOUBLE_BUFFER_ARB); // double buffer
+    // double buffer
+    pixel_attributes.push_back(WGL_DOUBLE_BUFFER_ARB);
     pixel_attributes.push_back(GL_TRUE);
-    pixel_attributes.push_back(WGL_PIXEL_TYPE_ARB); // RGBA type
+    // RGBA type
+    pixel_attributes.push_back(WGL_PIXEL_TYPE_ARB);
     pixel_attributes.push_back(WGL_TYPE_RGBA_ARB);
-    pixel_attributes.push_back(WGL_COLOR_BITS_ARB); // 32-bit color
+    // 32-bit color
+    pixel_attributes.push_back(WGL_COLOR_BITS_ARB);
     pixel_attributes.push_back(32);
-    pixel_attributes.push_back(WGL_DEPTH_BITS_ARB); // 24-bit depth
+    // 24-bit depth
+    pixel_attributes.push_back(WGL_DEPTH_BITS_ARB);
     pixel_attributes.push_back(24);
-    pixel_attributes.push_back(WGL_STENCIL_BITS_ARB); // 8-bit stencil
+    // 8-bit stencil
+    pixel_attributes.push_back(WGL_STENCIL_BITS_ARB);
     pixel_attributes.push_back(8);
-    pixel_attributes.push_back(WGL_ACCELERATION_ARB); // full acceleration
+    // full acceleration
+    pixel_attributes.push_back(WGL_ACCELERATION_ARB);
     pixel_attributes.push_back(WGL_FULL_ACCELERATION_ARB);
-    pixel_attributes.push_back(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB); // sRGB capable
+    // sRGB capable
+    pixel_attributes.push_back(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB);
     pixel_attributes.push_back(GL_TRUE);
-    pixel_attributes.push_back(WGL_SWAP_METHOD_ARB); // swap exchange
+     // swap exchange
+    pixel_attributes.push_back(WGL_SWAP_METHOD_ARB);
     pixel_attributes.push_back(WGL_SWAP_EXCHANGE_ARB);
     pixel_attributes.push_back(0);
 

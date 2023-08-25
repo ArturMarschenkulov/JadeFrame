@@ -10,6 +10,12 @@ Here will be contained various resources about opengl.
 - https://open.gl/
 - https://www.khronos.org/opengl/wiki/Getting_Started
 - https://ogldev.org/
+- https://github.com/eug/awesome-opengl
+- https://openglbook.com/
+- https://yaakuro.gitbook.io/opengl-4-5/
+- 
+- https://registry.khronos.org/OpenGL-Refpages/gl4/
+- https://www.khronos.org/opengl/wiki/Main_Page
 
 
 - [freeCodeCamp](https://www.youtube.com/watch?v=45MIykWJ-C4)

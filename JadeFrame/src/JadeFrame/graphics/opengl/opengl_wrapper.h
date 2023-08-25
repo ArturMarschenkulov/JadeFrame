@@ -49,7 +49,7 @@ public:
 
 private:
     auto enable_attrib(const u32 index) const -> void;
-    auto set_attrib_format(const u32 index, const SHADER_TYPE type, const bool count, const u32 offset) const -> void;
+    auto set_attrib_format(const u32 index, const SHADER_TYPE type, const bool count, const size_t offset) const -> void;
     auto set_attrib_binding(const u32 index, const u32 binding) const -> void;
 private:
     GLuint m_ID;
