@@ -60,7 +60,6 @@ auto OGLW_VertexArray::bind_buffer(const opengl::Buffer& buffer) const -> void {
 auto OGLW_VertexArray::set_layout(const VertexFormat& vertex_format) -> void {
     m_vertex_format = vertex_format;
 
-    i32 attrib_index = 0;
     for (size_t i = 0; i != vertex_format.m_attributes.size(); i++) {
         const VertexAttribute& attribute = vertex_format.m_attributes[i];
 
@@ -69,35 +68,24 @@ auto OGLW_VertexArray::set_layout(const VertexFormat& vertex_format) -> void {
             case SHADER_TYPE::V_2_F32:
             case SHADER_TYPE::V_3_F32:
             case SHADER_TYPE::V_4_F32: {
-                glEnableVertexArrayAttrib(m_ID, attrib_index);
-
-                u32    component_count = get_component_count(attribute.type); // element.get_component_count(),
-                GLenum type = SHADER_TYPE_to_openGL_type(attribute.type);
-                i32    normalized = attribute.normalized ? GL_TRUE : GL_FALSE;
-                u32    stride = vertex_format.m_stride;
-                auto   offset = attribute.offset; // reinterpret_cast<const void*>(element.offset)
-                glVertexArrayAttribFormat(m_ID, attrib_index, component_count, type, normalized, offset);
-                glVertexArrayAttribBinding(m_ID, attrib_index, 0);
-                // this->enable_attrib(attrib_index);
-                // this->set_attrib_format(attrib_index, attribute.type, attribute.normalized, attribute.offset);
-                // this->set_attrib_binding(attrib_index, 0);
 
             } break;
             default: {
                 assert(false);
             }
         }
-        attrib_index++;
+        this->enable_attrib(i);
+        this->set_attrib_format(i, attribute.type, attribute.normalized, attribute.offset);
+        this->set_attrib_binding(i, 0);
     }
 }
 
-auto OGLW_VertexArray::enable_attrib(const u32 index) const -> void { glEnableVertexAttribArray(index); }
+auto OGLW_VertexArray::enable_attrib(const u32 index) const -> void { glEnableVertexArrayAttrib(m_ID, index); }
 auto OGLW_VertexArray::set_attrib_format(
-    const u32 index, const SHADER_TYPE type, const bool count, const u32 offset) const -> void {
-    const u32    component_count = get_component_count(type);
+    const u32 index, const SHADER_TYPE type, const bool normalized, const size_t offset) const -> void {
+    const u32    count = get_component_count(type);
     const GLenum gl_type = SHADER_TYPE_to_openGL_type(type);
-    const i32    normalized = GL_FALSE;
-    glVertexArrayAttribFormat(m_ID, index, component_count, gl_type, normalized, offset);
+    glVertexArrayAttribFormat(m_ID, index, count, gl_type, normalized ? GL_TRUE : GL_FALSE, offset);
 }
 auto OGLW_VertexArray::set_attrib_binding(const u32 index, const u32 binding) const -> void {
     glVertexArrayAttribBinding(m_ID, index, binding);
