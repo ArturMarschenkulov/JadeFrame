@@ -87,13 +87,6 @@ public:
 #endif
     auto swap_buffers() -> void;
 
-    // Resource creation
-    auto create_texture() -> opengl::Texture*;
-    auto create_texture(void* data, v2u32 size, u32 component_num) -> opengl::Texture*;
-    auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size) -> opengl::Buffer*;
-    auto create_framebuffer() -> opengl::Framebuffer*;
-    auto create_renderbuffer() -> opengl::Renderbuffer*;
-
 public:
     mutable GL_State m_state;
 
@@ -110,6 +103,13 @@ public:
     // limits
     GLint m_max_uniform_buffer_binding_points;
 
+    // Resource creation
+    auto create_texture() -> opengl::Texture*;
+    auto create_texture(void* data, v2u32 size, u32 component_num) -> opengl::Texture*;
+    auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size) -> opengl::Buffer*;
+    auto create_framebuffer() -> opengl::Framebuffer*;
+    auto create_renderbuffer() -> opengl::Renderbuffer*;
+
     // std::vector<opengl::Buffer> m_uniform_buffers;
 
     std::vector<GLuint> m_buffers;
@@ -118,5 +118,12 @@ public:
     std::vector<u32> m_textures;
     std::vector<u32> m_texture_units;
     u32              m_active_texture_unit;
+
+
+    template<typename T, typename U>
+    using HashMap = std::unordered_map<T, U>;
+
+    HashMap<u32, opengl::Buffer>   m_bufferss;
+    HashMap<u32, OGLW_VertexArray> m_vertex_arrays;
 };
 } // namespace JadeFrame

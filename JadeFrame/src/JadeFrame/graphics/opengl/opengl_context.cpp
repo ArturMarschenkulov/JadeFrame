@@ -13,8 +13,10 @@ auto OpenGL_Context::create_texture(void* data, v2u32 size, u32 component_num) -
 }
 
 auto OpenGL_Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 size) -> opengl::Buffer* {
-    opengl::Buffer* buffer = new opengl::Buffer(*this, type, data, size);
-    return buffer;
+    static u32 id = 0;
+    m_bufferss[id] = opengl::Buffer(*this, type, data, size);
+    id++;
+    return &m_bufferss[id - 1];
 }
 auto OpenGL_Context::create_framebuffer() -> opengl::Framebuffer* {
     opengl::Framebuffer* buffer = new opengl::Framebuffer(*this);
@@ -59,6 +61,13 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
     shading_language_version = reinterpret_cast<char const*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
     glGetIntegerv(GL_MAJOR_VERSION, &major_version);
     glGetIntegerv(GL_MINOR_VERSION, &minor_version);
+    assert(major_version >= 4 && minor_version >= 5);
+
+    Logger::info("OpenGL Vendor: {}", vendor);
+    Logger::info("OpenGL Renderer: {}", renderer);
+    Logger::info("OpenGL Version: {}", version);
+    Logger::info("OpenGL Shading Language Version: {}", shading_language_version);
+    Logger::info("OpenGL Version: {}.{}", major_version, minor_version);
 
 
     // gather extentions
