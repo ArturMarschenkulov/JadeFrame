@@ -109,12 +109,8 @@ auto GL_State::set_default() -> void {
 auto GL_State::set_blending(bool enable, BLENDING_FACTOR sfactor, BLENDING_FACTOR dfactor) -> void {
     if (blending != enable) {
         blending = enable;
-        if (enable) {
-            glEnable(GL_BLEND);
-            glBlendFunc(sfactor, dfactor);
-        } else {
-            glDisable(GL_BLEND);
-        }
+        enable ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+        if (enable) { glBlendFunc(sfactor, dfactor); }
     }
 }
 
@@ -142,11 +138,7 @@ auto GL_State::remove_clear_bitfield(const GLbitfield& bitfield) -> void { clear
 auto GL_State::set_depth_test(bool enable) -> void {
     if (depth_test != enable) {
         depth_test = enable;
-        if (enable) {
-            glEnable(GL_DEPTH_TEST);
-        } else {
-            glDisable(GL_DEPTH_TEST);
-        }
+        enable ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
     }
 }
 
