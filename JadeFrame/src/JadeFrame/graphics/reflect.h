@@ -97,5 +97,5 @@ struct ReflectedCode {
 };
 auto reflect(const ShadingCode& code) -> ReflectedCode;
 auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule;
-auto ogl(const ShadingCode& code) -> ShadingCode;
+auto convert_SPIRV_to_opengl(const ShadingCode& code) -> ShadingCode;
 } // namespace JadeFrame

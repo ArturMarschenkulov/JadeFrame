@@ -13,7 +13,7 @@ JF_PRAGMA_POP
 
 namespace JadeFrame {
 
-auto ogl(const ShadingCode& code) -> ShadingCode {
+auto convert_SPIRV_to_opengl(const ShadingCode& code) -> ShadingCode {
 
     spirv_cross::CompilerGLSL::Options options;
     options.version = 450;
