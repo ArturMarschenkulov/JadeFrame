@@ -23,7 +23,7 @@ Example_Hello_Triangle::Example_Hello_Triangle(const Desc& desc)
 
 auto Example_Hello_Triangle::on_init() -> void {
     m_render_system.m_renderer->set_clear_color(RGBAColor::solid_black());
-    m_camera.othographic_mode(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+    m_camera.orthographic_mode(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
     // m_camera.perspective_mode({1.0, 1.0, 1.0}, 1.0f, 0.1f, 100.0f);
 
 

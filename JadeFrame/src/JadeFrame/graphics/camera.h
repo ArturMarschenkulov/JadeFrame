@@ -15,15 +15,14 @@ public:
 public:
     auto perspective_mode(const v3& position, const f32 fov, const f32 aspect, const f32 zNear, const f32 zFar) -> void;
     auto
-    othographic_mode(const f32 left, const f32 right, const f32 buttom, const f32 top, const f32 near_, const f32 far_)
+    orthographic_mode(const f32 left, const f32 right, const f32 bottom, const f32 top, const f32 near_, const f32 far_)
         -> void;
 
-    auto perspective_mode(const v3& position, const f32 fov, const f32 aspect, const v2f32 nf) -> void;
-    auto othographic_mode(const v2f32 lr, const v2f32 bt, const v2f32 nf) -> void;
+    // auto perspective_mode(const v3& position, const f32 fov, const f32 aspect, const v2f32 nf) -> void;
+    // auto orthographic_mode(const v2f32 lr, const v2f32 bt, const v2f32 nf) -> void;
     auto get_projection() const -> Matrix4x4;
     auto get_view() const -> Matrix4x4;
     auto get_view_projection() const -> Matrix4x4;
-    auto control() -> void;
 
     // private:
 public:
@@ -42,7 +41,7 @@ public:
     f32 m_near = {};
     f32 m_far = {};
 
-    f32 m_yaw = 0;
+    f32 m_yaw = {};
     f32 m_pitch = {};
 };
 

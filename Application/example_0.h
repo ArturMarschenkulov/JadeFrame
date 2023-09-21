@@ -107,7 +107,7 @@ auto Example_0::on_init() -> void {
     m_renderer->set_clear_color({230_u8, 230_u8, 250_u8, 253_u8});
 
     // Set Up Camera
-    m_camera.othographic_mode(0, m_windows[0].get_size().x, m_windows[0].get_size().y, 0, -1, 1);
+    m_camera.orthographic_mode(0, m_windows[0].get_size().x, m_windows[0].get_size().y, 0, -1, 1);
 
     // Load Resources
     {

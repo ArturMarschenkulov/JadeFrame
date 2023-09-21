@@ -21,8 +21,8 @@ Example_Texture_Quad::Example_Texture_Quad(const Desc& desc)
 
 auto Example_Texture_Quad::on_init() -> void {
     m_render_system.m_renderer->set_clear_color({50_u8, 230_u8, 250_u8, 253_u8});
-    // m_camera.othographic_mode(0, m_windows[0]->get_size().x, m_windows[0]->get_size().y, 0, -1, 1);
-    m_camera.othographic_mode(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+    // m_camera.orthographic_mode(0, m_windows[0]->get_size().x, m_windows[0]->get_size().y, 0, -1, 1);
+    m_camera.orthographic_mode(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
     const f32   s = 0.5f;
     VertexData* vertex_data = new VertexData();
 

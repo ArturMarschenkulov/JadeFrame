@@ -284,7 +284,7 @@ inline auto to_string(const Matrix4x4& m) -> std::string {
 auto BaseApp::start() -> void {
     // Before `this->on_init();` come all the default stuff
     // The client can later override those in `this->on_init();`
-    m_camera.othographic_mode(0, m_windows[0]->get_size().x, m_windows[0]->get_size().y, 0, -1, 1);
+    m_camera.orthographic_mode(0, m_windows[0]->get_size().x, m_windows[0]->get_size().y, 0, -1, 1);
     SystemManager& platform = Instance::get_singleton()->m_system_manager;
     platform.set_target_FPS(60);
     this->on_init();

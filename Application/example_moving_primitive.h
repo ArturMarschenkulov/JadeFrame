@@ -24,7 +24,7 @@ Example_Moving_Primitive::Example_Moving_Primitive(const Desc& desc)
 
 auto Example_Moving_Primitive::on_init() -> void {
     m_render_system.m_renderer->set_clear_color(RGBAColor::from_hex(0x9E1030FF));
-    m_camera.othographic_mode(0.0f, m_windows[0]->get_size().x, 0.0f, m_windows[0]->get_size().y, -1.0f, 1.0f);
+    m_camera.orthographic_mode(0.0f, m_windows[0]->get_size().x, 0.0f, m_windows[0]->get_size().y, -1.0f, 1.0f);
 
     u32  win_width = m_windows[0]->get_size().x;
     auto block_width = win_width / 11.0f;
