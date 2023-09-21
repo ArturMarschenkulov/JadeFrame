@@ -65,18 +65,6 @@ namespace JadeFrame {
 namespace opengl {
 namespace win32 {
 
-auto init_device_context(const IWindow* window) -> HDC {
-    auto win = static_cast<const JadeFrame::win32::Window*>(window);
-
-    HDC device_context = ::GetDC(win->m_window_handle);
-    if (device_context == NULL) {
-        Logger::err("GetDC(hWnd) failed! {}", ::GetLastError());
-        assert(false);
-    }
-
-    return device_context;
-}
-
 auto load_opengl_funcs(/*HDC device_context, HGLRC render_context*/) -> bool {
 
     // const BOOL current_succes = wglMakeCurrent(device_context, render_context);

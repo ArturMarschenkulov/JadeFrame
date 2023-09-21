@@ -12,7 +12,6 @@ namespace JadeFrame {
 class IWindow;
 namespace opengl {
 namespace win32 {
-auto init_device_context(const IWindow* window) -> HDC;
 auto init_render_context(HDC device_context) -> HGLRC;
 auto load_wgl_funcs(HMODULE module) -> bool;
 auto load_opengl_funcs(/*HDC device_context, HGLRC render_context*/) -> bool;
