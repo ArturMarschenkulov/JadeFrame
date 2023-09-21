@@ -426,28 +426,28 @@ void main()
 
     return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
+
+// Retrieves a `ShadingCode` object by name.
+// Note the resulting code is in SPIRV format.
 auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
-    std::tuple<std::string, std::string> shader_tuple;
-    if (name == "flat_0") {
-        shader_tuple = get_shader_spirv_test_1();
-    } else if (name == "with_texture_0") {
-        shader_tuple = get_default_shader_with_texture();
-    } else if (name == "depth_testing_0") {
-        shader_tuple = get_default_shader_depth_testing();
-    } else if (name == "light_server") {
-        shader_tuple = get_default_shader_light_server();
-    } else if (name == "light_client") {
-        shader_tuple = get_default_shader_light_client();
-    } else if (name == "spirv_test_0") {
-        shader_tuple = get_shader_spirv_test_0();
-    } else if (name == "spirv_test_1") {
-        shader_tuple = get_shader_spirv_test_1();
-    } else if (name == "framebuffer_test") {
-        shader_tuple = get_shader_framebuffer_test_0();
-    } else {
+
+    using ShaderGetter = std::function<std::tuple<std::string, std::string>()>;
+    static const std::unordered_map<std::string, ShaderGetter> shader_map = {
+        {          "flat_0",          [&]() { return get_shader_spirv_test_1(); }},
+        {  "with_texture_0",  [&]() { return get_default_shader_with_texture(); }},
+        { "depth_testing_0", [&]() { return get_default_shader_depth_testing(); }},
+        {    "light_server",  [&]() { return get_default_shader_light_server(); }},
+        {    "light_client",  [&]() { return get_default_shader_light_client(); }},
+        {    "spirv_test_0",          [&]() { return get_shader_spirv_test_0(); }},
+        {    "spirv_test_1",          [&]() { return get_shader_spirv_test_1(); }},
+        {"framebuffer_test",    [&]() { return get_shader_framebuffer_test_0(); }}
+    };
+    auto it = shader_map.find(name);
+    if (it == shader_map.end()) {
         Logger::err("GLSLCodeLoader::get_by_name: Shader with name {} not found", name);
         assert(false);
     }
+    auto shader_tuple = it->second();
 
     // TODO: Make the graphics API not hardcoded
     auto [vs, fs] = shader_tuple;
