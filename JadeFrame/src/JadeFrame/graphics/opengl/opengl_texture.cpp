@@ -66,6 +66,10 @@ Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_
     this->set_parameters(GL_TEXTURE_WRAP_T, wrap_t);
     this->set_parameters(GL_TEXTURE_MIN_FILTER, filter_min);
     this->set_parameters(GL_TEXTURE_MAG_FILTER, filter_max);
+    // this->set_texture_wrap_s(GL_REPEAT)
+    // this->set_texture_wrap_t(GL_REPEAT)
+    // this->set_texture_min_filter(GL_LINEAR)
+    // this->set_texture_mag_filter(GL_LINEAR)
 
     this->set_image(0, format_, size, 0, format_, m_type, data);
     // if (m_mipmapping) {

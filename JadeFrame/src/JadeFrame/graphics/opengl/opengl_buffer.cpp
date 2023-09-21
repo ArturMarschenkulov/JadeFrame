@@ -60,16 +60,6 @@ Buffer::Buffer(OpenGL_Context& context, TYPE type, void* data, GLuint size) {
     m_size = size;
     glCreateBuffers(1, &m_id);
 
-
-    GLuint kind;
-    switch (type) {
-        case TYPE::VERTEX: kind = GL_ARRAY_BUFFER; break;
-        case TYPE::INDEX: kind = GL_ELEMENT_ARRAY_BUFFER; break;
-        case TYPE::UNIFORM: kind = GL_UNIFORM_BUFFER; break;
-        default: assert(false); break;
-    }
-    glBindBuffer(kind, m_id);
-
     this->alloc(data, size);
 
     // TODO: Move this registering into OpenGL_Context?
@@ -88,6 +78,13 @@ auto Buffer::alloc(void* data, GLuint size) const -> void {
         default: usage = GL_STATIC_DRAW; break;
     }
     glNamedBufferData(m_id, size, data, usage);
+
+    // GLbitfield flags;
+    // switch (m_type) {
+    //     case TYPE::UNIFORM: flags = GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT; break;
+    //     default: flags = 0; break;
+    // }
+    // glNamedBufferStorage(m_id, size, data, flags);
 }
 auto Buffer::write(const void* data, GLint offset, GLuint size) const -> void {
     // glBufferSubData(buffer_type, offset, size, data);

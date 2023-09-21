@@ -83,6 +83,7 @@ public:
 public:
 #ifdef WIN32
     HDC m_device_context; // NOTE: Windows specific!
+    HGLRC m_render_context;
 #elif __linux__
 #endif
     auto swap_buffers() -> void;
