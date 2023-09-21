@@ -72,17 +72,24 @@ public:
 
     // linear to srgb
     auto gamma_decode() const -> RGBAColor {
-        return RGBAColor(std::pow(r, 2.2f), std::pow(g, 2.2f), std::pow(b, 2.2f), a);
+        constexpr const f32 ratio = 2.2f;
+        return RGBAColor(std::pow(r, ratio), std::pow(g, ratio), std::pow(b, ratio), a);
     }
     // srgb to linear
     auto gamma_encode() const -> RGBAColor {
-        return RGBAColor(std::pow(r, 1.0f / 2.2f), std::pow(g, 1.0f / 2.2f), std::pow(b, 1.0f / 2.2f), a);
+        constexpr const f32 ratio = 1.0f / 2.2f;
+        return RGBAColor(std::pow(r, ratio), std::pow(g, ratio), std::pow(b, ratio), a);
     }
     float convert_srgb_from_linear(float lin_val) {
-        return lin_val <= 0.0031308f ? lin_val * 12.92f : powf(lin_val, 1.0f / 2.4f) * 1.055f - 0.055f;
+        constexpr const f32 ratio = 1.0f / 2.4f;
+        constexpr const f32 threshold = 0.0031308f;
+
+        return lin_val <= threshold ? lin_val * 12.92f : powf(lin_val, ratio) * 1.055f - 0.055f;
     }
     float convert_srgb_to_linear(float rgba_val) {
-        return rgba_val <= 0.04045f ? rgba_val / 12.92f : powf((rgba_val + 0.055f) / 1.055f, 2.4f);
+        constexpr const f32 ratio = 2.4f;
+        constexpr const f32 threshold = 0.04045f;
+        return rgba_val <= threshold ? rgba_val / 12.92f : powf((rgba_val + 0.055f) / 1.055f, ratio);
     }
     static auto from_hsl(f32 h, f32 s, f32 l) -> RGBAColor {
         auto c = (1.0f - abs(2.0f * l - 1.0f)) * s;
