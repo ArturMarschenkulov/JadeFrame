@@ -45,8 +45,8 @@ private: // NOTE: probably temporary
     RGBAColor m_clear_color;
 
 public:
-    vulkan::Buffer m_ub_cam;
-    vulkan::Buffer m_ub_tran;
+    vulkan::Buffer* m_ub_cam = nullptr;
+    vulkan::Buffer* m_ub_tran = nullptr;
 
 public:
     struct Frame {
@@ -90,6 +90,6 @@ public:
     vulkan::Swapchain                m_swapchain;
     vulkan::RenderPass               m_render_pass;
     std::vector<vulkan::Framebuffer> m_framebuffers;
-    bool m_framebuffer_resized = false;
+    bool                             m_framebuffer_resized = false;
 };
 } // namespace JadeFrame

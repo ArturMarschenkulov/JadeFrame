@@ -139,11 +139,11 @@ Buffer::Buffer(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data
     VkMemoryPropertyFlags properties = get_properties(buffer_type);
 
     if (b_with_staging_buffer == true) {
-        Buffer staging_buffer = device.create_buffer(Buffer::TYPE::STAGING, nullptr, size);
-        staging_buffer.write(data, 0, size);
+        Buffer* staging_buffer = device.create_buffer(Buffer::TYPE::STAGING, nullptr, size);
+        staging_buffer->write(data, 0, size);
 
         this->create_buffer(size, usage, properties, m_handle, m_memory);
-        this->copy_buffer(staging_buffer, *this, size);
+        this->copy_buffer(*staging_buffer, *this, size);
     } else {
         assert(data == nullptr);
         this->create_buffer(size, usage, properties, m_handle, m_memory);

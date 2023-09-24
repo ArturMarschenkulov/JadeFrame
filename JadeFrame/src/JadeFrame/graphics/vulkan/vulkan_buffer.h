@@ -80,8 +80,8 @@ public:
     auto set_layout(const VertexFormat& vertex_format) -> void;
 
 public:
-    Buffer       m_vertex_buffer;
-    Buffer       m_index_buffer;
+    Buffer*      m_vertex_buffer;
+    Buffer*      m_index_buffer;
     VertexFormat m_vertex_format;
 };
 

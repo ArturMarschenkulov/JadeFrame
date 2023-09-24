@@ -116,9 +116,14 @@ public: // synchro objects
 
 public: // Misc
 public:
-    auto create_buffer(Buffer::TYPE buffer_type, void* data, size_t size) const -> Buffer;
+    auto create_buffer(Buffer::TYPE buffer_type, void* data, size_t size) const -> Buffer*;
 
     auto create_shader(const Vulkan_Renderer& renderer, const Vulkan_Shader::Desc& desc) -> Vulkan_Shader;
+
+public:
+    // template<typename T, typename U>
+    // using HashMap = std::unordered_map<T, U>;
+    mutable std::unordered_map<u32, vulkan::Buffer> m_buffers;
 };
 
 } // namespace vulkan
