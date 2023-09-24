@@ -516,10 +516,6 @@ Pipeline::Pipeline(
     std::array<DescriptorSetLayout, 4> set_layouts = extract_descriptor_set_layouts(shader_modules);
     m_set_layouts = std::move(set_layouts);
 
-
-    const VkVertexInputBindingDescription          binding_description = get_binding_description(vertex_format);
-    std::vector<VkVertexInputAttributeDescription> attribute_descriptions = get_attribute_descriptions(vertex_format);
-
     // bool compatible = check_compatiblity(reflected_code.m_modules, binding_description, attribute_descriptions);
     // JF_ASSERT(compatible == true, "The vertex format is not compatible with the vertex shader");
 
@@ -553,10 +549,12 @@ Pipeline::Pipeline(
     const VkPipelineRasterizationStateCreateInfo rasterizer = rasterization_state_create_info();
     const VkPipelineMultisampleStateCreateInfo   multisampling = multisample_state_create_info();
     const VkPipelineColorBlendAttachmentState    color_blend_attachment = color_blend_attachment_state();
+    const VkPipelineViewportStateCreateInfo      viewport_state = viewport_state_create_info(viewport, scissor);
+    const VkPipelineColorBlendStateCreateInfo    color_blending = color_blend_state_create_info(color_blend_attachment);
 
-    const VkPipelineViewportStateCreateInfo    viewport_state = viewport_state_create_info(viewport, scissor);
-    const VkPipelineColorBlendStateCreateInfo  color_blending = color_blend_state_create_info(color_blend_attachment);
-    const VkPipelineVertexInputStateCreateInfo vertex_input_info =
+    const VkVertexInputBindingDescription          binding_description = get_binding_description(vertex_format);
+    std::vector<VkVertexInputAttributeDescription> attribute_descriptions = get_attribute_descriptions(vertex_format);
+    const VkPipelineVertexInputStateCreateInfo     vertex_input_info =
         vertex_input_state_create_info(binding_description, attribute_descriptions);
 
     const VkGraphicsPipelineCreateInfo pipeline_info = {

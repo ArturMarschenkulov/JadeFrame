@@ -263,10 +263,10 @@ GPUMeshData::GPUMeshData(
     m_vertex_buffer = device.create_buffer(Buffer::TYPE::VERTEX, data, size);
 
     if (vertex_data.m_indices.size() > 0) {
-        auto&  i_data = vertex_data.m_indices;
-        void*  data = (void*)i_data.data();
-        size_t size = sizeof(i_data[0]) * i_data.size();
-        m_index_buffer = device.create_buffer(Buffer::TYPE::INDEX, data, size);
+        auto&  indices = vertex_data.m_indices;
+        void*  indices_data = (void*)indices.data();
+        size_t indices_size = sizeof(indices[0]) * indices.size();
+        m_index_buffer = device.create_buffer(Buffer::TYPE::INDEX, indices_data, indices_size);
     }
 }
 
