@@ -302,7 +302,7 @@ Framebuffer::Framebuffer(Framebuffer&& other)
     other.m_render_pass = nullptr;
 }
 auto Framebuffer::operator=(Framebuffer&& other) -> Framebuffer& {
-
+    if (&other == this) return *this;
     m_handle = other.m_handle;
     m_device = other.m_device;
     m_image_view = other.m_image_view;

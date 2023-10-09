@@ -132,46 +132,6 @@ auto LogicalDevice::operator=(LogicalDevice&& other) -> LogicalDevice& {
     return *this;
 }
 
-
-auto LogicalDevice::wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) const -> void {
-    VkResult result;
-    result = vkWaitForFences(m_handle, 1, &fences.m_handle, wait_all, timeout);
-    if (result != VK_SUCCESS) assert(false);
-}
-auto LogicalDevice::wait_for_fences(const std::vector<Fence>& fences, bool wait_all, u64 timeout) const -> void {
-    assert(fences.size() < 5);
-    std::array<VkFence, 5> vk_fences;
-    for (u32 i = 0; i < fences.size(); ++i) { vk_fences[i] = fences[i].m_handle; }
-    VkResult result;
-    result = vkWaitForFences(m_handle, static_cast<u32>(fences.size()), vk_fences.data(), wait_all, timeout);
-    if (result != VK_SUCCESS) assert(false);
-}
-
-auto LogicalDevice::query_queues(u32 queue_family_index, u32 queue_index) -> Queue {
-    Queue queue(*this, queue_family_index, queue_index);
-    return queue;
-}
-
-auto LogicalDevice::create_buffer(Buffer::TYPE buffer_type, void* data, size_t size) const -> Buffer {
-    Buffer buffer(*this, buffer_type, data, size);
-    return buffer;
-}
-auto LogicalDevice::create_descriptor_pool(u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes)
-    -> DescriptorPool {
-    DescriptorPool pool(*this, max_sets, pool_sizes);
-    return pool;
-}
-
-auto LogicalDevice::create_descriptor_set_layout(std::vector<vulkan::DescriptorSetLayout::Binding>& bindings) const
-    -> DescriptorSetLayout {
-    DescriptorSetLayout layout(*this, bindings);
-    return layout;
-}
-
-auto LogicalDevice::create_shader(const Vulkan_Renderer& renderer, const Vulkan_Shader::Desc& desc) -> Vulkan_Shader {
-    return Vulkan_Shader(*this, renderer, desc);
-}
-
 auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physical_device, const Surface& surface)
     -> void {
     m_physical_device = &physical_device;
@@ -237,6 +197,56 @@ auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physica
     m_set_pool = this->create_descriptor_pool(4, pool_sizes);
 }
 
+auto LogicalDevice::deinit() -> void {
+    VkResult result;
+    result = vkDeviceWaitIdle(m_handle);
+    if (result != VK_SUCCESS) assert(false);
+    vkDestroyDevice(m_handle, nullptr);
+}
+
+auto LogicalDevice::wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) const -> void {
+    VkResult result;
+    result = vkWaitForFences(m_handle, 1, &fences.m_handle, wait_all, timeout);
+    if (result != VK_SUCCESS) assert(false);
+}
+
+auto LogicalDevice::wait_for_fences(const std::vector<Fence>& fences, bool wait_all, u64 timeout) const -> void {
+    assert(fences.size() < 5);
+    std::array<VkFence, 5> vk_fences;
+    for (u32 i = 0; i < fences.size(); ++i) { vk_fences[i] = fences[i].m_handle; }
+    VkResult result;
+    result = vkWaitForFences(m_handle, static_cast<u32>(fences.size()), vk_fences.data(), wait_all, timeout);
+    if (result != VK_SUCCESS) assert(false);
+}
+
+auto LogicalDevice::query_queues(u32 queue_family_index, u32 queue_index) -> Queue {
+    Queue queue(*this, queue_family_index, queue_index);
+    return queue;
+}
+
+auto LogicalDevice::create_buffer(Buffer::TYPE buffer_type, void* data, size_t size) const -> Buffer* {
+    static u32 id = 0;
+
+    m_buffers[id] = Buffer(*this, buffer_type, data, size);
+    id++;
+    return &m_buffers[id - 1];
+}
+auto LogicalDevice::create_descriptor_pool(u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes)
+    -> DescriptorPool {
+    DescriptorPool pool(*this, max_sets, pool_sizes);
+    return pool;
+}
+
+auto LogicalDevice::create_descriptor_set_layout(std::vector<vulkan::DescriptorSetLayout::Binding>& bindings) const
+    -> DescriptorSetLayout {
+    DescriptorSetLayout layout(*this, bindings);
+    return layout;
+}
+
+auto LogicalDevice::create_shader(const Vulkan_Renderer& renderer, const Vulkan_Shader::Desc& desc) -> Vulkan_Shader {
+    return Vulkan_Shader(*this, renderer, desc);
+}
+
 auto LogicalDevice::create_semaphore() const -> Semaphore {
     Semaphore semaphore(*this);
     return semaphore;
@@ -270,13 +280,6 @@ auto LogicalDevice::create_framebuffer(const ImageView& image_view, const Render
     -> Framebuffer {
     Framebuffer fb(*this, image_view, render_pass, extent);
     return fb;
-}
-
-auto LogicalDevice::deinit() -> void {
-    VkResult result;
-    result = vkDeviceWaitIdle(m_handle);
-    if (result != VK_SUCCESS) assert(false);
-    vkDestroyDevice(m_handle, nullptr);
 }
 
 } // namespace vulkan

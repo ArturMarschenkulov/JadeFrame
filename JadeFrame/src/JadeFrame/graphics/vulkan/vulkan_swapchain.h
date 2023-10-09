@@ -57,7 +57,7 @@ public:
         const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent);
 
 public:
-    VkFramebuffer        m_handle;
+    VkFramebuffer        m_handle = VK_NULL_HANDLE;
     const LogicalDevice* m_device = nullptr;
     const ImageView*     m_image_view = nullptr; // TODO: Find out whether this is even needed
     const RenderPass*    m_render_pass = nullptr;

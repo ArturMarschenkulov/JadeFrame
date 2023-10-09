@@ -98,7 +98,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     }
 
     // Per Frame ubo
-    m_ub_cam.write(view_projection, 0);
+    m_ub_cam->write(view_projection, 0);
 
     const u64 dyn_alignment =
         get_aligned_block_size(sizeof(Matrix4x4), pd->query_limits().minUniformBufferOffsetAlignment);
@@ -118,23 +118,23 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
                 // Update ubo buffer and descriptor set when the amount of render commands changes
                 const size_t num_commands = m_render_commands.size();
-                if (num_commands * dyn_alignment != m_ub_tran.m_size) {
+                if (num_commands * dyn_alignment != m_ub_tran->m_size) {
                     if (num_commands != 0) {
-                        m_ub_tran.resize(num_commands * dyn_alignment);
-                        shader->rebind_buffer(3, 0, m_ub_tran);
+                        m_ub_tran->resize(num_commands * dyn_alignment);
+                        shader->rebind_buffer(3, 0, *m_ub_tran);
                     }
                 }
 
                 const u32 dyn_offset = static_cast<u32>(dyn_alignment * i);
 
                 // Per DrawCall ubo
-                m_ub_tran.write(*cmd.transform, dyn_offset);
+                m_ub_tran->write(*cmd.transform, dyn_offset);
 
 
                 const VkPipelineBindPoint bind_point = VK_PIPELINE_BIND_POINT_GRAPHICS;
                 VkDeviceSize              offsets[] = {0, 0};
                 cb.bind_pipeline(bind_point, shader->m_pipeline);
-                cb.bind_vertex_buffers(0, 1, &gpu_data.m_vertex_buffer.m_handle, offsets);
+                cb.bind_vertex_buffers(0, 1, &gpu_data.m_vertex_buffer->m_handle, offsets);
                 cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 0, shader->m_sets[0], &dyn_offset);
                 // cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 1, shader->m_sets[1], &dyn_offset);
                 cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 2, shader->m_sets[2], &dyn_offset);
@@ -142,7 +142,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
 
                 if (cmd.vertex_data->m_indices.size() > 0) {
-                    cb.bind_index_buffer(gpu_data.m_index_buffer, 0);
+                    cb.bind_index_buffer(*gpu_data.m_index_buffer, 0);
                     cb.draw_indexed(static_cast<u32>(cmd.vertex_data->m_indices.size()), 1, 0, 0, 0);
                 } else {
                     cb.draw(static_cast<u32>(cmd.vertex_data->m_positions.size()), 1, 0, 0);
