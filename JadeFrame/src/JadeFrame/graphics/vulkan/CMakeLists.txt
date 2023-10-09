@@ -1,4 +1,4 @@
-add_library(GraphicsAPI_Vulkan
+set(SOURCE_FILES
     "vulkan_buffer.h"
     "vulkan_command_buffers.h"
     "vulkan_context.h"
@@ -26,10 +26,12 @@ add_library(GraphicsAPI_Vulkan
     "vulkan_surface.cpp"
     "vulkan_swapchain.cpp"
     "vulkan_sync_object.cpp"
-
-    "platform/win32/surface.h"
-    "platform/win32/surface.cpp"
 )
+if(WIN32)
+    list(APPEND SOURCE_FILES "platform/win32/surface.h" "platform/win32/surface.cpp")
+endif()
+
+add_library(GraphicsAPI_Vulkan ${SOURCE_FILES})
 
 target_precompile_headers(GraphicsAPI_Vulkan PRIVATE pch.h)
 
@@ -39,32 +41,40 @@ target_include_directories(GraphicsAPI_Vulkan
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include
-
-
 )
 target_link_libraries(GraphicsAPI_Vulkan
     PUBLIC
         ${stb}
         stb
         spdlog
+        JadeFrame
 )
-target_link_options(GraphicsAPI_Vulkan
-    PUBLIC
-        /incremental
-        # /NODEFAULTLIB:LIBCMT
-        # /NODEFAULTLIB:LIBCMTD
-        # /NODEFAULTLIB:MSVCRT
-        # /NODEFAULTLIB:MSVCRTD
-)
+if(MSVC)
+    target_link_options(GraphicsAPI_Vulkan
+        PUBLIC
+            /incremental
+            # /NODEFAULTLIB:LIBCMT
+            # /NODEFAULTLIB:LIBCMTD
+            # /NODEFAULTLIB:MSVCRT
+            # /NODEFAULTLIB:MSVCRTD
+    )
+endif()
 
-target_compile_definitions(GraphicsAPI_Vulkan PRIVATE
-    $<$<CONFIG:Debug>:_DEBUG>
-    $<$<CONFIG:Release>:NDEBUG>
-    _CRT_SECURE_NO_WARNINGS
-    _CONSOLE
-    UNICODE
-    _UNICODE
-)
+if(WIN32)
+    target_compile_definitions(GraphicsAPI_Vulkan PRIVATE
+        $<$<CONFIG:Debug>:_DEBUG>
+        $<$<CONFIG:Release>:NDEBUG>
+        _CRT_SECURE_NO_WARNINGS
+        _CONSOLE
+        UNICODE
+        _UNICODE
+    )
+elseif(LINUX)
+    target_compile_definitions(GraphicsAPI_Vulkan PRIVATE
+        $<$<CONFIG:Release>:NDEBUG>
+    )
+endif()
+
 if(MSVC)
     target_compile_options(GraphicsAPI_Vulkan PRIVATE
         /EHsc
@@ -73,14 +83,16 @@ if(MSVC)
         /W4
         /MP
     )
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(GraphicsAPI_Vulkan PRIVATE
+        -fexceptions
+        -g
+        -O0
         -Wall 
         -Wextra 
         -Wpedantic 
         # -Werror
     )
-elseif(CMKAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    message(ERROR "GCC is not supported yet")
+else()
+    message(ERROR "Unsupported compiler")
 endif()

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Windows.h>
+
 
 #include <map>
 #include <deque>
@@ -22,5 +22,8 @@
 #include <mutex>
 #include <atomic>
 
+#if defined(_WIN32)
+#include <Windows.h>
 #define VK_USE_PLATFORM_WIN32_KHR
+#endif
 #include <vulkan/vulkan.h>

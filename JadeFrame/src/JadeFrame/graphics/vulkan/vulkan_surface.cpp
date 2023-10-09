@@ -1,8 +1,12 @@
 #include "pch.h"
 #include "vulkan_surface.h"
 #include "vulkan_context.h"
+#if defined(_WIN32)
 #include "JadeFrame/platform/windows/windows_window.h"
 #include "platform/win32/surface.h"
+#elif defined(__linux__)
+#include "JadeFrame/platform/linux/linux_window.h"
+#endif
 
 #include <cassert>
 

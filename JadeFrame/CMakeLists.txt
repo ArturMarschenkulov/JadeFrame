@@ -47,8 +47,8 @@ add_library(imgui
 ################################################################################
 
 if(WIN32)
-add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-add_definitions(-DNOMINMAX)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-DNOMINMAX)
 endif()
 add_subdirectory(src/extern/stb/)
 add_subdirectory(src/extern/glad/)
@@ -135,8 +135,7 @@ ELSEIF(UNIX)
     set(Files_Platform
         "src/JadeFrame/platform/platform_shared.h"
         "src/JadeFrame/platform/linux/linux_window.h" 
-        "src/JadeFrame/platform/linux/linux_window.cpp" 
-        "src/JadeFrame/platform/linux/linux_time_manager.h"
+        "src/JadeFrame/platform/linux/linux_window.cpp"
         "src/JadeFrame/platform/linux/linux_system_manager.h"
         "src/JadeFrame/platform/linux/linux_input_manager.h"
     )

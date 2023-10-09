@@ -9,7 +9,11 @@
 #include "vulkan_shared.h"
 #include "vulkan_physical_device.h"
 #include "vulkan_debug.h"
+#if defined(_WIN32)
 #include "JadeFrame/platform/windows/windows_window.h"
+#elif defined(__linux__)
+#include "JadeFrame/platform/linux/linux_window.h"
+#endif
 
 
 #include "JadeFrame/prelude.h"
