@@ -72,6 +72,7 @@ auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage, GRAPHICS_API a
         case GRAPHICS_API::OPENGL: {
             options.SetTargetEnvironment(shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
         } break;
+        default: JF_UNIMPLEMENTED("");
     }
     options.SetWarningsAsErrors();
     options.SetGenerateDebugInfo();

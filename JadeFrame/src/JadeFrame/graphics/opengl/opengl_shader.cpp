@@ -55,7 +55,7 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     options.version = 450;
     options.es = false;
     options.vulkan_semantics = true;
-    for (int i = 0; i < desc.code.m_modules.size(); i++) {
+    for (size_t i = 0; i < desc.code.m_modules.size(); i++) {
         auto& spirv = desc.code.m_modules[i].m_code;
 
         spirv_cross::CompilerGLSL glsl(spirv);
@@ -103,7 +103,7 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     // Logger::trace("{}", hlsl.compile());
 
     auto ref = reflect(desc.code);
-    for (int i = 0; i < ref.m_modules[0].m_inputs.size(); i++) {
+    for (size_t i = 0; i < ref.m_modules[0].m_inputs.size(); i++) {
         auto& input = ref.m_modules[0].m_inputs[i];
 
         Shader::VertexAttribute attribs;
@@ -114,9 +114,9 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
         m_vertex_attributes.push_back(attribs);
     }
 
-    for (int i = 0; i < ref.m_modules.size(); i++) {
+    for (size_t i = 0; i < ref.m_modules.size(); i++) {
         auto& module = ref.m_modules[i];
-        for (int j = 0; j < module.m_uniform_buffers.size(); j++) {
+        for (size_t j = 0; j < module.m_uniform_buffers.size(); j++) {
             auto& uniform_buffer = module.m_uniform_buffers[j];
 
             Shader::Uniform uniform;

@@ -22,7 +22,7 @@ auto Texture::operator=(Texture&& other) noexcept -> Texture& {
     m_id = other.release();
     return *this;
 }
-Texture::Texture(OpenGL_Context& context) { glCreateTextures(GL_TEXTURE_2D, 1, &m_id); }
+Texture::Texture(OpenGL_Context&) { glCreateTextures(GL_TEXTURE_2D, 1, &m_id); }
 Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_num)
     : m_size(size) {
     m_context = &context;
@@ -79,10 +79,10 @@ Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_
 }
 Texture::Texture(Texture&& other) noexcept
     : m_id(other.release())
-    , m_size(other.m_size)
     , m_internal_format(other.m_internal_format)
     , m_format(other.m_format)
-    , m_type(other.m_type) {}
+    , m_type(other.m_type)
+    , m_size(other.m_size) {}
 
 Texture::~Texture() { this->reset(); }
 

@@ -128,8 +128,9 @@ auto GPUMeshData::operator=(GPUMeshData&& other) -> GPUMeshData& {
 GPUMeshData::GPUMeshData(
     OpenGL_Context& context, const VertexData& vertex_data, VertexFormat vertex_format, bool interleaved)
     : m_vertex_buffer()
-    , m_vertex_array()
-    , m_index_buffer() {
+    , m_index_buffer() 
+    , m_vertex_format(vertex_format)
+    , m_vertex_array() {
 
     const std::vector<f32> flat_data = convert_into_data(vertex_data, interleaved);
 

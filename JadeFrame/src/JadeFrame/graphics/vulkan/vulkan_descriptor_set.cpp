@@ -265,8 +265,8 @@ auto DescriptorSet::update() -> void {
 ---------------------------*/
 
 DescriptorSetLayout::DescriptorSetLayout(DescriptorSetLayout&& other)
-    : m_device(other.m_device)
-    , m_handle(other.m_handle)
+    : m_handle(other.m_handle)
+    , m_device(other.m_device)
     , m_bindings(std::move(other.m_bindings))
     , m_dynamic_count(other.m_dynamic_count) {
 
@@ -302,7 +302,7 @@ DescriptorSetLayout::DescriptorSetLayout(const LogicalDevice& device, const std:
     m_device = &device;
     VkResult result;
 
-    for (int i = 0; i < bindings.size(); i++) {
+    for (size_t i = 0; i < bindings.size(); i++) {
         this->add_binding(
             bindings[i].binding, bindings[i].type, bindings[i].count, bindings[i].stage_flags,
             bindings[i].p_immutable_samplers);
@@ -396,7 +396,7 @@ DescriptorPool::DescriptorPool(
     m_device = &device;
     VkResult result;
 
-    for (int i = 0; i < pool_sizes.size(); i++) { this->add_pool_size(pool_sizes[i]); }
+    for (size_t i = 0; i < pool_sizes.size(); i++) { this->add_pool_size(pool_sizes[i]); }
 
     const VkDescriptorPoolCreateInfo pool_info = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,

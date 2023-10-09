@@ -231,7 +231,7 @@ inline auto Framebuffer::operator=(Framebuffer&& other) noexcept -> Framebuffer&
 inline Framebuffer::Framebuffer() {
     // glCreateFramebuffers(1, &m_ID);
 }
-inline Framebuffer::Framebuffer(OpenGL_Context& context) { glCreateFramebuffers(1, &m_ID); }
+inline Framebuffer::Framebuffer(OpenGL_Context&) { glCreateFramebuffers(1, &m_ID); }
 inline Framebuffer::~Framebuffer() { this->reset(); }
 inline auto Framebuffer::attach_texture(ATTACHMENT attachment, u32 i, const Texture& texture) const -> void {
 

@@ -11,10 +11,10 @@ public:
 	Linux_Window();
 	Linux_Window(const Linux_Window::Desc& desc);
 	~Linux_Window();
-	virtual auto handle_events(bool& running) -> void override {
+	virtual auto handle_events(bool&) -> void override {
 
 	}
-	virtual auto set_title(const std::string& title) -> void override {
+	virtual auto set_title(const std::string&) -> void override {
 
 	}
 	virtual auto get_title() const -> std::string override {

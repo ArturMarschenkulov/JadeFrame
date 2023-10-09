@@ -292,7 +292,7 @@ auto VertexData::make_cube(const v3& pos, const v3& size) -> VertexData {
 
 
     vertex_data.m_normals.resize(36);
-    for (int i = 0; i < vertex_data.m_normals.size(); i++) {
+    for (size_t i = 0; i < vertex_data.m_normals.size(); i++) {
         std::array<v3, 6> s;
         s[0] = {+0.0f, +0.0f, -1.0f}; // back
         s[1] = {+0.0f, +0.0f, +1.0f}; // front

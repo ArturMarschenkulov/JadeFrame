@@ -170,16 +170,16 @@ auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
             VK_VERSION_MINOR(m_properties.apiVersion), VK_VERSION_PATCH(m_properties.apiVersion));
         Logger::info("\tPipeline Cache UUID: {}", to_string(m_properties.pipelineCacheUUID));
         Logger::info("\t{} memory types from {}:", m_memory_properties.memoryTypeCount, VK_MAX_MEMORY_TYPES);
-        for (auto i = 0; i < m_memory_properties.memoryTypeCount; ++i) {
+        for (u32 i = 0; i < m_memory_properties.memoryTypeCount; ++i) {
             VkMemoryType memory_type = m_memory_properties.memoryTypes[i];
             Logger::info("\t\t{}: {} {}", i, memory_type.heapIndex, to_string(memory_type));
         }
         Logger::info("\t{} memory heaps from {}:", m_memory_properties.memoryHeapCount, VK_MAX_MEMORY_HEAPS);
-        for (auto i = 0; i < m_memory_properties.memoryHeapCount; ++i) {
+        for (u32 i = 0; i < m_memory_properties.memoryHeapCount; ++i) {
             VkMemoryHeap memory_heap = m_memory_properties.memoryHeaps[i];
             Logger::info("\t\t{}: {} with {} bytes", i, to_string(memory_heap), memory_heap.size);
         }
-        for (int i = 0; i < m_queue_families.size(); i++) {
+        for (size_t i = 0; i < m_queue_families.size(); i++) {
             QueueFamily& queue_family = m_queue_families[i];
             Logger::debug(
                 "Queue family {} has {} queues capable of {}", i, queue_family.m_properties.queueCount,
