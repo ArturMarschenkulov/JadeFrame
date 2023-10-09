@@ -252,7 +252,7 @@ auto SystemManager::request_window(IWindow::Desc desc) -> IWindow* {
 }
 
 
-#define USE_OPTION_TYPE 1
+#define USE_OPTION_TYPE 0
 #if USE_OPTION_TYPE
 static auto query_performance_frequency() -> Option<u64> {
     u64 frequency;

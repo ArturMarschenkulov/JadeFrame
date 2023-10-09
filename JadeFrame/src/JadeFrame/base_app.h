@@ -7,7 +7,6 @@
 #elif __linux__
 #include "JadeFrame/platform/linux/linux_input_manager.h"
 #include "JadeFrame/platform/linux/linux_system_manager.h"
-#include "JadeFrame/platform/linux/linux_time_manager.h"
 #include "JadeFrame/platform/linux/linux_window.h"
 #endif
 #include "JadeFrame/utils/logger.h"
@@ -39,7 +38,6 @@ using InputManager = win32::InputManager;
 #elif __linux__
 using SystemManager = Linux_SystemManager;
 using InputManager = Linux_InputManager;
-using TimeManager = Linux_TimeManager;
 #endif
 
 class BaseApp;

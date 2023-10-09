@@ -6,11 +6,12 @@
 
 #if defined(_WIN32)
 #include "imgui/backends/imgui_impl_win32.h"
+#include "JadeFrame/platform/windows/windows_window.h"
 #elif defined(__linux__)
 #include "imgui/backends/imgui_impl_x11.h"
 #endif
 
-#include "JadeFrame/platform/windows/windows_window.h"
+
 
 
 /*
