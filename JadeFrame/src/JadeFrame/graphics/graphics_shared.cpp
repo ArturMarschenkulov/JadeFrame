@@ -363,7 +363,7 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
             auto             ctx = (OpenGL_Context*)&ren->m_context;
 
             opengl::Shader::Desc shader_desc;
-            shader_desc.code = ogl(m_registered_shaders[id].m_code);
+            shader_desc.code = convert_SPIRV_to_opengl(m_registered_shaders[id].m_code);
             shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
 
             opengl::Shader* shader = new opengl::Shader(*ctx, shader_desc);
