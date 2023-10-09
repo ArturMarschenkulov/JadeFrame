@@ -54,10 +54,14 @@ add_subdirectory(src/extern/stb/)
 add_subdirectory(src/extern/glad/)
 
 add_subdirectory(src/extern/spdlog/)
+
+# TODO: shaderc and SPIRV-Cross take a long time to compile. Find ways to cache their compilation.
 set(SHADERC_SKIP_TESTS ON)
 set(SHADERC_SKIP_EXAMPLES ON)
 add_subdirectory(src/extern/shaderc/)
 add_subdirectory(src/extern/SPIRV-Cross/)
+
+
 add_subdirectory(src/JadeFrame/graphics/opengl)
 add_subdirectory(src/JadeFrame/graphics/vulkan)
 

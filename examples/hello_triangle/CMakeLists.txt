@@ -24,6 +24,7 @@ target_link_libraries(${PROJECT_NAME}
         ${ADDITIONAL_LIBRARY_DEPENDENCIES}
 )
 
+# NOTE: CMAKE_VS_PLATFORM_NAME was removed. Change this later.
 target_link_directories(${PROJECT_NAME} 
     PRIVATE
         ${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/
