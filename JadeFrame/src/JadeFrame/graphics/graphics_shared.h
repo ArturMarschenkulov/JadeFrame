@@ -312,7 +312,24 @@ public:
     size_t        m_size = 0;
     TYPE          m_type = TYPE::UNINIT;
 };
+class RenderSystem;
+class VertexData;
+class GPUMeshData {
+public:
+    GPUMeshData() = default;
+    ~GPUMeshData();
+    GPUMeshData(const GPUMeshData&) = delete;
+    auto operator=(const GPUMeshData&) -> GPUMeshData& = delete;
+    GPUMeshData(GPUMeshData&& other);
+    auto operator=(GPUMeshData&& other) -> GPUMeshData&;
 
+    GPUMeshData(RenderSystem* system, const VertexData& vertex_data, const VertexFormat vertex_format, bool interleaved = true);
+
+public:
+    GPUBuffer    m_vertex_buffer;
+    GPUBuffer    m_index_buffer;
+    VertexFormat m_format;
+};
 
 
 /*
