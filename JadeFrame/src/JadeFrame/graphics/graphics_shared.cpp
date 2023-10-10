@@ -406,7 +406,7 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
 
             Vulkan_Shader* shader = new Vulkan_Shader(*ctx, *ren, shader_desc);
             m_registered_shaders[id].m_handle = shader;
-            for (int i = 0; i < shader->m_pipeline.m_set_layouts.size(); i++) {
+            for (size_t i = 0; i < shader->m_pipeline.m_set_layouts.size(); i++) {
                 shader->m_sets[i] = ctx->m_set_pool.allocate_set(shader->m_pipeline.m_set_layouts[i]);
             }
 
