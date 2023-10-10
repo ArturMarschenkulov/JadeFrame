@@ -34,6 +34,7 @@ Those are projects which have an editor abstraction. Meaning in normal use one d
 ## Framework-like
 Those are projects where one has to actually write code.
 - [Ogre](https://github.com/OGRECave/ogre): Has multiple Graphics APIs. Opengl, Vulkan,...
+- [Ogre-Next](https://github.com/OGRECave/ogre-next): 
 - [Urho3D](https://github.com/urho3d/Urho3D)
 - [Handmade Hero](https://github.com/HandmadeHero/cpp)
 - [CrystalSpace3D](https://github.com/crystalspace/CS)
