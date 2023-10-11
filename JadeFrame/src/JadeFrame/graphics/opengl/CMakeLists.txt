@@ -1,3 +1,17 @@
+
+if(WIN32)
+set(PLATFORM_DEPENDENT_FILES
+    "platform/win32/win32.h"
+    "platform/win32/win32.cpp"
+)
+elseif(LINUX)
+set(PLATFORM_DEPENDENT_FILES
+    "platform/linux/linux.h"
+    "platform/linux/linux.cpp"
+)
+endif()
+
+
 add_library(GraphicsAPI_OpenGL
     "opengl_buffer.h"
     "opengl_context.h"
@@ -15,8 +29,7 @@ add_library(GraphicsAPI_OpenGL
     "opengl_texture.cpp"
     "opengl_wrapper.cpp"
 
-    "platform/win32/win32.h"
-    "platform/win32/win32.cpp"
+    ${PLATFORM_DEPENDENT_FILES}
 )
 
 target_include_directories(GraphicsAPI_OpenGL

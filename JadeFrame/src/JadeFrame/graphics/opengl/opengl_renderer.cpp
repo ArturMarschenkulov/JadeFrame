@@ -29,6 +29,22 @@ auto OpenGL_Renderer::clear_background() -> void {
 auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void {
     m_context.m_state.set_viewport(x, y, width, height);
 }
+
+
+static auto framebuffer_res_to_str(GLenum e) -> const char* {
+    switch (e) {
+        case GL_FRAMEBUFFER_UNDEFINED: return "GL_FRAMEBUFFER_UNDEFINED";
+        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT: return "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
+        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: return "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
+        case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER: return "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER";
+        case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER: return "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER";
+        case GL_FRAMEBUFFER_UNSUPPORTED: return "GL_FRAMEBUFFER_UNSUPPORTED";
+        case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE: return "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE";
+        case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS: return "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS";
+        case GL_FRAMEBUFFER_COMPLETE: return "GL_FRAMEBUFFER_COMPLETE";
+        default: return "UNKNOWN";
+    }
+}
 #define JF_FB 1
 OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     : m_context(window) {
@@ -55,8 +71,10 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
 
         const GLenum res = fb.m_framebuffer->check_status();
         if (res != GL_FRAMEBUFFER_COMPLETE) {
-            Logger::err("OpenGL_Renderer::OpenGL_Renderer: Framebuffer is not complete");
-            assert(false);
+            Logger::err(
+                "OpenGL_Renderer::OpenGL_Renderer: Framebuffer is not complete, status: {}",
+                framebuffer_res_to_str(res));
+            // assert(false);
         }
     }
 

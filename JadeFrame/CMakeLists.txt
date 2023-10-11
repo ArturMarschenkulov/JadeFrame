@@ -135,13 +135,10 @@ IF (WIN32)
     set(Files_Platform
         "src/JadeFrame/platform/platform_shared.h"
     )
-ELSEIF(UNIX)
+ELSEIF(LINUX)
+    add_subdirectory(src/JadeFrame/platform/linux/)
     set(Files_Platform
         "src/JadeFrame/platform/platform_shared.h"
-        "src/JadeFrame/platform/linux/linux_window.h" 
-        "src/JadeFrame/platform/linux/linux_window.cpp"
-        "src/JadeFrame/platform/linux/linux_system_manager.h"
-        "src/JadeFrame/platform/linux/linux_input_manager.h"
     )
   # set stuff for other systems
 ENDIF()
@@ -287,6 +284,7 @@ IF(WIN32)
     )
 ELSEIF(UNIX AND NOT APPLE)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
+        Platform_Linux
         pthread
         X11
         GL

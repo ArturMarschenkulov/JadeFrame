@@ -1,7 +1,11 @@
 #include "pch.h"
 #include "opengl_context.h"
 #include "opengl_debug.h"
+#if defined(_WIN32)
 #include "platform/win32/win32.h"
+#elif defined(__linux__)
+#include "platform/linux/linux.h"
+#endif
 
 namespace JadeFrame {
 
@@ -46,6 +50,15 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
 
 #elif __linux__
 {
+
+//TODO: This is weird. Somehwere the macro `linux` got defined.
+#undef linux
+#if !defined(linux)
+    auto* win = static_cast<const JadeFrame::Linux_Window*>(window);
+    opengl::linux::load_glx_funcs(win);
+    opengl::linux::load_opengl_funcs();
+    m_window = &win->m_window;
+#endif
     // : m_device_context(opengl::linux::init_device_context(window.m_window_handle)) {
     // auto m_render_context = opengl::linux::init_render_context(m_device_context);
 #else
@@ -101,6 +114,8 @@ OpenGL_Context::~OpenGL_Context() {}
 auto OpenGL_Context::swap_buffers() -> void {
 #ifdef _WIN32
     ::SwapBuffers(m_device_context); // TODO: This is Windows specific. Abstract his away!
+#elif __linux__
+    glXSwapBuffers(m_display, *m_window);
 #endif
 }
 

@@ -9,6 +9,7 @@
 #include "JadeFrame/platform/windows/windows_window.h"
 #elif __linux__
 #include "JadeFrame/platform/linux/linux_window.h"
+#include <GL/glx.h>
 #endif
 
 struct HGLRC__;
@@ -85,6 +86,9 @@ public:
     HDC m_device_context; // NOTE: Windows specific!
     HGLRC m_render_context;
 #elif __linux__
+    ::Display* m_display; // m_device_context
+    ::GLXContext* m_render_context;
+    const ::Window* m_window;
 #endif
     auto swap_buffers() -> void;
 
