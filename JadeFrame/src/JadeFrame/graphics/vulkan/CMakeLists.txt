@@ -89,6 +89,8 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL 
         -g
         -O0
         -Wall 
+        # -Weverything
+        -Wno-unused
         -Wextra 
         -Wpedantic 
         # -Werror

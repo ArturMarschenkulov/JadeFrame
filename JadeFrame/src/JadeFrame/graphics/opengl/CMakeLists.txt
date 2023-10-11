@@ -71,6 +71,8 @@ if(MSVC)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(GraphicsAPI_OpenGL PRIVATE
         -Wall 
+        # -Weverything
+        -Wno-unused
         -Wextra 
         -Wpedantic 
         # -Werror
