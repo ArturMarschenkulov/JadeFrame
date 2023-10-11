@@ -39,7 +39,12 @@ public:
     Buffer(Buffer&& other);
     auto operator=(Buffer&& other) -> Buffer&;
 
-    Buffer(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data, size_t size);
+    Buffer(
+        const LogicalDevice& device,
+        Buffer::TYPE         buffer_type,
+        void*                data,
+        size_t               size
+    );
 
     auto write(const Matrix4x4& m, VkDeviceSize offset) -> void;
     auto write(void* data, VkDeviceSize offset, VkDeviceSize size) -> void;
@@ -47,10 +52,15 @@ public:
 
 private:
     auto create_buffer(
-        VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
-        VkDeviceMemory& buffer_memory
+        VkDeviceSize          size,
+        VkBufferUsageFlags    usage,
+        VkMemoryPropertyFlags properties,
+        VkBuffer&             buffer,
+        VkDeviceMemory&       buffer_memory
     ) -> void;
-    auto copy_buffer(const Buffer& src_buffer, const Buffer& dst_buffer, VkDeviceSize size) -> void;
+    auto
+    copy_buffer(const Buffer& src_buffer, const Buffer& dst_buffer, VkDeviceSize size)
+        -> void;
 
 public:
     /*const*/ Buffer::TYPE m_type = Buffer::TYPE::UNINIT;
@@ -73,8 +83,10 @@ public:
     auto operator=(GPUMeshData&& other) -> GPUMeshData& = default;
 
     GPUMeshData(
-        const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat vertex_format,
-        bool interleaved = true
+        const LogicalDevice& device,
+        const VertexData&    vertex_data,
+        const VertexFormat   vertex_format,
+        bool                 interleaved = true
     );
 
     auto bind() const -> void;
@@ -100,7 +112,12 @@ public:
     auto operator=(Image&& other) noexcept -> Image&;
 
 public:
-    Image(const LogicalDevice& device, const v2u32& extent, VkFormat format, VkImageUsageFlags usage);
+    Image(
+        const LogicalDevice& device,
+        const v2u32&         extent,
+        VkFormat             format,
+        VkImageUsageFlags    usage
+    );
     Image(const LogicalDevice& device, VkImage image);
 
 public:
@@ -159,9 +176,14 @@ public:
 
     auto deinit() -> void;
 
-    auto transition_layout(const Image& image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout)
+    auto transition_layout(
+        const Image&  image,
+        VkFormat      format,
+        VkImageLayout old_layout,
+        VkImageLayout new_layout
+    ) -> void;
+    auto copy_buffer_to_image(const Buffer& buffer, const Image& image, v2u32 size)
         -> void;
-    auto copy_buffer_to_image(const Buffer& buffer, const Image& image, v2u32 size) -> void;
 
 public:
     Image                m_image;

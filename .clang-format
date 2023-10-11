@@ -1,8 +1,11 @@
+# In case you want to apply clang-format to all files in a directory recursively, you can use the following command:
+# find . -iname "*.cpp" -o -iname "*.h" -print0 | xargs -0 clang-format -i
+
 # LLVM, Google, Chromium, Mozilla, WebKit, Microsoft, GNU
 BasedOnStyle: LLVM
 
 Language: Cpp
-ColumnLimit: 100
+ColumnLimit: 90
 
 MaxEmptyLinesToKeep: 1
 
@@ -63,6 +66,7 @@ FixNamespaceComments: true
 AllowAllParametersOfDeclarationOnNextLine: false
 
 BinPackParameters: false
+BinPackArguments: false
 
 
 

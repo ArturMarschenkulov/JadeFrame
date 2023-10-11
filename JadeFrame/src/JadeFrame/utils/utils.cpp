@@ -23,7 +23,13 @@ auto get_random_number(i32 begin, i32 end) -> i32 {
     return (rand() % end) + begin;
 }
 
-auto map_range(const f64 x, const f64 in_min, const f64 in_max, const f64 out_min, const f64 out_max) -> f64 {
+auto map_range(
+    const f64 x,
+    const f64 in_min,
+    const f64 in_max,
+    const f64 out_min,
+    const f64 out_max
+) -> f64 {
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
@@ -42,7 +48,9 @@ namespace T1 {
 template<class T>
     requires std::same_as<T, bool>
 auto init_memory(T& data) -> void {
-    static_assert(!std::is_pointer<T>::value, "'init_memory' does not allow pointertypes");
+    static_assert(
+        !std::is_pointer<T>::value, "'init_memory' does not allow pointertypes"
+    );
 
     static_assert(
         /*std::is_pod<T>::value*/ std::is_standard_layout<T>() && std::is_trivial<T>(),
@@ -119,7 +127,8 @@ static auto submit(FuncT&& func) -> void {
 }
 
 // template<typename BaseType, typename SubType>
-// static auto take_ownership(std::set<ptr::Scope<BaseType>>& object_set, ptr::Scope<SubType>&& object) -> SubType*
+// static auto take_ownership(std::set<ptr::Scope<BaseType>>& object_set,
+// ptr::Scope<SubType>&& object) -> SubType*
 // {
 //     SubType* ref = object.get();
 //     object_set.emplace(std::forward<ptr::Scope<SubType>>(object));
@@ -127,24 +136,30 @@ static auto submit(FuncT&& func) -> void {
 // }
 
 template<typename BaseType, typename SubType>
-static auto take_ownership(std::set<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object)
-    -> SubType* {
+static auto take_ownership(
+    std::set<std::unique_ptr<BaseType>>& object_set,
+    std::unique_ptr<SubType>&&           object
+) -> SubType* {
     SubType* ref = object.get();
     object_set.emplace(std::forward<std::unique_ptr<SubType>>(object));
     return ref;
 }
 
 template<typename BaseType, typename SubType>
-static auto take_ownership(std::vector<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object)
-    -> SubType* {
+static auto take_ownership(
+    std::vector<std::unique_ptr<BaseType>>& object_set,
+    std::unique_ptr<SubType>&&              object
+) -> SubType* {
     SubType* ref = object.get();
     object_set.emplace_back(std::forward<std::unique_ptr<SubType>>(object));
     return ref;
 }
 
 template<typename BaseType, typename SubType>
-static auto take_ownership(std::list<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object)
-    -> SubType* {
+static auto take_ownership(
+    std::list<std::unique_ptr<BaseType>>& object_set,
+    std::unique_ptr<SubType>&&            object
+) -> SubType* {
     SubType* ref = object.get();
     object_set.emplace_back(std::forward<std::unique_ptr<SubType>>(object));
     return ref;
@@ -185,7 +200,8 @@ private:
 
 // struct Error {
 //     std::error_code type;
-//     VkResult        vk_result = VK_SUCCESS; // optional error value if a vulkan call failed
+//     VkResult        vk_result = VK_SUCCESS; // optional error value if a vulkan call
+//     failed
 // };
 // template<typename T>
 // class Result {

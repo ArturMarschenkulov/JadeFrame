@@ -7,7 +7,7 @@
 #include <sstream>
 #include <iomanip>
 
-#define REGISTER_MESSAGE(msg)                                                                                          \
+#define REGISTER_MESSAGE(msg)                                                            \
     { msg, #msg }
 // secret messages
 #define WM_UAHDESTROYWINDOW    0x0090
@@ -217,7 +217,8 @@ auto EventMessageMap::operator()(const EventMessage& m) const noexcept -> std::s
     }
     oss << " HWND:" << std::hex << std::setfill('0') << std::setw(8) << hWnd;
     oss << "   LP: 0x" << std::hex << std::setfill('0') << std::setw(8) << lp;
-    oss << "   WP: 0x" << std::hex << std::setfill('0') << std::setw(8) << wp << std::endl;
+    oss << "   WP: 0x" << std::hex << std::setfill('0') << std::setw(8) << wp
+        << std::endl;
 
     return oss.str();
 }

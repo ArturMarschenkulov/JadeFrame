@@ -30,7 +30,10 @@ auto OGLW_VertexArray::operator=(OGLW_VertexArray&& other) -> OGLW_VertexArray& 
     return *this;
 }
 
-OGLW_VertexArray::OGLW_VertexArray(OpenGL_Context* context, const VertexFormat& vertex_format) {
+OGLW_VertexArray::OGLW_VertexArray(
+    OpenGL_Context*     context,
+    const VertexFormat& vertex_format
+) {
     glCreateVertexArrays(1, &m_ID);
     this->set_layout(vertex_format);
 }
@@ -79,22 +82,32 @@ auto OGLW_VertexArray::set_layout(const VertexFormat& vertex_format) -> void {
             }
         }
         this->enable_attrib(i);
-        this->set_attrib_format(i, attribute.type, attribute.normalized, attribute.offset);
+        this->set_attrib_format(
+            i, attribute.type, attribute.normalized, attribute.offset
+        );
         this->set_attrib_binding(i, 0);
     }
 }
 
-auto OGLW_VertexArray::enable_attrib(const u32 index) const -> void { glEnableVertexArrayAttrib(m_ID, index); }
+auto OGLW_VertexArray::enable_attrib(const u32 index) const -> void {
+    glEnableVertexArrayAttrib(m_ID, index);
+}
 
 auto OGLW_VertexArray::set_attrib_format(
-    const u32 index, const SHADER_TYPE type, const bool normalized, const size_t offset
+    const u32         index,
+    const SHADER_TYPE type,
+    const bool        normalized,
+    const size_t      offset
 ) const -> void {
     const u32    count = get_component_count(type);
     const GLenum gl_type = SHADER_TYPE_to_openGL_type(type);
-    glVertexArrayAttribFormat(m_ID, index, count, gl_type, normalized ? GL_TRUE : GL_FALSE, offset);
+    glVertexArrayAttribFormat(
+        m_ID, index, count, gl_type, normalized ? GL_TRUE : GL_FALSE, offset
+    );
 }
 
-auto OGLW_VertexArray::set_attrib_binding(const u32 index, const u32 binding) const -> void {
+auto OGLW_VertexArray::set_attrib_binding(const u32 index, const u32 binding) const
+    -> void {
     glVertexArrayAttribBinding(m_ID, index, binding);
 }
 
@@ -126,7 +139,9 @@ auto OGLW_Shader::compile() -> void { glCompileShader(m_ID); }
 #define GL_SHADER_BINARY_FORMAT_SPIR_V_ARB 0x9551
 
 auto OGLW_Shader::set_binary(const std::vector<u32>& binary) -> void {
-    glShaderBinary(1, &m_ID, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, binary.data(), binary.size());
+    glShaderBinary(
+        1, &m_ID, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, binary.data(), binary.size()
+    );
 }
 
 auto OGLW_Shader::compile_binary() -> void {
@@ -183,7 +198,9 @@ auto OGLW_Program::bind() const -> void {
 
 auto OGLW_Program::unbind() const -> void { glUseProgram(0); }
 
-auto OGLW_Program::attach(const OGLW_Shader& shader) const -> void { glAttachShader(m_ID, shader.m_ID); }
+auto OGLW_Program::attach(const OGLW_Shader& shader) const -> void {
+    glAttachShader(m_ID, shader.m_ID);
+}
 
 auto OGLW_Program::link() const -> bool {
     glLinkProgram(m_ID);
@@ -193,7 +210,9 @@ auto OGLW_Program::link() const -> bool {
     return is_linked == GL_TRUE ? true : false;
 }
 
-auto OGLW_Program::detach(const OGLW_Shader& shader) const -> void { glDetachShader(m_ID, shader.m_ID); }
+auto OGLW_Program::detach(const OGLW_Shader& shader) const -> void {
+    glDetachShader(m_ID, shader.m_ID);
+}
 
 auto OGLW_Program::validate() const -> bool {
     glValidateProgram(m_ID);
@@ -207,13 +226,15 @@ auto OGLW_Program::get_uniform_block_index(const char* name) const -> GLuint {
     return glGetUniformBlockIndex(m_ID, name);
 }
 
-auto OGLW_Program::set_uniform_block_binding(GLuint index, GLuint binding_point) const -> void {
+auto OGLW_Program::set_uniform_block_binding(GLuint index, GLuint binding_point) const
+    -> void {
     glUniformBlockBinding(m_ID, index, binding_point);
 }
 
 auto OGLW_Program::get_info(GLenum pname) const -> GLint {
-    // GL_DELETE_STATUS, GL_LINK_STATUS, GL_VALIDATE_STATUS, GL_INFO_LOG_LENGTH, GL_ATTACHED_SHADERS,
-    // GL_ACTIVE_ATTRIBUTES, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, GL_ACTIVE_UNIFORMS, GL_ACTIVE_UNIFORM_MAX_LENGTH.
+    // GL_DELETE_STATUS, GL_LINK_STATUS, GL_VALIDATE_STATUS, GL_INFO_LOG_LENGTH,
+    // GL_ATTACHED_SHADERS, GL_ACTIVE_ATTRIBUTES, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH,
+    // GL_ACTIVE_UNIFORMS, GL_ACTIVE_UNIFORM_MAX_LENGTH.
     GLint result;
     glGetProgramiv(m_ID, pname, &result);
     return result;

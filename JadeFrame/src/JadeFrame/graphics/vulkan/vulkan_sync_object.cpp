@@ -37,12 +37,15 @@ Fence::Fence(const LogicalDevice& device, bool signaled) {
         .flags = signaled ? VK_FENCE_CREATE_SIGNALED_BIT : (VkFenceCreateFlags)0,
     };
 
-    result = vkCreateFence(device.m_handle, &create_info, Instance::allocator(), &m_handle);
+    result =
+        vkCreateFence(device.m_handle, &create_info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
 Fence::~Fence() {
-    if (m_handle != VK_NULL_HANDLE) { vkDestroyFence(m_device->m_handle, m_handle, nullptr); }
+    if (m_handle != VK_NULL_HANDLE) {
+        vkDestroyFence(m_device->m_handle, m_handle, nullptr);
+    }
 }
 
 auto Fence::wait_for_fences() -> void {
@@ -86,7 +89,9 @@ auto Semaphore::operator=(Semaphore&& other) -> Semaphore& {
 }
 
 Semaphore::~Semaphore() {
-    if (m_handle != VK_NULL_HANDLE) { vkDestroySemaphore(m_device->m_handle, m_handle, nullptr); }
+    if (m_handle != VK_NULL_HANDLE) {
+        vkDestroySemaphore(m_device->m_handle, m_handle, nullptr);
+    }
 }
 
 Semaphore::Semaphore(const LogicalDevice& device) {
@@ -99,7 +104,9 @@ Semaphore::Semaphore(const LogicalDevice& device) {
         .flags = 0,
     };
 
-    result = vkCreateSemaphore(device.m_handle, &create_info, Instance::allocator(), &m_handle);
+    result = vkCreateSemaphore(
+        device.m_handle, &create_info, Instance::allocator(), &m_handle
+    );
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 

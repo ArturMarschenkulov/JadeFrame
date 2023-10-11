@@ -34,7 +34,8 @@ public:
     template<class... Types>
     static auto log(fmt::format_string<Types...> text, Types&&... args) -> void;
     template<class... Types>
-    static auto log(LEVEL level, fmt::format_string<Types...> text, Types&&... args) -> void;
+    static auto log(LEVEL level, fmt::format_string<Types...> text, Types&&... args)
+        -> void;
 
     template<class... Types>
     static auto trace(fmt::format_string<Types...> text, Types&&... args) -> void;
@@ -52,7 +53,8 @@ public:
     // template<class... Types>
     // static auto log(fmt::wformat_string<Types...> text, Types&&... args) -> void;
     // template<class... Types>
-    // static auto log(LEVEL level, fmt::wformat_string<Types...> text, Types&&... args) -> void;
+    // static auto log(LEVEL level, fmt::wformat_string<Types...> text, Types&&... args)
+    // -> void;
 
     // template<class... Types>
     // static auto trace(fmt::wformat_string<Types...> text, Types&&... args) -> void;
@@ -81,7 +83,8 @@ auto Logger::log(fmt::format_string<Types...> text, Types&&... args) -> void {
 }
 
 template<class... Types>
-auto Logger::log(LEVEL level, fmt::format_string<Types...> text, Types&&... args) -> void {
+auto Logger::log(LEVEL level, fmt::format_string<Types...> text, Types&&... args)
+    -> void {
     spdlog::level::level_enum lvl;
     switch (level) {
         case LEVEL::TRACE: lvl = spdlog::level::trace; break;
@@ -138,7 +141,8 @@ auto Logger::critical(fmt::format_string<Types...> text, Types&&... args) -> voi
 // }
 
 // template<class... Types>
-// auto Logger::log(LEVEL level, fmt::wformat_string<Types...> text, Types&&... args) -> void {
+// auto Logger::log(LEVEL level, fmt::wformat_string<Types...> text, Types&&... args) ->
+// void {
 //     spdlog::level::level_enum lvl;
 //     switch (level) {
 //         case LEVEL::TRACE: lvl = spdlog::level::trace; break;

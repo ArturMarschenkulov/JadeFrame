@@ -30,13 +30,17 @@ struct Memory {
             VkMemoryAllocateInfo alloc_info = {};
             alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             alloc_info.pNext = nullptr;
-            alloc_info.allocationSize = default_size <= mem_reqs.size ? mem_reqs.size : default_size;
+            alloc_info.allocationSize =
+                default_size <= mem_reqs.size ? mem_reqs.size : default_size;
             alloc_info.memoryTypeIndex = m_device->m_physical_device->find_memory_type(
-                mem_reqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+                mem_reqs.memoryTypeBits,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
             );
 
             VkDeviceMemory memory;
-            vkAllocateMemory(m_device->m_handle, &alloc_info, Instance::allocator(), &memory);
+            vkAllocateMemory(
+                m_device->m_handle, &alloc_info, Instance::allocator(), &memory
+            );
             m_blocks.push_back(memory);
         }
     }
@@ -78,8 +82,12 @@ static auto does_use_staging_buffer(const Buffer::TYPE type) -> bool {
 static auto get_usage(const Buffer::TYPE type) -> VkBufferUsageFlags {
     VkBufferUsageFlags result = {};
     switch (type) {
-        case Buffer::TYPE::VERTEX: result = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT; break;
-        case Buffer::TYPE::INDEX: result = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT; break;
+        case Buffer::TYPE::VERTEX:
+            result = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+            break;
+        case Buffer::TYPE::INDEX:
+            result = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+            break;
         case Buffer::TYPE::UNIFORM: result = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; break;
         case Buffer::TYPE::STAGING: result = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; break;
         case Buffer::TYPE::UNINIT: result = 0; break;
@@ -95,7 +103,8 @@ static auto get_properties(const Buffer::TYPE type) -> VkMemoryPropertyFlags {
         case Buffer::TYPE::INDEX: result = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT; break;
         case Buffer::TYPE::UNIFORM:
         case Buffer::TYPE::STAGING:
-            result = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            result = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
             break;
         case Buffer::TYPE::UNINIT: result = 0; break;
         default: JF_ASSERT(false, ""); break;
@@ -132,7 +141,12 @@ auto Buffer::operator=(Buffer&& other) -> Buffer& {
     return *this;
 }
 
-Buffer::Buffer(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data, size_t size) {
+Buffer::Buffer(
+    const LogicalDevice& device,
+    Buffer::TYPE         buffer_type,
+    void*                data,
+    size_t               size
+) {
     /*VkResult result;*/
     m_device = &device;
     m_size = size;
@@ -143,7 +157,8 @@ Buffer::Buffer(const LogicalDevice& device, Buffer::TYPE buffer_type, void* data
     VkMemoryPropertyFlags properties = get_properties(buffer_type);
 
     if (b_with_staging_buffer == true) {
-        Buffer* staging_buffer = device.create_buffer(Buffer::TYPE::STAGING, nullptr, size);
+        Buffer* staging_buffer =
+            device.create_buffer(Buffer::TYPE::STAGING, nullptr, size);
         staging_buffer->write(data, 0, size);
 
         this->create_buffer(size, usage, properties, m_handle, m_memory);
@@ -166,7 +181,9 @@ Buffer::~Buffer() {
     }
 }
 
-auto Buffer::write(const Matrix4x4& m, VkDeviceSize offset) -> void { this->write((void*)&m, offset, sizeof(m)); }
+auto Buffer::write(const Matrix4x4& m, VkDeviceSize offset) -> void {
+    this->write((void*)&m, offset, sizeof(m));
+}
 
 auto Buffer::write(void* data, VkDeviceSize offset, VkDeviceSize size) -> void {
     VkResult result;
@@ -187,8 +204,11 @@ auto Buffer::resize(size_t size) -> void {
 }
 
 auto Buffer::create_buffer(
-    VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
-    VkDeviceMemory& buffer_memory
+    VkDeviceSize          size,
+    VkBufferUsageFlags    usage,
+    VkMemoryPropertyFlags properties,
+    VkBuffer&             buffer,
+    VkDeviceMemory&       buffer_memory
 ) -> void {
     VkResult result;
 
@@ -202,7 +222,8 @@ auto Buffer::create_buffer(
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
     };
-    result = vkCreateBuffer(m_device->m_handle, &buffer_info, Instance::allocator(), &buffer);
+    result =
+        vkCreateBuffer(m_device->m_handle, &buffer_info, Instance::allocator(), &buffer);
     JF_ASSERT(result == VK_SUCCESS, "");
     m_handle = buffer;
 
@@ -215,17 +236,25 @@ auto Buffer::create_buffer(
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
         .pNext = nullptr,
         .allocationSize = mem_requirements.size,
-        .memoryTypeIndex = m_device->m_physical_device->find_memory_type(mem_requirements.memoryTypeBits, properties),
+        .memoryTypeIndex = m_device->m_physical_device->find_memory_type(
+            mem_requirements.memoryTypeBits, properties
+        ),
     };
 
-    result = vkAllocateMemory(m_device->m_handle, &alloc_info, Instance::allocator(), &buffer_memory);
+    result = vkAllocateMemory(
+        m_device->m_handle, &alloc_info, Instance::allocator(), &buffer_memory
+    );
     JF_ASSERT(result == VK_SUCCESS, "");
 
     result = vkBindBufferMemory(m_device->m_handle, buffer, buffer_memory, 0);
     { Logger::info("Created Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
 }
 
-auto Buffer::copy_buffer(const Buffer& src_buffer, const Buffer& dst_buffer, VkDeviceSize size) -> void {
+auto Buffer::copy_buffer(
+    const Buffer& src_buffer,
+    const Buffer& dst_buffer,
+    VkDeviceSize  size
+) -> void {
     const CommandPool& cmd_pool = m_device->m_command_pool;
 
     CommandBuffer cmd = cmd_pool.allocate_buffer();
@@ -236,7 +265,9 @@ auto Buffer::copy_buffer(const Buffer& src_buffer, const Buffer& dst_buffer, VkD
             .dstOffset = 0,
             .size = size,
         };
-        vkCmdCopyBuffer(cmd.m_handle, src_buffer.m_handle, dst_buffer.m_handle, 1, &copy_region);
+        vkCmdCopyBuffer(
+            cmd.m_handle, src_buffer.m_handle, dst_buffer.m_handle, 1, &copy_region
+        );
     });
     // buffer[0].record_end();
 
@@ -259,7 +290,10 @@ auto Buffer::copy_buffer(const Buffer& src_buffer, const Buffer& dst_buffer, VkD
 }
 
 GPUMeshData::GPUMeshData(
-    const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat, bool interleaved
+    const LogicalDevice& device,
+    const VertexData&    vertex_data,
+    const VertexFormat,
+    bool interleaved
 ) {
 
     const std::vector<f32> flat_data = convert_into_data(vertex_data, interleaved);
@@ -272,7 +306,8 @@ GPUMeshData::GPUMeshData(
         auto&  indices = vertex_data.m_indices;
         void*  indices_data = (void*)indices.data();
         size_t indices_size = sizeof(indices[0]) * indices.size();
-        m_index_buffer = device.create_buffer(Buffer::TYPE::INDEX, indices_data, indices_size);
+        m_index_buffer =
+            device.create_buffer(Buffer::TYPE::INDEX, indices_data, indices_size);
     }
 }
 
@@ -327,7 +362,12 @@ Image::~Image() {
     }
 }
 
-Image::Image(const LogicalDevice& device, const v2u32& size, VkFormat format, VkImageUsageFlags usage) {
+Image::Image(
+    const LogicalDevice& device,
+    const v2u32&         size,
+    VkFormat             format,
+    VkImageUsageFlags    usage
+) {
     m_device = &device;
     m_source = SOURCE::REGULAR;
     m_size = size;
@@ -335,7 +375,13 @@ Image::Image(const LogicalDevice& device, const v2u32& size, VkFormat format, Vk
 
     VkResult result;
     result = vkGetPhysicalDeviceImageFormatProperties(
-        device.m_physical_device->m_handle, format, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, usage, 0, &props
+        device.m_physical_device->m_handle,
+        format,
+        VK_IMAGE_TYPE_2D,
+        VK_IMAGE_TILING_OPTIMAL,
+        usage,
+        0,
+        &props
     );
 
     const VkImageCreateInfo image_info = {
@@ -356,12 +402,16 @@ Image::Image(const LogicalDevice& device, const v2u32& size, VkFormat format, Vk
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
 
-    result = vkCreateImage(device.m_handle, &image_info, Instance::allocator(), &m_handle);
+    result =
+        vkCreateImage(device.m_handle, &image_info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
     {
         Logger::info("Created image {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
         Logger::info(
-            "-w, h, d: {}, {}, {}", image_info.extent.width, image_info.extent.height, image_info.extent.depth
+            "-w, h, d: {}, {}, {}",
+            image_info.extent.width,
+            image_info.extent.height,
+            image_info.extent.depth
         );
         Logger::info("-mip levels: {}", image_info.mipLevels);
         Logger::info("-array layers: {}", image_info.arrayLayers);
@@ -379,7 +429,8 @@ Image::Image(const LogicalDevice& device, const v2u32& size, VkFormat format, Vk
         ),
     };
 
-    result = vkAllocateMemory(device.m_handle, &alloc_info, Instance::allocator(), &m_memory);
+    result =
+        vkAllocateMemory(device.m_handle, &alloc_info, Instance::allocator(), &m_memory);
     JF_ASSERT(result == VK_SUCCESS, "");
 
     result = vkBindImageMemory(device.m_handle, m_handle, m_memory, 0);
@@ -442,12 +493,16 @@ ImageView::ImageView(const LogicalDevice& device, const Image& image, VkFormat f
                          }
     };
 
-    result = vkCreateImageView(device.m_handle, &create_info, Instance::allocator(), &m_handle);
+    result = vkCreateImageView(
+        device.m_handle, &create_info, Instance::allocator(), &m_handle
+    );
     if (result != VK_SUCCESS) { assert(false); }
 }
 
 ImageView::~ImageView() {
-    if (m_handle != VK_NULL_HANDLE) { vkDestroyImageView(m_device->m_handle, m_handle, Instance::allocator()); }
+    if (m_handle != VK_NULL_HANDLE) {
+        vkDestroyImageView(m_device->m_handle, m_handle, Instance::allocator());
+    }
 }
 
 /*---------------------------
@@ -469,8 +524,11 @@ auto Sampler::init(const LogicalDevice& device) -> void {
         .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
         .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
         .mipLodBias = 0.0f,
-        .anisotropyEnable = device.m_physical_device->m_features.samplerAnisotropy == VK_TRUE ? VK_TRUE : VK_FALSE,
-        .maxAnisotropy = device.m_physical_device->m_properties.limits.maxSamplerAnisotropy,
+        .anisotropyEnable =
+            device.m_physical_device->m_features.samplerAnisotropy == VK_TRUE ? VK_TRUE
+                                                                              : VK_FALSE,
+        .maxAnisotropy =
+            device.m_physical_device->m_properties.limits.maxSamplerAnisotropy,
         .compareEnable = VK_FALSE,
         .compareOp = VK_COMPARE_OP_ALWAYS,
         .minLod = 0.0f,
@@ -478,7 +536,8 @@ auto Sampler::init(const LogicalDevice& device) -> void {
         .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
         .unnormalizedCoordinates = VK_FALSE,
     };
-    result = vkCreateSampler(device.m_handle, &samplerInfo, Instance::allocator(), &m_handle);
+    result =
+        vkCreateSampler(device.m_handle, &samplerInfo, Instance::allocator(), &m_handle);
     if (result != VK_SUCCESS) { assert(false); }
 }
 
@@ -488,7 +547,12 @@ auto Sampler::deinit() -> void {}
         Texture
 ---------------------------*/
 
-Vulkan_Texture::Vulkan_Texture(const LogicalDevice& device, void* data, v2u32 size, VkFormat format) {
+Vulkan_Texture::Vulkan_Texture(
+    const LogicalDevice& device,
+    void*                data,
+    v2u32                size,
+    VkFormat             format
+) {
     m_device = &device;
     u32 comp_count = 0;
     if (format == VK_FORMAT_R8G8B8_SRGB) {
@@ -503,12 +567,19 @@ Vulkan_Texture::Vulkan_Texture(const LogicalDevice& device, void* data, v2u32 si
     staging_buffer.write(data, 0, image_size);
 
     // Image image;
-    m_image = Image(device, size, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+    m_image = Image(
+        device, size, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
+    );
 
-    this->transition_layout(m_image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    this->transition_layout(
+        m_image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+    );
     this->copy_buffer_to_image(staging_buffer, m_image, size);
     this->transition_layout(
-        m_image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        m_image,
+        format,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
     );
 
     m_sampler.init(device);
@@ -517,7 +588,10 @@ Vulkan_Texture::Vulkan_Texture(const LogicalDevice& device, void* data, v2u32 si
 auto Vulkan_Texture::deinit() -> void {}
 
 auto Vulkan_Texture::transition_layout(
-    const Image& image, VkFormat /*format*/, VkImageLayout old_layout, VkImageLayout new_layout
+    const Image& image,
+    VkFormat /*format*/,
+    VkImageLayout old_layout,
+    VkImageLayout new_layout
 ) -> void {
     const LogicalDevice& d = *m_device;
 
@@ -544,7 +618,8 @@ auto Vulkan_Texture::transition_layout(
         VkPipelineStageFlags source_stage = {};
         VkPipelineStageFlags destination_stage = {};
 
-        if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED && new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+        if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED &&
+            new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
             barrier.srcAccessMask = 0;
             barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
@@ -560,7 +635,18 @@ auto Vulkan_Texture::transition_layout(
             assert(false);
         }
 
-        vkCmdPipelineBarrier(cb.m_handle, source_stage, destination_stage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+        vkCmdPipelineBarrier(
+            cb.m_handle,
+            source_stage,
+            destination_stage,
+            0,
+            0,
+            nullptr,
+            0,
+            nullptr,
+            1,
+            &barrier
+        );
     });
     // cb[0].record_end();
 
@@ -575,7 +661,11 @@ auto Vulkan_Texture::transition_layout(
     d.m_command_pool.free_buffer(cb);
 }
 
-auto Vulkan_Texture::copy_buffer_to_image(const Buffer& buffer, const Image& image, v2u32 size) -> void {
+auto Vulkan_Texture::copy_buffer_to_image(
+    const Buffer& buffer,
+    const Image&  image,
+    v2u32         size
+) -> void {
     const LogicalDevice& d = *m_device;
 
     auto cb = d.m_command_pool.allocate_buffer();
@@ -585,13 +675,21 @@ auto Vulkan_Texture::copy_buffer_to_image(const Buffer& buffer, const Image& ima
             .bufferRowLength = 0,
             .bufferImageHeight = 0,
             .imageSubresource =
-                {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .mipLevel = 0, .baseArrayLayer = 0, .layerCount = 1},
+                {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                   .mipLevel = 0,
+                                   .baseArrayLayer = 0,
+                                   .layerCount = 1},
             .imageOffset = {0, 0, 0},
             .imageExtent = {size.width, size.height, 1},
         };
 
         vkCmdCopyBufferToImage(
-            cb.m_handle, buffer.m_handle, image.m_handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region
+            cb.m_handle,
+            buffer.m_handle,
+            image.m_handle,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1,
+            &region
         );
     });
     // cb[0].record_end();

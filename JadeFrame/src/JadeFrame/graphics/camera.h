@@ -13,13 +13,25 @@ public:
     };
 
 public:
-    auto perspective_mode(const v3& position, const f32 fov, const f32 aspect, const f32 zNear, const f32 zFar) -> void;
-    auto
-    orthographic_mode(const f32 left, const f32 right, const f32 bottom, const f32 top, const f32 near_, const f32 far_)
-        -> void;
+    auto perspective_mode(
+        const v3& position,
+        const f32 fov,
+        const f32 aspect,
+        const f32 zNear,
+        const f32 zFar
+    ) -> void;
+    auto orthographic_mode(
+        const f32 left,
+        const f32 right,
+        const f32 bottom,
+        const f32 top,
+        const f32 near_,
+        const f32 far_
+    ) -> void;
 
-    // auto perspective_mode(const v3& position, const f32 fov, const f32 aspect, const v2f32 nf) -> void;
-    // auto orthographic_mode(const v2f32 lr, const v2f32 bt, const v2f32 nf) -> void;
+    // auto perspective_mode(const v3& position, const f32 fov, const f32 aspect, const
+    // v2f32 nf) -> void; auto orthographic_mode(const v2f32 lr, const v2f32 bt, const
+    // v2f32 nf) -> void;
     auto get_projection() const -> Matrix4x4;
     auto get_view() const -> Matrix4x4;
     auto get_view_projection() const -> Matrix4x4;
@@ -34,7 +46,8 @@ public:
     v3 m_position = {};
     v3 m_forward = {}; // front
     v3 m_up = {};
-    v3 m_world_up = {}; // TODO: Seems to be a global thing, maybe should to a more global scope?
+    v3 m_world_up =
+        {}; // TODO: Seems to be a global thing, maybe should to a more global scope?
     v3 m_right = {};
 
     f32 m_fov = {};
@@ -61,7 +74,9 @@ class Camera0 {
     f32  m_far;
     bool m_is_perspective;
 
-    auto set_perspective(const f32 fov, const f32 aspect, const f32 t_near, const f32 t_far) -> void {
+    auto
+    set_perspective(const f32 fov, const f32 aspect, const f32 t_near, const f32 t_far)
+        -> void {
         m_is_perspective = true;
         m_projection = Matrix4x4::perspective_projection(fov, aspect, t_near, t_far);
         m_FOV = fov;
@@ -71,15 +86,23 @@ class Camera0 {
     }
 
     auto set_orthographic(
-        const f32 left, const f32 right, const f32 top, const f32 bottom, const f32 t_near, const f32 t_far
+        const f32 left,
+        const f32 right,
+        const f32 top,
+        const f32 bottom,
+        const f32 t_near,
+        const f32 t_far
     ) -> void {
         m_is_perspective = false;
-        m_projection = Matrix4x4::orthogonal_projection(left, right, top, bottom, t_near, t_far);
+        m_projection =
+            Matrix4x4::orthogonal_projection(left, right, top, bottom, t_near, t_far);
         m_near = t_near;
         m_far = t_far;
     }
 
-    auto update_view() -> void { m_view = Matrix4x4::look_at(m_position, m_position + m_forward, m_up); }
+    auto update_view() -> void {
+        m_view = Matrix4x4::look_at(m_position, m_position + m_forward, m_up);
+    }
 };
 
 } // namespace JadeFrame

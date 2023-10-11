@@ -30,8 +30,11 @@ public:
 
 public:
     Pipeline(
-        const LogicalDevice& device, const VkExtent2D& extend, const RenderPass& render_pass,
-        const ShadingCode& code, const VertexFormat& vertex_format
+        const LogicalDevice& device,
+        const VkExtent2D&    extend,
+        const RenderPass&    render_pass,
+        const ShadingCode&   code,
+        const VertexFormat&  vertex_format
     );
 
 public:
@@ -51,8 +54,9 @@ public:
         auto operator=(PipelineLayout&& other) noexcept -> PipelineLayout&;
 
         PipelineLayout(
-            const LogicalDevice&                                                    device,
-            const std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)>& set_layouts,
+            const LogicalDevice& device,
+            const std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)>&
+                                                  set_layouts,
             const std::vector<PushConstantRange>& push_constant_ranges
         );
 

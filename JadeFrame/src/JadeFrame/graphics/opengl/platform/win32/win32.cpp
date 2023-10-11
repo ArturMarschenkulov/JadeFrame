@@ -40,9 +40,15 @@
     #define WGL_SAMPLES_ARB      0x2042
 
 typedef BOOL WINAPI PFNWGLCHOOSEPIXELFORMATARBPROC(
-    HDC hdc, const int* piAttribIList, const FLOAT* pfAttribFList, UINT nMaxFormats, int* piFormats, UINT* nNumFormats
+    HDC          hdc,
+    const int*   piAttribIList,
+    const FLOAT* pfAttribFList,
+    UINT         nMaxFormats,
+    int*         piFormats,
+    UINT*        nNumFormats
 );
-typedef HGLRC WINAPI PFNWGLCREATECONTEXTATTRIBSARBPROC(HDC hDC, HGLRC hShareContext, const int* attribList);
+typedef HGLRC WINAPI
+PFNWGLCREATECONTEXTATTRIBSARBPROC(HDC hDC, HGLRC hShareContext, const int* attribList);
 // typedef const char* (WINAPI* PFNWGLGETEXTENSIONSSTRINGEXTPROC) (void);
 typedef const char* WINAPI PFNWGLGETEXTENSIONSSTRINGEXTPROC(void);
 typedef BOOL WINAPI        PFNWGLSWAPINTERVALEXTPROC(int);
@@ -86,10 +92,15 @@ auto init_render_context(HDC device_context) -> HGLRC {
 }
 
 static auto get_proc_address_wgl_funcs() -> void {
-    wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC*)wglGetProcAddress("wglChoosePixelFormatARB");
-    wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC*)wglGetProcAddress("wglCreateContextAttribsARB");
-    wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC*)wglGetProcAddress("wglSwapIntervalEXT");
-    wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC*)wglGetProcAddress("wglGetExtensionsStringEXT");
+    wglChoosePixelFormatARB =
+        (PFNWGLCHOOSEPIXELFORMATARBPROC*)wglGetProcAddress("wglChoosePixelFormatARB");
+    wglCreateContextAttribsARB =
+        (PFNWGLCREATECONTEXTATTRIBSARBPROC*)wglGetProcAddress("wglCreateContextAttribsARB"
+        );
+    wglSwapIntervalEXT =
+        (PFNWGLSWAPINTERVALEXTPROC*)wglGetProcAddress("wglSwapIntervalEXT");
+    wglGetExtensionsStringEXT =
+        (PFNWGLGETEXTENSIONSSTRINGEXTPROC*)wglGetProcAddress("wglGetExtensionsStringEXT");
 }
 
 auto load_wgl_funcs(HMODULE instance) -> bool {
@@ -107,17 +118,23 @@ auto load_wgl_funcs(HMODULE instance) -> bool {
     window_class.hbrBackground = (HBRUSH)(COLOR_MENUTEXT);
     window_class.lpszMenuName = NULL;
     window_class.lpszClassName = class_name;
-    if (!::RegisterClassW(&window_class)) { Logger::log("RegisterClassW Failed! {}", ::GetLastError()); }
+    if (!::RegisterClassW(&window_class)) {
+        Logger::log("RegisterClassW Failed! {}", ::GetLastError());
+    }
 
     const HWND window_handle = ::CreateWindowExW(
         0,
         class_name,     // window class
         L"Fake Window", // title
         WS_POPUP,       // WS_CLIPSIBLINGS | WS_CLIPCHILDREN, // style
-        0, 0,           // position x, y
-        1, 1,           // width, height
-        NULL, NULL,     // parent window, menu
-        instance, NULL
+        0,
+        0, // position x, y
+        1,
+        1, // width, height
+        NULL,
+        NULL, // parent window, menu
+        instance,
+        NULL
     );
     if (window_handle == NULL) { assert(false); }
     const HDC device_context = ::GetDC(window_handle);
@@ -143,7 +160,8 @@ auto load_wgl_funcs(HMODULE instance) -> bool {
 
     get_proc_address_wgl_funcs();
 
-    // We are done loading wgl functions, now we destroy everything related to the dummy context
+    // We are done loading wgl functions, now we destroy everything related to the dummy
+    // context
     ::wglMakeCurrent(NULL, NULL);
     ::wglDeleteContext(render_context);
     ::ReleaseDC(window_handle, device_context);
@@ -163,12 +181,15 @@ auto set_pixel_format(const HDC& device_context) -> void {
     // `wglChoosePixelFormatARB()` supercedes `ChoosePixelFormat()`.
     // Pixel formats can be grouped into 4 categories:
     //     1. Accelerated pixel formats that are displayable
-    //     2. Accelerated pixel formats that are displayable and which have extended attributes
+    //     2. Accelerated pixel formats that are displayable and which have extended
+    //     attributes
     //     3. Generic pixel formats
     //     4. Accelerated pixel formats that are non displayable
-    // ´ChoosePixelFormat()` only returns pixel formats from categories 1 and 3, while `wglChoosePixelFormatARB()`
+    // ´ChoosePixelFormat()` only returns pixel formats from categories 1 and 3, while
+    // `wglChoosePixelFormatARB()`
     //     returns pixel formats from all 4 categories.
-    // One needs `wglChoosePixelFormatARB()` if one wants sRGB framebuffers and multisampling.
+    // One needs `wglChoosePixelFormatARB()` if one wants sRGB framebuffers and
+    // multisampling.
 
     #if 0
 
@@ -239,16 +260,22 @@ auto set_pixel_format(const HDC& device_context) -> void {
 
     i32  format_ID;
     UINT num_formats;
-    bool status = ::wglChoosePixelFormatARB(device_context, pixel_attributes.data(), NULL, 1, &format_ID, &num_formats);
+    bool status = ::wglChoosePixelFormatARB(
+        device_context, pixel_attributes.data(), NULL, 1, &format_ID, &num_formats
+    );
     if (status == false || num_formats == 0) {
         Logger::log("wglChoosePixelFormatARB() failed. {}", ::GetLastError());
         return;
     }
 
-    // Note: Technically, this is not necessary, but it is good practice to set the pixel format
+    // Note: Technically, this is not necessary, but it is good practice to set the pixel
+    // format
     PIXELFORMATDESCRIPTOR format;
-    i32                   max_format_index = ::DescribePixelFormat(device_context, format_ID, sizeof(format), &format);
-    if (DescribePixelFormat == 0) { Logger::log("DescribePixelFormat() failed. {}", ::GetLastError()); }
+    i32                   max_format_index =
+        ::DescribePixelFormat(device_context, format_ID, sizeof(format), &format);
+    if (DescribePixelFormat == 0) {
+        Logger::log("DescribePixelFormat() failed. {}", ::GetLastError());
+    }
 
     #endif
 
@@ -269,12 +296,15 @@ auto create_render_context(HDC device_context) -> HGLRC {
         context_attributes.push_back(WGL_CONTEXT_MINOR_VERSION_ARB); // minor version
         context_attributes.push_back(minor_min);
         context_attributes.push_back(WGL_CONTEXT_FLAGS_ARB); // context flags
-        context_attributes.push_back(WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB);
+        context_attributes.push_back(
+            WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB
+        );
         context_attributes.push_back(WGL_CONTEXT_PROFILE_MASK_ARB); // profile type
         context_attributes.push_back(WGL_CONTEXT_CORE_PROFILE_BIT_ARB);
         context_attributes.push_back(0);
 
-        const HGLRC render_context = wglCreateContextAttribsARB(device_context, 0, context_attributes.data());
+        const HGLRC render_context =
+            wglCreateContextAttribsARB(device_context, 0, context_attributes.data());
         if (render_context == NULL) {
             Logger::log("wglCreateContextAttribsARB() failed. {}", ::GetLastError());
             return NULL;

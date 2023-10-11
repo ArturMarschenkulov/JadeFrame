@@ -98,16 +98,21 @@ auto Buffer::bind_base(GLuint binding_point) const -> void {
     if (m_type == TYPE::UNIFORM) {
         glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_id);
     } else {
-        Logger::err("Buffer::bind_base() called on non-uniform buffer, only works with uniform buffers");
+        Logger::err("Buffer::bind_base() called on non-uniform buffer, only works with "
+                    "uniform buffers");
         assert(false);
     }
 }
 
-auto Buffer::bind_buffer_range(GLuint index, GLintptr offset, GLsizeiptr size) const -> void {
+auto Buffer::bind_buffer_range(GLuint index, GLintptr offset, GLsizeiptr size) const
+    -> void {
     if (m_type == TYPE::UNIFORM) {
         glBindBufferRange(GL_UNIFORM_BUFFER, index, m_id, offset, size);
     } else {
-        Logger::err("Buffer::bind_buffer_range() called on non-uniform buffer, only works with uniform buffers");
+        Logger::err(
+            "Buffer::bind_buffer_range() called on non-uniform buffer, only works with "
+            "uniform buffers"
+        );
         assert(false);
     }
 }
@@ -129,7 +134,10 @@ auto GPUMeshData::operator=(GPUMeshData&& other) -> GPUMeshData& {
 }
 
 GPUMeshData::GPUMeshData(
-    OpenGL_Context& context, const VertexData& vertex_data, VertexFormat vertex_format, bool interleaved
+    OpenGL_Context&   context,
+    const VertexData& vertex_data,
+    VertexFormat      vertex_format,
+    bool              interleaved
 )
     : m_vertex_buffer()
     , m_index_buffer()

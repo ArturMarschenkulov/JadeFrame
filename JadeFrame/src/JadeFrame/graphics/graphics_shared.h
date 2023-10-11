@@ -326,7 +326,10 @@ public:
     auto operator=(GPUMeshData&& other) -> GPUMeshData&;
 
     GPUMeshData(
-        RenderSystem* system, const VertexData& vertex_data, const VertexFormat vertex_format, bool interleaved = true
+        RenderSystem*      system,
+        const VertexData&  vertex_data,
+        const VertexFormat vertex_format,
+        bool               interleaved = true
     );
 
 public:
@@ -337,8 +340,8 @@ public:
 
 /*
         TODO: Consider whether this is a good way and whether it is worth it to introdcue
-   inheritance. Right now, inheritance should be mainly used as a sanity check such that all
-   renderers have a common interface.
+   inheritance. Right now, inheritance should be mainly used as a sanity check such that
+   all renderers have a common interface.
 */
 using ssss = const char*;
 template<typename T>
@@ -399,7 +402,8 @@ public:
 public:
 };
 
-auto string_to_SPIRV(const std::string& code, SHADER_STAGE i, GRAPHICS_API api) -> std::vector<u32>;
+auto string_to_SPIRV(const std::string& code, SHADER_STAGE i, GRAPHICS_API api)
+    -> std::vector<u32>;
 struct MaterialHandle;
 struct TextureHandle;
 struct ShaderHandle;

@@ -62,9 +62,11 @@ public:
     auto is_button_released(const BUTTON button) const -> bool;
     auto get_mouse_position() const -> v2;
 
-    static std::array<INPUT_STATE, static_cast<u32>(BUTTON::MAX)> m_current_mouse_button_state;
-    static std::array<INPUT_STATE, static_cast<u32>(BUTTON::MAX)> m_previous_mouse_button_state;
-    static v2                                                     m_mouse_posiition;
+    static std::array<INPUT_STATE, static_cast<u32>(BUTTON::MAX)>
+        m_current_mouse_button_state;
+    static std::array<INPUT_STATE, static_cast<u32>(BUTTON::MAX)>
+              m_previous_mouse_button_state;
+    static v2 m_mouse_posiition;
 };
 } // namespace win32
 #ifdef _WIN32

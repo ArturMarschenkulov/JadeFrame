@@ -33,7 +33,6 @@ public:
 
     Shader(OpenGL_Context& context, const Desc& desc);
 
-
     auto bind() const -> void;
     auto unbind() const -> void;
 
@@ -52,12 +51,14 @@ private:
         i32         size;
         u32         location;
     };
+
     struct VertexAttribute {
         SHADER_TYPE type;
         std::string name;
         i32         size;
         u32         location;
     };
+
     std::vector<Uniform>         m_uniforms;
     std::vector<VertexAttribute> m_vertex_attributes;
 };

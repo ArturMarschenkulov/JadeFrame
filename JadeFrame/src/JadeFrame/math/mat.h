@@ -35,7 +35,8 @@ public:
     }
 
     template<N1, M1>
-    constexpr auto operator*(const MatrixT<N1, M1>& other) const noexcept -> MatrixT<N1, M> {
+    constexpr auto operator*(const MatrixT<N1, M1>& other) const noexcept
+        -> MatrixT<N1, M> {
         MatrixT<N1, M> result;
 
         return result;

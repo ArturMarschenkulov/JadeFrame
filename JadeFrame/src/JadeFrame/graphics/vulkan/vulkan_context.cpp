@@ -46,13 +46,22 @@ static auto vulkan_get_api_version(u32 version) -> VulkanVersion {
     return result;
 }
 
-static auto vulkan_get_device_type_string(const VkPhysicalDeviceType& device_type) -> const char* {
+static auto vulkan_get_device_type_string(const VkPhysicalDeviceType& device_type)
+    -> const char* {
     const char* result = "";
     switch (device_type) {
-        case VK_PHYSICAL_DEVICE_TYPE_OTHER: result = "VK_PHYSICAL_DEVICE_TYPE_OTHER"; break;
-        case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: result = "VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU"; break;
-        case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU: result = "VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU"; break;
-        case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: result = "VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU"; break;
+        case VK_PHYSICAL_DEVICE_TYPE_OTHER:
+            result = "VK_PHYSICAL_DEVICE_TYPE_OTHER";
+            break;
+        case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+            result = "VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU";
+            break;
+        case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+            result = "VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU";
+            break;
+        case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+            result = "VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU";
+            break;
         case VK_PHYSICAL_DEVICE_TYPE_CPU: result = "VK_PHYSICAL_DEVICE_TYPE_CPU"; break;
         case VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM:
             JF_ASSERT(false, "");
@@ -63,11 +72,14 @@ static auto vulkan_get_device_type_string(const VkPhysicalDeviceType& device_typ
 }
 
 namespace vulkan {
-auto Instance::allocator() -> VkAllocationCallbacks* { return Instance::default_allocator(); }
+auto Instance::allocator() -> VkAllocationCallbacks* {
+    return Instance::default_allocator();
+}
 
 auto Instance::default_allocator() -> VkAllocationCallbacks* { return nullptr; }
 
-auto Instance::check_validation_layer_support(const std::vector<VkLayerProperties>& layers) -> bool {
+auto Instance::check_validation_layer_support(const std::vector<VkLayerProperties>& layers
+) -> bool {
 #if 1
     for (u32 i = 0; i < m_desired_layer_names.size(); i++) {
         bool found = false;
@@ -82,9 +94,13 @@ auto Instance::check_validation_layer_support(const std::vector<VkLayerPropertie
     return true;
 #else
     for (const auto& desired_layer_name : m_desired_layer_names) {
-        bool layer_found = std::any_of(layers.begin(), layers.end(), [&desired_layer_name](const auto& a_layer) {
-            return strcmp(desired_layer_name, a_layer.layerName) == 0;
-        });
+        bool layer_found = std::any_of(
+            layers.begin(),
+            layers.end(),
+            [&desired_layer_name](const auto& a_layer) {
+                return strcmp(desired_layer_name, a_layer.layerName) == 0;
+            }
+        );
 
         if (!layer_found) { return false; }
     }
@@ -92,7 +108,10 @@ auto Instance::check_validation_layer_support(const std::vector<VkLayerPropertie
 #endif
 }
 
-static auto is_device_suitable(const vulkan::PhysicalDevice& physical_device, vulkan::Surface& surface) -> bool {
+static auto is_device_suitable(
+    const vulkan::PhysicalDevice& physical_device,
+    vulkan::Surface&              surface
+) -> bool {
 
     auto formats = physical_device.query_surface_formats(surface);
     auto present_modes = physical_device.query_surface_present_modes(surface);
@@ -101,8 +120,8 @@ static auto is_device_suitable(const vulkan::PhysicalDevice& physical_device, vu
     if (physical_device.m_extension_support == true) {
         swapchain_adequate = !formats.empty() && !present_modes.empty();
     }
-    return physical_device.m_queue_family_indices.is_complete() && physical_device.m_extension_support &&
-           swapchain_adequate;
+    return physical_device.m_queue_family_indices.is_complete() &&
+           physical_device.m_extension_support && swapchain_adequate;
 }
 
 auto Instance::query_layers() -> std::vector<VkLayerProperties> {
@@ -141,7 +160,9 @@ auto Instance::query_physical_devices() -> std::vector<vulkan::PhysicalDevice> {
 
     std::vector<vulkan::PhysicalDevice> physical_devices;
     physical_devices.resize(device_count);
-    for (u32 i = 0; i < physical_devices.size(); i++) { physical_devices[i].m_handle = phys_devices[i]; }
+    for (u32 i = 0; i < physical_devices.size(); i++) {
+        physical_devices[i].m_handle = phys_devices[i];
+    }
     return physical_devices;
 }
 
@@ -151,7 +172,9 @@ auto Instance::setup_debug() -> void {
     VkDebugUtilsMessengerCreateInfoEXT create_info;
     vulkan::populate_debug_messenger_create_info(create_info);
 
-    result = vkCreateDebugUtilsMessengerEXT_(m_instance, &create_info, Instance::allocator(), &m_debug_messenger);
+    result = vkCreateDebugUtilsMessengerEXT_(
+        m_instance, &create_info, Instance::allocator(), &m_debug_messenger
+    );
     if (result != VK_SUCCESS) { assert(false); }
 }
 
@@ -160,8 +183,9 @@ auto Instance::init(const IWindow* window_handle) -> void {
 
     VkResult result;
 
-    VkValidationFeatureEnableEXT enables[] = {VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT};
-    VkValidationFeaturesEXT      features = {};
+    VkValidationFeatureEnableEXT enables[] = {
+        VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT};
+    VkValidationFeaturesEXT features = {};
     features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
     features.pNext = VK_NULL_HANDLE;
     features.enabledValidationFeatureCount = 1;
@@ -197,10 +221,14 @@ auto Instance::init(const IWindow* window_handle) -> void {
     m_extensions = this->query_extensions();
     std::vector<const char*> extension_names;
     extension_names.resize(m_extensions.size());
-    for (u32 i = 0; i < m_extensions.size(); i++) { extension_names[i] = m_extensions[i].extensionName; }
+    for (u32 i = 0; i < m_extensions.size(); i++) {
+        extension_names[i] = m_extensions[i].extensionName;
+    }
     {
         Logger::debug("Printing Extension names:");
-        for (auto& extension_name : extension_names) { Logger::debug("\t{}", extension_name); }
+        for (auto& extension_name : extension_names) {
+            Logger::debug("\t{}", extension_name);
+        }
     }
     VkInstanceCreateInfo create_info = {
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -228,12 +256,18 @@ auto Instance::init(const IWindow* window_handle) -> void {
     result = vkCreateInstance(&create_info, Instance::allocator(), &m_instance);
     if (result != VK_SUCCESS) { assert(false); }
 
-    { Logger::info("Created Vulkan Instance {} at {}", fmt::ptr(this), fmt::ptr(m_instance)); }
+    {
+        Logger::info(
+            "Created Vulkan Instance {} at {}", fmt::ptr(this), fmt::ptr(m_instance)
+        );
+    }
     if (m_enable_validation_layers) {
         VkDebugUtilsMessengerCreateInfoEXT info;
         vulkan::populate_debug_messenger_create_info(info);
 
-        result = vkCreateDebugUtilsMessengerEXT_(m_instance, &info, Instance::allocator(), &m_debug_messenger);
+        result = vkCreateDebugUtilsMessengerEXT_(
+            m_instance, &info, Instance::allocator(), &m_debug_messenger
+        );
         if (result != VK_SUCCESS) { assert(false); }
     }
     m_surface = this->create_surface(window_handle);
@@ -241,7 +275,9 @@ auto Instance::init(const IWindow* window_handle) -> void {
     Logger::debug("Querying Physical Devices");
     Logger::debug("There are {} physical devices", m_physical_devices.size());
     m_physical_devices = this->query_physical_devices();
-    for (u32 i = 0; i < m_physical_devices.size(); i++) { m_physical_devices[i].init(*this, m_surface); }
+    for (u32 i = 0; i < m_physical_devices.size(); i++) {
+        m_physical_devices[i].init(*this, m_surface);
+    }
     for (u32 i = 0; i < m_physical_devices.size(); i++) {
         if (is_device_suitable(m_physical_devices[i], m_surface)) {
             m_physical_device = &m_physical_devices[i];
@@ -256,7 +292,9 @@ auto Instance::init(const IWindow* window_handle) -> void {
 
 auto Instance::deinit() -> void {
     if (m_enable_validation_layers) {
-        vkDestroyDebugUtilsMessengerEXT_(m_instance, m_debug_messenger, Instance::allocator());
+        vkDestroyDebugUtilsMessengerEXT_(
+            m_instance, m_debug_messenger, Instance::allocator()
+        );
     }
     vkDestroyInstance(m_instance, nullptr);
 }

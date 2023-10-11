@@ -20,9 +20,15 @@ static EventMessageMap g_windows_message_map;
 static auto window_resize_callback(Window& window, const EventMessage& wm) -> void {
 
     switch (wm.wParam) {
-        case SIZE_MAXIMIZED: window.set_window_state(Window::WINDOW_STATE::MAXIMIZED); break;
-        case SIZE_MINIMIZED: window.set_window_state(Window::WINDOW_STATE::MINIMIZED); break;
-        case SIZE_RESTORED: window.set_window_state(Window::WINDOW_STATE::WINDOWED); break;
+        case SIZE_MAXIMIZED:
+            window.set_window_state(Window::WINDOW_STATE::MAXIMIZED);
+            break;
+        case SIZE_MINIMIZED:
+            window.set_window_state(Window::WINDOW_STATE::MINIMIZED);
+            break;
+        case SIZE_RESTORED:
+            window.set_window_state(Window::WINDOW_STATE::WINDOWED);
+            break;
         case SIZE_MAXHIDE: break;
         case SIZE_MAXSHOW: break;
     }
@@ -30,7 +36,8 @@ static auto window_resize_callback(Window& window, const EventMessage& wm) -> vo
     window.set_size(v2u32(LOWORD(wm.lParam), HIWORD(wm.lParam)));
 
     const v2u32& size = window.get_size();
-    auto&        renderer = Instance::get_singleton()->m_current_app_p->m_render_system.m_renderer;
+    auto&        renderer =
+        Instance::get_singleton()->m_current_app_p->m_render_system.m_renderer;
     renderer->set_viewport(0, 0, size.width, size.height);
 }
 
@@ -40,9 +47,13 @@ static auto window_move_callback(Window& window, const EventMessage& wm) -> void
     window.set_position(v2u32(LOWORD(wm.lParam), HIWORD(wm.lParam)));
 }
 
-static auto window_focus_callback(Window& window, bool should_focus) { window.has_focus = should_focus; }
+static auto window_focus_callback(Window& window, bool should_focus) {
+    window.has_focus = should_focus;
+}
 
-static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam) -> ::LRESULT {
+static auto CALLBACK
+window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
+    -> ::LRESULT {
     const EventMessage& wm = {hWnd, message, wParam, lParam};
 
     BaseApp* app = Instance::get_singleton()->m_current_app_p;
@@ -58,7 +69,8 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
     for (auto const& [window_id, window] : app->m_windows) {
         if (window->get() == hWnd) { current_window_id = window_id; }
     }
-    Window& current_window = *reinterpret_cast<Window*>(app->m_windows[current_window_id]);
+    Window& current_window =
+        *reinterpret_cast<Window*>(app->m_windows[current_window_id]);
 
     switch (message) {
         case WM_SETFOCUS:
@@ -96,12 +108,15 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
         } break;
 
         /*
-            Since WM_CLOSE, WM_DESTROY and WM_QUIT get frequently confused, I will explain them here.
-            - WM_CLOSE: When one does something with the intention of closing a window. Like pressing X or Alt+F4.
+            Since WM_CLOSE, WM_DESTROY and WM_QUIT get frequently confused, I will explain
+           them here.
+            - WM_CLOSE: When one does something with the intention of closing a window.
+           Like pressing X or Alt+F4.
             - WM_DESTROY: When window is about to be destroyed.
             - WM_NCDESTROY: When window is destroyed.
 
-            - WM_QUIT is sent when the application is closed. Usually called after WM_DESTROY.
+            - WM_QUIT is sent when the application is closed. Usually called after
+           WM_DESTROY.
         */
         case WM_CLOSE: {
             // TODO: This code needs to be moved to WM_DESTROY.
@@ -147,8 +162,8 @@ static auto get_style(const Window::Desc& desc) -> ::DWORD {
     DWORD style = 0;
 
     style |=
-        (0 | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX
-        ); // WS_OVERLAPPEDWINDOW
+        (0 | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX |
+         WS_MAXIMIZEBOX); // WS_OVERLAPPEDWINDOW
 
     if (desc.visable == true) { style |= WS_VISIBLE; }
 
@@ -174,7 +189,8 @@ static auto register_class(HINSTANCE instance) -> ::WNDCLASSEX {
     window_class.hInstance = instance;
     window_class.hIcon = LoadIcon(NULL, IDI_WINLOGO); // IDI_APPLICATION
     window_class.hCursor = LoadCursor(NULL, IDC_ARROW);
-    window_class.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH)); // nullptr;
+    window_class.hbrBackground =
+        reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH)); // nullptr;
     window_class.lpszMenuName = nullptr;
     window_class.lpszClassName = L"JadeFrame"; //"L"JadeFrame Window";
 
@@ -197,10 +213,10 @@ Window::Window(const Window::Desc& desc, ::HMODULE instance) {
         window_style,
         (desc.position.x == -1) ? CW_USEDEFAULT : desc.position.x, // window_x,
         (desc.position.y == -1) ? CW_USEDEFAULT : desc.position.y, // window_y,
-        static_cast<int32_t>(desc.size.x),                         // window_width, //CW_USEDEFAULT;
-        static_cast<int32_t>(desc.size.y),                         // window_height, //CW_USEDEFAULT;
-        NULL,                                                      // parent_window
-        NULL,                                                      // menu
+        static_cast<int32_t>(desc.size.x), // window_width, //CW_USEDEFAULT;
+        static_cast<int32_t>(desc.size.y), // window_height, //CW_USEDEFAULT;
+        NULL,                              // parent_window
+        NULL,                              // menu
         instance,
         NULL // lpParam
     );
@@ -260,7 +276,9 @@ auto Window::set_position(const v2u32& position) -> void { m_position = position
 
 auto Window::get_position() const -> const v2u32& { return m_position; }
 
-auto Window::set_window_state(const WINDOW_STATE window_state) -> void { m_window_state = window_state; }
+auto Window::set_window_state(const WINDOW_STATE window_state) -> void {
+    m_window_state = window_state;
+}
 
 auto Window::get_window_state() const -> WINDOW_STATE { return m_window_state; }
 

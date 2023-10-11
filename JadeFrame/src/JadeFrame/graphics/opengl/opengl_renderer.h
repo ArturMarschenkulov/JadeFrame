@@ -43,8 +43,8 @@ struct OpenGL_RenderCommand {
 
 class OpenGL_CommandBuffer {
 public:
-    // auto push(const Mesh& mesh, const OpenGL_Material& material, const Matrix4x4& tranform, const OpenGL_VertexArray&
-    // vertex_array) -> void;
+    // auto push(const Mesh& mesh, const OpenGL_Material& material, const Matrix4x4&
+    // tranform, const OpenGL_VertexArray& vertex_array) -> void;
     std::vector<OpenGL_RenderCommand> m_render_commands;
 };
 
@@ -66,7 +66,10 @@ public:
     virtual auto take_screenshot(const char* filename) -> void override;
 
 private:
-    auto render_mesh(const opengl::GPUMeshData* buffer_data, const VertexData* vertex_data) const -> void;
+    auto render_mesh(
+        const opengl::GPUMeshData* buffer_data,
+        const VertexData*          vertex_data
+    ) const -> void;
 
 public:
     OpenGL_Context                           m_context;

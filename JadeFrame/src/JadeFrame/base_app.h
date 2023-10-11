@@ -61,7 +61,9 @@ public:
     }
 
     auto get_shader_handle(const std::string& name) -> ShaderHandle& {
-        if (m_shader_handles.find(name) != m_shader_handles.end()) { return m_shader_handles.at(name); }
+        if (m_shader_handles.find(name) != m_shader_handles.end()) {
+            return m_shader_handles.at(name);
+        }
         assert(false);
         return m_shader_handles.at(name);
     }
@@ -72,21 +74,27 @@ public:
     //     // m_texture_handles.emplace(name, std::move(texture));
     // }
     auto get_texture_handle(const std::string& name) -> TextureHandle& {
-        if (m_texture_handles.find(name) != m_texture_handles.end()) { return m_texture_handles.at(name); }
+        if (m_texture_handles.find(name) != m_texture_handles.end()) {
+            return m_texture_handles.at(name);
+        }
         assert(false);
         return m_texture_handles.at(name);
     }
 
     auto set_material_handle(
-        const std::string& material_name, const std::string& shader_name, const std::string& texture_name
+        const std::string& material_name,
+        const std::string& shader_name,
+        const std::string& texture_name
     ) -> void {
 
         if (m_shader_handles.find(shader_name) != m_shader_handles.end()) {
-            // m_material_handles[material_name].m_shader_handle = &m_shader_handles[shader_name];
+            // m_material_handles[material_name].m_shader_handle =
+            // &m_shader_handles[shader_name];
             if (m_texture_handles.find(texture_name) != m_texture_handles.end()) {
                 Logger::err("shoudln#t be reachable!!!!!!");
                 assert(false);
-                // m_material_handles[material_name].m_texture_handle = &m_texture_handles[texture_name];
+                // m_material_handles[material_name].m_texture_handle =
+                // &m_texture_handles[texture_name];
                 return;
             } else if (texture_name == "") {
                 return;
@@ -96,7 +104,9 @@ public:
     }
 
     auto get_material_handle(const std::string& name) -> MaterialHandle& {
-        if (m_material_handles.find(name) != m_material_handles.end()) { return m_material_handles.at(name); }
+        if (m_material_handles.find(name) != m_material_handles.end()) {
+            return m_material_handles.at(name);
+        }
         assert(false);
         return m_material_handles.at(name);
     }
@@ -158,8 +168,8 @@ public:
 };
 
 /*
-    The instance is JadeFrames global scope, so to say. It can also be regarded as the first place to put stuff if one
-   does not know where to put it.
+    The instance is JadeFrames global scope, so to say. It can also be regarded as the
+   first place to put stuff if one does not know where to put it.
 */
 struct CompilerInfo {
     struct Version {
@@ -209,7 +219,8 @@ public:
     SystemManager m_system_manager;
     InputManager  m_input_manager;
 
-    std::deque<BaseApp*> m_apps; // TODO: Consider whether there should be support for multiple apps
+    std::deque<BaseApp*>
+        m_apps; // TODO: Consider whether there should be support for multiple apps
     // std::deque<BaseApp> m_apps;
 
     BaseApp* m_current_app_p = nullptr;

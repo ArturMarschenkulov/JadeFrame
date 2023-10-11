@@ -46,8 +46,9 @@ auto is_power_of_two(T value) -> bool {
 //  constexpr static f64 half_pi_v = half_pi<f64>;
 //
 //  template<class T, class dcy = std::decay_t<T>>
-//  constexpr inline auto inverse(T value) -> std::enable_if_t<std::is_floating_point<T>::value, dcy>
-//  { 	return (value == 0) ? 0.0 : 1.0 / value;
+//  constexpr inline auto inverse(T value) ->
+//  std::enable_if_t<std::is_floating_point<T>::value, dcy> { 	return (value == 0) ? 0.0
+//  : 1.0 / value;
 // }
 //  constexpr inline auto factorial(std::intmax_t const& n) -> f64 {
 //	if (n == 0) {
@@ -84,9 +85,10 @@ auto is_power_of_two(T value) -> bool {
 //  constexpr typename TrigCeoffs<Base, N>::ArrayType TrigCeoffs<Base, N>::coeffs;
 //
 //
-//  template<class Base, std::size_t N, class dcy = std::decay_t<typename Base::ValueType>>
-//  constexpr auto _sincos(typename Base::ValueType x) noexcept ->
-//  std::enable_if_t<std::is_floating_point<dcy>::value, dcy> { 	using C = TrigCeoffs<Base, N>;
+//  template<class Base, std::size_t N, class dcy = std::decay_t<typename
+//  Base::ValueType>> constexpr auto _sincos(typename Base::ValueType x) noexcept ->
+//  std::enable_if_t<std::is_floating_point<dcy>::value, dcy> { 	using C =
+//  TrigCeoffs<Base, N>;
 //
 //	if (std::isnan(x) && std::numeric_limits<dcy>::has_quiet_NaN) {
 //		return static_cast<dcy>(std::numeric_limits<dcy>::quiet_NaN());

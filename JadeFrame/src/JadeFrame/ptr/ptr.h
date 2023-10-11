@@ -9,32 +9,51 @@ namespace ptr {
 template<typename T>
 class Scope {
 
-    // static_assert(!std::copy_constructible<Scope<T>>, "Implementation error: Scope MUST NOT be copy constructible");
-    // // static_assert(!std::is_copy_assignable_v<Scope<T>>, "Implementation error: Scope MUST not be copy
-    // assignable"); static_assert(std::move_constructible<Scope<T>>, "Implementation error: Scope MUST be move
-    // constructible");
-    // // static_assert(std::is_move_assignable_v<Scope<T>>, "Implementation error: Scope MUST be move assignable");
+    // static_assert(!std::copy_constructible<Scope<T>>, "Implementation error: Scope MUST
+    // NOT be copy constructible");
+    // // static_assert(!std::is_copy_assignable_v<Scope<T>>, "Implementation error: Scope
+    // MUST not be copy assignable"); static_assert(std::move_constructible<Scope<T>>,
+    // "Implementation error: Scope MUST be move constructible");
+    // // static_assert(std::is_move_assignable_v<Scope<T>>, "Implementation error: Scope
+    // MUST be move assignable");
 
 public:
     Scope() noexcept
         : m_pointer(nullptr) {
 
-        static_assert(std::move_constructible<Scope>, "Implementation error: Scope MUST be move constructible");
-        static_assert(!std::copy_constructible<Scope>, "Implementation error: Scope MUST NOT be copy constructible");
+        static_assert(
+            std::move_constructible<Scope>,
+            "Implementation error: Scope MUST be move constructible"
+        );
+        static_assert(
+            !std::copy_constructible<Scope>,
+            "Implementation error: Scope MUST NOT be copy constructible"
+        );
 
         static_assert(
-            !std::is_copy_constructible_v<Scope>, "Implementation error: Scope MUST NOT be copy constructible"
+            !std::is_copy_constructible_v<Scope>,
+            "Implementation error: Scope MUST NOT be copy constructible"
         );
-        static_assert(!std::is_copy_assignable_v<Scope>, "Implementation error: Scope MUST not be copy assignable");
-        static_assert(std::is_move_constructible_v<Scope>, "Implementation error: Scope MUST be move constructible");
-        static_assert(std::is_move_assignable_v<Scope>, "Implementation error: Scope MUST be move assignable");
+        static_assert(
+            !std::is_copy_assignable_v<Scope>,
+            "Implementation error: Scope MUST not be copy assignable"
+        );
+        static_assert(
+            std::is_move_constructible_v<Scope>,
+            "Implementation error: Scope MUST be move constructible"
+        );
+        static_assert(
+            std::is_move_assignable_v<Scope>,
+            "Implementation error: Scope MUST be move assignable"
+        );
 
         static_assert(
             std::is_nothrow_move_constructible_v<Scope>,
             "Implementation error: Scope MUST be noexcept move constructible"
         );
         static_assert(
-            std::is_nothrow_move_assignable_v<Scope>, "Implementation error: Scope MUST be noexcept move assignable"
+            std::is_nothrow_move_assignable_v<Scope>,
+            "Implementation error: Scope MUST be noexcept move assignable"
         );
     }
 

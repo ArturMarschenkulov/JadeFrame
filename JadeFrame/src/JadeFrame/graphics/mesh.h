@@ -93,13 +93,15 @@ public:
         constexpr const f32 ratio = 1.0f / 2.4f;
         constexpr const f32 threshold = 0.0031308f;
 
-        return lin_val <= threshold ? lin_val * 12.92f : powf(lin_val, ratio) * 1.055f - 0.055f;
+        return lin_val <= threshold ? lin_val * 12.92f
+                                    : powf(lin_val, ratio) * 1.055f - 0.055f;
     }
 
     float convert_srgb_to_linear(float rgba_val) {
         constexpr const f32 ratio = 2.4f;
         constexpr const f32 threshold = 0.04045f;
-        return rgba_val <= threshold ? rgba_val / 12.92f : powf((rgba_val + 0.055f) / 1.055f, ratio);
+        return rgba_val <= threshold ? rgba_val / 12.92f
+                                     : powf((rgba_val + 0.055f) / 1.055f, ratio);
     }
 
     static auto from_hsl(f32 h, f32 s, f32 l) -> RGBAColor {
@@ -171,11 +173,15 @@ public:
 
     static auto solid_magenta() -> RGBAColor { return RGBAColor(1.0f, 0.0f, 1.0f, 1.0f); }
 
-    static auto solid_magenta_2() -> RGBAColor { return RGBAColor(1.0f, 0.0f, 0.5f, 1.0f); }
+    static auto solid_magenta_2() -> RGBAColor {
+        return RGBAColor(1.0f, 0.0f, 0.5f, 1.0f);
+    }
 
     static auto solid_orange() -> RGBAColor { return RGBAColor(1.0f, 0.5f, 0.0f, 1.0f); }
 
-    static auto solid_transparent() -> RGBAColor { return RGBAColor(0.0f, 0.0f, 0.0f, 0.0f); }
+    static auto solid_transparent() -> RGBAColor {
+        return RGBAColor(0.0f, 0.0f, 0.0f, 0.0f);
+    }
 
     auto set_opacity(f32 opacity) -> RGBAColor { return RGBAColor(r, g, b, opacity); }
 
@@ -208,14 +214,20 @@ public:
 
     static auto make_line(const v3& pos1, const v3& pos2) -> VertexData;
 
-    static auto make_rectangle(const v3& pos, const v3& size, const Desc desc = Desc{true, true, false, true})
+    static auto make_rectangle(
+        const v3&  pos,
+        const v3&  size,
+        const Desc desc = Desc{true, true, false, true}
+    ) -> VertexData;
+    static auto make_triangle(const v3& pos1, const v3& pos2, const v3& pos3)
         -> VertexData;
-    static auto make_triangle(const v3& pos1, const v3& pos2, const v3& pos3) -> VertexData;
-    static auto make_circle(const v3& position, const f32 radius, const u32 numSegments) -> VertexData;
+    static auto make_circle(const v3& position, const f32 radius, const u32 numSegments)
+        -> VertexData;
 
     static auto make_cube(const v3& pos, const v3& size) -> VertexData;
 };
 
-auto convert_into_data(const VertexData& vertex_data, const bool interleaved) -> std::vector<f32>;
+auto convert_into_data(const VertexData& vertex_data, const bool interleaved)
+    -> std::vector<f32>;
 
 } // namespace JadeFrame

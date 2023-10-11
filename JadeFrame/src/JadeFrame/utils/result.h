@@ -147,7 +147,8 @@ class Result {
         "It is ill-formed for T to be rvalue reference. Only lvalue references are valid"
     );
     static_assert(
-        !std::is_reference_v<E>, "It is ill-formed for E to be a reference. Only T types may be lvalue referneces"
+        !std::is_reference_v<E>,
+        "It is ill-formed for E to be a reference. Only T types may be lvalue referneces"
     );
 
 public:

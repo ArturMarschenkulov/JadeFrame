@@ -1,4 +1,5 @@
 #pragma once
+
 namespace JadeFrame {
 class String {
 private:

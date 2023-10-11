@@ -49,7 +49,8 @@ public:
 public:
     ::HMODULE m_instance;
 
-    // represents Dynamically Linked Libraries (DLL) on Windows and Shared Object (SO) on Linux
+    // represents Dynamically Linked Libraries (DLL) on Windows and Shared Object (SO) on
+    // Linux
     struct Module {
 
         std::string m_name;

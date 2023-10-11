@@ -11,8 +11,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
-
-
 namespace JadeFrame {
 
 /*---------------------------
@@ -22,6 +20,7 @@ namespace JadeFrame {
 Image::~Image() {
     if (data != nullptr) { stbi_image_free(data); }
 }
+
 Image::Image(Image&& other) noexcept {
     data = other.data;
     width = other.width;
@@ -29,6 +28,7 @@ Image::Image(Image&& other) noexcept {
     num_components = other.num_components;
     other.data = nullptr;
 }
+
 Image& Image::operator=(Image&& other) noexcept {
     data = other.data;
     width = other.width;
@@ -37,7 +37,9 @@ Image& Image::operator=(Image&& other) noexcept {
     other.data = nullptr;
     return *this;
 }
-static auto add_fourth_components(u8* data, i32 width, i32 height, i32 num_components) -> u8* {
+
+static auto add_fourth_components(u8* data, i32 width, i32 height, i32 num_components)
+    -> u8* {
     u8* new_data = new u8[width * height * 4];
     for (i32 i = 0; i < width * height; i++) {
         new_data[i * 4 + 0] = data[i * num_components + 0];
@@ -47,6 +49,7 @@ static auto add_fourth_components(u8* data, i32 width, i32 height, i32 num_compo
     }
     return new_data;
 }
+
 auto Image::load(const std::string& path) -> Image {
     stbi_set_flip_vertically_on_load(true);
     i32 width, height, num_components;
@@ -72,9 +75,10 @@ auto Image::load(const std::string& path) -> Image {
     GPUBuffer
 ----------------------------*/
 GPUBuffer::~GPUBuffer() {}
-GPUBuffer::GPUBuffer(GPUBuffer&& other) {}
-auto GPUBuffer::operator=(GPUBuffer&& other) -> GPUBuffer& { return *this; }
 
+GPUBuffer::GPUBuffer(GPUBuffer&& other) {}
+
+auto GPUBuffer::operator=(GPUBuffer&& other) -> GPUBuffer& { return *this; }
 
 static auto to_opengl(GPUBuffer::TYPE type) -> opengl::Buffer::TYPE {
     opengl::Buffer::TYPE result;
@@ -86,6 +90,7 @@ static auto to_opengl(GPUBuffer::TYPE type) -> opengl::Buffer::TYPE {
     }
     return result;
 }
+
 static auto to_vulkan(GPUBuffer::TYPE type) -> vulkan::Buffer::TYPE {
     vulkan::Buffer::TYPE result;
     switch (type) {
@@ -97,6 +102,7 @@ static auto to_vulkan(GPUBuffer::TYPE type) -> vulkan::Buffer::TYPE {
     }
     return result;
 }
+
 GPUBuffer::GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage)
     : m_system(system)
     , m_api(system->m_api)
@@ -110,7 +116,8 @@ GPUBuffer::GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage)
             m_handle = device->create_buffer(to_opengl(usage), data, size);
         } break;
         case GRAPHICS_API::VULKAN: {
-            vulkan::LogicalDevice* device = ((Vulkan_Renderer*)system->m_renderer)->m_logical_device;
+            vulkan::LogicalDevice* device =
+                ((Vulkan_Renderer*)system->m_renderer)->m_logical_device;
 
             m_handle = device->create_buffer(to_vulkan(usage), data, size);
         } break;
@@ -119,7 +126,11 @@ GPUBuffer::GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage)
 }
 
 GPUMeshData::GPUMeshData(
-    RenderSystem* system, const VertexData& vertex_data, const VertexFormat vertex_format, bool interleaved) {
+    RenderSystem*      system,
+    const VertexData&  vertex_data,
+    const VertexFormat vertex_format,
+    bool               interleaved
+) {
 
     const std::vector<f32> flat_data = convert_into_data(vertex_data, interleaved);
 
@@ -147,6 +158,7 @@ TextureHandle::TextureHandle(const Image& img) {
     m_size.width = img.width;
     m_num_components = img.num_components;
 }
+
 TextureHandle::TextureHandle(TextureHandle&& other) {
     m_data = other.m_data;
     m_size = other.m_size;
@@ -177,13 +189,11 @@ auto TextureHandle::operator=(TextureHandle&& other) -> TextureHandle& {
     return *this;
 }
 
-
 TextureHandle::~TextureHandle() {
     if (m_data != nullptr) { stbi_image_free(m_data); }
 }
 
 auto TextureHandle::init(void* context) -> void {
-
 
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
@@ -192,7 +202,8 @@ auto TextureHandle::init(void* context) -> void {
         } break;
         case GRAPHICS_API::VULKAN: {
             vulkan::LogicalDevice*  d = (vulkan::LogicalDevice*)m_handle;
-            vulkan::Vulkan_Texture* texture = new vulkan::Vulkan_Texture(*d, m_data, m_size, VK_FORMAT_R8G8B8A8_SRGB);
+            vulkan::Vulkan_Texture* texture =
+                new vulkan::Vulkan_Texture(*d, m_data, m_size, VK_FORMAT_R8G8B8A8_SRGB);
             m_handle = texture;
         } break;
         default: assert(false);
@@ -207,6 +218,7 @@ ShaderHandle::ShaderHandle(const Desc& desc) {
     m_code = desc.shading_code;
     m_vertex_format = desc.vertex_format;
 }
+
 ShaderHandle::ShaderHandle(ShaderHandle&& other) {
     m_code = other.m_code;
     m_vertex_format = other.m_vertex_format;
@@ -218,6 +230,7 @@ ShaderHandle::ShaderHandle(ShaderHandle&& other) {
     // other.m_api = GRAPHICS_API::UNDEFINED;
     // other.m_handle = nullptr;
 }
+
 auto ShaderHandle::operator=(ShaderHandle&& other) -> ShaderHandle& {
     m_code = other.m_code;
     m_vertex_format = other.m_vertex_format;
@@ -231,7 +244,8 @@ auto ShaderHandle::operator=(ShaderHandle&& other) -> ShaderHandle& {
     return *this;
 }
 
-auto ShaderHandle::set_uniform(const std::string& name, const void* data, size_t size) -> void {
+auto ShaderHandle::set_uniform(const std::string& name, const void* data, size_t size)
+    -> void {
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
             auto shader = (opengl::Shader*)m_handle;
@@ -249,12 +263,15 @@ auto ShaderHandle::set_uniform(const std::string& name, const void* data, size_t
     }
 }
 
-
 /*---------------------------
     VertexAttribute
 ---------------------------*/
 
-VertexAttribute::VertexAttribute(const std::string& name, SHADER_TYPE type, bool normalized)
+VertexAttribute::VertexAttribute(
+    const std::string& name,
+    SHADER_TYPE        type,
+    bool               normalized
+)
     : name(name)
     , type(type)
     , size(SHADER_TYPE_get_size(type))
@@ -268,6 +285,7 @@ VertexFormat::VertexFormat(const std::initializer_list<VertexAttribute>& attribu
     : m_attributes(attributes) {
     this->calculate_offset_and_stride(m_attributes);
 }
+
 auto VertexFormat::default_format() -> VertexFormat {
     const VertexFormat result = {
         {     "v_position", SHADER_TYPE::V_3_F32},
@@ -278,7 +296,8 @@ auto VertexFormat::default_format() -> VertexFormat {
     return result;
 }
 
-auto VertexFormat::calculate_offset_and_stride(std::vector<VertexAttribute>& attributes) -> void {
+auto VertexFormat::calculate_offset_and_stride(std::vector<VertexAttribute>& attributes)
+    -> void {
     size_t offset = 0;
     m_stride = 0;
     for (VertexAttribute& attribute : attributes) {
@@ -291,7 +310,6 @@ auto VertexFormat::calculate_offset_and_stride(std::vector<VertexAttribute>& att
 /*---------------------------
     RenderSystem
 ---------------------------*/
-
 
 RenderSystem::RenderSystem(GRAPHICS_API api, IWindow* window) {
     m_api = api;
@@ -306,6 +324,7 @@ RenderSystem::RenderSystem(GRAPHICS_API api, IWindow* window) {
         default: assert(false);
     }
 }
+
 auto RenderSystem::init(GRAPHICS_API api, IWindow* window) -> void {
     m_api = api;
     switch (api) {
@@ -330,6 +349,7 @@ RenderSystem::RenderSystem(RenderSystem&& other) {
     other.m_renderer = nullptr;
     other.m_registered_textures.clear();
 }
+
 auto RenderSystem::operator=(RenderSystem&& other) -> RenderSystem& {
     m_api = other.m_api;
     m_renderer = other.m_renderer;
@@ -382,7 +402,6 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
     m_registered_shaders[id].m_vertex_format = shader_desc.vertex_format;
     m_registered_shaders[id].m_api = m_api;
 
-
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
             OpenGL_Renderer* ren = static_cast<OpenGL_Renderer*>(m_renderer);
@@ -399,7 +418,6 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
             Vulkan_Renderer*       ren = static_cast<Vulkan_Renderer*>(m_renderer);
             vulkan::LogicalDevice* ctx = ren->m_logical_device;
 
-
             Vulkan_Shader::Desc shader_desc;
             shader_desc.code = m_registered_shaders[id].m_code;
             shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
@@ -407,7 +425,8 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
             Vulkan_Shader* shader = new Vulkan_Shader(*ctx, *ren, shader_desc);
             m_registered_shaders[id].m_handle = shader;
             for (size_t i = 0; i < shader->m_pipeline.m_set_layouts.size(); i++) {
-                shader->m_sets[i] = ctx->m_set_pool.allocate_set(shader->m_pipeline.m_set_layouts[i]);
+                shader->m_sets[i] =
+                    ctx->m_set_pool.allocate_set(shader->m_pipeline.m_set_layouts[i]);
             }
 
             // TODO: Remove this hard coded code later on.
@@ -424,17 +443,19 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
 
 /**
  * @brief Registers a mesh on the GPU and returns an id to it.
- * 
- * @param format 
- * @param data 
- * @return u32 
+ *
+ * @param format
+ * @param data
+ * @return u32
  */
-auto RenderSystem::register_mesh(const VertexFormat& format, const VertexData& data) -> u32 {
+auto RenderSystem::register_mesh(const VertexFormat& format, const VertexData& data)
+    -> u32 {
     static u32   id = 1;
     VertexFormat vertex_format;
     // In case there is no buffer layout provided use a default one
     if (format.m_attributes.size() == 0) {
-        Logger::warn("No vertex format provided, using default one. (v_position float3, v_color float4, "
+        Logger::warn("No vertex format provided, using default one. (v_position float3, "
+                     "v_color float4, "
                      "v_texture_coord float2, v_normal float3");
         vertex_format = VertexFormat::default_format();
     } else {
@@ -443,11 +464,13 @@ auto RenderSystem::register_mesh(const VertexFormat& format, const VertexData& d
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
             OpenGL_Renderer* r = static_cast<OpenGL_Renderer*>(m_renderer);
-            r->m_registered_meshes[id] = opengl::GPUMeshData(r->m_context, data, vertex_format);
+            r->m_registered_meshes[id] =
+                opengl::GPUMeshData(r->m_context, data, vertex_format);
         } break;
         case GRAPHICS_API::VULKAN: {
             Vulkan_Renderer* r = static_cast<Vulkan_Renderer*>(m_renderer);
-            r->m_registered_meshes[id] = vulkan::GPUMeshData{*r->m_logical_device, data, vertex_format};
+            r->m_registered_meshes[id] =
+                vulkan::GPUMeshData{*r->m_logical_device, data, vertex_format};
         } break;
         default: assert(false);
     }
@@ -455,7 +478,6 @@ auto RenderSystem::register_mesh(const VertexFormat& format, const VertexData& d
     id++;
     return old_id;
 }
-
 
 auto to_string(SHADER_TYPE type) -> const char* {
     switch (type) {

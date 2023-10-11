@@ -18,13 +18,15 @@ auto create_surface(VkInstance instance, const IWindow* window_handle) -> VkSurf
     };
     VkSurfaceKHR handle;
 
-    VkResult result = vkCreateWin32SurfaceKHR(instance, &create_info, Instance::allocator(), &handle);
+    VkResult result =
+        vkCreateWin32SurfaceKHR(instance, &create_info, Instance::allocator(), &handle);
     if (result != VK_SUCCESS) {
         assert(false);
         throw std::runtime_error("failed to create window surface!");
     }
     return handle;
-    // { Logger::info("Created Win32 surface {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
+    // { Logger::info("Created Win32 surface {} at {}", fmt::ptr(this),
+    // fmt::ptr(m_handle)); }
 }
 } // namespace win32
 } // namespace vulkan

@@ -42,7 +42,10 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     , m_fragment_shader(GL_FRAGMENT_SHADER) {
     m_context = &context;
 
-    JF_ASSERT(desc.code.m_modules.size() == 2, "OpenGL Shaders must have 2 modules for right now");
+    JF_ASSERT(
+        desc.code.m_modules.size() == 2,
+        "OpenGL Shaders must have 2 modules for right now"
+    );
 
     using SPIRV = std::vector<JadeFrame::u32>;
 
@@ -86,7 +89,8 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     // auto s = reflect(code);
 
     // std::vector<u32> vs =
-    //     string_to_SPIRV(vertex_shader.c_str(), desc.code.m_modules[0].m_stage, GRAPHICS_API::OPENGL);
+    //     string_to_SPIRV(vertex_shader.c_str(), desc.code.m_modules[0].m_stage,
+    //     GRAPHICS_API::OPENGL);
 
     // spirv_cross::CompilerGLSL glsl(spirvs[0]);
     // glsl.set_common_options(options);

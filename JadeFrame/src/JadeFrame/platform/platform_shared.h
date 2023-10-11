@@ -2,9 +2,8 @@
 #include "JadeFrame/prelude.h"
 #include "JadeFrame/math/vec.h"
 #include <string>
+
 namespace JadeFrame {
-
-
 
 enum class INPUT_STATE {
     RELEASED,
@@ -129,7 +128,6 @@ enum class KEY {
 
 // TODO: Think of a better way to abstract everything. Right now CRTP seems to be enough.
 
-
 class IWindow {
 public:
     enum class WINDOW_STATE {
@@ -147,7 +145,9 @@ public:
         bool         visable = true;
         bool         accept_drop_files = false;
     };
-    virtual auto handle_events(bool& running) -> void = 0; // TODO: This is hacky. Fix it later
+
+    virtual auto handle_events(bool& running)
+        -> void = 0; // TODO: This is hacky. Fix it later
     virtual auto set_title(const std::string& title) -> void = 0;
     virtual auto get_title() const -> std::string = 0;
     virtual auto get_size() const -> const v2u32& = 0;
@@ -186,6 +186,7 @@ public:
     // This is the implementation
     ISystemManager* m_impl = nullptr;
 };
+
 class IInputManager {
 public:
     virtual auto handle_input() -> void = 0;

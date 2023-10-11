@@ -50,7 +50,9 @@ Surface::Surface(VkInstance instance, const IWindow* window_handle) {
 }
 
 Surface::~Surface() {
-    if (m_handle != VK_NULL_HANDLE) { vkDestroySurfaceKHR(m_instance, m_handle, Instance::allocator()); }
+    if (m_handle != VK_NULL_HANDLE) {
+        vkDestroySurfaceKHR(m_instance, m_handle, Instance::allocator());
+    }
 }
 
 //} // namespace win32

@@ -47,14 +47,17 @@ public:
 
 public:
     Framebuffer(
-        const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent
+        const LogicalDevice& device,
+        const ImageView&     image_view,
+        const RenderPass&    render_pass,
+        VkExtent2D           extent
     );
 
 public:
     VkFramebuffer        m_handle = VK_NULL_HANDLE;
     const LogicalDevice* m_device = nullptr;
-    const ImageView*     m_image_view = nullptr; // TODO: Find out whether this is even needed
-    const RenderPass*    m_render_pass = nullptr;
+    const ImageView* m_image_view = nullptr; // TODO: Find out whether this is even needed
+    const RenderPass* m_render_pass = nullptr;
     // const Swapchain* m_swapchain = nullptr;
 };
 
@@ -72,7 +75,9 @@ public:
     auto deinit() -> void;
     auto recreate() -> void;
 
-    auto acquire_image_index(const Semaphore* semaphore, const Fence* fence, VkResult& result) -> u32;
+    auto
+    acquire_image_index(const Semaphore* semaphore, const Fence* fence, VkResult& result)
+        -> u32;
     auto acquire_image_index(const Semaphore* semaphore, const Fence* fence) -> u32;
 
     auto query_images() -> std::vector<Image>;

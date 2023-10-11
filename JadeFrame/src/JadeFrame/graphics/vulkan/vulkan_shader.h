@@ -23,10 +23,19 @@ public:
     Vulkan_Shader(Vulkan_Shader&&) noexcept = default;
     auto operator=(Vulkan_Shader&&) -> Vulkan_Shader& = default;
 
-    Vulkan_Shader(const vulkan::LogicalDevice& device, const Vulkan_Renderer& renderer, const Desc& desc);
+    Vulkan_Shader(
+        const vulkan::LogicalDevice& device,
+        const Vulkan_Renderer&       renderer,
+        const Desc&                  desc
+    );
 
-    auto bind_buffer(u32 set, u32 binding, const vulkan::Buffer& buffer, VkDeviceSize offset, VkDeviceSize range)
-        -> void;
+    auto bind_buffer(
+        u32                   set,
+        u32                   binding,
+        const vulkan::Buffer& buffer,
+        VkDeviceSize          offset,
+        VkDeviceSize          range
+    ) -> void;
     auto rebind_buffer(u32 set, u32 binding, const vulkan::Buffer& buffer) -> void;
     auto get_location(const std::string& name) -> std::tuple<u32, u32>;
 

@@ -6,30 +6,49 @@
 
 namespace JadeFrame {
 
-Vulkan_Shader::Vulkan_Shader(const vulkan::LogicalDevice& device, const Vulkan_Renderer& renderer, const Desc& desc) {
+Vulkan_Shader::Vulkan_Shader(
+    const vulkan::LogicalDevice& device,
+    const Vulkan_Renderer&       renderer,
+    const Desc&                  desc
+) {
     m_device = &device;
     Logger::info("Creating Vulkan shader");
-    m_pipeline =
-        vulkan::Pipeline(device, renderer.m_swapchain.m_extent, renderer.m_render_pass, desc.code, desc.vertex_format);
+    m_pipeline = vulkan::Pipeline(
+        device,
+        renderer.m_swapchain.m_extent,
+        renderer.m_render_pass,
+        desc.code,
+        desc.vertex_format
+    );
     Logger::info("Created Vulkan shader");
     m_reflected_code = m_pipeline.m_reflected_code;
     for (auto& module : m_reflected_code.m_modules) {
         for (auto& uniform_buffer : module.m_uniform_buffers) {
             Logger::info("Uniform buffer: {}", uniform_buffer.name);
-            JF_ASSERT(uniform_buffer.size == sizeof(Matrix4x4), "Uniform buffer size is not 64 bytes");
-            m_device->create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, uniform_buffer.size);
+            JF_ASSERT(
+                uniform_buffer.size == sizeof(Matrix4x4),
+                "Uniform buffer size is not 64 bytes"
+            );
+            m_device->create_buffer(
+                vulkan::Buffer::TYPE::UNIFORM, nullptr, uniform_buffer.size
+            );
         }
     }
 }
 
 auto Vulkan_Shader::bind_buffer(
-    u32 set, u32 binding, const vulkan::Buffer& buffer, VkDeviceSize offset, VkDeviceSize range
+    u32                   set,
+    u32                   binding,
+    const vulkan::Buffer& buffer,
+    VkDeviceSize          offset,
+    VkDeviceSize          range
 ) -> void {
     m_sets[set].bind_uniform_buffer(binding, buffer, offset, range);
     m_sets[set].update();
 }
 
-auto Vulkan_Shader::rebind_buffer(u32 set, u32 binding, const vulkan::Buffer& buffer) -> void {
+auto Vulkan_Shader::rebind_buffer(u32 set, u32 binding, const vulkan::Buffer& buffer)
+    -> void {
     m_sets[set].rebind_uniform_buffer(binding, buffer);
     m_sets[set].update();
 }

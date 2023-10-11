@@ -4,8 +4,8 @@
         The goal is to make OpenGL objects more C++ like.
         This may or may not be temporary.
 
-        These wrapper classes should have as little state as possible. The optimal would be to only have their ID and
-   nothing more
+        These wrapper classes should have as little state as possible. The optimal would
+   be to only have their ID and nothing more
 */
 #include "JadeFrame/prelude.h"
 #include "JadeFrame/math/vec.h"
@@ -48,8 +48,12 @@ public:
 
 private:
     auto enable_attrib(const u32 index) const -> void;
-    auto set_attrib_format(const u32 index, const SHADER_TYPE type, const bool count, const size_t offset) const
-        -> void;
+    auto set_attrib_format(
+        const u32         index,
+        const SHADER_TYPE type,
+        const bool        count,
+        const size_t      offset
+    ) const -> void;
     auto set_attrib_binding(const u32 index, const u32 binding) const -> void;
 
 private:
@@ -157,13 +161,18 @@ inline Renderbuffer::Renderbuffer() { glCreateRenderbuffers(1, &m_ID); }
 
 inline Renderbuffer::~Renderbuffer() {}
 
-inline auto Renderbuffer::store(GLenum internal_format, GLsizei width, GLsizei height) const -> void {
+inline auto
+Renderbuffer::store(GLenum internal_format, GLsizei width, GLsizei height) const -> void {
     glNamedRenderbufferStorage(m_ID, internal_format, width, height);
 }
 
-inline auto Renderbuffer::bind() const -> void { glBindRenderbuffer(GL_RENDERBUFFER, m_ID); }
+inline auto Renderbuffer::bind() const -> void {
+    glBindRenderbuffer(GL_RENDERBUFFER, m_ID);
+}
 
-inline auto Renderbuffer::unbind() const -> void { glBindRenderbuffer(GL_RENDERBUFFER, 0); }
+inline auto Renderbuffer::unbind() const -> void {
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+}
 
 inline auto Renderbuffer::release() -> GLuint {
     GLuint ret = m_ID;
@@ -200,8 +209,11 @@ public:
 
     Framebuffer(OpenGL_Context& context);
 
-    auto attach_texture(ATTACHMENT attachment, u32 i, const Texture& texture) const -> void;
-    auto attach_renderbuffer(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer) const -> void;
+    auto attach_texture(ATTACHMENT attachment, u32 i, const Texture& texture) const
+        -> void;
+    auto
+    attach_renderbuffer(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer)
+        const -> void;
     auto check_status() const -> GLenum;
     auto bind() const -> void;
     auto unbind() const -> void;
@@ -227,7 +239,9 @@ inline Framebuffer::Framebuffer(OpenGL_Context&) { glCreateFramebuffers(1, &m_ID
 
 inline Framebuffer::~Framebuffer() { this->reset(); }
 
-inline auto Framebuffer::attach_texture(ATTACHMENT attachment, u32 i, const Texture& texture) const -> void {
+inline auto
+Framebuffer::attach_texture(ATTACHMENT attachment, u32 i, const Texture& texture) const
+    -> void {
 
     assert(i < GL_MAX_COLOR_ATTACHMENTS - 1);
 
@@ -244,8 +258,11 @@ inline auto Framebuffer::attach_texture(ATTACHMENT attachment, u32 i, const Text
     glNamedFramebufferTexture(m_ID, attachment_point, texture.m_id, 0);
 }
 
-inline auto Framebuffer::attach_renderbuffer(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer) const
-    -> void {
+inline auto Framebuffer::attach_renderbuffer(
+    ATTACHMENT          attachment,
+    u32                 i,
+    const Renderbuffer& renderbuffer
+) const -> void {
     assert(i < GL_MAX_COLOR_ATTACHMENTS - 1);
 
     i32 attachment_point = 0;
@@ -258,7 +275,9 @@ inline auto Framebuffer::attach_renderbuffer(ATTACHMENT attachment, u32 i, const
     } else if (attachment == ATTACHMENT::DEPTH_STENCIL) {
         attachment_point = GL_DEPTH_STENCIL_ATTACHMENT;
     }
-    glNamedFramebufferRenderbuffer(m_ID, attachment_point, GL_RENDERBUFFER, renderbuffer.m_ID);
+    glNamedFramebufferRenderbuffer(
+        m_ID, attachment_point, GL_RENDERBUFFER, renderbuffer.m_ID
+    );
 }
 
 inline auto Framebuffer::bind() const -> void { glBindFramebuffer(GL_FRAMEBUFFER, m_ID); }

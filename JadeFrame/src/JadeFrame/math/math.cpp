@@ -102,7 +102,8 @@ static auto is_prime(u32 x) -> bool {
 //     return a + ab_dir * dot;
 // }
 //
-// static auto triangle_contains_point(const Vec2& a, const Vec2& b, const Vec2& c, const Vec2& p)
+// static auto triangle_contains_point(const Vec2& a, const Vec2& b, const Vec2& c, const
+// Vec2& p)
 // -> bool {
 //     bool b1 = ((p.x - b.x) * (a.y - b.y) - (p.y - b.y) * (a.x - b.x)) < 0.0f;
 //     bool b2 = ((p.x - c.x) * (b.y - c.y) - (p.y - c.y) * (b.x - c.x)) < 0.0f;

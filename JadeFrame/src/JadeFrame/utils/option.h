@@ -11,10 +11,12 @@ namespace JadeFrame {
 
 /*
     NOTE: This is class is mainly modelled after Rust's Option<T>.
-    NOTE: Thus member function should have the same naming convention, though provide C++-like wrapper member functions.
-    NOTE: Think about maybe renaming this class (Rust, Ocaml) to Maybe (Haskell) or Optional (C++, Swift)
+    NOTE: Thus member function should have the same naming convention, though provide
+   C++-like wrapper member functions. NOTE: Think about maybe renaming this class (Rust,
+   Ocaml) to Maybe (Haskell) or Optional (C++, Swift)
 
-    TODO: Consider whether the ref-qualified "const&&"" overloads are needed. Most likely not.
+    TODO: Consider whether the ref-qualified "const&&"" overloads are needed. Most likely
+   not.
 */
 namespace option {
 
@@ -72,7 +74,9 @@ public:
 
     constexpr Storage(const Storage& o)
         : m_has_value(o.m_has_value) {
-        if (o.m_has_value) { new (&m_storage) T(reinterpret_cast<const T&>(o.m_storage)); }
+        if (o.m_has_value) {
+            new (&m_storage) T(reinterpret_cast<const T&>(o.m_storage));
+        }
     }
 
     constexpr Storage(Storage&& o)
@@ -95,7 +99,9 @@ public:
         new (&m_storage) T(std::forward<T>(v));
     }
 
-    constexpr auto get() const& -> const T& { return reinterpret_cast<const T&>(m_storage); }
+    constexpr auto get() const& -> const T& {
+        return reinterpret_cast<const T&>(m_storage);
+    }
 
     // constexpr auto has_value() const -> bool { return m_has_value; }
 
@@ -191,8 +197,9 @@ public:
 
     constexpr auto operator*() -> T& { return this->unwrap(); }
 
-    // constexpr auto operator->() const -> const T* { return &std::remove_reference_t<T>(this->unwrap()); }
-    // constexpr auto operator->() -> T* { return &std::remove_reference_t<T>(this->unwrap()); }
+    // constexpr auto operator->() const -> const T* { return
+    // &std::remove_reference_t<T>(this->unwrap()); } constexpr auto operator->() -> T* {
+    // return &std::remove_reference_t<T>(this->unwrap()); }
 
     template<typename U = T>
     constexpr auto and_(const Option<U>& o) const& -> Option<U> {

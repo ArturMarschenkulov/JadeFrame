@@ -9,7 +9,8 @@ namespace linux {
 
 auto load_glx_funcs(const Linux_Window* win) -> void {
     // glXGetProcAddress();
-    GLXContext render_context = glXCreateContext(win->m_display, win->m_visual_info, nullptr, GL_TRUE);
+    GLXContext render_context =
+        glXCreateContext(win->m_display, win->m_visual_info, nullptr, GL_TRUE);
     glXMakeCurrent(win->m_display, win->m_window, render_context);
 }
 

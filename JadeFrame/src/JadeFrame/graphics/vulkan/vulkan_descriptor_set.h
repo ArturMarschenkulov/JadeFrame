@@ -29,7 +29,12 @@ struct Descriptor {
     Descriptor(Descriptor&& other);
     auto operator=(Descriptor&& other) -> Descriptor&;
 
-    Descriptor(const Buffer& buffer, VkDeviceSize offset, VkDeviceSize range, VkDescriptorSetLayoutBinding binding);
+    Descriptor(
+        const Buffer&                buffer,
+        VkDeviceSize                 offset,
+        VkDeviceSize                 range,
+        VkDescriptorSetLayoutBinding binding
+    );
 
     union {
         VkDescriptorBufferInfo buffer_info;
@@ -50,10 +55,19 @@ public:
     DescriptorSet(DescriptorSet&& other);
     auto operator=(DescriptorSet&& other) -> DescriptorSet&;
 
-    DescriptorSet(const LogicalDevice& device, VkDescriptorSet handle, const DescriptorSetLayout& layout);
+    DescriptorSet(
+        const LogicalDevice&       device,
+        VkDescriptorSet            handle,
+        const DescriptorSetLayout& layout
+    );
 
     auto update() -> void;
-    auto bind_uniform_buffer(u32 binding, const Buffer& buffer, VkDeviceSize offset, VkDeviceSize range) -> void;
+    auto bind_uniform_buffer(
+        u32           binding,
+        const Buffer& buffer,
+        VkDeviceSize  offset,
+        VkDeviceSize  range
+    ) -> void;
     auto bind_combined_image_sampler(u32 binding, const Vulkan_Texture& texture) -> void;
     auto rebind_uniform_buffer(u32 binding, const Buffer& buffer) -> void;
 
@@ -84,12 +98,18 @@ public:
     auto operator=(DescriptorSetLayout&& other) -> DescriptorSetLayout&;
 
 public:
-    DescriptorSetLayout(const LogicalDevice& device, const std::vector<Binding>& bindings);
+    DescriptorSetLayout(
+        const LogicalDevice&        device,
+        const std::vector<Binding>& bindings
+    );
 
 private:
     auto add_binding(
-        u32 binding, VkDescriptorType descriptor_type, u32 descriptor_count, VkShaderStageFlags stage_flags,
-        const VkSampler* p_immutable_samplers = nullptr
+        u32                binding,
+        VkDescriptorType   descriptor_type,
+        u32                descriptor_count,
+        VkShaderStageFlags stage_flags,
+        const VkSampler*   p_immutable_samplers = nullptr
     ) -> void;
 
 public:
@@ -110,7 +130,11 @@ public:
     auto operator=(DescriptorPool&& other) -> DescriptorPool&;
 
 public:
-    DescriptorPool(const LogicalDevice& device, u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes);
+    DescriptorPool(
+        const LogicalDevice&               device,
+        u32                                max_sets,
+        std::vector<VkDescriptorPoolSize>& pool_sizes
+    );
 
 public:
     auto add_pool_size(const VkDescriptorPoolSize& pool_size) -> void;
