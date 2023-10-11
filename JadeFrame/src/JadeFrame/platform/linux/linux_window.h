@@ -6,7 +6,6 @@
 
 namespace JadeFrame {
 
-
 class Linux_Window : public IWindow {
 public:
     Linux_Window(const Linux_Window&) = delete;
@@ -19,12 +18,16 @@ public:
     ~Linux_Window();
 
     virtual auto handle_events(bool&) -> void override {}
-    virtual auto set_title(const std::string&) -> void override {}
-    virtual auto get_title() const -> std::string override { return {}; }
-    virtual auto get_window_state() const -> WINDOW_STATE override { return {}; }
-    virtual auto get_size() const -> const v2u32& override { return m_size; }
-    virtual auto get() const -> void* override { return nullptr; }
 
+    virtual auto set_title(const std::string&) -> void override {}
+
+    virtual auto get_title() const -> std::string override { return {}; }
+
+    virtual auto get_window_state() const -> WINDOW_STATE override { return {}; }
+
+    virtual auto get_size() const -> const v2u32& override { return m_size; }
+
+    virtual auto get() const -> void* override { return nullptr; }
 
 public:
     ::Display*     m_display;

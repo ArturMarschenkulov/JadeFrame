@@ -5,8 +5,7 @@
 #include "mat_4.h"
 #include "vec.h"
 
-//#define M_PI 3.14159265359f // 3.14159265358979323846
-
+// #define M_PI 3.14159265359f // 3.14159265358979323846
 
 namespace JadeFrame {
 auto to_radians(f32 degrees) -> f32;
@@ -19,38 +18,38 @@ auto is_power_of_two(T value) -> bool {
 
 } // namespace JadeFrame
 
-//#include <type_traits>
-//#include <limits>
-//#include <array>
-//#include <cmath>
-//#include <iostream>
+// #include <type_traits>
+// #include <limits>
+// #include <array>
+// #include <cmath>
+// #include <iostream>
 //
-// template<std::size_t... Is>
-// struct Seq {
-//};
+//  template<std::size_t... Is>
+//  struct Seq {
+// };
 //
-// template<std::size_t N, std::size_t... Is>
-// struct GenSeq : GenSeq<N - 1, N, Is...> {
-//};
+//  template<std::size_t N, std::size_t... Is>
+//  struct GenSeq : GenSeq<N - 1, N, Is...> {
+// };
 //
-// template<std::size_t... Is>
-// struct GenSeq<0, Is...> : Seq<Is...> {
-//};
+//  template<std::size_t... Is>
+//  struct GenSeq<0, Is...> : Seq<Is...> {
+// };
 //
-// namespace math {
-// template<typename T> constexpr T pi = 3.14159265358979323846264338327L;
-// template<typename T> constexpr T two_pi = 6.28318530717958647692528676656L;
-// template<typename T> constexpr T half_pi = pi<T> *0.5;
+//  namespace math {
+//  template<typename T> constexpr T pi = 3.14159265358979323846264338327L;
+//  template<typename T> constexpr T two_pi = 6.28318530717958647692528676656L;
+//  template<typename T> constexpr T half_pi = pi<T> *0.5;
 //
-// constexpr static f64 pi_v = pi<f64>;
-// constexpr static f64 two_pi_v = two_pi<f64>;
-// constexpr static f64 half_pi_v = half_pi<f64>;
+//  constexpr static f64 pi_v = pi<f64>;
+//  constexpr static f64 two_pi_v = two_pi<f64>;
+//  constexpr static f64 half_pi_v = half_pi<f64>;
 //
-// template<class T, class dcy = std::decay_t<T>>
-// constexpr inline auto inverse(T value) -> std::enable_if_t<std::is_floating_point<T>::value, dcy>
-// { 	return (value == 0) ? 0.0 : 1.0 / value;
-//}
-// constexpr inline auto factorial(std::intmax_t const& n) -> f64 {
+//  template<class T, class dcy = std::decay_t<T>>
+//  constexpr inline auto inverse(T value) -> std::enable_if_t<std::is_floating_point<T>::value, dcy>
+//  { 	return (value == 0) ? 0.0 : 1.0 / value;
+// }
+//  constexpr inline auto factorial(std::intmax_t const& n) -> f64 {
 //	if (n == 0) {
 //		return 1;
 //	}
@@ -59,18 +58,18 @@ auto is_power_of_two(T value) -> bool {
 //		result *= i;
 //	}
 //	return result;
-//}
-// constexpr inline auto max_factorial() -> std::size_t {
+// }
+//  constexpr inline auto max_factorial() -> std::size_t {
 //	std::size_t i = 0;
 //	f64 d = 0;
 //	while ((d = factorial(i)) < std::numeric_limits<f32>::max()) {
 //		++i;
 //	}
 //	return i;
-//}
+// }
 //
-// template<class Base, std::size_t N>
-// class TrigCeoffs {
+//  template<class Base, std::size_t N>
+//  class TrigCeoffs {
 //	using T = typename Base::ValueType;
 //	using ArrayType = std::array<T, N>;
 //
@@ -78,16 +77,16 @@ auto is_power_of_two(T value) -> bool {
 //	constexpr static inline auto _coeffs(Seq<NS ...>) -> ArrayType {
 //		return { {Base::coeff(NS) ...} };
 //	}
-// public:
+//  public:
 //	constexpr static ArrayType coeffs = _coeffs(GenSeq<N>{});
-//};
-// template<class Base, std::size_t N>
-// constexpr typename TrigCeoffs<Base, N>::ArrayType TrigCeoffs<Base, N>::coeffs;
+// };
+//  template<class Base, std::size_t N>
+//  constexpr typename TrigCeoffs<Base, N>::ArrayType TrigCeoffs<Base, N>::coeffs;
 //
 //
-// template<class Base, std::size_t N, class dcy = std::decay_t<typename Base::ValueType>>
-// constexpr auto _sincos(typename Base::ValueType x) noexcept ->
-// std::enable_if_t<std::is_floating_point<dcy>::value, dcy> { 	using C = TrigCeoffs<Base, N>;
+//  template<class Base, std::size_t N, class dcy = std::decay_t<typename Base::ValueType>>
+//  constexpr auto _sincos(typename Base::ValueType x) noexcept ->
+//  std::enable_if_t<std::is_floating_point<dcy>::value, dcy> { 	using C = TrigCeoffs<Base, N>;
 //
 //	if (std::isnan(x) && std::numeric_limits<dcy>::has_quiet_NaN) {
 //		return static_cast<dcy>(std::numeric_limits<dcy>::quiet_NaN());
@@ -108,10 +107,10 @@ auto is_power_of_two(T value) -> bool {
 //		}
 //		return result;
 //	}
-//}
-// namespace detail {
-// template<class T>
-// struct _Sin {
+// }
+//  namespace detail {
+//  template<class T>
+//  struct _Sin {
 //	using ValueType = T;
 //	constexpr static inline auto coeff(std::size_t n)noexcept -> T {
 //		return (n % 2 ? 1 : -1) * inverse(factorial((2 * n) - 1));
@@ -129,14 +128,14 @@ auto is_power_of_two(T value) -> bool {
 //	constexpr static inline auto default_N()noexcept -> std::size_t {
 //		return 16;
 //	}
-//};
-//}
-// template<class T, std::size_t N = detail::_Sin<T>::default_N()>
-// constexpr inline auto sin(T x)noexcept -> std::decay_t<T> {
+// };
+// }
+//  template<class T, std::size_t N = detail::_Sin<T>::default_N()>
+//  constexpr inline auto sin(T x)noexcept -> std::decay_t<T> {
 //	return _sincos<detail::_Sin<T>, N>(x);
-//}
+// }
 //
-//}
+// }
 //
 ////int main(int argc, char** argv) {
 ////	f64 phs = 0;

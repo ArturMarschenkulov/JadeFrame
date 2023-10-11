@@ -12,6 +12,7 @@ auto custom_simple_hash_0(const std::string& str) -> u32 {
     for (auto& it : str) { hash = 37 * hash + 17 * static_cast<char>(it); }
     return hash;
 }
+
 static bool is_srand = false;
 
 auto get_random_number(i32 begin, i32 end) -> i32 {
@@ -27,12 +28,14 @@ auto map_range(const f64 x, const f64 in_min, const f64 in_max, const f64 out_mi
 }
 
 auto from_kibibyte(u64 value) -> u64 { return value * 1024; }
+
 auto from_mebibyte(u64 value) -> u64 { return from_kibibyte(value) * 1024; }
+
 auto from_gibibyte(u64 value) -> u64 { return from_mebibyte(value) * 1024; }
+
 auto from_tebibyte(u64 value) -> u64 { return from_gibibyte(value) * 1024; }
 
 // Here I experiment with ideas
-
 
 namespace T1 {
 
@@ -43,20 +46,24 @@ auto init_memory(T& data) -> void {
 
     static_assert(
         /*std::is_pod<T>::value*/ std::is_standard_layout<T>() && std::is_trivial<T>(),
-        "'init_memory'does only allow plain-old-data (POD)");
+        "'init_memory'does only allow plain-old-data (POD)"
+    );
     ::memset(&data, 0, sizeof(T));
 }
 
 class RenderCommandQueue {
 public:
     typedef void (*RenderCommandFn)(void*);
+
     RenderCommandQueue() {
         const auto buffer_size = 10 * 1024 * 1024;
         m_command_buffer = new u8[buffer_size];
         m_command_buffer_ptr = m_command_buffer;
         std::memset(m_command_buffer, 0, buffer_size);
     }
+
     ~RenderCommandQueue() { delete[] m_command_buffer; }
+
     auto allocate(RenderCommandFn func, u32 size) {
         // TODO: alignment
         *(RenderCommandFn*)m_command_buffer_ptr = func;
@@ -71,6 +78,7 @@ public:
         m_command_count++;
         return memory;
     }
+
     auto execute() -> void {
 
         u8* buffer = m_command_buffer;
@@ -125,6 +133,7 @@ static auto take_ownership(std::set<std::unique_ptr<BaseType>>& object_set, std:
     object_set.emplace(std::forward<std::unique_ptr<SubType>>(object));
     return ref;
 }
+
 template<typename BaseType, typename SubType>
 static auto take_ownership(std::vector<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object)
     -> SubType* {
@@ -132,6 +141,7 @@ static auto take_ownership(std::vector<std::unique_ptr<BaseType>>& object_set, s
     object_set.emplace_back(std::forward<std::unique_ptr<SubType>>(object));
     return ref;
 }
+
 template<typename BaseType, typename SubType>
 static auto take_ownership(std::list<std::unique_ptr<BaseType>>& object_set, std::unique_ptr<SubType>&& object)
     -> SubType* {
@@ -147,6 +157,7 @@ public:
         m_left = left;
         m_is_left = true;
     }
+
     Either(const Right& right) {
         m_right = right;
         m_is_left = false;
@@ -158,6 +169,7 @@ public:
     // T {
     //
     // }
+
 private:
     // Left
     // m_left;
@@ -167,6 +179,7 @@ private:
         Left  m_left;
         Right m_right;
     };
+
     bool m_is_left;
 };
 
@@ -311,6 +324,7 @@ class UniquePointer {};
   // T1
 
 void* malloc(size_t size);
+
 template<typename T>
 auto jf_new() -> Option<T> {
     T* p = new T;
@@ -320,13 +334,16 @@ auto jf_new() -> Option<T> {
 class RenderCommandQueue {
 public:
     typedef void (*RenderCommandFn)(void*);
+
     RenderCommandQueue() {
         const auto buffer_size = 10 * 1024 * 1024;
         m_command_buffer = new u8[buffer_size];
         m_command_buffer_ptr = m_command_buffer;
         std::memset(m_command_buffer, 0, buffer_size);
     }
+
     ~RenderCommandQueue() { delete[] m_command_buffer; }
+
     auto allocate(RenderCommandFn func, u32 size) {
         // TODO: alignment
         *(RenderCommandFn*)m_command_buffer_ptr = func;
@@ -341,6 +358,7 @@ public:
         m_command_count++;
         return memory;
     }
+
     auto execute() -> void {
 
         u8* buffer = m_command_buffer;

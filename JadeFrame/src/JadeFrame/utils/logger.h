@@ -1,5 +1,5 @@
 #pragma once
-//#include <format>
+// #include <format>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -8,7 +8,6 @@
 #include "spdlog/fmt/ostr.h"
 #include "spdlog/sinks/base_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
-
 
 /*
 Little guide:
@@ -50,7 +49,6 @@ public:
     template<class... Types>
     static auto critical(fmt::format_string<Types...> text, Types&&... args) -> void;
 
-
     // template<class... Types>
     // static auto log(fmt::wformat_string<Types...> text, Types&&... args) -> void;
     // template<class... Types>
@@ -68,8 +66,6 @@ public:
     // static auto err(fmt::wformat_string<Types...> text, Types&&... args) -> void;
     // template<class... Types>
     // static auto critical(fmt::wformat_string<Types...> text, Types&&... args) -> void;
-
-
 
     static auto init() -> void;
     static auto deinit() -> void;
@@ -108,28 +104,31 @@ template<class... Types>
 auto Logger::trace(fmt::format_string<Types...> text, Types&&... args) -> void {
     Logger::log(LEVEL::TRACE, text, std::forward<Types>(args)...);
 }
+
 template<class... Types>
 auto Logger::debug(fmt::format_string<Types...> text, Types&&... args) -> void {
     Logger::log(LEVEL::DEBUG, text, std::forward<Types>(args)...);
 }
+
 template<class... Types>
 auto Logger::info(fmt::format_string<Types...> text, Types&&... args) -> void {
     Logger::log(LEVEL::INFO, text, std::forward<Types>(args)...);
 }
+
 template<class... Types>
 auto Logger::warn(fmt::format_string<Types...> text, Types&&... args) -> void {
     Logger::log(LEVEL::WARN, text, std::forward<Types>(args)...);
 }
+
 template<class... Types>
 auto Logger::err(fmt::format_string<Types...> text, Types&&... args) -> void {
     Logger::log(LEVEL::ERR, text, std::forward<Types>(args)...);
 }
+
 template<class... Types>
 auto Logger::critical(fmt::format_string<Types...> text, Types&&... args) -> void {
     Logger::log(LEVEL::CRITICAL, text, std::forward<Types>(args)...);
 }
-
-
 
 // // Wide char version
 

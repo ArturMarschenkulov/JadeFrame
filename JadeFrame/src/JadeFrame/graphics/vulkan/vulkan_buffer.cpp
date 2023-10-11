@@ -18,6 +18,7 @@ struct Memory {
         u32                  size;
         VkMemoryRequirements mem_reqs;
     };
+
     auto push_buffer(const LogicalDevice* device, VkBuffer buffer) -> void {
         m_device = device;
         VkMemoryRequirements mem_reqs;
@@ -31,20 +32,20 @@ struct Memory {
             alloc_info.pNext = nullptr;
             alloc_info.allocationSize = default_size <= mem_reqs.size ? mem_reqs.size : default_size;
             alloc_info.memoryTypeIndex = m_device->m_physical_device->find_memory_type(
-                mem_reqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                mem_reqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+            );
 
             VkDeviceMemory memory;
             vkAllocateMemory(m_device->m_handle, &alloc_info, Instance::allocator(), &memory);
             m_blocks.push_back(memory);
         }
     }
+
     const LogicalDevice*        m_device;
     std::vector<VkDeviceMemory> m_blocks;
 };
 
 static Memory g_memory;
-
-
 
 /*---------------------------
     Buffer
@@ -73,6 +74,7 @@ static auto does_use_staging_buffer(const Buffer::TYPE type) -> bool {
     }
     return result;
 }
+
 static auto get_usage(const Buffer::TYPE type) -> VkBufferUsageFlags {
     VkBufferUsageFlags result = {};
     switch (type) {
@@ -85,6 +87,7 @@ static auto get_usage(const Buffer::TYPE type) -> VkBufferUsageFlags {
     }
     return result;
 }
+
 static auto get_properties(const Buffer::TYPE type) -> VkMemoryPropertyFlags {
     VkMemoryPropertyFlags result = {};
     switch (type) {
@@ -113,6 +116,7 @@ Buffer::Buffer(Buffer&& other)
     other.m_memory = VK_NULL_HANDLE;
     other.m_device = nullptr;
 }
+
 auto Buffer::operator=(Buffer&& other) -> Buffer& {
     m_type = other.m_type;
     m_size = other.m_size;
@@ -163,6 +167,7 @@ Buffer::~Buffer() {
 }
 
 auto Buffer::write(const Matrix4x4& m, VkDeviceSize offset) -> void { this->write((void*)&m, offset, sizeof(m)); }
+
 auto Buffer::write(void* data, VkDeviceSize offset, VkDeviceSize size) -> void {
     VkResult result;
 
@@ -175,7 +180,7 @@ auto Buffer::write(void* data, VkDeviceSize offset, VkDeviceSize size) -> void {
 
 auto Buffer::resize(size_t size) -> void {
     assert(m_type == TYPE::UNIFORM);
-    if (size == m_size) return;
+    if (size == m_size) { return; }
 
     this->~Buffer();
     *this = Buffer(*m_device, m_type, nullptr, size);
@@ -183,7 +188,8 @@ auto Buffer::resize(size_t size) -> void {
 
 auto Buffer::create_buffer(
     VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
-    VkDeviceMemory& buffer_memory) -> void {
+    VkDeviceMemory& buffer_memory
+) -> void {
     VkResult result;
 
     const VkBufferCreateInfo buffer_info = {
@@ -249,12 +255,12 @@ auto Buffer::copy_buffer(const Buffer& src_buffer, const Buffer& dst_buffer, VkD
     m_device->m_graphics_queue.submit(submit_info, nullptr);
     m_device->m_graphics_queue.wait_idle();
 
-
     cmd_pool.free_buffer(cmd);
 }
 
 GPUMeshData::GPUMeshData(
-    const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat, bool interleaved) {
+    const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat, bool interleaved
+) {
 
     const std::vector<f32> flat_data = convert_into_data(vertex_data, interleaved);
 
@@ -271,6 +277,7 @@ GPUMeshData::GPUMeshData(
 }
 
 auto GPUMeshData::bind() const -> void {}
+
 auto GPUMeshData::set_layout(const VertexFormat& /*vertex_format*/) -> void {}
 
 /*---------------------------
@@ -289,6 +296,7 @@ Image::Image(Image&& other) noexcept
     other.m_source = SOURCE::REGULAR;
     other.m_size = {0, 0};
 }
+
 auto Image::operator=(Image&& other) noexcept -> Image& {
     if (this != &other) {
         m_handle = other.m_handle;
@@ -327,7 +335,8 @@ Image::Image(const LogicalDevice& device, const v2u32& size, VkFormat format, Vk
 
     VkResult result;
     result = vkGetPhysicalDeviceImageFormatProperties(
-        device.m_physical_device->m_handle, format, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, usage, 0, &props);
+        device.m_physical_device->m_handle, format, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, usage, 0, &props
+    );
 
     const VkImageCreateInfo image_info = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -352,7 +361,8 @@ Image::Image(const LogicalDevice& device, const v2u32& size, VkFormat format, Vk
     {
         Logger::info("Created image {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
         Logger::info(
-            "-w, h, d: {}, {}, {}", image_info.extent.width, image_info.extent.height, image_info.extent.depth);
+            "-w, h, d: {}, {}, {}", image_info.extent.width, image_info.extent.height, image_info.extent.depth
+        );
         Logger::info("-mip levels: {}", image_info.mipLevels);
         Logger::info("-array layers: {}", image_info.arrayLayers);
     }
@@ -365,7 +375,8 @@ Image::Image(const LogicalDevice& device, const v2u32& size, VkFormat format, Vk
         .pNext = nullptr,
         .allocationSize = mem_requirements.size,
         .memoryTypeIndex = device.m_physical_device->find_memory_type(
-            mem_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),
+            mem_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        ),
     };
 
     result = vkAllocateMemory(device.m_handle, &alloc_info, Instance::allocator(), &m_memory);
@@ -374,6 +385,7 @@ Image::Image(const LogicalDevice& device, const v2u32& size, VkFormat format, Vk
     result = vkBindImageMemory(device.m_handle, m_handle, m_memory, 0);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
+
 Image::Image(const LogicalDevice& device, VkImage image) {
     m_device = &device;
     m_handle = image;
@@ -392,6 +404,7 @@ ImageView::ImageView(ImageView&& other) noexcept
     other.m_device = nullptr;
     other.m_image = nullptr;
 }
+
 auto ImageView::operator=(ImageView&& other) noexcept -> ImageView& {
     if (this != &other) {
         m_handle = other.m_handle;
@@ -430,8 +443,9 @@ ImageView::ImageView(const LogicalDevice& device, const Image& image, VkFormat f
     };
 
     result = vkCreateImageView(device.m_handle, &create_info, Instance::allocator(), &m_handle);
-    if (result != VK_SUCCESS) assert(false);
+    if (result != VK_SUCCESS) { assert(false); }
 }
+
 ImageView::~ImageView() {
     if (m_handle != VK_NULL_HANDLE) { vkDestroyImageView(m_device->m_handle, m_handle, Instance::allocator()); }
 }
@@ -465,7 +479,7 @@ auto Sampler::init(const LogicalDevice& device) -> void {
         .unnormalizedCoordinates = VK_FALSE,
     };
     result = vkCreateSampler(device.m_handle, &samplerInfo, Instance::allocator(), &m_handle);
-    if (result != VK_SUCCESS) assert(false);
+    if (result != VK_SUCCESS) { assert(false); }
 }
 
 auto Sampler::deinit() -> void {}
@@ -494,13 +508,17 @@ Vulkan_Texture::Vulkan_Texture(const LogicalDevice& device, void* data, v2u32 si
     this->transition_layout(m_image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     this->copy_buffer_to_image(staging_buffer, m_image, size);
     this->transition_layout(
-        m_image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        m_image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+    );
 
     m_sampler.init(device);
 }
+
 auto Vulkan_Texture::deinit() -> void {}
+
 auto Vulkan_Texture::transition_layout(
-    const Image& image, VkFormat /*format*/, VkImageLayout old_layout, VkImageLayout new_layout) -> void {
+    const Image& image, VkFormat /*format*/, VkImageLayout old_layout, VkImageLayout new_layout
+) -> void {
     const LogicalDevice& d = *m_device;
 
     auto cb = d.m_command_pool.allocate_buffer();
@@ -532,9 +550,7 @@ auto Vulkan_Texture::transition_layout(
 
             source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
             destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        } else if (
-            old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
-            new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+        } else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
             barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
             barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
@@ -558,6 +574,7 @@ auto Vulkan_Texture::transition_layout(
 
     d.m_command_pool.free_buffer(cb);
 }
+
 auto Vulkan_Texture::copy_buffer_to_image(const Buffer& buffer, const Image& image, v2u32 size) -> void {
     const LogicalDevice& d = *m_device;
 
@@ -574,7 +591,8 @@ auto Vulkan_Texture::copy_buffer_to_image(const Buffer& buffer, const Image& ima
         };
 
         vkCmdCopyBufferToImage(
-            cb.m_handle, buffer.m_handle, image.m_handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+            cb.m_handle, buffer.m_handle, image.m_handle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region
+        );
     });
     // cb[0].record_end();
 

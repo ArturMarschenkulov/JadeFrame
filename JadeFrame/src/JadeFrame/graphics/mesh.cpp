@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "mesh.h"
+
 namespace JadeFrame {
 
 // Mesh::Mesh(const VertexData& vertex_data) {
@@ -157,7 +158,6 @@ auto VertexData::make_circle(const v3& position, const f32 radius, const u32 num
     const f32 cos = cosf(theta);                            // calculate the x component
     const f32 sin = sinf(theta);                            // calculate the y component
 
-
     VertexData vertex_data;
     vertex_data.m_positions.resize(numSegments + 1);
     vertex_data.m_positions[0] = position;
@@ -237,8 +237,6 @@ auto VertexData::make_cube(const v3& pos, const v3& size) -> VertexData {
     vertex_data.m_positions[34] = {pos.x, pos.y + size.y, pos.z};
     vertex_data.m_positions[35] = {pos.x, pos.y + size.y, pos.z + size.z};
 
-
-
     vertex_data.m_texture_coordinates.resize(36);
     {
         // back face -z
@@ -289,7 +287,6 @@ auto VertexData::make_cube(const v3& pos, const v3& size) -> VertexData {
         vertex_data.m_texture_coordinates[34] = {+0.0f, +1.0f};
         vertex_data.m_texture_coordinates[35] = {+0.0f, +1.0f};
     }
-
 
     vertex_data.m_normals.resize(36);
     for (size_t i = 0; i < vertex_data.m_normals.size(); i++) {

@@ -75,5 +75,4 @@ using m2 = m2x2;
 using m3 = m3x3;
 using m4 = m4x4;
 
-
 } // namespace JadeFrame

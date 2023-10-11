@@ -25,6 +25,7 @@ public:
     auto get_view_projection() const -> Matrix4x4;
 
     // private:
+
 public:
     MODE      m_mode;
     Matrix4x4 m_projection_matrix = Matrix4x4::zero();
@@ -68,13 +69,16 @@ class Camera0 {
         m_near = t_near;
         m_far = t_far;
     }
+
     auto set_orthographic(
-        const f32 left, const f32 right, const f32 top, const f32 bottom, const f32 t_near, const f32 t_far) -> void {
+        const f32 left, const f32 right, const f32 top, const f32 bottom, const f32 t_near, const f32 t_far
+    ) -> void {
         m_is_perspective = false;
         m_projection = Matrix4x4::orthogonal_projection(left, right, top, bottom, t_near, t_far);
         m_near = t_near;
         m_far = t_far;
     }
+
     auto update_view() -> void { m_view = Matrix4x4::look_at(m_position, m_position + m_forward, m_up); }
 };
 

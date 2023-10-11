@@ -11,8 +11,6 @@
 
 namespace JadeFrame {
 
-
-
 // enum class VULKAN_BUFFER_TYPE {
 //	UNINIT, // TODO: find ways to remove it
 //	VERTEX,
@@ -23,6 +21,7 @@ namespace JadeFrame {
 namespace vulkan {
 class LogicalDevice;
 class PhysicalDevice;
+
 class Buffer {
 public:
     enum TYPE {
@@ -32,6 +31,7 @@ public:
         UNIFORM,
         STAGING
     };
+
     Buffer() = default;
     ~Buffer();
     Buffer(const Buffer&) = delete;
@@ -48,7 +48,8 @@ public:
 private:
     auto create_buffer(
         VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
-        VkDeviceMemory& buffer_memory) -> void;
+        VkDeviceMemory& buffer_memory
+    ) -> void;
     auto copy_buffer(const Buffer& src_buffer, const Buffer& dst_buffer, VkDeviceSize size) -> void;
 
 public:
@@ -62,7 +63,6 @@ public:
     const LogicalDevice* m_device = nullptr;
 };
 
-
 class GPUMeshData {
 public:
     GPUMeshData() = default;
@@ -74,7 +74,8 @@ public:
 
     GPUMeshData(
         const LogicalDevice& device, const VertexData& vertex_data, const VertexFormat vertex_format,
-        bool interleaved = true);
+        bool interleaved = true
+    );
 
     auto bind() const -> void;
     auto set_layout(const VertexFormat& vertex_format) -> void;
@@ -128,7 +129,6 @@ public:
     const Image*         m_image = nullptr;
 };
 
-
 class Sampler {
 public:
     Sampler() = default;
@@ -145,6 +145,7 @@ public:
     VkSampler            m_handle;
     const LogicalDevice* m_device;
 };
+
 class Vulkan_Texture {
 public:
     Vulkan_Texture() = default;

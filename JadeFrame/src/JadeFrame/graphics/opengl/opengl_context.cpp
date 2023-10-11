@@ -2,16 +2,15 @@
 #include "opengl_context.h"
 #include "opengl_debug.h"
 #if defined(_WIN32)
-#include "platform/win32/win32.h"
+    #include "platform/win32/win32.h"
 #elif defined(__linux__)
-#include "platform/linux/linux.h"
+    #include "platform/linux/linux.h"
 #endif
 
 namespace JadeFrame {
 
-
-
 auto OpenGL_Context::create_texture() -> opengl::Texture* { return new opengl::Texture(*this); }
+
 auto OpenGL_Context::create_texture(void* data, v2u32 size, u32 component_num) -> opengl::Texture* {
     return new opengl::Texture(*this, data, size, component_num);
 }
@@ -22,21 +21,21 @@ auto OpenGL_Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 si
     id++;
     return &m_bufferss[id - 1];
 }
+
 auto OpenGL_Context::create_framebuffer() -> opengl::Framebuffer* {
     opengl::Framebuffer* buffer = new opengl::Framebuffer(*this);
     return buffer;
 }
+
 auto OpenGL_Context::create_renderbuffer() -> opengl::Renderbuffer* {
     opengl::Renderbuffer* buffer = new opengl::Renderbuffer();
     return buffer;
 }
 
-
 OpenGL_Context::OpenGL_Context(const IWindow* window)
 #ifdef WIN32
 {
     auto* win = static_cast<const JadeFrame::win32::Window*>(window);
-
 
     // NOTE: This function might have to be moved, as in theory one could have multiple contexts.
     // NOTE: Think about removing the parameter from this function then just using the global instance handle.
@@ -51,14 +50,14 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
 #elif __linux__
 {
 
-//TODO: This is weird. Somehwere the macro `linux` got defined.
-#undef linux
-#if !defined(linux)
+    // TODO: This is weird. Somehwere the macro `linux` got defined.
+    #undef linux
+    #if !defined(linux)
     auto* win = static_cast<const JadeFrame::Linux_Window*>(window);
     opengl::linux::load_glx_funcs(win);
     opengl::linux::load_opengl_funcs();
     m_window = &win->m_window;
-#endif
+    #endif
     // : m_device_context(opengl::linux::init_device_context(window.m_window_handle)) {
     // auto m_render_context = opengl::linux::init_render_context(m_device_context);
 #else
@@ -82,7 +81,6 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
     Logger::info("OpenGL Shading Language Version: {}", shading_language_version);
     Logger::info("OpenGL Version: {}.{}", major_version, minor_version);
 
-
     // gather extentions
     glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
     for (i32 i = 0; i < num_extensions; i++) {
@@ -98,8 +96,6 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
 
     // opengl::win32::swap_interval(0); //TODO: This is windows specific. Abstract this away
 
-
-
     const v2u32& size = window->get_size();
     m_state.set_viewport(0, 0, size.x, size.y);
 
@@ -110,7 +106,6 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
 
 OpenGL_Context::~OpenGL_Context() {}
 
-
 auto OpenGL_Context::swap_buffers() -> void {
 #ifdef _WIN32
     ::SwapBuffers(m_device_context); // TODO: This is Windows specific. Abstract his away!
@@ -118,7 +113,6 @@ auto OpenGL_Context::swap_buffers() -> void {
     glXSwapBuffers(m_display, *m_window);
 #endif
 }
-
 
 auto GL_State::set_default() -> void {
     this->set_clear_color({0.2f, 0.2f, 0.2f, 1.0f});
@@ -177,6 +171,7 @@ auto GL_State::set_face_culling(bool enable, GLenum mode) -> void {
         }
     }
 }
+
 auto GL_State::set_viewport(u32 x, u32 y, u32 width, u32 height) -> void {
     viewport[0] = {x, y};
     viewport[1] = {width, height};

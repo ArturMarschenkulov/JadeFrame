@@ -19,7 +19,6 @@ class DescriptorSetLayout;
 
 class RenderPass;
 
-
 class Pipeline {
 public:
     Pipeline() = default;
@@ -31,8 +30,9 @@ public:
 
 public:
     Pipeline(
-        const LogicalDevice& device, const VkExtent2D& extend, const RenderPass& render_pass, const ShadingCode& code,
-        const VertexFormat& vertex_format);
+        const LogicalDevice& device, const VkExtent2D& extend, const RenderPass& render_pass,
+        const ShadingCode& code, const VertexFormat& vertex_format
+    );
 
 public:
     struct PushConstantRange {
@@ -40,6 +40,7 @@ public:
         u32                   offset = 0;
         u32                   size = 0;
     };
+
     class PipelineLayout {
     public:
         PipelineLayout() = default;
@@ -52,16 +53,17 @@ public:
         PipelineLayout(
             const LogicalDevice&                                                    device,
             const std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)>& set_layouts,
-            const std::vector<PushConstantRange>&                                   push_constant_ranges);
+            const std::vector<PushConstantRange>& push_constant_ranges
+        );
 
         VkPipelineLayout     m_handle = VK_NULL_HANDLE;
         const LogicalDevice* m_device = nullptr;
     };
+
     VkPipeline           m_handle;
     PipelineLayout       m_layout;
     const LogicalDevice* m_device = nullptr;
     const RenderPass*    m_render_pass = nullptr;
-
 
     std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)> m_set_layouts;
     ShadingCode                                                      m_code;
@@ -73,7 +75,6 @@ public:
     std::vector<PushConstantRange> m_push_constant_ranges;
     ReflectedCode                  m_reflected_code;
 };
-
 
 } // namespace vulkan
 } // namespace JadeFrame

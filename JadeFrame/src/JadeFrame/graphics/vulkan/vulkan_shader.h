@@ -10,9 +10,11 @@ class LogicalDevice;
 class Buffer;
 } // namespace vulkan
 class Vulkan_Renderer;
+
 class Vulkan_Shader : public IShader {
     // private:
     //	Vulkan_Shader(const vulkan::LogicalDevice& device, const GLSLCode& code);
+
 public:
     Vulkan_Shader() = default;
     ~Vulkan_Shader() = default;

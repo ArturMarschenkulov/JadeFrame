@@ -3,7 +3,6 @@
 #include "vulkan_logical_device.h"
 #include "JadeFrame/utils/option.h"
 
-
 #include "JadeFrame/prelude.h"
 
 #include <optional>
@@ -11,18 +10,20 @@
 
 namespace JadeFrame {
 
-
 namespace vulkan {
 class Instance;
 class Surface;
 
 using QueueFamilyIndex = u32;
+
 class QueueFamilyIndices {
 public:
     std::optional<QueueFamilyIndex> m_graphics_family;
     std::optional<QueueFamilyIndex> m_present_family;
+
     auto is_complete() const -> bool { return m_graphics_family.has_value() && m_present_family.has_value(); }
 };
+
 class QueueFamily {
 public:
     QueueFamilyIndex        m_index;
@@ -33,6 +34,7 @@ public:
 
 class PhysicalDevice {
 private:
+
 public:
     auto init(Instance& instance, const Surface& surface) -> void;
     auto check_extension_support(const std::vector<const char*>& extensions) -> bool;
@@ -51,7 +53,6 @@ public:
     auto query_extension_properties() -> std::vector<VkExtensionProperties>;
 
     auto query_limits() const -> VkPhysicalDeviceLimits;
-
 
     auto create_logical_device() -> LogicalDevice;
 

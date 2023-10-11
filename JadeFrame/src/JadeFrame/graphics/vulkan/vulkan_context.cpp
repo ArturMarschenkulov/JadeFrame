@@ -1,30 +1,27 @@
 #include "pch.h"
 
 #ifdef WIN32
-#define VK_USE_PLATFORM_WIN32_KHR
+    #define VK_USE_PLATFORM_WIN32_KHR
 #elif __linux__
-#define VK_USE_PLATFORM_XLIB_KHR
+    #define VK_USE_PLATFORM_XLIB_KHR
 #endif
 #include "vulkan_context.h"
 #include "vulkan_shared.h"
 #include "vulkan_physical_device.h"
 #include "vulkan_debug.h"
 #if defined(_WIN32)
-#include "JadeFrame/platform/windows/windows_window.h"
+    #include "JadeFrame/platform/windows/windows_window.h"
 #elif defined(__linux__)
-#include "JadeFrame/platform/linux/linux_window.h"
+    #include "JadeFrame/platform/linux/linux_window.h"
 #endif
 
-
 #include "JadeFrame/prelude.h"
-
 
 #include <set>
 #include <JadeFrame/base_app.h>
 #include "JadeFrame/utils/assert.h"
 
 namespace JadeFrame {
-
 
 // static auto get_required_instance_extensions(u32* count) -> const char* {
 //     const char* extensions[2];
@@ -39,6 +36,7 @@ struct VulkanVersion {
     u32 minor;
     u32 patch;
 };
+
 static auto vulkan_get_api_version(u32 version) -> VulkanVersion {
     VulkanVersion result;
     result.variant = VK_API_VERSION_VARIANT(version);
@@ -47,6 +45,7 @@ static auto vulkan_get_api_version(u32 version) -> VulkanVersion {
     result.patch = VK_API_VERSION_PATCH(version);
     return result;
 }
+
 static auto vulkan_get_device_type_string(const VkPhysicalDeviceType& device_type) -> const char* {
     const char* result = "";
     switch (device_type) {
@@ -65,6 +64,7 @@ static auto vulkan_get_device_type_string(const VkPhysicalDeviceType& device_typ
 
 namespace vulkan {
 auto Instance::allocator() -> VkAllocationCallbacks* { return Instance::default_allocator(); }
+
 auto Instance::default_allocator() -> VkAllocationCallbacks* { return nullptr; }
 
 auto Instance::check_validation_layer_support(const std::vector<VkLayerProperties>& layers) -> bool {
@@ -120,12 +120,12 @@ auto Instance::query_extensions() -> std::vector<VkExtensionProperties> {
 
     u32 extension_count = 0;
     result = vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
-    if (result != VK_SUCCESS) assert(false);
+    if (result != VK_SUCCESS) { assert(false); }
 
     std::vector<VkExtensionProperties> extensions;
     extensions.resize(extension_count);
     vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data());
-    if (result != VK_SUCCESS) assert(false);
+    if (result != VK_SUCCESS) { assert(false); }
 
     return extensions;
 }
@@ -133,12 +133,11 @@ auto Instance::query_extensions() -> std::vector<VkExtensionProperties> {
 auto Instance::query_physical_devices() -> std::vector<vulkan::PhysicalDevice> {
     u32 device_count = 0;
     vkEnumeratePhysicalDevices(m_instance, &device_count, nullptr);
-    if (device_count == 0) assert(false);
+    if (device_count == 0) { assert(false); }
 
     std::vector<VkPhysicalDevice> phys_devices;
     phys_devices.resize(device_count);
     vkEnumeratePhysicalDevices(m_instance, &device_count, phys_devices.data());
-
 
     std::vector<vulkan::PhysicalDevice> physical_devices;
     physical_devices.resize(device_count);
@@ -148,12 +147,12 @@ auto Instance::query_physical_devices() -> std::vector<vulkan::PhysicalDevice> {
 
 auto Instance::setup_debug() -> void {
     VkResult result;
-    if (!m_enable_validation_layers) return;
+    if (!m_enable_validation_layers) { return; }
     VkDebugUtilsMessengerCreateInfoEXT create_info;
     vulkan::populate_debug_messenger_create_info(create_info);
 
     result = vkCreateDebugUtilsMessengerEXT_(m_instance, &create_info, Instance::allocator(), &m_debug_messenger);
-    if (result != VK_SUCCESS) assert(false);
+    if (result != VK_SUCCESS) { assert(false); }
 }
 
 auto Instance::init(const IWindow* window_handle) -> void {
@@ -214,7 +213,6 @@ auto Instance::init(const IWindow* window_handle) -> void {
         .ppEnabledExtensionNames = extension_names.data(),
     };
 
-
     if (m_enable_validation_layers) {
         create_info.enabledLayerCount = static_cast<u32>(m_desired_layer_names.size());
         create_info.ppEnabledLayerNames = m_desired_layer_names.data();
@@ -228,7 +226,7 @@ auto Instance::init(const IWindow* window_handle) -> void {
     }
 
     result = vkCreateInstance(&create_info, Instance::allocator(), &m_instance);
-    if (result != VK_SUCCESS) assert(false);
+    if (result != VK_SUCCESS) { assert(false); }
 
     { Logger::info("Created Vulkan Instance {} at {}", fmt::ptr(this), fmt::ptr(m_instance)); }
     if (m_enable_validation_layers) {
@@ -236,10 +234,9 @@ auto Instance::init(const IWindow* window_handle) -> void {
         vulkan::populate_debug_messenger_create_info(info);
 
         result = vkCreateDebugUtilsMessengerEXT_(m_instance, &info, Instance::allocator(), &m_debug_messenger);
-        if (result != VK_SUCCESS) assert(false);
+        if (result != VK_SUCCESS) { assert(false); }
     }
     m_surface = this->create_surface(window_handle);
-
 
     Logger::debug("Querying Physical Devices");
     Logger::debug("There are {} physical devices", m_physical_devices.size());
@@ -279,8 +276,5 @@ Vulkan_Context::~Vulkan_Context() {
     m_instance.m_logical_device.deinit();
     m_instance.deinit();
 }
-
-
-
 
 } // namespace JadeFrame

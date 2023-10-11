@@ -13,14 +13,11 @@
 
 #include "JadeFrame/utils/assert.h"
 
-
 #include <array>
 #include <span>
 
-
 namespace JadeFrame {
 namespace vulkan {
-
 
 static auto from_SHADER_STAGE(SHADER_STAGE stage) -> VkShaderStageFlagBits {
     VkShaderStageFlagBits result = {};
@@ -38,7 +35,8 @@ static auto from_SHADER_STAGE(SHADER_STAGE stage) -> VkShaderStageFlagBits {
 
 static auto check_compatiblity(
     const std::vector<ReflectedCode::Module>& modules, const VkVertexInputBindingDescription& input_bindings,
-    const std::vector<VkVertexInputAttributeDescription>& input_attributes) -> bool {
+    const std::vector<VkVertexInputAttributeDescription>& input_attributes
+) -> bool {
     bool compatible = true;
 
     const ReflectedCode::Module* vertex_module = nullptr;
@@ -67,7 +65,8 @@ static auto check_compatiblity(
             Logger::err(
                 "Vertex input attributes count mismatch. `input_attributes.size()`: {} vs "
                 "`vertex_module->m_inputs.size()`: {}",
-                s0, s1);
+                s0, s1
+            );
             assert(false);
         }
 
@@ -99,9 +98,11 @@ public:
     std::vector<u32>     m_spirv;
     ReflectedModule      m_reflected;
 };
+
 ShaderModule::~ShaderModule() {
     if (m_handle != VK_NULL_HANDLE) { vkDestroyShaderModule(m_device->m_handle, m_handle, Instance::allocator()); }
 }
+
 ShaderModule::ShaderModule(ShaderModule&& other) noexcept
     : m_device(other.m_device)
     , m_handle(other.m_handle)
@@ -110,6 +111,7 @@ ShaderModule::ShaderModule(ShaderModule&& other) noexcept
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = VK_NULL_HANDLE;
 }
+
 auto ShaderModule::operator=(ShaderModule&& other) noexcept -> ShaderModule& {
     if (this != &other) {
         m_device = other.m_device;
@@ -121,6 +123,7 @@ auto ShaderModule::operator=(ShaderModule&& other) noexcept -> ShaderModule& {
     }
     return *this;
 }
+
 ShaderModule::ShaderModule(const LogicalDevice& device, const std::vector<u32>& spirv, SHADER_STAGE stage)
     : m_device(&device)
     , m_stage(stage)
@@ -198,16 +201,13 @@ static auto extract_descriptor_set_layouts(const std::span<ShaderModule>& module
     return set_layouts;
 }
 
-
-
 /*--------------------
     Pipeline Layout
 ----------------------*/
 
-
 static auto layout_create_info(
-    const std::span<const VkDescriptorSetLayout>& layouts, const std::span<VkPushConstantRange>& push_constants)
-    -> VkPipelineLayoutCreateInfo {
+    const std::span<const VkDescriptorSetLayout>& layouts, const std::span<VkPushConstantRange>& push_constants
+) -> VkPipelineLayoutCreateInfo {
 
     const VkPipelineLayoutCreateInfo layout_info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
@@ -220,7 +220,6 @@ static auto layout_create_info(
     return layout_info;
 }
 
-
 Pipeline::PipelineLayout::~PipelineLayout() {
     if (m_handle != VK_NULL_HANDLE) { vkDestroyPipelineLayout(m_device->m_handle, m_handle, Instance::allocator()); }
 }
@@ -231,6 +230,7 @@ Pipeline::PipelineLayout::PipelineLayout(PipelineLayout&& other) noexcept {
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = nullptr;
 }
+
 auto Pipeline::PipelineLayout::operator=(PipelineLayout&& other) noexcept -> PipelineLayout& {
     if (this != &other) {
         m_handle = other.m_handle;
@@ -243,10 +243,10 @@ auto Pipeline::PipelineLayout::operator=(PipelineLayout&& other) noexcept -> Pip
 
 Pipeline::PipelineLayout::PipelineLayout(
     const LogicalDevice& device, const std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)>& set_layouts,
-    const std::vector<Pipeline::PushConstantRange>& push_constant_ranges) {
+    const std::vector<Pipeline::PushConstantRange>& push_constant_ranges
+) {
 
     m_device = &device;
-
 
     std::vector<VkPushConstantRange> push_constants;
     push_constants.resize(push_constant_ranges.size());
@@ -264,7 +264,7 @@ Pipeline::PipelineLayout::PipelineLayout(
 
     const VkPipelineLayoutCreateInfo pipeline_layout_info = layout_create_info(set_layout_handles, push_constants);
     VkResult result = vkCreatePipelineLayout(device.m_handle, &pipeline_layout_info, Instance::allocator(), &m_handle);
-    if (result != VK_SUCCESS) assert(false);
+    if (result != VK_SUCCESS) { assert(false); }
 
 #if 0
     // Logging the pipeline layout
@@ -336,8 +336,8 @@ static auto viewport_state_create_info(const VkViewport& viewport, const VkRect2
 }
 
 static auto vertex_input_state_create_info(
-    VkVertexInputBindingDescription bindings, const std::span<VkVertexInputAttributeDescription> attributes)
-    -> VkPipelineVertexInputStateCreateInfo {
+    VkVertexInputBindingDescription bindings, const std::span<VkVertexInputAttributeDescription> attributes
+) -> VkPipelineVertexInputStateCreateInfo {
 
     const VkPipelineVertexInputStateCreateInfo vertex_input_info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -458,6 +458,7 @@ Pipeline::Pipeline(Pipeline&& other) noexcept
     other.m_push_constant_ranges.clear();
     other.m_reflected_code = {};
 }
+
 auto Pipeline::operator=(Pipeline&& other) noexcept -> Pipeline& {
     if (this != &other) {
         m_handle = other.m_handle;
@@ -489,7 +490,8 @@ Pipeline::~Pipeline() {
 
 Pipeline::Pipeline(
     const LogicalDevice& device, const VkExtent2D& extent, const RenderPass& render_pass, const ShadingCode& code,
-    const VertexFormat& vertex_format) {
+    const VertexFormat& vertex_format
+) {
     m_device = &device;
     m_render_pass = &render_pass;
 
@@ -520,7 +522,6 @@ Pipeline::Pipeline(
     // JF_ASSERT(compatible == true, "The vertex format is not compatible with the vertex shader");
 
     m_layout = PipelineLayout(device, m_set_layouts, m_push_constant_ranges);
-
 
     std::vector<VkPipelineShaderStageCreateInfo> shader_stages;
     shader_stages.resize(m_code.m_modules.size());
@@ -581,7 +582,7 @@ Pipeline::Pipeline(
 
     VkResult result =
         vkCreateGraphicsPipelines(device.m_handle, VK_NULL_HANDLE, 1, &pipeline_info, Instance::allocator(), &m_handle);
-    if (result != VK_SUCCESS) assert(false);
+    if (result != VK_SUCCESS) { assert(false); }
     // Logger part
     {
         Logger::info("Created graphics pipeline {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
@@ -593,7 +594,6 @@ Pipeline::Pipeline(
 
     m_device = &device;
 }
-
 
 } // namespace vulkan
 } // namespace JadeFrame

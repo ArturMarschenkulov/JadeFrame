@@ -13,7 +13,6 @@
 
 namespace JadeFrame {
 
-
 namespace vulkan {
 static auto to_format_string_queue_family(const QueueFamily& queue_family) -> std::string {
     std::string result = "{ ";
@@ -27,9 +26,6 @@ static auto to_format_string_queue_family(const QueueFamily& queue_family) -> st
     return result;
 }
 
-
-
-
 auto to_string(uint8_t pipeline_cache_UUID[16]) -> std::string {
     std::string result;
     for (auto i = 0; i < 16; ++i) {
@@ -38,6 +34,7 @@ auto to_string(uint8_t pipeline_cache_UUID[16]) -> std::string {
     }
     return result;
 }
+
 auto to_string_vendor_id(uint32_t vendor_id) -> std::string {
     switch (vendor_id) {
         case 0x1002: return "AMD";
@@ -70,7 +67,8 @@ static auto query_surface_support(const PhysicalDevice& physical_device, u32 que
     -> bool {
     VkBool32 present_support = false;
     vkGetPhysicalDeviceSurfaceSupportKHR(
-        physical_device.m_handle, queue_family_index, surface.m_handle, &present_support);
+        physical_device.m_handle, queue_family_index, surface.m_handle, &present_support
+    );
     return present_support;
 }
 
@@ -84,11 +82,11 @@ auto PhysicalDevice::query_surface_formats(const Surface& surface) const -> std:
     u32      count = 0;
     VkResult result;
     result = vkGetPhysicalDeviceSurfaceFormatsKHR(m_handle, surface.m_handle, &count, nullptr);
-    if (VK_SUCCESS != result || (count == 0)) assert(false);
+    if (VK_SUCCESS != result || (count == 0)) { assert(false); }
 
     std::vector<VkSurfaceFormatKHR> formats(count);
     result = vkGetPhysicalDeviceSurfaceFormatsKHR(m_handle, surface.m_handle, &count, formats.data());
-    if (VK_SUCCESS != result) assert(false);
+    if (VK_SUCCESS != result) { assert(false); }
     return formats;
 }
 
@@ -96,11 +94,11 @@ auto PhysicalDevice::query_surface_present_modes(const Surface& surface) const -
     u32      count = 0;
     VkResult result;
     result = vkGetPhysicalDeviceSurfacePresentModesKHR(m_handle, surface.m_handle, &count, nullptr);
-    if (VK_SUCCESS != result || (count == 0)) assert(false);
+    if (VK_SUCCESS != result || (count == 0)) { assert(false); }
 
     std::vector<VkPresentModeKHR> present_modes(count);
     result = vkGetPhysicalDeviceSurfacePresentModesKHR(m_handle, surface.m_handle, &count, present_modes.data());
-    if (VK_SUCCESS != result) assert(false);
+    if (VK_SUCCESS != result) { assert(false); }
     return present_modes;
 }
 
@@ -131,7 +129,7 @@ auto PhysicalDevice::query_extension_properties() -> std::vector<VkExtensionProp
     result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, nullptr);
     extension_properties.resize(count);
     result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, extension_properties.data());
-    if (VK_SUCCESS != result) assert(false);
+    if (VK_SUCCESS != result) { assert(false); }
     return extension_properties;
 }
 
@@ -167,7 +165,8 @@ auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
         Logger::info("\tDriver Version: {}", m_properties.driverVersion);
         Logger::info(
             "\tVulkan Api Version: {}.{}.{}", VK_VERSION_MAJOR(m_properties.apiVersion),
-            VK_VERSION_MINOR(m_properties.apiVersion), VK_VERSION_PATCH(m_properties.apiVersion));
+            VK_VERSION_MINOR(m_properties.apiVersion), VK_VERSION_PATCH(m_properties.apiVersion)
+        );
         Logger::info("\tPipeline Cache UUID: {}", to_string(m_properties.pipelineCacheUUID));
         Logger::info("\t{} memory types from {}:", m_memory_properties.memoryTypeCount, VK_MAX_MEMORY_TYPES);
         for (u32 i = 0; i < m_memory_properties.memoryTypeCount; ++i) {
@@ -183,7 +182,8 @@ auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
             QueueFamily& queue_family = m_queue_families[i];
             Logger::debug(
                 "Queue family {} has {} queues capable of {}", i, queue_family.m_properties.queueCount,
-                to_format_string_queue_family(queue_family));
+                to_format_string_queue_family(queue_family)
+            );
         }
     }
 }

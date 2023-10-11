@@ -2,9 +2,9 @@
 
 #include "vulkan_renderer.h"
 #if defined(_WIN32)
-#include "JadeFrame/platform/windows/windows_window.h"
+    #include "JadeFrame/platform/windows/windows_window.h"
 #elif defined(__linux__)
-#include "JadeFrame/platform/linux/linux_window.h"
+    #include "JadeFrame/platform/linux/linux_window.h"
 #endif
 
 #include "vulkan_shader.h"
@@ -13,7 +13,6 @@
 #include "JadeFrame/utils/logger.h"
 
 namespace JadeFrame {
-
 
 static const i32 MAX_FRAMES_IN_FLIGHT = 1;
 
@@ -46,9 +45,8 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
     m_frames.resize(MAX_FRAMES_IN_FLIGHT);
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) { m_frames[i].init(m_logical_device); }
 }
+
 auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void { m_clear_color = color; }
-
-
 
 auto Vulkan_Renderer::clear_background() -> void {}
 
@@ -63,7 +61,6 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
     };
     m_render_commands.push_back(command);
 }
-
 
 static auto get_aligned_block_size(const u64 block_size, const u64 alignment) -> u64 {
 #if 0 // more efficient
@@ -82,15 +79,14 @@ auto Vulkan_Renderer::recreate_swapchain() -> void {
 
     m_swapchain.init(*m_logical_device, m_logical_device->m_instance->m_surface);
 }
-auto Vulkan_Renderer::cleanup_swapchain() -> void { m_swapchain.deinit(); }
 
+auto Vulkan_Renderer::cleanup_swapchain() -> void { m_swapchain.deinit(); }
 
 auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     vulkan::LogicalDevice&        d = *m_logical_device;
     const vulkan::PhysicalDevice* pd = d.m_physical_device;
 
     m_frames[m_frame_index].acquire_image(m_swapchain);
-
 
     if (m_swapchain.m_is_recreated == true) {
         m_swapchain.m_is_recreated = false;
@@ -130,7 +126,6 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
                 // Per DrawCall ubo
                 m_ub_tran->write(*cmd.transform, dyn_offset);
 
-
                 const VkPipelineBindPoint bind_point = VK_PIPELINE_BIND_POINT_GRAPHICS;
                 VkDeviceSize              offsets[] = {0, 0};
                 cb.bind_pipeline(bind_point, shader->m_pipeline);
@@ -139,7 +134,6 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
                 // cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 1, shader->m_sets[1], &dyn_offset);
                 cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 2, shader->m_sets[2], &dyn_offset);
                 cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 3, shader->m_sets[3], &dyn_offset);
-
 
                 if (cmd.vertex_data->m_indices.size() > 0) {
                     cb.bind_index_buffer(*gpu_data.m_index_buffer, 0);
@@ -152,7 +146,6 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     });
 
     m_frames[m_frame_index].submit(d.m_graphics_queue);
-
 
     m_render_commands.clear();
 }
@@ -173,7 +166,6 @@ auto Vulkan_Renderer::present() -> void {
     // auto max_frames_in_flight = d.m_swapchain.m_images.size() - 1;
     m_frame_index = (m_frame_index + 1) % MAX_FRAMES_IN_FLIGHT;
 }
-
 
 auto Vulkan_Renderer::set_viewport(u32 /*x*/, u32 /*y*/, u32 /*width*/, u32 /*height*/) const -> void {}
 

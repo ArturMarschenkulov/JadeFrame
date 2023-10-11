@@ -23,20 +23,20 @@ auto control_camera(Camera* self) -> void {
     const f32           velocity = 0.1f;
     const InputManager& i = Instance::get_singleton()->m_input_manager;
     if (self->m_mode == Camera::MODE::PERSPECTIVE) {
-        if (i.is_key_down(KEY::E)) self->m_position += self->m_up * velocity;
-        if (i.is_key_down(KEY::Q)) self->m_position -= self->m_up * velocity;
+        if (i.is_key_down(KEY::E)) { self->m_position += self->m_up * velocity; }
+        if (i.is_key_down(KEY::Q)) { self->m_position -= self->m_up * velocity; }
 
-        if (i.is_key_down(KEY::A)) self->m_position -= self->m_right * velocity;
-        if (i.is_key_down(KEY::D)) self->m_position += self->m_right * velocity;
+        if (i.is_key_down(KEY::A)) { self->m_position -= self->m_right * velocity; }
+        if (i.is_key_down(KEY::D)) { self->m_position += self->m_right * velocity; }
 
-        if (i.is_key_down(KEY::S)) self->m_position -= self->m_forward * velocity;
-        if (i.is_key_down(KEY::W)) self->m_position += self->m_forward * velocity;
+        if (i.is_key_down(KEY::S)) { self->m_position -= self->m_forward * velocity; }
+        if (i.is_key_down(KEY::W)) { self->m_position += self->m_forward * velocity; }
 
         auto sensitivity = 10;
-        if (i.is_key_down(KEY::LEFT)) self->m_pitch += velocity * sensitivity;
-        if (i.is_key_down(KEY::RIGHT)) self->m_pitch -= velocity * sensitivity;
-        if (i.is_key_down(KEY::UP)) self->m_yaw += velocity * sensitivity;
-        if (i.is_key_down(KEY::DOWN)) self->m_yaw -= velocity * sensitivity;
+        if (i.is_key_down(KEY::LEFT)) { self->m_pitch += velocity * sensitivity; }
+        if (i.is_key_down(KEY::RIGHT)) { self->m_pitch -= velocity * sensitivity; }
+        if (i.is_key_down(KEY::UP)) { self->m_yaw += velocity * sensitivity; }
+        if (i.is_key_down(KEY::DOWN)) { self->m_yaw -= velocity * sensitivity; }
 
 
         // if (m_pitch > 89.0f)
@@ -53,20 +53,20 @@ auto control_camera(Camera* self) -> void {
         self->m_right = self->m_forward.cross(self->m_world_up).get_normal();
         self->m_up = self->m_right.cross(self->m_forward).get_normal();
     } else if (self->m_mode == Camera::MODE::ORTHOGRAPHIC) {
-        if (i.is_key_down(KEY::E)) self->m_position += self->m_up * velocity;
-        if (i.is_key_down(KEY::Q)) self->m_position -= self->m_up * velocity;
+        if (i.is_key_down(KEY::E)) { self->m_position += self->m_up * velocity; }
+        if (i.is_key_down(KEY::Q)) { self->m_position -= self->m_up * velocity; }
 
-        if (i.is_key_down(KEY::A)) self->m_position -= self->m_right * velocity;
-        if (i.is_key_down(KEY::D)) self->m_position += self->m_right * velocity;
+        if (i.is_key_down(KEY::A)) { self->m_position -= self->m_right * velocity; }
+        if (i.is_key_down(KEY::D)) { self->m_position += self->m_right * velocity; }
 
-        if (i.is_key_down(KEY::S)) self->m_position -= self->m_forward * velocity;
-        if (i.is_key_down(KEY::W)) self->m_position += self->m_forward * velocity;
+        if (i.is_key_down(KEY::S)) { self->m_position -= self->m_forward * velocity; }
+        if (i.is_key_down(KEY::W)) { self->m_position += self->m_forward * velocity; }
 
         auto sensitivity = 10;
-        if (i.is_key_down(KEY::LEFT)) self->m_pitch += velocity * sensitivity;
-        if (i.is_key_down(KEY::RIGHT)) self->m_pitch -= velocity * sensitivity;
-        if (i.is_key_down(KEY::UP)) self->m_yaw += velocity * sensitivity;
-        if (i.is_key_down(KEY::DOWN)) self->m_yaw -= velocity * sensitivity;
+        if (i.is_key_down(KEY::LEFT)) { self->m_pitch += velocity * sensitivity; }
+        if (i.is_key_down(KEY::RIGHT)) { self->m_pitch -= velocity * sensitivity; }
+        if (i.is_key_down(KEY::UP)) { self->m_yaw += velocity * sensitivity; }
+        if (i.is_key_down(KEY::DOWN)) { self->m_yaw -= velocity * sensitivity; }
     }
 }
 
@@ -226,7 +226,8 @@ Instance::Instance() {
     Logger::info("Detected Architecture is '{}'", ai);
     Logger::info(
         "Detected Compiler is '{}' with version '{}.{}.{}'", ci.name, ci.version.major, ci.version.minor,
-        ci.version.patch);
+        ci.version.patch
+    );
     Logger::info("Detected C++ Version is '{}'", li);
 
     m_system_manager.initialize();

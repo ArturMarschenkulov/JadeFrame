@@ -1,12 +1,9 @@
 #include "linux_system_manager.h"
 #include "linux_window.h"
 
-
-
 namespace JadeFrame {
 
 auto Linux_SystemManager::initialize() -> void {
-
 
     struct timespec timer_resolution;
     timer_resolution.tv_sec = 0;
@@ -21,6 +18,7 @@ auto Linux_SystemManager::initialize() -> void {
 
     m_instance = getpid();
 }
+
 auto Linux_SystemManager::log() const -> void {}
 
 auto Linux_SystemManager::request_window(IWindow::Desc desc) -> IWindow* {
@@ -29,8 +27,6 @@ auto Linux_SystemManager::request_window(IWindow::Desc desc) -> IWindow* {
     return m_windows[m_window_counter - 1].get();
 }
 
-
-
 auto Linux_SystemManager::get_time() const -> f64 {
     timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -38,12 +34,14 @@ auto Linux_SystemManager::get_time() const -> f64 {
 
     return static_cast<f64>(ts.tv_sec) + static_cast<f64>(ts.tv_nsec) / frequency;
 }
+
 auto Linux_SystemManager::calc_elapsed() -> f64 {
     f64 current = this->get_time();
     f64 update = current - m_time.previous;
     m_time.previous = current;
     return update;
 }
+
 auto Linux_SystemManager::frame_control(f64 delta_time) -> void {
     f64 current = this->get_time();
     f64 draw = current - m_time.previous;
@@ -63,6 +61,7 @@ auto Linux_SystemManager::frame_control(f64 delta_time) -> void {
         frame += time_wait;
     }
 }
+
 auto Linux_SystemManager::set_target_FPS(f64 FPS) -> void {
     m_max_FPS = FPS;
     m_time.target = 1.0 / FPS;

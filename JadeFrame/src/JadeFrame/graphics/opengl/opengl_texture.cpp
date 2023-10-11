@@ -2,27 +2,25 @@
 
 #include "opengl_texture.h"
 
-
-
-
 #include "JadeFrame/prelude.h"
 #include "opengl_context.h"
 #include "JadeFrame/utils/logger.h"
 
 namespace JadeFrame {
 
-
-
 namespace opengl {
 
 Texture::Texture() noexcept {
     // glGenTextures(1, &m_id);
 }
+
 auto Texture::operator=(Texture&& other) noexcept -> Texture& {
     m_id = other.release();
     return *this;
 }
+
 Texture::Texture(OpenGL_Context&) { glCreateTextures(GL_TEXTURE_2D, 1, &m_id); }
+
 Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_num)
     : m_size(size) {
     m_context = &context;
@@ -42,8 +40,6 @@ Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_
     Logger::warn("TextureHandle::init() - Texture created sjknmlml");
 
     this->bind(0);
-
-
 
     /*
         GL_TEXTURE_WRAP_S and GL_TEXTURE_WRAP_T define how the texture should behave when the texture coordinates are
@@ -77,6 +73,7 @@ Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_
     //}
     this->unbind();
 }
+
 Texture::Texture(Texture&& other) noexcept
     : m_id(other.release())
     , m_internal_format(other.m_internal_format)
@@ -87,21 +84,27 @@ Texture::Texture(Texture&& other) noexcept
 Texture::~Texture() { this->reset(); }
 
 auto Texture::generate_mipmap() const -> void { glGenerateTextureMipmap(m_id); }
+
 auto Texture::set_parameters(GLenum pname, GLint param) const -> void { glTextureParameteri(m_id, pname, param); }
+
 auto Texture::set_image(
-    GLint level, GLint internalformat, u32 size, GLint border, GLenum format, GLenum type, const void* pixels) -> void {
+    GLint level, GLint internalformat, u32 size, GLint border, GLenum format, GLenum type, const void* pixels
+) -> void {
     glTexImage1D(GL_TEXTURE_2D, level, internalformat, size, border, format, type, pixels);
 }
+
 auto Texture::set_image(
-    GLint level, GLint internalformat, v2u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
-    -> void {
+    GLint level, GLint internalformat, v2u32 size, GLint border, GLenum format, GLenum type, const void* pixels
+) -> void {
     glTexImage2D(GL_TEXTURE_2D, level, internalformat, size.x, size.y, border, format, type, pixels);
 }
+
 auto Texture::set_image(
-    GLint level, GLint internalformat, v3u32 size, GLint border, GLenum format, GLenum type, const void* pixels)
-    -> void {
+    GLint level, GLint internalformat, v3u32 size, GLint border, GLenum format, GLenum type, const void* pixels
+) -> void {
     glTexImage3D(GL_TEXTURE_2D, level, internalformat, size.x, size.y, size.z, border, format, type, pixels);
 }
+
 auto Texture::resize(u32 width, u32 height, u32 /*depth*/) -> void {
 
     this->bind(0);
@@ -130,16 +133,18 @@ auto Texture::release() -> GLuint {
     m_id = 0;
     return id;
 }
+
 auto Texture::reset(GLuint id) -> void {
     glDeleteTextures(1, &m_id);
     m_id = id;
 }
+
 auto Texture::bind(u32 unit) const -> void {
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, m_id);
 }
-auto Texture::unbind() const -> void { glBindTexture(GL_TEXTURE_2D, 0); }
 
+auto Texture::unbind() const -> void { glBindTexture(GL_TEXTURE_2D, 0); }
 
 } // namespace opengl
 } // namespace JadeFrame

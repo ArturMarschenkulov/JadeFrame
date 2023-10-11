@@ -1,6 +1,6 @@
 #pragma once
 #include "JadeFrame/prelude.h"
-//#include <concepts>
+// #include <concepts>
 #include <cmath>
 #include <cstring>
 #include <type_traits>
@@ -9,13 +9,13 @@ namespace JadeFrame {
 JF_PRAGMA_PUSH
 
 #if defined(__clang__)
-#pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
-#pragma clang diagnostic ignored "-Wnested-anon-types"
+    #pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
+    #pragma clang diagnostic ignored "-Wnested-anon-types"
 #elif defined(__GNUC__)
 // #pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
 // #pragma GCC diagnostic ignored "-Wnested-anon-types"
 #elif defined(_MSC_VER)
-#pragma warning(disable : 4201)
+    #pragma warning(disable : 4201)
 #endif
 
 // template <typename T>
@@ -28,6 +28,7 @@ template<size_t N, typename T>
 class VectorT {
 public:
     constexpr VectorT() noexcept { std::memset(el, 0, N); }
+
     // template<typename ...Args>
     template<class... T2, typename std::enable_if<sizeof...(T2) == N, int>::type = 0>
     constexpr explicit VectorT(const T2&... args) noexcept {
@@ -43,22 +44,28 @@ public:
     }
 
     constexpr auto operator+(const VectorT& other) const -> VectorT { return this->add(other); }
+
     constexpr auto operator-(const VectorT& other) const -> VectorT { return this->sub(other); }
+
     constexpr auto operator*(const T& other) const -> VectorT { return this->mult(other); }
+
     constexpr auto operator/(const T& other) const -> VectorT { return this->div(other); }
 
     constexpr auto operator+=(const VectorT& other) -> VectorT& {
         *this = *this + other;
         return *this;
     }
+
     constexpr auto operator-=(const VectorT& other) -> VectorT& {
         *this = *this - other;
         return *this;
     }
+
     constexpr auto operator*=(const T& other) -> VectorT& {
         *this = *this * other;
         return *this;
     }
+
     constexpr auto operator/=(const T& other) -> VectorT& {
         *this = *this / other;
         return *this;
@@ -70,27 +77,33 @@ public:
         return result;
         // return (x == other.x) && (y == other.y);
     }
+
     constexpr auto operator!=(const VectorT& o) -> bool { return !(*this == o); }
+
     constexpr auto add(const VectorT o) const -> VectorT {
         VectorT result;
         for (u32 i = 0; i < N; i++) { result.el[i] = el[i] + o.el[i]; }
         return result;
     }
+
     constexpr auto sub(const VectorT o) const -> VectorT {
         VectorT result;
         for (u32 i = 0; i < N; i++) { result.el[i] = el[i] - o.el[i]; }
         return result;
     }
+
     constexpr auto mult(const T o) const -> VectorT {
         VectorT result;
         for (u32 i = 0; i < N; i++) { result.el[i] = el[i] * o.el[i]; }
         return result;
     }
+
     constexpr auto div(const T o) const -> VectorT {
         VectorT result;
         for (u32 i = 0; i < N; i++) { result.el[i] = el[i] / o.el[i]; }
         return result;
     }
+
     constexpr auto dot(const VectorT& o) const -> T {
         T result;
         for (u32 i = 0; i < N; i++) { result += el[i] * o.el[i]; }
@@ -115,6 +128,7 @@ public:
     constexpr VectorT(const VectorT&) = default;
     constexpr VectorT(VectorT&&) = default;
     ~VectorT() = default;
+
     constexpr VectorT(const T x, const T y) noexcept
         : x(x)
         , y(y) {}
@@ -126,34 +140,47 @@ public:
     }
 
     constexpr auto operator+(const VectorT& other) const -> VectorT { return this->add(other); }
+
     constexpr auto operator-(const VectorT& other) const -> VectorT { return this->sub(other); }
+
     constexpr auto operator*(const T& other) const -> VectorT { return this->mult(other); }
+
     constexpr auto operator/(const T& other) const -> VectorT { return this->div(other); }
 
     constexpr auto operator+=(const VectorT& other) -> VectorT& {
         *this = *this + other;
         return *this;
     }
+
     constexpr auto operator-=(const VectorT& other) -> VectorT& {
         *this = *this - other;
         return *this;
     }
+
     constexpr auto operator*=(const T& other) -> VectorT& {
         *this = *this * other;
         return *this;
     }
+
     constexpr auto operator/=(const T& other) -> VectorT& {
         *this = *this / other;
         return *this;
     }
+
     constexpr auto operator==(const VectorT& other) -> bool { return (x == other.x) && (y == other.y); }
+
     constexpr auto operator!=(const VectorT& other) -> bool { return !(*this == other); }
 
     constexpr auto add(const VectorT o) const -> VectorT { return VectorT(x + o.x, y + o.y); }
+
     constexpr auto sub(const VectorT o) const -> VectorT { return VectorT(x - o.x, y - o.y); }
+
     constexpr auto mult(const T o) const -> VectorT { return VectorT(x * o, y * o); }
+
     constexpr auto div(const T o) const -> VectorT { return VectorT(x / o, y / o); }
+
     constexpr auto dot(const VectorT& o) const -> T { return x * o.x + y * o.y; }
+
     // constexpr auto get_length() const {
     //	const T dot = this->dot(*this);
     //	return std::sqrt(dot);
@@ -162,15 +189,19 @@ public:
     //	const f32& length = this->get_length();
     //	return VectorT(x / length, y / length, z / length);
     // }
+
 public:
     union {
         T el[2];
+
         struct {
             T x, y;
         };
+
         struct {
             T w, h;
         };
+
         struct {
             T width, height;
         };
@@ -206,43 +237,58 @@ public:
     }
 
     constexpr auto operator+(const VectorT& other) const -> VectorT { return this->add(other); }
+
     constexpr auto operator-(const VectorT& other) const -> VectorT { return this->sub(other); }
+
     constexpr auto operator*(const T& other) const -> VectorT { return this->mult(other); }
+
     constexpr auto operator/(const T& other) const -> VectorT { return this->div(other); }
 
     constexpr auto operator+=(const VectorT& other) -> VectorT& {
         *this = *this + other;
         return *this;
     }
+
     constexpr auto operator-=(const VectorT& other) -> VectorT& {
         *this = *this - other;
         return *this;
     }
+
     constexpr auto operator*=(const T& other) -> VectorT& {
         *this = *this * other;
         return *this;
     }
+
     constexpr auto operator/=(const T& other) -> VectorT& {
         *this = *this / other;
         return *this;
     }
+
     constexpr auto operator==(const VectorT& other) -> bool {
         return ((x == other.x) && (y == other.y) && (z == other.z));
     }
+
     constexpr auto operator!=(const VectorT& other) -> bool { return !(*this == other); }
 
     constexpr auto add(const VectorT o) const -> VectorT { return VectorT(x + o.x, y + o.y, z + o.z); }
+
     constexpr auto sub(const VectorT o) const -> VectorT { return VectorT(x - o.x, y - o.y, z - o.z); }
+
     constexpr auto mult(const T o) const -> VectorT { return VectorT(x * o, y * o, z * o); }
+
     constexpr auto div(const T o) const -> VectorT { return VectorT(x / o, y / o, z / o); }
+
     constexpr auto dot(const VectorT& o) const -> T { return x * o.x + y * o.y + z * o.z; }
+
     constexpr auto cross(const VectorT& o) const -> VectorT {
         return VectorT(y * o.z - z * o.y, z * o.x - x * o.z, x * o.y - y * o.x);
     }
+
     constexpr auto get_length() const {
         const T dot = this->dot(*this);
         return dot * dot /*std::sqrt(dot)*/;
     }
+
     constexpr auto get_normal() const -> VectorT {
         const f32& length = static_cast<f32>(this->get_length());
         return VectorT(x / (T)length, y / (T)length, z / (T)length);
@@ -251,9 +297,11 @@ public:
 public:
     union {
         T el[3];
+
         struct {
             T x, y, z;
         };
+
         struct {
             T r, g, b;
         };
@@ -276,6 +324,7 @@ public:
     constexpr VectorT(const VectorT&) = default;
     constexpr VectorT(VectorT&&) = default;
     ~VectorT() = default;
+
     constexpr VectorT(const T x, const T y, const T z, const T w) noexcept
         : x(x)
         , y(y)
@@ -291,36 +340,49 @@ public:
     }
 
     constexpr auto operator+(const VectorT& other) const -> VectorT { return this->add(other); }
+
     constexpr auto operator-(const VectorT& other) const -> VectorT { return this->sub(other); }
+
     constexpr auto operator*(const T& other) const -> VectorT { return this->mult(other); }
+
     constexpr auto operator/(const T& other) const -> VectorT { return this->div(other); }
 
     constexpr auto operator+=(const VectorT& other) -> VectorT& {
         *this = *this + other;
         return *this;
     }
+
     constexpr auto operator-=(const VectorT& other) -> VectorT& {
         *this = *this - other;
         return *this;
     }
+
     constexpr auto operator*=(const T& other) -> VectorT& {
         *this = *this * other;
         return *this;
     }
+
     constexpr auto operator/=(const T& other) -> VectorT& {
         *this = *this / other;
         return *this;
     }
+
     constexpr auto operator==(const VectorT& other) -> bool {
         return ((x == other.x) && (y == other.y) && (z == other.z) && (w == other.w));
     }
+
     constexpr auto operator!=(const VectorT& other) -> bool { return !(*this == other); }
 
     constexpr auto add(const VectorT o) const -> VectorT { return VectorT(x + o.x, y + o.y, z + o.z, w + o.w); }
+
     constexpr auto sub(const VectorT o) const -> VectorT { return VectorT(x - o.x, y - o.y, z - o.z, w - o.w); }
+
     constexpr auto mult(const T o) const -> VectorT { return VectorT(x * o, y * o, z * o, w * o); }
+
     constexpr auto div(const T o) const -> VectorT { return VectorT(x / o, y / o, z / o, w / o); }
+
     constexpr auto dot(const VectorT& o) const -> T { return x * o.x + y * o.y + z * o.z + w * o.w; }
+
     // constexpr auto get_length() const {
     //	const T dot = this->dot(*this);
     //	return std::sqrt(dot);
@@ -329,12 +391,15 @@ public:
     //	const f32& length = this->get_length();
     //	return Vec3(x / length, y / length, z / length);
     // }
+
 public:
     union {
         T el[4];
+
         struct {
             T x, y, z, w;
         };
+
         struct {
             T r, g, b, a;
         };

@@ -3,6 +3,7 @@
 
 namespace JadeFrame {
 class IWindow;
+
 namespace vulkan {
 namespace win32 {
 

@@ -5,6 +5,7 @@
 #include "vulkan_sync_object.h"
 
 #include "../graphics_shared.h"
+
 namespace JadeFrame {
 
 class Windows_Window;
@@ -67,6 +68,7 @@ public:
             m_sem_finished = device->create_semaphore();
             m_cmd = device->m_command_pool.allocate_buffer();
         }
+
         auto acquire_image(vulkan::Swapchain& swapchain) -> void {
             m_device->wait_for_fence(m_fence, VK_TRUE, UINT64_MAX);
             m_index = swapchain.acquire_image_index(&m_sem_available, nullptr);
@@ -76,13 +78,14 @@ public:
             m_fence.reset();
             queue.submit(m_cmd, &m_sem_available, &m_sem_finished, &m_fence);
         }
+
         auto present(vulkan::Queue& queue, vulkan::Swapchain& swapchain) -> VkResult {
             return queue.present(m_index, swapchain, &m_sem_finished);
         }
     };
+
     std::vector<Frame> m_frames;
     size_t             m_frame_index = 0;
-
 
     auto recreate_swapchain() -> void;
     auto cleanup_swapchain() -> void;

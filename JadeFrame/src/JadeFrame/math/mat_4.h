@@ -8,13 +8,13 @@
 JF_PRAGMA_PUSH
 
 #if defined(__clang__)
-#pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
-#pragma clang diagnostic ignored "-Wnested-anon-types"
+    #pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
+    #pragma clang diagnostic ignored "-Wnested-anon-types"
 #elif defined(__GNUC__)
 // #pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
 // #pragma GCC diagnostic ignored "-Wnested-anon-types"
 #elif defined(_MSC_VER)
-#pragma warning(disable : 4201)
+    #pragma warning(disable : 4201)
 #endif
 namespace JadeFrame {
 /*
@@ -33,8 +33,10 @@ m2	|__|__|__|
 
 */
 class Matrix4x4;
+
 class Matrix4x4 {
 private:
+
 public:
     constexpr Matrix4x4() noexcept;
     ~Matrix4x4() noexcept = default;
@@ -81,14 +83,12 @@ public:
 
     constexpr auto make_echelon() -> Matrix4x4&;
 
-
 private:
     union {
         std::array<std::array<f32, 4>, 4> el;
         // std::array<f32, 4> colVec;
     };
 };
-
 
 // IMPLEMENTATION
 
@@ -100,6 +100,7 @@ inline constexpr Matrix4x4::Matrix4x4() noexcept {
     // el[0][2] = 0.0f; el[1][2] = 0.0f; el[2][2] = 1.0f; el[3][2] = 0.0f;
     // el[0][3] = 0.0f; el[1][3] = 0.0f; el[2][3] = 0.0f; el[3][3] = 1.0f;
 }
+
 // inline constexpr Matrix4x4::Matrix4x4(const f32 digo) noexcept
 //     : el() {
 //     for (u32 i = 0; i < 4; i++) { el[i][i] = digo; }
@@ -171,12 +172,13 @@ inline /*constexpr*/ auto Matrix4x4::perspective_projection(f32 fovy, f32 aspect
 inline constexpr auto Matrix4x4::orthogonal_projection(v2 lr, v2 bt, v2 nf) noexcept -> Matrix4x4 {
     return Matrix4x4::orthogonal_projection(lr.x, lr.y, bt.x, bt.y, nf.x, nf.y);
 }
+
 inline /*constexpr*/ auto Matrix4x4::perspective_projection(f32 fovy, f32 aspect, v2 nf) noexcept -> Matrix4x4 {
     return Matrix4x4::perspective_projection(fovy, aspect, nf.x, nf.y);
 }
 
-
 inline constexpr auto Matrix4x4::identity() noexcept -> Matrix4x4 { return Matrix4x4::diagonal(1.0f); }
+
 inline constexpr auto Matrix4x4::zero() noexcept -> Matrix4x4 {
     Matrix4x4 m;
 
@@ -188,6 +190,7 @@ inline constexpr auto Matrix4x4::zero() noexcept -> Matrix4x4 {
     // std::memset(&m, 0, sizeof(m.el));
     return m;
 }
+
 inline constexpr auto Matrix4x4::one() noexcept -> Matrix4x4 {
     Matrix4x4 m = Matrix4x4::zero();
     for (u32 i = 0; i < 4; i++) {
@@ -195,6 +198,7 @@ inline constexpr auto Matrix4x4::one() noexcept -> Matrix4x4 {
     }
     return m;
 }
+
 inline constexpr auto Matrix4x4::diagonal(f32 diag) noexcept -> Matrix4x4 {
     Matrix4x4 m = Matrix4x4::zero();
     m.el[0][0] = diag;
@@ -203,6 +207,7 @@ inline constexpr auto Matrix4x4::diagonal(f32 diag) noexcept -> Matrix4x4 {
     m.el[3][3] = diag;
     return m;
 }
+
 inline constexpr auto Matrix4x4::diagonal(const v4& diag) noexcept -> Matrix4x4 {
     Matrix4x4 m = Matrix4x4::zero();
     m.el[0][0] = diag.x;
@@ -211,6 +216,7 @@ inline constexpr auto Matrix4x4::diagonal(const v4& diag) noexcept -> Matrix4x4 
     m.el[3][3] = diag.w;
     return m;
 }
+
 inline constexpr auto Matrix4x4::translation(const v3& trans) noexcept -> Matrix4x4 {
     Matrix4x4 result = Matrix4x4::identity();
     result.el[3][0] = trans.x;
@@ -218,6 +224,7 @@ inline constexpr auto Matrix4x4::translation(const v3& trans) noexcept -> Matrix
     result.el[3][2] = trans.z;
     return result;
 }
+
 inline /*constexpr*/ auto Matrix4x4::rotation(f32 angle, const v3& axis) noexcept -> Matrix4x4 {
     const f32 c = static_cast<f32>(cos(angle));
     const f32 omc = 1 - c;
@@ -237,6 +244,7 @@ inline /*constexpr*/ auto Matrix4x4::rotation(f32 angle, const v3& axis) noexcep
     result.el[2][2] = axis.z * axis.z * omc + c;
     return result;
 }
+
 inline /*constexpr*/ auto Matrix4x4::scale(const v3& scale) noexcept -> Matrix4x4 {
     Matrix4x4 result = Matrix4x4::identity();
     result.el[0][0] = scale.x;
@@ -360,4 +368,5 @@ inline constexpr auto Matrix4x4::make_echelon() -> Matrix4x4& {
     return *this;
 }
 } // namespace JadeFrame
+
 JF_PRAGMA_POP

@@ -6,11 +6,7 @@
 
 #include <vector>
 
-
 namespace JadeFrame {
-
-
-
 
 namespace vulkan {
 class Instance;
@@ -22,10 +18,7 @@ class ImageView;
 class PhysicalDevice;
 class Surface;
 
-
 class RenderPass;
-
-
 
 class RenderPass {
 public:
@@ -54,7 +47,8 @@ public:
 
 public:
     Framebuffer(
-        const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent);
+        const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent
+    );
 
 public:
     VkFramebuffer        m_handle = VK_NULL_HANDLE;
@@ -63,7 +57,6 @@ public:
     const RenderPass*    m_render_pass = nullptr;
     // const Swapchain* m_swapchain = nullptr;
 };
-
 
 class Swapchain {
 public:

@@ -17,8 +17,6 @@ namespace JadeFrame {
 namespace win32 {
 static EventMessageMap g_windows_message_map;
 
-
-
 static auto window_resize_callback(Window& window, const EventMessage& wm) -> void {
 
     switch (wm.wParam) {
@@ -29,19 +27,19 @@ static auto window_resize_callback(Window& window, const EventMessage& wm) -> vo
         case SIZE_MAXSHOW: break;
     }
 
-
     window.set_size(v2u32(LOWORD(wm.lParam), HIWORD(wm.lParam)));
 
     const v2u32& size = window.get_size();
     auto&        renderer = Instance::get_singleton()->m_current_app_p->m_render_system.m_renderer;
     renderer->set_viewport(0, 0, size.width, size.height);
 }
+
 static auto window_move_callback(Window& window, const EventMessage& wm) -> void {
     // NOTE: wParam is not used
 
-
     window.set_position(v2u32(LOWORD(wm.lParam), HIWORD(wm.lParam)));
 }
+
 static auto window_focus_callback(Window& window, bool should_focus) { window.has_focus = should_focus; }
 
 static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam) -> ::LRESULT {
@@ -54,7 +52,6 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
     } else {
         // Logger::trace("WindowProcedure: {}", g_windows_message_map(wm));
     }
-
 
     InputManager& input_manager = Instance::get_singleton()->m_input_manager;
     i32           current_window_id = -1;
@@ -146,13 +143,12 @@ static auto CALLBACK window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wPar
     return 0; // message handled
 }
 
-
 static auto get_style(const Window::Desc& desc) -> ::DWORD {
     DWORD style = 0;
 
     style |=
-        (0 | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX |
-         WS_MAXIMIZEBOX); // WS_OVERLAPPEDWINDOW
+        (0 | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX
+        ); // WS_OVERLAPPEDWINDOW
 
     if (desc.visable == true) { style |= WS_VISIBLE; }
 
@@ -183,7 +179,7 @@ static auto register_class(HINSTANCE instance) -> ::WNDCLASSEX {
     window_class.lpszClassName = L"JadeFrame"; //"L"JadeFrame Window";
 
     ::ATOM res = ::RegisterClassExW(&window_class);
-    if (!res) Logger::err("Window Registration Failed! {}", ::GetLastError());
+    if (!res) { Logger::err("Window Registration Failed! {}", ::GetLastError()); }
 
     is_window_class_registered = true;
     return window_class;

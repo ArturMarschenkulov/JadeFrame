@@ -19,17 +19,16 @@
 
 namespace JadeFrame {
 
-
-
-
 /*******************
  *	VERTEX ARRAY
  *******************/
 class VertexFormat;
+
 namespace opengl {
 class Buffer;
 }
 class OpenGL_Context;
+
 class OGLW_VertexArray {
 public:
     OGLW_VertexArray();
@@ -49,8 +48,10 @@ public:
 
 private:
     auto enable_attrib(const u32 index) const -> void;
-    auto set_attrib_format(const u32 index, const SHADER_TYPE type, const bool count, const size_t offset) const -> void;
+    auto set_attrib_format(const u32 index, const SHADER_TYPE type, const bool count, const size_t offset) const
+        -> void;
     auto set_attrib_binding(const u32 index, const u32 binding) const -> void;
+
 private:
     GLuint m_ID;
 
@@ -74,9 +75,6 @@ struct OGLW_Shader {
     OGLW_Shader(const GLenum type);
     // OGLW_Shader(const GLenum type, const std::string& source_code);
 
-
-
-
     auto set_source(const std::string& source_code) -> void;
     auto compile() -> void;
     auto set_binary(const std::vector<u32>& binary) -> void;
@@ -92,6 +90,7 @@ private:
     auto release() -> GLuint;
     auto reset(GLuint ID = 0) -> void;
 };
+
 /*******************
  *	PROGRAM
  *******************/
@@ -105,8 +104,6 @@ struct OGLW_Program {
     OGLW_Program(OGLW_Program&& other) noexcept = delete;
     auto operator=(OGLW_Program&&) -> OGLW_Program& = delete;
 
-
-
     auto bind() const -> void;
     auto unbind() const -> void;
     auto attach(const OGLW_Shader& shader) const -> void;
@@ -116,7 +113,6 @@ struct OGLW_Program {
 
     auto get_uniform_block_index(const char* name) const -> GLuint;
     auto set_uniform_block_binding(GLuint index, GLuint binding_point) const -> void;
-
 
     auto get_info(GLenum pname) const -> GLint;
 
@@ -129,6 +125,7 @@ private:
     auto release() -> GLuint;
     auto reset(GLuint ID = 0) -> void;
 };
+
 namespace opengl {
 /*******************
  *	RENDERBUFFER
@@ -144,13 +141,10 @@ public:
 
     auto operator=(Renderbuffer&&) noexcept -> Renderbuffer& = delete;
 
-
-
     auto store(GLenum internal_format, GLsizei width, GLsizei height) const -> void;
 
     auto bind() const -> void;
     auto unbind() const -> void;
-
 
     GLuint m_ID = 0;
 
@@ -158,7 +152,6 @@ private:
     auto release() -> GLuint;
     auto reset(GLuint ID = 0) -> void;
 };
-
 
 inline Renderbuffer::Renderbuffer() { glCreateRenderbuffers(1, &m_ID); }
 
@@ -177,6 +170,7 @@ inline auto Renderbuffer::release() -> GLuint {
     m_ID = 0;
     return ret;
 }
+
 inline auto Renderbuffer::reset(GLuint ID) -> void {
     // glDeleteFramebuffers(1, &m_ID);
     glDeleteRenderbuffers(1, &m_ID);
@@ -187,13 +181,13 @@ inline auto Renderbuffer::reset(GLuint ID) -> void {
  *	FRAMEBUFFER
  *******************/
 
-
 enum class ATTACHMENT {
     COLOR,
     DEPTH,
     STENCIL,
     DEPTH_STENCIL,
 };
+
 class Framebuffer {
 public:
     Framebuffer();
@@ -212,8 +206,6 @@ public:
     auto bind() const -> void;
     auto unbind() const -> void;
 
-
-
 private:
     auto release() -> GLuint;
     auto reset(GLuint ID = 0) -> void;
@@ -222,17 +214,19 @@ public:
     GLuint m_ID = 0;
 };
 
-
-
 inline auto Framebuffer::operator=(Framebuffer&& other) noexcept -> Framebuffer& {
     m_ID = other.release();
     return *this;
 }
+
 inline Framebuffer::Framebuffer() {
     // glCreateFramebuffers(1, &m_ID);
 }
+
 inline Framebuffer::Framebuffer(OpenGL_Context&) { glCreateFramebuffers(1, &m_ID); }
+
 inline Framebuffer::~Framebuffer() { this->reset(); }
+
 inline auto Framebuffer::attach_texture(ATTACHMENT attachment, u32 i, const Texture& texture) const -> void {
 
     assert(i < GL_MAX_COLOR_ATTACHMENTS - 1);
@@ -249,6 +243,7 @@ inline auto Framebuffer::attach_texture(ATTACHMENT attachment, u32 i, const Text
     }
     glNamedFramebufferTexture(m_ID, attachment_point, texture.m_id, 0);
 }
+
 inline auto Framebuffer::attach_renderbuffer(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer) const
     -> void {
     assert(i < GL_MAX_COLOR_ATTACHMENTS - 1);
@@ -265,6 +260,7 @@ inline auto Framebuffer::attach_renderbuffer(ATTACHMENT attachment, u32 i, const
     }
     glNamedFramebufferRenderbuffer(m_ID, attachment_point, GL_RENDERBUFFER, renderbuffer.m_ID);
 }
+
 inline auto Framebuffer::bind() const -> void { glBindFramebuffer(GL_FRAMEBUFFER, m_ID); }
 
 inline auto Framebuffer::unbind() const -> void { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
@@ -279,6 +275,7 @@ inline auto Framebuffer::release() -> GLuint {
     m_ID = 0;
     return ret;
 }
+
 inline auto Framebuffer::reset(GLuint ID) -> void {
     glDeleteFramebuffers(1, &m_ID);
     m_ID = ID;

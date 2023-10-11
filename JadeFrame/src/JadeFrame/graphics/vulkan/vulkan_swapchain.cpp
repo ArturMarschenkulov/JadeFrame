@@ -2,18 +2,17 @@
 #include "vulkan_swapchain.h"
 
 #if _WIN32
-#include <Windows.h> // TODO: Try to remove it
+    #include <Windows.h> // TODO: Try to remove it
 #endif
-
 
 #include "vulkan_logical_device.h"
 #include "vulkan_context.h"
 #include "vulkan_sync_object.h"
 #include "JadeFrame/utils/assert.h"
 #if _WIN32
-#include "JadeFrame/platform/windows/windows_window.h"
+    #include "JadeFrame/platform/windows/windows_window.h"
 #elif __linux__
-#include "JadeFrame/platform/linux/linux_window.h"
+    #include "JadeFrame/platform/linux/linux_window.h"
 #endif
 
 #undef min
@@ -32,6 +31,7 @@ static auto choose_surface_format(const std::vector<VkSurfaceFormatKHR>& availab
     }
     return available_surface_formats[0];
 }
+
 static auto choose_present_mode(const std::vector<VkPresentModeKHR>& available_surface_formats) -> VkPresentModeKHR {
     std::array<VkPresentModeKHR, 3> mode_ranks = {
         VK_PRESENT_MODE_FIFO_KHR, VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR};
@@ -46,6 +46,7 @@ static auto choose_present_mode(const std::vector<VkPresentModeKHR>& available_s
     assert(!"Should not reach here!");
     return {};
 }
+
 static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities, const Surface& surface)
     -> VkExtent2D {
     // vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_surface, &m_surface_capabilities);
@@ -60,14 +61,12 @@ static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities
         i32 height = area.bottom;
         // glfwGetFramebufferSize(window, &width, &height);
 
-
         VkExtent2D actual_extent = {static_cast<u32>(width), static_cast<u32>(height)};
 
         // actual_extent.width = std::max(m_surface_capabilities.minImageExtent.width,
         // std::min(m_surface_capabilities.maxImageExtent.width, actual_extent.width)); actual_extent.height =
         // std::max(m_surface_capabilities.minImageExtent.height, std::min(m_surface_capabilities.maxImageExtent.height,
         // actual_extent.height));
-
 
         // actual_extent.width = std::clamp(actual_extent.width, m_surface_capabilities.minImageExtent.width,
         // m_surface_capabilities.maxImageExtent.width); actual_extent.height = std::clamp(actual_extent.height,
@@ -91,6 +90,7 @@ RenderPass::RenderPass(RenderPass&& other)
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = nullptr;
 }
+
 auto RenderPass::operator=(RenderPass&& other) -> RenderPass& {
     m_handle = other.m_handle;
     m_device = other.m_device;
@@ -98,6 +98,7 @@ auto RenderPass::operator=(RenderPass&& other) -> RenderPass& {
     other.m_device = nullptr;
     return *this;
 }
+
 RenderPass::~RenderPass() {
     if (m_handle != VK_NULL_HANDLE) { vkDestroyRenderPass(m_device->m_handle, m_handle, nullptr); }
 }
@@ -209,7 +210,6 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     result = vkCreateSwapchainKHR(device.m_handle, &create_info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 
-
     m_images = this->query_images();
     assert(m_images.size() == image_count);
     m_image_views.resize(m_images.size());
@@ -301,8 +301,9 @@ Framebuffer::Framebuffer(Framebuffer&& other)
     other.m_image_view = nullptr;
     other.m_render_pass = nullptr;
 }
+
 auto Framebuffer::operator=(Framebuffer&& other) -> Framebuffer& {
-    if (&other == this) return *this;
+    if (&other == this) { return *this; }
     m_handle = other.m_handle;
     m_device = other.m_device;
     m_image_view = other.m_image_view;
@@ -321,7 +322,8 @@ Framebuffer::~Framebuffer() {
 }
 
 Framebuffer::Framebuffer(
-    const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent) {
+    const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent
+) {
     m_device = &device;
     m_image_view = &image_view;
     m_render_pass = &render_pass;

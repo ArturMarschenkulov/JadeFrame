@@ -5,15 +5,12 @@
 #include <variant>
 #include <map>
 
-
-
 namespace JadeFrame {
 
 class Windows_Window;
 class Object;
 class RGBAColor;
 class IWindow;
-
 
 struct Image {
     Image() = default;
@@ -25,14 +22,11 @@ struct Image {
 
     static auto load(const std::string& path) -> Image;
 
-
     u8* data = nullptr;
     i32 width = 0;
     i32 height = 0;
     i32 num_components = 0;
 };
-
-
 
 enum class GRAPHICS_API {
     UNDEFINED,
@@ -44,6 +38,7 @@ enum class GRAPHICS_API {
     SOFTWARE,
     TERMINAL,
 };
+
 inline auto to_string(GRAPHICS_API api) -> const char* {
     switch (api) {
         case GRAPHICS_API::UNDEFINED: return "UNDEFINED";
@@ -71,7 +66,6 @@ enum class SHADER_STAGE {
     TESSELATION,
     COMPUTE,
 };
-
 
 enum class SHADER_TYPE {
     NONE = 0,
@@ -102,6 +96,7 @@ enum class SHADER_TYPE {
     SAMPLER_3D,
     SAMPLER_CUBE,
 };
+
 inline auto get_underlying_type(SHADER_TYPE type) -> SHADER_TYPE {
     SHADER_TYPE result;
     switch (type) {
@@ -130,6 +125,7 @@ inline auto get_underlying_type(SHADER_TYPE type) -> SHADER_TYPE {
     }
     return result;
 }
+
 inline auto is_scalar(SHADER_TYPE type) -> bool {
     switch (type) {
         case SHADER_TYPE::I32:
@@ -140,6 +136,7 @@ inline auto is_scalar(SHADER_TYPE type) -> bool {
         default: return false;
     }
 }
+
 inline auto get_component_count(const SHADER_TYPE type) -> u32 {
     u32 result;
     switch (type) {
@@ -165,6 +162,7 @@ inline auto get_component_count(const SHADER_TYPE type) -> u32 {
     }
     return result;
 }
+
 inline auto is_vector(SHADER_TYPE type) -> bool {
     switch (type) {
         case SHADER_TYPE::V_2_I32:
@@ -176,7 +174,6 @@ inline auto is_vector(SHADER_TYPE type) -> bool {
         default: return false;
     }
 }
-
 
 auto to_string(SHADER_TYPE type) -> const char*;
 
@@ -192,6 +189,7 @@ struct VertexAttribute {
 
 class VertexFormat {
 public:
+
 public:
     VertexFormat() = default;
     VertexFormat(const VertexFormat&) = default;
@@ -216,6 +214,7 @@ struct ShadingCode {
         SPIRV        m_code;
         SHADER_STAGE m_stage;
     };
+
     SHADING_LANGUAGE    m_shading_language;
     std::vector<Module> m_modules;
 };
@@ -241,6 +240,7 @@ public:
     GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
     void*        m_handle = nullptr;
 };
+
 struct ShaderHandle {
 public:
     ShaderHandle() = default;
@@ -254,6 +254,7 @@ public:
         ShadingCode  shading_code;
         VertexFormat vertex_format;
     };
+
     ShaderHandle(const Desc& desc);
 
     auto set_uniform(const std::string& name, const void* data, size_t size) -> void;
@@ -266,7 +267,6 @@ public:
     void*        m_handle = nullptr;
 };
 
-
 struct MaterialHandle {
     u32 m_shader_id = 0;
     u32 m_texture_id = 0;
@@ -274,11 +274,9 @@ struct MaterialHandle {
 
 // This struct saves the shader code. The common language is SPIRV.
 
-
 struct ShaderModule {
     SHADING_LANGUAGE shading_language;
 };
-
 
 struct GPUDataMeshHandle {
     GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
@@ -288,6 +286,7 @@ struct GPUDataMeshHandle {
 };
 
 class RenderSystem;
+
 class GPUBuffer {
 public:
     enum TYPE {
@@ -297,6 +296,7 @@ public:
         UNIFORM,
         STAGING
     };
+
     GPUBuffer() = default;
     ~GPUBuffer();
     GPUBuffer(const GPUBuffer&) = delete;
@@ -315,6 +315,7 @@ public:
 };
 class RenderSystem;
 class VertexData;
+
 class GPUMeshData {
 public:
     GPUMeshData() = default;
@@ -324,14 +325,15 @@ public:
     GPUMeshData(GPUMeshData&& other);
     auto operator=(GPUMeshData&& other) -> GPUMeshData&;
 
-    GPUMeshData(RenderSystem* system, const VertexData& vertex_data, const VertexFormat vertex_format, bool interleaved = true);
+    GPUMeshData(
+        RenderSystem* system, const VertexData& vertex_data, const VertexFormat vertex_format, bool interleaved = true
+    );
 
 public:
     GPUBuffer    m_vertex_buffer;
     GPUBuffer    m_index_buffer;
     VertexFormat m_format;
 };
-
 
 /*
         TODO: Consider whether this is a good way and whether it is worth it to introdcue
@@ -341,21 +343,21 @@ public:
 using ssss = const char*;
 template<typename T>
 concept is_renderer = requires(T& t) {
-                          { t.present() } -> std::same_as<void>;
-                          { t.clear_background() } -> std::same_as<void>;
-                          { t.render(std::declval<Matrix4x4>()) } -> std::same_as<void>;
-                          { t.submit(std::declval<Object>()) } -> std::same_as<void>;
-                          { t.set_clear_color(std::declval<RGBAColor>()) } -> std::same_as<void>;
-                          { t.set_viewport(u32{}, u32{}, u32{}, u32{}) } -> std::same_as<void>;
-                          { t.take_screenshot(std::declval<char*>()) } -> std::same_as<void>;
-                      };
+    { t.present() } -> std::same_as<void>;
+    { t.clear_background() } -> std::same_as<void>;
+    { t.render(std::declval<Matrix4x4>()) } -> std::same_as<void>;
+    { t.submit(std::declval<Object>()) } -> std::same_as<void>;
+    { t.set_clear_color(std::declval<RGBAColor>()) } -> std::same_as<void>;
+    { t.set_viewport(u32{}, u32{}, u32{}, u32{}) } -> std::same_as<void>;
+    { t.take_screenshot(std::declval<char*>()) } -> std::same_as<void>;
+};
+
 class IRenderer {
 public: // client stuff
     virtual auto submit(const Object& obj) -> void = 0;
     virtual auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void = 0;
 
     virtual auto take_screenshot(const char* filename) -> void = 0;
-
 
 public: // more internal stuff
     virtual auto set_clear_color(const RGBAColor& color) -> void = 0;
@@ -386,8 +388,6 @@ inline auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
     return result;
 }
 
-
-
 class IShader {
 public:
     struct Desc {
@@ -404,6 +404,7 @@ struct MaterialHandle;
 struct TextureHandle;
 struct ShaderHandle;
 class VertexData;
+
 class Object {
 public:
     u32            m_vertex_data_id;
@@ -412,7 +413,6 @@ public:
     MaterialHandle m_material_handle;
     Matrix4x4      m_transform;
 };
-
 
 class RenderSystem {
 public:

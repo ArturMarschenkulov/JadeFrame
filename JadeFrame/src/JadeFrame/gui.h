@@ -3,11 +3,12 @@
 
 /*
     TODO: For now glfw effective only works for windows
-    
+
 */
 
 namespace JadeFrame {
 class IWindow;
+
 class GUI {
 public:
     auto init(IWindow* window, GRAPHICS_API api) -> void;

@@ -24,7 +24,6 @@ namespace vulkan {
 //	return {};
 // }
 
-
 inline auto get_binding_description(const VertexFormat& vertex_format) -> VkVertexInputBindingDescription {
     u32 stride = 0;
     for (const VertexAttribute& attribute : vertex_format.m_attributes) { stride += attribute.size; }
@@ -35,7 +34,8 @@ inline auto get_binding_description(const VertexFormat& vertex_format) -> VkVert
         .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
     };
     return binding_description;
-};
+}
+
 inline auto SHADER_TYPE_to_VkFormat(const SHADER_TYPE& shader_type) -> VkFormat {
     VkFormat result = VK_FORMAT_UNDEFINED;
 
@@ -67,7 +67,7 @@ inline auto get_attribute_descriptions(const VertexFormat& vertex_format)
     }
 
     return attribute_descriptions;
-};
+}
 
 struct UniformBufferObject {
     Matrix4x4 view_projection;
@@ -79,6 +79,7 @@ struct UniformBufferObject_bkp {
     Matrix4x4 view;
     Matrix4x4 proj;
 };
+
 inline auto to_string(const VkDescriptorType& type) -> const char* {
     switch (type) {
         case VK_DESCRIPTOR_TYPE_SAMPLER: return "SAMPLER";
@@ -97,6 +98,7 @@ inline auto to_string(const VkDescriptorType& type) -> const char* {
         default: return "UNKNOWN";
     }
 }
+
 inline auto to_string(const VkResult& result) -> std::string {
     std::string str;
     switch (result) {
@@ -136,28 +138,28 @@ inline auto to_string(const VkResult& result) -> std::string {
 inline auto to_string_from_shader_stage_flags(const VkShaderStageFlags& flags) -> std::string {
     std::string result;
     result += "{ ";
-    if (flags & VK_SHADER_STAGE_VERTEX_BIT) result += "VERTEX ";
-    if (flags & VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT) result += "TESSELLATION_CONTROL ";
-    if (flags & VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT) result += "TESSELLATION_EVALUATION ";
-    if (flags & VK_SHADER_STAGE_GEOMETRY_BIT) result += "GEOMETRY ";
-    if (flags & VK_SHADER_STAGE_FRAGMENT_BIT) result += "FRAGMENT ";
-    if (flags & VK_SHADER_STAGE_COMPUTE_BIT) result += "COMPUTE ";
-    if (flags & VK_SHADER_STAGE_ALL_GRAPHICS) result += "ALL_GRAPHICS ";
-    if (flags & VK_SHADER_STAGE_ALL) result += "ALL ";
+    if (flags & VK_SHADER_STAGE_VERTEX_BIT) { result += "VERTEX "; }
+    if (flags & VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT) { result += "TESSELLATION_CONTROL "; }
+    if (flags & VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT) { result += "TESSELLATION_EVALUATION "; }
+    if (flags & VK_SHADER_STAGE_GEOMETRY_BIT) { result += "GEOMETRY "; }
+    if (flags & VK_SHADER_STAGE_FRAGMENT_BIT) { result += "FRAGMENT "; }
+    if (flags & VK_SHADER_STAGE_COMPUTE_BIT) { result += "COMPUTE "; }
+    if (flags & VK_SHADER_STAGE_ALL_GRAPHICS) { result += "ALL_GRAPHICS "; }
+    if (flags & VK_SHADER_STAGE_ALL) { result += "ALL "; }
 
-    if (flags & VK_SHADER_STAGE_RAYGEN_BIT_KHR) result += "RAYGEN_KHR ";
-    if (flags & VK_SHADER_STAGE_ANY_HIT_BIT_KHR) result += "ANY_HIT_KHR ";
-    if (flags & VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR) result += "CLOSEST_HIT_KHR ";
-    if (flags & VK_SHADER_STAGE_MISS_BIT_KHR) result += "MISS_KHR ";
-    if (flags & VK_SHADER_STAGE_INTERSECTION_BIT_KHR) result += "INTERSECTION_KHR ";
-    if (flags & VK_SHADER_STAGE_CALLABLE_BIT_KHR) result += "CALLABLE_KHR ";
+    if (flags & VK_SHADER_STAGE_RAYGEN_BIT_KHR) { result += "RAYGEN_KHR "; }
+    if (flags & VK_SHADER_STAGE_ANY_HIT_BIT_KHR) { result += "ANY_HIT_KHR "; }
+    if (flags & VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR) { result += "CLOSEST_HIT_KHR "; }
+    if (flags & VK_SHADER_STAGE_MISS_BIT_KHR) { result += "MISS_KHR "; }
+    if (flags & VK_SHADER_STAGE_INTERSECTION_BIT_KHR) { result += "INTERSECTION_KHR "; }
+    if (flags & VK_SHADER_STAGE_CALLABLE_BIT_KHR) { result += "CALLABLE_KHR "; }
 
-    if (flags & VK_SHADER_STAGE_TASK_BIT_NV) result += "TASK_KHR ";
-    if (flags & VK_SHADER_STAGE_MESH_BIT_NV) result += "MESH_KHR ";
-    if (flags & VK_SHADER_STAGE_RAYGEN_BIT_NV) result += "RAYGEN_KHR ";
-    if (flags & VK_SHADER_STAGE_ANY_HIT_BIT_NV) result += "ANY_HIT_KHR ";
-    if (flags & VK_SHADER_STAGE_CLOSEST_HIT_BIT_NV) result += "CLOSEST_HIT_KHR ";
-    if (flags & VK_SHADER_STAGE_MISS_BIT_NV) result += "MISS_KHR ";
+    if (flags & VK_SHADER_STAGE_TASK_BIT_NV) { result += "TASK_KHR "; }
+    if (flags & VK_SHADER_STAGE_MESH_BIT_NV) { result += "MESH_KHR "; }
+    if (flags & VK_SHADER_STAGE_RAYGEN_BIT_NV) { result += "RAYGEN_KHR "; }
+    if (flags & VK_SHADER_STAGE_ANY_HIT_BIT_NV) { result += "ANY_HIT_KHR "; }
+    if (flags & VK_SHADER_STAGE_CLOSEST_HIT_BIT_NV) { result += "CLOSEST_HIT_KHR "; }
+    if (flags & VK_SHADER_STAGE_MISS_BIT_NV) { result += "MISS_KHR "; }
     result += "}";
     return result;
 }
@@ -170,6 +172,7 @@ inline auto to_string(const VkMemoryHeap& memory_heap) -> std::string {
     result += "}";
     return result;
 }
+
 inline auto to_string(const VkPhysicalDeviceType& device_type) -> std::string {
     switch (device_type) {
         case VK_PHYSICAL_DEVICE_TYPE_OTHER: return "Other";
@@ -180,6 +183,7 @@ inline auto to_string(const VkPhysicalDeviceType& device_type) -> std::string {
         default: return "Unknown";
     }
 }
+
 inline auto to_string(const VkMemoryType& memory_type) -> std::string {
     std::string result = "{ ";
     if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) { result += "DeviceLocal "; }

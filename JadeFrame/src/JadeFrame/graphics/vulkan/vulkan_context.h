@@ -5,9 +5,7 @@
 #include "vulkan_logical_device.h"
 #include <vector>
 
-
 namespace JadeFrame {
-
 
 class IWindow;
 
@@ -15,7 +13,6 @@ namespace vulkan {
 class PhysicalDevice;
 
 class Instance {
-
 
 public:
     Instance() = default;

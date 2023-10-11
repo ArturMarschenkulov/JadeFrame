@@ -8,11 +8,7 @@
 struct HWND__;
 typedef HWND__* HWND;
 
-
-
 namespace JadeFrame {
-
-
 
 /*
         TOOD: Consider whether this class should be RAII or not. Right now it is.
@@ -29,8 +25,6 @@ public:
     Window() = default;
     Window(const Window::Desc& desc, ::HMODULE instance);
     ~Window();
-
-
 
     virtual auto handle_events(bool& running) -> void override;
 
@@ -49,8 +43,6 @@ public:
     auto query_client_size() const -> v2u64;
 
     virtual auto get() const -> void* override;
-
-
 
 public:
     HWND    m_window_handle = nullptr;

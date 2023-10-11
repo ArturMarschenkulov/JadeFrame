@@ -8,8 +8,8 @@ namespace JadeFrame {
 namespace opengl {
 
 auto opengl_message_callback(
-    u32 source, u32 type, u32 id, u32 severity, i32 /*length*/, const char* message, const void* /*userParam*/)
-    -> void {
+    u32 source, u32 type, u32 id, u32 severity, i32 /*length*/, const char* message, const void* /*userParam*/
+) -> void {
     std::string _source;
     switch (source) {
         case GL_DEBUG_SOURCE_API: _source = "API"; break;
@@ -49,7 +49,8 @@ auto opengl_message_callback(
     if (0) {
         Logger::log(
             "GL_ERR: Source: {} | Type: {} | ID: {} | Severity: {} | Message: {}", _source, _type, _id, _severity,
-            message);
+            message
+        );
     } else {
         Logger::log(
             R"(
@@ -60,7 +61,8 @@ GL_ERR: Source: {}
 | Message {}
 |-----------------------------------------|
 )",
-            _source, _type, _id, _severity, message);
+            _source, _type, _id, _severity, message
+        );
     }
 }
 

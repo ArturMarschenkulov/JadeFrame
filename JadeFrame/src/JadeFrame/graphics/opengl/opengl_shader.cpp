@@ -3,7 +3,6 @@
 #include "opengl_shader.h"
 #include "JadeFrame/utils/assert.h"
 
-
 #include "JadeFrame/math/mat_4.h"
 
 #include "../shader_loader.h"
@@ -34,6 +33,7 @@ static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
         default: assert(false); return {};
     }
 }
+
 namespace opengl {
 
 Shader::Shader(OpenGL_Context& context, const Desc& desc)
@@ -42,10 +42,7 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     , m_fragment_shader(GL_FRAGMENT_SHADER) {
     m_context = &context;
 
-
     JF_ASSERT(desc.code.m_modules.size() == 2, "OpenGL Shaders must have 2 modules for right now");
-
-
 
     using SPIRV = std::vector<JadeFrame::u32>;
 
@@ -72,14 +69,12 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     m_fragment_shader.set_source(m_fragment_source);
     m_fragment_shader.compile();
 
-
     // // NOTE: On some machines the drives won't allow it!!
     // m_fragment_shader.set_binary(mfrag_shader_spirv);
     // m_fragment_shader.compile_binary();
 
     // m_vertex_shader.set_binary(mvert_shader_spirv);
     // m_vertex_shader.compile_binary();
-
 
     // ShadingCode code;
     // code.m_modules.resize(2);
@@ -147,8 +142,8 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
 }
 
 auto Shader::bind() const -> void { m_program.bind(); }
-auto Shader::unbind() const -> void { m_program.unbind(); }
 
+auto Shader::unbind() const -> void { m_program.unbind(); }
 
 static auto gl_type_enum_to_string(GLenum type) -> std::string {
     std::string result = "";

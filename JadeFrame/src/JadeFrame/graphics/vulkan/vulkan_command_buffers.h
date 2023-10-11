@@ -4,11 +4,7 @@
 
 #include <vector>
 
-
 namespace JadeFrame {
-
-
-
 
 namespace vulkan {
 class RenderPass;
@@ -32,8 +28,8 @@ public:
     auto record_begin() -> void;
     auto record_end() -> void;
     auto render_pass_begin(
-        const Framebuffer& framebuffer, const RenderPass& render_pass, const VkExtent2D& swapchain, VkClearValue color)
-        -> void;
+        const Framebuffer& framebuffer, const RenderPass& render_pass, const VkExtent2D& swapchain, VkClearValue color
+    ) -> void;
     auto render_pass_end() -> void;
 
     template<typename Func>
@@ -42,10 +38,12 @@ public:
         func();
         this->record_end();
     }
+
     template<typename Func>
     auto render_pass(
         const Framebuffer& framebuffer, const RenderPass& render_pass, const VkExtent2D& swapchain, VkClearValue color,
-        Func&& func) -> void {
+        Func&& func
+    ) -> void {
         this->render_pass_begin(framebuffer, render_pass, swapchain, color);
         func();
         this->render_pass_end();
@@ -55,15 +53,14 @@ public:
 
     auto copy_buffer(const Buffer& src, const Buffer& dst, u32 region_size, VkBufferCopy* regions) -> void;
 
-
     auto bind_pipeline(const VkPipelineBindPoint bind_point, const Pipeline& pipeline) -> void;
     auto bind_vertex_buffers(u32 first_binding, u32 binding_count, const VkBuffer* buffers, const VkDeviceSize* offsets)
         -> void;
     auto bind_vertex_buffers(const VkBuffer* buffers, const VkDeviceSize* offsets) -> void;
     auto bind_descriptor_sets(
         const VkPipelineBindPoint bind_point, const Pipeline& pipeline, u32 first_set,
-        const DescriptorSet& descriptor_set, const u32* offset) -> void;
-
+        const DescriptorSet& descriptor_set, const u32* offset
+    ) -> void;
 
     auto bind_index_buffer(const Buffer& buffer, VkDeviceSize offset) -> void;
 
@@ -87,6 +84,7 @@ public:
 };
 
 using QueueFamilyIndex = u32;
+
 class CommandPool {
 public:
     CommandPool() = default;

@@ -6,10 +6,10 @@
 #include "opengl_buffer.h"
 
 #ifdef _WIN32
-#include "JadeFrame/platform/windows/windows_window.h"
+    #include "JadeFrame/platform/windows/windows_window.h"
 #elif __linux__
-#include "JadeFrame/platform/linux/linux_window.h"
-#include <GL/glx.h>
+    #include "JadeFrame/platform/linux/linux_window.h"
+    #include <GL/glx.h>
 #endif
 
 struct HGLRC__;
@@ -46,9 +46,6 @@ enum class POLYGON_MODE : GLenum {
     FILL = GL_FILL,
 };
 
-
-
-
 struct GL_State {
 public:
     auto set_default() -> void;
@@ -75,6 +72,7 @@ public:
     auto  set_viewport(u32 x, u32 y, u32 width, u32 height) -> void;
     v2u32 viewport[2]; // TODO: Create an appropriate "rectangle" struct!
 };
+
 class OpenGL_Context {
 public:
     OpenGL_Context() = default;
@@ -83,18 +81,17 @@ public:
 
 public:
 #ifdef WIN32
-    HDC m_device_context; // NOTE: Windows specific!
+    HDC   m_device_context; // NOTE: Windows specific!
     HGLRC m_render_context;
 #elif __linux__
-    ::Display* m_display; // m_device_context
-    ::GLXContext* m_render_context;
+    ::Display*      m_display; // m_device_context
+    ::GLXContext*   m_render_context;
     const ::Window* m_window;
 #endif
     auto swap_buffers() -> void;
 
 public:
     mutable GL_State m_state;
-
 
     std::string              vendor;
     std::string              renderer;
@@ -123,7 +120,6 @@ public:
     std::vector<u32> m_textures;
     std::vector<u32> m_texture_units;
     u32              m_active_texture_unit;
-
 
     template<typename T, typename U>
     using HashMap = std::unordered_map<T, U>;

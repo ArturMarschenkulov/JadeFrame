@@ -13,7 +13,6 @@ class Vulkan_Texture;
 class DescriptorSetLayout;
 class DescriptorPool;
 
-
 enum class FREQUENCY : u8 {
     PER_FRAME,
     PER_PASS,
@@ -21,7 +20,6 @@ enum class FREQUENCY : u8 {
     PER_OBJECT,
     MAX,
 };
-
 
 struct Descriptor {
     Descriptor() = default;
@@ -33,16 +31,15 @@ struct Descriptor {
 
     Descriptor(const Buffer& buffer, VkDeviceSize offset, VkDeviceSize range, VkDescriptorSetLayoutBinding binding);
 
-
     union {
         VkDescriptorBufferInfo buffer_info;
         VkDescriptorImageInfo  image_info;
     };
+
     VkDescriptorType   type;
     VkShaderStageFlags stage_flags;
     u32                binding;
 };
-
 
 class DescriptorSet {
 public:
@@ -92,7 +89,8 @@ public:
 private:
     auto add_binding(
         u32 binding, VkDescriptorType descriptor_type, u32 descriptor_count, VkShaderStageFlags stage_flags,
-        const VkSampler* p_immutable_samplers = nullptr) -> void;
+        const VkSampler* p_immutable_samplers = nullptr
+    ) -> void;
 
 public:
     VkDescriptorSetLayout                     m_handle = VK_NULL_HANDLE;

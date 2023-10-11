@@ -2,10 +2,10 @@
 #include "vulkan_surface.h"
 #include "vulkan_context.h"
 #if defined(_WIN32)
-#include "JadeFrame/platform/windows/windows_window.h"
-#include "platform/win32/surface.h"
+    #include "JadeFrame/platform/windows/windows_window.h"
+    #include "platform/win32/surface.h"
 #elif defined(__linux__)
-#include "JadeFrame/platform/linux/linux_window.h"
+    #include "JadeFrame/platform/linux/linux_window.h"
 #endif
 
 #include <cassert>
@@ -22,6 +22,7 @@ Surface::Surface(Surface&& other)
     other.m_window_handle = nullptr;
     other.m_instance = nullptr;
 }
+
 auto Surface::operator=(Surface&& other) -> Surface& {
     if (this != &other) {
         m_handle = other.m_handle;
@@ -34,6 +35,7 @@ auto Surface::operator=(Surface&& other) -> Surface& {
     }
     return *this;
 }
+
 Surface::Surface(VkInstance instance, const IWindow* window_handle) {
     Logger::trace("Surface::init start");
     m_window_handle = window_handle;

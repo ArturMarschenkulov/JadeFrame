@@ -51,7 +51,6 @@ auto convert_SPIRV_to_opengl(const ShadingCode& code) -> ShadingCode {
     return new_code;
 }
 
-
 auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage, GRAPHICS_API api) -> std::vector<u32> {
     shaderc_shader_kind kind = {};
     switch (stage) {
@@ -151,13 +150,10 @@ static auto debug_print_resources(const spirv_cross::ShaderResources& resources)
     }
 }
 
-
-
 static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 columns) -> SHADER_TYPE {
     SHADER_TYPE result = SHADER_TYPE::NONE;
     if (rows > 4) { JF_PANIC("rows must be less than 4"); }
     if (columns > 4) { JF_PANIC("columns must be less than 4"); }
-
 
     if (columns == 1) {
         switch (type.basetype) {
@@ -187,9 +183,11 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
 auto temp_cmp_0(const ReflectedCode::Input& i0, const ReflectedCode::Input& i1) -> bool {
     return i0.location < i1.location;
 }
+
 auto temp_cmp_1(const ReflectedModule::Input& i0, const ReflectedModule::Input& i1) -> bool {
     return i0.location < i1.location;
 }
+
 auto temp_cmp(ReflectedCode::Output i0, ReflectedCode::Output i1) -> bool { return i0.location < i1.location; }
 
 auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
@@ -204,7 +202,6 @@ auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
     result.m_inputs.resize(resources.stage_inputs.size());
     for (u32 j = 0; j < resources.stage_inputs.size(); j++) {
         const spirv_cross::Resource& resource = resources.stage_inputs[j];
-
 
         const std::string& name = resource.name;
 
@@ -221,15 +218,11 @@ auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
         inputs[j].type = to_SHADER_TYPE(buffer_type, buffer_type.vecsize, buffer_type.columns);
     }
 
-
-
     result.m_outputs.resize(resources.stage_inputs.size());
     for (u32 j = 0; j < resources.stage_outputs.size(); j++) {
         const spirv_cross::Resource& resource = resources.stage_outputs[j];
 
         const std::string& name = resource.name;
-
-
 
         const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
         const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
@@ -254,7 +247,8 @@ auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
 
         Logger::info(
             "the uniform buffer {} has {} members. base id {}, id {}", name, buffer_type.member_types.size(),
-            resource.base_type_id, resource.type_id);
+            resource.base_type_id, resource.type_id
+        );
 
         u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
         u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
@@ -273,7 +267,6 @@ auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
             u32 member_size = static_cast<u32>(compiler.get_declared_struct_member_size(buffer_type, jj));
             u32 member_offset = static_cast<u32>(compiler.type_struct_member_offset(buffer_type, jj));
 
-
             ReflectedModule::UniformBuffer::Member member = {};
             member.name = member_name;
             member.size = member_size;
@@ -281,14 +274,14 @@ auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
             member.type = to_SHADER_TYPE(member_type, member_type.vecsize, member_type.columns);
             Logger::info(
                 "\tthe member {}.{} has, type {}, size {} and offset {}", name, member_name, to_string(member.type),
-                member_size, member_offset);
+                member_size, member_offset
+            );
 
             uniform_buffers[j].members.push_back(member);
         }
         compiler.get_member_name(resource.base_type_id, 0);
         compiler.get_declared_struct_size(compiler.get_type(resource.base_type_id));
     }
-
 
     result.m_sampled_images.resize(resources.sampled_images.size());
     for (u32 j = 0; j < resources.sampled_images.size(); j++) {
@@ -318,8 +311,6 @@ auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
     std::sort(result.m_inputs.begin(), result.m_inputs.end(), temp_cmp_1);
     // std::sort(result.m_outputs.begin(), result.m_outputs.end(), temp_cmp);
 
-
-
     // result.m_push_constant_ranges.resize(resources.push_constant_buffers.size());
     // for (u32 j = 0; j < resources.push_constant_buffers.size(); j++) {
     //     const spirv_cross::Resource& resource = resources.push_constant_buffers[j];
@@ -337,6 +328,7 @@ auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
     // }
     return result;
 }
+
 auto reflect(const ShadingCode& code) -> ReflectedCode {
     ReflectedCode result = {};
 
@@ -356,7 +348,6 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
         for (u32 j = 0; j < resources.stage_inputs.size(); j++) {
             const spirv_cross::Resource& resource = resources.stage_inputs[j];
 
-
             const std::string& name = resource.name;
 
             const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
@@ -372,15 +363,11 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
             inputs[j].type = to_SHADER_TYPE(buffer_type, buffer_type.vecsize, buffer_type.columns);
         }
 
-
-
         result.m_modules[i].m_outputs.resize(resources.stage_inputs.size());
         for (u32 j = 0; j < resources.stage_outputs.size(); j++) {
             const spirv_cross::Resource& resource = resources.stage_outputs[j];
 
             const std::string& name = resource.name;
-
-
 
             const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
             const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
@@ -405,7 +392,8 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
 
             Logger::info(
                 "the uniform buffer {} has {} members. base id {}, id {}", name, buffer_type.member_types.size(),
-                resource.base_type_id, resource.type_id);
+                resource.base_type_id, resource.type_id
+            );
 
             u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
             u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
@@ -424,7 +412,6 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
                 u32 member_size = static_cast<u32>(compiler.get_declared_struct_member_size(buffer_type, jj));
                 u32 member_offset = static_cast<u32>(compiler.type_struct_member_offset(buffer_type, jj));
 
-
                 ReflectedCode::UniformBuffer::Member member = {};
                 member.name = member_name;
                 member.size = member_size;
@@ -432,14 +419,14 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
                 member.type = to_SHADER_TYPE(member_type, member_type.vecsize, member_type.columns);
                 Logger::info(
                     "\tthe member {}.{} has, type {}, size {} and offset {}", name, member_name, to_string(member.type),
-                    member_size, member_offset);
+                    member_size, member_offset
+                );
 
                 uniform_buffers[j].members.push_back(member);
             }
             compiler.get_member_name(resource.base_type_id, 0);
             compiler.get_declared_struct_size(compiler.get_type(resource.base_type_id));
         }
-
 
         result.m_modules[i].m_sampled_images.resize(resources.sampled_images.size());
         for (u32 j = 0; j < resources.sampled_images.size(); j++) {
@@ -468,8 +455,6 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
         }
         std::sort(current_result_module.m_inputs.begin(), current_result_module.m_inputs.end(), temp_cmp_0);
         // std::sort(current_result_module.m_outputs.begin(), current_result_module.m_outputs.end(), temp_cmp);
-
-
 
         // result.m_modules[i].m_push_constant_ranges.resize(resources.push_constant_buffers.size());
         // for (u32 j = 0; j < resources.push_constant_buffers.size(); j++) {

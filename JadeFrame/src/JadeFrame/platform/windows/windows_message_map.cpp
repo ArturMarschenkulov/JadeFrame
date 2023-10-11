@@ -16,6 +16,7 @@
 #define WM_UAHINITMENU         0x0093
 #define WM_UAHMEASUREMENUITEM  0x0094
 #define WM_UAHNCPAINTMENUPOPUP 0x0095
+
 namespace JadeFrame {
 namespace win32 {
 EventMessageMap::EventMessageMap() noexcept

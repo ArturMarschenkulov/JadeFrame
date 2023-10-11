@@ -12,17 +12,21 @@ namespace win32 {
 struct EventMessage;
 
 struct Event {};
+
 struct KeyEvent : public Event {
     enum class TYPE {
         PRESSED,
         RELEASED
     };
+
     KeyEvent(const TYPE type, const u64 key_code)
         : type(type)
         , key_code(key_code) {}
+
     TYPE type;
     u64  key_code;
 };
+
 class InputManager : public IInputManager {
     friend class WinWindow;
 

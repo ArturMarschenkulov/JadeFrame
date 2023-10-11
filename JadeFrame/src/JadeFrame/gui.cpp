@@ -5,14 +5,11 @@
 #include "imgui/backends/imgui_impl_vulkan.h"
 
 #if defined(_WIN32)
-#include "imgui/backends/imgui_impl_win32.h"
-#include "JadeFrame/platform/windows/windows_window.h"
+    #include "imgui/backends/imgui_impl_win32.h"
+    #include "JadeFrame/platform/windows/windows_window.h"
 #elif defined(__linux__)
-#include "imgui/backends/imgui_impl_x11.h"
+    #include "imgui/backends/imgui_impl_x11.h"
 #endif
-
-
-
 
 /*
     The `imgui` repo does not have a linux/x11/wayland backend. One can use `glfw`,
@@ -75,12 +72,14 @@ auto GUI::new_frame() -> void {
 
     ImGui::NewFrame();
 }
+
 auto GUI::render() -> void {
 
     ImGui::Text("Hello, world %d", 123);
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
+
 auto GUI::destroy() -> void {
     ImGui_ImplOpenGL3_Shutdown();
 #if _WIN32

@@ -12,6 +12,7 @@
 #include "spdlog/fmt/xchar.h"
 
 #include "JadeFrame/utils/utils.h"
+
 namespace JadeFrame {
 
 // namespace platform {
@@ -23,12 +24,14 @@ auto to_wide_char(const char* char_array) -> wchar_t* {
     ::MultiByteToWideChar(CP_ACP, 0, char_array, -1, wString, 4096);
     return wString;
 }
+
 auto to_multi_byte(const wchar_t* wide_char_array) -> char* {
     char* cString = new char[4096];
     // char cString[4096];
     ::WideCharToMultiByte(CP_ACP, 0, wide_char_array, -1, cString, 4096, NULL, NULL);
     return cString;
 }
+
 // auto to_wide_char(const std::string& string) -> std::wstring {
 //     std::wstring wString;
 //     wString.resize(string.size());
@@ -49,6 +52,7 @@ auto from_wstring_to_string(const std::wstring& wstr) -> std::string {
     WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (i32)wstr.size(), &str_to[0], size_needed, NULL, NULL);
     return str_to;
 }
+
 auto from_string_to_wstring(const std::string& str) -> std::wstring {
     if (str.empty()) { return std::wstring(); }
     i32          size_needed = MultiByteToWideChar(CP_UTF8, 0, &str[0], (i32)str.size(), NULL, 0);
@@ -56,7 +60,6 @@ auto from_string_to_wstring(const std::string& str) -> std::wstring {
     MultiByteToWideChar(CP_UTF8, 0, &str[0], (i32)str.size(), &wstr_to[0], size_needed);
     return wstr_to;
 }
-
 
 DWORD count_set_bits(ULONG_PTR bit_mask) {
     DWORD     LSHIFT = sizeof(ULONG_PTR) * 8 - 1;
@@ -71,8 +74,8 @@ DWORD count_set_bits(ULONG_PTR bit_mask) {
 
     return bit_set_count;
 }
-// auto get_heaps() -> std::vector<int> {}
 
+// auto get_heaps() -> std::vector<int> {}
 
 struct ProcessEntry {
     u32     size;
@@ -99,6 +102,7 @@ struct ModuleEntry {
     wchar_t   module_size[MAX_MODULE_NAME32 + 1];
     wchar_t   path[MAX_PATH];
 };
+
 static auto to_process_entry(const PROCESSENTRY32W& entry) -> ProcessEntry {
     ProcessEntry result;
     result.size = entry.dwSize;
@@ -113,6 +117,7 @@ static auto to_process_entry(const PROCESSENTRY32W& entry) -> ProcessEntry {
     wcscpy_s(result.path, entry.szExeFile);
     return result;
 }
+
 static auto to_module_entry(const MODULEENTRY32W& module_entry) -> ModuleEntry {
     ModuleEntry entry;
     entry.size = module_entry.dwSize;
@@ -148,6 +153,7 @@ auto get_processes() -> std::vector<ProcessEntry> {
     }
     return processes;
 }
+
 auto get_modules() -> std::vector<ModuleEntry> {
     std::vector<ModuleEntry> modules;
     u32 flags = TH32CS_INHERIT | TH32CS_SNAPALL | TH32CS_SNAPHEAPLIST | TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32 |
@@ -177,7 +183,7 @@ static auto get_DWORD_reg_key(HKEY hKey, const wchar_t* strValueName, DWORD& nVa
         RegQueryValueExW(hKey, strValueName, nullptr, nullptr, reinterpret_cast<LPBYTE>(&result), &buffer_size);
     if (ERROR_SUCCESS == error) { nValue = result; }
     return error;
-};
+}
 
 static auto get_processor_name() -> std::string {
     const wchar_t* id = L"Hardware\\Description\\System\\CentralProcessor\\0";
@@ -201,6 +207,7 @@ auto test() -> void {
     static_assert(sizeof(LONG) == 4, "LONG is not 32-bit");           // i32
     static_assert(sizeof(WCHAR) == 2, "WCHAR is not 16-bit");         // u16
 }
+
 // static auto get_primary_monitor_handle() -> HMONITOR {
 //	const POINT pt_zero = { 0, 0 };
 //	return ::MonitorFromPoint(pt_zero, MONITOR_DEFAULTTOPRIMARY);
@@ -244,13 +251,11 @@ auto test() -> void {
 //	return nError;
 // }
 
-
 auto SystemManager::request_window(IWindow::Desc desc) -> IWindow* {
     m_windows[m_window_counter] = std::make_unique<Window>(desc, m_instance);
     m_window_counter++;
     return m_windows[m_window_counter - 1].get();
 }
-
 
 #define USE_OPTION_TYPE 0
 #if USE_OPTION_TYPE
@@ -262,6 +267,7 @@ static auto query_performance_frequency() -> Option<u64> {
         return Option<u64>();
     }
 }
+
 static auto query_performance_counter() -> Option<u64> {
     u64 counter;
     if (::QueryPerformanceCounter((LARGE_INTEGER*)&counter)) {
@@ -314,6 +320,7 @@ auto SystemManager::get_time() const -> f64 {
     return static_cast<f64>(counter) / frequency;
 #endif
 }
+
 auto SystemManager::initialize() -> void {
 
     // time stuff
@@ -387,7 +394,6 @@ auto SystemManager::initialize() -> void {
     {
         ::TCHAR buffer[256] = L"";
         ::DWORD size = sizeof(buffer);
-
 
         ::GetUserDefaultLocaleName(buffer, LOCALE_NAME_MAX_LENGTH);
         m_user_locale = from_wstring_to_string(buffer);
@@ -553,7 +559,8 @@ auto SystemManager::initialize() -> void {
         HKEY hKey;
 
         /*LONG lRes =*/RegOpenKeyExW(
-            HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"), 0, KEY_READ, &hKey);
+            HKEY_LOCAL_MACHINE, TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"), 0, KEY_READ, &hKey
+        );
         DWORD current_major_version_number;
         DWORD current_minor_version_number;
         get_DWORD_reg_key(hKey, TEXT("CurrentMajorVersionNumber"), current_major_version_number, 0);
@@ -571,14 +578,21 @@ static auto bytes_to_string(const u64 bytes) -> std::string {
     constexpr const f64 KB = static_cast<f64>(1024_u64);
 
     std::string result;
-    if (bytes > TB) result = std::to_string(bytes / TB) + " TB";
-    else if (bytes > GB) result = std::to_string(bytes / GB) + " GB";
-    else if (bytes > MB) result = std::to_string(bytes / MB) + " MB";
-    else if (bytes > KB) result = std::to_string(bytes / KB) + " KB";
-    else result = std::to_string((f32)bytes) + " bytes";
+    if (bytes > TB) {
+        result = std::to_string(bytes / TB) + " TB";
+    } else if (bytes > GB) {
+        result = std::to_string(bytes / GB) + " GB";
+    } else if (bytes > MB) {
+        result = std::to_string(bytes / MB) + " MB";
+    } else if (bytes > KB) {
+        result = std::to_string(bytes / KB) + " KB";
+    } else {
+        result = std::to_string((f32)bytes) + " bytes";
+    }
 
     return result;
 }
+
 static auto win32_get_processor_architecture_string(u16 t) -> std::string {
     std::string result;
     switch (t) {
@@ -591,6 +605,7 @@ static auto win32_get_processor_architecture_string(u16 t) -> std::string {
     }
     return result;
 }
+
 auto SystemManager::log() const -> void {
     std::cout << "**********SYSTEM LOG**********"
               << "\n"

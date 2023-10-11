@@ -15,7 +15,6 @@ namespace win32 {
 std::array<INPUT_STATE, static_cast<u32>(KEY::MAX)> InputManager::m_current_key_state = {};
 std::array<INPUT_STATE, static_cast<u32>(KEY::MAX)> InputManager::m_previous_key_state = {};
 
-
 auto InputManager::translate_button_code(const u64 button_code) -> BUTTON {
     BUTTON result;
     switch (button_code) {
@@ -27,6 +26,7 @@ auto InputManager::translate_button_code(const u64 button_code) -> BUTTON {
     }
     return result;
 }
+
 auto InputManager::translate_key_code(const u64 key_code) -> KEY {
     KEY result;
     switch (key_code) {
@@ -165,7 +165,6 @@ auto InputManager::key_callback(const EventMessage& wm) -> void {
 
     WORD repeat_count = LOWORD(lParam); // NOTE: For what can it be used?
 
-
 #if 0
     i64 bit_24 = (wm.lParam >> 24) & 1; // extended key flag
     i64 bit_29 = (wm.lParam >> 29) & 1; // 1 == system key
@@ -186,7 +185,6 @@ auto InputManager::key_callback(const EventMessage& wm) -> void {
     bool is_released = HIWORD(lParam) & KF_UP;
     bool was_down = HIWORD(lParam) & KF_REPEAT;
 #endif
-
 
     // sanity checks
     {
@@ -213,11 +211,9 @@ auto InputManager::key_callback(const EventMessage& wm) -> void {
     }
     KEY jf_keycode = translate_key_code(virtual_key);
 
-
     m_current_key_state[static_cast<u32>(jf_keycode)] = static_cast<INPUT_STATE>(!is_released);
     // ImGuiIO& io = ImGui::GetIO();
     // io.KeysDown[key_code] = b_is_pressed;
-
 
     // TODO: Try to extract that to somewhere else. So th
     if (m_current_key_state[static_cast<u32>(KEY::ESCAPE)] == INPUT_STATE::PRESSED) {
@@ -254,6 +250,7 @@ auto InputManager::is_key_down(const KEY key) -> bool {
     bool is_pressed = (curr == INPUT_STATE::PRESSED);
     return is_pressed ? true : false;
 }
+
 auto InputManager::is_key_up(const KEY key) -> bool {
     i32         key_0 = static_cast<u32>(key);
     INPUT_STATE curr = m_current_key_state[key_0];
@@ -261,6 +258,7 @@ auto InputManager::is_key_up(const KEY key) -> bool {
     bool is_current_released = (curr == INPUT_STATE::RELEASED);
     return is_current_released ? true : false;
 }
+
 auto InputManager::is_key_pressed(const KEY key) -> bool {
     i32         key_0 = static_cast<u32>(key);
     INPUT_STATE curr = m_current_key_state[key_0];
@@ -270,6 +268,7 @@ auto InputManager::is_key_pressed(const KEY key) -> bool {
     bool is_pressed = (curr == INPUT_STATE::PRESSED);
     return (is_changed && is_pressed) ? true : false;
 }
+
 auto InputManager::is_key_released(const KEY key) -> bool {
     u32         key_0 = static_cast<u32>(key);
     INPUT_STATE curr = m_current_key_state[key_0];
@@ -279,7 +278,6 @@ auto InputManager::is_key_released(const KEY key) -> bool {
     bool is_released = (curr == INPUT_STATE::RELEASED);
     return (is_changed && is_released) ? true : false;
 }
-
 
 /*
         MOUSE INPUT
@@ -302,6 +300,7 @@ static auto convert_buttons_from_JF_to_imgui(BUTTON button) -> i32 {
     }
     return result;
 }
+
 // static auto convert_keys_from_JF_to_imgui(KEY button) -> i32 {
 //	i32 result;
 //	switch (button) {
@@ -336,7 +335,6 @@ auto InputManager::mouse_button_callback(const EventMessage& wm) -> void {
 
             m_current_mouse_button_state[static_cast<u32>(button)] = INPUT_STATE::PRESSED;
             // io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = true;
-
 
         } break;
         case WM_LBUTTONUP:

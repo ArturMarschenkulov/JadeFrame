@@ -6,7 +6,6 @@
 
 namespace JadeFrame {
 
-
 Vulkan_Shader::Vulkan_Shader(const vulkan::LogicalDevice& device, const Vulkan_Renderer& renderer, const Desc& desc) {
     m_device = &device;
     Logger::info("Creating Vulkan shader");
@@ -24,15 +23,16 @@ Vulkan_Shader::Vulkan_Shader(const vulkan::LogicalDevice& device, const Vulkan_R
 }
 
 auto Vulkan_Shader::bind_buffer(
-    u32 set, u32 binding, const vulkan::Buffer& buffer, VkDeviceSize offset, VkDeviceSize range) -> void {
+    u32 set, u32 binding, const vulkan::Buffer& buffer, VkDeviceSize offset, VkDeviceSize range
+) -> void {
     m_sets[set].bind_uniform_buffer(binding, buffer, offset, range);
     m_sets[set].update();
 }
+
 auto Vulkan_Shader::rebind_buffer(u32 set, u32 binding, const vulkan::Buffer& buffer) -> void {
     m_sets[set].rebind_uniform_buffer(binding, buffer);
     m_sets[set].update();
 }
-
 
 auto Vulkan_Shader::get_location(const std::string& name) -> std::tuple<u32, u32> {
 
@@ -53,6 +53,5 @@ auto Vulkan_Shader::get_location(const std::string& name) -> std::tuple<u32, u32
 
     return {set, binding};
 }
-
 
 } // namespace JadeFrame

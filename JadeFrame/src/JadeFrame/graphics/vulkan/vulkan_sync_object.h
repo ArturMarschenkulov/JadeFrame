@@ -1,9 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
-
 namespace JadeFrame {
-
 
 namespace vulkan {
 class LogicalDevice;

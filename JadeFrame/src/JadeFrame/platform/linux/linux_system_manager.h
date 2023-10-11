@@ -22,6 +22,7 @@ public: // Window stuff
     IWindow*                                     m_curr_window = nullptr;
 
 public: // Time stuff
+
 private:
     bool m_has_performance_counter;
     u64  m_frequency;
@@ -37,9 +38,9 @@ public:
         f64 previous = 0;
         f64 target = 0;
     };
+
     Time m_time;
     f32  m_max_FPS;
-
 
 public:
     pid_t m_instance;

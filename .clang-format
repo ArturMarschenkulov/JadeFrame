@@ -2,47 +2,69 @@
 BasedOnStyle: LLVM
 
 Language: Cpp
-ColumnLimit: 120
+ColumnLimit: 100
 
-MaxEmptyLinesToKeep: 4
+MaxEmptyLinesToKeep: 1
 
 
 # Alignment
 PointerAlignment: Left
+ReferenceAlignment: Left
 AlignConsecutiveDeclarations: Consecutive 
 AlignConsecutiveMacros: Consecutive
+# AlignConsecutiveShortCaseStatements: true
 AlignEscapedNewlines: Right
+AlignOperands: AlignAfterOperator
+AlignConsecutiveBitFields: Consecutive
+
+IndentPPDirectives: BeforeHash
+IndentRequiresClause: true
+BreakInheritanceList: BeforeComma
+ContinuationIndentWidth: 4
+
+RequiresExpressionIndentation: OuterScope
+
+CompactNamespaces: false
+
+# QualifierAlignment: Right
+IndentWidth: 4
+AccessModifierOffset: -4
+IndentAccessModifiers: false
+IndentCaseBlocks: false
+IndentCaseLabels: true
+IndentGotoLabels: true
+
+# IndentRequiresClause: true
+
+EmptyLineAfterAccessModifier: Never
+EmptyLineBeforeAccessModifier: Always
 
 # Short lines
 AllowShortEnumsOnASingleLine: false
 AllowShortBlocksOnASingleLine: Always
-AllowShortCaseLabelsOnASingleLine: true
-AllowShortFunctionsOnASingleLine: All
-AllowShortLambdasOnASingleLine: All
-AllowShortLoopsOnASingleLine: true
-AllowShortIfStatementsOnASingleLine: AllIfsAndElse
-AllowShortCaseLabelsOnASingleLine: true
-AllowShortFunctionsOnASingleLine: All
+AllowShortCaseLabelsOnASingleLine: true # Maybe `false`?
+AllowShortFunctionsOnASingleLine: All # Maybe `Empty`?
 AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: true
 AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 
+Standard: c++20 # Maybe `Latest`?
 
+SpacesInSquareBrackets: false
 
-IndentCaseLabels: true
-
+InsertBraces: true
 BraceWrapping:
   AfterCaseLabel: true
   AfterControlStatement: MultiLine
 
 
 
+FixNamespaceComments: true
+AllowAllParametersOfDeclarationOnNextLine: false
 
-# QualifierAlignment: Right
-IndentWidth: 4
-AccessModifierOffset: -4
-IndentAccessModifiers: false
-# IndentRequiresClause: true
+BinPackParameters: false
+
+
 
 
 # IncludeCategories:
@@ -62,11 +84,17 @@ BreakBeforeConceptDeclarations: true
 BreakBeforeTernaryOperators: true
 
 
-AlignAfterOpenBracket: AlwaysBreak
+AlignAfterOpenBracket: BlockIndent
 AlignArrayOfStructures: Right
 
 
 BreakConstructorInitializers: BeforeComma
+
+RequiresClausePosition: OwnLine
+RemoveBracesLLVM: false
+RemoveSemicolon: true # Maybe `false`?
+SeparateDefinitionBlocks: Always
+BreakBeforeBraces: Attach
 
 ## This is from https://gist.github.com/YodaEmbedding/c2c77dc693d11f3734d78489f9a6eea4 with some modifications
 ## The goal is to be as close as possible to Rust standard formatter.
