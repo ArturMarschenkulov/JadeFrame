@@ -1,6 +1,13 @@
 set(PROJECT_NAME JadeFrame)
 
+# Add Vulkan
 find_package(Vulkan REQUIRED)
+
+# Add GLFW
+add_subdirectory(src/extern/glfw/)
+
+
+# Add ImGUI
 set(imgui_DIR 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/extern/imgui/
 )
@@ -10,7 +17,6 @@ include_directories(${imgui_DIR}
 )
 
 
-add_subdirectory(src/extern/glfw/)
 if(WIN32)
     set(imgui_platform_specific_sources
         ${imgui_DIR}/backends/imgui_impl_win32.h
@@ -165,20 +171,10 @@ target_precompile_headers(${PROJECT_NAME} PUBLIC
 # add_library(JF_MODULE_pch STATIC src/pch.cpp src/pch.h)
 # target_include_directories(JF_MODULE_pch INTERFACE src/)
 
-use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
-set(ROOT_NAMESPACE JadeFrame)
+# use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
+# set(ROOT_NAMESPACE JadeFrame)
 
-################################################################################
-# Output directory
-################################################################################
-# set_target_properties(${PROJECT_NAME} PROPERTIES
-#     OUTPUT_DIRECTORY_DEBUG   "${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/"
-#     OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/"
-# )
-# set_target_properties(${PROJECT_NAME} PROPERTIES
-#     INTERPROCEDURAL_OPTIMIZATION_RELEASE "TRUE"
-# )
-################################################################################
+#########################################################################
 # Include directories
 ################################################################################
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -218,9 +214,7 @@ if(MSVC)
         /std:c++latest;
         /sdl;
         /W3;
-        ${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT};
         -W4;
-        ${DEFAULT_CXX_EXCEPTION_HANDLING}
     )
 
 
@@ -257,14 +251,7 @@ if(MSVC)
         /SUBSYSTEM:CONSOLE
     )
 
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(${PROJECT_NAME} PRIVATE
-        -Wall 
-        -Wextra 
-        -Wpedantic 
-        # -Werror
-    )
-elseif(CMKAKE_CXX_COMPILER_ID STREQUAL "GNU")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(${PROJECT_NAME} PRIVATE
         -Wall 
         -Wextra 
