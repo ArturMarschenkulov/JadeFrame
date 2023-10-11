@@ -30,33 +30,33 @@ template<typename T, typename E>
 class Storage<T, E> {
 public:
     constexpr Storage(const Storage& o)
-        : m_has_value(o.m_has_value)
-        , m_value(o.m_value) {}
+        : m_value(o.m_value)
+        , m_has_value(o.m_has_value) {}
 
     constexpr Storage(Storage&& o)
-        : m_has_value(o.m_has_value)
-        , m_value(o.m_value) {
+        : m_value(o.m_value)
+        , m_has_value(o.m_has_value) {
         o.m_has_value = false;
         o.m_value = nullptr;
     }
 
     constexpr Storage(const T& v)
-        : m_has_value(true)
-        , m_value(&v) {}
+        : m_error(v)
+        , m_has_value(false) {}
 
     constexpr Storage(T&& v)
         requires(!std::is_lvalue_reference_v<T>)
-        : m_has_value(true)
-        , m_value(&v) {}
+        : m_error(v)
+        , m_has_value(false) {}
 
     constexpr Storage(details::ErrorTag, E& v)
-        : m_has_value(false)
-        , m_error(v) {}
+        : m_error(v)
+        , m_has_value(false) {}
 
     constexpr Storage(details::ErrorTag, E&& v)
         requires(!std::is_lvalue_reference_v<E>)
-        : m_has_value(false)
-        , m_error(v) {}
+        : m_error(v)
+        , m_has_value(false) {}
 
     constexpr ~Storage() {
         if (m_has_value) {

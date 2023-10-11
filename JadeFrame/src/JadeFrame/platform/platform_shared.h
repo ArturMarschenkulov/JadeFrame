@@ -146,6 +146,7 @@ public:
         bool         accept_drop_files = false;
     };
 
+    virtual ~IWindow() = default;
     virtual auto handle_events(bool& running)
         -> void = 0; // TODO: This is hacky. Fix it later
     virtual auto set_title(const std::string& title) -> void = 0;
@@ -157,6 +158,8 @@ public:
 
 class ISystemManager {
 public:
+
+    virtual ~ISystemManager() = default;
     virtual auto initialize() -> void = 0;
     virtual auto log() const -> void = 0;
 

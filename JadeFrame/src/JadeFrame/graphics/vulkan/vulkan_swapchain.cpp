@@ -25,10 +25,10 @@ static auto
 choose_surface_format(const std::vector<VkSurfaceFormatKHR>& available_surface_formats)
     -> VkSurfaceFormatKHR {
     for (u32 i = 0; i < available_surface_formats.size(); i++) {
-        if (available_surface_formats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
-            available_surface_formats[i].colorSpace ==
-                VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-            return available_surface_formats[i];
+        auto& format = available_surface_formats[i];
+        if (format.format == VK_FORMAT_B8G8R8A8_SRGB &&
+            format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            return format;
         }
     }
     return available_surface_formats[0];
@@ -43,8 +43,9 @@ choose_present_mode(const std::vector<VkPresentModeKHR>& available_surface_forma
         VK_PRESENT_MODE_IMMEDIATE_KHR};
     for (u32 i = 0; i < available_surface_formats.size(); i++) {
         for (u32 j = 0; j < mode_ranks.size(); j++) {
-            if (available_surface_formats[i] == mode_ranks[j]) {
-                const VkPresentModeKHR best_mode = available_surface_formats[i];
+            auto& format = available_surface_formats[i];
+            if (format == mode_ranks[j]) {
+                const VkPresentModeKHR best_mode = format;
                 return best_mode;
             }
         }

@@ -186,12 +186,10 @@ auto DescriptorSet::bind_uniform_buffer(
     );
 
     for (u32 i = 0; i < m_descriptors.size(); i++) {
-        if (m_layout->m_bindings[i].binding == binding) {
-            JF_ASSERT(
-                true == is_uniform(m_layout->m_bindings[i].descriptorType),
-                "type mismatch"
-            );
-            m_descriptors[i] = Descriptor(buffer, offset, range, m_layout->m_bindings[i]);
+        auto& l_binding = m_layout->m_bindings[i];
+        if (l_binding.binding == binding) {
+            JF_ASSERT(true == is_uniform(l_binding.descriptorType), "type mismatch");
+            m_descriptors[i] = Descriptor(buffer, offset, range, l_binding);
             return;
         }
     }

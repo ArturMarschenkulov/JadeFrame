@@ -140,15 +140,12 @@ inline constexpr auto Matrix4x4::operator[](const u32 index) const noexcept
 }
 
 inline /*constexpr*/ auto Matrix4x4::operator*(const v4& vector) const noexcept -> v4 {
-    v4 result;
-    result.x = el[0][0] * vector.x + el[1][0] * vector.y + el[2][0] * vector.z +
-               el[3][0] * vector.w;
-    result.y = el[0][1] * vector.x + el[1][1] * vector.y + el[2][1] * vector.z +
-               el[3][1] * vector.w;
-    result.z = el[0][2] * vector.x + el[1][2] * vector.y + el[2][2] * vector.z +
-               el[3][2] * vector.w;
-    result.w = el[0][3] * vector.x + el[1][3] * vector.y + el[2][3] * vector.z +
-               el[3][3] * vector.w;
+    v4    result;
+    auto& v = vector;
+    result.x = el[0][0] * v.x + el[1][0] * v.y + el[2][0] * v.z + el[3][0] * v.w;
+    result.y = el[0][1] * v.x + el[1][1] * v.y + el[2][1] * v.z + el[3][1] * v.w;
+    result.z = el[0][2] * v.x + el[1][2] * v.y + el[2][2] * v.z + el[3][2] * v.w;
+    result.w = el[0][3] * v.x + el[1][3] * v.y + el[2][3] * v.z + el[3][3] * v.w;
     return result;
 }
 
