@@ -41,11 +41,12 @@ public:
         o.m_pointer = nullptr;
     }
     constexpr Storage(const T& v)
-        : m_has_value(true)
-        , m_pointer(&v) {}
-    constexpr Storage(T&& v) requires(!std::is_lvalue_reference_v<T>)
-        : m_has_value(true)
-        , m_pointer(&v) {}
+        : m_pointer(&v)
+        , m_has_value(true) {}
+    constexpr Storage(T&& v)
+        requires(!std::is_lvalue_reference_v<T>)
+        : m_pointer(&v)
+        , m_has_value(true) {}
 
     constexpr ~Storage() {
         if (m_has_value) { m_pointer = nullptr; }
@@ -303,7 +304,7 @@ class Test {
 };
 static auto test2() -> void {
 
-    Option<int> a = Option<int>(333);
+    // Option<int> a = Option<int>(333);
 
     // Testing functions
     {

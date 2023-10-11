@@ -170,10 +170,10 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
         }
     } else {
         switch (type.basetype) {
-            if (columns == rows) {
-                JF_UNIMPLEMENTED("matrix types with different row and column count are not supported yet!");
-            }
             case spirv_cross::SPIRType::Float: {
+                if (columns == rows) {
+                    JF_UNIMPLEMENTED("matrix types with different row and column count are not supported yet!");
+                }
                 SHADER_TYPE arr[] = {SHADER_TYPE::M_2_2_F32, SHADER_TYPE::M_3_3_F32, SHADER_TYPE::M_4_4_F32};
 
                 result = arr[rows - 2];
