@@ -85,15 +85,6 @@ set(CMAKE_CONFIGURATION_TYPES
 
 set(CMAKE_BUILD_TYPE "Debug")
 
-################################################################################
-# Global compiler options
-################################################################################
-
-################################################################################
-# Global linker options
-################################################################################
-
-
 
 include(cmake/Utils.cmake) # Common utils
 include(cmake/GlobalSettingsInclude.cmake OPTIONAL) # Additional Global Settings(add specific info there)

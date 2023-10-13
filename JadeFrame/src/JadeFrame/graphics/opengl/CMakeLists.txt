@@ -56,11 +56,17 @@ target_link_libraries(GraphicsAPI_OpenGL
 target_compile_definitions(GraphicsAPI_OpenGL PRIVATE
     $<$<CONFIG:Debug>:_DEBUG>
     $<$<CONFIG:Release>:NDEBUG>
-    _CRT_SECURE_NO_WARNINGS
-    _CONSOLE
-    UNICODE
-    _UNICODE
 )
+# Add Windows-specific definitions
+if(WIN32)
+    target_compile_definitions(GraphicsAPI_OpenGL PRIVATE
+        _CRT_SECURE_NO_WARNINGS
+        _CONSOLE
+        UNICODE
+        _UNICODE
+    )
+endif()
+
 if(MSVC)
     target_compile_options(GraphicsAPI_OpenGL PRIVATE
         /EHsc
@@ -68,7 +74,7 @@ if(MSVC)
         /Od
         /W4
     )
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(GraphicsAPI_OpenGL PRIVATE
         -Wall 
         # -Weverything
@@ -77,6 +83,6 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         -Wpedantic 
         # -Werror
     )
-elseif(CMKAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    message(ERROR "GCC is not supported yet")
+else()
+    message(ERROR "${CMAKE_CXX_COMPILER_ID} is not supported yet")
 endif()

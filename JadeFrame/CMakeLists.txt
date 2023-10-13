@@ -194,11 +194,18 @@ include_directories(
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     $<$<CONFIG:Debug>:_DEBUG>
     $<$<CONFIG:Release>:NDEBUG>
+)
+
+if(WIN32)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        WIN32_LEAN_AND_MEAN
+        NOMINMAX
     _CRT_SECURE_NO_WARNINGS
     _CONSOLE
     UNICODE
     _UNICODE
 )
+endif()
 
 ################################################################################
 # Compile and link options
