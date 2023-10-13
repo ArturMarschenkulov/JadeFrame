@@ -402,8 +402,6 @@ public:
 public:
 };
 
-auto string_to_SPIRV(const std::string& code, SHADER_STAGE i, GRAPHICS_API api)
-    -> std::vector<u32>;
 struct MaterialHandle;
 struct TextureHandle;
 struct ShaderHandle;

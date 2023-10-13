@@ -36,6 +36,16 @@ static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
 
 namespace opengl {
 
+static auto convert_SPIRV_to_GLSL(const std::vector<u32>& spirv) -> std::string {
+    spirv_cross::CompilerGLSL glsl(spirv);
+    spirv_cross::CompilerGLSL::Options options;
+    options.version = 450;
+    options.es = false;
+    options.vulkan_semantics = true;
+    glsl.set_common_options(options);
+    return glsl.compile();
+}
+
 Shader::Shader(OpenGL_Context& context, const Desc& desc)
     : m_program()
     , m_vertex_shader(GL_VERTEX_SHADER)
@@ -47,20 +57,13 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
         "OpenGL Shaders must have 2 modules for right now"
     );
 
+#define JF_USE_SPIRV false
+#if JF_USE_SPIRV == false
     using SPIRV = std::vector<JadeFrame::u32>;
-
     std::array<std::string, 2> glsl_sources;
-    // from SPIRV to GLSL
-    spirv_cross::CompilerGLSL::Options options;
-    options.version = 450;
-    options.es = false;
-    options.vulkan_semantics = true;
     for (size_t i = 0; i < desc.code.m_modules.size(); i++) {
         auto& spirv = desc.code.m_modules[i].m_code;
-
-        spirv_cross::CompilerGLSL glsl(spirv);
-        glsl.set_common_options(options);
-        glsl_sources[i] = glsl.compile();
+        glsl_sources[i] = convert_SPIRV_to_GLSL(spirv);
     }
 
     m_vertex_source = glsl_sources[0];
@@ -71,26 +74,16 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
 
     m_fragment_shader.set_source(m_fragment_source);
     m_fragment_shader.compile();
+#else
+    // NOTE: On some machines the drives won't allow it!!
+    m_fragment_shader.set_binary(desc.code.m_modules[0].m_code);
+    m_fragment_shader.compile_binary();
 
-    // // NOTE: On some machines the drives won't allow it!!
-    // m_fragment_shader.set_binary(mfrag_shader_spirv);
-    // m_fragment_shader.compile_binary();
-
-    // m_vertex_shader.set_binary(mvert_shader_spirv);
-    // m_vertex_shader.compile_binary();
-
-    // ShadingCode code;
-    // code.m_modules.resize(2);
-    // code.m_modules[0].m_stage = desc.code.m_modules[0].m_stage;
-    // code.m_modules[0].m_code = s0.get();
-    // code.m_modules[1].m_stage = desc.code.m_modules[1].m_stage;
-    // code.m_modules[1].m_code = s1.get();
-
-    // auto s = reflect(code);
-
-    // std::vector<u32> vs =
-    //     string_to_SPIRV(vertex_shader.c_str(), desc.code.m_modules[0].m_stage,
-    //     GRAPHICS_API::OPENGL);
+    m_vertex_shader.set_binary(desc.code.m_modules[1].m_code);
+    m_vertex_shader.compile_binary();
+#endif
+#undef JF_USE_SPIRV
+    Logger::warn("OpenGL Shader compiled");
 
     // spirv_cross::CompilerGLSL glsl(spirvs[0]);
     // glsl.set_common_options(options);

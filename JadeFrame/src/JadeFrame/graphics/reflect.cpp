@@ -1,11 +1,7 @@
 #include "reflect.h"
+#include "graphics_language.h"
 
 #include "JadeFrame/utils/assert.h"
-
-JF_PRAGMA_PUSH
-#pragma warning(disable : 4006)
-#include "shaderc/shaderc.hpp"
-JF_PRAGMA_POP
 
 #include "SPIRV-Cross/spirv_glsl.hpp"
 #include "SPIRV-Cross/spirv_hlsl.hpp"
@@ -13,94 +9,6 @@ JF_PRAGMA_POP
 
 namespace JadeFrame {
 
-auto convert_SPIRV_to_opengl(const ShadingCode& code) -> ShadingCode {
-
-    spirv_cross::CompilerGLSL::Options options;
-    options.version = 450;
-    options.es = false;
-    options.vulkan_semantics = true;
-    spirv_cross::CompilerGLSL compiler =
-        spirv_cross::CompilerGLSL(code.m_modules[0].m_code);
-
-    compiler.set_common_options(options);
-    spirv_cross::ShaderResources resources = compiler.get_shader_resources();
-
-    std::array<std::vector<spirv_cross::Resource*>, 4> dd;
-    for (u32 j = 0; j < resources.uniform_buffers.size(); j++) {
-        spirv_cross::Resource& resource = resources.uniform_buffers[j];
-
-        u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-        u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-        JF_ASSERT(
-            set <= 3,
-            "As of right now, only 4 descriptor sets are supported. (0, 1, 2, 3)"
-        );
-
-        dd[set].push_back(&resource);
-    }
-
-    u32 binding = 0;
-    for (u32 i = 0; i < dd.size(); i++) {
-        for (u32 j = 0; j < dd[i].size(); j++) {
-            // compiler.unset_decoration(dd[i][j]->id, spv::DecorationDescriptorSet);
-            compiler.set_decoration(dd[i][j]->id, spv::DecorationDescriptorSet, 0);
-            compiler.set_decoration(dd[i][j]->id, spv::DecorationBinding, binding);
-            binding++;
-        }
-    }
-    auto source = compiler.compile();
-
-    auto new_code = code;
-    new_code.m_modules[0].m_code =
-        string_to_SPIRV(source, SHADER_STAGE::VERTEX, GRAPHICS_API::OPENGL);
-    return new_code;
-}
-
-auto string_to_SPIRV(const std::string& code, SHADER_STAGE stage, GRAPHICS_API api)
-    -> std::vector<u32> {
-    shaderc_shader_kind kind = {};
-    switch (stage) {
-        case SHADER_STAGE::VERTEX: {
-            kind = shaderc_vertex_shader;
-        } break;
-        case SHADER_STAGE::FRAGMENT: {
-            kind = shaderc_fragment_shader;
-        } break;
-        default: assert(false);
-    }
-
-    shaderc::CompileOptions options;
-    switch (api) {
-        case GRAPHICS_API::VULKAN: {
-            options.SetTargetEnvironment(
-                shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2
-            );
-        } break;
-        case GRAPHICS_API::OPENGL: {
-            options.SetTargetEnvironment(
-                shaderc_target_env_opengl, shaderc_env_version_opengl_4_5
-            );
-        } break;
-        default: JF_UNIMPLEMENTED("");
-    }
-    options.SetWarningsAsErrors();
-    options.SetGenerateDebugInfo();
-    const bool optimize = false;
-    if constexpr (optimize == true) {
-        options.SetOptimizationLevel(shaderc_optimization_level_size);
-    }
-    shaderc::Compiler             compiler;
-    shaderc::SpvCompilationResult comp_result =
-        compiler.CompileGlslToSpv(code, kind, "", options);
-    shaderc_compilation_status comp_status = comp_result.GetCompilationStatus();
-    if (comp_status != shaderc_compilation_status_success) {
-        assert(false);
-        return std::vector<u32>();
-    }
-
-    std::vector<u32> result = {comp_result.cbegin(), comp_result.cend()};
-    return result;
-}
 
 static auto debug_print_resources(const spirv_cross::ShaderResources& resources) -> void {
     Logger::info("printing shader resources");

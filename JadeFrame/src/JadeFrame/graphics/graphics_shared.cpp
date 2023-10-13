@@ -4,6 +4,7 @@
 #include "vulkan/vulkan_renderer.h"
 #include "vulkan/vulkan_shader.h"
 #include "opengl/opengl_renderer.h"
+#include "graphics_language.h"
 
 #include "JadeFrame/utils/assert.h"
 #include "reflect.h"
@@ -401,14 +402,36 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
     m_registered_shaders[id].m_code = shader_desc.shading_code;
     m_registered_shaders[id].m_vertex_format = shader_desc.vertex_format;
     m_registered_shaders[id].m_api = m_api;
-
+    // Right now all shaders are internally stored as SPIRV, usually coming from GLSL.
+    // Even if in the end one ends up using GLSL code again, it always has this
+    // intermediate step of being converted to SPIRV.
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
             OpenGL_Renderer* ren = static_cast<OpenGL_Renderer*>(m_renderer);
             auto             ctx = (OpenGL_Context*)&ren->m_context;
 
             opengl::Shader::Desc shader_desc;
-            shader_desc.code = convert_SPIRV_to_opengl(m_registered_shaders[id].m_code);
+#if 0
+            shader_desc.code =
+                remap_SPIRV_bindings_for_opengl(m_registered_shaders[id].m_code);
+#else
+            ShadingCode::Module module_0;
+            module_0.m_code = remap_SPIRV_bindings_for_opengl(
+                m_registered_shaders[id].m_code.m_modules[0].m_code, SHADER_STAGE::VERTEX
+            );
+            module_0.m_stage = SHADER_STAGE::VERTEX;
+
+            ShadingCode::Module module_1;
+            module_1.m_code = remap_SPIRV_bindings_for_opengl(
+                m_registered_shaders[id].m_code.m_modules[1].m_code, SHADER_STAGE::FRAGMENT
+            );
+            module_1.m_stage = SHADER_STAGE::FRAGMENT;
+
+            shader_desc.code.m_modules.resize(2);
+            shader_desc.code.m_modules[0] = std::move(module_0);
+            shader_desc.code.m_modules[1] = std::move(module_1);
+
+#endif
             shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
 
             opengl::Shader* shader = new opengl::Shader(*ctx, shader_desc);

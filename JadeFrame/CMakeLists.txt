@@ -103,6 +103,8 @@ set(Files_Graphics
     "src/JadeFrame/graphics/shader_loader.cpp"
     "src/JadeFrame/graphics/reflect.h"
     "src/JadeFrame/graphics/reflect.cpp"
+    "src/JadeFrame/graphics/graphics_language.h"
+    "src/JadeFrame/graphics/graphics_language.cpp"
 
 
     "src/JadeFrame/graphics/software/software_renderer.h"
