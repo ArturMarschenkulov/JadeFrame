@@ -14,6 +14,7 @@ namespace JadeFrame {
 struct Vertex;
 
 class OpenGL_Context;
+
 namespace opengl {
 
 class Buffer {
@@ -43,6 +44,7 @@ private:
     auto alloc(const std::initializer_list<U>& data) const -> void {
         this->alloc((void*)data.begin(), data.size() * sizeof(U));
     }
+
     template<typename U>
     auto alloc(const std::vector<U>& data) const -> void {
         this->alloc((void*)data.data(), data.size() * sizeof(U));
@@ -50,7 +52,6 @@ private:
 
 public:
     auto write(const void* data, GLint offset, GLuint size) const -> void;
-
 
     template<typename U>
     auto write(const std::initializer_list<U>& data) const -> void {
@@ -66,6 +67,7 @@ private:
         m_id = 0;
         return id;
     }
+
     auto reset(GLuint id = 0) -> void {
         glDeleteBuffers(1, &m_id);
         m_id = id;
@@ -91,7 +93,11 @@ public:
     auto operator=(GPUMeshData&& other) -> GPUMeshData&;
 
     GPUMeshData(
-        OpenGL_Context& context, const VertexData& vertex_data, VertexFormat vertex_format, bool interleaved = true);
+        OpenGL_Context&   context,
+        const VertexData& vertex_data,
+        VertexFormat      vertex_format,
+        bool              interleaved = true
+    );
 
 public: // private:
     Buffer*      m_vertex_buffer;

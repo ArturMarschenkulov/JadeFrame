@@ -3,8 +3,13 @@
 
 namespace JadeFrame {
 
-auto Camera::perspective_mode(const v3& position, const f32 fov, const f32 aspect, const f32 zNear, const f32 zFar)
-    -> void {
+auto Camera::perspective_mode(
+    const v3& position,
+    const f32 fov,
+    const f32 aspect,
+    const f32 zNear,
+    const f32 zFar
+) -> void {
     m_mode = MODE::PERSPECTIVE;
     m_position = position;
     m_forward = {0.0f, 1.0f, 0.0f};  // y is forward
@@ -18,14 +23,21 @@ auto Camera::perspective_mode(const v3& position, const f32 fov, const f32 aspec
     m_far = zFar;
 }
 
-auto Camera::orthographic_mode(f32 left, f32 right, f32 bottom, f32 top, f32 near_, f32 far_) -> void {
+auto Camera::orthographic_mode(
+    f32 left,
+    f32 right,
+    f32 bottom,
+    f32 top,
+    f32 near_,
+    f32 far_
+) -> void {
     assert(left != right);
     assert(bottom != top);
     assert(near_ != far_);
 
-
     m_mode = MODE::ORTHOGRAPHIC;
-    m_projection_matrix = Matrix4x4::orthogonal_projection(left, right, bottom, top, near_, far_);
+    m_projection_matrix =
+        Matrix4x4::orthogonal_projection(left, right, bottom, top, near_, far_);
 
     m_position = {0.0f, 0.0f, 0.0f};
 
@@ -36,6 +48,7 @@ auto Camera::orthographic_mode(f32 left, f32 right, f32 bottom, f32 top, f32 nea
 }
 
 auto Camera::get_projection() const -> Matrix4x4 { return m_projection_matrix; }
+
 auto Camera::get_view() const -> Matrix4x4 {
     return Matrix4x4::look_at(m_position, m_position + m_forward, m_up);
 }

@@ -16,9 +16,9 @@
 #include <map>
 
 #ifdef _WIN32
-#include "JadeFrame/platform/windows/windows_window.h"
+    #include "JadeFrame/platform/windows/windows_window.h"
 #elif __linux__
-#include "JadeFrame/platform/linux/linux_window.h"
+    #include "JadeFrame/platform/linux/linux_window.h"
 #endif
 
 namespace JadeFrame {
@@ -34,23 +34,22 @@ struct OpenGL_Material {
     opengl::Shader*        m_shader = nullptr;
 };
 
-
-
-
 struct OpenGL_RenderCommand {
-    const Matrix4x4*         transform = nullptr;
-    const VertexData*        vertex_data = nullptr;
-    MaterialHandle           material_handle = {0, 0};
-    const u32                m_GPU_mesh_data_id = 0;
+    const Matrix4x4*  transform = nullptr;
+    const VertexData* vertex_data = nullptr;
+    MaterialHandle    material_handle = {0, 0};
+    const u32         m_GPU_mesh_data_id = 0;
 };
+
 class OpenGL_CommandBuffer {
 public:
-    // auto push(const Mesh& mesh, const OpenGL_Material& material, const Matrix4x4& tranform, const OpenGL_VertexArray&
-    // vertex_array) -> void;
+    // auto push(const Mesh& mesh, const OpenGL_Material& material, const Matrix4x4&
+    // tranform, const OpenGL_VertexArray& vertex_array) -> void;
     std::vector<OpenGL_RenderCommand> m_render_commands;
 };
 
 class RenderSystem;
+
 class OpenGL_Renderer : public IRenderer {
 public:
     OpenGL_Renderer(RenderSystem& system, const IWindow* window);
@@ -64,14 +63,13 @@ public:
     virtual auto set_clear_color(const RGBAColor& color) -> void override;
     virtual auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void override;
 
-
     virtual auto take_screenshot(const char* filename) -> void override;
 
-
-
-
 private:
-    auto render_mesh(const opengl::GPUMeshData* buffer_data, const VertexData* vertex_data) const -> void;
+    auto render_mesh(
+        const opengl::GPUMeshData* buffer_data,
+        const VertexData*          vertex_data
+    ) const -> void;
 
 public:
     OpenGL_Context                           m_context;
@@ -92,6 +90,7 @@ public:
     std::vector<opengl::Buffer*>  m_uniform_buffers;
     std::array<opengl::Buffer, 4> m_descriptor_sets;
 };
+
 static_assert(is_renderer<OpenGL_Renderer>);
 
 } // namespace JadeFrame

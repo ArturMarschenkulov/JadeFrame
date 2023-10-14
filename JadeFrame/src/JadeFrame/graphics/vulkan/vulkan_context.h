@@ -5,9 +5,7 @@
 #include "vulkan_logical_device.h"
 #include <vector>
 
-
 namespace JadeFrame {
-
 
 class IWindow;
 
@@ -15,7 +13,6 @@ namespace vulkan {
 class PhysicalDevice;
 
 class Instance {
-
 
 public:
     Instance() = default;
@@ -33,7 +30,9 @@ private:
     auto query_extensions() -> std::vector<VkExtensionProperties>;
     auto query_physical_devices() -> std::vector<vulkan::PhysicalDevice>;
     auto setup_debug() -> void;
-    auto check_validation_layer_support(const std::vector<VkLayerProperties>& available_layers) -> bool;
+    auto
+    check_validation_layer_support(const std::vector<VkLayerProperties>& available_layers)
+        -> bool;
 
     auto create_surface(const IWindow* window_handle) -> vulkan::Surface;
 

@@ -18,7 +18,7 @@
 #include <iostream>
 #include <string>
 #include <cstring>
-//#include <format>
+// #include <format>
 
 #include <cassert>
 
@@ -32,12 +32,10 @@
 
 // Windows
 #if defined _WIN32
-#include <Windows.h>
+    #include <Windows.h>
 #endif
 
 #include "JadeFrame/prelude.h"
-
-
 
 // Graphics API specific
 // JF_PRAGMA_PUSH
@@ -50,11 +48,11 @@
 // JF_PRAGMA_POP
 
 #if defined _WIN32
-#define VK_USE_PLATFORM_WIN32_KHR
+    #define VK_USE_PLATFORM_WIN32_KHR
 
 #endif
 
 // #include <vulkan/vulkan.h>
 // JadeFrame specific
 
-//#include "JadeFrame/utils/logger.h"
+// #include "JadeFrame/utils/logger.h"

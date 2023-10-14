@@ -12,17 +12,21 @@ namespace win32 {
 struct EventMessage;
 
 struct Event {};
+
 struct KeyEvent : public Event {
     enum class TYPE {
         PRESSED,
         RELEASED
     };
+
     KeyEvent(const TYPE type, const u64 key_code)
         : type(type)
         , key_code(key_code) {}
+
     TYPE type;
     u64  key_code;
 };
+
 class InputManager : public IInputManager {
     friend class WinWindow;
 
@@ -58,9 +62,11 @@ public:
     auto is_button_released(const BUTTON button) const -> bool;
     auto get_mouse_position() const -> v2;
 
-    static std::array<INPUT_STATE, static_cast<u32>(BUTTON::MAX)> m_current_mouse_button_state;
-    static std::array<INPUT_STATE, static_cast<u32>(BUTTON::MAX)> m_previous_mouse_button_state;
-    static v2                                                     m_mouse_posiition;
+    static std::array<INPUT_STATE, static_cast<u32>(BUTTON::MAX)>
+        m_current_mouse_button_state;
+    static std::array<INPUT_STATE, static_cast<u32>(BUTTON::MAX)>
+              m_previous_mouse_button_state;
+    static v2 m_mouse_posiition;
 };
 } // namespace win32
 #ifdef _WIN32

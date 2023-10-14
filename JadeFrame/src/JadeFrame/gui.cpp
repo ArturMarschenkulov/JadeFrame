@@ -5,24 +5,22 @@
 #include "imgui/backends/imgui_impl_vulkan.h"
 
 #if defined(_WIN32)
-#include "imgui/backends/imgui_impl_win32.h"
-#include "JadeFrame/platform/windows/windows_window.h"
+    #include "imgui/backends/imgui_impl_win32.h"
+    #include "JadeFrame/platform/windows/windows_window.h"
 #elif defined(__linux__)
-#include "imgui/backends/imgui_impl_x11.h"
+    #include "imgui/backends/imgui_impl_x11.h"
 #endif
-
-
-
 
 /*
     The `imgui` repo does not have a linux/x11/wayland backend. One can use `glfw`,
-    but that means that we'd have to integrate `glfw` into the engine, which is not optimal.
+    but that means that we'd have to integrate `glfw` into the engine, which is not
+   optimal.
 
 
-    This means that we'll have to write our own. There are some attempts in the wild already.
-    For now, I will collect various links to such resources so that I can write my own x11/wayland backend.
-    https://github.com/ocornut/imgui/pull/3372
-    https://github.com/ocornut/imgui/issues/4224
+    This means that we'll have to write our own. There are some attempts in the wild
+   already. For now, I will collect various links to such resources so that I can write my
+   own x11/wayland backend. https://github.com/ocornut/imgui/pull/3372
+   https://github.com/ocornut/imgui/issues/4224
 
 */
 
@@ -53,9 +51,8 @@ auto GUI::init(IWindow* window, GRAPHICS_API api) -> void {
             // info.Subpass;
             // info.MinImageCount; // >= 2
             // info.ImageCount;    // >= MinImageCount
-            // info.MSAASamples;   // >= VK_SAMPLE_COUNT_1_BIT (0 -> default to VK_SAMPLE_COUNT_1_BIT)
-            // info.Allocator;
-            // info.CheckVkResultFn;
+            // info.MSAASamples;   // >= VK_SAMPLE_COUNT_1_BIT (0 -> default to
+            // VK_SAMPLE_COUNT_1_BIT) info.Allocator; info.CheckVkResultFn;
 
             // ImGui_ImplVulkan_Init(&info);
             // ImGui_ImplOpenGL3_Init(glsl_version);
@@ -75,12 +72,14 @@ auto GUI::new_frame() -> void {
 
     ImGui::NewFrame();
 }
+
 auto GUI::render() -> void {
 
     ImGui::Text("Hello, world %d", 123);
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
+
 auto GUI::destroy() -> void {
     ImGui_ImplOpenGL3_Shutdown();
 #if _WIN32

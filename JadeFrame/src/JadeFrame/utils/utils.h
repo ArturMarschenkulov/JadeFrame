@@ -39,13 +39,14 @@ using Scope = std::unique_ptr<T>;
 template<typename T>
 auto make_scope(T* obj) -> Scope<T> {
     return std::make_unique<T>(obj);
-};
+}
 
 template<typename T>
 using Ref = std::shared_ptr<T>;
+
 template<typename T>
 auto make_ref(T* obj) -> Ref<T> {
     return std::make_shared<T>(obj);
-};
+}
 
 } // namespace JadeFrame

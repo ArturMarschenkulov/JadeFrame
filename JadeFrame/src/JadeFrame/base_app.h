@@ -1,13 +1,13 @@
 #pragma once
 
 #if _WIN32 || _WIN64
-#include "JadeFrame/platform/windows/windows_input_manager.h"
-#include "JadeFrame/platform/windows/windows_system_manager.h"
-#include "JadeFrame/platform/windows/windows_window.h"
+    #include "JadeFrame/platform/windows/windows_input_manager.h"
+    #include "JadeFrame/platform/windows/windows_system_manager.h"
+    #include "JadeFrame/platform/windows/windows_window.h"
 #elif __linux__
-#include "JadeFrame/platform/linux/linux_input_manager.h"
-#include "JadeFrame/platform/linux/linux_system_manager.h"
-#include "JadeFrame/platform/linux/linux_window.h"
+    #include "JadeFrame/platform/linux/linux_input_manager.h"
+    #include "JadeFrame/platform/linux/linux_system_manager.h"
+    #include "JadeFrame/platform/linux/linux_window.h"
 #endif
 #include "JadeFrame/utils/logger.h"
 #include "JadeFrame/math/vec.h"
@@ -43,7 +43,6 @@ using InputManager = Linux_InputManager;
 class BaseApp;
 class IRenderer;
 
-
 /*
     This is the storage of various resources which should be accessible
     "globally" in JadeFrame.
@@ -60,8 +59,11 @@ public:
         // m_shaders.insert({ name, shader });
         m_shader_handles.emplace(name, std::move(shader));
     }
+
     auto get_shader_handle(const std::string& name) -> ShaderHandle& {
-        if (m_shader_handles.find(name) != m_shader_handles.end()) { return m_shader_handles.at(name); }
+        if (m_shader_handles.find(name) != m_shader_handles.end()) {
+            return m_shader_handles.at(name);
+        }
         assert(false);
         return m_shader_handles.at(name);
     }
@@ -72,20 +74,27 @@ public:
     //     // m_texture_handles.emplace(name, std::move(texture));
     // }
     auto get_texture_handle(const std::string& name) -> TextureHandle& {
-        if (m_texture_handles.find(name) != m_texture_handles.end()) { return m_texture_handles.at(name); }
+        if (m_texture_handles.find(name) != m_texture_handles.end()) {
+            return m_texture_handles.at(name);
+        }
         assert(false);
         return m_texture_handles.at(name);
     }
 
     auto set_material_handle(
-        const std::string& material_name, const std::string& shader_name, const std::string& texture_name) -> void {
+        const std::string& material_name,
+        const std::string& shader_name,
+        const std::string& texture_name
+    ) -> void {
 
         if (m_shader_handles.find(shader_name) != m_shader_handles.end()) {
-            // m_material_handles[material_name].m_shader_handle = &m_shader_handles[shader_name];
+            // m_material_handles[material_name].m_shader_handle =
+            // &m_shader_handles[shader_name];
             if (m_texture_handles.find(texture_name) != m_texture_handles.end()) {
                 Logger::err("shoudln#t be reachable!!!!!!");
                 assert(false);
-                // m_material_handles[material_name].m_texture_handle = &m_texture_handles[texture_name];
+                // m_material_handles[material_name].m_texture_handle =
+                // &m_texture_handles[texture_name];
                 return;
             } else if (texture_name == "") {
                 return;
@@ -93,8 +102,11 @@ public:
         }
         assert(false);
     }
+
     auto get_material_handle(const std::string& name) -> MaterialHandle& {
-        if (m_material_handles.find(name) != m_material_handles.end()) { return m_material_handles.at(name); }
+        if (m_material_handles.find(name) != m_material_handles.end()) {
+            return m_material_handles.at(name);
+        }
         assert(false);
         return m_material_handles.at(name);
     }
@@ -102,6 +114,7 @@ public:
     auto set_mesh(const std::string& name, const VertexData& vertex_data) -> void {
         m_meshes.emplace(name, std::move(vertex_data));
     }
+
     auto get_mesh(const std::string& name) -> VertexData& {
         if (m_meshes.find(name) != m_meshes.end()) { return m_meshes.at(name); }
         assert(false);
@@ -123,6 +136,7 @@ public:
         v2u32        position = {0, 0};
         GRAPHICS_API api;
     };
+
     BaseApp() = default;
     BaseApp(const Desc& desc);
     virtual ~BaseApp() = default;
@@ -154,8 +168,8 @@ public:
 };
 
 /*
-    The instance is JadeFrames global scope, so to say. It can also be regarded as the first place to put stuff if one
-   does not know where to put it.
+    The instance is JadeFrames global scope, so to say. It can also be regarded as the
+   first place to put stuff if one does not know where to put it.
 */
 struct CompilerInfo {
     struct Version {
@@ -163,9 +177,11 @@ struct CompilerInfo {
         int minor;
         int patch;
     };
+
     const char* name;
     Version     version;
 };
+
 class Instance {
 public:
     Instance();
@@ -176,7 +192,6 @@ public:
 
     Instance(Instance&&) = delete;
     auto operator=(Instance&&) -> Instance& = delete;
-
 
     auto        run() -> void;
     static auto get_singleton() -> Instance*;
@@ -204,14 +219,13 @@ public:
     SystemManager m_system_manager;
     InputManager  m_input_manager;
 
-    std::deque<BaseApp*> m_apps; // TODO: Consider whether there should be support for multiple apps
+    std::deque<BaseApp*>
+        m_apps; // TODO: Consider whether there should be support for multiple apps
     // std::deque<BaseApp> m_apps;
 
     BaseApp* m_current_app_p = nullptr;
 
     static Instance* m_singleton;
 };
-
-
 
 } // namespace JadeFrame

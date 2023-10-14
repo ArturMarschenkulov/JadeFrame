@@ -12,7 +12,6 @@ namespace JadeFrame {
 
 namespace vulkan {
 
-
 /*---------------------------
     Command Buffer
 ---------------------------*/
@@ -28,6 +27,7 @@ CommandBuffer::CommandBuffer(CommandBuffer&& other) {
     other.m_command_pool = nullptr;
     other.m_stage = STAGE::INVALID;
 }
+
 auto CommandBuffer::operator=(CommandBuffer&& other) -> CommandBuffer& {
     this->m_handle = other.m_handle;
     this->m_alloc_info = other.m_alloc_info;
@@ -41,7 +41,6 @@ auto CommandBuffer::operator=(CommandBuffer&& other) -> CommandBuffer& {
     other.m_stage = STAGE::INVALID;
     return *this;
 }
-
 
 auto CommandBuffer::record_begin() -> void {
     VkResult                       result;
@@ -64,8 +63,11 @@ auto CommandBuffer::record_end() -> void {
 }
 
 auto CommandBuffer::render_pass_begin(
-    const Framebuffer& framebuffer, const RenderPass& render_pass, const VkExtent2D& extent, VkClearValue clear_color)
-    -> void {
+    const Framebuffer& framebuffer,
+    const RenderPass&  render_pass,
+    const VkExtent2D&  extent,
+    VkClearValue       clear_color
+) -> void {
     const VkRenderPassBeginInfo render_pass_info = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .renderPass = render_pass.m_handle,
@@ -84,7 +86,6 @@ auto CommandBuffer::render_pass_begin(
 
 auto CommandBuffer::render_pass_end() -> void { vkCmdEndRenderPass(m_handle); }
 
-
 auto CommandBuffer::reset() -> void {
     VkResult                  result;
     VkCommandBufferResetFlags flags = {};
@@ -93,12 +94,19 @@ auto CommandBuffer::reset() -> void {
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
-auto CommandBuffer::copy_buffer(const Buffer& src, const Buffer& dst, u32 region_size, VkBufferCopy* regions) -> void {
+auto CommandBuffer::copy_buffer(
+    const Buffer& src,
+    const Buffer& dst,
+    u32           region_size,
+    VkBufferCopy* regions
+) -> void {
     vkCmdCopyBuffer(m_handle, src.m_handle, dst.m_handle, region_size, regions);
 }
 
-
-auto CommandBuffer::bind_pipeline(const VkPipelineBindPoint bind_point, const Pipeline& pipeline) -> void {
+auto CommandBuffer::bind_pipeline(
+    const VkPipelineBindPoint bind_point,
+    const Pipeline&           pipeline
+) -> void {
     vkCmdBindPipeline(
         m_handle,         // commandBuffer
         bind_point,       // pipelineBindPoint
@@ -107,7 +115,11 @@ auto CommandBuffer::bind_pipeline(const VkPipelineBindPoint bind_point, const Pi
 }
 
 auto CommandBuffer::bind_vertex_buffers(
-    u32 first_binding, u32 binding_count, const VkBuffer* buffers, const VkDeviceSize* offsets) -> void {
+    u32                 first_binding,
+    u32                 binding_count,
+    const VkBuffer*     buffers,
+    const VkDeviceSize* offsets
+) -> void {
     vkCmdBindVertexBuffers(
         m_handle,      // commandBuffer
         first_binding, // firstBinding
@@ -118,17 +130,21 @@ auto CommandBuffer::bind_vertex_buffers(
 }
 
 auto CommandBuffer::bind_descriptor_sets(
-    const VkPipelineBindPoint bind_point, const Pipeline& pipeline, u32 first_set, const DescriptorSet& descriptor_set,
-    const u32* offset) -> void {
+    const VkPipelineBindPoint bind_point,
+    const Pipeline&           pipeline,
+    u32                       first_set,
+    const DescriptorSet&      descriptor_set,
+    const u32*                offset
+) -> void {
 
     // JF_ASSERT(descriptor_set_count == descriptor_set.m_descriptors.size(), "");
 
     vkCmdBindDescriptorSets(
-        m_handle,                                 // commandBuffer
-        bind_point,                               // pipelineBindPoint
-        pipeline.m_layout.m_handle,               // layout
-        first_set,                                // firstSet
-        1,                                        // descriptor_set.m_descriptors.size(),      // descriptorSetCount
+        m_handle,                   // commandBuffer
+        bind_point,                 // pipelineBindPoint
+        pipeline.m_layout.m_handle, // layout
+        first_set,                  // firstSet
+        1, // descriptor_set.m_descriptors.size(),      // descriptorSetCount
         &descriptor_set.m_handle,                 // pDescriptorSets
         descriptor_set.m_layout->m_dynamic_count, // dynamicOffsetCount
         offset                                    // pDynamicOffsets
@@ -144,7 +160,12 @@ auto CommandBuffer::bind_index_buffer(const Buffer& buffer, VkDeviceSize offset)
     );
 }
 
-auto CommandBuffer::draw(u32 vertex_count, u32 instance_count, u32 first_vertex, u32 first_instance) -> void {
+auto CommandBuffer::draw(
+    u32 vertex_count,
+    u32 instance_count,
+    u32 first_vertex,
+    u32 first_instance
+) -> void {
     vkCmdDraw(
         m_handle,       // commandBuffer
         vertex_count,   // vertexCount
@@ -153,8 +174,14 @@ auto CommandBuffer::draw(u32 vertex_count, u32 instance_count, u32 first_vertex,
         first_instance  // firstInstance
     );
 }
+
 auto CommandBuffer::draw_indexed(
-    u32 index_count, u32 instance_count, u32 first_index, u32 vertex_offset, u32 first_instance) -> void {
+    u32 index_count,
+    u32 instance_count,
+    u32 first_index,
+    u32 vertex_offset,
+    u32 first_instance
+) -> void {
     vkCmdDrawIndexed(
         m_handle,       // commandBuffer
         index_count,    // indexCount
@@ -165,10 +192,13 @@ auto CommandBuffer::draw_indexed(
     );
 }
 
-static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFlags& flag) -> std::string {
+static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFlags& flag)
+    -> std::string {
     std::string result = "{ ";
     if (flag & VK_COMMAND_POOL_CREATE_TRANSIENT_BIT) { result += "TRANSIENT "; }
-    if (flag & VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT) { result += "RESET_COMMAND_BUFFER "; }
+    if (flag & VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT) {
+        result += "RESET_COMMAND_BUFFER ";
+    }
     if (flag & VK_COMMAND_POOL_CREATE_PROTECTED_BIT) { result += "PROTECTED "; }
     result += "}";
     return result;
@@ -178,7 +208,6 @@ static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFl
     Command Pool
 ---------------------------*/
 
-
 CommandPool::CommandPool(CommandPool&& other) {
     this->m_handle = other.m_handle;
     this->m_create_info = other.m_create_info;
@@ -187,6 +216,7 @@ CommandPool::CommandPool(CommandPool&& other) {
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = nullptr;
 }
+
 auto CommandPool::operator=(CommandPool&& other) -> CommandPool& {
     if (this != &other) {
         this->m_handle = other.m_handle;
@@ -200,7 +230,10 @@ auto CommandPool::operator=(CommandPool&& other) -> CommandPool& {
     return *this;
 }
 
-CommandPool::CommandPool(const LogicalDevice& device, const QueueFamilyIndex& queue_family_index) {
+CommandPool::CommandPool(
+    const LogicalDevice&    device,
+    const QueueFamilyIndex& queue_family_index
+) {
     m_device = &device;
     VkResult result;
 
@@ -208,21 +241,28 @@ CommandPool::CommandPool(const LogicalDevice& device, const QueueFamilyIndex& qu
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         .pNext = nullptr,
         .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, // Optional
-        .queueFamilyIndex = queue_family_index /*queue_family_indices.m_graphics_family.unwrap()*/,
+        .queueFamilyIndex =
+            queue_family_index /*queue_family_indices.m_graphics_family.unwrap()*/,
     };
 
-    result = vkCreateCommandPool(device.m_handle, &pool_info, Instance::allocator(), &m_handle);
+    result = vkCreateCommandPool(
+        device.m_handle, &pool_info, Instance::allocator(), &m_handle
+    );
     JF_ASSERT(result == VK_SUCCESS, "");
     {
         Logger::info("Created Command Pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
-        Logger::info("-flags: {}", to_string_from_command_pool_create_flags(pool_info.flags));
+        Logger::info(
+            "-flags: {}", to_string_from_command_pool_create_flags(pool_info.flags)
+        );
         Logger::info("-queueFamilyIndex: {}", pool_info.queueFamilyIndex);
     }
     m_create_info = pool_info;
 }
 
 CommandPool::~CommandPool() {
-    if (m_handle != VK_NULL_HANDLE) { vkDestroyCommandPool(m_device->m_handle, m_handle, Instance::allocator()); }
+    if (m_handle != VK_NULL_HANDLE) {
+        vkDestroyCommandPool(m_device->m_handle, m_handle, Instance::allocator());
+    }
 }
 
 auto CommandPool::allocate_buffers(u32 amount) const -> std::vector<CommandBuffer> {
@@ -240,7 +280,11 @@ auto CommandPool::allocate_buffers(u32 amount) const -> std::vector<CommandBuffe
     JF_ASSERT(result == VK_SUCCESS, "");
     {
         Logger::info(
-            "Allocated {} Command Buffers to {} from pool {}", amount, fmt::ptr(*handles.data()), fmt::ptr(m_handle));
+            "Allocated {} Command Buffers to {} from pool {}",
+            amount,
+            fmt::ptr(*handles.data()),
+            fmt::ptr(m_handle)
+        );
     }
 
     std::vector<CommandBuffer> command_buffers(handles.size());
@@ -253,16 +297,36 @@ auto CommandPool::allocate_buffers(u32 amount) const -> std::vector<CommandBuffe
     }
     return command_buffers;
 }
-auto CommandPool::allocate_buffer() const -> CommandBuffer { return std::move(this->allocate_buffers(1)[0]); }
-auto CommandPool::free_buffers(const std::vector<CommandBuffer>& command_buffers) const -> void {
+
+auto CommandPool::allocate_buffer() const -> CommandBuffer {
+    return std::move(this->allocate_buffers(1)[0]);
+}
+
+auto CommandPool::free_buffers(const std::vector<CommandBuffer>& command_buffers) const
+    -> void {
     for (u32 i = 0; i < command_buffers.size(); i++) {
-        vkFreeCommandBuffers(m_device->m_handle, m_handle, 1, &command_buffers[i].m_handle);
-        { Logger::info("Freed Command Buffer {} from {}", fmt::ptr(command_buffers[i].m_handle), fmt::ptr(m_handle)); }
+        vkFreeCommandBuffers(
+            m_device->m_handle, m_handle, 1, &command_buffers[i].m_handle
+        );
+        {
+            Logger::info(
+                "Freed Command Buffer {} from {}",
+                fmt::ptr(command_buffers[i].m_handle),
+                fmt::ptr(m_handle)
+            );
+        }
     }
 }
+
 auto CommandPool::free_buffer(const CommandBuffer& command_buffer) const -> void {
     vkFreeCommandBuffers(m_device->m_handle, m_handle, 1, &command_buffer.m_handle);
-    { Logger::info("Freed Command Buffer {} from {}", fmt::ptr(command_buffer.m_handle), fmt::ptr(m_handle)); }
+    {
+        Logger::info(
+            "Freed Command Buffer {} from {}",
+            fmt::ptr(command_buffer.m_handle),
+            fmt::ptr(m_handle)
+        );
+    }
 }
 } // namespace vulkan
 } // namespace JadeFrame

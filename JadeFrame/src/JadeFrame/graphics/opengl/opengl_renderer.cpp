@@ -6,7 +6,7 @@
 // #include "graphics/vulkan/vulkan_renderer.h"
 
 #ifdef _WIN32
-#include "Windows.h"
+    #include "Windows.h"
 #endif
 
 #include <cassert>
@@ -20,16 +20,42 @@
 namespace JadeFrame {
 namespace gl {}
 
-auto OpenGL_Renderer::set_clear_color(const RGBAColor& color) -> void { m_context.m_state.set_clear_color(color); }
+auto OpenGL_Renderer::set_clear_color(const RGBAColor& color) -> void {
+    m_context.m_state.set_clear_color(color);
+}
 
 auto OpenGL_Renderer::clear_background() -> void {
     GLbitfield bitfield = m_context.m_state.clear_bitfield;
     glClear(bitfield);
 }
+
 auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void {
     m_context.m_state.set_viewport(x, y, width, height);
 }
+
+static auto framebuffer_res_to_str(GLenum e) -> const char* {
+    switch (e) {
+        case GL_FRAMEBUFFER_UNDEFINED: return "GL_FRAMEBUFFER_UNDEFINED";
+        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+            return "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
+        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+            return "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
+        case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+            return "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER";
+        case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+            return "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER";
+        case GL_FRAMEBUFFER_UNSUPPORTED: return "GL_FRAMEBUFFER_UNSUPPORTED";
+        case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+            return "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE";
+        case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+            return "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS";
+        case GL_FRAMEBUFFER_COMPLETE: return "GL_FRAMEBUFFER_COMPLETE";
+        default: return "UNKNOWN";
+    }
+}
+
 #define JF_FB 1
+
 OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     : m_context(window) {
     m_system = &system;
@@ -50,21 +76,25 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
         fb.m_renderbuffer->store(GL_DEPTH24_STENCIL8, size.x, size.y);
 
         fb.m_framebuffer->attach_texture(opengl::ATTACHMENT::COLOR, 0, *fb.m_texture);
-        fb.m_framebuffer->attach_renderbuffer(opengl::ATTACHMENT::DEPTH_STENCIL, 0, *fb.m_renderbuffer);
-
+        fb.m_framebuffer->attach_renderbuffer(
+            opengl::ATTACHMENT::DEPTH_STENCIL, 0, *fb.m_renderbuffer
+        );
 
         const GLenum res = fb.m_framebuffer->check_status();
         if (res != GL_FRAMEBUFFER_COMPLETE) {
-            Logger::err("OpenGL_Renderer::OpenGL_Renderer: Framebuffer is not complete");
-            assert(false);
+            Logger::err(
+                "OpenGL_Renderer::OpenGL_Renderer: Framebuffer is not complete, status: "
+                "{}",
+                framebuffer_res_to_str(res)
+            );
+            // assert(false);
         }
     }
 
-
-
     VertexData::Desc vdf_desc;
     vdf_desc.has_normals = false;
-    VertexData vertex_data = VertexData::make_rectangle({-1.0f, -1.0f, 0.0f}, {2.0f, 2.0f, 0.0f}, vdf_desc);
+    VertexData vertex_data =
+        VertexData::make_rectangle({-1.0f, -1.0f, 0.0f}, {2.0f, 2.0f, 0.0f}, vdf_desc);
 
     VertexFormat layout = {
         {           "v_position", SHADER_TYPE::V_3_F32},
@@ -79,22 +109,26 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     fb.m_shader = m_system->register_shader(shader_handle_desc);
 #endif
 
-
     {
         const GLuint binding_point_0 = 0;
         const GLuint binding_point_1 = 1;
 
-        auto cam_ubo = m_context.create_buffer(opengl::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+        auto cam_ubo = m_context.create_buffer(
+            opengl::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4)
+        );
         cam_ubo->bind_base(binding_point_0);
         m_uniform_buffers.push_back(cam_ubo);
 
-        auto transform_ubo = m_context.create_buffer(opengl::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4));
+        auto transform_ubo = m_context.create_buffer(
+            opengl::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4)
+        );
         transform_ubo->bind_base(binding_point_1);
         m_uniform_buffers.push_back(transform_ubo);
     }
 }
 
 auto OpenGL_Renderer::present() -> void { m_context.swap_buffers(); }
+
 auto OpenGL_Renderer::submit(const Object& obj) -> void {
 
     const OpenGL_RenderCommand command = {
@@ -106,9 +140,7 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
     m_render_commands.push_back(command);
 }
 
-
 auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
-
 
 #if JF_FB
     fb.m_framebuffer->bind();
@@ -152,7 +184,9 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         opengl::Shader* sh = static_cast<opengl::Shader*>(sh_.m_handle);
         sh->bind();
         fb.m_texture->bind(0);
-        fb.m_framebuffer_rect->m_vertex_array.bind_buffer(*fb.m_framebuffer_rect->m_vertex_buffer);
+        fb.m_framebuffer_rect->m_vertex_array.bind_buffer(
+            *fb.m_framebuffer_rect->m_vertex_buffer
+        );
         fb.m_framebuffer_rect->m_vertex_array.bind();
 
         glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -163,8 +197,10 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     m_render_commands.clear();
 }
 
-auto OpenGL_Renderer::render_mesh(const opengl::GPUMeshData* vertex_array, const VertexData* vertex_data) const
-    -> void {
+auto OpenGL_Renderer::render_mesh(
+    const opengl::GPUMeshData* vertex_array,
+    const VertexData*          vertex_data
+) const -> void {
     vertex_array->m_vertex_array.bind_buffer(*vertex_array->m_vertex_buffer);
     vertex_array->m_vertex_array.bind();
 
@@ -183,7 +219,6 @@ auto OpenGL_Renderer::render_mesh(const opengl::GPUMeshData* vertex_array, const
         );
     }
 }
-
 
 auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
     GLint vp[4];

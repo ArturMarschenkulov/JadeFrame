@@ -35,7 +35,8 @@ public:
     }
 
     template<N1, M1>
-    constexpr auto operator*(const MatrixT<N1, M1>& other) const noexcept -> MatrixT<N1, M> {
+    constexpr auto operator*(const MatrixT<N1, M1>& other) const noexcept
+        -> MatrixT<N1, M> {
         MatrixT<N1, M> result;
 
         return result;
@@ -74,6 +75,5 @@ using m4x4 = m4x4f32;
 using m2 = m2x2;
 using m3 = m3x3;
 using m4 = m4x4;
-
 
 } // namespace JadeFrame

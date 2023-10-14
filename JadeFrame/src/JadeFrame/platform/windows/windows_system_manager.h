@@ -2,16 +2,15 @@
 #include "JadeFrame/prelude.h"
 #include "../platform_shared.h"
 #include <string>
+
 namespace JadeFrame {
 
 namespace win32 {
-
 
 auto to_wide_char(const char* char_array) -> wchar_t*;
 auto to_multi_byte(const wchar_t* wide_char_array) -> char*;
 auto from_wstring_to_string(const std::wstring& wstr) -> std::string;
 auto from_string_to_wstring(const std::string& str) -> std::wstring;
-
 
 class SystemManager : ISystemManager {
 public:
@@ -27,6 +26,7 @@ public: // Window stuff
     IWindow*                                     m_curr_window = nullptr;
 
 public: // Time stuff
+
 private:
     bool m_has_performance_counter;
     u64  m_frequency;
@@ -37,16 +37,20 @@ public:
     virtual auto calc_elapsed() -> f64 override;
     virtual auto frame_control(f64 delta_time) -> void override;
     virtual auto set_target_FPS(f64 FPS) -> void override;
+
     struct Time {
         f64 previous = 0;
         f64 target = 0;
     };
+
     Time m_time;
     f32  m_max_FPS;
 
 public:
     ::HMODULE m_instance;
-    // represents Dynamically Linked Libraries (DLL) on Windows and Shared Object (SO) on Linux
+
+    // represents Dynamically Linked Libraries (DLL) on Windows and Shared Object (SO) on
+    // Linux
     struct Module {
 
         std::string m_name;
@@ -56,6 +60,7 @@ public:
         u32         m_global_usage_count;
         u32         m_process_usage_count;
     };
+
     std::vector<Module> m_modules;
 
     std::string m_user_locale;

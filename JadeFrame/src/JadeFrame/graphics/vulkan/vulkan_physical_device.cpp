@@ -13,22 +13,29 @@
 
 namespace JadeFrame {
 
-
 namespace vulkan {
-static auto to_format_string_queue_family(const QueueFamily& queue_family) -> std::string {
+static auto to_format_string_queue_family(const QueueFamily& queue_family)
+    -> std::string {
     std::string result = "{ ";
-    if (queue_family.m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) { result += "Graphics "; }
-    if (queue_family.m_properties.queueFlags & VK_QUEUE_COMPUTE_BIT) { result += "Compute "; }
-    if (queue_family.m_properties.queueFlags & VK_QUEUE_TRANSFER_BIT) { result += "Transfer "; }
-    if (queue_family.m_properties.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) { result += "SparseBinding "; }
-    if (queue_family.m_properties.queueFlags & VK_QUEUE_PROTECTED_BIT) { result += "Protected "; }
+    if (queue_family.m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+        result += "Graphics ";
+    }
+    if (queue_family.m_properties.queueFlags & VK_QUEUE_COMPUTE_BIT) {
+        result += "Compute ";
+    }
+    if (queue_family.m_properties.queueFlags & VK_QUEUE_TRANSFER_BIT) {
+        result += "Transfer ";
+    }
+    if (queue_family.m_properties.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) {
+        result += "SparseBinding ";
+    }
+    if (queue_family.m_properties.queueFlags & VK_QUEUE_PROTECTED_BIT) {
+        result += "Protected ";
+    }
     if (queue_family.m_present_support == VK_TRUE) { result += "Present "; }
     result += "}";
     return result;
 }
-
-
-
 
 auto to_string(uint8_t pipeline_cache_UUID[16]) -> std::string {
     std::string result;
@@ -38,6 +45,7 @@ auto to_string(uint8_t pipeline_cache_UUID[16]) -> std::string {
     }
     return result;
 }
+
 auto to_string_vendor_id(uint32_t vendor_id) -> std::string {
     switch (vendor_id) {
         case 0x1002: return "AMD";
@@ -62,45 +70,61 @@ static auto query_queue_family_properties(const PhysicalDevice& physical_device)
     vkGetPhysicalDeviceQueueFamilyProperties(physical_device.m_handle, &count, nullptr);
     std::vector<VkQueueFamilyProperties> properties;
     properties.resize(count);
-    vkGetPhysicalDeviceQueueFamilyProperties(physical_device.m_handle, &count, properties.data());
+    vkGetPhysicalDeviceQueueFamilyProperties(
+        physical_device.m_handle, &count, properties.data()
+    );
     return properties;
 }
 
-static auto query_surface_support(const PhysicalDevice& physical_device, u32 queue_family_index, const Surface& surface)
-    -> bool {
+static auto query_surface_support(
+    const PhysicalDevice& physical_device,
+    u32                   queue_family_index,
+    const Surface&        surface
+) -> bool {
     VkBool32 present_support = false;
     vkGetPhysicalDeviceSurfaceSupportKHR(
-        physical_device.m_handle, queue_family_index, surface.m_handle, &present_support);
+        physical_device.m_handle, queue_family_index, surface.m_handle, &present_support
+    );
     return present_support;
 }
 
-auto PhysicalDevice::query_surface_capabilities(const Surface& surface) const -> VkSurfaceCapabilitiesKHR {
+auto PhysicalDevice::query_surface_capabilities(const Surface& surface) const
+    -> VkSurfaceCapabilitiesKHR {
     VkSurfaceCapabilitiesKHR result;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_handle, &result);
     return result;
 }
 
-auto PhysicalDevice::query_surface_formats(const Surface& surface) const -> std::vector<VkSurfaceFormatKHR> {
+auto PhysicalDevice::query_surface_formats(const Surface& surface) const
+    -> std::vector<VkSurfaceFormatKHR> {
     u32      count = 0;
     VkResult result;
-    result = vkGetPhysicalDeviceSurfaceFormatsKHR(m_handle, surface.m_handle, &count, nullptr);
-    if (VK_SUCCESS != result || (count == 0)) assert(false);
+    result =
+        vkGetPhysicalDeviceSurfaceFormatsKHR(m_handle, surface.m_handle, &count, nullptr);
+    if (VK_SUCCESS != result || (count == 0)) { assert(false); }
 
     std::vector<VkSurfaceFormatKHR> formats(count);
-    result = vkGetPhysicalDeviceSurfaceFormatsKHR(m_handle, surface.m_handle, &count, formats.data());
-    if (VK_SUCCESS != result) assert(false);
+    result = vkGetPhysicalDeviceSurfaceFormatsKHR(
+        m_handle, surface.m_handle, &count, formats.data()
+    );
+    if (VK_SUCCESS != result) { assert(false); }
     return formats;
 }
 
-auto PhysicalDevice::query_surface_present_modes(const Surface& surface) const -> std::vector<VkPresentModeKHR> {
+auto PhysicalDevice::query_surface_present_modes(const Surface& surface) const
+    -> std::vector<VkPresentModeKHR> {
     u32      count = 0;
     VkResult result;
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(m_handle, surface.m_handle, &count, nullptr);
-    if (VK_SUCCESS != result || (count == 0)) assert(false);
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(
+        m_handle, surface.m_handle, &count, nullptr
+    );
+    if (VK_SUCCESS != result || (count == 0)) { assert(false); }
 
     std::vector<VkPresentModeKHR> present_modes(count);
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(m_handle, surface.m_handle, &count, present_modes.data());
-    if (VK_SUCCESS != result) assert(false);
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(
+        m_handle, surface.m_handle, &count, present_modes.data()
+    );
+    if (VK_SUCCESS != result) { assert(false); }
     return present_modes;
 }
 
@@ -130,8 +154,10 @@ auto PhysicalDevice::query_extension_properties() -> std::vector<VkExtensionProp
 
     result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, nullptr);
     extension_properties.resize(count);
-    result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, extension_properties.data());
-    if (VK_SUCCESS != result) assert(false);
+    result = vkEnumerateDeviceExtensionProperties(
+        m_handle, nullptr, &count, extension_properties.data()
+    );
+    if (VK_SUCCESS != result) { assert(false); }
     return extension_properties;
 }
 
@@ -162,33 +188,58 @@ auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
     {
         Logger::info("Physical device: {}", m_properties.deviceName);
         Logger::info("\tDevice Type: {}", to_string(m_properties.deviceType));
-        Logger::info("\tVendor (ID): {} ({})", to_string_vendor_id(m_properties.vendorID), m_properties.vendorID);
+        Logger::info(
+            "\tVendor (ID): {} ({})",
+            to_string_vendor_id(m_properties.vendorID),
+            m_properties.vendorID
+        );
         Logger::info("\tDevice ID: {}", m_properties.deviceID);
         Logger::info("\tDriver Version: {}", m_properties.driverVersion);
         Logger::info(
-            "\tVulkan Api Version: {}.{}.{}", VK_VERSION_MAJOR(m_properties.apiVersion),
-            VK_VERSION_MINOR(m_properties.apiVersion), VK_VERSION_PATCH(m_properties.apiVersion));
-        Logger::info("\tPipeline Cache UUID: {}", to_string(m_properties.pipelineCacheUUID));
-        Logger::info("\t{} memory types from {}:", m_memory_properties.memoryTypeCount, VK_MAX_MEMORY_TYPES);
+            "\tVulkan Api Version: {}.{}.{}",
+            VK_VERSION_MAJOR(m_properties.apiVersion),
+            VK_VERSION_MINOR(m_properties.apiVersion),
+            VK_VERSION_PATCH(m_properties.apiVersion)
+        );
+        Logger::info(
+            "\tPipeline Cache UUID: {}", to_string(m_properties.pipelineCacheUUID)
+        );
+        Logger::info(
+            "\t{} memory types from {}:",
+            m_memory_properties.memoryTypeCount,
+            VK_MAX_MEMORY_TYPES
+        );
         for (u32 i = 0; i < m_memory_properties.memoryTypeCount; ++i) {
             VkMemoryType memory_type = m_memory_properties.memoryTypes[i];
-            Logger::info("\t\t{}: {} {}", i, memory_type.heapIndex, to_string(memory_type));
+            Logger::info(
+                "\t\t{}: {} {}", i, memory_type.heapIndex, to_string(memory_type)
+            );
         }
-        Logger::info("\t{} memory heaps from {}:", m_memory_properties.memoryHeapCount, VK_MAX_MEMORY_HEAPS);
+        Logger::info(
+            "\t{} memory heaps from {}:",
+            m_memory_properties.memoryHeapCount,
+            VK_MAX_MEMORY_HEAPS
+        );
         for (u32 i = 0; i < m_memory_properties.memoryHeapCount; ++i) {
             VkMemoryHeap memory_heap = m_memory_properties.memoryHeaps[i];
-            Logger::info("\t\t{}: {} with {} bytes", i, to_string(memory_heap), memory_heap.size);
+            Logger::info(
+                "\t\t{}: {} with {} bytes", i, to_string(memory_heap), memory_heap.size
+            );
         }
         for (size_t i = 0; i < m_queue_families.size(); i++) {
             QueueFamily& queue_family = m_queue_families[i];
             Logger::debug(
-                "Queue family {} has {} queues capable of {}", i, queue_family.m_properties.queueCount,
-                to_format_string_queue_family(queue_family));
+                "Queue family {} has {} queues capable of {}",
+                i,
+                queue_family.m_properties.queueCount,
+                to_format_string_queue_family(queue_family)
+            );
         }
     }
 }
 
-auto PhysicalDevice::check_extension_support(const std::vector<const char*>& extensions) -> bool {
+auto PhysicalDevice::check_extension_support(const std::vector<const char*>& extensions)
+    -> bool {
     std::set<std::string> required_extensions(extensions.begin(), extensions.end());
     for (u32 i = 0; i < m_extension_properties.size(); i++) {
         required_extensions.erase(m_extension_properties[i].extensionName);
@@ -196,8 +247,10 @@ auto PhysicalDevice::check_extension_support(const std::vector<const char*>& ext
     return required_extensions.empty();
 }
 
-auto PhysicalDevice::find_queue_families(const std::vector<QueueFamily>& queue_families, const Surface& surface)
-    -> QueueFamilyIndices {
+auto PhysicalDevice::find_queue_families(
+    const std::vector<QueueFamily>& queue_families,
+    const Surface&                  surface
+) -> QueueFamilyIndices {
 
     QueueFamilyIndices indices;
     for (u32 i = 0; i < queue_families.size(); i++) {
@@ -213,10 +266,12 @@ auto PhysicalDevice::find_queue_families(const std::vector<QueueFamily>& queue_f
     return indices;
 }
 
-auto PhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32 {
+auto PhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties)
+    const -> u32 {
     const VkPhysicalDeviceMemoryProperties& mem_props = m_memory_properties;
     for (u32 i = 0; i < mem_props.memoryTypeCount; i++) {
-        if ((type_filter & (1 << i)) && (mem_props.memoryTypes[i].propertyFlags & properties) == properties) {
+        if ((type_filter & (1 << i)) &&
+            (mem_props.memoryTypes[i].propertyFlags & properties) == properties) {
             return i;
         }
     }
@@ -224,7 +279,8 @@ auto PhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFlags pro
 }
 
 auto PhysicalDevice::query_queue_families() -> std::vector<QueueFamily> {
-    std::vector<VkQueueFamilyProperties> properties = query_queue_family_properties(*this);
+    std::vector<VkQueueFamilyProperties> properties =
+        query_queue_family_properties(*this);
 
     std::vector<QueueFamily> families;
     families.resize(properties.size());
@@ -236,7 +292,9 @@ auto PhysicalDevice::query_queue_families() -> std::vector<QueueFamily> {
     return families;
 }
 
-auto PhysicalDevice::query_limits() const -> VkPhysicalDeviceLimits { return m_properties.limits; }
+auto PhysicalDevice::query_limits() const -> VkPhysicalDeviceLimits {
+    return m_properties.limits;
+}
 
 auto PhysicalDevice::create_logical_device() -> LogicalDevice {
     LogicalDevice ld;

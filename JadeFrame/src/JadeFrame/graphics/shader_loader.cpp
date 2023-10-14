@@ -34,10 +34,10 @@ namespace JadeFrame {
 */
 
 /*
-    This comment will be about how to write shader code to make it as portable as possible across different APIs.
-    The idea is that the main dialect is the Vulkan dialect of GLSL. This can be compiled to the OpenGL dialect in case
-    of OpenGL or to HSHL in case of DirectX and its various versions.
-    Here I gather resources to achieve that goal.
+    This comment will be about how to write shader code to make it as portable as possible
+   across different APIs. The idea is that the main dialect is the Vulkan dialect of GLSL.
+   This can be compiled to the OpenGL dialect in case of OpenGL or to HSHL in case of
+   DirectX and its various versions. Here I gather resources to achieve that goal.
 
 
 
@@ -50,7 +50,6 @@ namespace JadeFrame {
     https://gpuopen.com/wp-content/uploads/2017/03/GDC2017-D3D12-And-Vulkan-Lessons-Learned.pdf
 
 */
-
 
 static auto get_shader_framebuffer_test_0() {
 
@@ -194,7 +193,6 @@ void main() {
 
     return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
-
 
 static auto get_default_shader_flat_0() -> std::tuple<std::string, std::string> {
     const char* vertex_shader =
@@ -397,6 +395,7 @@ void main(){
 
     return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
+
 static auto get_default_shader_light_server() -> std::tuple<std::string, std::string> {
     const char* vertex_shader =
         R"(

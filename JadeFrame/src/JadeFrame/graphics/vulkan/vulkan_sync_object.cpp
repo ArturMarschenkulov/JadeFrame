@@ -4,6 +4,7 @@
 #include "vulkan_context.h"
 
 #include "JadeFrame/utils/assert.h"
+
 namespace JadeFrame {
 namespace vulkan {
 
@@ -14,6 +15,7 @@ Fence::Fence(Fence&& other)
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = nullptr;
 }
+
 auto Fence::operator=(Fence&& other) -> Fence& {
     if (this != &other) {
         m_handle = other.m_handle;
@@ -35,12 +37,15 @@ Fence::Fence(const LogicalDevice& device, bool signaled) {
         .flags = signaled ? VK_FENCE_CREATE_SIGNALED_BIT : (VkFenceCreateFlags)0,
     };
 
-    result = vkCreateFence(device.m_handle, &create_info, Instance::allocator(), &m_handle);
+    result =
+        vkCreateFence(device.m_handle, &create_info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
 Fence::~Fence() {
-    if (m_handle != VK_NULL_HANDLE) { vkDestroyFence(m_device->m_handle, m_handle, nullptr); }
+    if (m_handle != VK_NULL_HANDLE) {
+        vkDestroyFence(m_device->m_handle, m_handle, nullptr);
+    }
 }
 
 auto Fence::wait_for_fences() -> void {
@@ -54,6 +59,7 @@ auto Fence::reset() -> void {
     result = vkResetFences(m_device->m_handle, 1, &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
+
 auto Fence::is_signaled() -> bool {
     VkResult result;
     result = vkGetFenceStatus(m_device->m_handle, m_handle);
@@ -63,12 +69,14 @@ auto Fence::is_signaled() -> bool {
         default: JF_ASSERT(false, ""); return false;
     }
 }
+
 Semaphore::Semaphore(Semaphore&& other)
     : m_handle(VK_NULL_HANDLE)
     , m_device(nullptr) {
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = nullptr;
 }
+
 auto Semaphore::operator=(Semaphore&& other) -> Semaphore& {
     if (this != &other) {
         m_handle = other.m_handle;
@@ -79,8 +87,11 @@ auto Semaphore::operator=(Semaphore&& other) -> Semaphore& {
     }
     return *this;
 }
+
 Semaphore::~Semaphore() {
-    if (m_handle != VK_NULL_HANDLE) { vkDestroySemaphore(m_device->m_handle, m_handle, nullptr); }
+    if (m_handle != VK_NULL_HANDLE) {
+        vkDestroySemaphore(m_device->m_handle, m_handle, nullptr);
+    }
 }
 
 Semaphore::Semaphore(const LogicalDevice& device) {
@@ -93,10 +104,11 @@ Semaphore::Semaphore(const LogicalDevice& device) {
         .flags = 0,
     };
 
-    result = vkCreateSemaphore(device.m_handle, &create_info, Instance::allocator(), &m_handle);
+    result = vkCreateSemaphore(
+        device.m_handle, &create_info, Instance::allocator(), &m_handle
+    );
     JF_ASSERT(result == VK_SUCCESS, "");
 }
-
 
 } // namespace vulkan
 } // namespace JadeFrame

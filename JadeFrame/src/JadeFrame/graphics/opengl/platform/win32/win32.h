@@ -1,8 +1,7 @@
 
 #pragma once
 #ifdef _WIN32
-#include "Windows.h"
-
+    #include "Windows.h"
 
 /*
         NOTE: Make sure this header file is only only included in "opengl_context.h".
@@ -10,6 +9,7 @@
 
 namespace JadeFrame {
 class IWindow;
+
 namespace opengl {
 namespace win32 {
 auto init_render_context(HDC device_context) -> HGLRC;

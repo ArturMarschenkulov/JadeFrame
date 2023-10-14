@@ -18,26 +18,24 @@
 
 namespace JadeFrame {
 
-
 auto control_camera(Camera* self) -> void {
     const f32           velocity = 0.1f;
     const InputManager& i = Instance::get_singleton()->m_input_manager;
     if (self->m_mode == Camera::MODE::PERSPECTIVE) {
-        if (i.is_key_down(KEY::E)) self->m_position += self->m_up * velocity;
-        if (i.is_key_down(KEY::Q)) self->m_position -= self->m_up * velocity;
+        if (i.is_key_down(KEY::E)) { self->m_position += self->m_up * velocity; }
+        if (i.is_key_down(KEY::Q)) { self->m_position -= self->m_up * velocity; }
 
-        if (i.is_key_down(KEY::A)) self->m_position -= self->m_right * velocity;
-        if (i.is_key_down(KEY::D)) self->m_position += self->m_right * velocity;
+        if (i.is_key_down(KEY::A)) { self->m_position -= self->m_right * velocity; }
+        if (i.is_key_down(KEY::D)) { self->m_position += self->m_right * velocity; }
 
-        if (i.is_key_down(KEY::S)) self->m_position -= self->m_forward * velocity;
-        if (i.is_key_down(KEY::W)) self->m_position += self->m_forward * velocity;
+        if (i.is_key_down(KEY::S)) { self->m_position -= self->m_forward * velocity; }
+        if (i.is_key_down(KEY::W)) { self->m_position += self->m_forward * velocity; }
 
         auto sensitivity = 10;
-        if (i.is_key_down(KEY::LEFT)) self->m_pitch += velocity * sensitivity;
-        if (i.is_key_down(KEY::RIGHT)) self->m_pitch -= velocity * sensitivity;
-        if (i.is_key_down(KEY::UP)) self->m_yaw += velocity * sensitivity;
-        if (i.is_key_down(KEY::DOWN)) self->m_yaw -= velocity * sensitivity;
-
+        if (i.is_key_down(KEY::LEFT)) { self->m_pitch += velocity * sensitivity; }
+        if (i.is_key_down(KEY::RIGHT)) { self->m_pitch -= velocity * sensitivity; }
+        if (i.is_key_down(KEY::UP)) { self->m_yaw += velocity * sensitivity; }
+        if (i.is_key_down(KEY::DOWN)) { self->m_yaw -= velocity * sensitivity; }
 
         // if (m_pitch > 89.0f)
         //	m_pitch = 89.0f;
@@ -53,20 +51,20 @@ auto control_camera(Camera* self) -> void {
         self->m_right = self->m_forward.cross(self->m_world_up).get_normal();
         self->m_up = self->m_right.cross(self->m_forward).get_normal();
     } else if (self->m_mode == Camera::MODE::ORTHOGRAPHIC) {
-        if (i.is_key_down(KEY::E)) self->m_position += self->m_up * velocity;
-        if (i.is_key_down(KEY::Q)) self->m_position -= self->m_up * velocity;
+        if (i.is_key_down(KEY::E)) { self->m_position += self->m_up * velocity; }
+        if (i.is_key_down(KEY::Q)) { self->m_position -= self->m_up * velocity; }
 
-        if (i.is_key_down(KEY::A)) self->m_position -= self->m_right * velocity;
-        if (i.is_key_down(KEY::D)) self->m_position += self->m_right * velocity;
+        if (i.is_key_down(KEY::A)) { self->m_position -= self->m_right * velocity; }
+        if (i.is_key_down(KEY::D)) { self->m_position += self->m_right * velocity; }
 
-        if (i.is_key_down(KEY::S)) self->m_position -= self->m_forward * velocity;
-        if (i.is_key_down(KEY::W)) self->m_position += self->m_forward * velocity;
+        if (i.is_key_down(KEY::S)) { self->m_position -= self->m_forward * velocity; }
+        if (i.is_key_down(KEY::W)) { self->m_position += self->m_forward * velocity; }
 
         auto sensitivity = 10;
-        if (i.is_key_down(KEY::LEFT)) self->m_pitch += velocity * sensitivity;
-        if (i.is_key_down(KEY::RIGHT)) self->m_pitch -= velocity * sensitivity;
-        if (i.is_key_down(KEY::UP)) self->m_yaw += velocity * sensitivity;
-        if (i.is_key_down(KEY::DOWN)) self->m_yaw -= velocity * sensitivity;
+        if (i.is_key_down(KEY::LEFT)) { self->m_pitch += velocity * sensitivity; }
+        if (i.is_key_down(KEY::RIGHT)) { self->m_pitch -= velocity * sensitivity; }
+        if (i.is_key_down(KEY::UP)) { self->m_yaw += velocity * sensitivity; }
+        if (i.is_key_down(KEY::DOWN)) { self->m_yaw -= velocity * sensitivity; }
     }
 }
 
@@ -76,9 +74,6 @@ auto control_camera(Camera* self) -> void {
 Instance* Instance::m_singleton = nullptr;
 
 auto Instance::get_singleton() -> Instance* { return m_singleton; }
-
-
-
 
 consteval auto get_cpp_version() -> u32 {
 
@@ -148,12 +143,12 @@ consteval auto get_compiler_info() -> CompilerInfo {
     constexpr u32         patch = 0;
 #endif
 
-
     constexpr CompilerInfo info = {
         name, {major, minor, patch}
     };
     return info;
 } // namespace JadeFrame
+
 consteval auto get_plattform_info() -> const char* {
     const char* name = "UNKNOWN";
 #if defined(_WIN32)
@@ -169,6 +164,7 @@ consteval auto get_plattform_info() -> const char* {
 #endif
     return name;
 }
+
 consteval auto get_architecture_info() -> const char* {
     const char* name = "UNKNOWN";
 #if defined(__x86_64__) || defined(_M_X64)
@@ -185,12 +181,10 @@ consteval auto get_architecture_info() -> const char* {
     return name;
 }
 
-
 auto test_modules() -> void {
     option::test();
     result::test();
 }
-
 
 auto to_double(const char* str) noexcept -> Result<double, std::errc> {
     auto* last_entry = static_cast<char*>(nullptr);
@@ -225,8 +219,12 @@ Instance::Instance() {
     Logger::info("Detected Plattform is '{}'", pi);
     Logger::info("Detected Architecture is '{}'", ai);
     Logger::info(
-        "Detected Compiler is '{}' with version '{}.{}.{}'", ci.name, ci.version.major, ci.version.minor,
-        ci.version.patch);
+        "Detected Compiler is '{}' with version '{}.{}.{}'",
+        ci.name,
+        ci.version.major,
+        ci.version.minor,
+        ci.version.patch
+    );
     Logger::info("Detected C++ Version is '{}'", li);
 
     m_system_manager.initialize();
@@ -234,11 +232,13 @@ Instance::Instance() {
 
     m_system_manager.log();
 }
+
 auto Instance::run() -> void {
     Logger::info("App Running");
     m_current_app_p = m_apps[0];
     m_apps.back()->start();
 }
+
 //**************************************************************
 //~JadeFrame
 //**************************************************************
@@ -258,10 +258,9 @@ BaseApp::BaseApp(const Desc& desc) {
     m_windows[0] = i->m_system_manager.request_window(win_desc);
     m_current_window_p = m_windows[0];
 
-    Logger::info("Creating Renderer");
+    Logger::info("Creating Renderer with API '{}'", to_string(desc.api));
     m_render_system.init(desc.api, m_windows[0]);
     // m_render_system = m_system_manager.request_render_system(api, m_windows[0]);
-
 
     const std::string& title = m_current_window_p->get_title();
 
@@ -270,6 +269,7 @@ BaseApp::BaseApp(const Desc& desc) {
     m_current_window_p->set_title(new_title);
     // m_gui.init(m_current_window_p, api);
 }
+
 inline auto to_string(const Matrix4x4& m) -> std::string {
     std::string result;
     for (u32 col = 0; col < 4; col++) {
@@ -281,10 +281,13 @@ inline auto to_string(const Matrix4x4& m) -> std::string {
     }
     return result;
 }
+
 auto BaseApp::start() -> void {
     // Before `this->on_init();` come all the default stuff
     // The client can later override those in `this->on_init();`
-    m_camera.orthographic_mode(0, m_windows[0]->get_size().x, m_windows[0]->get_size().y, 0, -1, 1);
+    m_camera.orthographic_mode(
+        0, m_windows[0]->get_size().x, m_windows[0]->get_size().y, 0, -1, 1
+    );
     SystemManager& platform = Instance::get_singleton()->m_system_manager;
     platform.set_target_FPS(60);
     this->on_init();
@@ -312,14 +315,15 @@ auto BaseApp::start() -> void {
         platform.frame_control(delta_time);
     }
 }
+
 auto BaseApp::poll_events() -> void {
     Instance::get_singleton()->m_input_manager.handle_input();
     m_windows[0]->handle_events(m_is_running);
 }
+
 //**************************************************************
 //~BaseApp
 //**************************************************************
-
 
 } // namespace
   // JadeFrame

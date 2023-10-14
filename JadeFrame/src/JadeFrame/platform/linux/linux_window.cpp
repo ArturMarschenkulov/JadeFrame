@@ -1,34 +1,29 @@
 #include "linux_window.h"
-#include<X11/X.h>
-#include<GL/gl.h>
-#include<GL/glx.h>
-// #include<GL/glu.h>
-
+#include <GL/gl.h>
+#include <GL/glx.h>
 
 namespace JadeFrame {
 
-Linux_Window::Linux_Window() {
+Linux_Window::Linux_Window(const Linux_Window::Desc& desc) {
     Status status = XInitThreads();
 
     m_display = XOpenDisplay(nullptr);
-    if(m_display) {
+    if (!m_display) {
         printf("\n\tcannot connect to X server\n\n");
         exit(0);
     }
 
     XID root = DefaultRootWindow(m_display);
 
-    GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
+    GLint att[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None};
 
-    XVisualInfo* xcv = glXChooseVisual(m_display, 0, att);
-    int screen = DefaultScreen(m_display);
+    m_visual_info = glXChooseVisual(m_display, 0, att);
+    int     screen = DefaultScreen(m_display);
     Visual* visual = DefaultVisual(m_display, screen);
-    int depth = DefaultDepth(m_display, screen);
+    int     depth = DefaultDepth(m_display, screen);
 
-    Colormap colormap = XCreateColormap(
-        m_display, RootWindow(m_display, screen),
-        visual, AllocNone
-    );
+    Colormap colormap =
+        XCreateColormap(m_display, RootWindow(m_display, screen), visual, AllocNone);
 
     XSetWindowAttributes window_attributes = {};
     window_attributes.colormap = colormap;
@@ -39,11 +34,16 @@ Linux_Window::Linux_Window() {
     // glXCreateContext(m_display, visual, nullptr, GL_TRUE);
 
     m_window = XCreateWindow(
-        m_display, 
-        RootWindow(m_display, screen), 
-        0, 0, 
-        500, 500, 
-        0, depth, InputOutput, visual, 
+        m_display,
+        RootWindow(m_display, screen),
+        0,
+        0,
+        500,
+        500,
+        0,
+        depth,
+        InputOutput,
+        visual,
         CWBackPixel | CWBorderPixel | CWEventMask | CWColormap,
         &window_attributes
     );
@@ -52,10 +52,6 @@ Linux_Window::Linux_Window() {
     XMapWindow(m_display, m_window);
     XFlush(m_display);
 }
-Linux_Window::Linux_Window(const Linux_Window::Desc& desc) {
 
-}
-Linux_Window::~Linux_Window() {
-    XDestroyWindow(m_display, m_window);
-}
-}
+Linux_Window::~Linux_Window() { XDestroyWindow(m_display, m_window); }
+} // namespace JadeFrame

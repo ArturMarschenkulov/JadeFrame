@@ -1,42 +1,49 @@
 #include "pch.h"
 #include "opengl_context.h"
 #include "opengl_debug.h"
-#include "platform/win32/win32.h"
+#if defined(_WIN32)
+    #include "platform/win32/win32.h"
+#elif defined(__linux__)
+    #include "platform/linux/linux.h"
+#endif
 
 namespace JadeFrame {
 
+auto OpenGL_Context::create_texture() -> opengl::Texture* {
+    return new opengl::Texture(*this);
+}
 
-
-auto OpenGL_Context::create_texture() -> opengl::Texture* { return new opengl::Texture(*this); }
-auto OpenGL_Context::create_texture(void* data, v2u32 size, u32 component_num) -> opengl::Texture* {
+auto OpenGL_Context::create_texture(void* data, v2u32 size, u32 component_num)
+    -> opengl::Texture* {
     return new opengl::Texture(*this, data, size, component_num);
 }
 
-auto OpenGL_Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 size) -> opengl::Buffer* {
+auto OpenGL_Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
+    -> opengl::Buffer* {
     static u32 id = 0;
     m_bufferss[id] = opengl::Buffer(*this, type, data, size);
     id++;
     return &m_bufferss[id - 1];
 }
+
 auto OpenGL_Context::create_framebuffer() -> opengl::Framebuffer* {
     opengl::Framebuffer* buffer = new opengl::Framebuffer(*this);
     return buffer;
 }
+
 auto OpenGL_Context::create_renderbuffer() -> opengl::Renderbuffer* {
     opengl::Renderbuffer* buffer = new opengl::Renderbuffer();
     return buffer;
 }
-
 
 OpenGL_Context::OpenGL_Context(const IWindow* window)
 #ifdef WIN32
 {
     auto* win = static_cast<const JadeFrame::win32::Window*>(window);
 
-
-    // NOTE: This function might have to be moved, as in theory one could have multiple contexts.
-    // NOTE: Think about removing the parameter from this function then just using the global instance handle.
-    // loading wgl functions for render context creation
+    // NOTE: This function might have to be moved, as in theory one could have multiple
+    // contexts. NOTE: Think about removing the parameter from this function then just
+    // using the global instance handle. loading wgl functions for render context creation
     opengl::win32::load_wgl_funcs(win->m_instance_handle);
 
     m_device_context = ::GetDC(win->m_window_handle);
@@ -46,6 +53,15 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
 
 #elif __linux__
 {
+
+    // TODO: This is weird. Somehwere the macro `linux` got defined.
+    #undef linux
+    #if !defined(linux)
+    auto* win = static_cast<const JadeFrame::Linux_Window*>(window);
+    opengl::linux::load_glx_funcs(win);
+    opengl::linux::load_opengl_funcs();
+    m_window = &win->m_window;
+    #endif
     // : m_device_context(opengl::linux::init_device_context(window.m_window_handle)) {
     // auto m_render_context = opengl::linux::init_render_context(m_device_context);
 #else
@@ -58,7 +74,8 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
     vendor = reinterpret_cast<char const*>(glGetString(GL_VENDOR));
     renderer = reinterpret_cast<char const*>(glGetString(GL_RENDERER));
     version = reinterpret_cast<char const*>(glGetString(GL_VERSION));
-    shading_language_version = reinterpret_cast<char const*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
+    shading_language_version =
+        reinterpret_cast<char const*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
     glGetIntegerv(GL_MAJOR_VERSION, &major_version);
     glGetIntegerv(GL_MINOR_VERSION, &minor_version);
     assert(major_version >= 4 && minor_version >= 5);
@@ -69,11 +86,12 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
     Logger::info("OpenGL Shading Language Version: {}", shading_language_version);
     Logger::info("OpenGL Version: {}.{}", major_version, minor_version);
 
-
     // gather extentions
     glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
     for (i32 i = 0; i < num_extensions; i++) {
-        extentenions.push_back(reinterpret_cast<char const*>(glGetStringi(GL_EXTENSIONS, i)));
+        extentenions.push_back(
+            reinterpret_cast<char const*>(glGetStringi(GL_EXTENSIONS, i))
+        );
     }
 
     glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &m_max_uniform_buffer_binding_points);
@@ -83,9 +101,8 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
     // glGetIntegerv(GL_MAX_CLIP_DISTANCES, &max_clip_distances);
     // glGetIntegerv(GL_MAX_CLIP_DISTANCES, &max_clip_distances);
 
-    // opengl::win32::swap_interval(0); //TODO: This is windows specific. Abstract this away
-
-
+    // opengl::win32::swap_interval(0); //TODO: This is windows specific. Abstract this
+    // away
 
     const v2u32& size = window->get_size();
     m_state.set_viewport(0, 0, size.x, size.y);
@@ -97,25 +114,28 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
 
 OpenGL_Context::~OpenGL_Context() {}
 
-
 auto OpenGL_Context::swap_buffers() -> void {
 #ifdef _WIN32
     ::SwapBuffers(m_device_context); // TODO: This is Windows specific. Abstract his away!
+#elif __linux__
+    glXSwapBuffers(m_display, *m_window);
 #endif
 }
-
 
 auto GL_State::set_default() -> void {
     this->set_clear_color({0.2f, 0.2f, 0.2f, 1.0f});
     this->set_depth_test(true);
-    this->set_clear_bitfield(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    this->set_clear_bitfield(
+        GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT
+    );
     this->set_blending(true);
     this->set_polygon_mode(POLYGON_FACE::FRONT_AND_BACK, POLYGON_MODE::FILL);
     this->set_face_culling(false, GL_BACK);
     glEnable(GL_FRAMEBUFFER_SRGB);
 }
 
-auto GL_State::set_blending(bool enable, BLENDING_FACTOR sfactor, BLENDING_FACTOR dfactor) -> void {
+auto GL_State::set_blending(bool enable, BLENDING_FACTOR sfactor, BLENDING_FACTOR dfactor)
+    -> void {
     if (blending != enable) {
         blending = enable;
         enable ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
@@ -138,11 +158,17 @@ auto GL_State::set_polygon_mode(POLYGON_FACE face, POLYGON_MODE mode) -> void {
     }
 }
 
-auto GL_State::set_clear_bitfield(const GLbitfield& bitfield) -> void { clear_bitfield = bitfield; }
+auto GL_State::set_clear_bitfield(const GLbitfield& bitfield) -> void {
+    clear_bitfield = bitfield;
+}
 
-auto GL_State::add_clear_bitfield(const GLbitfield& bitfield) -> void { clear_bitfield |= (1 << bitfield); }
+auto GL_State::add_clear_bitfield(const GLbitfield& bitfield) -> void {
+    clear_bitfield |= (1 << bitfield);
+}
 
-auto GL_State::remove_clear_bitfield(const GLbitfield& bitfield) -> void { clear_bitfield &= ~(1 << bitfield); }
+auto GL_State::remove_clear_bitfield(const GLbitfield& bitfield) -> void {
+    clear_bitfield &= ~(1 << bitfield);
+}
 
 auto GL_State::set_depth_test(bool enable) -> void {
     if (depth_test != enable) {
@@ -162,6 +188,7 @@ auto GL_State::set_face_culling(bool enable, GLenum mode) -> void {
         }
     }
 }
+
 auto GL_State::set_viewport(u32 x, u32 y, u32 width, u32 height) -> void {
     viewport[0] = {x, y};
     viewport[1] = {width, height};

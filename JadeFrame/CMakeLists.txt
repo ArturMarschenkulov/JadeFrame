@@ -1,6 +1,13 @@
 set(PROJECT_NAME JadeFrame)
 
+# Add Vulkan
 find_package(Vulkan REQUIRED)
+
+# Add GLFW
+add_subdirectory(src/extern/glfw/)
+
+
+# Add ImGUI
 set(imgui_DIR 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/extern/imgui/
 )
@@ -10,7 +17,6 @@ include_directories(${imgui_DIR}
 )
 
 
-add_subdirectory(src/extern/glfw/)
 if(WIN32)
     set(imgui_platform_specific_sources
         ${imgui_DIR}/backends/imgui_impl_win32.h
@@ -54,10 +60,14 @@ add_subdirectory(src/extern/stb/)
 add_subdirectory(src/extern/glad/)
 
 add_subdirectory(src/extern/spdlog/)
+
+# TODO: shaderc and SPIRV-Cross take a long time to compile. Find ways to cache their compilation.
 set(SHADERC_SKIP_TESTS ON)
 set(SHADERC_SKIP_EXAMPLES ON)
 add_subdirectory(src/extern/shaderc/)
 add_subdirectory(src/extern/SPIRV-Cross/)
+
+
 add_subdirectory(src/JadeFrame/graphics/opengl)
 add_subdirectory(src/JadeFrame/graphics/vulkan)
 
@@ -131,13 +141,10 @@ IF (WIN32)
     set(Files_Platform
         "src/JadeFrame/platform/platform_shared.h"
     )
-ELSEIF(UNIX)
+ELSEIF(LINUX)
+    add_subdirectory(src/JadeFrame/platform/linux/)
     set(Files_Platform
         "src/JadeFrame/platform/platform_shared.h"
-        "src/JadeFrame/platform/linux/linux_window.h" 
-        "src/JadeFrame/platform/linux/linux_window.cpp"
-        "src/JadeFrame/platform/linux/linux_system_manager.h"
-        "src/JadeFrame/platform/linux/linux_input_manager.h"
     )
   # set stuff for other systems
 ENDIF()
@@ -164,20 +171,10 @@ target_precompile_headers(${PROJECT_NAME} PUBLIC
 # add_library(JF_MODULE_pch STATIC src/pch.cpp src/pch.h)
 # target_include_directories(JF_MODULE_pch INTERFACE src/)
 
-use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
-set(ROOT_NAMESPACE JadeFrame)
+# use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
+# set(ROOT_NAMESPACE JadeFrame)
 
-################################################################################
-# Output directory
-################################################################################
-# set_target_properties(${PROJECT_NAME} PROPERTIES
-#     OUTPUT_DIRECTORY_DEBUG   "${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/"
-#     OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/"
-# )
-# set_target_properties(${PROJECT_NAME} PROPERTIES
-#     INTERPROCEDURAL_OPTIMIZATION_RELEASE "TRUE"
-# )
-################################################################################
+#########################################################################
 # Include directories
 ################################################################################
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -217,9 +214,7 @@ if(MSVC)
         /std:c++latest;
         /sdl;
         /W3;
-        ${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT};
         -W4;
-        ${DEFAULT_CXX_EXCEPTION_HANDLING}
     )
 
 
@@ -256,16 +251,11 @@ if(MSVC)
         /SUBSYSTEM:CONSOLE
     )
 
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(${PROJECT_NAME} PRIVATE
         -Wall 
-        -Wextra 
-        -Wpedantic 
-        # -Werror
-    )
-elseif(CMKAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(${PROJECT_NAME} PRIVATE
-        -Wall 
+        # -Weverything
+        -Wno-unused
         -Wextra 
         -Wpedantic 
         # -Werror
@@ -283,6 +273,7 @@ IF(WIN32)
     )
 ELSEIF(UNIX AND NOT APPLE)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
+        Platform_Linux
         pthread
         X11
         GL

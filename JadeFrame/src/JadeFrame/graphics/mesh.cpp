@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "mesh.h"
+
 namespace JadeFrame {
 
 // Mesh::Mesh(const VertexData& vertex_data) {
@@ -34,10 +35,12 @@ namespace JadeFrame {
 //
 // }
 
-auto convert_into_data(const VertexData& vertex_data, const bool interleaved) -> std::vector<f32> {
+auto convert_into_data(const VertexData& vertex_data, const bool interleaved)
+    -> std::vector<f32> {
     // assert(mesh.m_positions.size() == mesh.m_normals.size());
-    const u64 size = vertex_data.m_positions.size() * 3 + vertex_data.m_colors.size() * 4 +
-                     vertex_data.m_texture_coordinates.size() * 2 + vertex_data.m_normals.size() * 3;
+    const u64 size =
+        vertex_data.m_positions.size() * 3 + vertex_data.m_colors.size() * 4 +
+        vertex_data.m_texture_coordinates.size() * 2 + vertex_data.m_normals.size() * 3;
 
     std::vector<f32> data;
     data.reserve(size);
@@ -100,7 +103,8 @@ auto VertexData::make_line(const v3& pos1, const v3& pos2) -> VertexData {
     return vertex_data;
 }
 
-auto VertexData::make_rectangle(const v3& pos, const v3& size, const Desc desc) -> VertexData {
+auto VertexData::make_rectangle(const v3& pos, const v3& size, const Desc desc)
+    -> VertexData {
     VertexData vertex_data;
     vertex_data.m_positions.resize(6);
     vertex_data.m_positions[00] = {pos.x, pos.y, pos.z};
@@ -138,7 +142,8 @@ auto VertexData::make_rectangle(const v3& pos, const v3& size, const Desc desc) 
     return vertex_data;
 }
 
-auto VertexData::make_triangle(const v3& pos1, const v3& pos2, const v3& pos3) -> VertexData {
+auto VertexData::make_triangle(const v3& pos1, const v3& pos2, const v3& pos3)
+    -> VertexData {
     VertexData vertex_data;
     vertex_data.m_positions.resize(3);
     vertex_data.m_positions[0] = v3{pos1.x, pos1.y, pos1.z};
@@ -152,11 +157,11 @@ auto VertexData::make_triangle(const v3& pos1, const v3& pos2, const v3& pos3) -
     return vertex_data;
 }
 
-auto VertexData::make_circle(const v3& position, const f32 radius, const u32 numSegments) -> VertexData {
+auto VertexData::make_circle(const v3& position, const f32 radius, const u32 numSegments)
+    -> VertexData {
     const f32 theta = 2.0f * 3.1415926f / f32(numSegments); // get the current angle
     const f32 cos = cosf(theta);                            // calculate the x component
     const f32 sin = sinf(theta);                            // calculate the y component
-
 
     VertexData vertex_data;
     vertex_data.m_positions.resize(numSegments + 1);
@@ -164,8 +169,9 @@ auto VertexData::make_circle(const v3& position, const f32 radius, const u32 num
     f32 x = radius;
     f32 y = 0;
     for (u32 i = 1; i < numSegments + 1; i++) {
-        vertex_data.m_positions[i] = v3{x + position.x, y + position.y, position.z}; // output
-                                                                                     // vertex
+        vertex_data.m_positions[i] =
+            v3{x + position.x, y + position.y, position.z}; // output
+                                                            // vertex
 
         const f32 t = x;
         x = cos * x - sin * y;
@@ -237,8 +243,6 @@ auto VertexData::make_cube(const v3& pos, const v3& size) -> VertexData {
     vertex_data.m_positions[34] = {pos.x, pos.y + size.y, pos.z};
     vertex_data.m_positions[35] = {pos.x, pos.y + size.y, pos.z + size.z};
 
-
-
     vertex_data.m_texture_coordinates.resize(36);
     {
         // back face -z
@@ -289,7 +293,6 @@ auto VertexData::make_cube(const v3& pos, const v3& size) -> VertexData {
         vertex_data.m_texture_coordinates[34] = {+0.0f, +1.0f};
         vertex_data.m_texture_coordinates[35] = {+0.0f, +1.0f};
     }
-
 
     vertex_data.m_normals.resize(36);
     for (size_t i = 0; i < vertex_data.m_normals.size(); i++) {

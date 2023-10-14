@@ -2,18 +2,17 @@
 #include "vulkan_swapchain.h"
 
 #if _WIN32
-#include <Windows.h> // TODO: Try to remove it
+    #include <Windows.h> // TODO: Try to remove it
 #endif
-
 
 #include "vulkan_logical_device.h"
 #include "vulkan_context.h"
 #include "vulkan_sync_object.h"
 #include "JadeFrame/utils/assert.h"
 #if _WIN32
-#include "JadeFrame/platform/windows/windows_window.h"
+    #include "JadeFrame/platform/windows/windows_window.h"
 #elif __linux__
-#include "JadeFrame/platform/linux/linux_window.h"
+    #include "JadeFrame/platform/linux/linux_window.h"
 #endif
 
 #undef min
@@ -22,23 +21,31 @@
 namespace JadeFrame {
 namespace vulkan {
 
-static auto choose_surface_format(const std::vector<VkSurfaceFormatKHR>& available_surface_formats)
+static auto
+choose_surface_format(const std::vector<VkSurfaceFormatKHR>& available_surface_formats)
     -> VkSurfaceFormatKHR {
     for (u32 i = 0; i < available_surface_formats.size(); i++) {
-        if (available_surface_formats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
-            available_surface_formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-            return available_surface_formats[i];
+        auto& format = available_surface_formats[i];
+        if (format.format == VK_FORMAT_B8G8R8A8_SRGB &&
+            format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            return format;
         }
     }
     return available_surface_formats[0];
 }
-static auto choose_present_mode(const std::vector<VkPresentModeKHR>& available_surface_formats) -> VkPresentModeKHR {
+
+static auto
+choose_present_mode(const std::vector<VkPresentModeKHR>& available_surface_formats)
+    -> VkPresentModeKHR {
     std::array<VkPresentModeKHR, 3> mode_ranks = {
-        VK_PRESENT_MODE_FIFO_KHR, VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR};
+        VK_PRESENT_MODE_FIFO_KHR,
+        VK_PRESENT_MODE_MAILBOX_KHR,
+        VK_PRESENT_MODE_IMMEDIATE_KHR};
     for (u32 i = 0; i < available_surface_formats.size(); i++) {
         for (u32 j = 0; j < mode_ranks.size(); j++) {
-            if (available_surface_formats[i] == mode_ranks[j]) {
-                const VkPresentModeKHR best_mode = available_surface_formats[i];
+            auto& format = available_surface_formats[i];
+            if (format == mode_ranks[j]) {
+                const VkPresentModeKHR best_mode = format;
                 return best_mode;
             }
         }
@@ -46,9 +53,13 @@ static auto choose_present_mode(const std::vector<VkPresentModeKHR>& available_s
     assert(!"Should not reach here!");
     return {};
 }
-static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities, const Surface& surface)
-    -> VkExtent2D {
-    // vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_surface, &m_surface_capabilities);
+
+static auto choose_extent(
+    const VkSurfaceCapabilitiesKHR& available_capabilities,
+    const Surface&                  surface
+) -> VkExtent2D {
+    // vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_surface,
+    // &m_surface_capabilities);
     if (false /*m_surface_capabilities.currentExtent.width != UINT32_MAX*/) {
         return available_capabilities.currentExtent;
     } else {
@@ -60,18 +71,18 @@ static auto choose_extent(const VkSurfaceCapabilitiesKHR& available_capabilities
         i32 height = area.bottom;
         // glfwGetFramebufferSize(window, &width, &height);
 
-
         VkExtent2D actual_extent = {static_cast<u32>(width), static_cast<u32>(height)};
 
         // actual_extent.width = std::max(m_surface_capabilities.minImageExtent.width,
-        // std::min(m_surface_capabilities.maxImageExtent.width, actual_extent.width)); actual_extent.height =
-        // std::max(m_surface_capabilities.minImageExtent.height, std::min(m_surface_capabilities.maxImageExtent.height,
-        // actual_extent.height));
+        // std::min(m_surface_capabilities.maxImageExtent.width, actual_extent.width));
+        // actual_extent.height = std::max(m_surface_capabilities.minImageExtent.height,
+        // std::min(m_surface_capabilities.maxImageExtent.height, actual_extent.height));
 
-
-        // actual_extent.width = std::clamp(actual_extent.width, m_surface_capabilities.minImageExtent.width,
-        // m_surface_capabilities.maxImageExtent.width); actual_extent.height = std::clamp(actual_extent.height,
-        // m_surface_capabilities.minImageExtent.height, m_surface_capabilities.maxImageExtent.height);
+        // actual_extent.width = std::clamp(actual_extent.width,
+        // m_surface_capabilities.minImageExtent.width,
+        // m_surface_capabilities.maxImageExtent.width); actual_extent.height =
+        // std::clamp(actual_extent.height, m_surface_capabilities.minImageExtent.height,
+        // m_surface_capabilities.maxImageExtent.height);
 
         return actual_extent;
 #else
@@ -91,6 +102,7 @@ RenderPass::RenderPass(RenderPass&& other)
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = nullptr;
 }
+
 auto RenderPass::operator=(RenderPass&& other) -> RenderPass& {
     m_handle = other.m_handle;
     m_device = other.m_device;
@@ -98,8 +110,11 @@ auto RenderPass::operator=(RenderPass&& other) -> RenderPass& {
     other.m_device = nullptr;
     return *this;
 }
+
 RenderPass::~RenderPass() {
-    if (m_handle != VK_NULL_HANDLE) { vkDestroyRenderPass(m_device->m_handle, m_handle, nullptr); }
+    if (m_handle != VK_NULL_HANDLE) {
+        vkDestroyRenderPass(m_device->m_handle, m_handle, nullptr);
+    }
 }
 
 RenderPass::RenderPass(const LogicalDevice& device, VkFormat image_format) {
@@ -148,7 +163,9 @@ RenderPass::RenderPass(const LogicalDevice& device, VkFormat image_format) {
         .pDependencies = {},
     };
 
-    result = vkCreateRenderPass(device.m_handle, &render_pass_info, Instance::allocator(), &m_handle);
+    result = vkCreateRenderPass(
+        device.m_handle, &render_pass_info, Instance::allocator(), &m_handle
+    );
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
@@ -168,7 +185,9 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     auto caps = gpu->query_surface_capabilities(surface);
 
     u32 image_count = caps.minImageCount + 1;
-    if (caps.maxImageCount > 0 && image_count > caps.maxImageCount) { image_count = caps.maxImageCount; }
+    if (caps.maxImageCount > 0 && image_count > caps.maxImageCount) {
+        image_count = caps.maxImageCount;
+    }
 
     const VkSurfaceFormatKHR surface_format = choose_surface_format(formats);
     const VkPresentModeKHR   present_mode = choose_present_mode(present_modes);
@@ -177,8 +196,10 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     m_extent = extent;
 
     const QueueFamilyIndices& indices = gpu->m_queue_family_indices;
-    const u32  queue_family_indices[] = {indices.m_graphics_family.value(), indices.m_present_family.value()};
-    const bool is_same_queue_family = indices.m_graphics_family == indices.m_present_family;
+    const u32                 queue_family_indices[] = {
+        indices.m_graphics_family.value(), indices.m_present_family.value()};
+    const bool is_same_queue_family =
+        indices.m_graphics_family == indices.m_present_family;
 
     VkSwapchainCreateInfoKHR create_info = {};
     create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -206,9 +227,10 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     } else {
         create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     }
-    result = vkCreateSwapchainKHR(device.m_handle, &create_info, Instance::allocator(), &m_handle);
+    result = vkCreateSwapchainKHR(
+        device.m_handle, &create_info, Instance::allocator(), &m_handle
+    );
     JF_ASSERT(result == VK_SUCCESS, "");
-
 
     m_images = this->query_images();
     assert(m_images.size() == image_count);
@@ -233,7 +255,9 @@ auto Swapchain::query_images() -> std::vector<Image> {
     return result;
 }
 
-auto Swapchain::deinit() -> void { vkDestroySwapchainKHR(m_device->m_handle, m_handle, nullptr); }
+auto Swapchain::deinit() -> void {
+    vkDestroySwapchainKHR(m_device->m_handle, m_handle, nullptr);
+}
 
 auto Swapchain::recreate() -> void {
     vkDeviceWaitIdle(m_device->m_handle);
@@ -242,7 +266,11 @@ auto Swapchain::recreate() -> void {
     this->init(*m_device, m_device->m_instance->m_surface);
 }
 
-auto Swapchain::acquire_image_index(const Semaphore* semaphore, const Fence* fence, VkResult& out_result) -> u32 {
+auto Swapchain::acquire_image_index(
+    const Semaphore* semaphore,
+    const Fence*     fence,
+    VkResult&        out_result
+) -> u32 {
     u32         image_index;
     VkSemaphore p_semaphore = semaphore == nullptr ? VK_NULL_HANDLE : semaphore->m_handle;
     VkFence     p_fence = fence == nullptr ? VK_NULL_HANDLE : fence->m_handle;
@@ -258,7 +286,8 @@ auto Swapchain::acquire_image_index(const Semaphore* semaphore, const Fence* fen
     return image_index;
 }
 
-auto Swapchain::acquire_image_index(const Semaphore* semaphore, const Fence* fence) -> u32 {
+auto Swapchain::acquire_image_index(const Semaphore* semaphore, const Fence* fence)
+    -> u32 {
     VkResult    result;
     u32         image_index;
     VkSemaphore p_semaphore = semaphore == nullptr ? VK_NULL_HANDLE : semaphore->m_handle;
@@ -301,8 +330,9 @@ Framebuffer::Framebuffer(Framebuffer&& other)
     other.m_image_view = nullptr;
     other.m_render_pass = nullptr;
 }
+
 auto Framebuffer::operator=(Framebuffer&& other) -> Framebuffer& {
-    if (&other == this) return *this;
+    if (&other == this) { return *this; }
     m_handle = other.m_handle;
     m_device = other.m_device;
     m_image_view = other.m_image_view;
@@ -317,11 +347,17 @@ auto Framebuffer::operator=(Framebuffer&& other) -> Framebuffer& {
 }
 
 Framebuffer::~Framebuffer() {
-    if (m_handle != VK_NULL_HANDLE) { vkDestroyFramebuffer(m_device->m_handle, m_handle, nullptr); }
+    if (m_handle != VK_NULL_HANDLE) {
+        vkDestroyFramebuffer(m_device->m_handle, m_handle, nullptr);
+    }
 }
 
 Framebuffer::Framebuffer(
-    const LogicalDevice& device, const ImageView& image_view, const RenderPass& render_pass, VkExtent2D extent) {
+    const LogicalDevice& device,
+    const ImageView&     image_view,
+    const RenderPass&    render_pass,
+    VkExtent2D           extent
+) {
     m_device = &device;
     m_image_view = &image_view;
     m_render_pass = &render_pass;
@@ -341,7 +377,9 @@ Framebuffer::Framebuffer(
         .layers = 1,
     };
 
-    result = vkCreateFramebuffer(device.m_handle, &framebuffer_info, Instance::allocator(), &m_handle);
+    result = vkCreateFramebuffer(
+        device.m_handle, &framebuffer_info, Instance::allocator(), &m_handle
+    );
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 

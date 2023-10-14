@@ -6,9 +6,10 @@
 #include "opengl_buffer.h"
 
 #ifdef _WIN32
-#include "JadeFrame/platform/windows/windows_window.h"
+    #include "JadeFrame/platform/windows/windows_window.h"
 #elif __linux__
-#include "JadeFrame/platform/linux/linux_window.h"
+    #include "JadeFrame/platform/linux/linux_window.h"
+    #include <GL/glx.h>
 #endif
 
 struct HGLRC__;
@@ -45,21 +46,22 @@ enum class POLYGON_MODE : GLenum {
     FILL = GL_FILL,
 };
 
-
-
-
 struct GL_State {
 public:
     auto set_default() -> void;
-    auto set_blending(bool enable, BLENDING_FACTOR sfactor = SRC_ALPHA, BLENDING_FACTOR dfactor = ONE_MINUS_SRC_ALPHA)
-        -> void;
+    auto set_blending(
+        bool            enable,
+        BLENDING_FACTOR sfactor = SRC_ALPHA,
+        BLENDING_FACTOR dfactor = ONE_MINUS_SRC_ALPHA
+    ) -> void;
     auto set_clear_color(const RGBAColor& color) -> void;
     auto set_polygon_mode(POLYGON_FACE face, POLYGON_MODE mode) -> void;
     auto set_clear_bitfield(const GLbitfield& bitfield) -> void;
     auto add_clear_bitfield(const GLbitfield& bitfield) -> void;
     auto remove_clear_bitfield(const GLbitfield& bitfield) -> void;
     auto set_depth_test(bool enable) -> void;
-    auto set_face_culling(bool enable, GLenum mode) -> void; // mode = GL_FRONT, GL_BACK, and GL_FRONT_AND_BACK
+    auto set_face_culling(bool enable, GLenum mode)
+        -> void; // mode = GL_FRONT, GL_BACK, and GL_FRONT_AND_BACK
 
 public:
     bool                                  depth_test;
@@ -74,6 +76,7 @@ public:
     auto  set_viewport(u32 x, u32 y, u32 width, u32 height) -> void;
     v2u32 viewport[2]; // TODO: Create an appropriate "rectangle" struct!
 };
+
 class OpenGL_Context {
 public:
     OpenGL_Context() = default;
@@ -82,15 +85,17 @@ public:
 
 public:
 #ifdef WIN32
-    HDC m_device_context; // NOTE: Windows specific!
+    HDC   m_device_context; // NOTE: Windows specific!
     HGLRC m_render_context;
 #elif __linux__
+    ::Display*      m_display; // m_device_context
+    ::GLXContext*   m_render_context;
+    const ::Window* m_window;
 #endif
     auto swap_buffers() -> void;
 
 public:
     mutable GL_State m_state;
-
 
     std::string              vendor;
     std::string              renderer;
@@ -107,7 +112,8 @@ public:
     // Resource creation
     auto create_texture() -> opengl::Texture*;
     auto create_texture(void* data, v2u32 size, u32 component_num) -> opengl::Texture*;
-    auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size) -> opengl::Buffer*;
+    auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
+        -> opengl::Buffer*;
     auto create_framebuffer() -> opengl::Framebuffer*;
     auto create_renderbuffer() -> opengl::Renderbuffer*;
 
@@ -119,7 +125,6 @@ public:
     std::vector<u32> m_textures;
     std::vector<u32> m_texture_units;
     u32              m_active_texture_unit;
-
 
     template<typename T, typename U>
     using HashMap = std::unordered_map<T, U>;

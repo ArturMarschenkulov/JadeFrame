@@ -29,19 +29,9 @@ set(
 ################################################################################
 add_executable(${PROJECT_NAME} ${ALL_FILES})
 
-use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
-set(ROOT_NAMESPACE Application)
+# use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
+# set(ROOT_NAMESPACE Application)
 
-################################################################################
-# Output directory
-################################################################################
-# set_target_properties(${PROJECT_NAME} PROPERTIES
-#     OUTPUT_DIRECTORY_DEBUG   "${CMAKE_SOURCE_DIR}/$<CONFIG>/"
-#     OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/$<CONFIG>/"
-# )
-# set_target_properties(${PROJECT_NAME} PROPERTIES
-#     INTERPROCEDURAL_OPTIMIZATION_RELEASE "TRUE"
-# )
 ################################################################################
 # Include directories
 ################################################################################
@@ -82,7 +72,6 @@ if(MSVC)
         /sdl;
         /W3;
         ${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT};
-        ${DEFAULT_CXX_EXCEPTION_HANDLING}
     )
     target_link_options(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Debug>:
@@ -114,6 +103,7 @@ target_link_libraries(${PROJECT_NAME}
         ${ADDITIONAL_LIBRARY_DEPENDENCIES}
 )
 
+# NOTE: CMAKE_VS_PLATFORM_NAME was removed. Change this later.
 target_link_directories(${PROJECT_NAME} 
     PRIVATE
         ${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/

@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 #include <map>
 #include <deque>
 #include <vector>
@@ -23,7 +21,7 @@
 #include <atomic>
 
 #if defined(_WIN32)
-#include <Windows.h>
-#define VK_USE_PLATFORM_WIN32_KHR
+    #include <Windows.h>
+    #define VK_USE_PLATFORM_WIN32_KHR
 #endif
 #include <vulkan/vulkan.h>
