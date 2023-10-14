@@ -1,6 +1,6 @@
 build/
 build_wsl/
 CMakeFiles/
-.vscode
+# .vscode
 .vs
 .cache
