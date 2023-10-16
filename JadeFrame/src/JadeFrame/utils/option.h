@@ -33,30 +33,39 @@ class Storage<T> {
 public:
     constexpr Storage()
         : m_has_value(false) {}
-
+    constexpr ~Storage() {
+        if (m_has_value) { m_pointer = nullptr; }
+    }
     constexpr Storage(const Storage& o)
         : m_has_value(o.m_has_value)
         , m_pointer(o.m_pointer) {}
-
+    constexpr auto operator=(const Storage& o) -> Storage& {
+        m_has_value = o.m_has_value;
+        m_pointer = o.m_pointer;
+        return *this;
+    }
     constexpr Storage(Storage&& o)
         : m_has_value(o.m_has_value)
         , m_pointer(o.m_pointer) {
         o.m_has_value = false;
         o.m_pointer = nullptr;
     }
-
+    constexpr auto operator=(Storage&& o) -> Storage& {
+        m_has_value = o.m_has_value;
+        m_pointer = o.m_pointer;
+        o.m_has_value = false;
+        o.m_pointer = nullptr;
+        return *this;
+    }
     constexpr Storage(const T& v)
-        : m_pointer(&v)
-        , m_has_value(true) {}
-
+        : m_has_value(true)
+        , m_pointer(&v) {}
     constexpr Storage(T&& v)
         requires(!std::is_lvalue_reference_v<T>)
-        : m_pointer(&v)
-        , m_has_value(true) {}
+        : m_has_value(true)
+        , m_pointer(&v) {}
 
-    constexpr ~Storage() {
-        if (m_has_value) { m_pointer = nullptr; }
-    }
+
 
     constexpr auto get() const& -> const T& { return *m_pointer; }
 
@@ -71,12 +80,12 @@ class Storage<T> {
 public:
     constexpr Storage()
         : m_has_value(false) {}
-
+    constexpr ~Storage() {
+        if (m_has_value) { reinterpret_cast<T&>(m_storage).~T(); }
+    }
     constexpr Storage(const Storage& o)
         : m_has_value(o.m_has_value) {
-        if (o.m_has_value) {
-            new (&m_storage) T(reinterpret_cast<const T&>(o.m_storage));
-        }
+        if (o.m_has_value) { new (&m_storage) T(reinterpret_cast<const T&>(o.m_storage)); }
     }
 
     constexpr Storage(Storage&& o)
@@ -87,6 +96,18 @@ public:
             m_has_value = false;
             new (&m_storage) T(rv);
         }
+    }
+
+    constexpr auto operator=(Storage&& o) -> Storage& {
+        if (m_has_value) { reinterpret_cast<T&>(m_storage).~T(); }
+        m_has_value = o.m_has_value;
+        if (o.m_has_value) {
+            T rv = std::move(reinterpret_cast<T&>(o.m_storage));
+            reinterpret_cast<T&>(o.m_storage).~T();
+            m_has_value = false;
+            new (&m_storage) T(rv);
+        }
+        return *this;
     }
 
     constexpr Storage(const T& v)
@@ -116,22 +137,30 @@ class Option {
 public:
     constexpr Option()
         : m_storage() {}
-
+    // constexpr ~Option() {
+    //     if (this->is_some()) { m_storage.get().~T(); }
+    // }
     constexpr Option(const Option& o)
         : m_storage(o.m_storage) {}
-
+    constexpr auto operator=(const Option& o) -> Option& {
+        if (this->is_some()) { this->unwrap_unchecked().~T(); }
+        m_storage = o.m_storage;
+        return *this;
+    }
     constexpr Option(Option&& o)
-        : m_storage(std::forward<Option>(o.m_storage)) {}
+        : m_storage(std::forward<Option>(o).m_storage) {}
+    constexpr auto operator=(Option&& o) -> Option& {
+        if (this->is_some()) { this->unwrap_unchecked().~T(); }
+        m_storage = std::forward<details::Storage<T>>(o.m_storage);
+        return *this;
+    }
 
     constexpr Option(const T& v)
         : m_storage(v) {}
-
     constexpr Option(T&& v)
         requires(!std::is_lvalue_reference_v<T>)
         : m_storage(std::forward<T>(std::move(v))) {}
 
-    constexpr auto operator=(const Option&) -> Option& = delete;
-    constexpr auto operator=(Option&&) -> Option& = delete;
 
     constexpr auto operator==(const Option& o) const noexcept -> bool {
         if (this->is_some() && o.is_some()) {

@@ -54,12 +54,13 @@ auto Example_Rotating_Primitive::on_init() -> void {
     auto mesh_id_0 = m_render_system.register_mesh(m_obj.m_vertex_format, *m_obj.m_vertex_data);
     m_obj.m_vertex_data_id = mesh_id_0;
 
-    ShaderHandle::Desc shader_handle_desc;
-    shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("spirv_test_1");
-    shader_handle_desc.vertex_format = m_obj.m_vertex_format;
+    ShaderHandle::Desc shader_desc;
+    shader_desc.shading_code = GLSLCodeLoader::get_by_name("spirv_test_1");
+    shader_desc.vertex_format = m_obj.m_vertex_format;
+    auto shader = m_render_system.register_shader(std::move(shader_desc));
 
     MaterialHandle material;
-    material.m_shader_id = m_render_system.register_shader(std::move(shader_handle_desc));
+    material.m_shader_id = shader;
     material.m_texture_id = 0;
     m_obj.m_material_handle = material;
 
