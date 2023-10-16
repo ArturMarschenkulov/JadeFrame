@@ -41,7 +41,7 @@ static auto convert_SPIRV_to_GLSL(const std::vector<u32>& spirv) -> std::string 
     spirv_cross::CompilerGLSL::Options options;
     options.version = 450;
     options.es = false;
-    options.vulkan_semantics = true;
+    options.vulkan_semantics = false;
     glsl.set_common_options(options);
     return glsl.compile();
 }

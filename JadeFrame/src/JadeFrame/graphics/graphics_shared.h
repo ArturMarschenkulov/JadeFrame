@@ -307,7 +307,7 @@ public:
     GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage);
 
 public:
-    RenderSystem* m_system;
+    RenderSystem* m_system = nullptr;
     GRAPHICS_API  m_api = GRAPHICS_API::UNDEFINED;
     void*         m_handle = nullptr;
     size_t        m_size = 0;
