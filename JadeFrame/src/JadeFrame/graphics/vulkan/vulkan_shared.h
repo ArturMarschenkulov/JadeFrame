@@ -26,20 +26,6 @@ namespace vulkan {
 //	return {};
 // }
 
-inline auto get_binding_description(const VertexFormat& vertex_format)
-    -> VkVertexInputBindingDescription {
-    u32 stride = 0;
-    for (const VertexAttribute& attribute : vertex_format.m_attributes) {
-        stride += attribute.size;
-    }
-
-    const VkVertexInputBindingDescription binding_description = {
-        .binding = 0,
-        .stride = stride,
-        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
-    };
-    return binding_description;
-}
 
 inline auto SHADER_TYPE_to_VkFormat(const SHADER_TYPE& shader_type) -> VkFormat {
     VkFormat result = VK_FORMAT_UNDEFINED;
@@ -58,22 +44,6 @@ inline auto SHADER_TYPE_to_VkFormat(const SHADER_TYPE& shader_type) -> VkFormat 
     }
 
     return result;
-}
-
-inline auto get_attribute_descriptions(const VertexFormat& vertex_format)
-    -> std::vector<VkVertexInputAttributeDescription> {
-    std::vector<VkVertexInputAttributeDescription> attribute_descriptions;
-    attribute_descriptions.resize(vertex_format.m_attributes.size());
-    for (u32 i = 0; i < vertex_format.m_attributes.size(); i++) {
-        attribute_descriptions[i].binding = 0;
-        attribute_descriptions[i].location = i;
-        attribute_descriptions[i].format =
-            SHADER_TYPE_to_VkFormat(vertex_format.m_attributes[i].type);
-        attribute_descriptions[i].offset =
-            static_cast<u32>(vertex_format.m_attributes[i].offset);
-    }
-
-    return attribute_descriptions;
 }
 
 struct UniformBufferObject {

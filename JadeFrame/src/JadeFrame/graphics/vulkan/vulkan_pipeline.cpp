@@ -367,6 +367,36 @@ viewport_state_create_info(const VkViewport& viewport, const VkRect2D& scissor)
     return viewport_info;
 }
 
+static auto get_binding_description(const VertexFormat& vertex_format)
+    -> VkVertexInputBindingDescription {
+    u32 stride = 0;
+    for (const VertexAttribute& attribute : vertex_format.m_attributes) {
+        stride += attribute.size;
+    }
+    VkVertexInputBindingDescription const binding_description = {
+        .binding = 0,
+        .stride = stride,
+        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+    };
+    return binding_description;
+}
+
+static auto get_attribute_descriptions(const VertexFormat& vertex_format)
+    -> std::vector<VkVertexInputAttributeDescription> {
+    std::vector<VkVertexInputAttributeDescription> attribute_descriptions;
+    attribute_descriptions.resize(vertex_format.m_attributes.size());
+    for (u32 i = 0; i < vertex_format.m_attributes.size(); i++) {
+        attribute_descriptions[i].binding = 0;
+        attribute_descriptions[i].location = i;
+        attribute_descriptions[i].format =
+            SHADER_TYPE_to_VkFormat(vertex_format.m_attributes[i].type);
+        attribute_descriptions[i].offset =
+            static_cast<u32>(vertex_format.m_attributes[i].offset);
+    }
+
+    return attribute_descriptions;
+}
+
 static auto vertex_input_state_create_info(
     VkVertexInputBindingDescription                    bindings,
     const std::span<VkVertexInputAttributeDescription> attributes
