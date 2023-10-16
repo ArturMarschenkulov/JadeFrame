@@ -6,6 +6,7 @@
     #include "platform/win32/surface.h"
 #elif defined(__linux__)
     #include "JadeFrame/platform/linux/linux_window.h"
+    #include "platform/x11/surface.h"
 #endif
 
 #include <cassert>
@@ -43,6 +44,8 @@ Surface::Surface(VkInstance instance, const IWindow* window_handle) {
     VkResult result;
 #if _WIN32
     m_handle = win32::create_surface(instance, window_handle);
+#elif __linux__
+    m_handle = x11::create_surface(instance, window_handle);
 #else
     assert(false && "not implemented yet");
 #endif

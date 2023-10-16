@@ -29,6 +29,10 @@ set(SOURCE_FILES
 )
 if(WIN32)
     list(APPEND SOURCE_FILES "platform/win32/surface.h" "platform/win32/surface.cpp")
+elseif(LINUX)
+    list(APPEND SOURCE_FILES "platform/x11/surface.h" "platform/x11/surface.cpp")
+else()
+    message(ERROR "Unsupported platform")
 endif()
 
 add_library(GraphicsAPI_Vulkan ${SOURCE_FILES})
