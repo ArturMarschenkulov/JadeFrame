@@ -5,8 +5,6 @@
 namespace JadeFrame {
 
 Linux_Window::Linux_Window(const Linux_Window::Desc& desc) {
-    Status status = XInitThreads();
-
     m_display = XOpenDisplay(nullptr);
     if (!m_display) {
         printf("\n\tcannot connect to X server\n\n");
@@ -31,15 +29,14 @@ Linux_Window::Linux_Window(const Linux_Window::Desc& desc) {
     window_attributes.border_pixel = 0;
     window_attributes.event_mask =
         KeyPressMask | KeyReleaseMask | StructureNotifyMask | ExposureMask;
-    // glXCreateContext(m_display, visual, nullptr, GL_TRUE);
 
     m_window = XCreateWindow(
         m_display,
         RootWindow(m_display, screen),
         0,
         0,
-        500,
-        500,
+        desc.size.x,
+        desc.size.y,
         0,
         depth,
         InputOutput,
@@ -47,10 +44,41 @@ Linux_Window::Linux_Window(const Linux_Window::Desc& desc) {
         CWBackPixel | CWBorderPixel | CWEventMask | CWColormap,
         &window_attributes
     );
-
     XSelectInput(m_display, m_window, ExposureMask | KeyPressMask);
     XMapWindow(m_display, m_window);
     XFlush(m_display);
+
+    // Client area dimensions
+    XWindowAttributes client_attributes;
+    XGetWindowAttributes(m_display, m_window, &client_attributes);
+    int client_width = client_attributes.width;
+    int client_height = client_attributes.height;
+
+
+
+    // Window dimensions
+    ::Window     root_window;
+    int          x, y;
+    unsigned int border_width;
+    unsigned int depth_;
+    unsigned int window_width;
+    unsigned int window_height;
+    XGetGeometry(
+        m_display,
+        m_window,
+        &root_window,
+        &x,
+        &y,
+        &window_width,
+        &window_height,
+        &border_width,
+        &depth_
+    );
+
+    // m_title = desc.title;
+    m_size = v2u32(window_width, window_height);
+    // m_position = v2u32(window_rect.left, window_rect.top);
+
 }
 
 Linux_Window::~Linux_Window() { XDestroyWindow(m_display, m_window); }

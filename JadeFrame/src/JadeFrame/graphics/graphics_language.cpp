@@ -28,64 +28,20 @@ namespace JadeFrame {
 // previous step).
 //
 // Step 3 is highly variable and will be modified in the future to better compatiblity.
-auto remap_SPIRV_bindings_for_opengl(const ShadingCode& code) -> ShadingCode {
+auto remap_SPIRV_bindings_for_opengl(
+    const ShadingCode::Module::SPIRV& code,
+    SHADER_STAGE                      stage
+) -> ShadingCode::Module::SPIRV {
     // alias spirv_cross with spv_c
     namespace spv_c = spirv_cross;
 
-    // sets up opengl compiler options
-    spv_c::CompilerGLSL::Options options;
-    options.version = 450;
-    options.es = false;
-    options.vulkan_semantics = true;
-    spv_c::CompilerGLSL compiler = spv_c::CompilerGLSL(code.m_modules[0].m_code);
-    compiler.set_common_options(options);
-
-    spv_c::ShaderResources resources = compiler.get_shader_resources();
-
-    std::array<std::vector<spv_c::Resource*>, 4> dd;
-    for (u32 j = 0; j < resources.uniform_buffers.size(); j++) {
-        spv_c::Resource& resource = resources.uniform_buffers[j];
-
-        u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-        u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-        JF_ASSERT(
-            set <= 3,
-            "As of right now, only 4 descriptor sets are supported. (0, 1, 2, 3)"
-        );
-
-        dd[set].push_back(&resource);
-    }
-
-    u32 binding = 0;
-    for (u32 i = 0; i < dd.size(); i++) {
-        for (u32 j = 0; j < dd[i].size(); j++) {
-            // compiler.unset_decoration(dd[i][j]->id, spv::DecorationDescriptorSet);
-            compiler.set_decoration(dd[i][j]->id, spv::DecorationDescriptorSet, 0);
-            compiler.set_decoration(dd[i][j]->id, spv::DecorationBinding, binding);
-            binding++;
-        }
-    }
-    auto source = compiler.compile();
-
-    auto new_code = code;
-    new_code.m_modules[0].m_code =
-        GLSL_to_SPIRV(source, SHADER_STAGE::VERTEX, GRAPHICS_API::OPENGL);
-    return new_code;
-}
-
-auto remap_SPIRV_bindings_for_opengl(const ShadingCode::Module::SPIRV& code, SHADER_STAGE stage)
-    -> ShadingCode::Module::SPIRV {
-    // alias spirv_cross with spv_c
-    namespace spv_c = spirv_cross;
-
-    // sets up opengl compiler options
-    spv_c::CompilerGLSL::Options options;
-    options.version = 450;
-    options.es = false;
-    options.vulkan_semantics = true;
     spv_c::CompilerGLSL compiler = spv_c::CompilerGLSL(code);
+    // sets up opengl compiler options
+    spv_c::CompilerGLSL::Options options;
+    options.version = 450;
+    options.es = false;
+    options.vulkan_semantics = true;
     compiler.set_common_options(options);
-
     spv_c::ShaderResources resources = compiler.get_shader_resources();
 
     std::array<std::vector<spv_c::Resource*>, 4> dd;
@@ -101,18 +57,30 @@ auto remap_SPIRV_bindings_for_opengl(const ShadingCode::Module::SPIRV& code, SHA
 
         dd[set].push_back(&resource);
     }
+    // What would be uniform Sampler2D?
+    for (u32 j = 0; j < resources.sampled_images.size(); j++) {
+        spv_c::Resource& resource = resources.sampled_images[j];
+
+        u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+        u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+        JF_ASSERT(
+            set <= 3,
+            "As of right now, only 4 descriptor sets are supported. (0, 1, 2, 3)"
+        );
+
+        dd[set].push_back(&resource);
+    }
 
     u32 binding = 0;
     for (u32 i = 0; i < dd.size(); i++) {
         for (u32 j = 0; j < dd[i].size(); j++) {
-            // compiler.unset_decoration(dd[i][j]->id, spv::DecorationDescriptorSet);
-            compiler.set_decoration(dd[i][j]->id, spv::DecorationDescriptorSet, 0);
+            compiler.unset_decoration(dd[i][j]->id, spv::DecorationDescriptorSet);
+            // compiler.set_decoration(dd[i][j]->id, spv::DecorationDescriptorSet, 0);
             compiler.set_decoration(dd[i][j]->id, spv::DecorationBinding, binding);
             binding++;
         }
     }
     auto source = compiler.compile();
-
     return GLSL_to_SPIRV(source, stage, GRAPHICS_API::OPENGL);
 }
 
@@ -126,6 +94,7 @@ static auto get_shader_kind(SHADER_STAGE stage) -> shaderc_shader_kind {
 }
 
 // Translate GLSL to SPIR-V
+// Depending on the API, the SPIR-V will be different.
 auto GLSL_to_SPIRV(const std::string& glsl_code, SHADER_STAGE stage, GRAPHICS_API api)
     -> std::vector<u32> {
 

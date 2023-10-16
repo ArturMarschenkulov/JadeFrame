@@ -9,8 +9,8 @@ namespace JadeFrame {
 class Linux_Window : public IWindow {
 public:
     Linux_Window(const Linux_Window&) = delete;
-    Linux_Window(Linux_Window&&) = delete;
     auto operator=(const Linux_Window&) -> Linux_Window& = delete;
+    Linux_Window(Linux_Window&&) = delete;
     auto operator=(Linux_Window&&) -> Linux_Window& = delete;
 
     Linux_Window() = default;
@@ -30,10 +30,10 @@ public:
     virtual auto get() const -> void* override { return nullptr; }
 
 public:
-    ::Display*     m_display;
+    ::Display*    m_display;
     ::XVisualInfo* m_visual_info;
-    ::Window       m_window;
-    v2u32          m_size;
+    ::Window      m_window;
+    v2u32         m_size;
 };
 #ifdef __linux__
 using Window = Linux_Window;

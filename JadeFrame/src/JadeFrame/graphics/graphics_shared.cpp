@@ -411,10 +411,6 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
             auto             ctx = (OpenGL_Context*)&ren->m_context;
 
             opengl::Shader::Desc shader_desc;
-#if 0
-            shader_desc.code =
-                remap_SPIRV_bindings_for_opengl(m_registered_shaders[id].m_code);
-#else
             ShadingCode::Module module_0;
             module_0.m_code = remap_SPIRV_bindings_for_opengl(
                 m_registered_shaders[id].m_code.m_modules[0].m_code, SHADER_STAGE::VERTEX
@@ -430,8 +426,6 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
             shader_desc.code.m_modules.resize(2);
             shader_desc.code.m_modules[0] = std::move(module_0);
             shader_desc.code.m_modules[1] = std::move(module_1);
-
-#endif
             shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
 
             opengl::Shader* shader = new opengl::Shader(*ctx, shader_desc);
