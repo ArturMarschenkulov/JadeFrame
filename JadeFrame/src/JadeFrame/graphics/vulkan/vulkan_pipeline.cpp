@@ -398,7 +398,7 @@ static auto get_attribute_descriptions(const VertexFormat& vertex_format)
 }
 
 static auto vertex_input_state_create_info(
-    VkVertexInputBindingDescription                    bindings,
+    const VkVertexInputBindingDescription&             bindings,
     const std::span<VkVertexInputAttributeDescription> attributes
 ) -> VkPipelineVertexInputStateCreateInfo {
 
