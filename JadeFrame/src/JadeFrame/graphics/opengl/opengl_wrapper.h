@@ -247,7 +247,7 @@ Framebuffer::attach_texture(ATTACHMENT attachment, u32 i, const Texture& texture
 
     i32 attachment_point = 0;
     if (attachment == ATTACHMENT::COLOR) {
-        attachment_point = GL_COLOR_ATTACHMENT0 + i;
+        attachment_point = GL_COLOR_ATTACHMENT0 + static_cast<i32>(i);
     } else if (attachment == ATTACHMENT::DEPTH) {
         attachment_point = GL_DEPTH_ATTACHMENT;
     } else if (attachment == ATTACHMENT::STENCIL) {
@@ -255,7 +255,9 @@ Framebuffer::attach_texture(ATTACHMENT attachment, u32 i, const Texture& texture
     } else if (attachment == ATTACHMENT::DEPTH_STENCIL) {
         attachment_point = GL_DEPTH_STENCIL_ATTACHMENT;
     }
-    glNamedFramebufferTexture(m_ID, attachment_point, texture.m_id, 0);
+    glNamedFramebufferTexture(
+        m_ID, static_cast<GLenum>(attachment_point), texture.m_id, 0
+    );
 }
 
 inline auto Framebuffer::attach_renderbuffer(
@@ -267,7 +269,7 @@ inline auto Framebuffer::attach_renderbuffer(
 
     i32 attachment_point = 0;
     if (attachment == ATTACHMENT::COLOR) {
-        attachment_point = GL_COLOR_ATTACHMENT0 + i;
+        attachment_point = GL_COLOR_ATTACHMENT0 + static_cast<i32>(i);
     } else if (attachment == ATTACHMENT::DEPTH) {
         attachment_point = GL_DEPTH_ATTACHMENT;
     } else if (attachment == ATTACHMENT::STENCIL) {
@@ -276,7 +278,7 @@ inline auto Framebuffer::attach_renderbuffer(
         attachment_point = GL_DEPTH_STENCIL_ATTACHMENT;
     }
     glNamedFramebufferRenderbuffer(
-        m_ID, attachment_point, GL_RENDERBUFFER, renderbuffer.m_ID
+        m_ID, static_cast<GLenum>(attachment_point), GL_RENDERBUFFER, renderbuffer.m_ID
     );
 }
 

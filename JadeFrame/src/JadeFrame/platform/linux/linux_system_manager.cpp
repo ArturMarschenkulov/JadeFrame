@@ -52,18 +52,18 @@ auto Linux_SystemManager::frame_control(f64 delta_time) -> void {
     if (frame < m_time.target) {
         struct timespec sleep_time;
         sleep_time.tv_sec = 0;
-        sleep_time.tv_nsec = (m_time.target - frame) * 1e9;
+        sleep_time.tv_nsec = static_cast<long>((m_time.target - frame) * 1e9);
         nanosleep(&sleep_time, nullptr);
 
-        f64 current = this->get_time();
-        f64 time_wait = current - m_time.previous;
-        m_time.previous = current;
+        f64 current_ = this->get_time();
+        f64 time_wait = current_ - m_time.previous;
+        m_time.previous = current_;
         frame += time_wait;
     }
 }
 
 auto Linux_SystemManager::set_target_FPS(f64 FPS) -> void {
-    m_max_FPS = FPS;
+    m_max_FPS = static_cast<f32>(FPS);
     m_time.target = 1.0 / FPS;
 }
 } // namespace JadeFrame

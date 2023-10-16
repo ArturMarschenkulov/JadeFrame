@@ -70,6 +70,7 @@ auto CommandBuffer::render_pass_begin(
 ) -> void {
     const VkRenderPassBeginInfo render_pass_info = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+        .pNext = nullptr,
         .renderPass = render_pass.m_handle,
         .framebuffer = framebuffer.m_handle,
         .renderArea =
@@ -183,12 +184,12 @@ auto CommandBuffer::draw_indexed(
     u32 first_instance
 ) -> void {
     vkCmdDrawIndexed(
-        m_handle,       // commandBuffer
-        index_count,    // indexCount
-        instance_count, // instanceCount
-        first_index,    // firstIndex
-        vertex_offset,  // vertexOffset
-        first_instance  // firstInstance
+        m_handle,                        // commandBuffer
+        index_count,                     // indexCount
+        instance_count,                  // instanceCount
+        first_index,                     // firstIndex
+        static_cast<i32>(vertex_offset), // vertexOffset
+        first_instance                   // firstInstance
     );
 }
 

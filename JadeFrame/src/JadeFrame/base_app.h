@@ -1,10 +1,10 @@
 #pragma once
 
-#if _WIN32 || _WIN64
+#if defined(_WIN32) || defined(_WIN64)
     #include "JadeFrame/platform/windows/windows_input_manager.h"
     #include "JadeFrame/platform/windows/windows_system_manager.h"
     #include "JadeFrame/platform/windows/windows_window.h"
-#elif __linux__
+#elif defined(__linux__)
     #include "JadeFrame/platform/linux/linux_input_manager.h"
     #include "JadeFrame/platform/linux/linux_system_manager.h"
     #include "JadeFrame/platform/linux/linux_window.h"
@@ -86,6 +86,7 @@ public:
         const std::string& shader_name,
         const std::string& texture_name
     ) -> void {
+        (void)material_name;
 
         if (m_shader_handles.find(shader_name) != m_shader_handles.end()) {
             // m_material_handles[material_name].m_shader_handle =

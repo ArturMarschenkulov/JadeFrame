@@ -8,12 +8,13 @@
 namespace JadeFrame {
 JF_PRAGMA_PUSH
 
+// To maintain the high convenience of anonymous structs and unions, we disable the warnings
 #if defined(__clang__)
     #pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
     #pragma clang diagnostic ignored "-Wnested-anon-types"
 #elif defined(__GNUC__)
-// #pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
-// #pragma GCC diagnostic ignored "-Wnested-anon-types"
+    #pragma GCC diagnostic ignored "-Wpedantic"
+    #pragma GCC diagnostic ignored "-Wshadow"
 #elif defined(_MSC_VER)
     #pragma warning(disable : 4201)
 #endif
@@ -359,11 +360,11 @@ public:
     constexpr VectorT(VectorT&&) = default;
     ~VectorT() = default;
 
-    constexpr VectorT(const T x, const T y, const T z, const T w) noexcept
-        : x(x)
-        , y(y)
-        , z(z)
-        , w(w) {}
+    constexpr VectorT(const T x_, const T y_, const T z_, const T w_) noexcept
+        : x(x_)
+        , y(y_)
+        , z(z_)
+        , w(w_) {}
 
     constexpr auto operator=(const VectorT& other) -> VectorT& {
         this->x = other.x;

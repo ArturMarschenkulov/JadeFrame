@@ -33,9 +33,12 @@ if(MSVC)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(Platform_Linux PRIVATE
         -Wall
-        -Wextra 
+        -Wextra
+        -Wshadow
+        -Wconversion
         -Wpedantic
-        -Wno-unused
-        -Wno-unused-parameter
+        # -Wno-unused
+        # -Wno-unused-parameter
+        -Werror
     )
 endif()

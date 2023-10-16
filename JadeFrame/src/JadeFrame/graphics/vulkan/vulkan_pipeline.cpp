@@ -7,9 +7,11 @@
 #include "vulkan_descriptor_set.h"
 #include "vulkan_shared.h"
 
+JF_PRAGMA_NO_WARNINGS_PUSH
 #include "SPIRV-Cross/spirv_glsl.hpp"
 #include "SPIRV-Cross/spirv_hlsl.hpp"
 #include "SPIRV-Cross/spirv_msl.hpp"
+JF_PRAGMA_NO_WARNINGS_POP
 
 #include "JadeFrame/utils/assert.h"
 
@@ -676,10 +678,10 @@ Pipeline::Pipeline(
         Logger::info(
             "Created graphics pipeline {} at {}", fmt::ptr(this), fmt::ptr(m_handle)
         );
-        Logger::info("\tShader stages:");
-        for (const auto& stage : shader_stages) {
-            // Logger::info("\t\t{}", stage.module);
-        }
+        // Logger::info("\tShader stages:");
+        // for (const auto& stage : shader_stages) {
+        //     Logger::info("\t\t{}", stage.module);
+        // }
     }
 
     m_device = &device;

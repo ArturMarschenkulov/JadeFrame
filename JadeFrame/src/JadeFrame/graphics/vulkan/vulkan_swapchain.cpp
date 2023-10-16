@@ -50,7 +50,7 @@ choose_present_mode(const std::vector<VkPresentModeKHR>& available_surface_forma
             }
         }
     }
-    assert(!"Should not reach here!");
+    assert(false && "Should not reach here!");
     return {};
 }
 

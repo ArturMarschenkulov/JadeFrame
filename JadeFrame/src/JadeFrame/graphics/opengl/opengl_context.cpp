@@ -90,9 +90,9 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
     // gather extentions
     glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
     for (i32 i = 0; i < num_extensions; i++) {
-        extentenions.push_back(
-            reinterpret_cast<char const*>(glGetStringi(GL_EXTENSIONS, i))
-        );
+        extentenions.push_back(reinterpret_cast<char const*>(
+            glGetStringi(GL_EXTENSIONS, static_cast<u32>(i))
+        ));
     }
 
     glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &m_max_uniform_buffer_binding_points);
@@ -140,7 +140,9 @@ auto GL_State::set_blending(bool enable, BLENDING_FACTOR sfactor, BLENDING_FACTO
     if (blending != enable) {
         blending = enable;
         enable ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
-        if (enable) { glBlendFunc(sfactor, dfactor); }
+        if (enable) {
+            glBlendFunc(static_cast<GLenum>(sfactor), static_cast<GLenum>(dfactor));
+        }
     }
 }
 
@@ -193,6 +195,11 @@ auto GL_State::set_face_culling(bool enable, GLenum mode) -> void {
 auto GL_State::set_viewport(u32 x, u32 y, u32 width, u32 height) -> void {
     viewport[0] = {x, y};
     viewport[1] = {width, height};
-    glViewport(x, y, width, height);
+    glViewport(
+        static_cast<GLint>(x),
+        static_cast<GLint>(y),
+        static_cast<GLsizei>(width),
+        static_cast<GLsizei>(height)
+    );
 }
 } // namespace JadeFrame

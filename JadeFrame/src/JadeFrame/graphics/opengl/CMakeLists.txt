@@ -35,6 +35,7 @@ add_library(GraphicsAPI_OpenGL
 target_include_directories(GraphicsAPI_OpenGL
     PUBLIC
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/
+    SYSTEM
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glad/include/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/
@@ -76,11 +77,12 @@ if(MSVC)
     )
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(GraphicsAPI_OpenGL PRIVATE
-        -Wall 
-        # -Weverything
+        -Wall
+        -Wextra
+        -Wshadow
+        -Wconversion
+        -Wpedantic
         -Wno-unused
-        -Wextra 
-        -Wpedantic 
         # -Werror
     )
 else()

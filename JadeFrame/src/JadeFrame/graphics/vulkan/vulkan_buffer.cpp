@@ -474,6 +474,8 @@ ImageView::ImageView(const LogicalDevice& device, const Image& image, VkFormat f
     VkResult              result;
     VkImageViewCreateInfo create_info = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
         .image = image.m_handle,
         .viewType = VK_IMAGE_VIEW_TYPE_2D,
         .format = format,
@@ -600,6 +602,7 @@ auto Vulkan_Texture::transition_layout(
     cb.record([&] {
         VkImageMemoryBarrier barrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
             .srcAccessMask = 0,
             .dstAccessMask = 0,
             .oldLayout = old_layout,
@@ -652,8 +655,14 @@ auto Vulkan_Texture::transition_layout(
 
     const VkSubmitInfo submit_info = {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .pNext = nullptr,
+        .waitSemaphoreCount = 0,
+        .pWaitSemaphores = nullptr,
+        .pWaitDstStageMask = nullptr,
         .commandBufferCount = 1,
         .pCommandBuffers = &cb.m_handle,
+        .signalSemaphoreCount = 0,
+        .pSignalSemaphores = nullptr,
     };
     d.m_graphics_queue.submit(submit_info, VK_NULL_HANDLE);
     d.m_graphics_queue.wait_idle();
@@ -696,8 +705,14 @@ auto Vulkan_Texture::copy_buffer_to_image(
 
     const VkSubmitInfo submit_info = {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .pNext = nullptr,
+        .waitSemaphoreCount = 0,
+        .pWaitSemaphores = nullptr,
+        .pWaitDstStageMask = nullptr,
         .commandBufferCount = 1,
         .pCommandBuffers = &cb.m_handle,
+        .signalSemaphoreCount = 0,
+        .pSignalSemaphores = nullptr,
     };
     // d.m_graphics_queue.submit(submit_info, VK_NULL_HANDLE);
     d.m_graphics_queue.submit(cb, nullptr, nullptr, nullptr);

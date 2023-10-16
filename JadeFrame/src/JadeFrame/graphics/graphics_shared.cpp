@@ -10,7 +10,10 @@
 #include "reflect.h"
 
 #define STB_IMAGE_IMPLEMENTATION
+#undef __OPTIMIZE__
+JF_PRAGMA_NO_WARNINGS_PUSH
 #include "stb/stb_image.h"
+JF_PRAGMA_NO_WARNINGS_POP
 
 namespace JadeFrame {
 
@@ -77,7 +80,7 @@ auto Image::load(const std::string& path) -> Image {
 ----------------------------*/
 GPUBuffer::~GPUBuffer() {}
 
-GPUBuffer::GPUBuffer(GPUBuffer&& other) {}
+GPUBuffer::GPUBuffer(GPUBuffer&& other) { (void)other; }
 
 auto GPUBuffer::operator=(GPUBuffer&& other) -> GPUBuffer& { return *this; }
 
@@ -247,6 +250,8 @@ auto ShaderHandle::operator=(ShaderHandle&& other) -> ShaderHandle& {
 
 auto ShaderHandle::set_uniform(const std::string& name, const void* data, size_t size)
     -> void {
+    (void)data;
+    (void)size;
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
             auto shader = (opengl::Shader*)m_handle;
@@ -411,7 +416,7 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
             auto             ctx = (OpenGL_Context*)&ren->m_context;
 
             opengl::Shader::Desc shader_desc;
-            ShadingCode::Module module_0;
+            ShadingCode::Module  module_0;
             module_0.m_code = remap_SPIRV_bindings_for_opengl(
                 m_registered_shaders[id].m_code.m_modules[0].m_code, SHADER_STAGE::VERTEX
             );
@@ -419,7 +424,8 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
 
             ShadingCode::Module module_1;
             module_1.m_code = remap_SPIRV_bindings_for_opengl(
-                m_registered_shaders[id].m_code.m_modules[1].m_code, SHADER_STAGE::FRAGMENT
+                m_registered_shaders[id].m_code.m_modules[1].m_code,
+                SHADER_STAGE::FRAGMENT
             );
             module_1.m_stage = SHADER_STAGE::FRAGMENT;
 

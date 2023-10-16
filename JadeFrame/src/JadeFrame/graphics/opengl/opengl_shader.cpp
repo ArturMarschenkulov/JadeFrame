@@ -17,9 +17,11 @@
 
 #include "opengl_wrapper.h"
 
+JF_PRAGMA_NO_WARNINGS_PUSH
 #include "SPIRV-Cross/spirv_glsl.hpp"
 #include "SPIRV-Cross/spirv_hlsl.hpp"
 #include "SPIRV-Cross/spirv_msl.hpp"
+JF_PRAGMA_NO_WARNINGS_POP
 
 namespace JadeFrame {
 static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
@@ -37,7 +39,7 @@ static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
 namespace opengl {
 
 static auto convert_SPIRV_to_GLSL(const std::vector<u32>& spirv) -> std::string {
-    spirv_cross::CompilerGLSL glsl(spirv);
+    spirv_cross::CompilerGLSL          glsl(spirv);
     spirv_cross::CompilerGLSL::Options options;
     options.version = 450;
     options.es = false;
@@ -59,7 +61,6 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
 
 #define JF_USE_SPIRV false
 #if JF_USE_SPIRV == false
-    using SPIRV = std::vector<JadeFrame::u32>;
     std::array<std::string, 2> glsl_sources;
     for (size_t i = 0; i < desc.code.m_modules.size(); i++) {
         auto& spirv = desc.code.m_modules[i].m_code;
@@ -102,7 +103,7 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
         attribs.name = input.name;
         attribs.type = input.type;
         attribs.location = input.location;
-        attribs.size = input.size;
+        attribs.size = static_cast<i32>(input.size);
         m_vertex_attributes.push_back(attribs);
     }
 
@@ -114,7 +115,7 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
             Shader::Uniform uniform;
             uniform.name = uniform_buffer.name;
             // uniform.type = uniform_buffer.type;
-            uniform.size = uniform_buffer.size;
+            uniform.size = static_cast<i32>(uniform_buffer.size);
             uniform.location = uniform_buffer.binding;
         }
     }

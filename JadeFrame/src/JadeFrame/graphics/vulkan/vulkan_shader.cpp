@@ -59,7 +59,7 @@ auto Vulkan_Shader::get_location(const std::string& name) -> std::tuple<u32, u32
     u32  set = 0;
     u32  binding = 0;
     for (auto& module : m_reflected_code.m_modules) {
-        for (int j = 0; module.m_uniform_buffers.size(); j++) {
+        for (size_t j = 0; module.m_uniform_buffers.size(); j++) {
             auto& uniform_buffer = module.m_uniform_buffers[j];
             if (uniform_buffer.name == name) {
                 found = true;

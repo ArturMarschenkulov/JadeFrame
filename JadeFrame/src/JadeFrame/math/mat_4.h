@@ -7,12 +7,14 @@
 
 JF_PRAGMA_PUSH
 
+// To maintain the high convenience of anonymous structs and unions, we disable the
+// warnings
 #if defined(__clang__)
     #pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
     #pragma clang diagnostic ignored "-Wnested-anon-types"
 #elif defined(__GNUC__)
-// #pragma GCC diagnostic ignored "-Wgnu-anonymous-struct"
-// #pragma GCC diagnostic ignored "-Wnested-anon-types"
+    #pragma GCC diagnostic ignored "-Wpedantic"
+    #pragma GCC diagnostic ignored "-Wshadow"
 #elif defined(_MSC_VER)
     #pragma warning(disable : 4201)
 #endif
@@ -382,8 +384,8 @@ inline constexpr auto Matrix4x4::get_rank() const -> i32 {
 
 inline constexpr auto Matrix4x4::get_transpose() const -> Matrix4x4 {
     Matrix4x4 result;
-    for (i32 col = 0; col < 4; col++) {
-        for (i32 row = 0; row < 4; row++) { result[col][row] = el[row][col]; }
+    for (u32 col = 0; col < 4; col++) {
+        for (u32 row = 0; row < 4; row++) { result[col][row] = el[row][col]; }
     }
     return result;
 }

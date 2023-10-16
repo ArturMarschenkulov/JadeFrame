@@ -98,13 +98,25 @@ class Linux_InputManager : public IInputManager {
 public:
     virtual auto handle_input() -> void override { return; }
 
-    static auto is_key_down(const KEY key) -> bool { return {}; }
+    static auto is_key_down(const KEY key) -> bool {
+        (void)key;
+        return {};
+    }
 
-    static auto is_key_up(const KEY key) -> bool { return {}; }
+    static auto is_key_up(const KEY key) -> bool {
+        (void)key;
+        return {};
+    }
 
-    static auto is_key_pressed(const KEY key) -> bool { return {}; }
+    static auto is_key_pressed(const KEY key) -> bool {
+        (void)key;
+        return {};
+    }
 
-    static auto is_key_released(const KEY key) -> bool { return {}; }
+    static auto is_key_released(const KEY key) -> bool {
+        (void)key;
+        return {};
+    }
 };
 #ifdef __linux__
 using InputManager = Linux_InputManager;

@@ -92,11 +92,12 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL 
         -fexceptions
         -g
         -O0
-        -Wall 
-        # -Weverything
+        -Wall
+        -Wextra
+        -Wshadow
+        -Wconversion
+        -Wpedantic
         -Wno-unused
-        -Wextra 
-        -Wpedantic 
         # -Werror
     )
 else()

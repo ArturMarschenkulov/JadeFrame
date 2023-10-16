@@ -12,7 +12,10 @@
 #include <cassert>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#undef __OPTIMIZE__
+JF_PRAGMA_NO_WARNINGS_PUSH
 #include "stb/stb_image_write.h"
+JF_PRAGMA_NO_WARNINGS_POP
 #include <chrono>
 #include <future>
 #include <thread>

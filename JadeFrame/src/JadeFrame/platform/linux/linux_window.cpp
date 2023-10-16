@@ -12,6 +12,7 @@ Linux_Window::Linux_Window(const Linux_Window::Desc& desc) {
     }
 
     XID root = DefaultRootWindow(m_display);
+    (void)root;
 
     GLint att[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None};
 
@@ -51,8 +52,8 @@ Linux_Window::Linux_Window(const Linux_Window::Desc& desc) {
     // Client area dimensions
     XWindowAttributes client_attributes;
     XGetWindowAttributes(m_display, m_window, &client_attributes);
-    int client_width = client_attributes.width;
-    int client_height = client_attributes.height;
+    // int client_width = client_attributes.width;
+    // int client_height = client_attributes.height;
 
 
 

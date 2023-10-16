@@ -1,13 +1,17 @@
 #include "graphics_language.h"
 #include "JadeFrame/utils/assert.h"
-JF_PRAGMA_PUSH
-#pragma warning(disable : 4006)
-#include "shaderc/shaderc.hpp"
-JF_PRAGMA_POP
 
+// JF_PRAGMA_PUSH
+// #pragma warning(disable : 4006)
+// #include "shaderc/shaderc.hpp"
+// JF_PRAGMA_POP
+
+JF_PRAGMA_NO_WARNINGS_PUSH
+#include "shaderc/shaderc.hpp"
 #include "SPIRV-Cross/spirv_glsl.hpp"
 #include "SPIRV-Cross/spirv_hlsl.hpp"
 #include "SPIRV-Cross/spirv_msl.hpp"
+JF_PRAGMA_NO_WARNINGS_POP
 
 namespace JadeFrame {
 

@@ -4,6 +4,32 @@
 */
 
 #if defined(__clang__)
+    #define JF_PRAGMA_NO_WARNINGS_PUSH                                                   \
+        _Pragma("clang diagnostic push");                                                \
+        _Pragma("clang diagnostic ignored \"-Weveything\"");
+
+    #define JF_PRAGMA_NO_WARNINGS_POP _Pragma("clang diagnostic pop")
+#elif defined(__GNUC__)
+    #define JF_PRAGMA_NO_WARNINGS_PUSH                                                   \
+        _Pragma("GCC diagnostic push");                                                  \
+        _Pragma("GCC diagnostic ignored \"-Wall\"");                                     \
+        _Pragma("GCC diagnostic ignored \"-Wtype-limits\"");                             \
+        _Pragma("GCC diagnostic ignored \"-Wextra\"");                                   \
+        _Pragma("GCC diagnostic ignored \"-Wconversion\"")
+
+    #define JF_PRAGMA_NO_WARNINGS_POP _Pragma("GCC diagnostic pop")
+
+#elif defined(_MSC_VER)
+    #define JF_PRAGMA_NO_WARNINGS_PUSH                                                   \
+        _Pragma("warning(push)") _Pragma("warning(disable : 4505)")
+    #define JF_PRAGMA_NO_WARNINGS_POP _Pragma("warning(pop)")
+#else
+    #define JF_PRAGMA_NO_WARNINGS_PUSH
+    #define JF_PRAGMA_NO_WARNINGS_POP
+    #error("Unknown compiler")
+#endif
+
+#if defined(__clang__)
     #define JF_PRAGMA_PUSH       _Pragma("clang diagnostic push")
     #define JF_PRAGMA_POP        _Pragma("clang diagnostic pop")
     #define JF_PRAGMA_DISABLE(x) _Pragma("clang diagnostic ignored")

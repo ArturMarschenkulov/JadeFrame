@@ -10,23 +10,29 @@ class RGBAColor {
 public:
     RGBAColor() = default;
 
-    RGBAColor(f32 r, f32 g, f32 b, f32 a)
-        : r(r)
-        , g(g)
-        , b(b)
-        , a(a) {}
+    RGBAColor(f32 red, f32 green, f32 blue, f32 alpha)
+        : r(red)
+        , g(green)
+        , b(blue)
+        , a(alpha) {}
 
-    RGBAColor(f32 r, f32 g, f32 b)
-        : RGBAColor(r, g, b, 1.0f) {}
+    RGBAColor(f32 red, f32 green, f32 blue)
+        : r(red)
+        , g(green)
+        , b(blue)
+        , a(1.0f) {}
 
-    RGBAColor(u8 r, u8 g, u8 b)
-        : RGBAColor(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f) {}
+    RGBAColor(u8 red, u8 green, u8 blue)
+        : r(red / 256.0f)
+        , g(green / 256.0f)
+        , b(blue / 256.0f)
+        , a(1.0f) {}
 
-    RGBAColor(u8 r, u8 g, u8 b, u8 a)
-        : r(r / 256.0f)
-        , g(g / 256.0f)
-        , b(b / 256.0f)
-        , a(a / 256.0f) {}
+    RGBAColor(u8 red, u8 green, u8 blue, u8 alpha)
+        : r(red / 256.0f)
+        , g(green / 256.0f)
+        , b(blue / 256.0f)
+        , a(alpha / 256.0f) {}
 
     auto operator==(const RGBAColor& color) const -> bool {
         return r == color.r && g == color.g && b == color.b && a == color.a;
@@ -43,11 +49,11 @@ public:
     }
 
     static auto from_hsv(f32 h, f32 s, f32 v) -> RGBAColor {
-        auto c = v * s;
-        auto x = c * (1.0f - abs(fmod(h / 60.0f, 2.0f) - 1.0f));
+        f32  c = v * s;
+        f32  x = c * (1.0f - std::abs(std::fmod(h / 60.0f, 2.0f) - 1.0f));
         auto m = v - c;
         auto r = 0.0f;
-        auto g = 0.0f;
+        f32  g = 0.0f;
         auto b = 0.0f;
         if (h >= 0.0f && h < 60.0f) {
             r = c;
@@ -105,8 +111,8 @@ public:
     }
 
     static auto from_hsl(f32 h, f32 s, f32 l) -> RGBAColor {
-        auto c = (1.0f - abs(2.0f * l - 1.0f)) * s;
-        auto x = c * (1.0f - abs(fmod(h / 60.0f, 2.0f) - 1.0f));
+        f32  c = (1.0f - std::abs(2.0f * l - 1.0f)) * s;
+        f32  x = c * (1.0f - std::abs(std::fmod(h / 60.0f, 2.0f) - 1.0f));
         auto m = l - c / 2.0f;
         auto r = 0.0f;
         auto g = 0.0f;
@@ -144,7 +150,8 @@ public:
         auto green = (u8)(g * 256.0f);
         auto blue = (u8)(b * 256.0f);
         auto alpha = (u8)(a * 256.0f);
-        return (red << 24) | (green << 16) | (blue << 8) | (alpha << 0);
+        return static_cast<u8>(red << 24_u8) | static_cast<u8>(green << 16_u8) |
+               static_cast<u8>(blue << 8_u8) | static_cast<u8>(alpha << 0_u8);
     }
 
     auto as_rgb() const -> RGBAColor { return RGBAColor(r, g, b, 1.0f); }

@@ -3,9 +3,11 @@
 
 #include "JadeFrame/utils/assert.h"
 
+JF_PRAGMA_NO_WARNINGS_PUSH
 #include "SPIRV-Cross/spirv_glsl.hpp"
 #include "SPIRV-Cross/spirv_hlsl.hpp"
 #include "SPIRV-Cross/spirv_msl.hpp"
+JF_PRAGMA_NO_WARNINGS_POP
 
 namespace JadeFrame {
 
@@ -92,7 +94,13 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
     } else {
         switch (type.basetype) {
             case spirv_cross::SPIRType::Float: {
-                if (columns == rows) {
+                if (columns != rows) {
+                    Logger::err(
+                        "matrix types with different row and column count "
+                        "are not supported yet! {} {}",
+                        rows,
+                        columns
+                    );
                     JF_UNIMPLEMENTED("matrix types with different row and column count "
                                      "are not supported yet!");
                 }

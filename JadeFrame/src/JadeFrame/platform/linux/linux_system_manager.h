@@ -22,13 +22,6 @@ public: // Window stuff
     IWindow*                                     m_curr_window = nullptr;
 
 public: // Time stuff
-
-private:
-    bool m_has_performance_counter;
-    u64  m_frequency;
-    u64  m_offset;
-
-public:
     virtual auto get_time() const -> f64 override;
     virtual auto calc_elapsed() -> f64 override;
     virtual auto frame_control(f64 delta_time) -> void override;
@@ -41,6 +34,11 @@ public:
 
     Time m_time;
     f32  m_max_FPS;
+
+// private:
+//     bool m_has_performance_counter;
+//     u64  m_frequency;
+//     u64  m_offset;
 
 public:
     pid_t m_instance;
