@@ -52,10 +52,10 @@ add_library(imgui
 # Source groups
 ################################################################################
 
-if(WIN32)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-    add_definitions(-DNOMINMAX)
-endif()
+# if(WIN32)
+#     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+#     add_definitions(-DNOMINMAX)
+# endif()
 add_subdirectory(src/extern/stb/)
 add_subdirectory(src/extern/glad/)
 
@@ -64,8 +64,14 @@ add_subdirectory(src/extern/spdlog/)
 # TODO: shaderc and SPIRV-Cross take a long time to compile. Find ways to cache their compilation.
 set(SHADERC_SKIP_TESTS ON)
 set(SHADERC_SKIP_EXAMPLES ON)
-add_subdirectory(src/extern/shaderc/)
-add_subdirectory(src/extern/SPIRV-Cross/)
+add_subdirectory(src/extern/shaderc/ EXCLUDE_FROM_ALL)
+add_subdirectory(src/extern/SPIRV-Cross/ EXCLUDE_FROM_ALL)
+
+# target_compile_options(shaderc PRIVATE -w)
+# target_compile_options(stb INTERFACE -w)
+# target_compile_options(glad PRIVATE -w)
+# target_compile_options(imgui PRIVATE -w)
+
 
 
 add_subdirectory(src/JadeFrame/graphics/opengl)
@@ -202,11 +208,11 @@ if(WIN32)
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         WIN32_LEAN_AND_MEAN
         NOMINMAX
-    _CRT_SECURE_NO_WARNINGS
-    _CONSOLE
-    UNICODE
-    _UNICODE
-)
+        _CRT_SECURE_NO_WARNINGS
+        _CONSOLE
+        UNICODE
+        _UNICODE
+    )
 endif()
 
 ################################################################################

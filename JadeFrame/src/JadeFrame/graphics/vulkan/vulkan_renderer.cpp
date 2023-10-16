@@ -91,6 +91,24 @@ auto Vulkan_Renderer::recreate_swapchain() -> void {
 
 auto Vulkan_Renderer::cleanup_swapchain() -> void { m_swapchain.deinit(); }
 
+// Update ubo buffer and descriptor set when the amount of render
+// commands changes
+// Small helper function
+static auto update_ubo_buffers(
+    size_t          num_commands,
+    size_t          dyn_alignment,
+    vulkan::Buffer* ub_tran,
+    Vulkan_Shader*  shader
+) -> void {
+    // const size_t num_commands = m_render_commands.size();
+    if (num_commands * dyn_alignment != ub_tran->m_size) {
+        if (num_commands != 0) {
+            ub_tran->resize(num_commands * dyn_alignment);
+            shader->rebind_buffer(3, 0, *ub_tran);
+        }
+    }
+}
+
 auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     vulkan::LogicalDevice&        d = *m_logical_device;
     const vulkan::PhysicalDevice* pd = d.m_physical_device;
@@ -114,7 +132,9 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         vulkan::Framebuffer& framebuffer =
             m_framebuffers[m_frames[m_frame_index].m_index];
         const RGBAColor    c = m_clear_color;
-        const VkClearValue clear_value = VkClearValue{c.r, c.g, c.b, c.a};
+        const VkClearValue clear_value = VkClearValue{
+            {c.r, c.g, c.b, c.a}
+        };
 
         cb.render_pass(
             framebuffer,
@@ -131,53 +151,40 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
                     vulkan::GPUMeshData& gpu_data =
                         m_registered_meshes[cmd.m_GPU_mesh_data_id];
 
-                    // Update ubo buffer and descriptor set when the amount of render
-                    // commands changes
-                    const size_t num_commands = m_render_commands.size();
-                    if (num_commands * dyn_alignment != m_ub_tran->m_size) {
-                        if (num_commands != 0) {
-                            m_ub_tran->resize(num_commands * dyn_alignment);
-                            shader->rebind_buffer(3, 0, *m_ub_tran);
-                        }
-                    }
+                    update_ubo_buffers(
+                        m_render_commands.size(), dyn_alignment, m_ub_tran, shader
+                    );
 
                     const u32 dyn_offset = static_cast<u32>(dyn_alignment * i);
 
                     // Per DrawCall ubo
                     m_ub_tran->write(*cmd.transform, dyn_offset);
 
-                    const VkPipelineBindPoint bind_point =
-                        VK_PIPELINE_BIND_POINT_GRAPHICS;
-                    VkDeviceSize offsets[] = {0, 0};
-                    cb.bind_pipeline(bind_point, shader->m_pipeline);
+                    const VkPipelineBindPoint bp = VK_PIPELINE_BIND_POINT_GRAPHICS;
+                    auto&                     pipeline = shader->m_pipeline;
+                    auto&                     sets = shader->m_sets;
+                    VkDeviceSize              offsets[] = {0, 0};
+
+                    cb.bind_pipeline(bp, pipeline);
                     cb.bind_vertex_buffers(
                         0, 1, &gpu_data.m_vertex_buffer->m_handle, offsets
                     );
-                    cb.bind_descriptor_sets(
-                        bind_point, shader->m_pipeline, 0, shader->m_sets[0], &dyn_offset
-                    );
-                    // cb.bind_descriptor_sets(bind_point, shader->m_pipeline, 1,
-                    // shader->m_sets[1], &dyn_offset);
-                    cb.bind_descriptor_sets(
-                        bind_point, shader->m_pipeline, 2, shader->m_sets[2], &dyn_offset
-                    );
-                    cb.bind_descriptor_sets(
-                        bind_point, shader->m_pipeline, 3, shader->m_sets[3], &dyn_offset
-                    );
+                    cb.bind_descriptor_sets(bp, pipeline, 0, sets[0], &dyn_offset);
+                    // cb.bind_descriptor_sets(bp, pipeline, 1, sets[1], &dyn_offset);
+                    cb.bind_descriptor_sets(bp, pipeline, 2, sets[2], &dyn_offset);
+                    cb.bind_descriptor_sets(bp, pipeline, 3, sets[3], &dyn_offset);
 
                     if (cmd.vertex_data->m_indices.size() > 0) {
-                        cb.bind_index_buffer(*gpu_data.m_index_buffer, 0);
-                        cb.draw_indexed(
-                            static_cast<u32>(cmd.vertex_data->m_indices.size()),
-                            1,
-                            0,
-                            0,
-                            0
-                        );
+                        auto&       index_buffer = *gpu_data.m_index_buffer;
+                        const auto& index_amount =
+                            static_cast<u32>(cmd.vertex_data->m_indices.size());
+
+                        cb.bind_index_buffer(index_buffer, 0);
+                        cb.draw_indexed(index_amount, 1, 0, 0, 0);
                     } else {
-                        cb.draw(
-                            static_cast<u32>(cmd.vertex_data->m_positions.size()), 1, 0, 0
-                        );
+                        const auto& vertex_amount =
+                            static_cast<u32>(cmd.vertex_data->m_positions.size());
+                        cb.draw(vertex_amount, 1, 0, 0);
                     }
                 }
             }
