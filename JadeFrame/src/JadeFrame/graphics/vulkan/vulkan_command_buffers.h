@@ -74,6 +74,10 @@ public:
     ) -> void;
     auto bind_vertex_buffers(const VkBuffer* buffers, const VkDeviceSize* offsets)
         -> void;
+
+    auto bind_vertex_buffer(u32 binding, const Buffer& buffer, const VkDeviceSize& offset) -> void {
+        this->bind_vertex_buffers(binding, 1, &buffer.m_handle, &offset);
+    }
     auto bind_descriptor_sets(
         const VkPipelineBindPoint bind_point,
         const Pipeline&           pipeline,
