@@ -6,13 +6,14 @@
 #include "vulkan/vulkan_xlib.h"
 
 #include "JadeFrame/platform/linux/linux_window.h"
+#include "JadeFrame/platform/platform_shared.h"
 
 namespace JadeFrame {
 namespace vulkan {
 namespace x11 {
 auto create_surface(VkInstance instance, const IWindow* window_handle) -> VkSurfaceKHR {
 #undef linux
-    auto win = static_cast<const JadeFrame::Linux_Window*>(window_handle);
+    auto win = static_cast<const JadeFrame::Linux_Window*>(window_handle->m_native_window.get());
 
     const VkXlibSurfaceCreateInfoKHR create_info = {
         .sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,

@@ -2,6 +2,7 @@
 #include "JadeFrame/prelude.h"
 #include "JadeFrame/math/vec.h"
 #include <string>
+#include <memory>
 
 namespace JadeFrame {
 
@@ -126,7 +127,7 @@ enum class KEY {
     MAX
 };
 
-// TODO: Think of a better way to abstract everything. Right now CRTP seems to be enough.
+class NativeWindow;
 
 class IWindow {
 public:
@@ -146,29 +147,63 @@ public:
         bool         accept_drop_files = false;
     };
 
-    virtual ~IWindow() = default;
-    virtual auto handle_events(bool& running)
-        -> void = 0; // TODO: This is hacky. Fix it later
+    IWindow() = default;
+
+    IWindow(const IWindow::Desc& desc);
+
+    auto handle_events(bool& running) -> void;
+    auto get_window_state() const -> WINDOW_STATE;
+    auto set_title(const std::string& title) -> void;
+    auto get_title() const -> std::string;
+    auto get_size() const -> const v2u32&;
+
+public:
+    std::unique_ptr<NativeWindow> m_native_window;
+};
+
+// This class represents an interface for a native window, that is a win32, x11, wayland
+// etc window. The purpose of this class is to abstract the platform specific window
+// creation and event handling.
+class NativeWindow {
+public:
+
+public:
+    NativeWindow() = default;
+    NativeWindow(const NativeWindow&) = delete;
+    auto operator=(const NativeWindow&) -> NativeWindow& = delete;
+    NativeWindow(NativeWindow&&) = delete;
+    auto operator=(NativeWindow&&) -> NativeWindow& = delete;
+    virtual ~NativeWindow() = default;
+
+public:
+    virtual auto handle_events(bool& running) -> void = 0;
     virtual auto set_title(const std::string& title) -> void = 0;
     virtual auto get_title() const -> std::string = 0;
     virtual auto get_size() const -> const v2u32& = 0;
-    virtual auto get_window_state() const -> WINDOW_STATE = 0;
-    virtual auto get() const -> void* = 0;
+    virtual auto get_window_state() const -> IWindow::WINDOW_STATE = 0;
 };
 
+template<typename T>
 class ISystemManager {
 public:
-
     virtual ~ISystemManager() = default;
     virtual auto initialize() -> void = 0;
     virtual auto log() const -> void = 0;
 
     virtual auto request_window(IWindow::Desc desc) -> IWindow* = 0;
 
-    virtual auto get_time() const -> f64 = 0;
-    virtual auto calc_elapsed() -> f64 = 0;
-    virtual auto frame_control(f64 delta_time) -> void = 0;
-    virtual auto set_target_FPS(f64 FPS) -> void = 0;
+    // time management
+    auto get_time() const -> f64 { return static_cast<const T*>(this)->get_time(); }
+
+    auto calc_elapsed() -> f64 { return static_cast<T*>(this)->calc_elapsed(); }
+
+    auto frame_control(f64 delta_time) -> void {
+        return static_cast<T*>(this)->frame_control(delta_time);
+    }
+
+    auto set_target_FPS(f64 FPS) -> void {
+        return static_cast<T*>(this)->set_target_FPS(FPS);
+    }
 };
 
 class IPlatform {
@@ -184,18 +219,25 @@ public:
     virtual auto set_FPS(f64 FPS) -> void = 0;
 };
 
-class SystemManager2 {
-public:
-    // This is the implementation
-    ISystemManager* m_impl = nullptr;
-};
-
+template<typename T>
 class IInputManager {
 public:
-    virtual auto handle_input() -> void = 0;
-    // static auto is_key_down(const KEY key) -> bool;
-    // static auto is_key_up(const KEY key) -> bool;
-    // static auto is_key_pressed(const KEY key) -> bool;
-    // static auto is_key_released(const KEY key) -> bool;
+    virtual auto handle_input() -> void { static_cast<T*>(this)->handle_input(); }
+
+    static auto is_key_down(const KEY key) -> bool {
+        return IInputManager<T>::is_key_down(key);
+    }
+
+    static auto is_key_up(const KEY key) -> bool {
+        return IInputManager<T>::is_key_up(key);
+    }
+
+    static auto is_key_pressed(const KEY key) -> bool {
+        return IInputManager<T>::is_key_pressed(key);
+    }
+
+    static auto is_key_released(const KEY key) -> bool {
+        return IInputManager<T>::is_key_released(key);
+    }
 };
 } // namespace JadeFrame

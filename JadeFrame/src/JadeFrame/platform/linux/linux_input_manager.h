@@ -94,7 +94,7 @@ namespace JadeFrame {
 // 	Y = 89,
 // 	Z = 90,
 // };
-class Linux_InputManager : public IInputManager {
+class Linux_InputManager : public IInputManager<Linux_InputManager> {
 public:
     virtual auto handle_input() -> void override { return; }
 

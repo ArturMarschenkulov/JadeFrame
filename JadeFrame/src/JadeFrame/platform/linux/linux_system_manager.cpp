@@ -22,9 +22,9 @@ auto Linux_SystemManager::initialize() -> void {
 auto Linux_SystemManager::log() const -> void {}
 
 auto Linux_SystemManager::request_window(IWindow::Desc desc) -> IWindow* {
-    m_windows[m_window_counter] = std::make_unique<Linux_Window>(desc);
+    m_windows[m_window_counter] = IWindow(desc);
     m_window_counter++;
-    return m_windows[m_window_counter - 1].get();
+    return &m_windows[m_window_counter - 1];
 }
 
 auto Linux_SystemManager::get_time() const -> f64 {

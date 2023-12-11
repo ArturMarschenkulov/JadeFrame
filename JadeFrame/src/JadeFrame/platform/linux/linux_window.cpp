@@ -2,9 +2,19 @@
 #include <GL/gl.h>
 #include <GL/glx.h>
 
+#include <string>
+#include <iostream>
+#include <cstdlib>
 namespace JadeFrame {
 
-Linux_Window::Linux_Window(const Linux_Window::Desc& desc) {
+Linux_Window::Linux_Window(const IWindow::Desc& desc) {
+
+    const char* x11_display_env = std::getenv("DISPLAY");
+    if (!x11_display_env) {
+        printf("The DISPLAY environment variable is not set. This is required for X11.\n");
+        exit(1);
+    }
+
     m_display = XOpenDisplay(nullptr);
     if (!m_display) {
         printf("\n\tcannot connect to X server\n\n");

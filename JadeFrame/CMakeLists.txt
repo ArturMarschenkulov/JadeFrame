@@ -153,6 +153,7 @@ ELSEIF(LINUX)
     add_subdirectory(src/JadeFrame/platform/linux/)
     set(Files_Platform
         "src/JadeFrame/platform/platform_shared.h"
+        "src/JadeFrame/platform/platform_shared.cpp"
     )
   # set stuff for other systems
 ENDIF()

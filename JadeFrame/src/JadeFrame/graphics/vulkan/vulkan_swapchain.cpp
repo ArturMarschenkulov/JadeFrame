@@ -86,7 +86,9 @@ static auto choose_extent(
 
         return actual_extent;
 #elif __linux__
-        auto win = static_cast<const JadeFrame::Linux_Window*>(surface.m_window_handle);
+        auto win = static_cast<const JadeFrame::Linux_Window*>(
+            surface.m_window_handle->m_native_window.get()
+        );
         return VkExtent2D{win->m_size.x, win->m_size.y};
 #else
         assert(false && "not implemented yet");
