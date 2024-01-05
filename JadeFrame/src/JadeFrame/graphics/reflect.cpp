@@ -11,7 +11,6 @@ JF_PRAGMA_NO_WARNINGS_POP
 
 namespace JadeFrame {
 
-
 static auto debug_print_resources(const spirv_cross::ShaderResources& resources) -> void {
     Logger::info("printing shader resources");
     for (const spirv_cross::Resource& resource : resources.uniform_buffers) {
@@ -117,7 +116,8 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
     return result;
 }
 
-auto temp_cmp_0(const ReflectedCode::Input& i0, const ReflectedCode::Input& i1) -> bool {
+auto temp_cmp_0(const ReflectedModule::Input& i0, const ReflectedModule::Input& i1)
+    -> bool {
     return i0.location < i1.location;
 }
 
@@ -126,7 +126,7 @@ auto temp_cmp_1(const ReflectedModule::Input& i0, const ReflectedModule::Input& 
     return i0.location < i1.location;
 }
 
-auto temp_cmp(ReflectedCode::Output i0, ReflectedCode::Output i1) -> bool {
+auto temp_cmp(ReflectedModule::Output i0, ReflectedModule::Output i1) -> bool {
     return i0.location < i1.location;
 }
 
@@ -320,7 +320,7 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
             u32 size =
                 (buffer_type.width / 8) * buffer_type.vecsize * buffer_type.columns;
 
-            std::vector<ReflectedCode::Input>& inputs = current_result_module.m_inputs;
+            std::vector<ReflectedModule::Input>& inputs = current_result_module.m_inputs;
             inputs[j].name = name;
             inputs[j].location = location;
             inputs[j].size = size;
@@ -343,7 +343,8 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
             u32 size =
                 (buffer_type.width / 8) * buffer_type.vecsize * buffer_type.columns;
 
-            std::vector<ReflectedCode::Output>& outputs = current_result_module.m_outputs;
+            std::vector<ReflectedModule::Output>& outputs =
+                current_result_module.m_outputs;
             outputs[j].name = name;
             outputs[j].location = location;
             outputs[j].size = size;
@@ -373,7 +374,7 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
             u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
             u32 size = static_cast<u32>(compiler.get_declared_struct_size(buffer_type));
 
-            std::vector<ReflectedCode::UniformBuffer>& uniform_buffers =
+            std::vector<ReflectedModule::UniformBuffer>& uniform_buffers =
                 current_result_module.m_uniform_buffers;
             uniform_buffers[j].binding = binding;
             uniform_buffers[j].set = set;
@@ -395,7 +396,7 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
                 u32 member_offset =
                     static_cast<u32>(compiler.type_struct_member_offset(buffer_type, jj));
 
-                ReflectedCode::UniformBuffer::Member member = {};
+                ReflectedModule::UniformBuffer::Member member = {};
                 member.name = member_name;
                 member.size = member_size;
                 member.offset = member_offset;
@@ -439,7 +440,7 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
             } else {
                 assert(false);
             }
-            std::vector<ReflectedCode::SampledImage>& sampled_images =
+            std::vector<ReflectedModule::SampledImage>& sampled_images =
                 current_result_module.m_sampled_images;
             sampled_images[j].binding = binding;
             sampled_images[j].set = set;
