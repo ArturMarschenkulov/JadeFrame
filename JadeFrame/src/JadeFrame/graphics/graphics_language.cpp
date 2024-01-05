@@ -32,7 +32,7 @@ namespace JadeFrame {
 // previous step).
 //
 // Step 3 is highly variable and will be modified in the future to better compatiblity.
-auto remap_SPIRV_bindings_for_opengl(
+auto remap_for_opengl(
     const ShadingCode::Module::SPIRV& code,
     SHADER_STAGE                      stage
 ) -> ShadingCode::Module::SPIRV {

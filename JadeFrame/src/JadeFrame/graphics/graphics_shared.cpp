@@ -417,13 +417,13 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
 
             opengl::Shader::Desc shader_desc;
             ShadingCode::Module  module_0;
-            module_0.m_code = remap_SPIRV_bindings_for_opengl(
+            module_0.m_code = remap_for_opengl(
                 m_registered_shaders[id].m_code.m_modules[0].m_code, SHADER_STAGE::VERTEX
             );
             module_0.m_stage = SHADER_STAGE::VERTEX;
 
             ShadingCode::Module module_1;
-            module_1.m_code = remap_SPIRV_bindings_for_opengl(
+            module_1.m_code = remap_for_opengl(
                 m_registered_shaders[id].m_code.m_modules[1].m_code,
                 SHADER_STAGE::FRAGMENT
             );
