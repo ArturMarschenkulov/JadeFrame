@@ -8,15 +8,13 @@
 namespace JadeFrame {
 namespace vulkan {
 
-Fence::Fence(Fence&& other)
-    : m_handle(VK_NULL_HANDLE)
-    , m_device(nullptr) {
+Fence::Fence(Fence&& other) noexcept {
 
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = nullptr;
 }
 
-auto Fence::operator=(Fence&& other) -> Fence& {
+auto Fence::operator=(Fence&& other) noexcept -> Fence& {
     if (this != &other) {
         m_handle = other.m_handle;
         m_device = other.m_device;
@@ -27,8 +25,9 @@ auto Fence::operator=(Fence&& other) -> Fence& {
     return *this;
 }
 
-Fence::Fence(const LogicalDevice& device, bool signaled) {
-    m_device = &device;
+Fence::Fence(const LogicalDevice& device, bool signaled)
+    : m_device(&device) {
+
     VkResult result;
 
     const VkFenceCreateInfo create_info = {
@@ -60,9 +59,8 @@ auto Fence::reset() -> void {
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
-auto Fence::is_signaled() -> bool {
-    VkResult result;
-    result = vkGetFenceStatus(m_device->m_handle, m_handle);
+auto Fence::is_signaled() const -> bool {
+    VkResult result = vkGetFenceStatus(m_device->m_handle, m_handle);
     switch (result) {
         case VK_SUCCESS: return true;
         case VK_NOT_READY: return false;
@@ -70,14 +68,12 @@ auto Fence::is_signaled() -> bool {
     }
 }
 
-Semaphore::Semaphore(Semaphore&& other)
-    : m_handle(VK_NULL_HANDLE)
-    , m_device(nullptr) {
+Semaphore::Semaphore(Semaphore&& other) noexcept {
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = nullptr;
 }
 
-auto Semaphore::operator=(Semaphore&& other) -> Semaphore& {
+auto Semaphore::operator=(Semaphore&& other) noexcept -> Semaphore& {
     if (this != &other) {
         m_handle = other.m_handle;
         m_device = other.m_device;

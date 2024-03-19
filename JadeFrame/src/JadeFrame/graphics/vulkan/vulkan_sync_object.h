@@ -13,14 +13,14 @@ public:
     ~Fence();
     Fence(const Fence&) = delete;
     auto operator=(const Fence&) -> Fence& = delete;
-    Fence(Fence&&);
-    auto operator=(Fence&&) -> Fence&;
+    Fence(Fence&&) noexcept ;
+    auto operator=(Fence&&)  noexcept -> Fence&;
 
     Fence(const LogicalDevice& device, bool signaled);
 
     auto wait_for_fences() -> void;
     auto reset() -> void;
-    auto is_signaled() -> bool;
+    [[nodiscard]] auto is_signaled() const -> bool;
 
     VkFence              m_handle = VK_NULL_HANDLE;
     const LogicalDevice* m_device = nullptr;
@@ -33,10 +33,10 @@ public:
     ~Semaphore();
     Semaphore(const Semaphore&) = delete;
     auto operator=(const Semaphore&) -> Semaphore& = delete;
-    Semaphore(Semaphore&&);
-    auto operator=(Semaphore&&) -> Semaphore&;
+    Semaphore(Semaphore&&) noexcept ;
+    auto operator=(Semaphore&&)  noexcept -> Semaphore&;
 
-    Semaphore(const LogicalDevice& device);
+    explicit Semaphore(const LogicalDevice& device);
 
     VkSemaphore          m_handle = VK_NULL_HANDLE;
     const LogicalDevice* m_device = nullptr;

@@ -98,7 +98,7 @@ enum class SHADER_TYPE {
 };
 
 inline auto get_underlying_type(SHADER_TYPE type) -> SHADER_TYPE {
-    SHADER_TYPE result;
+    SHADER_TYPE result = SHADER_TYPE::NONE;
     switch (type) {
         case SHADER_TYPE::I32:
         case SHADER_TYPE::V_2_I32:
@@ -138,7 +138,7 @@ inline auto is_scalar(SHADER_TYPE type) -> bool {
 }
 
 inline auto get_component_count(const SHADER_TYPE type) -> u32 {
-    u32 result;
+    u32 result = 0;
     switch (type) {
         case SHADER_TYPE::F32:
         case SHADER_TYPE::I32:
@@ -225,8 +225,8 @@ public:
     ~TextureHandle();
     TextureHandle(const TextureHandle&) = delete;
     auto operator=(const TextureHandle&) -> TextureHandle& = delete;
-    TextureHandle(TextureHandle&& other);
-    auto operator=(TextureHandle&& other) -> TextureHandle&;
+    TextureHandle(TextureHandle&& other) noexcept ;
+    auto operator=(TextureHandle&& other)  noexcept -> TextureHandle&;
 
     TextureHandle(const Image& image);
 
@@ -422,8 +422,8 @@ public:
     ~RenderSystem();
     RenderSystem(const RenderSystem&) = delete;
     auto operator=(const RenderSystem&) -> RenderSystem& = delete;
-    RenderSystem(RenderSystem&&);
-    auto operator=(RenderSystem&&) -> RenderSystem&;
+    RenderSystem(RenderSystem&&) noexcept;
+    auto operator=(RenderSystem&&) noexcept -> RenderSystem&;
 
     RenderSystem(GRAPHICS_API api, IWindow* window);
 

@@ -25,15 +25,16 @@ Image::~Image() {
     if (data != nullptr) { stbi_image_free(data); }
 }
 
-Image::Image(Image&& other) noexcept {
-    data = other.data;
-    width = other.width;
-    height = other.height;
-    num_components = other.num_components;
+Image::Image(Image&& other) noexcept
+    : data(other.data)
+    , width(other.width)
+    , height(other.height)
+    , num_components(other.num_components) {
+
     other.data = nullptr;
 }
 
-Image& Image::operator=(Image&& other) noexcept {
+auto Image::operator=(Image&& other) noexcept -> Image& {
     data = other.data;
     width = other.width;
     height = other.height;
@@ -78,7 +79,7 @@ auto Image::load(const std::string& path) -> Image {
 /*---------------------------
     GPUBuffer
 ----------------------------*/
-GPUBuffer::~GPUBuffer() {}
+GPUBuffer::~GPUBuffer() = default;
 
 GPUBuffer::GPUBuffer(GPUBuffer&& other) { (void)other; }
 
@@ -115,13 +116,14 @@ GPUBuffer::GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage)
 
     switch (system->m_api) {
         case GRAPHICS_API::OPENGL: {
-            OpenGL_Context* device = &((OpenGL_Renderer*)system->m_renderer)->m_context;
+            OpenGL_Context* device =
+                &(dynamic_cast<OpenGL_Renderer*>(system->m_renderer))->m_context;
 
             m_handle = device->create_buffer(to_opengl(usage), data, size);
         } break;
         case GRAPHICS_API::VULKAN: {
             vulkan::LogicalDevice* device =
-                ((Vulkan_Renderer*)system->m_renderer)->m_logical_device;
+                (dynamic_cast<Vulkan_Renderer*>(system->m_renderer))->m_logical_device;
 
             m_handle = device->create_buffer(to_vulkan(usage), data, size);
         } break;
@@ -163,12 +165,12 @@ TextureHandle::TextureHandle(const Image& img) {
     m_num_components = img.num_components;
 }
 
-TextureHandle::TextureHandle(TextureHandle&& other) {
-    m_data = other.m_data;
-    m_size = other.m_size;
-    m_num_components = other.m_num_components;
-    m_api = other.m_api;
-    m_handle = other.m_handle;
+TextureHandle::TextureHandle(TextureHandle&& other) noexcept
+    : m_data(other.m_data)
+    , m_size(other.m_size)
+    , m_num_components(other.m_num_components)
+    , m_api(other.m_api)
+    , m_handle(other.m_handle) {
 
     other.m_data = nullptr;
     other.m_size = {0, 0};
@@ -178,7 +180,7 @@ TextureHandle::TextureHandle(TextureHandle&& other) {
     // *this = std::move(other);
 }
 
-auto TextureHandle::operator=(TextureHandle&& other) -> TextureHandle& {
+auto TextureHandle::operator=(TextureHandle&& other) noexcept -> TextureHandle& {
     m_data = other.m_data;
     m_size = other.m_size;
     m_num_components = other.m_num_components;
@@ -201,12 +203,12 @@ auto TextureHandle::init(void* context) -> void {
 
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            OpenGL_Context* d = (OpenGL_Context*)context;
+            auto* d = (OpenGL_Context*)context;
             m_handle = d->create_texture(m_data, m_size, m_num_components);
         } break;
         case GRAPHICS_API::VULKAN: {
-            vulkan::LogicalDevice*  d = (vulkan::LogicalDevice*)m_handle;
-            vulkan::Vulkan_Texture* texture =
+            auto* d = (vulkan::LogicalDevice*)m_handle;
+            auto* texture =
                 new vulkan::Vulkan_Texture(*d, m_data, m_size, VK_FORMAT_R8G8B8A8_SRGB);
             m_handle = texture;
         } break;
@@ -347,7 +349,7 @@ auto RenderSystem::init(GRAPHICS_API api, IWindow* window) -> void {
 
 RenderSystem::~RenderSystem() {}
 
-RenderSystem::RenderSystem(RenderSystem&& other) {
+RenderSystem::RenderSystem(RenderSystem&& other) noexcept {
     m_api = other.m_api;
     m_renderer = other.m_renderer;
     m_registered_textures = std::move(other.m_registered_textures);
@@ -356,7 +358,7 @@ RenderSystem::RenderSystem(RenderSystem&& other) {
     other.m_registered_textures.clear();
 }
 
-auto RenderSystem::operator=(RenderSystem&& other) -> RenderSystem& {
+auto RenderSystem::operator=(RenderSystem&& other) noexcept -> RenderSystem& {
     m_api = other.m_api;
     m_renderer = other.m_renderer;
     m_registered_textures = std::move(other.m_registered_textures);
@@ -412,8 +414,8 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
     // intermediate step of being converted to SPIRV.
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            OpenGL_Renderer* ren = static_cast<OpenGL_Renderer*>(m_renderer);
-            auto             ctx = (OpenGL_Context*)&ren->m_context;
+            auto* ren = dynamic_cast<OpenGL_Renderer*>(m_renderer);
+            auto* ctx = (OpenGL_Context*)&ren->m_context;
 
             opengl::Shader::Desc shader_desc;
             ShadingCode::Module  module_0;
@@ -434,18 +436,18 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
             shader_desc.code.m_modules[1] = std::move(module_1);
             shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
 
-            opengl::Shader* shader = new opengl::Shader(*ctx, shader_desc);
+            auto* shader = new opengl::Shader(*ctx, shader_desc);
             m_registered_shaders[id].m_handle = shader;
         } break;
         case GRAPHICS_API::VULKAN: {
-            Vulkan_Renderer*       ren = static_cast<Vulkan_Renderer*>(m_renderer);
+            auto*                  ren = dynamic_cast<Vulkan_Renderer*>(m_renderer);
             vulkan::LogicalDevice* ctx = ren->m_logical_device;
 
             Vulkan_Shader::Desc shader_desc;
             shader_desc.code = m_registered_shaders[id].m_code;
             shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
 
-            Vulkan_Shader* shader = new Vulkan_Shader(*ctx, *ren, shader_desc);
+            auto* shader = new Vulkan_Shader(*ctx, *ren, shader_desc);
             m_registered_shaders[id].m_handle = shader;
             for (size_t i = 0; i < shader->m_pipeline.m_set_layouts.size(); i++) {
                 shader->m_sets[i] =
@@ -459,6 +461,7 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
         } break;
         default: assert(false);
     }
+
     u32 old_id = id;
     id++;
     return old_id;
@@ -486,12 +489,12 @@ auto RenderSystem::register_mesh(const VertexFormat& format, const VertexData& d
     }
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            OpenGL_Renderer* r = static_cast<OpenGL_Renderer*>(m_renderer);
+            OpenGL_Renderer* r = dynamic_cast<OpenGL_Renderer*>(m_renderer);
             r->m_registered_meshes[id] =
                 opengl::GPUMeshData(r->m_context, data, vertex_format);
         } break;
         case GRAPHICS_API::VULKAN: {
-            Vulkan_Renderer* r = static_cast<Vulkan_Renderer*>(m_renderer);
+            Vulkan_Renderer* r = dynamic_cast<Vulkan_Renderer*>(m_renderer);
             r->m_registered_meshes[id] =
                 vulkan::GPUMeshData{*r->m_logical_device, data, vertex_format};
         } break;
