@@ -8,31 +8,27 @@ namespace JadeFrame {
 
 class RGBAColor {
 public:
-    RGBAColor() = default;
+    constexpr RGBAColor() = default;
 
-    RGBAColor(f32 red, f32 green, f32 blue, f32 alpha)
+    constexpr RGBAColor(f32 red, f32 green, f32 blue, f32 alpha)
         : r(red)
         , g(green)
         , b(blue)
         , a(alpha) {}
 
-    RGBAColor(f32 red, f32 green, f32 blue)
-        : r(red)
-        , g(green)
-        , b(blue)
-        , a(1.0f) {}
+    constexpr RGBAColor(f32 red, f32 green, f32 blue)
+        : RGBAColor{red, green, blue, 1.0F} {}
 
-    RGBAColor(u8 red, u8 green, u8 blue)
-        : r(red / 256.0f)
-        , g(green / 256.0f)
-        , b(blue / 256.0f)
-        , a(1.0f) {}
+    constexpr static float COLOR_SCALE = 256.0F;
 
-    RGBAColor(u8 red, u8 green, u8 blue, u8 alpha)
-        : r(red / 256.0f)
-        , g(green / 256.0f)
-        , b(blue / 256.0f)
-        , a(alpha / 256.0f) {}
+    constexpr RGBAColor(u8 red, u8 green, u8 blue)
+        : RGBAColor{red, green, blue, 1} {}
+
+    constexpr RGBAColor(u8 red, u8 green, u8 blue, u8 alpha)
+        : r(static_cast<float>(red) / COLOR_SCALE)
+        , g(static_cast<float>(green) / COLOR_SCALE)
+        , b(static_cast<float>(blue) / COLOR_SCALE)
+        , a(static_cast<float>(alpha) / COLOR_SCALE) {}
 
     auto operator==(const RGBAColor& color) const -> bool {
         return r == color.r && g == color.g && b == color.b && a == color.a;
@@ -40,12 +36,19 @@ public:
 
     auto operator!=(const RGBAColor& color) const -> bool { return !(*this == color); }
 
-    static auto from_hex(u32 hex) -> RGBAColor {
-        auto red = (hex >> 24) & 0xFF;
-        auto green = (hex >> 16) & 0xFF;
-        auto blue = (hex >> 8) & 0xFF;
-        auto alpha = (hex >> 0) & 0xFF;
-        return RGBAColor((u8)red, (u8)green, (u8)blue, (u8)alpha);
+    constexpr static auto from_hex(u32 hex) -> RGBAColor {
+        constexpr u32 RED_SHIFT = 24;
+        constexpr u32 GREEN_SHIFT = 16;
+        constexpr u32 BLUE_SHIFT = 8;
+        constexpr u32 ALPHA_SHIFT = 0;
+        constexpr u32 MASK = 0xFF;
+
+        u32 red = (hex >> RED_SHIFT) & MASK;
+        u32 green = (hex >> GREEN_SHIFT) & MASK;
+        u32 blue = (hex >> BLUE_SHIFT) & MASK;
+        u32 alpha = (hex >> ALPHA_SHIFT) & MASK;
+
+        return {(u8)red, (u8)green, (u8)blue, (u8)alpha};
     }
 
     static auto from_hsv(f32 h, f32 s, f32 v) -> RGBAColor {
@@ -84,30 +87,30 @@ public:
     }
 
     // linear to srgb
-    auto gamma_decode() const -> RGBAColor {
-        constexpr const f32 ratio = 2.2f;
+    [[nodiscard]] auto gamma_decode() const -> RGBAColor {
+        constexpr const f32 ratio = 2.2F;
         return RGBAColor(std::pow(r, ratio), std::pow(g, ratio), std::pow(b, ratio), a);
     }
 
     // srgb to linear
-    auto gamma_encode() const -> RGBAColor {
-        constexpr const f32 ratio = 1.0f / 2.2f;
+    [[nodiscard]] auto gamma_encode() const -> RGBAColor {
+        constexpr const f32 ratio = 1.0F / 2.2F;
         return RGBAColor(std::pow(r, ratio), std::pow(g, ratio), std::pow(b, ratio), a);
     }
 
-    float convert_srgb_from_linear(float lin_val) {
-        constexpr const f32 ratio = 1.0f / 2.4f;
-        constexpr const f32 threshold = 0.0031308f;
+    static auto convert_srgb_from_linear(float lin_val) -> float {
+        constexpr const f32 ratio = 1.0F / 2.4F;
+        constexpr const f32 threshold = 0.0031308F;
 
-        return lin_val <= threshold ? lin_val * 12.92f
-                                    : powf(lin_val, ratio) * 1.055f - 0.055f;
+        return lin_val <= threshold ? lin_val * 12.92F
+                                    : powf(lin_val, ratio) * 1.055F - 0.055F;
     }
 
-    float convert_srgb_to_linear(float rgba_val) {
-        constexpr const f32 ratio = 2.4f;
-        constexpr const f32 threshold = 0.04045f;
-        return rgba_val <= threshold ? rgba_val / 12.92f
-                                     : powf((rgba_val + 0.055f) / 1.055f, ratio);
+    static auto convert_srgb_to_linear(float rgba_val) -> float {
+        constexpr const f32 ratio = 2.4F;
+        constexpr const f32 threshold = 0.04045F;
+        return rgba_val <= threshold ? rgba_val / 12.92F
+                                     : powf((rgba_val + 0.055F) / 1.055F, ratio);
     }
 
     static auto from_hsl(f32 h, f32 s, f32 l) -> RGBAColor {
@@ -145,16 +148,22 @@ public:
         return RGBAColor(r + m, g + m, b + m, 1.0f);
     }
 
-    auto to_hex() const -> u32 {
-        auto red = (u8)(r * 256.0f);
-        auto green = (u8)(g * 256.0f);
-        auto blue = (u8)(b * 256.0f);
-        auto alpha = (u8)(a * 256.0f);
-        return static_cast<u8>(red << 24_u8) | static_cast<u8>(green << 16_u8) |
-               static_cast<u8>(blue << 8_u8) | static_cast<u8>(alpha << 0_u8);
+    [[nodiscard]] auto to_hex() const -> u32 {
+        auto red = static_cast<u32>(r * COLOR_SCALE);
+        auto green = static_cast<u32>(g * COLOR_SCALE);
+        auto blue = static_cast<u32>(b * COLOR_SCALE);
+        auto alpha = static_cast<u32>(a * COLOR_SCALE);
+
+        constexpr u32 RED_SHIFT = 24;
+        constexpr u32 GREEN_SHIFT = 16;
+        constexpr u32 BLUE_SHIFT = 8;
+        constexpr u32 ALPHA_SHIFT = 0;
+
+        return (red << RED_SHIFT) | (green << GREEN_SHIFT) | (blue << BLUE_SHIFT) |
+               (alpha << ALPHA_SHIFT);
     }
 
-    auto as_rgb() const -> RGBAColor { return RGBAColor(r, g, b, 1.0f); }
+    [[nodiscard]] auto as_rgb() const -> RGBAColor { return RGBAColor(r, g, b, 1.0F); }
 
     // Inspirations for color names
     // https://www.w3schools.com/colors/colors_names.asp
@@ -162,35 +171,33 @@ public:
     // https://margaret2.github.io/pantone-colors/
     // http://people.csail.mit.edu/jaffer/Color/Dictionaries
 
-    static auto solid_black() -> RGBAColor { return RGBAColor(0.0f, 0.0f, 0.0f, 1.0f); }
+    static auto solid_black() -> RGBAColor { return {0.0F, 0.0F, 0.0F}; }
 
-    static auto solid_grey() -> RGBAColor { return RGBAColor(0.5f, 0.5f, 0.5f, 1.0f); }
+    static auto solid_grey() -> RGBAColor { return {0.5F, 0.5F, 0.5F}; }
 
-    static auto solid_white() -> RGBAColor { return RGBAColor(1.0f, 1.0f, 1.0f, 1.0f); }
+    static auto solid_white() -> RGBAColor { return {1.0F, 1.0F, 1.0F}; }
 
-    static auto solid_red() -> RGBAColor { return RGBAColor(1.0f, 0.0f, 0.0f, 1.0f); }
+    static auto solid_red() -> RGBAColor { return {1.0F, 0.0F, 0.0F}; }
 
-    static auto solid_green() -> RGBAColor { return RGBAColor(0.0f, 1.0f, 0.0f, 1.0f); }
+    static auto solid_green() -> RGBAColor { return {0.0F, 1.0F, 0.0F}; }
 
-    static auto solid_blue() -> RGBAColor { return RGBAColor(0.0f, 0.0f, 1.0f, 1.0f); }
+    static auto solid_blue() -> RGBAColor { return {0.0F, 0.0F, 1.0F}; }
 
-    static auto solid_yellow() -> RGBAColor { return RGBAColor(1.0f, 1.0f, 0.0f, 1.0f); }
+    static auto solid_yellow() -> RGBAColor { return {1.0F, 1.0F, 0.0F}; }
 
-    static auto solid_cyan() -> RGBAColor { return RGBAColor(0.0f, 1.0f, 1.0f, 1.0f); }
+    static auto solid_cyan() -> RGBAColor { return {0.0F, 1.0F, 1.0F}; }
 
-    static auto solid_magenta() -> RGBAColor { return RGBAColor(1.0f, 0.0f, 1.0f, 1.0f); }
+    static auto solid_magenta() -> RGBAColor { return {1.0F, 0.0F, 1.0F}; }
 
-    static auto solid_magenta_2() -> RGBAColor {
-        return RGBAColor(1.0f, 0.0f, 0.5f, 1.0f);
+    static auto solid_magenta_2() -> RGBAColor { return {1.0F, 0.0F, 0.5F}; }
+
+    static auto solid_orange() -> RGBAColor { return {1.0F, 0.5F, 0.0F}; }
+
+    static auto solid_transparent() -> RGBAColor { return {0.0F, 0.0F, 0.0F, 0.0F}; }
+
+    [[nodiscard]] constexpr auto set_opacity(f32 opacity) const -> RGBAColor {
+        return {r, g, b, opacity};
     }
-
-    static auto solid_orange() -> RGBAColor { return RGBAColor(1.0f, 0.5f, 0.0f, 1.0f); }
-
-    static auto solid_transparent() -> RGBAColor {
-        return RGBAColor(0.0f, 0.0f, 0.0f, 0.0f);
-    }
-
-    auto set_opacity(f32 opacity) -> RGBAColor { return RGBAColor(r, g, b, opacity); }
 
 public:
     f32 r, g, b, a;

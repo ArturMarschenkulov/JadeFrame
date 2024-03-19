@@ -115,7 +115,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     m_frames[m_frame_index].acquire_image(m_swapchain);
 
-    if (m_swapchain.m_is_recreated == true) {
+    if (m_swapchain.m_is_recreated) {
         m_swapchain.m_is_recreated = false;
         return;
     }
@@ -132,9 +132,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     cb.record_begin();
     vulkan::Framebuffer& framebuffer = m_framebuffers[m_frames[m_frame_index].m_index];
     const RGBAColor      c = m_clear_color;
-    const VkClearValue   clear_value = VkClearValue{
-          {c.r, c.g, c.b, c.a}
-    };
+    const VkClearValue   clear_value = VkClearValue{{{c.r, c.g, c.b, c.a}}};
 
     // cb.render_pass(framebuffer, m_render_pass, m_swapchain.m_extent, clear_value, [&] {
     cb.render_pass_begin(framebuffer, m_render_pass, m_swapchain.m_extent, clear_value);
@@ -142,7 +140,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         const auto&         cmd = m_render_commands[i];
         const ShaderHandle& shader_handle =
             m_system->m_registered_shaders[cmd.material_handle.m_shader_id];
-        Vulkan_Shader*       shader = static_cast<Vulkan_Shader*>(shader_handle.m_handle);
+        auto*                shader = static_cast<Vulkan_Shader*>(shader_handle.m_handle);
         vulkan::GPUMeshData& gpu_data = m_registered_meshes[cmd.m_GPU_mesh_data_id];
 
         update_ubo_buffers(shader, m_ub_tran, m_render_commands.size(), dyn_alignment);
@@ -169,7 +167,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         cb.bind_descriptor_sets(bp, pipeline, 2, sets[2], &dyn_offset);
         cb.bind_descriptor_sets(bp, pipeline, 3, sets[3], &dyn_offset);
 
-        if (cmd.vertex_data->m_indices.size() > 0) {
+        if (!cmd.vertex_data->m_indices.empty()) {
             cb.bind_index_buffer(index_buffer, 0);
             cb.draw_indexed(index_amount, 1, 0, 0, 0);
         } else {

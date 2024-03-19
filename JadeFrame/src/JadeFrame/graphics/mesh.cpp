@@ -44,22 +44,22 @@ auto convert_into_data(const VertexData& vertex_data, const bool interleaved)
 
     std::vector<f32> data;
     data.reserve(size);
-    if (interleaved == true) {
+    if (interleaved) {
         for (size_t i = 0; i < vertex_data.m_positions.size(); i++) {
             data.push_back(vertex_data.m_positions[i].x);
             data.push_back(vertex_data.m_positions[i].y);
             data.push_back(vertex_data.m_positions[i].z);
-            if (vertex_data.m_colors.size()) {
+            if (!vertex_data.m_colors.empty()) {
                 data.push_back(vertex_data.m_colors[i].r);
                 data.push_back(vertex_data.m_colors[i].g);
                 data.push_back(vertex_data.m_colors[i].b);
                 data.push_back(vertex_data.m_colors[i].a);
             }
-            if (vertex_data.m_texture_coordinates.size()) {
+            if (!vertex_data.m_texture_coordinates.empty()) {
                 data.push_back(vertex_data.m_texture_coordinates[i].x);
                 data.push_back(vertex_data.m_texture_coordinates[i].y);
             }
-            if (vertex_data.m_normals.size()) {
+            if (!vertex_data.m_normals.empty()) {
                 data.push_back(vertex_data.m_normals[i].x);
                 data.push_back(vertex_data.m_normals[i].y);
                 data.push_back(vertex_data.m_normals[i].z);
@@ -114,7 +114,7 @@ auto VertexData::make_rectangle(const v3& pos, const v3& size, const Desc desc)
     vertex_data.m_positions[04] = {pos.x, pos.y, pos.z};
     vertex_data.m_positions[05] = {pos.x, pos.y + size.y, pos.z};
 
-    if (desc.has_texture_coordinates == true) {
+    if (desc.has_texture_coordinates) {
         vertex_data.m_texture_coordinates.resize(6);
         vertex_data.m_texture_coordinates[00] = {+0.0f, +0.0f};
         vertex_data.m_texture_coordinates[01] = {+1.0f, +1.0f};
@@ -124,7 +124,7 @@ auto VertexData::make_rectangle(const v3& pos, const v3& size, const Desc desc)
         vertex_data.m_texture_coordinates[05] = {+0.0f, +1.0f};
     }
 
-    if (desc.has_normals == true) {
+    if (desc.has_normals) {
         vertex_data.m_normals.resize(6);
         vertex_data.m_normals[00] = {+0.0f, +0.0f, +1.0f};
         vertex_data.m_normals[01] = {+0.0f, +0.0f, +1.0f};
@@ -134,7 +134,7 @@ auto VertexData::make_rectangle(const v3& pos, const v3& size, const Desc desc)
         vertex_data.m_normals[05] = {+0.0f, +0.0f, +1.0f};
     }
 
-    if (desc.has_indices == true) {
+    if (desc.has_indices) {
         vertex_data.m_indices.reserve(6);
         vertex_data.m_indices = {0, 1, 3, 1, 2, 3};
     }
@@ -159,7 +159,7 @@ auto VertexData::make_triangle(const v3& pos1, const v3& pos2, const v3& pos3)
 
 auto VertexData::make_circle(const v3& position, const f32 radius, const u32 numSegments)
     -> VertexData {
-    const f32 theta = 2.0f * 3.1415926f / f32(numSegments); // get the current angle
+    const f32 theta = 2.0F * 3.1415926F / f32(numSegments); // get the current angle
     const f32 cos = cosf(theta);                            // calculate the x component
     const f32 sin = sinf(theta);                            // calculate the y component
 

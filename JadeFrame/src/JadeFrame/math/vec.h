@@ -8,7 +8,8 @@
 namespace JadeFrame {
 JF_PRAGMA_PUSH
 
-// To maintain the high convenience of anonymous structs and unions, we disable the warnings
+// To maintain the high convenience of anonymous structs and unions, we disable the
+// warnings
 #if defined(__clang__)
     #pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
     #pragma clang diagnostic ignored "-Wnested-anon-types"
@@ -31,7 +32,7 @@ public:
     constexpr VectorT() noexcept { std::memset(el, 0, N); }
 
     // template<typename ...Args>
-    template<class... T2, typename std::enable_if<sizeof...(T2) == N, int>::type = 0>
+    template<class... T2, std::enable_if_t<sizeof...(T2) == N, int> = 0>
     constexpr explicit VectorT(const T2&... args) noexcept {
         static_assert(sizeof...(T2) == N, "VectorT: invalid number of arguments");
 
@@ -141,6 +142,13 @@ public:
         , y(y) {}
 
     constexpr auto operator=(const VectorT& other) -> VectorT& {
+        if (this == &other) { return *this; }
+        this->x = other.x;
+        this->y = other.y;
+        return *this;
+    }
+
+    constexpr auto operator=(VectorT&& other) noexcept -> VectorT& {
         this->x = other.x;
         this->y = other.y;
         return *this;
@@ -249,6 +257,14 @@ public:
         , z(z) {}
 
     constexpr auto operator=(const VectorT& other) -> VectorT& {
+        if (this == &other) { return *this; }
+        this->x = other.x;
+        this->y = other.y;
+        this->z = other.z;
+        return *this;
+    }
+
+    constexpr auto operator=(VectorT&& other) noexcept -> VectorT& {
         this->x = other.x;
         this->y = other.y;
         this->z = other.z;
@@ -367,6 +383,15 @@ public:
         , w(w_) {}
 
     constexpr auto operator=(const VectorT& other) -> VectorT& {
+        if (this == &other) { return *this; }
+        this->x = other.x;
+        this->y = other.y;
+        this->z = other.z;
+        this->w = other.w;
+        return *this;
+    }
+
+    constexpr auto operator=(VectorT&& other) noexcept -> VectorT& {
         this->x = other.x;
         this->y = other.y;
         this->z = other.z;
