@@ -113,7 +113,6 @@ set(CMAKE_BUILD_TYPE "Debug")
 
 
 include(cmake/Utils.cmake) # Common utils
-include(cmake/GlobalSettingsInclude.cmake OPTIONAL) # Additional Global Settings(add specific info there)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON) # Use solution folders feature
 
 ################################################################################

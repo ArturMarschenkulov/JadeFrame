@@ -32,15 +32,14 @@ add_library(GraphicsAPI_OpenGL
     ${PLATFORM_DEPENDENT_FILES}
 )
 
-target_include_directories(GraphicsAPI_OpenGL
-    PUBLIC
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/
-    SYSTEM
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glad/include/
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/
-
-)
+# target_include_directories(GraphicsAPI_OpenGL
+#     PUBLIC
+#         ${CMAKE_SOURCE_DIR}/JadeFrame/src/
+#     SYSTEM
+#         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
+#         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glad/include/
+#         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/
+# )
 target_link_libraries(GraphicsAPI_OpenGL
     PUBLIC
         ${stb}

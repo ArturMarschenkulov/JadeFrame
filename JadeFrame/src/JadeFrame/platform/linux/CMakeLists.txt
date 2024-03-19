@@ -8,18 +8,10 @@ add_library(Platform_Linux
     "linux_window.cpp"
 )
 
-target_include_directories(Platform_Linux
-    PUBLIC
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/spdlog/details/
-
-)
-
 target_link_libraries(Platform_Linux
     PUBLIC
         spdlog
+        JadeFrame
 )
 
 target_compile_definitions(Platform_Linux PRIVATE

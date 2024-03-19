@@ -39,13 +39,6 @@ add_library(GraphicsAPI_Vulkan ${SOURCE_FILES})
 
 target_precompile_headers(GraphicsAPI_Vulkan PRIVATE pch.h)
 
-# PROJECT_SOURCE_DIR
-target_include_directories(GraphicsAPI_Vulkan
-    PUBLIC
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include
-)
 target_link_libraries(GraphicsAPI_Vulkan
     PUBLIC
         ${stb}
