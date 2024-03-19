@@ -172,16 +172,6 @@ public:
     The instance is JadeFrames global scope, so to say. It can also be regarded as the
    first place to put stuff if one does not know where to put it.
 */
-struct CompilerInfo {
-    struct Version {
-        int major;
-        int minor;
-        int patch;
-    };
-
-    const char* name;
-    Version     version;
-};
 
 class Instance {
 public:
