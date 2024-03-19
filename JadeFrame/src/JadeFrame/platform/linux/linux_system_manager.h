@@ -11,9 +11,9 @@ namespace JadeFrame {
 
 class Linux_SystemManager : public ISystemManager<Linux_SystemManager> {
 public:
-    virtual auto initialize() -> void override;
-    virtual auto log() const -> void override;
-    virtual auto request_window(IWindow::Desc desc) -> IWindow* override;
+    auto initialize() -> void override;
+    auto log() const -> void override;
+    auto request_window(IWindow::Desc desc) -> IWindow* override;
 
 public: // Window stuff
     i32 m_window_counter = 0;
@@ -22,10 +22,10 @@ public: // Window stuff
     IWindow*                    m_curr_window = nullptr;
 
 public: // Time stuff
-    auto get_time() const -> f64;
-    auto calc_elapsed() -> f64;
-    auto frame_control(f64 delta_time) -> void;
-    auto set_target_FPS(f64 FPS) -> void;
+    [[nodiscard]] auto get_time() const -> f64;
+    auto               calc_elapsed() -> f64;
+    auto               frame_control(f64 delta_time) -> void;
+    auto               set_target_FPS(f64 FPS) -> void;
 
     struct Time {
         f64 previous = 0;

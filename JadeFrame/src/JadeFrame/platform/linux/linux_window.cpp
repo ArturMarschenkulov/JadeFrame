@@ -5,18 +5,20 @@
 #include <string>
 #include <iostream>
 #include <cstdlib>
+
 namespace JadeFrame {
 
 Linux_Window::Linux_Window(const IWindow::Desc& desc) {
 
     const char* x11_display_env = std::getenv("DISPLAY");
-    if (!x11_display_env) {
-        printf("The DISPLAY environment variable is not set. This is required for X11.\n");
+    if (x11_display_env == nullptr) {
+        printf("The DISPLAY environment variable is not set. This is required for X11.\n"
+        );
         exit(1);
     }
 
     m_display = XOpenDisplay(nullptr);
-    if (!m_display) {
+    if (m_display == nullptr) {
         printf("\n\tcannot connect to X server\n\n");
         exit(0);
     }
@@ -65,8 +67,6 @@ Linux_Window::Linux_Window(const IWindow::Desc& desc) {
     // int client_width = client_attributes.width;
     // int client_height = client_attributes.height;
 
-
-
     // Window dimensions
     ::Window     root_window;
     int          x, y;
@@ -89,7 +89,6 @@ Linux_Window::Linux_Window(const IWindow::Desc& desc) {
     // m_title = desc.title;
     m_size = v2u32(window_width, window_height);
     // m_position = v2u32(window_rect.left, window_rect.top);
-
 }
 
 Linux_Window::~Linux_Window() { XDestroyWindow(m_display, m_window); }

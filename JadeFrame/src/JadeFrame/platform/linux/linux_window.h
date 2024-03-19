@@ -14,18 +14,18 @@ public:
     auto operator=(Linux_Window&&) -> Linux_Window& = delete;
 
     Linux_Window() = default;
-    Linux_Window(const IWindow::Desc& desc);
-    ~Linux_Window();
+    explicit Linux_Window(const IWindow::Desc& desc);
+    ~Linux_Window() override;
 
-    virtual auto handle_events(bool&) -> void override {}
+    auto handle_events(bool&) -> void override {}
 
-    virtual auto set_title(const std::string&) -> void override {}
+    auto set_title(const std::string&) -> void override {}
 
-    virtual auto get_title() const -> std::string override { return {}; }
+    auto get_title() const -> std::string override { return {}; }
 
-    virtual auto get_window_state() const -> IWindow::WINDOW_STATE override { return {}; }
+    auto get_window_state() const -> IWindow::WINDOW_STATE override { return {}; }
 
-    virtual auto get_size() const -> const v2u32& override { return m_size; }
+    auto get_size() const -> const v2u32& override { return m_size; }
 
 public:
     ::Display*     m_display;
