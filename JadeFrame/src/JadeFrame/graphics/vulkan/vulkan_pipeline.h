@@ -77,7 +77,8 @@ public:
     // Reflect
 
     std::vector<PushConstantRange> m_push_constant_ranges;
-    ReflectedCode                  m_reflected_code;
+    ReflectedCode                  m_reflected_code; // NOTE: unused as of right now
+    ReflectedModule                m_reflected_interface;
 };
 
 } // namespace vulkan
