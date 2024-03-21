@@ -467,6 +467,27 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
             shader->bind_buffer(0, 0, *ren->m_ub_cam, 0, sizeof(Matrix4x4));
             shader->bind_buffer(3, 0, *ren->m_ub_tran, 0, sizeof(Matrix4x4));
 
+            for (auto& uniform_buffer : shader->m_reflected_interface.m_uniform_buffers) {
+                auto set = uniform_buffer.set;
+                auto binding = uniform_buffer.binding;
+                auto size = uniform_buffer.size;
+                Logger::info("Uniform buffer: {}", uniform_buffer.name);
+                Logger::info(
+                    "reflected uniform buffers {}",
+                    shader->m_reflected_interface.m_uniform_buffers.size()
+                );
+
+                JF_ASSERT(
+                    size == sizeof(Matrix4x4), "Uniform buffer size is not 64 bytes"
+                );
+                vulkan::Buffer* buf =
+                    ctx->create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, size);
+
+                // shader->bind_buffer(set, binding, *buf, 0, size);
+                // shader->m_buffers[set][binding] = buf;
+
+                // [{set, binding}] = buf;
+            }
         } break;
         default: assert(false);
     }

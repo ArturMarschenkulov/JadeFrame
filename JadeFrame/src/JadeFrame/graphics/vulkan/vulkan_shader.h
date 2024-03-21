@@ -40,6 +40,7 @@ public:
     const vulkan::LogicalDevice* m_device;
     vulkan::Pipeline             m_pipeline;
     ReflectedCode                m_reflected_code;
+    ReflectedModule              m_reflected_interface;
 
     std::array<vulkan::DescriptorSet, static_cast<u8>(vulkan::FREQUENCY::MAX)> m_sets;
 

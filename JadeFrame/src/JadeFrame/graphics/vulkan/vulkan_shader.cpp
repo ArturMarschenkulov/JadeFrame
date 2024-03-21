@@ -22,18 +22,7 @@ Vulkan_Shader::Vulkan_Shader(
     );
     Logger::info("Created Vulkan shader");
     m_reflected_code = m_pipeline.m_reflected_code;
-    for (auto& module : m_reflected_code.m_modules) {
-        for (auto& uniform_buffer : module.m_uniform_buffers) {
-            Logger::info("Uniform buffer: {}", uniform_buffer.name);
-            JF_ASSERT(
-                uniform_buffer.size == sizeof(Matrix4x4),
-                "Uniform buffer size is not 64 bytes"
-            );
-            m_device->create_buffer(
-                vulkan::Buffer::TYPE::UNIFORM, nullptr, uniform_buffer.size
-            );
-        }
-    }
+    m_reflected_interface = m_pipeline.m_reflected_interface;
 }
 
 auto Vulkan_Shader::bind_buffer(
