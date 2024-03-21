@@ -225,8 +225,8 @@ public:
     ~TextureHandle();
     TextureHandle(const TextureHandle&) = delete;
     auto operator=(const TextureHandle&) -> TextureHandle& = delete;
-    TextureHandle(TextureHandle&& other) noexcept ;
-    auto operator=(TextureHandle&& other)  noexcept -> TextureHandle&;
+    TextureHandle(TextureHandle&& other) noexcept;
+    auto operator=(TextureHandle&& other) noexcept -> TextureHandle&;
 
     TextureHandle(const Image& image);
 
@@ -356,7 +356,15 @@ concept is_renderer = requires(T& t) {
 };
 
 class IRenderer {
-public: // client stuff
+public:
+    IRenderer() = default;
+    IRenderer(const IRenderer&) = delete;
+    auto operator=(const IRenderer&) -> IRenderer& = delete;
+    IRenderer(IRenderer&&) = default;
+    auto operator=(IRenderer&&) -> IRenderer& = delete;
+    virtual ~IRenderer() = default;
+
+    // client stuff
     virtual auto submit(const Object& obj) -> void = 0;
     virtual auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void = 0;
 
@@ -434,8 +442,8 @@ public:
     auto register_mesh(const VertexFormat& format, const VertexData& data) -> u32;
 
 public:
-    GRAPHICS_API m_api;
-    IRenderer*   m_renderer;
+    GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
+    IRenderer*   m_renderer = nullptr;
 
     // NOTE: For now the key/id 0 refers to no texture or default texture
     //     This is a bit of a hack, but it works for now.

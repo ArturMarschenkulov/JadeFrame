@@ -80,19 +80,27 @@ GL_ERR: Source: {}
     }
 }
 
-auto set_debug_mode(bool b) -> void {
-    int flags;
+auto set_debug_mode(bool enable_debug) -> void {
+    int flags = 0;
     glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+    bool is_debug_enabled = (flags & GL_CONTEXT_FLAG_DEBUG_BIT) != 0;
+
+    if (is_debug_enabled) {
         Logger::info("OpenGL debug mode enabled");
     } else {
         Logger::warn("OpenGL debug mode disabled");
     }
-    if (b) { // enable debug output
+    if (enable_debug) { // enable debug output
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(opengl_message_callback, nullptr);
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+
+        if (!is_debug_enabled) { Logger::warn("OpenGL debug mode enabled"); }
+    } else {
+        glDisable(GL_DEBUG_OUTPUT);
+        glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        if (is_debug_enabled) { Logger::warn("OpenGL debug mode disabled"); }
     }
 }
 } // namespace opengl

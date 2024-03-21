@@ -1,3 +1,4 @@
+#include "JadeFrame/utils/logger.h"
 #include "pch.h"
 #include "graphics_shared.h"
 #include "JadeFrame/platform/platform_shared.h"
@@ -57,9 +58,17 @@ static auto add_fourth_components(u8* data, i32 width, i32 height, i32 num_compo
 
 auto Image::load(const std::string& path) -> Image {
     stbi_set_flip_vertically_on_load(true);
-    i32 width, height, num_components;
-    u8* data = stbi_load(path.c_str(), &width, &height, &num_components, 0);
+    i32 width = 0;
+    i32 height = 0;
+    i32 num_components = 0;
 
+    u8* data = stbi_load(path.c_str(), &width, &height, &num_components, 0);
+    if (stbi_failure_reason()) { std::cout << stbi_failure_reason(); }
+
+    if (data == nullptr) {
+        Logger::err("Failed to load image: {}", path);
+        return {};
+    }
     // NOTE: we force 3 components to 4 components
     if (num_components == 3) {
         u8* data_ = add_fourth_components(data, width, height, num_components);
@@ -158,12 +167,10 @@ GPUMeshData::GPUMeshData(
     Texture Handle
 ---------------------------*/
 
-TextureHandle::TextureHandle(const Image& img) {
-    m_data = img.data;
-    m_size.height = img.height;
-    m_size.width = img.width;
-    m_num_components = img.num_components;
-}
+TextureHandle::TextureHandle(const Image& img)
+    : m_data(img.data)
+    , m_size({(u32)img.width, (u32)img.height})
+    , m_num_components(img.num_components) {}
 
 TextureHandle::TextureHandle(TextureHandle&& other) noexcept
     : m_data(other.m_data)
@@ -171,7 +178,6 @@ TextureHandle::TextureHandle(TextureHandle&& other) noexcept
     , m_num_components(other.m_num_components)
     , m_api(other.m_api)
     , m_handle(other.m_handle) {
-
     other.m_data = nullptr;
     other.m_size = {0, 0};
     other.m_num_components = 0;
@@ -200,7 +206,6 @@ TextureHandle::~TextureHandle() {
 }
 
 auto TextureHandle::init(void* context) -> void {
-
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
             auto* d = (OpenGL_Context*)context;
@@ -384,15 +389,19 @@ auto RenderSystem::register_texture(TextureHandle&& texture) -> u32 {
 
         } break;
         case GRAPHICS_API::VULKAN: {
-            Vulkan_Renderer*       renderer = static_cast<Vulkan_Renderer*>(m_renderer);
+            auto*                  renderer = dynamic_cast<Vulkan_Renderer*>(m_renderer);
             vulkan::LogicalDevice* device = renderer->m_logical_device;
             auto&                  t = m_registered_textures[id];
 
-            VkFormat format;
+            VkFormat format = {};
             switch (t.m_num_components) {
                 case 3: format = VK_FORMAT_R8G8B8_SRGB; break;
                 case 4: format = VK_FORMAT_R8G8B8A8_SRGB; break;
-                default: assert(false);
+                default:
+                    Logger::err(
+                        "Unsupported number of components: {}", t.m_num_components
+                    );
+                    assert(false);
             }
             t.m_handle = new vulkan::Vulkan_Texture(*device, t.m_data, t.m_size, format);
         } break;
@@ -479,7 +488,7 @@ auto RenderSystem::register_mesh(const VertexFormat& format, const VertexData& d
     static u32   id = 1;
     VertexFormat vertex_format;
     // In case there is no buffer layout provided use a default one
-    if (format.m_attributes.size() == 0) {
+    if (format.m_attributes.empty()) {
         Logger::warn("No vertex format provided, using default one. (v_position float3, "
                      "v_color float4, "
                      "v_texture_coord float2, v_normal float3");
@@ -489,12 +498,12 @@ auto RenderSystem::register_mesh(const VertexFormat& format, const VertexData& d
     }
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            OpenGL_Renderer* r = dynamic_cast<OpenGL_Renderer*>(m_renderer);
+            auto* r = dynamic_cast<OpenGL_Renderer*>(m_renderer);
             r->m_registered_meshes[id] =
                 opengl::GPUMeshData(r->m_context, data, vertex_format);
         } break;
         case GRAPHICS_API::VULKAN: {
-            Vulkan_Renderer* r = dynamic_cast<Vulkan_Renderer*>(m_renderer);
+            auto* r = dynamic_cast<Vulkan_Renderer*>(m_renderer);
             r->m_registered_meshes[id] =
                 vulkan::GPUMeshData{*r->m_logical_device, data, vertex_format};
         } break;

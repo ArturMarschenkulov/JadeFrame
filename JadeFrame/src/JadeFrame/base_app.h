@@ -14,7 +14,6 @@
 #include "graphics/camera.h"
 #include "graphics/graphics_shared.h"
 #include "JadeFrame/graphics/mesh.h"
-#include "JadeFrame/graphics/shader_loader.h"
 #include "gui.h"
 
 #include <deque>
@@ -113,7 +112,7 @@ public:
     }
 
     auto set_mesh(const std::string& name, const VertexData& vertex_data) -> void {
-        m_meshes.emplace(name, std::move(vertex_data));
+        m_meshes.emplace(name, vertex_data);
     }
 
     auto get_mesh(const std::string& name) -> VertexData& {
@@ -139,7 +138,11 @@ public:
     };
 
     BaseApp() = default;
-    BaseApp(const Desc& desc);
+    explicit BaseApp(const Desc& desc);
+    BaseApp(const BaseApp&) = delete;
+    auto operator=(const BaseApp&) -> BaseApp& = delete;
+    BaseApp(BaseApp&&) = delete;
+    auto operator=(BaseApp&&) -> BaseApp& = delete;
     virtual ~BaseApp() = default;
 
     virtual auto on_init() -> void = 0;

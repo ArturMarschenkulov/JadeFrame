@@ -31,7 +31,7 @@ auto control_camera(Camera* self) -> void {
         if (i.is_key_down(KEY::S)) { self->m_position -= self->m_forward * velocity; }
         if (i.is_key_down(KEY::W)) { self->m_position += self->m_forward * velocity; }
 
-        auto sensitivity = 10;
+        const f32 sensitivity = 10;
         if (i.is_key_down(KEY::LEFT)) { self->m_pitch += velocity * sensitivity; }
         if (i.is_key_down(KEY::RIGHT)) { self->m_pitch -= velocity * sensitivity; }
         if (i.is_key_down(KEY::UP)) { self->m_yaw += velocity * sensitivity; }
@@ -43,9 +43,9 @@ auto control_camera(Camera* self) -> void {
         //	m_pitch = -89.0f;
 
         v3 front;
-        front.x = cos(to_radians(self->m_yaw)) * cos(to_radians(self->m_pitch));
-        front.y = sin(to_radians(self->m_pitch));
-        front.z = sin(to_radians(self->m_yaw)) * cos(to_radians(self->m_pitch));
+        front.x = std::cos(to_radians(self->m_yaw)) * std::cos(to_radians(self->m_pitch));
+        front.y = std::sin(to_radians(self->m_pitch));
+        front.z = std::sin(to_radians(self->m_yaw)) * std::cos(to_radians(self->m_pitch));
         self->m_forward = front.get_normal();
 
         self->m_right = self->m_forward.cross(self->m_world_up).get_normal();
@@ -60,7 +60,7 @@ auto control_camera(Camera* self) -> void {
         if (i.is_key_down(KEY::S)) { self->m_position -= self->m_forward * velocity; }
         if (i.is_key_down(KEY::W)) { self->m_position += self->m_forward * velocity; }
 
-        auto sensitivity = 10;
+        const f32 sensitivity = 10;
         if (i.is_key_down(KEY::LEFT)) { self->m_pitch += velocity * sensitivity; }
         if (i.is_key_down(KEY::RIGHT)) { self->m_pitch -= velocity * sensitivity; }
         if (i.is_key_down(KEY::UP)) { self->m_yaw += velocity * sensitivity; }
@@ -74,8 +74,6 @@ auto control_camera(Camera* self) -> void {
 Instance* Instance::m_singleton = nullptr;
 
 auto Instance::get_singleton() -> Instance* { return m_singleton; }
-
-
 
 auto test_modules() -> void {
     option::test();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "base_app.h"
+#include "graphics/shader_loader.h"
 
 /*
 List of various (open source) source codes which can be taken for inspiration

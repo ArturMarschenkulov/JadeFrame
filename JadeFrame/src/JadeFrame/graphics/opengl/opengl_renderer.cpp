@@ -207,7 +207,7 @@ auto OpenGL_Renderer::render_mesh(
     vertex_array->m_vertex_array.bind_buffer(*vertex_array->m_vertex_buffer);
     vertex_array->m_vertex_array.bind();
 
-    if (vertex_data->m_indices.size() > 0) {
+    if (!vertex_data->m_indices.empty()) {
         glDrawElements(
             static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES), // mode
             vertex_data->m_indices.size(),                  // count
@@ -233,7 +233,7 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
     i32 height = vp[3];
 
     u8* data = (u8*)malloc((size_t)(width * height * 3));
-    if (!data) {
+    if (data == nullptr) {
         Logger::log("data failed");
         return;
     }
