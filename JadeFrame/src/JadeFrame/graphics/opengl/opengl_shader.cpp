@@ -63,7 +63,7 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
 #if JF_USE_SPIRV == false
     std::array<std::string, 2> glsl_sources;
     for (size_t i = 0; i < desc.code.m_modules.size(); i++) {
-        auto& spirv = desc.code.m_modules[i].m_code;
+        const auto& spirv = desc.code.m_modules[i].m_code;
         glsl_sources[i] = convert_SPIRV_to_GLSL(spirv);
     }
 
@@ -124,13 +124,13 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     m_program.attach(m_fragment_shader);
 
     const bool is_linked = m_program.link();
-    if (is_linked == false) {
+    if (!is_linked) {
         std::string info_log = m_program.get_info_log();
         Logger::log("{}", info_log);
     }
 
     const bool is_validated = m_program.validate();
-    if (is_validated == false) {
+    if (!is_validated) {
         std::string info_log = m_program.get_info_log();
         Logger::log("{}", info_log);
     }

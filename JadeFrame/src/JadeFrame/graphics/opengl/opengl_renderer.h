@@ -40,7 +40,7 @@ struct OpenGL_RenderCommand {
     const Matrix4x4*  transform = nullptr;
     const VertexData* vertex_data = nullptr;
     MaterialHandle    material_handle = {0, 0};
-    const u32         m_GPU_mesh_data_id = 0;
+    u32               m_GPU_mesh_data_id = 0;
 };
 
 class OpenGL_CommandBuffer {
@@ -68,10 +68,9 @@ public:
     auto take_screenshot(const char* filename) -> void override;
 
 private:
-    auto render_mesh(
-        const opengl::GPUMeshData* buffer_data,
-        const VertexData*          vertex_data
-    ) const -> void;
+    static auto
+    render_mesh(const opengl::GPUMeshData* buffer_data, const VertexData* vertex_data)
+        -> void;
 
 public:
     OpenGL_Context                           m_context;

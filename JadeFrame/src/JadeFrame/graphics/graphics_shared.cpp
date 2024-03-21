@@ -397,8 +397,8 @@ auto RenderSystem::register_texture(TextureHandle&& texture) -> u32 {
 
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            OpenGL_Renderer* renderer = static_cast<OpenGL_Renderer*>(m_renderer);
-            OpenGL_Context*  device = &renderer->m_context;
+            auto*           renderer = dynamic_cast<OpenGL_Renderer*>(m_renderer);
+            OpenGL_Context* device = &renderer->m_context;
 
             // m_registered_textures[id].init(&renderer->m_context);
             auto& t = m_registered_textures[id];
@@ -429,11 +429,11 @@ auto RenderSystem::register_texture(TextureHandle&& texture) -> u32 {
     return old_id;
 }
 
-auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32 {
+auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> u32 {
     static u32 id = 1;
 
-    m_registered_shaders[id].m_code = shader_desc.shading_code;
-    m_registered_shaders[id].m_vertex_format = shader_desc.vertex_format;
+    m_registered_shaders[id].m_code = desc.shading_code;
+    m_registered_shaders[id].m_vertex_format = desc.vertex_format;
     m_registered_shaders[id].m_api = m_api;
     // Right now all shaders are internally stored as SPIRV, usually coming from GLSL.
     // Even if in the end one ends up using GLSL code again, it always has this
@@ -443,18 +443,22 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
             auto* ren = dynamic_cast<OpenGL_Renderer*>(m_renderer);
             auto* ctx = (OpenGL_Context*)&ren->m_context;
 
+            std::string vert_source;
+            std::string frag_source;
+
             opengl::Shader::Desc shader_desc;
-            ShadingCode::Module  module_0;
-            module_0.m_code = remap_for_opengl(
-                m_registered_shaders[id].m_code.m_modules[0].m_code, SHADER_STAGE::VERTEX
-            );
+
+            ShadingCode::Module module_0;
+            const auto& vert_code = m_registered_shaders[id].m_code.m_modules[0].m_code;
+
+            module_0.m_code =
+                remap_for_opengl(vert_code, SHADER_STAGE::VERTEX, &vert_source);
             module_0.m_stage = SHADER_STAGE::VERTEX;
 
             ShadingCode::Module module_1;
-            module_1.m_code = remap_for_opengl(
-                m_registered_shaders[id].m_code.m_modules[1].m_code,
-                SHADER_STAGE::FRAGMENT
-            );
+            const auto& frag_code = m_registered_shaders[id].m_code.m_modules[1].m_code;
+            module_1.m_code =
+                remap_for_opengl(frag_code, SHADER_STAGE::FRAGMENT, &frag_source);
             module_1.m_stage = SHADER_STAGE::FRAGMENT;
 
             shader_desc.code.m_modules.resize(2);
@@ -464,6 +468,9 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
 
             auto* shader = new opengl::Shader(*ctx, shader_desc);
             m_registered_shaders[id].m_handle = shader;
+
+            Logger::info("Vertex source:\n {}", vert_source);
+            Logger::info("Fragment source:\n {}", frag_source);
         } break;
         case GRAPHICS_API::VULKAN: {
             auto*                  ren = dynamic_cast<Vulkan_Renderer*>(m_renderer);
@@ -476,8 +483,8 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& shader_desc) -> u32
             auto* shader = new Vulkan_Shader(*ctx, *ren, shader_desc);
             m_registered_shaders[id].m_handle = shader;
             for (size_t i = 0; i < shader->m_pipeline.m_set_layouts.size(); i++) {
-                shader->m_sets[i] =
-                    ctx->m_set_pool.allocate_set(shader->m_pipeline.m_set_layouts[i]);
+                const auto& set_layout = shader->m_pipeline.m_set_layouts[i];
+                shader->m_sets[i] = ctx->m_set_pool.allocate_set(set_layout);
             }
 
             // TODO: Remove this hard coded code later on.

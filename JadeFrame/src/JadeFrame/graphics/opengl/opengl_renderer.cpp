@@ -57,7 +57,6 @@ static auto framebuffer_res_to_str(GLenum e) -> const char* {
     }
 }
 
-
 OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     : m_context(window) {
     m_system = &system;
@@ -106,7 +105,7 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     VertexData::Desc vdf_desc;
     vdf_desc.has_normals = false;
     VertexData vertex_data =
-        VertexData::make_rectangle({-1.0f, -1.0f, 0.0f}, {2.0f, 2.0f, 0.0f}, vdf_desc);
+        VertexData::make_rectangle({-1.0F, -1.0F, 0.0F}, {2.0F, 2.0F, 0.0F}, vdf_desc);
 
 #if JF_OPENGL_FB
     VertexFormat layout = {
@@ -184,7 +183,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         const Matrix4x4& transform = *command.transform;
         m_uniform_buffers[1]->write({transform});
 
-        this->render_mesh(p_vertex_array, p_mesh);
+        OpenGL_Renderer::render_mesh(p_vertex_array, p_mesh);
     }
 #if JF_OPENGL_FB
     fb.m_framebuffer->unbind();
@@ -193,8 +192,8 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     {
 
         // static_cast<opengl::Shader*>(fb.m_shader_handle_fb->m_handle)->bind();
-        ShaderHandle&   sh_ = m_system->m_registered_shaders[fb.m_shader];
-        opengl::Shader* sh = static_cast<opengl::Shader*>(sh_.m_handle);
+        ShaderHandle& sh_ = m_system->m_registered_shaders[fb.m_shader];
+        auto*         sh = static_cast<opengl::Shader*>(sh_.m_handle);
         sh->bind();
         fb.m_texture->bind(0);
         fb.m_framebuffer_rect->m_vertex_array.bind_buffer(
@@ -202,7 +201,8 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         );
         fb.m_framebuffer_rect->m_vertex_array.bind();
 
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        const GLsizei num_vertices = 6;
+        glDrawArrays(GL_TRIANGLES, 0, num_vertices);
     }
     m_context.m_state.set_depth_test(true);
 #endif
@@ -211,24 +211,24 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 }
 
 auto OpenGL_Renderer::render_mesh(
-    const opengl::GPUMeshData* vertex_array,
+    const opengl::GPUMeshData* buffer_data,
     const VertexData*          vertex_data
-) const -> void {
-    vertex_array->m_vertex_array.bind_buffer(*vertex_array->m_vertex_buffer);
-    vertex_array->m_vertex_array.bind();
+) -> void {
+    buffer_data->m_vertex_array.bind_buffer(*buffer_data->m_vertex_buffer);
+    buffer_data->m_vertex_array.bind();
 
     if (!vertex_data->m_indices.empty()) {
         glDrawElements(
-            static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES), // mode
-            vertex_data->m_indices.size(),                  // count
-            GL_UNSIGNED_INT,                                // type
-            nullptr                                         // indices
+            static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES),      // mode
+            static_cast<GLsizei>(vertex_data->m_indices.size()), // count
+            GL_UNSIGNED_INT,                                     // type
+            nullptr                                              // indices
         );
     } else {
         glDrawArrays(
-            static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES), // mode
-            0,                                              // first
-            vertex_data->m_positions.size()                 // count
+            static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES),       // mode
+            0,                                                    // first
+            static_cast<GLsizei>(vertex_data->m_positions.size()) // count
         );
     }
 }

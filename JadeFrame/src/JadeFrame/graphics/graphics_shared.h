@@ -438,7 +438,7 @@ public:
     auto init(GRAPHICS_API api, IWindow* window) -> void;
 
     auto register_texture(TextureHandle&& handle) -> u32;
-    auto register_shader(const ShaderHandle::Desc& handle) -> u32;
+    auto register_shader(const ShaderHandle::Desc& desc) -> u32;
     auto register_mesh(const VertexFormat& format, const VertexData& data) -> u32;
 
 public:

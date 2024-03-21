@@ -34,7 +34,8 @@ namespace JadeFrame {
 // Step 3 is highly variable and will be modified in the future to better compatiblity.
 auto remap_for_opengl(
     const ShadingCode::Module::SPIRV& code,
-    SHADER_STAGE                      stage
+    SHADER_STAGE                      stage,
+    std::string*                      out_source
 ) -> ShadingCode::Module::SPIRV {
     // alias spirv_cross with spv_c
     namespace spv_c = spirv_cross;
@@ -85,6 +86,7 @@ auto remap_for_opengl(
         }
     }
     auto source = compiler.compile();
+    *out_source = source;
     return GLSL_to_SPIRV(source, stage, GRAPHICS_API::OPENGL);
 }
 
