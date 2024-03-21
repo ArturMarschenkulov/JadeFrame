@@ -23,6 +23,8 @@
 
 namespace JadeFrame {
 
+#define JF_OPENGL_FB 0
+
 enum class PRIMITIVE_TYPE {
     TRIANGLES = GL_TRIANGLES,
     LINES = GL_LINES,

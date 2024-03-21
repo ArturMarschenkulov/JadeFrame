@@ -57,7 +57,6 @@ static auto framebuffer_res_to_str(GLenum e) -> const char* {
     }
 }
 
-#define JF_OPENGL_FB 1
 
 OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     : m_context(window) {
@@ -65,8 +64,12 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
 
     // TODO: The whole fb thing is now a mess!!!! This is because
     // `m_system->register_shader(shader_handle_desc);` requires an already initialized
-    // `OpenGL_Renderer`. Thus for now `JF_OPENGL_FB` should be defined to 0, because otherwise
-    // it will always crash!!!!
+    // `OpenGL_Renderer`. Thus for now `JF_OPENGL_FB` should be defined to 0, because
+    // otherwise it will always crash!!!!
+
+    // TODO: Now it somehow works again, however I do not think I have changed anything to
+    // actually solve this. This might be some undefined behavior. Thus one should watch
+#if JF_OPENGL_FB
     {
         fb.m_framebuffer = m_context.create_framebuffer();
 
@@ -98,12 +101,14 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
             // assert(false);
         }
     }
+#endif
 
     VertexData::Desc vdf_desc;
     vdf_desc.has_normals = false;
     VertexData vertex_data =
         VertexData::make_rectangle({-1.0f, -1.0f, 0.0f}, {2.0f, 2.0f, 0.0f}, vdf_desc);
 
+#if JF_OPENGL_FB
     VertexFormat layout = {
         {           "v_position", SHADER_TYPE::V_3_F32},
         {"v_texture_coordinates", SHADER_TYPE::V_2_F32}
@@ -113,7 +118,7 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     ShaderHandle::Desc shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
     shader_handle_desc.vertex_format = layout;
-#if JF_OPENGL_FB
+
     fb.m_shader = m_system->register_shader(shader_handle_desc);
 #endif
 

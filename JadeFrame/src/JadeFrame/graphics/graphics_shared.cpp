@@ -343,6 +343,23 @@ auto RenderSystem::init(GRAPHICS_API api, IWindow* window) -> void {
     switch (api) {
         case GRAPHICS_API::OPENGL: {
             m_renderer = new OpenGL_Renderer(*this, window);
+#if 0 // JF_OPENGL_FB
+      //  NOTE: This is only a temporary fix. This work around stems from the fact
+      //  taht `this->register_shader(..)` requires an already initialized
+      //  `OpenGL_Renderer`.
+            VertexFormat layout = {
+                {           "v_position", SHADER_TYPE::V_3_F32},
+                {"v_texture_coordinates", SHADER_TYPE::V_2_F32}
+            };
+            ShaderHandle::Desc shader_handle_desc;
+            shader_handle_desc.shading_code =
+                GLSLCodeLoader::get_by_name("framebuffer_test");
+            shader_handle_desc.vertex_format = layout;
+
+            auto* ogl_renderer = dynamic_cast<OpenGL_Renderer*>(m_renderer);
+            ogl_renderer->fb.m_shader = this->register_shader(shader_handle_desc);
+
+#endif
 
         } break;
         case GRAPHICS_API::VULKAN: {
