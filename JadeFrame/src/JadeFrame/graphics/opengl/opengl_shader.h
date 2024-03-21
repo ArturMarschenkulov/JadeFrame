@@ -61,6 +61,9 @@ private:
 
     std::vector<Uniform>         m_uniforms;
     std::vector<VertexAttribute> m_vertex_attributes;
+
+public:
+    std::vector<opengl::Buffer*> m_uniform_buffers;
 };
 } // namespace opengl
 } // namespace JadeFrame

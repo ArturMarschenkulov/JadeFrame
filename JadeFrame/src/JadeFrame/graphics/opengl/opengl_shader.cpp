@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "opengl_shader.h"
+#include "opengl_context.h"
 #include "JadeFrame/utils/assert.h"
 
 #include "JadeFrame/math/mat_4.h"
@@ -20,7 +21,7 @@
 JF_PRAGMA_NO_WARNINGS_PUSH
 #include "SPIRV-Cross/spirv_glsl.hpp"
 #include "SPIRV-Cross/spirv_hlsl.hpp"
-#include "SPIRV-Cross/spirv_msl.hpp"
+// #include "SPIRV-Cross/spirv_msl.hpp"
 JF_PRAGMA_NO_WARNINGS_POP
 
 namespace JadeFrame {
@@ -117,7 +118,23 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
             // uniform.type = uniform_buffer.type;
             uniform.size = static_cast<i32>(uniform_buffer.size);
             uniform.location = uniform_buffer.binding;
+            m_uniforms.push_back(uniform);
         }
+    }
+    // NOTE: The binding points will be somehow abstracted, since the high level will
+    // mimick the vulkan model and the vulkan combines sets and bindings points, while
+    // opengl has only binding points. That is while vulkan might have something like
+    // this (0, 0), (1, 0) and (1, 1), this would have to be mapped to opengl's flat
+    // model, something like this 0, 1, 2.
+    for (size_t i = 0; i < m_uniforms.size(); i++) {
+        const auto& uniform = m_uniforms[i];
+        const auto& size = uniform.size;
+        const auto& location = uniform.location;
+
+        auto* buffer =
+            m_context->create_buffer(opengl::Buffer::TYPE::UNIFORM, nullptr, size);
+        buffer->bind_base(location);
+        m_uniform_buffers.push_back(buffer);
     }
 
     m_program.attach(m_vertex_shader);

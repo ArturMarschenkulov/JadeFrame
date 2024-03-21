@@ -87,9 +87,6 @@ public:
         opengl::GPUMeshData*  m_framebuffer_rect;
         u32                   m_shader;
     } fb;
-
-    std::vector<opengl::Buffer*>  m_uniform_buffers;
-    std::array<opengl::Buffer, 4> m_descriptor_sets;
 };
 
 static_assert(is_renderer<OpenGL_Renderer>);

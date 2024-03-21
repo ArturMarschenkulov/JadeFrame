@@ -120,23 +120,6 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
 
     fb.m_shader = m_system->register_shader(shader_handle_desc);
 #endif
-
-    {
-        const GLuint binding_point_0 = 0;
-        const GLuint binding_point_1 = 1;
-
-        auto cam_ubo = m_context.create_buffer(
-            opengl::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4)
-        );
-        cam_ubo->bind_base(binding_point_0);
-        m_uniform_buffers.push_back(cam_ubo);
-
-        auto transform_ubo = m_context.create_buffer(
-            opengl::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4)
-        );
-        transform_ubo->bind_base(binding_point_1);
-        m_uniform_buffers.push_back(transform_ubo);
-    }
 }
 
 auto OpenGL_Renderer::present() -> void { m_context.swap_buffers(); }
@@ -160,7 +143,9 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     this->clear_background();
 
-    m_uniform_buffers[0]->write({view_projection});
+    // NOTE: At the time of writing this is mainly compatible with
+    // `get_shader_spirv_test_1` or rather on any renderer where the camera uniform is
+    // at binding point 0 and the transform uniform is at binding point 1.
 
     for (size_t i = 0; i < m_render_commands.size(); ++i) {
         const OpenGL_RenderCommand& command = m_render_commands[i];
@@ -173,6 +158,11 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         const VertexData*          p_mesh = command.vertex_data;
         const opengl::GPUMeshData* p_vertex_array = &mm;
 
+        // NOTE: As of right now this is not optimal, as it only needs to be updated once
+        // outside the loop. But because of how the code is arranged one has to update it
+        // every iteration of the loop. Late on one HAS TO fix this.
+        p_shader->m_uniform_buffers[0]->write({view_projection});
+
         p_shader->bind();
         if (mh.m_texture_id != 0) {
             auto&            th = m_system->m_registered_textures[mh.m_texture_id];
@@ -181,7 +171,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         }
 
         const Matrix4x4& transform = *command.transform;
-        m_uniform_buffers[1]->write({transform});
+        p_shader->m_uniform_buffers[1]->write({transform});
 
         OpenGL_Renderer::render_mesh(p_vertex_array, p_mesh);
     }
