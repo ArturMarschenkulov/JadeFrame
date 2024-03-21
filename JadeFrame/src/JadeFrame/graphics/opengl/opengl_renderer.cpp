@@ -57,11 +57,16 @@ static auto framebuffer_res_to_str(GLenum e) -> const char* {
     }
 }
 
-#define JF_FB 1
+#define JF_OPENGL_FB 1
 
 OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     : m_context(window) {
     m_system = &system;
+
+    // TODO: The whole fb thing is now a mess!!!! This is because
+    // `m_system->register_shader(shader_handle_desc);` requires an already initialized
+    // `OpenGL_Renderer`. Thus for now `JF_OPENGL_FB` should be defined to 0, because otherwise
+    // it will always crash!!!!
     {
         fb.m_framebuffer = m_context.create_framebuffer();
 
@@ -108,7 +113,7 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     ShaderHandle::Desc shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
     shader_handle_desc.vertex_format = layout;
-#if JF_FB
+#if JF_OPENGL_FB
     fb.m_shader = m_system->register_shader(shader_handle_desc);
 #endif
 
@@ -145,7 +150,7 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
 
 auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
-#if JF_FB
+#if JF_OPENGL_FB
     fb.m_framebuffer->bind();
 #endif
 
@@ -176,7 +181,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
         this->render_mesh(p_vertex_array, p_mesh);
     }
-#if JF_FB
+#if JF_OPENGL_FB
     fb.m_framebuffer->unbind();
     // GL_State old_state = m_context.m_state;
     m_context.m_state.set_depth_test(false);
@@ -196,7 +201,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     }
     m_context.m_state.set_depth_test(true);
 #endif
-#undef JF_FB
+#undef JF_OPENGL_FB
     m_render_commands.clear();
 }
 
