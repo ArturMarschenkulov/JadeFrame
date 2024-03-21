@@ -178,6 +178,8 @@ auto GL_State::set_depth_test(bool enable) -> void {
     if (depth_test != enable) {
         depth_test = enable;
         enable ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+        // glDepthFunc(GL_LESS);
     }
 }
 

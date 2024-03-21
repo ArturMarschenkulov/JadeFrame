@@ -463,29 +463,28 @@ static auto multisample_state_create_info() -> VkPipelineMultisampleStateCreateI
 }
 
 static auto color_blend_attachment_state() -> VkPipelineColorBlendAttachmentState {
-    // const VkPipelineColorBlendAttachmentState color_blend_attachment = {
-    //     .blendEnable = VK_FALSE,
-    //     .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
-    //     .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
-    //     .colorBlendOp = VK_BLEND_OP_ADD,
-    //     .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-    //     .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-    //     .alphaBlendOp = VK_BLEND_OP_ADD,
-    //     .colorWriteMask =
-    //         VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-    //         VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-    // };
     const VkPipelineColorBlendAttachmentState color_blend_attachment = {
-        .blendEnable = VK_FALSE,
-        .srcColorBlendFactor = {},
-        .dstColorBlendFactor = {},
-        .colorBlendOp = {},
-        .srcAlphaBlendFactor = {},
-        .dstAlphaBlendFactor = {},
-        .alphaBlendOp = {},
+        .blendEnable = VK_TRUE,
+        .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+        .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+        .colorBlendOp = VK_BLEND_OP_ADD,
+        .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+        .alphaBlendOp = VK_BLEND_OP_ADD,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
     };
+    // const VkPipelineColorBlendAttachmentState color_blend_attachment = {
+    //     .blendEnable = VK_FALSE,
+    //     .srcColorBlendFactor = {},
+    //     .dstColorBlendFactor = {},
+    //     .colorBlendOp = {},
+    //     .srcAlphaBlendFactor = {},
+    //     .dstAlphaBlendFactor = {},
+    //     .alphaBlendOp = {},
+    //     .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+    //                       VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+    // };
     return color_blend_attachment;
 }
 
