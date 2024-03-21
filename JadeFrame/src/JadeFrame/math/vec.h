@@ -27,9 +27,60 @@ JF_PRAGMA_PUSH
 // concept number = std::integral<T> || std::floating_point<T>;
 
 template<size_t N, typename T>
+class vector_t {
+public:
+    constexpr vector_t() noexcept { std::memset(el, 0, N); }
+
+    constexpr vector_t(const vector_t& other) noexcept {
+        for (u32 i = 0; i < N; i++) { el[i] = other.el[i]; }
+    }
+
+    auto operator=(const vector_t& other) -> vector_t& {
+        if (this == &other) { return *this; }
+        for (u32 i = 0; i < N; i++) { el[i] = other.el[i]; }
+        return *this;
+    }
+
+    // accessors
+
+public:
+    template<typename T2>
+        requires(N > 0)
+    auto x() const -> T& {
+        return el[0];
+    }
+
+    template<typename T2>
+        requires(N > 1)
+    auto y() const -> T& {
+        return el[1];
+    }
+
+    template<typename T2>
+        requires(N > 2)
+    auto z() const -> T& {
+        return el[2];
+    }
+
+    template<typename T2>
+        requires(N > 3)
+    auto w() const -> T& {
+        return el[3];
+    }
+
+public:
+    T el[N];
+};
+
+template<size_t N, typename T>
 class VectorT {
 public:
     constexpr VectorT() noexcept { std::memset(el, 0, N); }
+
+    constexpr auto operator=(const VectorT& other) -> VectorT& {
+        for (u32 i = 0; i < N; i++) { el[i] = other.el[i]; }
+        return *this;
+    }
 
     // template<typename ...Args>
     template<class... T2, std::enable_if_t<sizeof...(T2) == N, int> = 0>
@@ -38,11 +89,6 @@ public:
 
         const std::array<T, N>& arr = {args...};
         for (u32 i = 0; i < sizeof...(T2); i++) { el[i] = arr[i]; }
-    }
-
-    constexpr auto operator=(const VectorT& other) -> VectorT& {
-        for (u32 i = 0; i < N; i++) { el[i] = other.el[i]; }
-        return *this;
     }
 
     constexpr auto operator+(const VectorT& other) const -> VectorT {
@@ -129,30 +175,16 @@ public:
 template<typename T>
 class VectorT<2, T> {
 public:
-    constexpr VectorT() noexcept
-        : x()
-        , y() {}
-
+    constexpr VectorT() noexcept = default;
     constexpr VectorT(const VectorT&) = default;
+    constexpr auto operator=(const VectorT& other) -> VectorT& = default;
     constexpr VectorT(VectorT&&) = default;
+    constexpr auto operator=(VectorT&& other) noexcept -> VectorT& = default;
     ~VectorT() = default;
 
     constexpr VectorT(const T x, const T y) noexcept
         : x(x)
         , y(y) {}
-
-    constexpr auto operator=(const VectorT& other) -> VectorT& {
-        if (this == &other) { return *this; }
-        this->x = other.x;
-        this->y = other.y;
-        return *this;
-    }
-
-    constexpr auto operator=(VectorT&& other) noexcept -> VectorT& {
-        this->x = other.x;
-        this->y = other.y;
-        return *this;
-    }
 
     constexpr auto operator+(const VectorT& other) const -> VectorT {
         return this->add(other);
@@ -242,34 +274,17 @@ public:
 template<typename T>
 class VectorT<3, T> {
 public:
-    constexpr VectorT() noexcept
-        : x()
-        , y()
-        , z() {}
-
+    constexpr VectorT() noexcept = default;
     constexpr VectorT(const VectorT&) = default;
+    constexpr auto operator=(const VectorT& other) -> VectorT& = default;
     constexpr VectorT(VectorT&&) = default;
+    constexpr auto operator=(VectorT&& other) noexcept -> VectorT& = default;
     ~VectorT() = default;
 
     constexpr VectorT(const T x, const T y, const T z) noexcept
         : x(x)
         , y(y)
         , z(z) {}
-
-    constexpr auto operator=(const VectorT& other) -> VectorT& {
-        if (this == &other) { return *this; }
-        this->x = other.x;
-        this->y = other.y;
-        this->z = other.z;
-        return *this;
-    }
-
-    constexpr auto operator=(VectorT&& other) noexcept -> VectorT& {
-        this->x = other.x;
-        this->y = other.y;
-        this->z = other.z;
-        return *this;
-    }
 
     constexpr auto operator+(const VectorT& other) const -> VectorT {
         return this->add(other);
@@ -373,7 +388,9 @@ public:
         , w() {}
 
     constexpr VectorT(const VectorT&) = default;
+    constexpr auto operator=(const VectorT& other) -> VectorT& = default;
     constexpr VectorT(VectorT&&) = default;
+    constexpr auto operator=(VectorT&& other) noexcept -> VectorT& = default;
     ~VectorT() = default;
 
     constexpr VectorT(const T x_, const T y_, const T z_, const T w_) noexcept
@@ -381,23 +398,6 @@ public:
         , y(y_)
         , z(z_)
         , w(w_) {}
-
-    constexpr auto operator=(const VectorT& other) -> VectorT& {
-        if (this == &other) { return *this; }
-        this->x = other.x;
-        this->y = other.y;
-        this->z = other.z;
-        this->w = other.w;
-        return *this;
-    }
-
-    constexpr auto operator=(VectorT&& other) noexcept -> VectorT& {
-        this->x = other.x;
-        this->y = other.y;
-        this->z = other.z;
-        this->w = other.w;
-        return *this;
-    }
 
     constexpr auto operator+(const VectorT& other) const -> VectorT {
         return this->add(other);
