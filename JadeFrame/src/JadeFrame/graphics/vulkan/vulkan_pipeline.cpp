@@ -36,7 +36,7 @@ static auto from_SHADER_STAGE(SHADER_STAGE stage) -> VkShaderStageFlagBits {
 }
 
 static auto check_compatiblity(
-    const std::vector<ReflectedModule>&             modules,
+    const std::vector<ReflectedModule>&                   modules,
     const VkVertexInputBindingDescription&                input_bindings,
     const std::vector<VkVertexInputAttributeDescription>& input_attributes
 ) -> bool {

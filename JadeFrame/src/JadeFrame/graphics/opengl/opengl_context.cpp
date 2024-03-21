@@ -57,7 +57,8 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
     // TODO: This is weird. Somehwere the macro `linux` got defined.
     #undef linux
     #if !defined(linux)
-    auto* win = static_cast<const JadeFrame::Linux_Window*>(window->m_native_window.get());
+    auto* win =
+        static_cast<const JadeFrame::Linux_Window*>(window->m_native_window.get());
     opengl::linux::load_glx_funcs(win);
     opengl::linux::load_opengl_funcs();
     m_display = win->m_display;
