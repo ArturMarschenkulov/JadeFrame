@@ -174,7 +174,7 @@ Buffer::~Buffer() {
         vkDestroyBuffer(m_device->m_handle, m_handle, Instance::allocator());
         vkFreeMemory(m_device->m_handle, m_memory, Instance::allocator());
 
-        Logger::info("Destroyed Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
+        Logger::trace("Destroyed Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
 
         m_handle = VK_NULL_HANDLE;
         m_memory = VK_NULL_HANDLE;
@@ -247,7 +247,7 @@ auto Buffer::create_buffer(
     JF_ASSERT(result == VK_SUCCESS, "");
 
     result = vkBindBufferMemory(m_device->m_handle, buffer, buffer_memory, 0);
-    { Logger::info("Created Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
+    { Logger::trace("Created Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
 }
 
 auto Buffer::copy_buffer(
@@ -406,15 +406,15 @@ Image::Image(
         vkCreateImage(device.m_handle, &image_info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
     {
-        Logger::info("Created image {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
-        Logger::info(
+        Logger::trace("Created image {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
+        Logger::trace(
             "-w, h, d: {}, {}, {}",
             image_info.extent.width,
             image_info.extent.height,
             image_info.extent.depth
         );
-        Logger::info("-mip levels: {}", image_info.mipLevels);
-        Logger::info("-array layers: {}", image_info.arrayLayers);
+        Logger::trace("-mip levels: {}", image_info.mipLevels);
+        Logger::trace("-array layers: {}", image_info.arrayLayers);
     }
 
     VkMemoryRequirements mem_requirements;

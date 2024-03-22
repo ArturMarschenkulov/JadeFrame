@@ -302,8 +302,8 @@ Pipeline::PipelineLayout::PipelineLayout(
     // Logging the pipeline layout
     {
         std::string offset = "  ";
-        Logger::info("Created Pipeline Layout {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
-        Logger::info("\tSet Layouts count: {}", set_layouts.size());
+        Logger::trace("Created Pipeline Layout {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
+        Logger::trace("\tSet Layouts count: {}", set_layouts.size());
         for (u32 i = 0; i < set_layouts.size(); i++) {
             std::string layout_str;
             switch (i) {
@@ -313,23 +313,23 @@ Pipeline::PipelineLayout::PipelineLayout(
                 case 3: layout_str = "Per-Object"; break;
                 default: layout_str = "Unknown"; break;
             }
-            Logger::info("\t-Set layout: {} {}", i, layout_str);
+            Logger::trace("\t-Set layout: {} {}", i, layout_str);
             const DescriptorSetLayout& set_layout = set_layouts[i];
             for (u32 j = 0; j < set_layout.m_bindings.size(); j++) {
                 const VkDescriptorSetLayoutBinding& binding = set_layout.m_bindings[j];
-                Logger::info("\t\tBinding: {}", binding.binding);
-                Logger::info("\t\t-Type: {}", to_string(binding.descriptorType));
-                Logger::info("\t\t-Count: {}", binding.descriptorCount);
-                Logger::info("\t\t-Stage: {}", to_string_from_shader_stage_flags(binding.stageFlags));
+                Logger::trace("\t\tBinding: {}", binding.binding);
+                Logger::trace("\t\t-Type: {}", to_string(binding.descriptorType));
+                Logger::trace("\t\t-Count: {}", binding.descriptorCount);
+                Logger::trace("\t\t-Stage: {}", to_string_from_shader_stage_flags(binding.stageFlags));
             }
         }
-        Logger::info("Push constant ranges count: {}", push_constant_ranges.size());
+        Logger::trace("Push constant ranges count: {}", push_constant_ranges.size());
         for (u32 i = 0; i < push_constant_ranges.size(); i++) {
             const VkPushConstantRange& push_constant_range = push_constant_ranges[i];
-            Logger::info("\tPush constant range: {}", i);
-            Logger::info("\t\tStage: {}", to_string_from_shader_stage_flags(push_constant_range.stageFlags));
-            Logger::info("\t\tOffset: {}", push_constant_range.offset);
-            Logger::info("\t\tSize: {}", push_constant_range.size);
+            Logger::trace("\tPush constant range: {}", i);
+            Logger::trace("\t\tStage: {}", to_string_from_shader_stage_flags(push_constant_range.stageFlags));
+            Logger::trace("\t\tOffset: {}", push_constant_range.offset);
+            Logger::trace("\t\tSize: {}", push_constant_range.size);
         }
     }
 #endif
@@ -723,12 +723,12 @@ Pipeline::Pipeline(
     if (result != VK_SUCCESS) { assert(false); }
     // Logger part
     {
-        Logger::info(
+        Logger::trace(
             "Created graphics pipeline {} at {}", fmt::ptr(this), fmt::ptr(m_handle)
         );
-        // Logger::info("\tShader stages:");
+        // Logger::trace("\tShader stages:");
         // for (const auto& stage : shader_stages) {
-        //     Logger::info("\t\t{}", stage.module);
+        //     Logger::trace("\t\t{}", stage.module);
         // }
     }
 

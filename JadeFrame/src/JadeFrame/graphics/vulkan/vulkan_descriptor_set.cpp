@@ -313,7 +313,7 @@ DescriptorSetLayout::~DescriptorSetLayout() {
     if (m_handle != VK_NULL_HANDLE) {
         vkDestroyDescriptorSetLayout(m_device->m_handle, m_handle, Instance::allocator());
         {
-            Logger::info(
+            Logger::trace(
                 "Destroyed descriptor set layout {} at {}",
                 fmt::ptr(this),
                 fmt::ptr(m_handle)
@@ -352,15 +352,15 @@ DescriptorSetLayout::DescriptorSetLayout(
     );
     if (result != VK_SUCCESS) { assert(false); }
     {
-        Logger::info(
+        Logger::trace(
             "Created descriptor set layout {} at {}", fmt::ptr(this), fmt::ptr(m_handle)
         );
-        Logger::info("\tBindings: {}", m_bindings.size());
+        Logger::trace("\tBindings: {}", m_bindings.size());
         for (const auto& b : m_bindings) {
-            Logger::info("\t\tBinding: {}", b.binding);
-            Logger::info("\t\t-Descriptor Type: {}", to_string(b.descriptorType));
-            Logger::info("\t\t-Descriptor Count: {}", b.descriptorCount);
-            Logger::info(
+            Logger::trace("\t\tBinding: {}", b.binding);
+            Logger::trace("\t\t-Descriptor Type: {}", to_string(b.descriptorType));
+            Logger::trace("\t\t-Descriptor Count: {}", b.descriptorCount);
+            Logger::trace(
                 "\t\t-Stage Flags: {}", to_string_from_shader_stage_flags(b.stageFlags)
             );
         }
@@ -392,7 +392,7 @@ auto DescriptorSetLayout::add_binding(
     if (is_dynamic(descriptor_type)) { m_dynamic_count++; }
 
     {
-        // Logger::info()
+        // Logger::trace()
     }
 }
 
@@ -427,7 +427,7 @@ auto DescriptorPool::add_pool_size(const VkDescriptorPoolSize& pool_size) -> voi
 
     m_pool_sizes.push_back(pool_size);
     {
-        Logger::info(
+        Logger::trace(
             "Added to descriptor pool {} a pool size {} of type {}",
             fmt::ptr(this),
             pool_size.descriptorCount,
@@ -463,13 +463,13 @@ DescriptorPool::DescriptorPool(
     );
     if (result != VK_SUCCESS) { assert(false); }
     {
-        Logger::info(
+        Logger::trace(
             "Created descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)
         );
-        Logger::info("\tmax sets: {}", max_sets);
-        Logger::info("\tpools: {}", m_pool_sizes.size());
+        Logger::trace("\tmax sets: {}", max_sets);
+        Logger::trace("\tpools: {}", m_pool_sizes.size());
         for (const auto& pool_size : m_pool_sizes) {
-            Logger::info(
+            Logger::trace(
                 "\t-size, type: {} {}",
                 pool_size.descriptorCount,
                 to_string(pool_size.type)
@@ -482,7 +482,7 @@ DescriptorPool::~DescriptorPool() {
     if (m_handle != VK_NULL_HANDLE) {
         vkDestroyDescriptorPool(m_device->m_handle, m_handle, Instance::allocator());
         {
-            Logger::info(
+            Logger::trace(
                 "Destroyed descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)
             );
         }
@@ -508,7 +508,7 @@ auto DescriptorPool::allocate_sets(const DescriptorSetLayout& layout, u32 amount
         assert(false);
     }
     {
-        Logger::info(
+        Logger::trace(
             "Allocated {} descriptor sets from pool {} at {}",
             amount,
             fmt::ptr(this),
@@ -522,7 +522,7 @@ auto DescriptorPool::allocate_sets(const DescriptorSetLayout& layout, u32 amount
     }
 
     {
-        Logger::info(
+        Logger::trace(
             "Allocated {} descriptor sets from pool {} at {}",
             amount,
             fmt::ptr(this),
@@ -530,13 +530,13 @@ auto DescriptorPool::allocate_sets(const DescriptorSetLayout& layout, u32 amount
         );
         i32 i = 0;
         for (const auto& set : sets) {
-            Logger::info("\tset {} at {}", i, fmt::ptr(set.m_handle));
-            Logger::info("\tlayout at: {}", fmt::ptr(set.m_layout->m_handle));
-            Logger::info("\tdescriptors: {}", set.m_descriptors.size());
+            Logger::trace("\tset {} at {}", i, fmt::ptr(set.m_handle));
+            Logger::trace("\tlayout at: {}", fmt::ptr(set.m_layout->m_handle));
+            Logger::trace("\tdescriptors: {}", set.m_descriptors.size());
             for (const auto& descr : set.m_descriptors) {
-                Logger::info("\t\tbinding: {}", descr.binding);
-                Logger::info("\t\t-type: {}", to_string(descr.type));
-                Logger::info(
+                Logger::trace("\t\tbinding: {}", descr.binding);
+                Logger::trace("\t\t-type: {}", to_string(descr.type));
+                Logger::trace(
                     "\t\t-stage flags: {}",
                     to_string_from_shader_stage_flags(descr.stage_flags)
                 );
@@ -564,7 +564,7 @@ auto DescriptorPool::free_sets(const std::vector<DescriptorSet>& /*descriptor_se
     // if (result != VK_SUCCESS) assert(false);
     vkDestroyDescriptorPool(m_device->m_handle, m_handle, Instance::allocator());
     {
-        Logger::info(
+        Logger::trace(
             "Destroyed descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)
         );
     }
@@ -576,7 +576,7 @@ auto DescriptorPool::free_set(const DescriptorSet& descriptor_set) -> void {
         vkFreeDescriptorSets(m_device->m_handle, m_handle, 1, &descriptor_set.m_handle);
     if (result != VK_SUCCESS) { assert(false); }
     {
-        Logger::info(
+        Logger::trace(
             "Freed descriptor set {} from pool {}",
             fmt::ptr(&descriptor_set),
             fmt::ptr(this)

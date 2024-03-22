@@ -251,11 +251,13 @@ CommandPool::CommandPool(
     );
     JF_ASSERT(result == VK_SUCCESS, "");
     {
-        Logger::info("Created Command Pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
-        Logger::info(
+        Logger::trace(
+            "Created Command Pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)
+        );
+        Logger::trace(
             "-flags: {}", to_string_from_command_pool_create_flags(pool_info.flags)
         );
-        Logger::info("-queueFamilyIndex: {}", pool_info.queueFamilyIndex);
+        Logger::trace("-queueFamilyIndex: {}", pool_info.queueFamilyIndex);
     }
     m_create_info = pool_info;
 }
@@ -280,7 +282,7 @@ auto CommandPool::allocate_buffers(u32 amount) const -> std::vector<CommandBuffe
     result = vkAllocateCommandBuffers(m_device->m_handle, &alloc_info, handles.data());
     JF_ASSERT(result == VK_SUCCESS, "");
     {
-        Logger::info(
+        Logger::trace(
             "Allocated {} Command Buffers to {} from pool {}",
             amount,
             fmt::ptr(*handles.data()),
@@ -310,7 +312,7 @@ auto CommandPool::free_buffers(const std::vector<CommandBuffer>& command_buffers
             m_device->m_handle, m_handle, 1, &command_buffers[i].m_handle
         );
         {
-            Logger::info(
+            Logger::trace(
                 "Freed Command Buffer {} from {}",
                 fmt::ptr(command_buffers[i].m_handle),
                 fmt::ptr(m_handle)
@@ -322,7 +324,7 @@ auto CommandPool::free_buffers(const std::vector<CommandBuffer>& command_buffers
 auto CommandPool::free_buffer(const CommandBuffer& command_buffer) const -> void {
     vkFreeCommandBuffers(m_device->m_handle, m_handle, 1, &command_buffer.m_handle);
     {
-        Logger::info(
+        Logger::trace(
             "Freed Command Buffer {} from {}",
             fmt::ptr(command_buffer.m_handle),
             fmt::ptr(m_handle)

@@ -469,8 +469,8 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> u32 {
             auto* shader = new opengl::Shader(*ctx, shader_desc);
             m_registered_shaders[id].m_handle = shader;
 
-            Logger::info("Vertex source:\n {}", vert_source);
-            Logger::info("Fragment source:\n {}", frag_source);
+            Logger::warn("Vertex source:\n {}", vert_source);
+            Logger::warn("Fragment source:\n {}", frag_source);
         } break;
         case GRAPHICS_API::VULKAN: {
             auto*                  ren = dynamic_cast<Vulkan_Renderer*>(m_renderer);
