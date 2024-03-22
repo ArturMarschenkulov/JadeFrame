@@ -80,7 +80,7 @@ public:
 class OpenGL_Context {
 public:
     OpenGL_Context() = default;
-    OpenGL_Context(const IWindow* window);
+    explicit OpenGL_Context(const IWindow* window);
     ~OpenGL_Context();
 
 public:
@@ -88,9 +88,9 @@ public:
     HDC   m_device_context; // NOTE: Windows specific!
     HGLRC m_render_context;
 #elif __linux__
-    ::Display*      m_display = nullptr;
-    ::GLXContext*   m_render_context = nullptr;
-    ::Window m_window;
+    ::Display*    m_display = nullptr;
+    ::GLXContext* m_render_context = nullptr;
+    ::Window      m_window;
 #endif
     auto swap_buffers() -> void;
 

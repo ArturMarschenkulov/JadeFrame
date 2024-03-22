@@ -236,7 +236,7 @@ auto get_infos(const std::vector<Descriptor>& descriptors
     std::vector<VkDescriptorBufferInfo> buffer_infos;
     std::vector<VkDescriptorImageInfo>  image_infos;
     for (u32 i = 0; i < descriptors.size(); i++) {
-        auto& d = descriptors[i];
+        const auto& d = descriptors[i];
         if (is_image(d.type)) {
             image_infos.push_back(d.image_info);
         } else {
@@ -380,7 +380,8 @@ auto DescriptorSetLayout::add_binding(
         .descriptorType = descriptor_type,
         .descriptorCount = descriptor_count,
         .stageFlags = stage_flags,
-        .pImmutableSamplers = p_immutable_samplers};
+        .pImmutableSamplers = p_immutable_samplers
+    };
 
     if (layout.descriptorType == VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT &&
         !(layout.descriptorCount % 4 == 0)) {

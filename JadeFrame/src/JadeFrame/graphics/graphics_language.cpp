@@ -49,18 +49,19 @@ auto remap_for_opengl(
     compiler.set_common_options(options);
     spv_c::ShaderResources resources = compiler.get_shader_resources();
 
-    std::array<std::vector<spv_c::Resource*>, 4> dd;
+    std::array<std::vector<spv_c::Resource*>, 4> uniform_buffer_sets;
     for (u32 j = 0; j < resources.uniform_buffers.size(); j++) {
-        spv_c::Resource& resource = resources.uniform_buffers[j];
+        spv_c::Resource& uniform_buffer = resources.uniform_buffers[j];
 
-        u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-        u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+        u32 set =
+            compiler.get_decoration(uniform_buffer.id, spv::DecorationDescriptorSet);
+        u32 binding = compiler.get_decoration(uniform_buffer.id, spv::DecorationBinding);
         JF_ASSERT(
             set <= 3,
             "As of right now, only 4 descriptor sets are supported. (0, 1, 2, 3)"
         );
 
-        dd[set].push_back(&resource);
+        uniform_buffer_sets[set].push_back(&uniform_buffer);
     }
     // What would be uniform Sampler2D?
     for (u32 j = 0; j < resources.sampled_images.size(); j++) {
@@ -73,15 +74,19 @@ auto remap_for_opengl(
             "As of right now, only 4 descriptor sets are supported. (0, 1, 2, 3)"
         );
 
-        dd[set].push_back(&resource);
+        uniform_buffer_sets[set].push_back(&resource);
     }
 
     u32 binding = 0;
-    for (u32 i = 0; i < dd.size(); i++) {
-        for (u32 j = 0; j < dd[i].size(); j++) {
-            compiler.unset_decoration(dd[i][j]->id, spv::DecorationDescriptorSet);
+    for (u32 i = 0; i < uniform_buffer_sets.size(); i++) {
+        for (u32 j = 0; j < uniform_buffer_sets[i].size(); j++) {
+            compiler.unset_decoration(
+                uniform_buffer_sets[i][j]->id, spv::DecorationDescriptorSet
+            );
             // compiler.set_decoration(dd[i][j]->id, spv::DecorationDescriptorSet, 0);
-            compiler.set_decoration(dd[i][j]->id, spv::DecorationBinding, binding);
+            compiler.set_decoration(
+                uniform_buffer_sets[i][j]->id, spv::DecorationBinding, binding
+            );
             binding++;
         }
     }

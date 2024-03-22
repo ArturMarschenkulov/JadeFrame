@@ -10,8 +10,9 @@ Vulkan_Shader::Vulkan_Shader(
     const vulkan::LogicalDevice& device,
     const Vulkan_Renderer&       renderer,
     const Desc&                  desc
-) {
-    m_device = &device;
+)
+    : m_device(&device) {
+
     Logger::info("Creating Vulkan shader");
     m_pipeline = vulkan::Pipeline(
         device,

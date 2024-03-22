@@ -68,7 +68,7 @@ auto OGLW_VertexArray::bind_buffer(const opengl::Buffer& buffer) const -> void {
 auto OGLW_VertexArray::set_layout(const VertexFormat& vertex_format) -> void {
     m_vertex_format = vertex_format;
 
-    for (size_t i = 0; i != vertex_format.m_attributes.size(); i++) {
+    for (u32 i = 0; i != vertex_format.m_attributes.size(); i++) {
         const VertexAttribute& attribute = vertex_format.m_attributes[i];
 
         switch (attribute.type) {

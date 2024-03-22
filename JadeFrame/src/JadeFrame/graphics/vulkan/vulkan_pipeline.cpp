@@ -235,6 +235,7 @@ static auto layout_create_info(
     const VkPipelineLayoutCreateInfo layout_info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .pNext = nullptr,
+        .flags = 0,
         .setLayoutCount = static_cast<u32>(layouts.size()),
         .pSetLayouts = layouts.data(),
         .pushConstantRangeCount = static_cast<u32>(push_constants.size()),
@@ -442,7 +443,7 @@ static auto rasterization_state_create_info() -> VkPipelineRasterizationStateCre
         .depthBiasConstantFactor = {},
         .depthBiasClamp = {},
         .depthBiasSlopeFactor = {},
-        .lineWidth = 1.0f,
+        .lineWidth = 1.0F,
     };
     return rasterizer;
 }
@@ -454,7 +455,7 @@ static auto multisample_state_create_info() -> VkPipelineMultisampleStateCreateI
         .flags = 0,
         .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
         .sampleShadingEnable = VK_FALSE,
-        .minSampleShading = 1.0f,
+        .minSampleShading = 1.0F,
         .pSampleMask = nullptr,
         .alphaToCoverageEnable = VK_FALSE,
         .alphaToOneEnable = VK_FALSE,
@@ -615,8 +616,8 @@ Pipeline::Pipeline(
     std::vector<ShaderModule> shader_modules;
     shader_modules.resize(code.m_modules.size());
     for (u32 i = 0; i < shader_modules.size(); i++) {
-        auto& code_ = code.m_modules[i].m_code;
-        auto& stage_ = code.m_modules[i].m_stage;
+        const auto& code_ = code.m_modules[i].m_code;
+        const auto& stage_ = code.m_modules[i].m_stage;
         shader_modules[i] = ShaderModule(device, code_, stage_);
     }
 
@@ -656,13 +657,13 @@ Pipeline::Pipeline(
     // NOTE: For OpenGL compatibility. make .height *= -1 and .y += .height
     constexpr bool   gl_compat = true;
     const VkViewport viewport = {
-        .x = 0.0f,
-        .y = gl_compat ? static_cast<f32>(extent.height) : 0.0f,
+        .x = 0.0F,
+        .y = gl_compat ? static_cast<f32>(extent.height) : 0.0F,
         .width = static_cast<f32>(extent.width),
         .height = gl_compat ? -static_cast<f32>(extent.height)
                             : static_cast<f32>(extent.height),
-        .minDepth = 0.0f,
-        .maxDepth = 1.0f,
+        .minDepth = 0.0F,
+        .maxDepth = 1.0F,
     };
 
     const VkRect2D scissor = {

@@ -24,7 +24,7 @@ public:
     Buffer(const Buffer&) = delete;
     auto operator=(const Buffer&) -> Buffer& = delete;
     Buffer(Buffer&& other) noexcept;
-    auto operator=(Buffer&& other) -> Buffer&;
+    auto operator=(Buffer&& other) noexcept -> Buffer&;
 
     enum class TYPE {
         UNINIT, // TODO: find ways to remove it
@@ -74,10 +74,10 @@ private:
     }
 
 public:
-    GLuint          m_id;
-    TYPE            m_type;
     OpenGL_Context* m_context;
+    TYPE            m_type;
     size_t          m_size;
+    GLuint          m_id;
 };
 
 class GPUMeshData {
@@ -90,7 +90,7 @@ public:
     auto operator=(const GPUMeshData&) -> GPUMeshData& = delete;
 
     // GPUMeshData(GPUMeshData&& other);
-    auto operator=(GPUMeshData&& other) -> GPUMeshData&;
+    auto operator=(GPUMeshData&& other) noexcept -> GPUMeshData&;
 
     GPUMeshData(
         OpenGL_Context&   context,
