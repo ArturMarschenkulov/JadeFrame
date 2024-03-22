@@ -17,10 +17,10 @@ namespace vulkan {
 static auto to_format_string_queue_family(const QueueFamily& queue_family)
     -> std::string {
     std::string result = "{ ";
-    if (queue_family.m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+    if ((queue_family.m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0U) {
         result += "Graphics ";
     }
-    if (queue_family.m_properties.queueFlags & VK_QUEUE_COMPUTE_BIT) {
+    if ((queue_family.m_properties.queueFlags & VK_QUEUE_COMPUTE_BIT) != 0U) {
         result += "Compute ";
     }
     if (queue_family.m_properties.queueFlags & VK_QUEUE_TRANSFER_BIT) {
@@ -128,25 +128,26 @@ auto PhysicalDevice::query_surface_present_modes(const Surface& surface) const
     return present_modes;
 }
 
-auto PhysicalDevice::query_memory_properties() -> VkPhysicalDeviceMemoryProperties {
+auto PhysicalDevice::query_memory_properties() const -> VkPhysicalDeviceMemoryProperties {
     VkPhysicalDeviceMemoryProperties memory_properties;
     vkGetPhysicalDeviceMemoryProperties(m_handle, &memory_properties);
     return memory_properties;
 }
 
-auto PhysicalDevice::query_properties() -> VkPhysicalDeviceProperties {
+auto PhysicalDevice::query_properties() const -> VkPhysicalDeviceProperties {
     VkPhysicalDeviceProperties properties;
     vkGetPhysicalDeviceProperties(m_handle, &properties);
     return properties;
 }
 
-auto PhysicalDevice::query_features() -> VkPhysicalDeviceFeatures {
+auto PhysicalDevice::query_features() const -> VkPhysicalDeviceFeatures {
     VkPhysicalDeviceFeatures features;
     vkGetPhysicalDeviceFeatures(m_handle, &features);
     return features;
 }
 
-auto PhysicalDevice::query_extension_properties() -> std::vector<VkExtensionProperties> {
+auto PhysicalDevice::query_extension_properties() const
+    -> std::vector<VkExtensionProperties> {
     std::vector<VkExtensionProperties> extension_properties;
 
     VkResult result;
@@ -238,8 +239,8 @@ auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
     }
 }
 
-auto PhysicalDevice::check_extension_support(const std::vector<const char*>& extensions)
-    -> bool {
+auto PhysicalDevice::check_extension_support(const std::vector<const char*>& extensions
+) const -> bool {
     std::set<std::string> required_extensions(extensions.begin(), extensions.end());
     for (u32 i = 0; i < m_extension_properties.size(); i++) {
         required_extensions.erase(m_extension_properties[i].extensionName);
@@ -250,7 +251,7 @@ auto PhysicalDevice::check_extension_support(const std::vector<const char*>& ext
 auto PhysicalDevice::find_queue_families(
     const std::vector<QueueFamily>& queue_families,
     const Surface&                  surface
-) -> QueueFamilyIndices {
+) const -> QueueFamilyIndices {
 
     QueueFamilyIndices indices;
     for (u32 i = 0; i < queue_families.size(); i++) {
@@ -278,7 +279,7 @@ auto PhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFlags pro
     throw std::runtime_error("failed to find suitable memory type!");
 }
 
-auto PhysicalDevice::query_queue_families() -> std::vector<QueueFamily> {
+auto PhysicalDevice::query_queue_families() const -> std::vector<QueueFamily> {
     std::vector<VkQueueFamilyProperties> properties =
         query_queue_family_properties(*this);
 

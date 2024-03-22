@@ -38,28 +38,32 @@ class PhysicalDevice {
 private:
 
 public:
-    auto init(Instance& instance, const Surface& surface) -> void;
-    auto check_extension_support(const std::vector<const char*>& extensions) -> bool;
-    auto find_queue_families(
+    auto               init(Instance& instance, const Surface& surface) -> void;
+    [[nodiscard]] auto check_extension_support(const std::vector<const char*>& extensions
+    ) const -> bool;
+    [[nodiscard]] auto find_queue_families(
         const std::vector<QueueFamily>& queue_families,
         const Surface&                  surface
-    ) -> QueueFamilyIndices;
-    auto find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32;
+    ) const -> QueueFamilyIndices;
+    [[nodiscard]] auto
+    find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32;
 
-    auto query_memory_properties() -> VkPhysicalDeviceMemoryProperties;
-    auto query_properties() -> VkPhysicalDeviceProperties;
-    auto query_features() -> VkPhysicalDeviceFeatures;
-    auto query_queue_families() -> std::vector<QueueFamily>;
-    auto query_surface_capabilities(const Surface& surface) const
+    [[nodiscard]] auto query_memory_properties() const
+        -> VkPhysicalDeviceMemoryProperties;
+    [[nodiscard]] auto query_properties() const -> VkPhysicalDeviceProperties;
+    [[nodiscard]] auto query_features() const -> VkPhysicalDeviceFeatures;
+    [[nodiscard]] auto query_queue_families() const -> std::vector<QueueFamily>;
+    [[nodiscard]] auto query_surface_capabilities(const Surface& surface) const
         -> VkSurfaceCapabilitiesKHR;
-    auto query_surface_formats(const Surface& surface) const
+    [[nodiscard]] auto query_surface_formats(const Surface& surface) const
         -> std::vector<VkSurfaceFormatKHR>;
-    auto query_surface_present_modes(const Surface& surface) const
+    [[nodiscard]] auto query_surface_present_modes(const Surface& surface) const
         -> std::vector<VkPresentModeKHR>;
 
-    auto query_extension_properties() -> std::vector<VkExtensionProperties>;
+    [[nodiscard]] auto query_extension_properties() const
+        -> std::vector<VkExtensionProperties>;
 
-    auto query_limits() const -> VkPhysicalDeviceLimits;
+    [[nodiscard]] auto query_limits() const -> VkPhysicalDeviceLimits;
 
     auto create_logical_device() -> LogicalDevice;
 
