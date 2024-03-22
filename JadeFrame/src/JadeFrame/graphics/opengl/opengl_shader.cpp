@@ -115,7 +115,6 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
 
             Shader::Uniform uniform;
             uniform.name = uniform_buffer.name;
-            // uniform.type = uniform_buffer.type;
             uniform.size = static_cast<i32>(uniform_buffer.size);
             uniform.location = uniform_buffer.binding;
             m_uniforms.push_back(uniform);

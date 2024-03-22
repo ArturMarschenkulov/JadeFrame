@@ -100,14 +100,11 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
             // assert(false);
         }
     }
-#endif
 
     VertexData::Desc vdf_desc;
     vdf_desc.has_normals = false;
     VertexData vertex_data =
         VertexData::make_rectangle({-1.0F, -1.0F, 0.0F}, {2.0F, 2.0F, 0.0F}, vdf_desc);
-
-#if JF_OPENGL_FB
     VertexFormat layout = {
         {           "v_position", SHADER_TYPE::V_3_F32},
         {"v_texture_coordinates", SHADER_TYPE::V_2_F32}
