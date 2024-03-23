@@ -7,12 +7,6 @@
 #include "vulkan_descriptor_set.h"
 #include "vulkan_shared.h"
 
-JF_PRAGMA_NO_WARNINGS_PUSH
-#include "SPIRV-Cross/spirv_glsl.hpp"
-#include "SPIRV-Cross/spirv_hlsl.hpp"
-#include "SPIRV-Cross/spirv_msl.hpp"
-JF_PRAGMA_NO_WARNINGS_POP
-
 #include "JadeFrame/utils/assert.h"
 
 #include <array>
@@ -500,7 +494,7 @@ static auto color_blend_state_create_info(
         .logicOp = VK_LOGIC_OP_COPY,
         .attachmentCount = 1,
         .pAttachments = &color_blend_attachment,
-        .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f},
+        .blendConstants = {0.0F, 0.0F, 0.0F, 0.0F},
     };
     return color_blending;
 }
@@ -513,8 +507,9 @@ Pipeline::Pipeline(Pipeline&& other) noexcept
     , m_set_layouts(std::move(other.m_set_layouts))
     , m_code(std::move(other.m_code))
     , m_is_compiled(other.m_is_compiled)
-    , m_push_constant_ranges(other.m_push_constant_ranges)
-    , m_reflected_code(other.m_reflected_code) {
+    , m_push_constant_ranges(std::move(other.m_push_constant_ranges))
+    , m_reflected_code(std::move(other.m_reflected_code))
+    , m_reflected_interface(std::move(other.m_reflected_interface)) {
     other.m_handle = VK_NULL_HANDLE;
     other.m_layout = {};
     other.m_device = nullptr;
@@ -537,6 +532,7 @@ auto Pipeline::operator=(Pipeline&& other) noexcept -> Pipeline& {
         m_is_compiled = other.m_is_compiled;
         m_push_constant_ranges = other.m_push_constant_ranges;
         m_reflected_code = other.m_reflected_code;
+        m_reflected_interface = std::move(other.m_reflected_interface);
 
         other.m_handle = VK_NULL_HANDLE;
         other.m_layout = {};

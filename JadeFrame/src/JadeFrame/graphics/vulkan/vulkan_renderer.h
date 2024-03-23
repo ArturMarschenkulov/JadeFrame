@@ -46,10 +46,6 @@ private: // NOTE: probably temporary
     RGBAColor m_clear_color;
 
 public:
-    vulkan::Buffer* m_ub_cam = nullptr;
-    vulkan::Buffer* m_ub_tran = nullptr;
-
-public:
     struct Frame {
         vulkan::LogicalDevice* m_device;
         u32                    m_index;

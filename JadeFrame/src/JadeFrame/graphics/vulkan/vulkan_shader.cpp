@@ -22,8 +22,6 @@ Vulkan_Shader::Vulkan_Shader(
         desc.vertex_format
     );
     Logger::info("Created Vulkan shader");
-    m_reflected_code = m_pipeline.m_reflected_code;
-    m_reflected_interface = m_pipeline.m_reflected_interface;
 }
 
 auto Vulkan_Shader::bind_buffer(
@@ -48,8 +46,8 @@ auto Vulkan_Shader::get_location(const std::string& name) -> std::tuple<u32, u32
     bool found = false;
     u32  set = 0;
     u32  binding = 0;
-    for (auto& module : m_reflected_code.m_modules) {
-        for (size_t j = 0; module.m_uniform_buffers.size(); j++) {
+    for (auto& module : m_pipeline.m_reflected_code.m_modules) {
+        for (size_t j = 0; j < module.m_uniform_buffers.size(); j++) {
             auto& uniform_buffer = module.m_uniform_buffers[j];
             if (uniform_buffer.name == name) {
                 found = true;

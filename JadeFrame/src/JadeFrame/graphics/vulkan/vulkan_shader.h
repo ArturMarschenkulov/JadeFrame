@@ -3,6 +3,7 @@
 #include "../shader_loader.h"
 #include "vulkan_pipeline.h"
 #include <tuple>
+#include <unordered_map>
 
 namespace JadeFrame {
 namespace vulkan {
@@ -39,11 +40,17 @@ public:
 public:
     const vulkan::LogicalDevice* m_device;
     vulkan::Pipeline             m_pipeline;
-    ReflectedCode                m_reflected_code;
-    ReflectedModule              m_reflected_interface;
 
     std::array<vulkan::DescriptorSet, static_cast<u8>(vulkan::FREQUENCY::MAX)> m_sets;
 
     std::vector<vulkan::Buffer> m_uniforms;
+
+    template<typename K, typename V>
+    using HashMap = std::unordered_map<K, V>;
+
+    template<typename K0, typename V>
+    using Hashmap2 = std::unordered_map<K0, HashMap<K0, V>>;
+
+    Hashmap2<u32, vulkan::Buffer*> m_uniform_buffers;
 };
 } // namespace JadeFrame

@@ -34,19 +34,6 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
         );
     }
 
-    /*
-        The part below should probably be somewhere else, as they are highly dependent on
-       the shader code. One has to find a way to make it more dynamic.
-    */
-
-    // Uniform stuff
-    m_ub_tran = m_logical_device->create_buffer(
-        vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4)
-    );
-    m_ub_cam = m_logical_device->create_buffer(
-        vulkan::Buffer::TYPE::UNIFORM, nullptr, sizeof(Matrix4x4)
-    );
-
     m_frames.resize(MAX_FRAMES_IN_FLIGHT);
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         m_frames[i].init(m_logical_device);
@@ -120,9 +107,6 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         return;
     }
 
-    // Per Frame ubo
-    m_ub_cam->write(view_projection, 0);
-
     const u64 dyn_alignment = get_aligned_block_size(
         sizeof(Matrix4x4), pd->query_limits().minUniformBufferOffsetAlignment
     );
@@ -143,12 +127,16 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         auto*                shader = static_cast<Vulkan_Shader*>(shader_handle.m_handle);
         vulkan::GPUMeshData& gpu_data = m_registered_meshes[cmd.m_GPU_mesh_data_id];
 
-        update_ubo_buffers(shader, m_ub_tran, m_render_commands.size(), dyn_alignment);
-
-        const u32 dyn_offset = static_cast<u32>(dyn_alignment * i);
+        // Per Frame ubo
+        auto* ub_cam = shader->m_uniform_buffers[0][0];
+        ub_cam->write(view_projection, 0); // 0, 0
 
         // Per DrawCall ubo
-        m_ub_tran->write(*cmd.transform, dyn_offset);
+
+        auto*     ub_tran = shader->m_uniform_buffers[3][0];
+        const u32 dyn_offset = static_cast<u32>(dyn_alignment * i);
+        update_ubo_buffers(shader, ub_tran, m_render_commands.size(), dyn_alignment);
+        ub_tran->write(*cmd.transform, dyn_offset); // 3, 0
 
         const VkPipelineBindPoint bp = VK_PIPELINE_BIND_POINT_GRAPHICS;
         auto&                     pipeline = shader->m_pipeline;
