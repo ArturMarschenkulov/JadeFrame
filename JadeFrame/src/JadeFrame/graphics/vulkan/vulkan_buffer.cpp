@@ -112,7 +112,7 @@ static auto get_properties(const Buffer::TYPE type) -> VkMemoryPropertyFlags {
     return result;
 }
 
-Buffer::Buffer(Buffer&& other)
+Buffer::Buffer(Buffer&& other) noexcept
     : m_type(other.m_type)
     , m_size(other.m_size)
     , m_handle(other.m_handle)
@@ -126,7 +126,7 @@ Buffer::Buffer(Buffer&& other)
     other.m_device = nullptr;
 }
 
-auto Buffer::operator=(Buffer&& other) -> Buffer& {
+auto Buffer::operator=(Buffer&& other) noexcept -> Buffer& {
     m_type = other.m_type;
     m_size = other.m_size;
     m_handle = other.m_handle;
@@ -146,17 +146,16 @@ Buffer::Buffer(
     Buffer::TYPE         buffer_type,
     void*                data,
     size_t               size
-) {
-    /*VkResult result;*/
-    m_device = &device;
-    m_size = size;
-    m_type = buffer_type;
+)
+    : m_type(buffer_type)
+    , m_size(size)
+    , m_device(&device) {
 
     bool                  b_with_staging_buffer = does_use_staging_buffer(buffer_type);
     VkBufferUsageFlags    usage = get_usage(buffer_type);
     VkMemoryPropertyFlags properties = get_properties(buffer_type);
 
-    if (b_with_staging_buffer == true) {
+    if (b_with_staging_buffer) {
         Buffer* staging_buffer =
             device.create_buffer(Buffer::TYPE::STAGING, nullptr, size);
         staging_buffer->write(data, 0, size);
@@ -186,10 +185,10 @@ auto Buffer::write(const Matrix4x4& m, VkDeviceSize offset) -> void {
 }
 
 auto Buffer::write(void* data, VkDeviceSize offset, VkDeviceSize size) -> void {
-    VkResult result;
 
-    void* mapped_data;
-    result = vkMapMemory(m_device->m_handle, m_memory, offset, size, 0, &mapped_data);
+    void*    mapped_data;
+    VkResult result =
+        vkMapMemory(m_device->m_handle, m_memory, offset, size, 0, &mapped_data);
     JF_ASSERT(result == VK_SUCCESS, "");
     memcpy(mapped_data, data, static_cast<size_t>(size));
     vkUnmapMemory(m_device->m_handle, m_memory);
@@ -210,7 +209,6 @@ auto Buffer::create_buffer(
     VkBuffer&             buffer,
     VkDeviceMemory&       buffer_memory
 ) -> void {
-    VkResult result;
 
     const VkBufferCreateInfo buffer_info = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -222,7 +220,7 @@ auto Buffer::create_buffer(
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
     };
-    result =
+    VkResult result =
         vkCreateBuffer(m_device->m_handle, &buffer_info, Instance::allocator(), &buffer);
     JF_ASSERT(result == VK_SUCCESS, "");
     m_handle = buffer;
@@ -254,7 +252,7 @@ auto Buffer::copy_buffer(
     const Buffer& src_buffer,
     const Buffer& dst_buffer,
     VkDeviceSize  size
-) -> void {
+) const -> void {
     const CommandPool& cmd_pool = m_device->m_command_pool;
 
     CommandBuffer cmd = cmd_pool.allocate_buffer();
@@ -292,9 +290,10 @@ auto Buffer::copy_buffer(
 GPUMeshData::GPUMeshData(
     const LogicalDevice& device,
     const VertexData&    vertex_data,
-    const VertexFormat,
-    bool interleaved
+    const VertexFormat&  vertex_format,
+    bool                 interleaved
 ) {
+    (void)vertex_format;
 
     const std::vector<f32> flat_data = convert_into_data(vertex_data, interleaved);
 
@@ -302,8 +301,9 @@ GPUMeshData::GPUMeshData(
     size_t size = sizeof(flat_data[0]) * flat_data.size();
     m_vertex_buffer = device.create_buffer(Buffer::TYPE::VERTEX, data, size);
 
-    if (vertex_data.m_indices.size() > 0) {
-        auto&  indices = vertex_data.m_indices;
+    if (!vertex_data.m_indices.empty()) {
+        const auto& indices = vertex_data.m_indices;
+
         void*  indices_data = (void*)indices.data();
         size_t indices_size = sizeof(indices[0]) * indices.size();
         m_index_buffer =
@@ -325,6 +325,7 @@ Image::Image(Image&& other) noexcept
     , m_memory(other.m_memory)
     , m_source(other.m_source)
     , m_size(other.m_size) {
+
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = nullptr;
     other.m_memory = VK_NULL_HANDLE;
@@ -349,16 +350,15 @@ auto Image::operator=(Image&& other) noexcept -> Image& {
 }
 
 Image::~Image() {
-    if (m_handle != VK_NULL_HANDLE) {
-        switch (m_source) {
-            case SOURCE::REGULAR: {
-                JF_ASSERT(false, "");
-            } break;
-            case SOURCE::SWAPCHAIN: {
+    if (m_handle == VK_NULL_HANDLE) { return; }
+    switch (m_source) {
+        case SOURCE::REGULAR: {
+            JF_ASSERT(false, "");
+        } break;
+        case SOURCE::SWAPCHAIN: {
 
-            } break;
-            default: JF_ASSERT(false, "");
-        }
+        } break;
+        default: JF_ASSERT(false, "");
     }
 }
 
@@ -367,14 +367,14 @@ Image::Image(
     const v2u32&         size,
     VkFormat             format,
     VkImageUsageFlags    usage
-) {
-    m_device = &device;
-    m_source = SOURCE::REGULAR;
-    m_size = size;
+)
+    : m_device(&device)
+    , m_source(SOURCE::REGULAR)
+    , m_size(size) {
+
     VkImageFormatProperties props;
 
-    VkResult result;
-    result = vkGetPhysicalDeviceImageFormatProperties(
+    VkResult result = vkGetPhysicalDeviceImageFormatProperties(
         device.m_physical_device->m_handle,
         format,
         VK_IMAGE_TYPE_2D,
@@ -437,11 +437,10 @@ Image::Image(
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
-Image::Image(const LogicalDevice& device, VkImage image) {
-    m_device = &device;
-    m_handle = image;
-    m_source = SOURCE::SWAPCHAIN;
-}
+Image::Image(const LogicalDevice& device, VkImage image)
+    : m_handle(image)
+    , m_device(&device)
+    , m_source(SOURCE::SWAPCHAIN) {}
 
 /*---------------------------
     Image View
@@ -468,10 +467,10 @@ auto ImageView::operator=(ImageView&& other) noexcept -> ImageView& {
     return *this;
 }
 
-ImageView::ImageView(const LogicalDevice& device, const Image& image, VkFormat format) {
-    m_device = &device;
-    m_image = &image;
-    VkResult              result;
+ImageView::ImageView(const LogicalDevice& device, const Image& image, VkFormat format)
+    : m_device(&device)
+    , m_image(&image) {
+
     VkImageViewCreateInfo create_info = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = nullptr,
@@ -486,7 +485,8 @@ ImageView::ImageView(const LogicalDevice& device, const Image& image, VkFormat f
                          .b = VK_COMPONENT_SWIZZLE_B,
                          .a = VK_COMPONENT_SWIZZLE_A,
                          },
-        .subresourceRange = {
+        .subresourceRange =
+            {
                          .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                          .baseMipLevel = 0,
                          .levelCount = 1,
@@ -495,7 +495,7 @@ ImageView::ImageView(const LogicalDevice& device, const Image& image, VkFormat f
                          }
     };
 
-    result = vkCreateImageView(
+    VkResult result = vkCreateImageView(
         device.m_handle, &create_info, Instance::allocator(), &m_handle
     );
     if (result != VK_SUCCESS) { assert(false); }
@@ -554,8 +554,9 @@ Vulkan_Texture::Vulkan_Texture(
     void*                data,
     v2u32                size,
     VkFormat             format
-) {
-    m_device = &device;
+)
+    : m_device(&device) {
+
     u32 comp_count = 0;
     if (format == VK_FORMAT_R8G8B8_SRGB) {
         comp_count = 3;
@@ -594,7 +595,7 @@ auto Vulkan_Texture::transition_layout(
     VkFormat /*format*/,
     VkImageLayout old_layout,
     VkImageLayout new_layout
-) -> void {
+) const -> void {
     const LogicalDevice& d = *m_device;
 
     auto cb = d.m_command_pool.allocate_buffer();

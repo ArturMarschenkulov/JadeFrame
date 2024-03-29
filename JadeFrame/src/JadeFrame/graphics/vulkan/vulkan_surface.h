@@ -20,8 +20,8 @@ public:
     ~Surface();
     Surface(const Surface&) = delete;
     auto operator=(const Surface&) -> Surface& = delete;
-    Surface(Surface&& other);
-    auto operator=(Surface&& other) -> Surface&;
+    Surface(Surface&& other) noexcept;
+    auto operator=(Surface&& other) noexcept -> Surface&;
 
     Surface(VkInstance instance, const IWindow* window_handle);
 
