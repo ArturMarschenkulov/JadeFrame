@@ -85,7 +85,7 @@ public:
     GPUMeshData(
         const LogicalDevice& device,
         const VertexData&    vertex_data,
-        const VertexFormat   vertex_format,
+        const VertexFormat&  vertex_format,
         bool                 interleaved = true
     );
 
@@ -180,8 +180,8 @@ public:
         VkFormat      format,
         VkImageLayout old_layout,
         VkImageLayout new_layout
-    ) -> void;
-    auto copy_buffer_to_image(const Buffer& buffer, const Image& image, v2u32 size)
+    ) const -> void;
+    auto copy_buffer_to_image(const Buffer& buffer, const Image& image, v2u32 size) const
         -> void;
 
 public:

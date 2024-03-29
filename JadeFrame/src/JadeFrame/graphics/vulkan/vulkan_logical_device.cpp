@@ -57,6 +57,22 @@ Queue::Queue(const LogicalDevice& device, u32 queue_family_index, u32 queue_inde
     vkGetDeviceQueue(device.m_handle, queue_family_index, queue_index, &m_handle);
 }
 
+auto Queue::submit(const CommandBuffer& cmd_buffer) const -> void {
+    VkSubmitInfo submit_info = {
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .pNext = nullptr,
+        .waitSemaphoreCount = 0,
+        .pWaitSemaphores = nullptr,
+        .pWaitDstStageMask = nullptr,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmd_buffer.m_handle,
+        .signalSemaphoreCount = 0,
+        .pSignalSemaphores = nullptr,
+    };
+    VkResult result = vkQueueSubmit(m_handle, 1, &submit_info, VK_NULL_HANDLE);
+    if (result != VK_SUCCESS) { assert(false); }
+}
+
 auto Queue::submit(const VkSubmitInfo& submit_info, const Fence* p_fence) const -> void {
     VkResult result;
     result =
@@ -156,7 +172,8 @@ auto LogicalDevice::init(
 
     const QueueFamilyIndices& indices = physical_device.m_queue_family_indices;
     const std::set<u32>       unique_queue_families = {
-        indices.m_graphics_family.value(), indices.m_present_family.value()};
+        indices.m_graphics_family.value(), indices.m_present_family.value()
+    };
 
     constexpr f32                        queue_priority = 1.0_f32;
     std::vector<VkDeviceQueueCreateInfo> queue_create_infos;

@@ -95,13 +95,43 @@ auto CommandBuffer::reset() -> void {
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
-auto CommandBuffer::copy_buffer(
-    const Buffer& src,
-    const Buffer& dst,
-    u32           region_size,
-    VkBufferCopy* regions
-) -> void {
-    vkCmdCopyBuffer(m_handle, src.m_handle, dst.m_handle, region_size, regions);
+auto CommandBuffer::copy_buffer(const Buffer& src, const Buffer& dst, u64 size) const
+    -> void {
+
+    // TODO: include bounds checking
+
+    const VkBufferCopy region = {
+        .srcOffset = 0,
+        .dstOffset = 0,
+        .size = size,
+    };
+    vkCmdCopyBuffer(m_handle, src.m_handle, dst.m_handle, 1, &region);
+}
+
+auto CommandBuffer::copy_buffer_to_image(const Buffer& src, const Image& dst, v2u32 size)
+    const -> void {
+    const VkBufferImageCopy region = {
+        .bufferOffset = 0,
+        .bufferRowLength = 0,
+        .bufferImageHeight = 0,
+        .imageSubresource =
+            {
+                               .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                               .mipLevel = 0,
+                               .baseArrayLayer = 0,
+                               .layerCount = 1,
+                               },
+        .imageOffset = {                                      0,           0,    0 },
+        .imageExtent = {                             size.width, size.height,    1 },
+    };
+    vkCmdCopyBufferToImage(
+        m_handle,
+        src.m_handle,
+        dst.m_handle,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1,
+        &region
+    );
 }
 
 auto CommandBuffer::bind_pipeline(

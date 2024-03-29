@@ -257,31 +257,8 @@ auto Buffer::copy_buffer(
 
     CommandBuffer cmd = cmd_pool.allocate_buffer();
 
-    cmd.record([&] {
-        const VkBufferCopy copy_region = {
-            .srcOffset = 0,
-            .dstOffset = 0,
-            .size = size,
-        };
-        vkCmdCopyBuffer(
-            cmd.m_handle, src_buffer.m_handle, dst_buffer.m_handle, 1, &copy_region
-        );
-    });
-    // buffer[0].record_end();
-
-    const VkSubmitInfo submit_info = {
-        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-        .pNext = {},
-        .waitSemaphoreCount = {},
-        .pWaitSemaphores = {},
-        .pWaitDstStageMask = {},
-        .commandBufferCount = 1,
-        .pCommandBuffers = &cmd.m_handle,
-        .signalSemaphoreCount = {},
-        .pSignalSemaphores = {},
-    };
-
-    m_device->m_graphics_queue.submit(submit_info, nullptr);
+    cmd.record([&] { cmd.copy_buffer(src_buffer, dst_buffer, size); });
+    m_device->m_graphics_queue.submit(cmd);
     m_device->m_graphics_queue.wait_idle();
 
     cmd_pool.free_buffer(cmd);
@@ -654,18 +631,7 @@ auto Vulkan_Texture::transition_layout(
     });
     // cb[0].record_end();
 
-    const VkSubmitInfo submit_info = {
-        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-        .pNext = nullptr,
-        .waitSemaphoreCount = 0,
-        .pWaitSemaphores = nullptr,
-        .pWaitDstStageMask = nullptr,
-        .commandBufferCount = 1,
-        .pCommandBuffers = &cb.m_handle,
-        .signalSemaphoreCount = 0,
-        .pSignalSemaphores = nullptr,
-    };
-    d.m_graphics_queue.submit(submit_info, VK_NULL_HANDLE);
+    d.m_graphics_queue.submit(cb);
     d.m_graphics_queue.wait_idle();
 
     d.m_command_pool.free_buffer(cb);
@@ -675,51 +641,16 @@ auto Vulkan_Texture::copy_buffer_to_image(
     const Buffer& buffer,
     const Image&  image,
     v2u32         size
-) -> void {
-    const LogicalDevice& d = *m_device;
+) const -> void {
 
-    auto cb = d.m_command_pool.allocate_buffer();
-    cb.record([&] {
-        const VkBufferImageCopy region = {
-            .bufferOffset = 0,
-            .bufferRowLength = 0,
-            .bufferImageHeight = 0,
-            .imageSubresource =
-                {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                                   .mipLevel = 0,
-                                   .baseArrayLayer = 0,
-                                   .layerCount = 1},
-            .imageOffset = {0, 0, 0},
-            .imageExtent = {size.width, size.height, 1},
-        };
+    const CommandPool& cmd_pool = m_device->m_command_pool;
+    auto               cmd = cmd_pool.allocate_buffer();
 
-        vkCmdCopyBufferToImage(
-            cb.m_handle,
-            buffer.m_handle,
-            image.m_handle,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            1,
-            &region
-        );
-    });
-    // cb[0].record_end();
+    cmd.record([&] { cmd.copy_buffer_to_image(buffer, image, size); });
+    m_device->m_graphics_queue.submit(cmd);
+    m_device->m_graphics_queue.wait_idle();
 
-    const VkSubmitInfo submit_info = {
-        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-        .pNext = nullptr,
-        .waitSemaphoreCount = 0,
-        .pWaitSemaphores = nullptr,
-        .pWaitDstStageMask = nullptr,
-        .commandBufferCount = 1,
-        .pCommandBuffers = &cb.m_handle,
-        .signalSemaphoreCount = 0,
-        .pSignalSemaphores = nullptr,
-    };
-    // d.m_graphics_queue.submit(submit_info, VK_NULL_HANDLE);
-    d.m_graphics_queue.submit(cb, nullptr, nullptr, nullptr);
-    d.m_graphics_queue.wait_idle();
-
-    d.m_command_pool.free_buffer(cb);
+    cmd_pool.free_buffer(cmd);
 }
 } // namespace vulkan
 } // namespace JadeFrame

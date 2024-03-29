@@ -43,7 +43,8 @@ public:
 
     Queue(const LogicalDevice& device, u32 queue_family_index, u32 queue_index);
 
-public:
+public: // submit methods
+    auto submit(const CommandBuffer& cmd_buffer) const -> void;
     auto submit(const VkSubmitInfo& submit_info, const Fence* p_fence) const -> void;
     auto submit(
         const CommandBuffer& cmd_buffer,
@@ -51,6 +52,8 @@ public:
         const Semaphore*     signal_semaphore,
         const Fence*         p_fence
     ) const -> void;
+
+public:
     auto wait_idle() const -> void;
     auto present(VkPresentInfoKHR info) const -> VkResult;
     auto

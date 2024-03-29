@@ -1,5 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.h>
+#include "JadeFrame/graphics/vulkan/vulkan_buffer.h"
 #include "JadeFrame/prelude.h"
 
 #include <vector>
@@ -13,6 +14,7 @@ class LogicalDevice;
 class DescriptorSet;
 class Swapchain;
 class Buffer;
+class Image;
 class Pipeline;
 class CommandPool;
 
@@ -57,13 +59,12 @@ public:
 
     auto reset() -> void;
 
-    auto copy_buffer(
-        const Buffer& src,
-        const Buffer& dst,
-        u32           region_size,
-        VkBufferCopy* regions
-    ) -> void;
+public: // copy methods
+    auto copy_buffer(const Buffer& src, const Buffer& dst, u64 size) const -> void;
+    auto copy_buffer_to_image(const Buffer& src, const Image& dst, v2u32 size) const
+        -> void;
 
+public: // bind methods
     auto bind_pipeline(const VkPipelineBindPoint bind_point, const Pipeline& pipeline)
         -> void;
     auto bind_vertex_buffers(
@@ -75,9 +76,11 @@ public:
     auto bind_vertex_buffers(const VkBuffer* buffers, const VkDeviceSize* offsets)
         -> void;
 
-    auto bind_vertex_buffer(u32 binding, const Buffer& buffer, const VkDeviceSize& offset) -> void {
+    auto bind_vertex_buffer(u32 binding, const Buffer& buffer, const VkDeviceSize& offset)
+        -> void {
         this->bind_vertex_buffers(binding, 1, &buffer.m_handle, &offset);
     }
+
     auto bind_descriptor_sets(
         const VkPipelineBindPoint bind_point,
         const Pipeline&           pipeline,
@@ -88,6 +91,7 @@ public:
 
     auto bind_index_buffer(const Buffer& buffer, VkDeviceSize offset) -> void;
 
+public: // draw methods
     auto draw(u32 vertex_count, u32 instance_count, u32 first_vertex, u32 first_instance)
         -> void;
     auto draw_indexed(
