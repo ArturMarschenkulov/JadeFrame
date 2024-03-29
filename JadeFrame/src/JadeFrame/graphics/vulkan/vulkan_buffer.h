@@ -36,8 +36,8 @@ public:
     ~Buffer();
     Buffer(const Buffer&) = delete;
     auto operator=(const Buffer&) -> Buffer& = delete;
-    Buffer(Buffer&& other);
-    auto operator=(Buffer&& other) -> Buffer&;
+    Buffer(Buffer&& other) noexcept;
+    auto operator=(Buffer&& other) noexcept -> Buffer&;
 
     Buffer(
         const LogicalDevice& device,
@@ -60,7 +60,7 @@ private:
     ) -> void;
     auto
     copy_buffer(const Buffer& src_buffer, const Buffer& dst_buffer, VkDeviceSize size)
-        -> void;
+        const -> void;
 
 public:
     /*const*/ Buffer::TYPE m_type = Buffer::TYPE::UNINIT;
@@ -93,9 +93,8 @@ public:
     auto set_layout(const VertexFormat& vertex_format) -> void;
 
 public:
-    Buffer*      m_vertex_buffer;
-    Buffer*      m_index_buffer;
-    VertexFormat m_vertex_format;
+    Buffer* m_vertex_buffer;
+    Buffer* m_index_buffer;
 };
 
 class Image {

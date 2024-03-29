@@ -128,8 +128,8 @@ public:
     CommandPool(const LogicalDevice& device, const QueueFamilyIndex& queue_family_index);
 
 public:
-    auto allocate_buffers(u32 amount) const -> std::vector<CommandBuffer>;
-    auto allocate_buffer() const -> CommandBuffer;
+    [[nodiscard]] auto allocate_buffers(u32 amount) const -> std::vector<CommandBuffer>;
+    [[nodiscard]] auto allocate_buffer() const -> CommandBuffer;
     auto free_buffers(const std::vector<CommandBuffer>& command_buffers) const -> void;
     auto free_buffer(const CommandBuffer& command_buffer) const -> void;
 

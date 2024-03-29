@@ -15,12 +15,12 @@ namespace vulkan {
 /*---------------------------
     Command Buffer
 ---------------------------*/
-CommandBuffer::CommandBuffer(CommandBuffer&& other) {
-    this->m_handle = other.m_handle;
-    this->m_alloc_info = other.m_alloc_info;
-    this->m_device = other.m_device;
-    this->m_command_pool = other.m_command_pool;
-    this->m_stage = other.m_stage;
+CommandBuffer::CommandBuffer(CommandBuffer&& other)
+    : m_handle(other.m_handle)
+    , m_alloc_info(other.m_alloc_info)
+    , m_device(other.m_device)
+    , m_command_pool(other.m_command_pool)
+    , m_stage(other.m_stage) {
 
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = nullptr;
@@ -269,7 +269,6 @@ CommandPool::~CommandPool() {
 }
 
 auto CommandPool::allocate_buffers(u32 amount) const -> std::vector<CommandBuffer> {
-    VkResult result;
 
     std::vector<VkCommandBuffer>      handles(amount);
     const VkCommandBufferAllocateInfo alloc_info = {
@@ -279,7 +278,8 @@ auto CommandPool::allocate_buffers(u32 amount) const -> std::vector<CommandBuffe
         .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
         .commandBufferCount = static_cast<u32>(handles.size()),
     };
-    result = vkAllocateCommandBuffers(m_device->m_handle, &alloc_info, handles.data());
+    VkResult result =
+        vkAllocateCommandBuffers(m_device->m_handle, &alloc_info, handles.data());
     JF_ASSERT(result == VK_SUCCESS, "");
     {
         Logger::trace(

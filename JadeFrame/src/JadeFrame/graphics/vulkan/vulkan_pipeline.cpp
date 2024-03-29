@@ -680,6 +680,9 @@ Pipeline::Pipeline(
     const VkPipelineColorBlendStateCreateInfo color_blending =
         color_blend_state_create_info(color_blend_attachment);
 
+    // TODO: One can probably get binding and attribute description from the reflection of
+    // the shader code. This allows us to remove the dependency of the vertex format as a
+    // parameter.
     const VkVertexInputBindingDescription binding_description =
         get_binding_description(vertex_format);
     std::vector<VkVertexInputAttributeDescription> attribute_descriptions =

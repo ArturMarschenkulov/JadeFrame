@@ -43,8 +43,6 @@ public:
 
     std::array<vulkan::DescriptorSet, static_cast<u8>(vulkan::FREQUENCY::MAX)> m_sets;
 
-    std::vector<vulkan::Buffer> m_uniforms;
-
     template<typename K, typename V>
     using HashMap = std::unordered_map<K, V>;
 

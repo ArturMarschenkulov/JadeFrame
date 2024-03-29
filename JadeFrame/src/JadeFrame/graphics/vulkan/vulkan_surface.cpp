@@ -15,7 +15,7 @@ namespace JadeFrame {
 namespace vulkan {
 // namespace win32 {
 
-Surface::Surface(Surface&& other)
+Surface::Surface(Surface&& other) noexcept
     : m_handle(other.m_handle)
     , m_window_handle(other.m_window_handle)
     , m_instance(other.m_instance) {
@@ -24,7 +24,7 @@ Surface::Surface(Surface&& other)
     other.m_instance = nullptr;
 }
 
-auto Surface::operator=(Surface&& other) -> Surface& {
+auto Surface::operator=(Surface&& other) noexcept -> Surface& {
     if (this != &other) {
         m_handle = other.m_handle;
         m_window_handle = other.m_window_handle;
@@ -37,11 +37,10 @@ auto Surface::operator=(Surface&& other) -> Surface& {
     return *this;
 }
 
-Surface::Surface(VkInstance instance, const IWindow* window_handle) {
+Surface::Surface(VkInstance instance, const IWindow* window_handle)
+    : m_window_handle(window_handle) {
     Logger::trace("Surface::init start");
-    m_window_handle = window_handle;
 
-    VkResult result;
 #if _WIN32
     m_handle = win32::create_surface(instance, window_handle);
 #elif __linux__
