@@ -1,0 +1,4 @@
+
+[submodule "JadeFrame/src/extern/VulkanMemoryAllocator"]
+	path = JadeFrame/src/extern/VulkanMemoryAllocator
+	url = git@github.com:GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
