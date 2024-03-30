@@ -100,10 +100,12 @@ public:
     );
 
 public: // private:
-    Buffer*      m_vertex_buffer;
-    Buffer*      m_index_buffer;
+    Buffer* m_vertex_buffer;
+    Buffer* m_index_buffer;
+    // TODO: To be removed, since it is not used
     VertexFormat m_vertex_format;
-
+    // TODO: To be moved. Since one is trying to replicate the Vulkan model, it seems it
+    // would make more sense to put that into the shader code.
     OGLW_VertexArray m_vertex_array;
 };
 } // namespace opengl

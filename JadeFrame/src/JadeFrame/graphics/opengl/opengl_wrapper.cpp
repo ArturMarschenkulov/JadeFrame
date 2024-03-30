@@ -208,7 +208,7 @@ auto OGLW_Program::link() const -> bool {
 
     GLint is_linked = GL_FALSE;
     glGetProgramiv(m_ID, GL_LINK_STATUS, &is_linked);
-    return is_linked == GL_TRUE ? true : false;
+    return is_linked == GL_TRUE;
 }
 
 auto OGLW_Program::detach(const OGLW_Shader& shader) const -> void {
@@ -220,7 +220,7 @@ auto OGLW_Program::validate() const -> bool {
 
     GLint is_validated = GL_FALSE;
     glGetProgramiv(m_ID, GL_VALIDATE_STATUS, (i32*)&is_validated);
-    return is_validated == GL_TRUE ? true : false;
+    return is_validated == GL_TRUE;
 }
 
 auto OGLW_Program::get_uniform_block_index(const char* name) const -> GLuint {
@@ -236,7 +236,7 @@ auto OGLW_Program::get_info(GLenum pname) const -> GLint {
     // GL_DELETE_STATUS, GL_LINK_STATUS, GL_VALIDATE_STATUS, GL_INFO_LOG_LENGTH,
     // GL_ATTACHED_SHADERS, GL_ACTIVE_ATTRIBUTES, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH,
     // GL_ACTIVE_UNIFORMS, GL_ACTIVE_UNIFORM_MAX_LENGTH.
-    GLint result;
+    GLint result = {};
     glGetProgramiv(m_ID, pname, &result);
     return result;
 }
