@@ -2,12 +2,15 @@
 #include <vulkan/vulkan.h>
 
 #include "vulkan_shared.h"
+#include "VulkanMemoryAllocator/include/vk_mem_alloc.h"
 #include "../graphics_shared.h"
 #include "../mesh.h"
 
 #include "JadeFrame/prelude.h"
 
 #include <vector>
+
+#define JF_USE_VMA 1
 
 namespace JadeFrame {
 
@@ -51,6 +54,14 @@ public:
     auto resize(size_t size) -> void;
 
 private:
+#if JF_USE_VMA
+    auto create_buffer(
+        VkDeviceSize       size,
+        VkBufferUsageFlags usage,
+        VmaMemoryUsage     vma_usage,
+        VkBuffer&          buffer
+    ) -> void;
+#else
     auto create_buffer(
         VkDeviceSize          size,
         VkBufferUsageFlags    usage,
@@ -58,6 +69,7 @@ private:
         VkBuffer&             buffer,
         VkDeviceMemory&       buffer_memory
     ) -> void;
+#endif
     auto
     copy_buffer(const Buffer& src_buffer, const Buffer& dst_buffer, VkDeviceSize size)
         const -> void;
@@ -67,9 +79,13 @@ public:
     //	VkBufferUsageFlags m_usage = 0;
     VkDeviceSize m_size = 0;
 
-    VkBuffer       m_handle = VK_NULL_HANDLE;
-    VkDeviceMemory m_memory = VK_NULL_HANDLE;
+    VkBuffer m_handle = VK_NULL_HANDLE;
 
+#if JF_USE_VMA
+    VmaAllocation m_allocation;
+#else
+    VkDeviceMemory m_memory = VK_NULL_HANDLE;
+#endif
     const LogicalDevice* m_device = nullptr;
 };
 

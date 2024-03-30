@@ -9,6 +9,9 @@
 #include "JadeFrame/utils/assert.h"
 #include "JadeFrame/utils/utils.h"
 
+#define VMA_IMPLEMENTATION
+#include "VulkanMemoryAllocator/include/vk_mem_alloc.h"
+
 namespace JadeFrame {
 
 namespace vulkan {
@@ -78,6 +81,20 @@ static auto does_use_staging_buffer(const Buffer::TYPE type) -> bool {
     }
     return result;
 }
+#if JF_USE_VMA
+static auto get_vma_usage(const Buffer::TYPE type) -> VmaMemoryUsage {
+    VmaMemoryUsage result = {};
+    switch (type) {
+        case Buffer::TYPE::VERTEX:
+        case Buffer::TYPE::INDEX: result = VMA_MEMORY_USAGE_GPU_ONLY; break;
+        case Buffer::TYPE::UNIFORM:
+        case Buffer::TYPE::STAGING: result = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
+        case Buffer::TYPE::UNINIT: result = VMA_MEMORY_USAGE_UNKNOWN; break;
+        default: JF_ASSERT(false, ""); break;
+    }
+    return result;
+}
+#endif
 
 static auto get_usage(const Buffer::TYPE type) -> VkBufferUsageFlags {
     VkBufferUsageFlags result = {};
@@ -116,13 +133,21 @@ Buffer::Buffer(Buffer&& other) noexcept
     : m_type(other.m_type)
     , m_size(other.m_size)
     , m_handle(other.m_handle)
+#if JF_USE_VMA
+    , m_allocation(other.m_allocation)
+#else
     , m_memory(other.m_memory)
+#endif
     , m_device(other.m_device) {
 
     other.m_type = TYPE::UNINIT;
     other.m_size = 0;
     other.m_handle = VK_NULL_HANDLE;
+#if JF_USE_VMA
+    other.m_allocation = VK_NULL_HANDLE;
+#else
     other.m_memory = VK_NULL_HANDLE;
+#endif
     other.m_device = nullptr;
 }
 
@@ -130,13 +155,21 @@ auto Buffer::operator=(Buffer&& other) noexcept -> Buffer& {
     m_type = other.m_type;
     m_size = other.m_size;
     m_handle = other.m_handle;
+#if JF_USE_VMA
+    m_allocation = other.m_allocation;
+#else
     m_memory = other.m_memory;
+#endif
     m_device = other.m_device;
 
     other.m_type = TYPE::UNINIT;
     other.m_size = 0;
     other.m_handle = VK_NULL_HANDLE;
+#if JF_USE_VMA
+    other.m_allocation = VK_NULL_HANDLE;
+#else
     other.m_memory = VK_NULL_HANDLE;
+#endif
     other.m_device = nullptr;
     return *this;
 }
@@ -151,32 +184,47 @@ Buffer::Buffer(
     , m_size(size)
     , m_device(&device) {
 
-    bool                  b_with_staging_buffer = does_use_staging_buffer(buffer_type);
-    VkBufferUsageFlags    usage = get_usage(buffer_type);
+    bool               b_with_staging_buffer = does_use_staging_buffer(buffer_type);
+    VkBufferUsageFlags usage = get_usage(buffer_type);
+#if JF_USE_VMA
+    VmaMemoryUsage vma_usage = get_vma_usage(buffer_type);
+#else
     VkMemoryPropertyFlags properties = get_properties(buffer_type);
+#endif
 
     if (b_with_staging_buffer) {
         Buffer* staging_buffer =
             device.create_buffer(Buffer::TYPE::STAGING, nullptr, size);
         staging_buffer->write(data, 0, size);
-
+#if JF_USE_VMA
+        this->create_buffer(size, usage, vma_usage, m_handle);
+#else
         this->create_buffer(size, usage, properties, m_handle, m_memory);
+#endif
         this->copy_buffer(*staging_buffer, *this, size);
     } else {
         assert(data == nullptr);
+#if JF_USE_VMA
+        this->create_buffer(size, usage, vma_usage, m_handle);
+#else
         this->create_buffer(size, usage, properties, m_handle, m_memory);
+#endif
     }
 }
 
 Buffer::~Buffer() {
     if (m_handle != VK_NULL_HANDLE) {
+
+#if JF_USE_VMA
+        vmaDestroyBuffer(m_device->m_vma_allocator, m_handle, m_allocation);
+        m_allocation = VK_NULL_HANDLE;
+#else
         vkDestroyBuffer(m_device->m_handle, m_handle, Instance::allocator());
         vkFreeMemory(m_device->m_handle, m_memory, Instance::allocator());
-
-        Logger::trace("Destroyed Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
-
-        m_handle = VK_NULL_HANDLE;
         m_memory = VK_NULL_HANDLE;
+#endif
+        m_handle = VK_NULL_HANDLE;
+        Logger::trace("Destroyed Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
     }
 }
 
@@ -186,12 +234,20 @@ auto Buffer::write(const Matrix4x4& m, VkDeviceSize offset) -> void {
 
 auto Buffer::write(void* data, VkDeviceSize offset, VkDeviceSize size) -> void {
 
-    void*    mapped_data;
+    void* mapped_data;
+#if JF_USE_VMA
+    VkResult result = vmaMapMemory(m_device->m_vma_allocator, m_allocation, &mapped_data);
+    JF_ASSERT(result == VK_SUCCESS, "");
+    u8* data_ptr = reinterpret_cast<u8*>(mapped_data) + offset;
+    memcpy(data_ptr, data, static_cast<size_t>(size));
+    vmaUnmapMemory(m_device->m_vma_allocator, m_allocation);
+#else
     VkResult result =
         vkMapMemory(m_device->m_handle, m_memory, offset, size, 0, &mapped_data);
     JF_ASSERT(result == VK_SUCCESS, "");
     memcpy(mapped_data, data, static_cast<size_t>(size));
     vkUnmapMemory(m_device->m_handle, m_memory);
+#endif
 }
 
 auto Buffer::resize(size_t size) -> void {
@@ -203,11 +259,19 @@ auto Buffer::resize(size_t size) -> void {
 }
 
 auto Buffer::create_buffer(
-    VkDeviceSize          size,
-    VkBufferUsageFlags    usage,
+    VkDeviceSize       size,
+    VkBufferUsageFlags usage,
+#if JF_USE_VMA
+    VmaMemoryUsage vma_usage,
+#else
     VkMemoryPropertyFlags properties,
-    VkBuffer&             buffer,
-    VkDeviceMemory&       buffer_memory
+#endif
+    VkBuffer& buffer
+#if JF_USE_VMA
+#else
+    ,
+    VkDeviceMemory& buffer_memory
+#endif
 ) -> void {
 
     const VkBufferCreateInfo buffer_info = {
@@ -220,12 +284,28 @@ auto Buffer::create_buffer(
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
     };
+#if JF_USE_VMA
+    VmaAllocationCreateInfo alloc_info = {};
+    alloc_info.usage = vma_usage;
+    VkResult result = vmaCreateBuffer(
+        m_device->m_vma_allocator,
+        &buffer_info,
+        &alloc_info,
+        &buffer,
+        &m_allocation,
+        nullptr
+    );
+#else
     VkResult result =
         vkCreateBuffer(m_device->m_handle, &buffer_info, Instance::allocator(), &buffer);
+#endif
     JF_ASSERT(result == VK_SUCCESS, "");
     m_handle = buffer;
 
-    g_memory.push_buffer(m_device, buffer);
+    // g_memory.push_buffer(m_device, buffer);
+
+#if JF_USE_VMA
+#else
 
     VkMemoryRequirements mem_requirements;
     vkGetBufferMemoryRequirements(m_device->m_handle, buffer, &mem_requirements);
@@ -246,6 +326,7 @@ auto Buffer::create_buffer(
 
     result = vkBindBufferMemory(m_device->m_handle, buffer, buffer_memory, 0);
     { Logger::trace("Created Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
+#endif
 }
 
 auto Buffer::copy_buffer(

@@ -9,6 +9,8 @@
 #include "vulkan_descriptor_set.h"
 #include "vulkan_command_buffers.h"
 
+#include "VulkanMemoryAllocator/include/vk_mem_alloc.h"
+
 #include "JadeFrame/prelude.h"
 
 #include <array>
@@ -142,6 +144,8 @@ public:
     // template<typename T, typename U>
     // using HashMap = std::unordered_map<T, U>;
     mutable std::unordered_map<u32, vulkan::Buffer> m_buffers;
+
+    VmaAllocator m_vma_allocator;
 };
 
 } // namespace vulkan

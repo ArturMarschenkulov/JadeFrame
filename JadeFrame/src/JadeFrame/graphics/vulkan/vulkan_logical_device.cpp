@@ -209,6 +209,20 @@ auto LogicalDevice::init(
     );
     if (result != VK_SUCCESS) { assert(false); }
 
+    VmaVulkanFunctions vulkanFunctions = {};
+    vulkanFunctions.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
+    vulkanFunctions.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
+
+    VmaAllocatorCreateInfo allocatorCreateInfo = {};
+    allocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+    allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_2;
+    allocatorCreateInfo.physicalDevice = physical_device.m_handle;
+    allocatorCreateInfo.device = m_handle;
+    allocatorCreateInfo.instance = instance.m_instance;
+    allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
+
+    vmaCreateAllocator(&allocatorCreateInfo, &m_vma_allocator);
+
     Logger::debug(
         "maxBoundDescriptorSets: {}",
         m_physical_device->m_properties.limits.maxBoundDescriptorSets
@@ -244,6 +258,7 @@ auto LogicalDevice::deinit() -> void {
     VkResult result;
     result = vkDeviceWaitIdle(m_handle);
     if (result != VK_SUCCESS) { assert(false); }
+    vmaDestroyAllocator(m_vma_allocator);
     vkDestroyDevice(m_handle, nullptr);
 }
 
