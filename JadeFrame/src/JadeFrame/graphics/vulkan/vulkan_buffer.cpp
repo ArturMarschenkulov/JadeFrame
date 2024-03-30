@@ -258,8 +258,8 @@ auto Buffer::copy_buffer(
     CommandBuffer cmd = cmd_pool.allocate_buffer();
 
     cmd.record([&] { cmd.copy_buffer(src_buffer, dst_buffer, size); });
-    m_device->m_graphics_queue.submit(cmd);
-    m_device->m_graphics_queue.wait_idle();
+    cmd.m_device->m_graphics_queue.submit(cmd);
+    cmd.m_device->m_graphics_queue.wait_idle();
 
     cmd_pool.free_buffer(cmd);
 }
@@ -647,8 +647,8 @@ auto Vulkan_Texture::copy_buffer_to_image(
     auto               cmd = cmd_pool.allocate_buffer();
 
     cmd.record([&] { cmd.copy_buffer_to_image(buffer, image, size); });
-    m_device->m_graphics_queue.submit(cmd);
-    m_device->m_graphics_queue.wait_idle();
+    cmd.m_device->m_graphics_queue.submit(cmd);
+    cmd.m_device->m_graphics_queue.wait_idle();
 
     cmd_pool.free_buffer(cmd);
 }

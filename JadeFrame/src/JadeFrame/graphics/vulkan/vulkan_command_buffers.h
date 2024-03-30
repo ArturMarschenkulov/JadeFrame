@@ -24,8 +24,8 @@ public:
     ~CommandBuffer() = default;
     CommandBuffer(const CommandBuffer&) = delete;
     auto operator=(const CommandBuffer&) -> CommandBuffer& = delete;
-    CommandBuffer(CommandBuffer&& other);
-    auto operator=(CommandBuffer&& other) -> CommandBuffer&;
+    CommandBuffer(CommandBuffer&& other) noexcept;
+    auto operator=(CommandBuffer&& other) noexcept -> CommandBuffer&;
 
     auto record_begin() -> void;
     auto record_end() -> void;
@@ -125,8 +125,8 @@ public:
     ~CommandPool();
     CommandPool(const CommandPool&) = delete;
     auto operator=(const CommandPool&) -> CommandPool& = delete;
-    CommandPool(CommandPool&& other);
-    auto operator=(CommandPool&& other) -> CommandPool&;
+    CommandPool(CommandPool&& other) noexcept;
+    auto operator=(CommandPool&& other) noexcept -> CommandPool&;
 
 public:
     CommandPool(const LogicalDevice& device, const QueueFamilyIndex& queue_family_index);

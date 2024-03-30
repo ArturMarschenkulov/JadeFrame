@@ -71,13 +71,8 @@ auto Queue::submit(const CommandBuffer& cmd_buffer) const -> void {
     };
     VkResult result = vkQueueSubmit(m_handle, 1, &submit_info, VK_NULL_HANDLE);
     if (result != VK_SUCCESS) { assert(false); }
-}
 
-auto Queue::submit(const VkSubmitInfo& submit_info, const Fence* p_fence) const -> void {
-    VkResult result;
-    result =
-        vkQueueSubmit(m_handle, 1, &submit_info, p_fence ? p_fence->m_handle : nullptr);
-    if (result != VK_SUCCESS) { assert(false); }
+    // this->submit(cmd_buffer, nullptr, nullptr, nullptr);
 }
 
 auto Queue::submit(
@@ -87,22 +82,25 @@ auto Queue::submit(
     const Fence*         fence
 ) const -> void {
 
-    VkFence fence_handle = fence ? fence->m_handle : 0;
+    const bool has_fenc = fence != nullptr;
+    const bool has_wait_semaphore = wait_semaphore != nullptr;
+    const bool has_signal_semaphore = signal_semaphore != nullptr;
+
+    VkFence fence_handle = has_fenc ? fence->m_handle : 0;
 
     VkPipelineStageFlags wait_stages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     const VkSubmitInfo   submit_info = {
           .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
           .pNext = nullptr,
-          .waitSemaphoreCount = wait_semaphore ? 1_u32 : 0,
-          .pWaitSemaphores = wait_semaphore ? &wait_semaphore->m_handle : 0,
+          .waitSemaphoreCount = has_wait_semaphore ? 1_u32 : 0,
+          .pWaitSemaphores = has_wait_semaphore ? &wait_semaphore->m_handle : 0,
           .pWaitDstStageMask = wait_stages,
           .commandBufferCount = 1,
           .pCommandBuffers = &cmd_buffer.m_handle,
-          .signalSemaphoreCount = signal_semaphore ? 1_u32 : 0,
-          .pSignalSemaphores = signal_semaphore ? &signal_semaphore->m_handle : 0,
+          .signalSemaphoreCount = has_signal_semaphore ? 1_u32 : 0,
+          .pSignalSemaphores = has_signal_semaphore ? &signal_semaphore->m_handle : 0,
     };
-    VkResult result;
-    result = vkQueueSubmit(m_handle, 1, &submit_info, fence_handle);
+    VkResult result = vkQueueSubmit(m_handle, 1, &submit_info, fence_handle);
     if (result != VK_SUCCESS) { JF_ASSERT(false, to_string(result)); }
     cmd_buffer.m_stage = CommandBuffer::STAGE::PENDING;
 }
@@ -124,11 +122,14 @@ auto Queue::present(
     const Swapchain& swapchain,
     const Semaphore* semaphore
 ) const -> VkResult {
+
+    const bool has_semaphore = semaphore != nullptr;
+
     const VkPresentInfoKHR info = {
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .pNext = nullptr,
-        .waitSemaphoreCount = semaphore ? 1_u32 : 0_u32,
-        .pWaitSemaphores = semaphore ? &semaphore->m_handle : VK_NULL_HANDLE,
+        .waitSemaphoreCount = has_semaphore ? 1_u32 : 0_u32,
+        .pWaitSemaphores = has_semaphore ? &semaphore->m_handle : VK_NULL_HANDLE,
         .swapchainCount = 1,
         .pSwapchains = &swapchain.m_handle,
         .pImageIndices = &index,

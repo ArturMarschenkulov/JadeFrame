@@ -45,7 +45,6 @@ public:
 
 public: // submit methods
     auto submit(const CommandBuffer& cmd_buffer) const -> void;
-    auto submit(const VkSubmitInfo& submit_info, const Fence* p_fence) const -> void;
     auto submit(
         const CommandBuffer& cmd_buffer,
         const Semaphore*     wait_semaphore,
@@ -54,8 +53,8 @@ public: // submit methods
     ) const -> void;
 
 public:
-    auto wait_idle() const -> void;
-    auto present(VkPresentInfoKHR info) const -> VkResult;
+    auto               wait_idle() const -> void;
+    [[nodiscard]] auto present(VkPresentInfoKHR info) const -> VkResult;
     auto
     present(const u32& index, const Swapchain& swapchain, const Semaphore* result) const
         -> VkResult;

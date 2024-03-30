@@ -15,7 +15,7 @@ namespace vulkan {
 /*---------------------------
     Command Buffer
 ---------------------------*/
-CommandBuffer::CommandBuffer(CommandBuffer&& other)
+CommandBuffer::CommandBuffer(CommandBuffer&& other) noexcept
     : m_handle(other.m_handle)
     , m_alloc_info(other.m_alloc_info)
     , m_device(other.m_device)
@@ -28,7 +28,7 @@ CommandBuffer::CommandBuffer(CommandBuffer&& other)
     other.m_stage = STAGE::INVALID;
 }
 
-auto CommandBuffer::operator=(CommandBuffer&& other) -> CommandBuffer& {
+auto CommandBuffer::operator=(CommandBuffer&& other) noexcept -> CommandBuffer& {
     this->m_handle = other.m_handle;
     this->m_alloc_info = other.m_alloc_info;
     this->m_device = other.m_device;
@@ -43,21 +43,21 @@ auto CommandBuffer::operator=(CommandBuffer&& other) -> CommandBuffer& {
 }
 
 auto CommandBuffer::record_begin() -> void {
-    VkResult                       result;
+
     const VkCommandBufferBeginInfo begin_info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .pNext = nullptr,
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
         .pInheritanceInfo = nullptr,
     };
-    result = vkBeginCommandBuffer(m_handle, &begin_info);
+
+    VkResult result = vkBeginCommandBuffer(m_handle, &begin_info);
     JF_ASSERT(result == VK_SUCCESS, "");
     m_stage = STAGE::RECORDING;
 }
 
 auto CommandBuffer::record_end() -> void {
-    VkResult result;
-    result = vkEndCommandBuffer(m_handle);
+    VkResult result = vkEndCommandBuffer(m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
     m_stage = STAGE::EXCECUTABLE;
 }
@@ -88,10 +88,10 @@ auto CommandBuffer::render_pass_begin(
 auto CommandBuffer::render_pass_end() -> void { vkCmdEndRenderPass(m_handle); }
 
 auto CommandBuffer::reset() -> void {
-    VkResult                  result;
+
     VkCommandBufferResetFlags flags = {};
 
-    result = vkResetCommandBuffer(m_handle, flags);
+    VkResult result = vkResetCommandBuffer(m_handle, flags);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
@@ -239,16 +239,16 @@ static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFl
     Command Pool
 ---------------------------*/
 
-CommandPool::CommandPool(CommandPool&& other) {
-    this->m_handle = other.m_handle;
-    this->m_create_info = other.m_create_info;
-    this->m_device = other.m_device;
+CommandPool::CommandPool(CommandPool&& other) noexcept {
+    m_handle = other.m_handle;
+    m_create_info = other.m_create_info;
+    m_device = other.m_device;
 
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = nullptr;
 }
 
-auto CommandPool::operator=(CommandPool&& other) -> CommandPool& {
+auto CommandPool::operator=(CommandPool&& other) noexcept -> CommandPool& {
     if (this != &other) {
         this->m_handle = other.m_handle;
         this->m_create_info = other.m_create_info;
@@ -264,9 +264,8 @@ auto CommandPool::operator=(CommandPool&& other) -> CommandPool& {
 CommandPool::CommandPool(
     const LogicalDevice&    device,
     const QueueFamilyIndex& queue_family_index
-) {
-    m_device = &device;
-    VkResult result;
+)
+    : m_device(&device) {
 
     const VkCommandPoolCreateInfo pool_info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -276,7 +275,7 @@ CommandPool::CommandPool(
             queue_family_index /*queue_family_indices.m_graphics_family.unwrap()*/,
     };
 
-    result = vkCreateCommandPool(
+    VkResult result = vkCreateCommandPool(
         device.m_handle, &pool_info, Instance::allocator(), &m_handle
     );
     JF_ASSERT(result == VK_SUCCESS, "");
