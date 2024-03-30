@@ -1,14 +1,14 @@
 
 if(WIN32)
-set(PLATFORM_DEPENDENT_FILES
-    "platform/win32/win32.h"
-    "platform/win32/win32.cpp"
-)
+    set(PLATFORM_DEPENDENT_FILES
+        "platform/win32/win32.h"
+        "platform/win32/win32.cpp"
+    )
 elseif(LINUX)
-set(PLATFORM_DEPENDENT_FILES
-    "platform/linux/linux.h"
-    "platform/linux/linux.cpp"
-)
+    set(PLATFORM_DEPENDENT_FILES
+        "platform/linux/linux.h"
+        "platform/linux/linux.cpp"
+    )
 endif()
 
 
@@ -32,14 +32,6 @@ add_library(GraphicsAPI_OpenGL
     ${PLATFORM_DEPENDENT_FILES}
 )
 
-# target_include_directories(GraphicsAPI_OpenGL
-#     PUBLIC
-#         ${CMAKE_SOURCE_DIR}/JadeFrame/src/
-#     SYSTEM
-#         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
-#         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/glad/include/
-#         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/
-# )
 target_link_libraries(GraphicsAPI_OpenGL
     PUBLIC
         ${stb}
@@ -52,20 +44,6 @@ target_link_libraries(GraphicsAPI_OpenGL
         spirv-cross-msl
         JadeFrame
 )
-
-target_compile_definitions(GraphicsAPI_OpenGL PRIVATE
-    $<$<CONFIG:Debug>:_DEBUG>
-    $<$<CONFIG:Release>:NDEBUG>
-)
-# Add Windows-specific definitions
-if(WIN32)
-    target_compile_definitions(GraphicsAPI_OpenGL PRIVATE
-        _CRT_SECURE_NO_WARNINGS
-        _CONSOLE
-        UNICODE
-        _UNICODE
-    )
-endif()
 
 if(MSVC)
     target_compile_options(GraphicsAPI_OpenGL PRIVATE
