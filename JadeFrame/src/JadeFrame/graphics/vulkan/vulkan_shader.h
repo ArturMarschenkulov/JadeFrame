@@ -38,7 +38,7 @@ public:
     auto get_location(const std::string& name) -> std::tuple<u32, u32>;
 
 public:
-    const vulkan::LogicalDevice* m_device;
+    const vulkan::LogicalDevice* m_device = nullptr;
     vulkan::Pipeline             m_pipeline;
 
     std::array<vulkan::DescriptorSet, static_cast<u8>(vulkan::FREQUENCY::MAX)> m_sets;

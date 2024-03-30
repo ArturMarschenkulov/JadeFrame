@@ -45,7 +45,7 @@ struct Memory {
         }
     }
 
-    const LogicalDevice*        m_device;
+    const LogicalDevice*        m_device = nullptr;
     std::vector<VkDeviceMemory> m_blocks;
 };
 
@@ -573,11 +573,10 @@ auto Vulkan_Texture::transition_layout(
     VkImageLayout old_layout,
     VkImageLayout new_layout
 ) const -> void {
-    const LogicalDevice& d = *m_device;
+    const CommandPool& cmd_pool = m_device->m_command_pool;
+    auto               cmd = cmd_pool.allocate_buffer();
 
-    auto cb = d.m_command_pool.allocate_buffer();
-
-    cb.record([&] {
+    cmd.record([&] {
         VkImageMemoryBarrier barrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
@@ -617,7 +616,7 @@ auto Vulkan_Texture::transition_layout(
         }
 
         vkCmdPipelineBarrier(
-            cb.m_handle,
+            cmd.m_handle,
             source_stage,
             destination_stage,
             0,
@@ -631,10 +630,10 @@ auto Vulkan_Texture::transition_layout(
     });
     // cb[0].record_end();
 
-    d.m_graphics_queue.submit(cb);
-    d.m_graphics_queue.wait_idle();
+    cmd.m_device->m_graphics_queue.submit(cmd);
+    cmd.m_device->m_graphics_queue.wait_idle();
 
-    d.m_command_pool.free_buffer(cb);
+    cmd_pool.free_buffer(cmd);
 }
 
 auto Vulkan_Texture::copy_buffer_to_image(

@@ -126,7 +126,7 @@ auto GLSL_to_SPIRV(const std::string& glsl_code, SHADER_STAGE stage, GRAPHICS_AP
     options.SetWarningsAsErrors();
     options.SetGenerateDebugInfo();
     const bool optimize = false;
-    if constexpr (optimize == true) {
+    if constexpr (optimize) {
         options.SetOptimizationLevel(shaderc_optimization_level_size);
     }
     shaderc_shader_kind kind = get_shader_kind(stage);

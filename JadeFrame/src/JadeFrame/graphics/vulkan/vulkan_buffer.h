@@ -79,8 +79,8 @@ public:
     ~GPUMeshData() = default;
     GPUMeshData(const GPUMeshData&) = delete;
     auto operator=(const GPUMeshData&) -> GPUMeshData& = delete;
-    GPUMeshData(GPUMeshData&& other) = default;
-    auto operator=(GPUMeshData&& other) -> GPUMeshData& = default;
+    GPUMeshData(GPUMeshData&& other) noexcept = default;
+    auto operator=(GPUMeshData&& other) noexcept -> GPUMeshData& = default;
 
     GPUMeshData(
         const LogicalDevice& device,
@@ -122,9 +122,9 @@ public:
 public:
     VkImage              m_handle = VK_NULL_HANDLE;
     const LogicalDevice* m_device = nullptr;
-    VkDeviceMemory       m_memory;
+    VkDeviceMemory       m_memory = VK_NULL_HANDLE;
     SOURCE               m_source;
-    v2u32                m_size;
+    v2u32                m_size = {};
 };
 
 class ImageView {

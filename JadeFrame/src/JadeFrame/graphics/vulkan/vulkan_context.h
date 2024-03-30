@@ -41,8 +41,8 @@ public:
     Surface    m_surface;
 
     std::vector<VkLayerProperties> m_layers;
-    const std::vector<const char*> m_desired_layer_names = {
-        "VK_LAYER_KHRONOS_validation" /*, "VK_LAYER_LUNARG_monitor"*/};
+    const std::vector<const char*> m_desired_layer_names =
+        {"VK_LAYER_KHRONOS_validation" /*, "VK_LAYER_LUNARG_monitor"*/};
     // std::vector<VkLayerProperties> m_desired_layers;
 
     std::vector<VkExtensionProperties> m_extensions;

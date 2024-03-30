@@ -90,9 +90,9 @@ auto Image::load(const std::string& path) -> Image {
 ----------------------------*/
 GPUBuffer::~GPUBuffer() = default;
 
-GPUBuffer::GPUBuffer(GPUBuffer&& other) { (void)other; }
+GPUBuffer::GPUBuffer(GPUBuffer&& other) noexcept { (void)other; }
 
-auto GPUBuffer::operator=(GPUBuffer&& other) -> GPUBuffer& { return *this; }
+auto GPUBuffer::operator=(GPUBuffer&& other) noexcept -> GPUBuffer& { return *this; }
 
 static auto to_opengl(GPUBuffer::TYPE type) -> opengl::Buffer::TYPE {
     opengl::Buffer::TYPE result;
@@ -230,7 +230,7 @@ ShaderHandle::ShaderHandle(const Desc& desc) {
     m_vertex_format = desc.vertex_format;
 }
 
-ShaderHandle::ShaderHandle(ShaderHandle&& other) {
+ShaderHandle::ShaderHandle(ShaderHandle&& other) noexcept {
     m_code = other.m_code;
     m_vertex_format = other.m_vertex_format;
     m_api = other.m_api;
@@ -242,7 +242,7 @@ ShaderHandle::ShaderHandle(ShaderHandle&& other) {
     // other.m_handle = nullptr;
 }
 
-auto ShaderHandle::operator=(ShaderHandle&& other) -> ShaderHandle& {
+auto ShaderHandle::operator=(ShaderHandle&& other) noexcept -> ShaderHandle& {
     m_code = other.m_code;
     m_vertex_format = other.m_vertex_format;
     m_api = other.m_api;
@@ -443,34 +443,33 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> u32 {
             auto* ren = dynamic_cast<OpenGL_Renderer*>(m_renderer);
             auto* ctx = (OpenGL_Context*)&ren->m_context;
 
-            std::string vert_source;
-            std::string frag_source;
-
             opengl::Shader::Desc shader_desc;
 
-            ShadingCode::Module module_0;
-            const auto& vert_code = m_registered_shaders[id].m_code.m_modules[0].m_code;
+            // TODO: Move this whole remapping thing into the OpenGL Shader class. This is
+            // not a thing which should be known by a shared layer.
 
-            module_0.m_code =
-                remap_for_opengl(vert_code, SHADER_STAGE::VERTEX, &vert_source);
-            module_0.m_stage = SHADER_STAGE::VERTEX;
+            std::string         v_source;
+            ShadingCode::Module mod_0;
+            const auto& v_code = m_registered_shaders[id].m_code.m_modules[0].m_code;
+            mod_0.m_code = remap_for_opengl(v_code, SHADER_STAGE::VERTEX, &v_source);
+            mod_0.m_stage = SHADER_STAGE::VERTEX;
 
-            ShadingCode::Module module_1;
-            const auto& frag_code = m_registered_shaders[id].m_code.m_modules[1].m_code;
-            module_1.m_code =
-                remap_for_opengl(frag_code, SHADER_STAGE::FRAGMENT, &frag_source);
-            module_1.m_stage = SHADER_STAGE::FRAGMENT;
+            std::string         f_source;
+            ShadingCode::Module mod_1;
+            const auto& f_code = m_registered_shaders[id].m_code.m_modules[1].m_code;
+            mod_1.m_code = remap_for_opengl(f_code, SHADER_STAGE::FRAGMENT, &f_source);
+            mod_1.m_stage = SHADER_STAGE::FRAGMENT;
 
             shader_desc.code.m_modules.resize(2);
-            shader_desc.code.m_modules[0] = std::move(module_0);
-            shader_desc.code.m_modules[1] = std::move(module_1);
+            shader_desc.code.m_modules[0] = std::move(mod_0);
+            shader_desc.code.m_modules[1] = std::move(mod_1);
             shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
 
             auto* shader = new opengl::Shader(*ctx, shader_desc);
             m_registered_shaders[id].m_handle = shader;
 
-            Logger::warn("Vertex source:\n {}", vert_source);
-            Logger::warn("Fragment source:\n {}", frag_source);
+            Logger::warn("Vertex source:\n {}", v_source);
+            Logger::warn("Fragment source:\n {}", f_source);
         } break;
         case GRAPHICS_API::VULKAN: {
             auto*                  ren = dynamic_cast<Vulkan_Renderer*>(m_renderer);

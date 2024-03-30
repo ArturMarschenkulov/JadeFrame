@@ -184,7 +184,8 @@ auto Instance::init(const IWindow* window_handle) -> void {
     VkResult result;
 
     VkValidationFeatureEnableEXT enables[] = {
-        VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT};
+        VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT
+    };
     VkValidationFeaturesEXT features = {};
     features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
     features.pNext = VK_NULL_HANDLE;

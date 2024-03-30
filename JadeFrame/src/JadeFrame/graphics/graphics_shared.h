@@ -2,7 +2,6 @@
 #include "JadeFrame/prelude.h"
 #include "JadeFrame/math/mat_4.h"
 #include <cassert>
-#include <variant>
 #include <map>
 
 namespace JadeFrame {
@@ -196,6 +195,7 @@ public:
     auto operator=(const VertexFormat&) -> VertexFormat& = default;
     VertexFormat(VertexFormat&&) = default;
     auto operator=(VertexFormat&&) -> VertexFormat& = default;
+    ~VertexFormat() = default;
 
     static auto default_format() -> VertexFormat;
 
@@ -228,14 +228,14 @@ public:
     TextureHandle(TextureHandle&& other) noexcept;
     auto operator=(TextureHandle&& other) noexcept -> TextureHandle&;
 
-    TextureHandle(const Image& image);
+    explicit TextureHandle(const Image& image);
 
     auto init(void* context) -> void;
 
 public:
-    u8*   m_data;
-    v2u32 m_size;
-    u32   m_num_components;
+    u8*   m_data = nullptr;
+    v2u32 m_size = {};
+    u32   m_num_components = 0;
 
     GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
     void*        m_handle = nullptr;
@@ -247,15 +247,15 @@ public:
     ~ShaderHandle() = default;
     ShaderHandle(const ShaderHandle&) = delete;
     auto operator=(const ShaderHandle&) -> ShaderHandle& = delete;
-    ShaderHandle(ShaderHandle&& other);
-    auto operator=(ShaderHandle&& other) -> ShaderHandle&;
+    ShaderHandle(ShaderHandle&& other) noexcept;
+    auto operator=(ShaderHandle&& other) noexcept -> ShaderHandle&;
 
     struct Desc {
         ShadingCode  shading_code;
         VertexFormat vertex_format;
     };
 
-    ShaderHandle(const Desc& desc);
+    explicit ShaderHandle(const Desc& desc);
 
     auto set_uniform(const std::string& name, const void* data, size_t size) -> void;
 
@@ -301,8 +301,8 @@ public:
     ~GPUBuffer();
     GPUBuffer(const GPUBuffer&) = delete;
     auto operator=(const GPUBuffer&) -> GPUBuffer& = delete;
-    GPUBuffer(GPUBuffer&& other);
-    auto operator=(GPUBuffer&& other) -> GPUBuffer&;
+    GPUBuffer(GPUBuffer&& other) noexcept;
+    auto operator=(GPUBuffer&& other) noexcept -> GPUBuffer&;
 
     GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage);
 
@@ -322,8 +322,8 @@ public:
     ~GPUMeshData();
     GPUMeshData(const GPUMeshData&) = delete;
     auto operator=(const GPUMeshData&) -> GPUMeshData& = delete;
-    GPUMeshData(GPUMeshData&& other);
-    auto operator=(GPUMeshData&& other) -> GPUMeshData&;
+    GPUMeshData(GPUMeshData&& other) noexcept;
+    auto operator=(GPUMeshData&& other) noexcept -> GPUMeshData&;
 
     GPUMeshData(
         RenderSystem*      system,
@@ -378,7 +378,7 @@ public: // more internal stuff
 };
 
 inline auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
-    u32 result;
+    u32 result = 0;
     switch (type) {
         case SHADER_TYPE::F32: result = 4; break;
         case SHADER_TYPE::V_2_F32: result = 4 * 2; break;
