@@ -490,9 +490,9 @@ DescriptorPool::~DescriptorPool() {
     }
 }
 
-auto DescriptorPool::allocate_sets(const DescriptorSetLayout& layout, u32 amount)
+auto DescriptorPool::allocate_sets(const DescriptorSetLayout& layout, u32 amount) const
     -> std::vector<DescriptorSet> {
-    VkResult                           result;
+
     std::vector<VkDescriptorSetLayout> layouts(amount, layout.m_handle);
 
     const VkDescriptorSetAllocateInfo alloc_info = {
@@ -503,7 +503,9 @@ auto DescriptorPool::allocate_sets(const DescriptorSetLayout& layout, u32 amount
         .pSetLayouts = layouts.data(),
     };
     std::vector<VkDescriptorSet> handles(amount);
-    result = vkAllocateDescriptorSets(m_device->m_handle, &alloc_info, handles.data());
+
+    VkResult result =
+        vkAllocateDescriptorSets(m_device->m_handle, &alloc_info, handles.data());
     if (result != VK_SUCCESS) {
         Logger::err("Failed to allocate descriptor sets {}", to_string(result));
         assert(false);
@@ -548,7 +550,7 @@ auto DescriptorPool::allocate_sets(const DescriptorSetLayout& layout, u32 amount
     return sets;
 }
 
-auto DescriptorPool::allocate_set(const DescriptorSetLayout& descriptor_set_layout)
+auto DescriptorPool::allocate_set(const DescriptorSetLayout& descriptor_set_layout) const
     -> DescriptorSet {
     return std::move(this->allocate_sets(descriptor_set_layout, 1)[0]);
 }

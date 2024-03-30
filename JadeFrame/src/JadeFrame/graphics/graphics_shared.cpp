@@ -482,33 +482,6 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> u32 {
 
             auto* shader = new Vulkan_Shader(*ctx, *ren, shader_desc);
             m_registered_shaders[id].m_handle = shader;
-            for (size_t i = 0; i < shader->m_pipeline.m_set_layouts.size(); i++) {
-                const auto& set_layout = shader->m_pipeline.m_set_layouts[i];
-                shader->m_sets[i] = ctx->m_set_pool.allocate_set(set_layout);
-            }
-
-            for (auto& uniform_buffer :
-                 shader->m_pipeline.m_reflected_interface.m_uniform_buffers) {
-                auto set = uniform_buffer.set;
-                auto binding = uniform_buffer.binding;
-                auto size = uniform_buffer.size;
-
-                Logger::info("Uniform buffer: {}", uniform_buffer.name);
-                Logger::info(
-                    "reflected uniform buffers {}",
-                    shader->m_pipeline.m_reflected_interface.m_uniform_buffers.size()
-                );
-
-                JF_ASSERT(
-                    size == sizeof(Matrix4x4), "Uniform buffer size is not 64 bytes"
-                );
-                vulkan::Buffer* buf =
-                    ctx->create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, size);
-                shader->bind_buffer(set, binding, *buf, 0, size);
-                shader->m_uniform_buffers[set][binding] = buf;
-
-                // [{set, binding}] = buf;
-            }
         } break;
         default: assert(false);
     }

@@ -139,9 +139,12 @@ public:
 public:
     auto add_pool_size(const VkDescriptorPoolSize& pool_size) -> void;
 
-    auto allocate_sets(const DescriptorSetLayout& descriptor_set_layout, u32 image_amount)
-        -> std::vector<DescriptorSet>;
-    auto allocate_set(const DescriptorSetLayout& descriptor_set_layout) -> DescriptorSet;
+    [[nodiscard]] auto allocate_sets(
+        const DescriptorSetLayout& descriptor_set_layout,
+        u32                        image_amount
+    ) const -> std::vector<DescriptorSet>;
+    [[nodiscard]] auto allocate_set(const DescriptorSetLayout& descriptor_set_layout
+    ) const -> DescriptorSet;
     auto free_sets(const std::vector<DescriptorSet>& descriptor_sets) -> void;
     auto free_set(const DescriptorSet& descriptor_sets) -> void;
 

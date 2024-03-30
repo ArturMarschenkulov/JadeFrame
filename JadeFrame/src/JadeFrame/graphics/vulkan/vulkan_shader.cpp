@@ -22,6 +22,31 @@ Vulkan_Shader::Vulkan_Shader(
         desc.vertex_format
     );
     Logger::info("Created Vulkan shader");
+
+    for (size_t i = 0; i < m_pipeline.m_set_layouts.size(); i++) {
+        const auto& set_layout = m_pipeline.m_set_layouts[i];
+        m_sets[i] = device.m_set_pool.allocate_set(set_layout);
+    }
+
+    for (auto& uniform_buffer : m_pipeline.m_reflected_interface.m_uniform_buffers) {
+        auto set = uniform_buffer.set;
+        auto binding = uniform_buffer.binding;
+        auto size = uniform_buffer.size;
+
+        Logger::info("Uniform buffer: {}", uniform_buffer.name);
+        Logger::info(
+            "reflected uniform buffers {}",
+            m_pipeline.m_reflected_interface.m_uniform_buffers.size()
+        );
+
+        JF_ASSERT(size == sizeof(Matrix4x4), "Uniform buffer size is not 64 bytes");
+        vulkan::Buffer* buf =
+            device.create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, size);
+        this->bind_buffer(set, binding, *buf, 0, size);
+        m_uniform_buffers[set][binding] = buf;
+
+        // [{set, binding}] = buf;
+    }
 }
 
 auto Vulkan_Shader::bind_buffer(
