@@ -3,6 +3,8 @@ set(PROJECT_NAME JadeFrame)
 # Add Vulkan
 find_package(Vulkan REQUIRED)
 
+add_subdirectory(src/extern/VulkanMemoryAllocator/)
+
 # Add GLFW
 add_subdirectory(src/extern/glfw/)
 
@@ -331,6 +333,7 @@ target_link_libraries(
         # ${stb}
         gfx-opengl
         gfx-vulkan
+        GPUOpen::VulkanMemoryAllocator
 )
 
 target_link_directories(${PROJECT_NAME} PUBLIC
