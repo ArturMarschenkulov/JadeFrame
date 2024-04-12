@@ -35,11 +35,11 @@ else()
     message(ERROR "Unsupported platform")
 endif()
 
-add_library(GraphicsAPI_Vulkan ${SOURCE_FILES})
+add_library(gfx-vulkan ${SOURCE_FILES})
 
-target_precompile_headers(GraphicsAPI_Vulkan PRIVATE pch.h)
+target_precompile_headers(gfx-vulkan PRIVATE pch.h)
 
-target_link_libraries(GraphicsAPI_Vulkan
+target_link_libraries(gfx-vulkan
     PUBLIC
         ${stb}
         stb

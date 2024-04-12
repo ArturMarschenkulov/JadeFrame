@@ -329,8 +329,8 @@ target_link_libraries(
         # ${glad}
         # ${imgui}
         # ${stb}
-        GraphicsAPI_OpenGL
-        GraphicsAPI_Vulkan
+        gfx-opengl
+        gfx-vulkan
 )
 
 target_link_directories(${PROJECT_NAME} PUBLIC

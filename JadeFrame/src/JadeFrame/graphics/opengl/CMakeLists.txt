@@ -12,7 +12,7 @@ elseif(LINUX)
 endif()
 
 
-add_library(GraphicsAPI_OpenGL
+add_library(gfx-opengl
     "opengl_buffer.h"
     "opengl_context.h"
     "opengl_debug.h"
@@ -32,7 +32,7 @@ add_library(GraphicsAPI_OpenGL
     ${PLATFORM_DEPENDENT_FILES}
 )
 
-target_link_libraries(GraphicsAPI_OpenGL
+target_link_libraries(gfx-opengl
     PUBLIC
         ${stb}
         stb
@@ -46,14 +46,14 @@ target_link_libraries(GraphicsAPI_OpenGL
 )
 
 if(MSVC)
-    target_compile_options(GraphicsAPI_OpenGL PRIVATE
+    target_compile_options(gfx-opengl PRIVATE
         /EHsc
         /Z7
         /Od
         /W4
     )
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(GraphicsAPI_OpenGL PRIVATE
+    target_compile_options(gfx-opengl PRIVATE
         -Wall
         -Wextra
         -Wshadow
