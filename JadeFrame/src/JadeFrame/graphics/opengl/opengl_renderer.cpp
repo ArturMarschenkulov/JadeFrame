@@ -153,7 +153,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
         const opengl::Shader*      p_shader = static_cast<opengl::Shader*>(sh.m_handle);
         const VertexData*          p_mesh = command.vertex_data;
-        const opengl::GPUMeshData* p_vertex_array = &mm;
+        const opengl::GPUMeshData* buffer_data = &mm;
 
         // NOTE: As of right now this is not optimal, as it only needs to be updated once
         // outside the loop. But because of how the code is arranged one has to update it
@@ -169,8 +169,10 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
         const Matrix4x4& transform = *command.transform;
         p_shader->m_uniform_buffers[1]->write({transform});
-
-        OpenGL_Renderer::render_mesh(p_vertex_array, p_mesh);
+        // TODO: This vertex array management should be moved to the shader/pipeline code
+        buffer_data->m_vertex_array.bind_buffer(*buffer_data->m_vertex_buffer);
+        buffer_data->m_vertex_array.bind();
+        OpenGL_Renderer::render_mesh(p_mesh);
     }
 #if JF_OPENGL_FB
     fb.m_framebuffer->unbind();
@@ -197,12 +199,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     m_render_commands.clear();
 }
 
-auto OpenGL_Renderer::render_mesh(
-    const opengl::GPUMeshData* buffer_data,
-    const VertexData*          vertex_data
-) -> void {
-    buffer_data->m_vertex_array.bind_buffer(*buffer_data->m_vertex_buffer);
-    buffer_data->m_vertex_array.bind();
+auto OpenGL_Renderer::render_mesh(const VertexData* vertex_data) -> void {
 
     if (!vertex_data->m_indices.empty()) {
         glDrawElements(

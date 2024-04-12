@@ -69,7 +69,7 @@ public:
 
 private:
     static auto
-    render_mesh(const opengl::GPUMeshData* buffer_data, const VertexData* vertex_data)
+    render_mesh(const VertexData* vertex_data)
         -> void;
 
 public:
