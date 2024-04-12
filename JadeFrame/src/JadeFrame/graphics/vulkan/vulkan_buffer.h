@@ -101,7 +101,6 @@ public:
     GPUMeshData(
         const LogicalDevice& device,
         const VertexData&    vertex_data,
-        const VertexFormat&  vertex_format,
         bool                 interleaved = true
     );
 

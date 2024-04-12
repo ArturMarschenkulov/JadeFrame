@@ -348,10 +348,8 @@ auto Buffer::copy_buffer(
 GPUMeshData::GPUMeshData(
     const LogicalDevice& device,
     const VertexData&    vertex_data,
-    const VertexFormat&  vertex_format,
     bool                 interleaved
 ) {
-    (void)vertex_format;
 
     const std::vector<f32> flat_data = convert_into_data(vertex_data, interleaved);
 
