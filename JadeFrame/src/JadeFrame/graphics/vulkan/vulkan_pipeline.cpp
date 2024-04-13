@@ -244,9 +244,9 @@ Pipeline::PipelineLayout::~PipelineLayout() {
     }
 }
 
-Pipeline::PipelineLayout::PipelineLayout(PipelineLayout&& other) noexcept {
-    m_handle = other.m_handle;
-    m_device = other.m_device;
+Pipeline::PipelineLayout::PipelineLayout(PipelineLayout&& other) noexcept
+    : m_handle(other.m_handle)
+    , m_device(other.m_device) {
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = nullptr;
 }
@@ -266,9 +266,8 @@ Pipeline::PipelineLayout::PipelineLayout(
     const LogicalDevice&                                                    device,
     const std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)>& set_layouts,
     const std::vector<Pipeline::PushConstantRange>& push_constant_ranges
-) {
-
-    m_device = &device;
+)
+    : m_device(&device) {
 
     std::vector<VkPushConstantRange> push_constants;
     push_constants.resize(push_constant_ranges.size());
@@ -604,9 +603,9 @@ Pipeline::Pipeline(
     const RenderPass&    render_pass,
     const ShadingCode&   code,
     const VertexFormat&  vertex_format
-) {
-    m_device = &device;
-    m_render_pass = &render_pass;
+)
+    : m_device(&device)
+    , m_render_pass(&render_pass) {
 
     m_code.m_modules.resize(code.m_modules.size());
     std::vector<ShaderModule> shader_modules;

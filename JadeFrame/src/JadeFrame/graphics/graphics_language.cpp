@@ -9,8 +9,8 @@
 JF_PRAGMA_NO_WARNINGS_PUSH
 #include "shaderc/shaderc.hpp"
 #include "SPIRV-Cross/spirv_glsl.hpp"
-#include "SPIRV-Cross/spirv_hlsl.hpp"
-#include "SPIRV-Cross/spirv_msl.hpp"
+// #include "SPIRV-Cross/spirv_hlsl.hpp"
+// #include "SPIRV-Cross/spirv_msl.hpp"
 JF_PRAGMA_NO_WARNINGS_POP
 
 namespace JadeFrame {
@@ -80,13 +80,10 @@ auto remap_for_opengl(
     u32 binding = 0;
     for (u32 i = 0; i < uniform_buffer_sets.size(); i++) {
         for (u32 j = 0; j < uniform_buffer_sets[i].size(); j++) {
-            compiler.unset_decoration(
-                uniform_buffer_sets[i][j]->id, spv::DecorationDescriptorSet
-            );
-            // compiler.set_decoration(dd[i][j]->id, spv::DecorationDescriptorSet, 0);
-            compiler.set_decoration(
-                uniform_buffer_sets[i][j]->id, spv::DecorationBinding, binding
-            );
+            spv_c::Resource* ub = uniform_buffer_sets[i][j];
+            compiler.unset_decoration(ub->id, spv::DecorationDescriptorSet);
+            // compiler.set_decoration(ub->id, spv::DecorationDescriptorSet, 0);
+            compiler.set_decoration(ub->id, spv::DecorationBinding, binding);
             binding++;
         }
     }

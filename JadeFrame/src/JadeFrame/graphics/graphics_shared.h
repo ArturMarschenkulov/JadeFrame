@@ -96,6 +96,33 @@ enum class SHADER_TYPE {
     SAMPLER_CUBE,
 };
 
+inline auto get_component_count(const SHADER_TYPE type) -> u32 {
+    u32 result = 0;
+    switch (type) {
+        case SHADER_TYPE::F32:
+        case SHADER_TYPE::I32:
+        case SHADER_TYPE::U32:
+        case SHADER_TYPE::BOOL: result = 1; break;
+
+        case SHADER_TYPE::V_2_F32:
+        case SHADER_TYPE::V_2_I32: result = 2; break;
+
+        case SHADER_TYPE::V_3_F32:
+        case SHADER_TYPE::M_3_3_F32: // 3* float3
+        case SHADER_TYPE::V_3_I32: result = 3; break;
+
+        case SHADER_TYPE::V_4_F32:
+        case SHADER_TYPE::M_4_4_F32: // 4* float4
+        case SHADER_TYPE::V_4_I32: result = 4; break;
+
+        default:
+            assert(false);
+            result = 0;
+            break;
+    }
+    return result;
+}
+
 inline auto get_underlying_type(SHADER_TYPE type) -> SHADER_TYPE {
     SHADER_TYPE result = SHADER_TYPE::NONE;
     switch (type) {
@@ -122,6 +149,8 @@ inline auto get_underlying_type(SHADER_TYPE type) -> SHADER_TYPE {
             result = SHADER_TYPE::NONE;
             break;
     }
+
+    assert(get_component_count(result) == 1);
     return result;
 }
 
@@ -134,32 +163,6 @@ inline auto is_scalar(SHADER_TYPE type) -> bool {
         case SHADER_TYPE::BOOL: return true;
         default: return false;
     }
-}
-
-inline auto get_component_count(const SHADER_TYPE type) -> u32 {
-    u32 result = 0;
-    switch (type) {
-        case SHADER_TYPE::F32:
-        case SHADER_TYPE::I32:
-        case SHADER_TYPE::BOOL: result = 1; break;
-
-        case SHADER_TYPE::V_2_F32:
-        case SHADER_TYPE::V_2_I32: result = 2; break;
-
-        case SHADER_TYPE::V_3_F32:
-        case SHADER_TYPE::M_3_3_F32: // 3* float3
-        case SHADER_TYPE::V_3_I32: result = 3; break;
-
-        case SHADER_TYPE::V_4_F32:
-        case SHADER_TYPE::M_4_4_F32: // 4* float4
-        case SHADER_TYPE::V_4_I32: result = 4; break;
-
-        default:
-            assert(false);
-            result = 0;
-            break;
-    }
-    return result;
 }
 
 inline auto is_vector(SHADER_TYPE type) -> bool {

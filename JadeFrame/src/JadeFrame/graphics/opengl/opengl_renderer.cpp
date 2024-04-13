@@ -58,8 +58,8 @@ static auto framebuffer_res_to_str(GLenum e) -> const char* {
 }
 
 OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
-    : m_context(window) {
-    m_system = &system;
+    : m_context(window)
+    , m_system(&system) {
 
     // TODO: The whole fb thing is now a mess!!!! This is because
     // `m_system->register_shader(shader_handle_desc);` requires an already initialized
@@ -76,7 +76,7 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
 
         fb.m_texture = m_context.create_texture();
         fb.m_texture->bind(0);
-        fb.m_texture->set_image(0, GL_RGB, size, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        fb.m_texture->set_image(0, GL_RGB, size, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
         fb.m_texture->set_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         fb.m_texture->set_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         fb.m_texture->set_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

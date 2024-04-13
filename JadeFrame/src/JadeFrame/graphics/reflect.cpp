@@ -5,8 +5,8 @@
 
 JF_PRAGMA_NO_WARNINGS_PUSH
 #include "SPIRV-Cross/spirv_glsl.hpp"
-#include "SPIRV-Cross/spirv_hlsl.hpp"
-#include "SPIRV-Cross/spirv_msl.hpp"
+// #include "SPIRV-Cross/spirv_hlsl.hpp"
+// #include "SPIRV-Cross/spirv_msl.hpp"
 JF_PRAGMA_NO_WARNINGS_POP
 
 namespace JadeFrame {

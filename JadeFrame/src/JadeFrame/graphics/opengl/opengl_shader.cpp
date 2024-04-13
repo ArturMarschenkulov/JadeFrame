@@ -20,8 +20,6 @@
 
 JF_PRAGMA_NO_WARNINGS_PUSH
 #include "SPIRV-Cross/spirv_glsl.hpp"
-#include "SPIRV-Cross/spirv_hlsl.hpp"
-// #include "SPIRV-Cross/spirv_msl.hpp"
 JF_PRAGMA_NO_WARNINGS_POP
 
 namespace JadeFrame {
@@ -52,8 +50,8 @@ static auto convert_SPIRV_to_GLSL(const std::vector<u32>& spirv) -> std::string 
 Shader::Shader(OpenGL_Context& context, const Desc& desc)
     : m_program()
     , m_vertex_shader(GL_VERTEX_SHADER)
-    , m_fragment_shader(GL_FRAGMENT_SHADER) {
-    m_context = &context;
+    , m_fragment_shader(GL_FRAGMENT_SHADER)
+    , m_context(&context) {
 
     JF_ASSERT(
         desc.code.m_modules.size() == 2,
