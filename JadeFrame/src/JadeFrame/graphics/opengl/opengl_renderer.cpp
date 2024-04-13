@@ -109,7 +109,7 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
         {           "v_position", SHADER_TYPE::V_3_F32},
         {"v_texture_coordinates", SHADER_TYPE::V_2_F32}
     };
-    fb.m_framebuffer_rect = new opengl::GPUMeshData(m_context, vertex_data, layout);
+    fb.m_framebuffer_rect = new opengl::GPUMeshData(m_context, vertex_data);
 
     ShaderHandle::Desc shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
@@ -170,8 +170,8 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         const Matrix4x4& transform = *command.transform;
         p_shader->m_uniform_buffers[1]->write({transform});
         // TODO: This vertex array management should be moved to the shader/pipeline code
-        buffer_data->m_vertex_array.bind_buffer(*buffer_data->m_vertex_buffer);
-        buffer_data->m_vertex_array.bind();
+        p_shader->m_vertex_array.bind_buffer(*buffer_data->m_vertex_buffer);
+        p_shader->m_vertex_array.bind();
         OpenGL_Renderer::render_mesh(p_mesh);
     }
 #if JF_OPENGL_FB
@@ -185,10 +185,10 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         auto*         sh = static_cast<opengl::Shader*>(sh_.m_handle);
         sh->bind();
         fb.m_texture->bind(0);
-        fb.m_framebuffer_rect->m_vertex_array.bind_buffer(
-            *fb.m_framebuffer_rect->m_vertex_buffer
-        );
-        fb.m_framebuffer_rect->m_vertex_array.bind();
+        auto&                 shh = m_system->m_registered_shaders[fb.m_shader];
+        const opengl::Shader* p_shader = static_cast<opengl::Shader*>(shh.m_handle);
+        p_shader->m_vertex_array.bind_buffer(*fb.m_framebuffer_rect->m_vertex_buffer);
+        p_shader->m_vertex_array.bind();
 
         const GLsizei num_vertices = 6;
         glDrawArrays(GL_TRIANGLES, 0, num_vertices);

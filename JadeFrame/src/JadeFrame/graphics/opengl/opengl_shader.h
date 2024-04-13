@@ -64,6 +64,8 @@ private:
 
 public:
     std::vector<opengl::Buffer*> m_uniform_buffers;
+
+    OGLW_VertexArray m_vertex_array;
 };
 } // namespace opengl
 } // namespace JadeFrame

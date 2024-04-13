@@ -151,6 +151,8 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
 
     m_program.detach(m_vertex_shader);
     m_program.detach(m_fragment_shader);
+
+    m_vertex_array = OGLW_VertexArray(&context, desc.vertex_format);
 }
 
 auto Shader::bind() const -> void { m_program.bind(); }

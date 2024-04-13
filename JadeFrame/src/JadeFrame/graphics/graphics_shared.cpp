@@ -503,24 +503,8 @@ auto RenderSystem::register_mesh(const VertexFormat& format, const VertexData& d
 
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            VertexFormat vertex_format;
-            // TODO: In the future the layout won't be located here anymore. Because we
-            // will move to a more Vulkan-like structure, where the layout is only
-            // declared in the pipeline/shader.
-
-            // In case there is no buffer layout provided use a default one
-            if (format.m_attributes.empty()) {
-                Logger::warn(
-                    "No vertex format provided, using default one. (v_position float3, "
-                    "v_color float4, v_texture_coord float2, v_normal float3"
-                );
-                vertex_format = VertexFormat::default_format();
-            } else {
-                vertex_format = format;
-            }
             auto* r = dynamic_cast<OpenGL_Renderer*>(m_renderer);
-            r->m_registered_meshes[id] =
-                opengl::GPUMeshData(r->m_context, data, vertex_format);
+            r->m_registered_meshes[id] = opengl::GPUMeshData(r->m_context, data);
         } break;
         case GRAPHICS_API::VULKAN: {
             auto* r = dynamic_cast<Vulkan_Renderer*>(m_renderer);

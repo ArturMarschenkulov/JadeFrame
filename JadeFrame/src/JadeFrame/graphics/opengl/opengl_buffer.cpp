@@ -128,9 +128,7 @@ auto GPUMeshData::operator=(GPUMeshData&& other) noexcept -> GPUMeshData& {
     m_index_buffer = other.m_index_buffer;
 
     m_vertex_buffer = other.m_vertex_buffer;
-    m_vertex_array = std::move(other.m_vertex_array);
     m_index_buffer = other.m_index_buffer;
-    m_vertex_format = std::move(other.m_vertex_format);
 
     return *this;
 }
@@ -138,13 +136,10 @@ auto GPUMeshData::operator=(GPUMeshData&& other) noexcept -> GPUMeshData& {
 GPUMeshData::GPUMeshData(
     OpenGL_Context&   context,
     const VertexData& vertex_data,
-    VertexFormat      vertex_format,
     bool              interleaved
 )
     : m_vertex_buffer()
-    , m_index_buffer()
-    , m_vertex_format(vertex_format)
-    , m_vertex_array() {
+    , m_index_buffer() {
 
     const std::vector<f32> flat_data = convert_into_data(vertex_data, interleaved);
 
@@ -157,7 +152,6 @@ GPUMeshData::GPUMeshData(
         u64   data_size = vertex_data.m_indices.size() * sizeof(u32);
         m_index_buffer = context.create_buffer(Buffer::TYPE::INDEX, data, data_size);
     }
-    m_vertex_array = OGLW_VertexArray(&context, vertex_format);
 }
 
 } // namespace opengl
