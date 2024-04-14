@@ -76,7 +76,7 @@ struct OGLW_Shader {
     OGLW_Shader(OGLW_Shader&& other) noexcept = delete;
     auto operator=(OGLW_Shader&&) -> OGLW_Shader& = delete;
 
-    OGLW_Shader(const GLenum type);
+    explicit OGLW_Shader(const GLenum type);
     // OGLW_Shader(const GLenum type, const std::string& source_code);
 
     auto set_source(const std::string& source_code) -> void;

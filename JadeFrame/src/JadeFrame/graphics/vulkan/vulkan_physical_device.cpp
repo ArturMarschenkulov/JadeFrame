@@ -23,13 +23,13 @@ static auto to_format_string_queue_family(const QueueFamily& queue_family)
     if ((queue_family.m_properties.queueFlags & VK_QUEUE_COMPUTE_BIT) != 0U) {
         result += "Compute ";
     }
-    if (queue_family.m_properties.queueFlags & VK_QUEUE_TRANSFER_BIT) {
+    if ((queue_family.m_properties.queueFlags & VK_QUEUE_TRANSFER_BIT) != 0U) {
         result += "Transfer ";
     }
-    if (queue_family.m_properties.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) {
+    if ((queue_family.m_properties.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) != 0U) {
         result += "SparseBinding ";
     }
-    if (queue_family.m_properties.queueFlags & VK_QUEUE_PROTECTED_BIT) {
+    if ((queue_family.m_properties.queueFlags & VK_QUEUE_PROTECTED_BIT) != 0U) {
         result += "Protected ";
     }
     if (queue_family.m_present_support == VK_TRUE) { result += "Present "; }
@@ -85,7 +85,7 @@ static auto query_surface_support(
     vkGetPhysicalDeviceSurfaceSupportKHR(
         physical_device.m_handle, queue_family_index, surface.m_handle, &present_support
     );
-    return present_support;
+    return (bool)present_support;
 }
 
 auto PhysicalDevice::query_surface_capabilities(const Surface& surface) const
@@ -98,8 +98,7 @@ auto PhysicalDevice::query_surface_capabilities(const Surface& surface) const
 auto PhysicalDevice::query_surface_formats(const Surface& surface) const
     -> std::vector<VkSurfaceFormatKHR> {
     u32      count = 0;
-    VkResult result;
-    result =
+    VkResult result =
         vkGetPhysicalDeviceSurfaceFormatsKHR(m_handle, surface.m_handle, &count, nullptr);
     if (VK_SUCCESS != result || (count == 0)) { assert(false); }
 
@@ -114,8 +113,7 @@ auto PhysicalDevice::query_surface_formats(const Surface& surface) const
 auto PhysicalDevice::query_surface_present_modes(const Surface& surface) const
     -> std::vector<VkPresentModeKHR> {
     u32      count = 0;
-    VkResult result;
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(
+    VkResult result = vkGetPhysicalDeviceSurfacePresentModesKHR(
         m_handle, surface.m_handle, &count, nullptr
     );
     if (VK_SUCCESS != result || (count == 0)) { assert(false); }
@@ -150,10 +148,10 @@ auto PhysicalDevice::query_extension_properties() const
     -> std::vector<VkExtensionProperties> {
     std::vector<VkExtensionProperties> extension_properties;
 
-    VkResult result;
-    u32      count = 0;
+    u32 count = 0;
 
-    result = vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, nullptr);
+    VkResult result =
+        vkEnumerateDeviceExtensionProperties(m_handle, nullptr, &count, nullptr);
     extension_properties.resize(count);
     result = vkEnumerateDeviceExtensionProperties(
         m_handle, nullptr, &count, extension_properties.data()
@@ -271,7 +269,7 @@ auto PhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFlags pro
     const -> u32 {
     const VkPhysicalDeviceMemoryProperties& mem_props = m_memory_properties;
     for (u32 i = 0; i < mem_props.memoryTypeCount; i++) {
-        if ((type_filter & (1 << i)) &&
+        if ((type_filter & (1U << i)) &&
             (mem_props.memoryTypes[i].propertyFlags & properties) == properties) {
             return i;
         }

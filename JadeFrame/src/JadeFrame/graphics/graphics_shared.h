@@ -422,7 +422,6 @@ class Object {
 public:
     u32            m_vertex_data_id;
     VertexData*    m_vertex_data;
-    VertexFormat   m_vertex_format;
     MaterialHandle m_material_handle;
     Matrix4x4      m_transform;
 };
@@ -442,7 +441,7 @@ public:
 
     auto register_texture(TextureHandle&& handle) -> u32;
     auto register_shader(const ShaderHandle::Desc& desc) -> u32;
-    auto register_mesh(const VertexFormat& format, const VertexData& data) -> u32;
+    auto register_mesh(const VertexData& data) -> u32;
 
 public:
     GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;

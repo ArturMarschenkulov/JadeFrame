@@ -28,15 +28,13 @@ auto Fence::operator=(Fence&& other) noexcept -> Fence& {
 Fence::Fence(const LogicalDevice& device, bool signaled)
     : m_device(&device) {
 
-    VkResult result;
-
     const VkFenceCreateInfo create_info = {
         .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
         .pNext = nullptr,
         .flags = signaled ? VK_FENCE_CREATE_SIGNALED_BIT : (VkFenceCreateFlags)0,
     };
 
-    result =
+    VkResult result =
         vkCreateFence(device.m_handle, &create_info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
@@ -48,14 +46,13 @@ Fence::~Fence() {
 }
 
 auto Fence::wait_for_fences() -> void {
-    VkResult result;
-    result = vkWaitForFences(m_device->m_handle, 1, &m_handle, VK_TRUE, UINT64_MAX);
+    VkResult result =
+        vkWaitForFences(m_device->m_handle, 1, &m_handle, VK_TRUE, UINT64_MAX);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
 auto Fence::reset() -> void {
-    VkResult result;
-    result = vkResetFences(m_device->m_handle, 1, &m_handle);
+    VkResult result = vkResetFences(m_device->m_handle, 1, &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
@@ -90,9 +87,8 @@ Semaphore::~Semaphore() {
     }
 }
 
-Semaphore::Semaphore(const LogicalDevice& device) {
-    m_device = &device;
-    VkResult result;
+Semaphore::Semaphore(const LogicalDevice& device)
+    : m_device(&device) {
 
     const VkSemaphoreCreateInfo create_info = {
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
@@ -100,7 +96,7 @@ Semaphore::Semaphore(const LogicalDevice& device) {
         .flags = 0,
     };
 
-    result = vkCreateSemaphore(
+    VkResult result = vkCreateSemaphore(
         device.m_handle, &create_info, Instance::allocator(), &m_handle
     );
     JF_ASSERT(result == VK_SUCCESS, "");

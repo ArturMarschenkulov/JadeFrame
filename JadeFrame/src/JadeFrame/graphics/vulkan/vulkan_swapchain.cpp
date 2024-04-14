@@ -40,10 +40,11 @@ choose_present_mode(const std::vector<VkPresentModeKHR>& available_surface_forma
     std::array<VkPresentModeKHR, 3> mode_ranks = {
         VK_PRESENT_MODE_FIFO_KHR,
         VK_PRESENT_MODE_MAILBOX_KHR,
-        VK_PRESENT_MODE_IMMEDIATE_KHR};
+        VK_PRESENT_MODE_IMMEDIATE_KHR
+    };
     for (u32 i = 0; i < available_surface_formats.size(); i++) {
         for (u32 j = 0; j < mode_ranks.size(); j++) {
-            auto& format = available_surface_formats[i];
+            const VkPresentModeKHR& format = available_surface_formats[i];
             if (format == mode_ranks[j]) {
                 const VkPresentModeKHR best_mode = format;
                 return best_mode;
@@ -86,7 +87,7 @@ static auto choose_extent(
 
         return actual_extent;
 #elif __linux__
-        auto win = static_cast<const JadeFrame::Linux_Window*>(
+        const auto* win = static_cast<const JadeFrame::Linux_Window*>(
             surface.m_window_handle->m_native_window.get()
         );
         return VkExtent2D{win->m_size.x, win->m_size.y};
@@ -101,14 +102,14 @@ static auto choose_extent(
         Render Pass
 ---------------------------*/
 
-RenderPass::RenderPass(RenderPass&& other)
+RenderPass::RenderPass(RenderPass&& other) noexcept
     : m_handle(other.m_handle)
     , m_device(other.m_device) {
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = nullptr;
 }
 
-auto RenderPass::operator=(RenderPass&& other) -> RenderPass& {
+auto RenderPass::operator=(RenderPass&& other) noexcept -> RenderPass& {
     m_handle = other.m_handle;
     m_device = other.m_device;
     other.m_handle = VK_NULL_HANDLE;
@@ -122,9 +123,8 @@ RenderPass::~RenderPass() {
     }
 }
 
-RenderPass::RenderPass(const LogicalDevice& device, VkFormat image_format) {
-    m_device = &device;
-    VkResult result;
+RenderPass::RenderPass(const LogicalDevice& device, VkFormat image_format)
+    : m_device(&device) {
 
     const VkAttachmentDescription color_attachment = {
         .flags = {},
@@ -168,7 +168,7 @@ RenderPass::RenderPass(const LogicalDevice& device, VkFormat image_format) {
         .pDependencies = {},
     };
 
-    result = vkCreateRenderPass(
+    VkResult result = vkCreateRenderPass(
         device.m_handle, &render_pass_info, Instance::allocator(), &m_handle
     );
     JF_ASSERT(result == VK_SUCCESS, "");
@@ -182,7 +182,6 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     m_device = &device;
     m_surface = &surface;
 
-    VkResult              result;
     const PhysicalDevice* gpu = device.m_physical_device;
 
     auto formats = gpu->query_surface_formats(surface);
@@ -202,7 +201,8 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
 
     const QueueFamilyIndices& indices = gpu->m_queue_family_indices;
     const u32                 queue_family_indices[] = {
-        indices.m_graphics_family.value(), indices.m_present_family.value()};
+        indices.m_graphics_family.value(), indices.m_present_family.value()
+    };
     const bool is_same_queue_family =
         indices.m_graphics_family == indices.m_present_family;
 
@@ -232,7 +232,7 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     } else {
         create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     }
-    result = vkCreateSwapchainKHR(
+    VkResult result = vkCreateSwapchainKHR(
         device.m_handle, &create_info, Instance::allocator(), &m_handle
     );
     JF_ASSERT(result == VK_SUCCESS, "");
@@ -293,12 +293,12 @@ auto Swapchain::acquire_image_index(
 
 auto Swapchain::acquire_image_index(const Semaphore* semaphore, const Fence* fence)
     -> u32 {
-    VkResult    result;
+
     u32         image_index;
     VkSemaphore p_semaphore = semaphore == nullptr ? VK_NULL_HANDLE : semaphore->m_handle;
     VkFence     p_fence = fence == nullptr ? VK_NULL_HANDLE : fence->m_handle;
 
-    result = vkAcquireNextImageKHR(
+    VkResult result = vkAcquireNextImageKHR(
         m_device->m_handle, // device
         m_handle,           // swapchain
         UINT64_MAX,         // timeout
@@ -325,7 +325,7 @@ auto Swapchain::acquire_image_index(const Semaphore* semaphore, const Fence* fen
         Framebuffer
 ---------------------------*/
 
-Framebuffer::Framebuffer(Framebuffer&& other)
+Framebuffer::Framebuffer(Framebuffer&& other) noexcept
     : m_handle(other.m_handle)
     , m_device(other.m_device)
     , m_image_view(other.m_image_view)
@@ -336,7 +336,7 @@ Framebuffer::Framebuffer(Framebuffer&& other)
     other.m_render_pass = nullptr;
 }
 
-auto Framebuffer::operator=(Framebuffer&& other) -> Framebuffer& {
+auto Framebuffer::operator=(Framebuffer&& other) noexcept -> Framebuffer& {
     if (&other == this) { return *this; }
     m_handle = other.m_handle;
     m_device = other.m_device;
@@ -362,12 +362,11 @@ Framebuffer::Framebuffer(
     const ImageView&     image_view,
     const RenderPass&    render_pass,
     VkExtent2D           extent
-) {
-    m_device = &device;
-    m_image_view = &image_view;
-    m_render_pass = &render_pass;
+)
+    : m_device(&device)
+    , m_image_view(&image_view)
+    , m_render_pass(&render_pass) {
 
-    VkResult                   result;
     std::array<VkImageView, 1> attachments = {image_view.m_handle};
 
     const VkFramebufferCreateInfo framebuffer_info = {
@@ -382,7 +381,7 @@ Framebuffer::Framebuffer(
         .layers = 1,
     };
 
-    result = vkCreateFramebuffer(
+    VkResult result = vkCreateFramebuffer(
         device.m_handle, &framebuffer_info, Instance::allocator(), &m_handle
     );
     JF_ASSERT(result == VK_SUCCESS, "");

@@ -6,8 +6,6 @@
 
 #include "JadeFrame/graphics/mesh.h"
 
-#include <cstdint>
-#include <string>
 #include <vector>
 
 namespace JadeFrame {

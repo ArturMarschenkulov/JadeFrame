@@ -569,7 +569,6 @@ ImageView::~ImageView() {
 
 auto Sampler::init(const LogicalDevice& device) -> void {
     m_device = &device;
-    VkResult result;
 
     const VkSamplerCreateInfo samplerInfo = {
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -594,7 +593,7 @@ auto Sampler::init(const LogicalDevice& device) -> void {
         .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
         .unnormalizedCoordinates = VK_FALSE,
     };
-    result =
+    VkResult result =
         vkCreateSampler(device.m_handle, &samplerInfo, Instance::allocator(), &m_handle);
     if (result != VK_SUCCESS) { assert(false); }
 }

@@ -2,17 +2,9 @@
 #include <glad/glad.h>
 
 #include "opengl_wrapper.h"
-#include "../shader_loader.h"
-
-#include "JadeFrame/math/mat_4.h"
-#include "JadeFrame/math/vec.h"
 
 #include <vector>
 #include <string>
-#include <variant>
-#include <unordered_map>
-#include <functional>
-#include <queue>
 
 namespace JadeFrame {
 class Matrix4x4;

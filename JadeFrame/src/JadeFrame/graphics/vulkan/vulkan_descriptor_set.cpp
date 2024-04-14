@@ -53,11 +53,10 @@ Descriptor::Descriptor(
     VkDeviceSize                 offset,
     VkDeviceSize                 range,
     VkDescriptorSetLayoutBinding t_binding
-) {
-
-    binding = t_binding.binding;
-    stage_flags = t_binding.stageFlags;
-    type = t_binding.descriptorType;
+)
+    : type(t_binding.descriptorType)
+    , stage_flags(t_binding.stageFlags)
+    , binding(t_binding.binding) {
 
     buffer_info.buffer = buffer.m_handle;
     buffer_info.offset = offset;
@@ -75,18 +74,18 @@ DescriptorSet::~DescriptorSet() {
     // }
 }
 
-DescriptorSet::DescriptorSet(DescriptorSet&& other) {
-    this->m_handle = other.m_handle;
-    this->m_device = other.m_device;
-    this->m_layout = other.m_layout;
-    this->m_descriptors = std::move(other.m_descriptors);
+DescriptorSet::DescriptorSet(DescriptorSet&& other) noexcept
+    : m_handle(other.m_handle)
+    , m_device(other.m_device)
+    , m_layout(other.m_layout)
+    , m_descriptors(std::move(other.m_descriptors)) {
 
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = nullptr;
     other.m_layout = nullptr;
 }
 
-auto DescriptorSet::operator=(DescriptorSet&& other) -> DescriptorSet& {
+auto DescriptorSet::operator=(DescriptorSet&& other) noexcept -> DescriptorSet& {
     this->m_handle = other.m_handle;
     this->m_device = other.m_device;
     this->m_layout = other.m_layout;
@@ -102,11 +101,10 @@ DescriptorSet::DescriptorSet(
     const LogicalDevice&       device,
     VkDescriptorSet            handle,
     const DescriptorSetLayout& layout
-) {
-    m_handle = handle;
-    m_device = &device;
-
-    m_layout = &layout;
+)
+    : m_handle(handle)
+    , m_device(&device)
+    , m_layout(&layout) {
 
     m_descriptors.resize(layout.m_bindings.size());
 }
@@ -282,7 +280,7 @@ auto DescriptorSet::update() -> void {
     Descriptor Set Layout
 ---------------------------*/
 
-DescriptorSetLayout::DescriptorSetLayout(DescriptorSetLayout&& other)
+DescriptorSetLayout::DescriptorSetLayout(DescriptorSetLayout&& other) noexcept
     : m_handle(other.m_handle)
     , m_device(other.m_device)
     , m_bindings(std::move(other.m_bindings))
@@ -294,7 +292,8 @@ DescriptorSetLayout::DescriptorSetLayout(DescriptorSetLayout&& other)
     other.m_dynamic_count = 0;
 }
 
-auto DescriptorSetLayout::operator=(DescriptorSetLayout&& other) -> DescriptorSetLayout& {
+auto DescriptorSetLayout::operator=(DescriptorSetLayout&& other) noexcept
+    -> DescriptorSetLayout& {
     if (this != &other) {
         this->m_device = other.m_device;
         this->m_handle = other.m_handle;
@@ -325,9 +324,8 @@ DescriptorSetLayout::~DescriptorSetLayout() {
 DescriptorSetLayout::DescriptorSetLayout(
     const LogicalDevice&        device,
     const std::vector<Binding>& bindings
-) {
-    m_device = &device;
-    VkResult result;
+)
+    : m_device(&device) {
 
     for (size_t i = 0; i < bindings.size(); i++) {
         this->add_binding(
@@ -347,7 +345,7 @@ DescriptorSetLayout::DescriptorSetLayout(
         .pBindings = m_bindings.data(),
     };
 
-    result = vkCreateDescriptorSetLayout(
+    VkResult result = vkCreateDescriptorSetLayout(
         device.m_handle, &layout_info, Instance::allocator(), &m_handle
     );
     if (result != VK_SUCCESS) { assert(false); }
@@ -401,16 +399,16 @@ auto DescriptorSetLayout::add_binding(
         Descriptor Pool
 ---------------------------*/
 
-DescriptorPool::DescriptorPool(DescriptorPool&& other) {
-    this->m_device = other.m_device;
-    this->m_handle = other.m_handle;
-    this->m_pool_sizes = std::move(other.m_pool_sizes);
+DescriptorPool::DescriptorPool(DescriptorPool&& other) noexcept
+    : m_device(other.m_device)
+    , m_handle(other.m_handle)
+    , m_pool_sizes(std::move(other.m_pool_sizes)) {
 
     other.m_device = nullptr;
     other.m_handle = VK_NULL_HANDLE;
 }
 
-auto DescriptorPool::operator=(DescriptorPool&& other) -> DescriptorPool& {
+auto DescriptorPool::operator=(DescriptorPool&& other) noexcept -> DescriptorPool& {
     if (this != &other) {
         this->m_device = other.m_device;
         this->m_handle = other.m_handle;
@@ -441,10 +439,8 @@ DescriptorPool::DescriptorPool(
     const LogicalDevice&               device,
     u32                                max_sets,
     std::vector<VkDescriptorPoolSize>& pool_sizes
-) {
-
-    m_device = &device;
-    VkResult result;
+)
+    : m_device(&device) {
 
     for (size_t i = 0; i < pool_sizes.size(); i++) { this->add_pool_size(pool_sizes[i]); }
 
@@ -459,7 +455,7 @@ DescriptorPool::DescriptorPool(
     JF_ASSERT(pool_info.maxSets > 0, "");
     JF_ASSERT(pool_info.poolSizeCount > 0, "");
 
-    result = vkCreateDescriptorPool(
+    VkResult result = vkCreateDescriptorPool(
         device.m_handle, &pool_info, Instance::allocator(), &m_handle
     );
     if (result != VK_SUCCESS) { assert(false); }
@@ -574,8 +570,7 @@ auto DescriptorPool::free_sets(const std::vector<DescriptorSet>& /*descriptor_se
 }
 
 auto DescriptorPool::free_set(const DescriptorSet& descriptor_set) -> void {
-    VkResult result;
-    result =
+    VkResult result =
         vkFreeDescriptorSets(m_device->m_handle, m_handle, 1, &descriptor_set.m_handle);
     if (result != VK_SUCCESS) { assert(false); }
     {

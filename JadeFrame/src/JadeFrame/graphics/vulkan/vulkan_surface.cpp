@@ -5,11 +5,8 @@
     #include "JadeFrame/platform/windows/windows_window.h"
     #include "platform/win32/surface.h"
 #elif defined(__linux__)
-    #include "JadeFrame/platform/linux/linux_window.h"
     #include "platform/x11/surface.h"
 #endif
-
-#include <cassert>
 
 namespace JadeFrame {
 namespace vulkan {

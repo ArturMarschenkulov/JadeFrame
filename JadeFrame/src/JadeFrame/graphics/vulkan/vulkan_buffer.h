@@ -82,7 +82,7 @@ public:
     VkBuffer m_handle = VK_NULL_HANDLE;
 
 #if JF_USE_VMA
-    VmaAllocation m_allocation;
+    VmaAllocation m_allocation = VK_NULL_HANDLE;
 #else
     VkDeviceMemory m_memory = VK_NULL_HANDLE;
 #endif
@@ -128,7 +128,7 @@ public:
 public:
     Image(
         const LogicalDevice& device,
-        const v2u32&         extent,
+        const v2u32&         size,
         VkFormat             format,
         VkImageUsageFlags    usage
     );
@@ -173,8 +173,8 @@ public:
     auto deinit() -> void;
 
 public:
-    VkSampler            m_handle;
-    const LogicalDevice* m_device;
+    VkSampler            m_handle = VK_NULL_HANDLE;
+    const LogicalDevice* m_device = nullptr;
 };
 
 class Vulkan_Texture {
@@ -202,7 +202,7 @@ public:
 public:
     Image                m_image;
     ImageView            m_image_view;
-    const LogicalDevice* m_device;
+    const LogicalDevice* m_device = nullptr;
     Sampler              m_sampler;
 };
 } // namespace vulkan

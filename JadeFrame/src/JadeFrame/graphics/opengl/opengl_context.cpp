@@ -91,7 +91,7 @@ OpenGL_Context::OpenGL_Context(const IWindow* window)
     // gather extentions
     glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
     for (i32 i = 0; i < num_extensions; i++) {
-        extentenions.push_back(reinterpret_cast<char const*>(
+        extentenions.emplace_back(reinterpret_cast<char const*>(
             glGetStringi(GL_EXTENSIONS, static_cast<u32>(i))
         ));
     }

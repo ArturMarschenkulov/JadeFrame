@@ -497,8 +497,7 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> u32 {
  * @param data
  * @return u32
  */
-auto RenderSystem::register_mesh(const VertexFormat& format, const VertexData& data)
-    -> u32 {
+auto RenderSystem::register_mesh(const VertexData& data) -> u32 {
     static u32 id = 1;
 
     switch (m_api) {

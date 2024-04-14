@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "opengl_renderer.h"
+#include "../shader_loader.h"
 // #include "JadeFrame/base_app.h"
 // #include "graphics/opengl/opengl_renderer.h"
 // #include "graphics/vulkan/vulkan_renderer.h"
@@ -9,15 +10,11 @@
     #include "Windows.h"
 #endif
 
-#include <cassert>
-
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #undef __OPTIMIZE__
 JF_PRAGMA_NO_WARNINGS_PUSH
 #include "stb/stb_image_write.h"
 JF_PRAGMA_NO_WARNINGS_POP
-#include <chrono>
-#include <future>
 #include <thread>
 
 namespace JadeFrame {
@@ -169,7 +166,6 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
         const Matrix4x4& transform = *command.transform;
         p_shader->m_uniform_buffers[1]->write({transform});
-        // TODO: This vertex array management should be moved to the shader/pipeline code
         p_shader->m_vertex_array.bind_buffer(*buffer_data->m_vertex_buffer);
         p_shader->m_vertex_array.bind();
         OpenGL_Renderer::render_mesh(p_mesh);

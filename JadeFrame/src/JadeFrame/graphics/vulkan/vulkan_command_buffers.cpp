@@ -226,11 +226,11 @@ auto CommandBuffer::draw_indexed(
 static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFlags& flag)
     -> std::string {
     std::string result = "{ ";
-    if (flag & VK_COMMAND_POOL_CREATE_TRANSIENT_BIT) { result += "TRANSIENT "; }
-    if (flag & VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT) {
+    if ((flag & VK_COMMAND_POOL_CREATE_TRANSIENT_BIT) != 0U) { result += "TRANSIENT "; }
+    if ((flag & VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT) != 0U) {
         result += "RESET_COMMAND_BUFFER ";
     }
-    if (flag & VK_COMMAND_POOL_CREATE_PROTECTED_BIT) { result += "PROTECTED "; }
+    if ((flag & VK_COMMAND_POOL_CREATE_PROTECTED_BIT) != 0U) { result += "PROTECTED "; }
     result += "}";
     return result;
 }
@@ -239,10 +239,10 @@ static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFl
     Command Pool
 ---------------------------*/
 
-CommandPool::CommandPool(CommandPool&& other) noexcept {
-    m_handle = other.m_handle;
-    m_create_info = other.m_create_info;
-    m_device = other.m_device;
+CommandPool::CommandPool(CommandPool&& other) noexcept
+    : m_device(other.m_device)
+    , m_handle(other.m_handle)
+    , m_create_info(other.m_create_info) {
 
     other.m_handle = VK_NULL_HANDLE;
     other.m_device = nullptr;

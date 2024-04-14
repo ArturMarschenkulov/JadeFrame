@@ -456,9 +456,9 @@ auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
     code.m_shading_language = SHADING_LANGUAGE::GLSL;
     code.m_modules.resize(2);
     code.m_modules[0].m_stage = SHADER_STAGE::VERTEX;
-    code.m_modules[0].m_code = GLSL_to_SPIRV(vs.c_str(), SHADER_STAGE::VERTEX, api);
+    code.m_modules[0].m_code = GLSL_to_SPIRV(vs, SHADER_STAGE::VERTEX, api);
     code.m_modules[1].m_stage = SHADER_STAGE::FRAGMENT;
-    code.m_modules[1].m_code = GLSL_to_SPIRV(fs.c_str(), SHADER_STAGE::FRAGMENT, api);
+    code.m_modules[1].m_code = GLSL_to_SPIRV(fs, SHADER_STAGE::FRAGMENT, api);
     return code;
 }
 } // namespace JadeFrame

@@ -26,8 +26,8 @@ public:
     ~RenderPass();
     RenderPass(const RenderPass&) = delete;
     auto operator=(const RenderPass&) -> RenderPass& = delete;
-    RenderPass(RenderPass&& other);
-    auto operator=(RenderPass&& other) -> RenderPass&;
+    RenderPass(RenderPass&& other) noexcept;
+    auto operator=(RenderPass&& other) noexcept -> RenderPass&;
 
     RenderPass(const LogicalDevice& device, VkFormat image_format);
 
@@ -42,8 +42,8 @@ public:
     ~Framebuffer();
     Framebuffer(const Framebuffer&) = delete;
     auto operator=(const Framebuffer&) -> Framebuffer& = delete;
-    Framebuffer(Framebuffer&& other);
-    auto operator=(Framebuffer&& other) -> Framebuffer&;
+    Framebuffer(Framebuffer&& other) noexcept;
+    auto operator=(Framebuffer&& other) noexcept -> Framebuffer&;
 
 public:
     Framebuffer(
@@ -67,8 +67,8 @@ public:
     ~Swapchain() = default;
     Swapchain(const Swapchain&) = delete;
     auto operator=(const Swapchain&) -> Swapchain& = delete;
-    Swapchain(Swapchain&& other) = default;
-    auto operator=(Swapchain&& other) -> Swapchain& = default;
+    Swapchain(Swapchain&& other) noexcept = default;
+    auto operator=(Swapchain&& other) noexcept -> Swapchain& = default;
 
 public:
     auto init(LogicalDevice& device, const Surface& surface) -> void;

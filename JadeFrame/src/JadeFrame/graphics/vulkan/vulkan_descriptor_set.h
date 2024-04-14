@@ -52,8 +52,8 @@ public:
     ~DescriptorSet();
     DescriptorSet(const DescriptorSet&) = delete;
     auto operator=(const DescriptorSet&) -> DescriptorSet& = delete;
-    DescriptorSet(DescriptorSet&& other);
-    auto operator=(DescriptorSet&& other) -> DescriptorSet&;
+    DescriptorSet(DescriptorSet&& other) noexcept;
+    auto operator=(DescriptorSet&& other) noexcept -> DescriptorSet&;
 
     DescriptorSet(
         const LogicalDevice&       device,
@@ -94,8 +94,8 @@ public:
     ~DescriptorSetLayout();
     DescriptorSetLayout(const DescriptorSetLayout&) = delete;
     auto operator=(const DescriptorSetLayout&) -> DescriptorSetLayout& = delete;
-    DescriptorSetLayout(DescriptorSetLayout&& other);
-    auto operator=(DescriptorSetLayout&& other) -> DescriptorSetLayout&;
+    DescriptorSetLayout(DescriptorSetLayout&& other) noexcept;
+    auto operator=(DescriptorSetLayout&& other) noexcept -> DescriptorSetLayout&;
 
 public:
     DescriptorSetLayout(
@@ -126,8 +126,8 @@ public:
     ~DescriptorPool();
     DescriptorPool(const DescriptorPool&) = delete;
     auto operator=(const DescriptorPool&) -> DescriptorPool& = delete;
-    DescriptorPool(DescriptorPool&& other);
-    auto operator=(DescriptorPool&& other) -> DescriptorPool&;
+    DescriptorPool(DescriptorPool&& other) noexcept;
+    auto operator=(DescriptorPool&& other) noexcept -> DescriptorPool&;
 
 public:
     DescriptorPool(

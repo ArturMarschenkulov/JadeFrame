@@ -3,8 +3,6 @@
 #include <glad/glad.h>
 #include "JadeFrame/math/vec.h"
 
-#include <string>
-
 namespace JadeFrame {
 class OpenGL_Context;
 
@@ -28,11 +26,11 @@ public:
     Texture(Texture&& other) noexcept;
     auto operator=(Texture&& other) noexcept -> Texture&;
 
-    Texture(OpenGL_Context& context);
+    explicit Texture(OpenGL_Context& context);
     Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_num);
 
-    auto resize(u32 width, u32 height, u32 depth) -> void;
-    auto bind(u32 unit) const -> void;
+    auto        resize(u32 width, u32 height, u32 depth) -> void;
+    auto        bind(u32 unit) const -> void;
     auto unbind() const -> void;
 
     auto generate_mipmap() const -> void;

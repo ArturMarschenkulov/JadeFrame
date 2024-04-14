@@ -4,17 +4,11 @@
 #include "opengl_context.h"
 #include "JadeFrame/utils/assert.h"
 
-#include "JadeFrame/math/mat_4.h"
-
-#include "../shader_loader.h"
-
 #include "../graphics_shared.h"
 #include "../reflect.h"
-#include <future>
 
 #include <array>
 #include <cassert>
-#include <tuple>
 
 #include "opengl_wrapper.h"
 
@@ -48,8 +42,7 @@ static auto convert_SPIRV_to_GLSL(const std::vector<u32>& spirv) -> std::string 
 }
 
 Shader::Shader(OpenGL_Context& context, const Desc& desc)
-    : m_program()
-    , m_vertex_shader(GL_VERTEX_SHADER)
+    : m_vertex_shader(GL_VERTEX_SHADER)
     , m_fragment_shader(GL_FRAGMENT_SHADER)
     , m_context(&context) {
 
@@ -125,7 +118,7 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     // model, something like this 0, 1, 2.
     for (size_t i = 0; i < m_uniforms.size(); i++) {
         const auto& uniform = m_uniforms[i];
-        const auto& size = uniform.size;
+        const u32&  size = uniform.size;
         const auto& location = uniform.location;
 
         auto* buffer =
@@ -160,7 +153,7 @@ auto Shader::bind() const -> void { m_program.bind(); }
 auto Shader::unbind() const -> void { m_program.unbind(); }
 
 static auto gl_type_enum_to_string(GLenum type) -> std::string {
-    std::string result = "";
+    std::string result;
     switch (type) {
         case GL_FLOAT: result = "float"; break;
         case GL_FLOAT_VEC2: result = "vec2"; break;

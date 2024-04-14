@@ -1,8 +1,8 @@
 #include "pch.h"
+#include "JadeFrame/prelude.h"
 
 #include "opengl_texture.h"
 
-#include "JadeFrame/prelude.h"
 #include "opengl_context.h"
 #include "JadeFrame/utils/logger.h"
 
@@ -22,8 +22,9 @@ auto Texture::operator=(Texture&& other) noexcept -> Texture& {
 Texture::Texture(OpenGL_Context&) { glCreateTextures(GL_TEXTURE_2D, 1, &m_id); }
 
 Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_num)
-    : m_size(size) {
-    m_context = &context;
+    : m_size(size)
+    , m_context(&context) {
+
     GLenum format_ = {};
     switch (component_num) {
         case 3: format_ = GL_RGB; break;
@@ -170,7 +171,7 @@ auto Texture::resize(u32 width, u32 height, u32 /*depth*/) -> void {
 }
 
 auto Texture::release() -> GLuint {
-    GLint id = m_id;
+    GLuint id = m_id;
     m_id = 0;
     return id;
 }
