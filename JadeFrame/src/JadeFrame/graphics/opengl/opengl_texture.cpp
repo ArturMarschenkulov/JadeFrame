@@ -79,7 +79,7 @@ Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_
     // if (m_mipmapping) {
     this->generate_mipmap();
     //}
-    this->unbind();
+    Texture::unbind();
 }
 
 Texture::Texture(Texture&& other) noexcept
@@ -158,11 +158,13 @@ auto Texture::resize(u32 width, u32 height, u32 /*depth*/) -> void {
     //	case GL_TEXTURE_1D:
     //		assert(width > 0);
     //		m_texture.set_texture_image_1D(0, m_internal_format, width, 0,
-    // m_format, m_type, 0); 		break; 	case GL_TEXTURE_2D: 		assert(width > 0
+    // m_format, m_type, 0); 		break; 	case GL_TEXTURE_2D:
+    // assert(width > 0
     // && height > 0); 		m_texture.set_texture_image_2D(0, m_internal_format,
     // width, height, 0, m_format,
     // m_type,
-    // 0); 		break; 	case GL_TEXTURE_3D: 		assert(width > 0 && height >
+    // 0); 		break; 	case GL_TEXTURE_3D: 		assert(width > 0 && height
+    // >
     // 0
     // && depth > 0); 		m_texture.set_texture_image_3D(0,
     // m_internal_format, width, height, depth, 0, m_format, m_type, 0);
@@ -186,7 +188,7 @@ auto Texture::bind(u32 unit) const -> void {
     glBindTexture(GL_TEXTURE_2D, m_id);
 }
 
-auto Texture::unbind() const -> void { glBindTexture(GL_TEXTURE_2D, 0); }
+auto Texture::unbind() -> void { glBindTexture(GL_TEXTURE_2D, 0); }
 
 } // namespace opengl
 } // namespace JadeFrame

@@ -31,7 +31,7 @@ public:
 
     auto        resize(u32 width, u32 height, u32 depth) -> void;
     auto        bind(u32 unit) const -> void;
-    auto unbind() const -> void;
+    static auto unbind() -> void;
 
     auto generate_mipmap() const -> void;
     auto set_parameters(GLenum pname, GLint param) const -> void;
