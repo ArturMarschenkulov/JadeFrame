@@ -143,26 +143,14 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         const VkPipelineBindPoint bp = VK_PIPELINE_BIND_POINT_GRAPHICS;
         auto&                     pipeline = shader->m_pipeline;
         auto&                     sets = shader->m_sets;
-        VkDeviceSize              offsets[] = {0, 0};
-
-        auto&       vertex_buffer = *gpu_data.m_vertex_buffer;
-        const auto& vertex_amount = static_cast<u32>(cmd.vertex_data->m_positions.size());
-        auto&       index_buffer = *gpu_data.m_index_buffer;
-        const auto& index_amount = static_cast<u32>(cmd.vertex_data->m_indices.size());
 
         cb.bind_pipeline(bp, pipeline);
-        cb.bind_vertex_buffer(0, vertex_buffer, offsets[0]);
         cb.bind_descriptor_sets(bp, pipeline, 0, sets[0], &dyn_offset);
         // cb.bind_descriptor_sets(bp, pipeline, 1, sets[1], &dyn_offset);
         cb.bind_descriptor_sets(bp, pipeline, 2, sets[2], &dyn_offset);
         cb.bind_descriptor_sets(bp, pipeline, 3, sets[3], &dyn_offset);
 
-        if (!cmd.vertex_data->m_indices.empty()) {
-            cb.bind_index_buffer(index_buffer, 0);
-            cb.draw_indexed(index_amount, 1, 0, 0, 0);
-        } else {
-            cb.draw(vertex_amount, 1, 0, 0);
-        }
+        this->render_mesh(cmd.vertex_data, &gpu_data);
     }
     //});
     cb.render_pass_end();
@@ -172,6 +160,29 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     m_frames[m_frame_index].submit(d.m_graphics_queue);
 
     m_render_commands.clear();
+}
+
+auto Vulkan_Renderer::render_mesh(
+    const VertexData*    vertex_data,
+    vulkan::GPUMeshData* gpu_data
+) -> void {
+    vulkan::CommandBuffer& cb = m_frames[m_frame_index].m_cmd;
+    const auto& vertex_amount = static_cast<u32>(vertex_data->m_positions.size());
+    const auto& index_amount = static_cast<u32>(vertex_data->m_indices.size());
+
+    const vulkan::Buffer* index_buffer = gpu_data->m_index_buffer;
+    const vulkan::Buffer* vertex_buffer = gpu_data->m_vertex_buffer;
+
+    // VkDeviceSize offsets[] = {0, 0};
+
+    cb.bind_vertex_buffer(0, *vertex_buffer, 0);
+
+    if (!vertex_data->m_indices.empty()) {
+        cb.bind_index_buffer(*index_buffer, 0);
+        cb.draw_indexed(index_amount, 1, 0, 0, 0);
+    } else {
+        cb.draw(vertex_amount, 1, 0, 0);
+    }
 }
 
 auto Vulkan_Renderer::present() -> void {
