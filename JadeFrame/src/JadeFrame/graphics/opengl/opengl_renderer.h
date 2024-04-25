@@ -81,6 +81,9 @@ public:
         opengl::Framebuffer*  m_framebuffer;
         opengl::GPUMeshData*  m_framebuffer_rect;
         u32                   m_shader;
+
+        auto init(OpenGL_Context* context, RenderSystem* system) -> void;
+        auto render(RenderSystem* system) -> void;
     } fb;
 };
 

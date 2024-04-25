@@ -58,61 +58,8 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
     : m_context(window)
     , m_system(&system) {
 
-    // TODO: The whole fb thing is now a mess!!!! This is because
-    // `m_system->register_shader(shader_handle_desc);` requires an already initialized
-    // `OpenGL_Renderer`. Thus for now `JF_OPENGL_FB` should be defined to 0, because
-    // otherwise it will always crash!!!!
-
-    // TODO: Now it somehow works again, however I do not think I have changed anything to
-    // actually solve this. This might be some undefined behavior. Thus one should watch
 #if JF_OPENGL_FB
-    {
-        fb.m_framebuffer = m_context.create_framebuffer();
-
-        const v2u32 size = m_context.m_state.viewport[1];
-
-        fb.m_texture = m_context.create_texture();
-        fb.m_texture->bind(0);
-        fb.m_texture->set_image(0, GL_RGB, size, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-        fb.m_texture->set_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        fb.m_texture->set_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        fb.m_texture->set_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        fb.m_texture->set_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        fb.m_renderbuffer = m_context.create_renderbuffer();
-        fb.m_renderbuffer->store(GL_DEPTH24_STENCIL8, size.x, size.y);
-
-        fb.m_framebuffer->attach_texture(opengl::ATTACHMENT::COLOR, 0, *fb.m_texture);
-        fb.m_framebuffer->attach_renderbuffer(
-            opengl::ATTACHMENT::DEPTH_STENCIL, 0, *fb.m_renderbuffer
-        );
-
-        const GLenum res = fb.m_framebuffer->check_status();
-        if (res != GL_FRAMEBUFFER_COMPLETE) {
-            Logger::err(
-                "OpenGL_Renderer::OpenGL_Renderer: Framebuffer is not complete, status: "
-                "{}",
-                framebuffer_res_to_str(res)
-            );
-            // assert(false);
-        }
-    }
-
-    VertexData::Desc vdf_desc;
-    vdf_desc.has_normals = false;
-    VertexData vertex_data =
-        VertexData::make_rectangle({-1.0F, -1.0F, 0.0F}, {2.0F, 2.0F, 0.0F}, vdf_desc);
-    VertexFormat layout = {
-        {           "v_position", SHADER_TYPE::V_3_F32},
-        {"v_texture_coordinates", SHADER_TYPE::V_2_F32}
-    };
-    fb.m_framebuffer_rect = new opengl::GPUMeshData(m_context, vertex_data);
-
-    ShaderHandle::Desc shader_handle_desc;
-    shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
-    shader_handle_desc.vertex_format = layout;
-
-    fb.m_shader = m_system->register_shader(shader_handle_desc);
+    fb.init(&m_context, m_system);
 #endif
 }
 
@@ -173,21 +120,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     fb.m_framebuffer->unbind();
     // GL_State old_state = m_context.m_state;
     m_context.m_state.set_depth_test(false);
-    {
-
-        // static_cast<opengl::Shader*>(fb.m_shader_handle_fb->m_handle)->bind();
-        ShaderHandle& sh_ = m_system->m_registered_shaders[fb.m_shader];
-        auto*         sh = static_cast<opengl::Shader*>(sh_.m_handle);
-        sh->bind();
-        fb.m_texture->bind(0);
-        auto&                 shh = m_system->m_registered_shaders[fb.m_shader];
-        const opengl::Shader* p_shader = static_cast<opengl::Shader*>(shh.m_handle);
-        p_shader->m_vertex_array.bind_buffer(*fb.m_framebuffer_rect->m_vertex_buffer);
-        p_shader->m_vertex_array.bind();
-
-        const GLsizei num_vertices = 6;
-        glDrawArrays(GL_TRIANGLES, 0, num_vertices);
-    }
+    fb.render(m_system);
     m_context.m_state.set_depth_test(true);
 #endif
 #undef JF_OPENGL_FB
@@ -238,4 +171,76 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
     t.detach();
 }
 
+auto OpenGL_Renderer::FB::init(OpenGL_Context* context, RenderSystem* system) -> void {
+    { // TODO: The whole fb thing is now a mess!!!! This is because
+        // `m_system->register_shader(shader_handle_desc);` requires an already
+        // initialized `OpenGL_Renderer`. Thus for now `JF_OPENGL_FB` should be defined to
+        // 0, because otherwise it will always crash!!!!
+
+        // TODO: Now it somehow works again, however I do not think I have changed
+        // anything to actually solve this. This might be some undefined behavior. Thus
+        // one should watch
+        m_framebuffer = context->create_framebuffer();
+
+        const v2u32 size = context->m_state.viewport[1];
+
+        m_texture = context->create_texture();
+        m_texture->bind(0);
+        m_texture->set_image(0, GL_RGB, size, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        m_texture->set_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        m_texture->set_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        m_texture->set_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        m_texture->set_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        m_renderbuffer = context->create_renderbuffer();
+        m_renderbuffer->store(GL_DEPTH24_STENCIL8, size.x, size.y);
+
+        m_framebuffer->attach_texture(opengl::ATTACHMENT::COLOR, 0, *m_texture);
+        m_framebuffer->attach_renderbuffer(
+            opengl::ATTACHMENT::DEPTH_STENCIL, 0, *m_renderbuffer
+        );
+
+        const GLenum res = m_framebuffer->check_status();
+        if (res != GL_FRAMEBUFFER_COMPLETE) {
+            Logger::err(
+                "OpenGL_Renderer::OpenGL_Renderer: Framebuffer is not complete, status: "
+                "{}",
+                framebuffer_res_to_str(res)
+            );
+            // assert(false);
+        }
+    }
+
+    VertexData::Desc vdf_desc;
+    vdf_desc.has_normals = false;
+    VertexData vertex_data =
+        VertexData::make_rectangle({-1.0F, -1.0F, 0.0F}, {2.0F, 2.0F, 0.0F}, vdf_desc);
+    VertexFormat layout = {
+        {           "v_position", SHADER_TYPE::V_3_F32},
+        {"v_texture_coordinates", SHADER_TYPE::V_2_F32}
+    };
+    m_framebuffer_rect = new opengl::GPUMeshData(*context, vertex_data);
+
+    ShaderHandle::Desc shader_handle_desc;
+    shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
+    shader_handle_desc.vertex_format = layout;
+
+    m_shader = system->register_shader(shader_handle_desc);
+}
+
+auto OpenGL_Renderer::FB::render(RenderSystem* system) -> void {
+
+    // static_cast<opengl::Shader*>(fb.m_shader_handle_fb->m_handle)->bind();
+    ShaderHandle& sh_ = system->m_registered_shaders[m_shader];
+    auto*         sh = static_cast<opengl::Shader*>(sh_.m_handle);
+    sh->bind();
+    m_texture->bind(0);
+    auto&                 shh = system->m_registered_shaders[m_shader];
+    const opengl::Shader* p_shader = static_cast<opengl::Shader*>(shh.m_handle);
+    p_shader->m_vertex_array.bind_buffer(*m_framebuffer_rect->m_vertex_buffer);
+    p_shader->m_vertex_array.bind();
+
+    const GLsizei num_vertices = 6;
+    glDrawArrays(GL_TRIANGLES, 0, num_vertices);
+}
 } // namespace JadeFrame
