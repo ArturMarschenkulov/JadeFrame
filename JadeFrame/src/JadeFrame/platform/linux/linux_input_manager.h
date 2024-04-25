@@ -96,7 +96,7 @@ namespace JadeFrame {
 // };
 class Linux_InputManager : public IInputManager<Linux_InputManager> {
 public:
-    virtual auto handle_input() -> void override { return; }
+    auto handle_input() -> void override { return; }
 
     static auto is_key_down(const KEY key) -> bool {
         (void)key;

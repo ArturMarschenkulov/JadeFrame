@@ -28,7 +28,7 @@ auto Linux_SystemManager::request_window(IWindow::Desc desc) -> IWindow* {
 }
 
 auto Linux_SystemManager::get_time() const -> f64 {
-    timespec ts;
+    timespec ts = {};
     clock_gettime(CLOCK_MONOTONIC, &ts);
     const f64 frequency = 1e9; // 1 second
 
@@ -50,7 +50,7 @@ auto Linux_SystemManager::frame_control(f64 delta_time) -> void {
     f64 frame = delta_time + draw;
 
     if (frame < m_time.target) {
-        struct timespec sleep_time;
+        timespec sleep_time = {};
         sleep_time.tv_sec = 0;
         sleep_time.tv_nsec = static_cast<long>((m_time.target - frame) * 1e9);
         nanosleep(&sleep_time, nullptr);

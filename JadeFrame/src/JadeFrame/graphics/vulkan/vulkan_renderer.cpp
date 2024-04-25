@@ -17,9 +17,9 @@ namespace JadeFrame {
 static const i32 MAX_FRAMES_IN_FLIGHT = 1;
 
 Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
-    : m_context(window) {
-    m_system = &system;
-    m_logical_device = &m_context.m_instance.m_logical_device;
+    : m_context(window)
+    , m_logical_device(&m_context.m_instance.m_logical_device)
+    , m_system(&system) {
 
     // Swapchain stuff
     m_swapchain = m_logical_device->create_swapchain(m_context.m_instance.m_surface);
@@ -125,7 +125,8 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
         const ShaderHandle& shader_handle =
             m_system->m_registered_shaders[cmd.material_handle.m_shader_id];
-        auto*                shader = static_cast<Vulkan_Shader*>(shader_handle.m_handle);
+        auto* shader = static_cast<Vulkan_Shader*>(shader_handle.m_handle);
+
         vulkan::GPUMeshData& gpu_data = m_registered_meshes[cmd.m_GPU_mesh_data_id];
 
         // Per Frame ubo

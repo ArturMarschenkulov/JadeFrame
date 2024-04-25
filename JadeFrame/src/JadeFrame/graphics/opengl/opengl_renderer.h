@@ -4,15 +4,12 @@
 #include "opengl_shader.h"
 #include "opengl_context.h"
 
-#include "JadeFrame/graphics/camera.h"
-
 #include "JadeFrame/math/mat_4.h"
 #include "JadeFrame/graphics/mesh.h"
 #include "JadeFrame/graphics/graphics_shared.h"
 #include "../graphics_shared.h"
 
 #include <vector>
-#include <stack>
 #include <map>
 
 #ifdef _WIN32
@@ -68,9 +65,7 @@ public:
     auto take_screenshot(const char* filename) -> void override;
 
 private:
-    static auto
-    render_mesh(const VertexData* vertex_data)
-        -> void;
+    static auto render_mesh(const VertexData* vertex_data) -> void;
 
 public:
     OpenGL_Context                           m_context;

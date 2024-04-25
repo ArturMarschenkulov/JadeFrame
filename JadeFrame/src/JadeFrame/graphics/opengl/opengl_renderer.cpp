@@ -145,12 +145,11 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         const OpenGL_RenderCommand& command = m_render_commands[i];
         const MaterialHandle&       mh = command.material_handle;
 
-        auto& sh = m_system->m_registered_shaders[mh.m_shader_id];
-        auto& mm = m_registered_meshes[command.m_GPU_mesh_data_id];
+        auto&                      sh = m_system->m_registered_shaders[mh.m_shader_id];
+        const opengl::GPUMeshData& gpu_data =
+            m_registered_meshes[command.m_GPU_mesh_data_id];
 
-        const opengl::Shader*      p_shader = static_cast<opengl::Shader*>(sh.m_handle);
-        const VertexData*          p_mesh = command.vertex_data;
-        const opengl::GPUMeshData* buffer_data = &mm;
+        const opengl::Shader* p_shader = static_cast<opengl::Shader*>(sh.m_handle);
 
         // NOTE: As of right now this is not optimal, as it only needs to be updated once
         // outside the loop. But because of how the code is arranged one has to update it
@@ -166,9 +165,9 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
         const Matrix4x4& transform = *command.transform;
         p_shader->m_uniform_buffers[1]->write({transform});
-        p_shader->m_vertex_array.bind_buffer(*buffer_data->m_vertex_buffer);
+        p_shader->m_vertex_array.bind_buffer(*gpu_data.m_vertex_buffer);
         p_shader->m_vertex_array.bind();
-        OpenGL_Renderer::render_mesh(p_mesh);
+        OpenGL_Renderer::render_mesh(command.vertex_data);
     }
 #if JF_OPENGL_FB
     fb.m_framebuffer->unbind();

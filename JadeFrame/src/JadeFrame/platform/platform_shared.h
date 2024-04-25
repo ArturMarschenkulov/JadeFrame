@@ -266,13 +266,13 @@ public:
 
     IWindow() = default;
 
-    IWindow(const IWindow::Desc& desc);
+    explicit IWindow(const IWindow::Desc& desc);
 
-    auto handle_events(bool& running) -> void;
-    auto get_window_state() const -> WINDOW_STATE;
-    auto set_title(const std::string& title) -> void;
-    auto get_title() const -> std::string;
-    auto get_size() const -> const v2u32&;
+    auto               handle_events(bool& running) -> void;
+    [[nodiscard]] auto get_window_state() const -> WINDOW_STATE;
+    auto               set_title(const std::string& title) -> void;
+    [[nodiscard]] auto get_title() const -> std::string;
+    [[nodiscard]] auto get_size() const -> const v2u32&;
 
 public:
     std::unique_ptr<NativeWindow> m_native_window;
@@ -293,11 +293,11 @@ public:
     virtual ~NativeWindow() = default;
 
 public:
-    virtual auto handle_events(bool& running) -> void = 0;
-    virtual auto set_title(const std::string& title) -> void = 0;
-    virtual auto get_title() const -> std::string = 0;
-    virtual auto get_size() const -> const v2u32& = 0;
-    virtual auto get_window_state() const -> IWindow::WINDOW_STATE = 0;
+    virtual auto               handle_events(bool& running) -> void = 0;
+    virtual auto               set_title(const std::string& title) -> void = 0;
+    [[nodiscard]] virtual auto get_title() const -> std::string = 0;
+    [[nodiscard]] virtual auto get_size() const -> const v2u32& = 0;
+    [[nodiscard]] virtual auto get_window_state() const -> IWindow::WINDOW_STATE = 0;
 };
 
 template<typename T>
