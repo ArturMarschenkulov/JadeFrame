@@ -203,6 +203,36 @@ auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
         Logger::info(
             "\tPipeline Cache UUID: {}", to_string(m_properties.pipelineCacheUUID)
         );
+
+        Logger::info("\tlimits:");
+        Logger::info(
+            "\t\tmax image dimension 1D: {}",
+            m_properties.limits.maxImageDimension1D
+        );
+        Logger::info(
+            "\t\tmax image dimension 2D: {}",
+            m_properties.limits.maxImageDimension2D
+        );
+        Logger::info(
+            "\t\tmax image dimension 3D: {}",
+            m_properties.limits.maxImageDimension3D
+        );
+        Logger::info(
+            "\t\tvertex input bindings: {}",
+            m_properties.limits.maxVertexInputBindings
+        );
+        Logger::info(
+            "\t\tvertex input attributes: {}",
+            m_properties.limits.maxVertexInputAttributes
+        );
+        Logger::info(
+            "\t\tvertex input attribute offset: {}",
+            m_properties.limits.maxVertexInputAttributeOffset
+        );
+        // Logger::info(
+        //     "\t\tmax vertex input attribute stride: {}",
+        //     m_properties.limits.maxVertexInputAttributeStride
+        // );
         Logger::info(
             "\t{} memory types from {}:",
             m_memory_properties.memoryTypeCount,

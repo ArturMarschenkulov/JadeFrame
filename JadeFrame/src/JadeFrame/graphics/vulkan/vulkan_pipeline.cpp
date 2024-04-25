@@ -410,12 +410,13 @@ static auto vertex_input_state_create_info(
     return vertex_input_info;
 }
 
-static auto input_assembly_state_create_info() -> VkPipelineInputAssemblyStateCreateInfo {
+static auto input_assembly_state_create_info(VkPrimitiveTopology topology)
+    -> VkPipelineInputAssemblyStateCreateInfo {
     const VkPipelineInputAssemblyStateCreateInfo input_assembly = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+        .topology = topology,
         .primitiveRestartEnable = VK_FALSE,
     };
     return input_assembly;
@@ -667,7 +668,7 @@ Pipeline::Pipeline(
     };
 
     const VkPipelineInputAssemblyStateCreateInfo input_assembly =
-        input_assembly_state_create_info();
+        input_assembly_state_create_info(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
     const VkPipelineRasterizationStateCreateInfo rasterizer =
         rasterization_state_create_info();
     const VkPipelineMultisampleStateCreateInfo multisampling =
