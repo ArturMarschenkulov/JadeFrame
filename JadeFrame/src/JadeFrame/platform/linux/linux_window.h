@@ -17,15 +17,13 @@ public:
     explicit Linux_Window(const IWindow::Desc& desc);
     ~Linux_Window() override;
 
-    auto handle_events(bool&) -> void override {}
+    auto handle_events(bool&) -> void override;
 
     auto set_title(const std::string&) -> void override {}
 
-    auto get_title() const -> std::string override { return {}; }
+    [[nodiscard]] auto get_title() const -> std::string override { return {}; }
 
-    auto get_window_state() const -> IWindow::WINDOW_STATE override { return {}; }
-
-    auto get_size() const -> const v2u32& override { return m_size; }
+    [[nodiscard]] auto get_size() const -> const v2u32& override { return m_size; }
 
 public:
     ::Display*     m_display;

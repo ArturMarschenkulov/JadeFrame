@@ -22,9 +22,7 @@ auto IWindow::handle_events(bool& running) -> void {
     m_native_window->handle_events(running);
 }
 
-auto IWindow::get_window_state() const -> WINDOW_STATE {
-    return (WINDOW_STATE)m_native_window->get_window_state();
-}
+auto IWindow::get_window_state() const -> WINDOW_STATE { return m_window_state; }
 
 auto IWindow::set_title(const std::string& title) -> void {
     m_native_window->set_title(title);

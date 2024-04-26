@@ -2,6 +2,7 @@
 #include <GL/gl.h>
 #include <GL/glx.h>
 
+#include <X11/Xlib.h>
 #include <string>
 #include <iostream>
 #include <cstdlib>
@@ -92,4 +93,32 @@ Linux_Window::Linux_Window(const IWindow::Desc& desc) {
 }
 
 Linux_Window::~Linux_Window() { XDestroyWindow(m_display, m_window); }
+
+static auto process_event(XEvent* event) -> void {
+    switch (event->type) {
+        case Expose: {
+
+        } break;
+        case KeyPress: {
+            
+        } break;
+        case KeyRelease: {
+        } break;
+        case ConfigureNotify: {
+
+        } break;
+        default: break;
+    }
+}
+
+auto Linux_Window::handle_events(bool&) -> void {
+
+    XPending(m_display);
+
+    while (XQLength(m_display)) {
+        XEvent event;
+        XNextEvent(m_display, &event);
+        process_event(&event);
+    }
+}
 } // namespace JadeFrame

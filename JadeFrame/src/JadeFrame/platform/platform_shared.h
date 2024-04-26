@@ -276,6 +276,7 @@ public:
 
 public:
     std::unique_ptr<NativeWindow> m_native_window;
+    WINDOW_STATE                  m_window_state;
 };
 
 // This class represents an interface for a native window, that is a win32, x11, wayland
@@ -297,7 +298,6 @@ public:
     virtual auto               set_title(const std::string& title) -> void = 0;
     [[nodiscard]] virtual auto get_title() const -> std::string = 0;
     [[nodiscard]] virtual auto get_size() const -> const v2u32& = 0;
-    [[nodiscard]] virtual auto get_window_state() const -> IWindow::WINDOW_STATE = 0;
 };
 
 template<typename T>
