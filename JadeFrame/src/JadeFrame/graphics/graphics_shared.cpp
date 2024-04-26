@@ -261,11 +261,11 @@ auto ShaderHandle::set_uniform(const std::string& name, const void* data, size_t
     (void)size;
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            auto shader = (opengl::Shader*)m_handle;
+            auto* shader = (opengl::Shader*)m_handle;
             // shader->set_uniform(name, data, size);
         } break;
         case GRAPHICS_API::VULKAN: {
-            auto shader = (Vulkan_Shader*)m_handle;
+            auto* shader = (Vulkan_Shader*)m_handle;
             auto [set, binding] = shader->get_location(name);
             // shader->bind_buffer(set, binding, data, size);
             // shader->m_sets[set].bind_uniform_buffer(binding, data, size);
