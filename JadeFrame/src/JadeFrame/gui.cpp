@@ -26,7 +26,7 @@
 
 namespace JadeFrame {
 
-auto GUI::init(IWindow* window, GRAPHICS_API api) -> void {
+auto GUI::init(Window* window, GRAPHICS_API api) -> void {
     ImGui::CreateContext();
 #if _WIN32
     ImGui_ImplWin32_Init((HWND)window->get());

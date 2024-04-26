@@ -2,13 +2,13 @@
 #include <vulkan/vulkan.h>
 
 namespace JadeFrame {
-class IWindow;
+class Window;
 
 namespace vulkan {
 namespace x11 {
 
-auto create_surface(VkInstance instance, const IWindow* window_handle) -> VkSurfaceKHR;
+auto create_surface(VkInstance instance, const Window* window_handle) -> VkSurfaceKHR;
 
-} // namespace win32
+} // namespace x11
 } // namespace vulkan
 } // namespace JadeFrame

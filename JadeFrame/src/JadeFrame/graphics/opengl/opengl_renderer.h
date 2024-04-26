@@ -51,7 +51,7 @@ class RenderSystem;
 
 class OpenGL_Renderer : public IRenderer {
 public:
-    OpenGL_Renderer(RenderSystem& system, const IWindow* window);
+    OpenGL_Renderer(RenderSystem& system, const Window* window);
 
     auto present() -> void override;
     auto clear_background() -> void override;

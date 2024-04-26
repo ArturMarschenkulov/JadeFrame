@@ -80,7 +80,7 @@ public:
 class OpenGL_Context {
 public:
     OpenGL_Context() = default;
-    explicit OpenGL_Context(const IWindow* window);
+    explicit OpenGL_Context(const Window* window);
     ~OpenGL_Context();
 
 public:

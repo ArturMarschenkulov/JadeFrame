@@ -7,7 +7,7 @@
 
 namespace JadeFrame {
 
-class IWindow;
+class Window;
 
 namespace vulkan {
 class PhysicalDevice;
@@ -22,7 +22,7 @@ public:
     Instance(Instance&& other) = delete;
     auto operator=(Instance&& other) -> Instance& = delete;
 
-    auto init(const IWindow* window_handle) -> void;
+    auto init(const Window* window_handle) -> void;
     auto deinit() -> void;
 
 private:
@@ -34,7 +34,7 @@ private:
     check_validation_layer_support(const std::vector<VkLayerProperties>& available_layers)
         -> bool;
 
-    auto create_surface(const IWindow* window_handle) -> vulkan::Surface;
+    auto create_surface(const Window* window_handle) -> vulkan::Surface;
 
 public:
     VkInstance m_instance = VK_NULL_HANDLE;
@@ -74,11 +74,11 @@ struct Vulkan_Context {
     Vulkan_Context(Vulkan_Context&&) = delete;
     auto operator=(Vulkan_Context&&) -> Vulkan_Context& = delete;
 
-    Vulkan_Context(const IWindow* window);
+    Vulkan_Context(const Window* window);
 
 public:
     vulkan::Instance m_instance;
-    const IWindow*   m_window_handle;
+    const Window*    m_window_handle;
 
 public:
 };

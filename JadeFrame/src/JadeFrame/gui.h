@@ -7,11 +7,11 @@
 */
 
 namespace JadeFrame {
-class IWindow;
+class Window;
 
 class GUI {
 public:
-    auto init(IWindow* window, GRAPHICS_API api) -> void;
+    auto init(Window* window, GRAPHICS_API api) -> void;
     auto new_frame() -> void;
     auto render() -> void;
     auto destroy() -> void;

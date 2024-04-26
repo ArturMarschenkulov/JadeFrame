@@ -16,7 +16,7 @@ namespace JadeFrame {
 
 static const i32 MAX_FRAMES_IN_FLIGHT = 1;
 
-Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const IWindow* window)
+Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const Window* window)
     : m_context(window)
     , m_logical_device(&m_context.m_instance.m_logical_device)
     , m_system(&system) {

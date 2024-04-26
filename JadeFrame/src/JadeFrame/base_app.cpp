@@ -143,7 +143,7 @@ auto Instance::run() -> void {
 
 BaseApp::BaseApp(const Desc& desc) {
     Logger::info("Creating Window....");
-    IWindow::Desc win_desc = {
+    Window::Desc win_desc = {
         .title = desc.title,
         .size = desc.size,
         .position = desc.position,
@@ -191,7 +191,7 @@ auto BaseApp::start() -> void {
         const f64 delta_time = platform.calc_elapsed();
         this->on_update();
 
-        if (m_current_window_p->get_window_state() != IWindow::WINDOW_STATE::MINIMIZED) {
+        if (m_current_window_p->get_window_state() != Window::WINDOW_STATE::MINIMIZED) {
             renderer->clear_background();
             // m_gui.new_frame();
 

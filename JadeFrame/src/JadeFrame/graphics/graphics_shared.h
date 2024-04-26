@@ -9,7 +9,7 @@ namespace JadeFrame {
 class Windows_Window;
 class Object;
 class RGBAColor;
-class IWindow;
+class Window;
 
 struct Image {
     Image() = default;
@@ -435,9 +435,9 @@ public:
     RenderSystem(RenderSystem&&) noexcept;
     auto operator=(RenderSystem&&) noexcept -> RenderSystem&;
 
-    RenderSystem(GRAPHICS_API api, IWindow* window);
+    RenderSystem(GRAPHICS_API api, Window* window);
 
-    auto init(GRAPHICS_API api, IWindow* window) -> void;
+    auto init(GRAPHICS_API api, Window* window) -> void;
 
     auto register_texture(TextureHandle&& handle) -> u32;
     auto register_shader(const ShaderHandle::Desc& desc) -> u32;

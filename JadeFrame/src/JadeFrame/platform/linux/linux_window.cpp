@@ -9,7 +9,7 @@
 
 namespace JadeFrame {
 
-Linux_Window::Linux_Window(const IWindow::Desc& desc) {
+Linux_Window::Linux_Window(const Window::Desc& desc) {
 
     const char* x11_display_env = std::getenv("DISPLAY");
     if (x11_display_env == nullptr) {
@@ -100,7 +100,7 @@ static auto process_event(XEvent* event) -> void {
 
         } break;
         case KeyPress: {
-            
+
         } break;
         case KeyRelease: {
         } break;

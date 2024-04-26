@@ -15,7 +15,7 @@ namespace JadeFrame {
 */
 
 namespace win32 {
-class Window : public IWindow {
+class Window : public Window {
 public:
     Window(const Window&) = delete;
     Window(Window&&) = delete;

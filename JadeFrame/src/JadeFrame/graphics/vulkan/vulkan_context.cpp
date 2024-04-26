@@ -178,7 +178,7 @@ auto Instance::setup_debug() -> void {
     if (result != VK_SUCCESS) { assert(false); }
 }
 
-auto Instance::init(const IWindow* window_handle) -> void {
+auto Instance::init(const Window* window_handle) -> void {
     Logger::trace("Instance::init start");
 
     VkResult result;
@@ -300,13 +300,13 @@ auto Instance::deinit() -> void {
     vkDestroyInstance(m_instance, nullptr);
 }
 
-auto Instance::create_surface(const IWindow* window_handle) -> vulkan::Surface {
+auto Instance::create_surface(const Window* window_handle) -> vulkan::Surface {
     vulkan::Surface surface(m_instance, window_handle);
     return surface;
 }
 } // namespace vulkan
 
-Vulkan_Context::Vulkan_Context(const IWindow* window) {
+Vulkan_Context::Vulkan_Context(const Window* window) {
     m_window_handle = window;
     m_instance.init(window);
 }

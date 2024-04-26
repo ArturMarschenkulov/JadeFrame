@@ -6,7 +6,7 @@
 namespace JadeFrame {
 namespace vulkan {
 namespace win32 {
-auto create_surface(VkInstance instance, const IWindow* window_handle) -> VkSurfaceKHR {
+auto create_surface(VkInstance instance, const Window* window_handle) -> VkSurfaceKHR {
     auto win = static_cast<const JadeFrame::win32::Window*>(window_handle);
 
     const VkWin32SurfaceCreateInfoKHR create_info = {

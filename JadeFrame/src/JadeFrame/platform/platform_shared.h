@@ -246,7 +246,7 @@ enum class KEY {
 
 class NativeWindow;
 
-class IWindow {
+class Window {
 public:
     enum class WINDOW_STATE {
         WINDOWED,
@@ -264,9 +264,9 @@ public:
         bool         accept_drop_files = false;
     };
 
-    IWindow() = default;
+    Window() = default;
 
-    explicit IWindow(const IWindow::Desc& desc);
+    explicit Window(const Window::Desc& desc);
 
     auto               handle_events(bool& running) -> void;
     [[nodiscard]] auto get_window_state() const -> WINDOW_STATE;
@@ -307,7 +307,7 @@ public:
     virtual auto initialize() -> void = 0;
     virtual auto log() const -> void = 0;
 
-    virtual auto request_window(IWindow::Desc desc) -> IWindow* = 0;
+    virtual auto request_window(Window::Desc desc) -> Window* = 0;
 
     // time management
     auto get_time() const -> f64 { return static_cast<const T*>(this)->get_time(); }

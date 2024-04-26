@@ -13,13 +13,13 @@ class Linux_SystemManager : public ISystemManager<Linux_SystemManager> {
 public:
     auto initialize() -> void override;
     auto log() const -> void override;
-    auto request_window(IWindow::Desc desc) -> IWindow* override;
+    auto request_window(Window::Desc desc) -> Window* override;
 
 public: // Window stuff
     i32 m_window_counter = 0;
     using WindowID = i32;
-    std::map<WindowID, IWindow> m_windows;
-    IWindow*                    m_curr_window = nullptr;
+    std::map<WindowID, Window> m_windows;
+    Window*                    m_curr_window = nullptr;
 
 public: // Time stuff
     [[nodiscard]] auto get_time() const -> f64;

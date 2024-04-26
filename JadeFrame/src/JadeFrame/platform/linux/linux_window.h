@@ -14,7 +14,7 @@ public:
     auto operator=(Linux_Window&&) -> Linux_Window& = delete;
 
     Linux_Window() = default;
-    explicit Linux_Window(const IWindow::Desc& desc);
+    explicit Linux_Window(const Window::Desc& desc);
     ~Linux_Window() override;
 
     auto handle_events(bool&) -> void override;

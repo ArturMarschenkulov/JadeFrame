@@ -158,8 +158,8 @@ public:
 
     // Window stuff
     using WindowID = i32;
-    std::map<WindowID, IWindow*> m_windows;
-    IWindow*                     m_current_window_p = nullptr;
+    std::map<WindowID, Window*> m_windows;
+    Window*                     m_current_window_p = nullptr;
 
     RenderSystem m_render_system;
 

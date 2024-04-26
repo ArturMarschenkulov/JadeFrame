@@ -21,8 +21,8 @@ auto Linux_SystemManager::initialize() -> void {
 
 auto Linux_SystemManager::log() const -> void {}
 
-auto Linux_SystemManager::request_window(IWindow::Desc desc) -> IWindow* {
-    m_windows[m_window_counter] = IWindow(desc);
+auto Linux_SystemManager::request_window(Window::Desc desc) -> Window* {
+    m_windows[m_window_counter] = Window(desc);
     m_window_counter++;
     return &m_windows[m_window_counter - 1];
 }

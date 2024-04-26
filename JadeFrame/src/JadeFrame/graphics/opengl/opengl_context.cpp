@@ -36,7 +36,7 @@ auto OpenGL_Context::create_renderbuffer() -> opengl::Renderbuffer* {
     return buffer;
 }
 
-OpenGL_Context::OpenGL_Context(const IWindow* window)
+OpenGL_Context::OpenGL_Context(const Window* window)
 #ifdef WIN32
 {
     auto* win = static_cast<const JadeFrame::win32::Window*>(window);

@@ -235,7 +235,7 @@ auto test() -> void {
 //
 //	if (shCoreDll) {
 //		typedef HRESULT(STDAPICALLTYPE* GetDPIForMonitorProc)(HMONITOR hmonitor,
-//UINT
+// UINT
 // dpi_type, UINT* dpi_x,
 // UINT* dpi_y); 		const GetDPIForMonitorProc GetDpiForMonitor =
 // (GetDPIForMonitorProc)::GetProcAddress(shCoreDll, "GetDpiForMonitor");
@@ -273,7 +273,7 @@ auto test() -> void {
 //	return nError;
 // }
 
-auto SystemManager::request_window(IWindow::Desc desc) -> IWindow* {
+auto SystemManager::request_window(Window::Desc desc) -> Window* {
     m_windows[m_window_counter] = std::make_unique<Window>(desc, m_instance);
     m_window_counter++;
     return m_windows[m_window_counter - 1].get();
@@ -466,7 +466,8 @@ auto SystemManager::initialize() -> void {
     }
     {
         // The the GPU data without DirectX
-    } {
+    }
+    {
         std::array<int, 4> cpu_info = {0};
         constexpr size_t   buffer_size = sizeof(i32) * cpu_info.size();
 

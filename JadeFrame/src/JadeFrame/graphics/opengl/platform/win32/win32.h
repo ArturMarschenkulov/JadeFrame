@@ -8,7 +8,7 @@
 */
 
 namespace JadeFrame {
-class IWindow;
+class Window;
 
 namespace opengl {
 namespace win32 {

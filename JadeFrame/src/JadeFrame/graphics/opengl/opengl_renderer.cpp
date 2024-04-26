@@ -54,7 +54,7 @@ static auto framebuffer_res_to_str(GLenum e) -> const char* {
     }
 }
 
-OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const IWindow* window)
+OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const Window* window)
     : m_context(window)
     , m_system(&system) {
 

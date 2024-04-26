@@ -324,7 +324,7 @@ auto VertexFormat::calculate_offset_and_stride(std::vector<VertexAttribute>& att
     RenderSystem
 ---------------------------*/
 
-RenderSystem::RenderSystem(GRAPHICS_API api, IWindow* window) {
+RenderSystem::RenderSystem(GRAPHICS_API api, Window* window) {
     m_api = api;
     switch (api) {
         case GRAPHICS_API::OPENGL: {
@@ -338,7 +338,7 @@ RenderSystem::RenderSystem(GRAPHICS_API api, IWindow* window) {
     }
 }
 
-auto RenderSystem::init(GRAPHICS_API api, IWindow* window) -> void {
+auto RenderSystem::init(GRAPHICS_API api, Window* window) -> void {
     m_api = api;
     switch (api) {
         case GRAPHICS_API::OPENGL: {
