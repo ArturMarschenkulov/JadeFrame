@@ -12,10 +12,8 @@ namespace win32 {
 /*
         KEY INPUT
 */
-std::array<INPUT_STATE, static_cast<u32>(KEY::MAX)> InputManager::m_current_key_state =
-    {};
-std::array<INPUT_STATE, static_cast<u32>(KEY::MAX)> InputManager::m_previous_key_state =
-    {};
+std::array<INPUT_STATE, static_cast<u32>(KEY::MAX)> InputManager::m_curr_key_state = {};
+std::array<INPUT_STATE, static_cast<u32>(KEY::MAX)> InputManager::m_prev_key_state = {};
 
 auto InputManager::translate_button_code(const u64 button_code) -> BUTTON {
     BUTTON result;
@@ -133,8 +131,8 @@ auto InputManager::translate_key_code(const u64 key_code) -> KEY {
 }
 
 auto InputManager::handle_input() -> void {
-    for (size_t i = 0; i < m_current_key_state.size(); i++) {
-        m_previous_key_state[i] = m_current_key_state[i];
+    for (size_t i = 0; i < m_curr_key_state.size(); i++) {
+        m_prev_key_state[i] = m_curr_key_state[i];
     }
 }
 
@@ -220,17 +218,16 @@ auto InputManager::key_callback(const EventMessage& wm) -> void {
     }
     KEY jf_keycode = translate_key_code(virtual_key);
 
-    m_current_key_state[static_cast<u32>(jf_keycode)] =
+    m_curr_key_state[static_cast<u32>(jf_keycode)] =
         static_cast<INPUT_STATE>(!is_released);
     // ImGuiIO& io = ImGui::GetIO();
     // io.KeysDown[key_code] = b_is_pressed;
 
     // TODO: Try to extract that to somewhere else. So th
-    if (m_current_key_state[static_cast<u32>(KEY::ESCAPE)] == INPUT_STATE::PRESSED) {
+    if (m_curr_key_state[static_cast<u32>(KEY::ESCAPE)] == INPUT_STATE::PRESSED) {
         if (::MessageBoxW(
                 wm.hWnd, L"Quit through ESC?", L"My application", MB_OKCANCEL
             ) == IDOK) {
-            Logger::log("WinInputManager::key_callback(); WM_QUIT");
             Instance::get_singleton()->m_current_app_p->m_is_running = false;
             ::PostQuitMessage(0);
             // DestroyWindow(hwnd);
@@ -257,7 +254,7 @@ auto InputManager::char_callback(const EventMessage& wm) -> void {
 
 auto InputManager::is_key_down(const KEY key) -> bool {
     i32         key_0 = static_cast<u32>(key);
-    INPUT_STATE curr = m_current_key_state[key_0];
+    INPUT_STATE curr = m_curr_key_state[key_0];
 
     bool is_pressed = (curr == INPUT_STATE::PRESSED);
     return is_pressed ? true : false;
@@ -265,7 +262,7 @@ auto InputManager::is_key_down(const KEY key) -> bool {
 
 auto InputManager::is_key_up(const KEY key) -> bool {
     i32         key_0 = static_cast<u32>(key);
-    INPUT_STATE curr = m_current_key_state[key_0];
+    INPUT_STATE curr = m_curr_key_state[key_0];
 
     bool is_current_released = (curr == INPUT_STATE::RELEASED);
     return is_current_released ? true : false;
@@ -273,18 +270,18 @@ auto InputManager::is_key_up(const KEY key) -> bool {
 
 auto InputManager::is_key_pressed(const KEY key) -> bool {
     i32         key_0 = static_cast<u32>(key);
-    INPUT_STATE curr = m_current_key_state[key_0];
-    INPUT_STATE prev = m_previous_key_state[key_0];
+    INPUT_STATE curr = m_curr_key_state[key_0];
+    INPUT_STATE prev = m_prev_key_state[key_0];
 
-    bool is_changed = (curr != prev);
-    bool is_pressed = (curr == INPUT_STATE::PRESSED);
+    bool is_changed = (m_curr_key_state[key_0] != m_prev_key_state[key_0]);
+    bool is_pressed = (m_curr_key_state[key_0] == INPUT_STATE::PRESSED);
     return (is_changed && is_pressed) ? true : false;
 }
 
 auto InputManager::is_key_released(const KEY key) -> bool {
     u32         key_0 = static_cast<u32>(key);
-    INPUT_STATE curr = m_current_key_state[key_0];
-    INPUT_STATE prev = m_previous_key_state[key_0];
+    INPUT_STATE curr = m_curr_key_state[key_0];
+    INPUT_STATE prev = m_prev_key_state[key_0];
 
     bool is_changed = (curr != prev);
     bool is_released = (curr == INPUT_STATE::RELEASED);
@@ -383,31 +380,43 @@ auto InputManager::mouse_button_callback(const EventMessage& wm) -> void {
 }
 
 auto InputManager::is_button_down(const BUTTON button) const -> bool {
-    i32  button_0 = static_cast<i32>(button);
-    bool is_current_pressed = (m_current_key_state[button_0] == INPUT_STATE::PRESSED);
-    return is_current_pressed ? true : false;
+    i32 button_0 = static_cast<i32>(button);
+
+    INPUT_STATE curr = m_curr_key_state[button_0];
+
+    bool is_pressed = (curr == INPUT_STATE::PRESSED);
+    return is_pressed ? true : false;
 }
 
 auto InputManager::is_button_up(const BUTTON button) const -> bool {
-    i32  button_0 = static_cast<i32>(button);
-    bool is_current_released = (m_current_key_state[button_0] == INPUT_STATE::RELEASED);
-    return is_current_released ? true : false;
+    i32 button_0 = static_cast<i32>(button);
+
+    INPUT_STATE curr = m_curr_key_state[button_0];
+
+    bool is_released = (curr == INPUT_STATE::RELEASED);
+    return is_released ? true : false;
 }
 
 auto InputManager::is_button_pressed(const BUTTON button) const -> bool {
-    i32  button_0 = static_cast<i32>(button);
-    bool is_current_changed =
-        (m_current_key_state[button_0] != m_previous_key_state[button_0]);
-    bool is_current_pressed = (m_current_key_state[button_0] == INPUT_STATE::PRESSED);
-    return (is_current_changed && is_current_pressed) ? true : false;
+    i32 button_0 = static_cast<i32>(button);
+
+    INPUT_STATE curr = m_curr_key_state[button_0];
+    INPUT_STATE prev = m_prev_key_state[button_0];
+
+    bool is_changed = (curr != prev);
+    bool is_pressed = (curr == INPUT_STATE::PRESSED);
+    return (is_changed && is_pressed) ? true : false;
 }
 
 auto InputManager::is_button_released(const BUTTON button) const -> bool {
-    i32  button_0 = static_cast<i32>(button);
-    bool is_current_changed =
-        (m_current_key_state[button_0] != m_previous_key_state[button_0]);
-    bool is_current_released = (m_current_key_state[button_0] == INPUT_STATE::RELEASED);
-    return (is_current_changed && is_current_released) ? true : false;
+    i32 button_0 = static_cast<i32>(button);
+
+    INPUT_STATE curr = m_curr_key_state[button_0];
+    INPUT_STATE prev = m_prev_key_state[button_0];
+
+    bool is_changed = (curr != prev);
+    bool is_released = (curr == INPUT_STATE::RELEASED);
+    return (is_changed && is_released) ? true : false;
 }
 
 auto InputManager::get_mouse_position() const -> v2 { return m_mouse_posiition; }
