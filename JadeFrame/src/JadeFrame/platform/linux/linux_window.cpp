@@ -15,13 +15,13 @@ Linux_Window::Linux_Window(const Window::Desc& desc) {
     if (x11_display_env == nullptr) {
         printf("The DISPLAY environment variable is not set. This is required for X11.\n"
         );
-        exit(1);
+        std::exit(1);
     }
 
     m_display = XOpenDisplay(nullptr);
     if (m_display == nullptr) {
         printf("\n\tcannot connect to X server\n\n");
-        exit(0);
+        std::exit(0);
     }
 
     XID root = DefaultRootWindow(m_display);
@@ -44,7 +44,7 @@ Linux_Window::Linux_Window(const Window::Desc& desc) {
     window_attributes.event_mask =
         KeyPressMask | KeyReleaseMask | StructureNotifyMask | ExposureMask;
 
-    m_window = XCreateWindow(
+    m_window = ::XCreateWindow(
         m_display,
         RootWindow(m_display, screen),
         0,
@@ -70,7 +70,8 @@ Linux_Window::Linux_Window(const Window::Desc& desc) {
 
     // Window dimensions
     ::Window     root_window;
-    int          x, y;
+    int          x;
+    int          y;
     unsigned int border_width;
     unsigned int depth_;
     unsigned int window_width;
@@ -90,19 +91,49 @@ Linux_Window::Linux_Window(const Window::Desc& desc) {
     // m_title = desc.title;
     m_size = v2u32(window_width, window_height);
     // m_position = v2u32(window_rect.left, window_rect.top);
+
+    ::XIM xim = XOpenIM(m_display, nullptr, nullptr, nullptr);
+    if (xim == nullptr) {
+        // fallback to internal input method
+        XSetLocaleModifiers("@im=none");
+        xim = XOpenIM(m_display, nullptr, nullptr, nullptr);
+    }
+    ::XIC xic = ::XCreateIC(
+        xim,
+        XNInputStyle,
+        XIMPreeditNothing | XIMStatusNothing,
+        XNClientWindow,
+        m_window,
+        XNFocusWindow,
+        m_window,
+        nullptr
+    );
+
+    XSetICFocus(xic);
+
+    XSelectInput(
+        m_display,
+        m_window,
+        KeyPressMask | KeyReleaseMask | StructureNotifyMask | ExposureMask
+    );
 }
 
 Linux_Window::~Linux_Window() { XDestroyWindow(m_display, m_window); }
 
-static auto process_event(XEvent* event) -> void {
+static auto XCreateWindow(XEvent* event) -> bool {
+    return event->type == KeyPress || event->type == KeyRelease;
+}
+
+static auto process_event(XEvent* event, Linux_Window* win) -> void {
+
     switch (event->type) {
         case Expose: {
 
         } break;
-        case KeyPress: {
-
-        } break;
+        case KeyPress:
         case KeyRelease: {
+            auto keycode = event->xkey.keycode;
+
         } break;
         case ConfigureNotify: {
 
@@ -115,10 +146,10 @@ auto Linux_Window::handle_events(bool&) -> void {
 
     XPending(m_display);
 
-    while (XQLength(m_display)) {
+    while (XQLength(m_display) != 0) {
         XEvent event;
         XNextEvent(m_display, &event);
-        process_event(&event);
+        process_event(&event, this);
     }
 }
 } // namespace JadeFrame

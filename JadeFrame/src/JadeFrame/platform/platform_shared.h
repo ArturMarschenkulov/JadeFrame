@@ -240,7 +240,7 @@ enum class KEY {
     X,
     Y,
     Z,
-
+    // Denotes the number of keys and an invalid/unknown key
     MAX
 };
 

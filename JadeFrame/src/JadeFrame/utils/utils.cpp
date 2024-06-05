@@ -49,7 +49,7 @@ template<class T>
     requires std::same_as<T, bool>
 auto init_memory(T& data) -> void {
     static_assert(
-        !std::is_pointer<T>::value, "'init_memory' does not allow pointertypes"
+        !std::is_pointer_v<T>, "'init_memory' does not allow pointertypes"
     );
 
     static_assert(
@@ -61,7 +61,7 @@ auto init_memory(T& data) -> void {
 
 class RenderCommandQueue {
 public:
-    typedef void (*RenderCommandFn)(void*);
+    using RenderCommandFn = void (*)(void*);
 
     RenderCommandQueue() {
         const auto buffer_size = 10 * 1024 * 1024;
