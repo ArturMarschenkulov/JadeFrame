@@ -9,20 +9,23 @@
 
 #include <string>
 #include <iostream>
+
 // using namespace JadeFrame;
 class App : public JadeFrame::BaseApp {
 public:
+
 public:
     App(Desc desc)
         : BaseApp(desc) {}
+
     virtual auto on_init() -> void override {}
+
     virtual auto on_update() -> void override {}
+
     virtual auto on_draw() -> void override {}
 };
 
-
 int main() {
-
 
     JadeFrame::Instance jade_frame;
 

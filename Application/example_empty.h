@@ -1,32 +1,30 @@
 #pragma once
-#include<JadeFrame.h>
+#include <JadeFrame.h>
+
 namespace JadeFrame {
 struct Example_Empty : public BaseApp {
-	Example_Empty(const Desc& desc);
-	virtual ~Example_Empty() = default;
+    explicit Example_Empty(const Desc& desc);
+    ~Example_Empty() override = default;
 
-	virtual auto on_init() -> void override;
-	virtual auto on_update() -> void override;
-	virtual auto on_draw() -> void override;
+    auto on_init() -> void override;
+    auto on_update() -> void override;
+    auto on_draw() -> void override;
 
 public:
-	// std::deque<Mesh> m_meshes;
-	// std::vector<Object> m_objs;
+    // std::deque<Mesh> m_meshes;
+    // std::vector<Object> m_objs;
 };
 
-
-Example_Empty::Example_Empty(const Desc& desc)
-	: BaseApp(desc) {
-	//m_current_app_p = reinterpret_cast<Example_Empty*>(this);
+inline Example_Empty::Example_Empty(const Desc& desc)
+    : BaseApp(desc) {
+    // m_current_app_p = reinterpret_cast<Example_Empty*>(this);
 }
-auto Example_Empty::on_init() -> void {
 
-}
-auto Example_Empty::on_update() -> void {
+inline auto Example_Empty::on_init()->void {}
 
-}
-auto Example_Empty::on_draw() -> void {
+inline auto Example_Empty::on_update()->void {}
 
-}
+inline auto Example_Empty::on_draw()->void {}
+
 using TestApp = Example_Empty;
-}
+} // namespace JadeFrame

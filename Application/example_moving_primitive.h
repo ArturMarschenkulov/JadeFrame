@@ -9,9 +9,9 @@ struct Example_Moving_Primitive : public BaseApp {
     Example_Moving_Primitive(const Desc& desc);
     virtual ~Example_Moving_Primitive() = default;
 
-    virtual auto on_init() -> void override;
-    virtual auto on_update() -> void override;
-    virtual auto on_draw() -> void override;
+    auto on_init() -> void override;
+    auto on_update() -> void override;
+    auto on_draw() -> void override;
 
 public:
     // Object              m_obj;
@@ -47,15 +47,15 @@ auto Example_Moving_Primitive::on_init() -> void {
     // x^(2.2)
     // x^(1/2.2)
     for (int i = 0; i < col[0].size(); i++) {
-        auto p = 0.1f * i;
+        auto p = 0.1F * i;
         col[0][i] = RGBAColor(p, p, p);
     }
     for (int i = 0; i < col[1].size(); i++) {
-        auto p = 0.1f * i;
+        auto p = 0.1F * i;
         col[1][i] = RGBAColor(p, p, p).gamma_decode();
     }
     for (int i = 0; i < col[2].size(); i++) {
-        auto p = 0.1f * i;
+        auto p = 0.1F * i;
         col[2][i] = RGBAColor(p, p, p).gamma_encode();
     }
 
@@ -63,24 +63,23 @@ auto Example_Moving_Primitive::on_init() -> void {
         for (int j = 0; j < 11; j++) {
             auto vertex_data = new VertexData();
             vertex_data->m_positions = std::vector<v3>{
-                {       0.0f,        0.0f, 0.0f},
-                {block_width,        0.0f, 0.0f},
-                {block_width, block_width, 0.0f},
-                {       0.0f, block_width, 0.0f},
-                {       0.0f,        0.0f, 0.0f},
-                {block_width, block_width, 0.0f}
+                {       0.0F,        0.0F, 0.0F},
+                {block_width,        0.0F, 0.0F},
+                {block_width, block_width, 0.0F},
+                {       0.0F, block_width, 0.0F},
+                {       0.0F,        0.0F, 0.0F},
+                {block_width, block_width, 0.0F}
             };
             vertex_data->m_colors = {
-                col[i][j], col[i][j], col[i][j], col[i][j], col[i][j], col[i][j]};
+                col[i][j], col[i][j], col[i][j], col[i][j], col[i][j], col[i][j]
+            };
             Object obj;
             obj.m_transform =
                 Matrix4x4::identity() *
                 Matrix4x4::translation(v3(block_width * j, block_width * i, 0.0f));
             obj.m_vertex_data = vertex_data;
 
-            obj.m_vertex_format = format;
-            obj.m_vertex_data_id =
-                m_render_system.register_mesh(obj.m_vertex_format, *obj.m_vertex_data);
+            obj.m_vertex_data_id = m_render_system.register_mesh(*obj.m_vertex_data);
             obj.m_material_handle = material;
             m_objs.push_back(obj);
         }
