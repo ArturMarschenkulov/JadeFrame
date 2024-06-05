@@ -29,8 +29,6 @@ set(
 ################################################################################
 add_executable(${PROJECT_NAME} ${ALL_FILES})
 
-# use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
-# set(ROOT_NAMESPACE Application)
 
 ################################################################################
 # Include directories

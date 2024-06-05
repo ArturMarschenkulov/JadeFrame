@@ -1,32 +1,6 @@
 # utils file for projects came from visual studio solution with cmake-converter.
 
 ################################################################################
-# Use props file for a target and configs
-#     use_props(<target> <configs...> <props_file>)
-# Inside <props_file> there are following variables:
-#     PROPS_TARGET   - <target>
-#     PROPS_CONFIG   - One of <configs...>
-#     PROPS_CONFIG_U - Uppercase PROPS_CONFIG
-# Input:
-#     target      - Target to apply props file
-#     configs     - Build configurations to apply props file
-#     props_file  - CMake script
-################################################################################
-macro(use_props TARGET CONFIGS PROPS_FILE)
-    set(PROPS_TARGET "${TARGET}")
-    foreach(PROPS_CONFIG ${CONFIGS})
-        string(TOUPPER "${PROPS_CONFIG}" PROPS_CONFIG_U)
-
-        get_filename_component(ABSOLUTE_PROPS_FILE "${PROPS_FILE}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_LIST_DIR}")
-        if(EXISTS "${ABSOLUTE_PROPS_FILE}")
-            include("${ABSOLUTE_PROPS_FILE}")
-        else()
-            message(WARNING "Corresponding cmake file from props \"${ABSOLUTE_PROPS_FILE}\" doesn't exist")
-        endif()
-    endforeach()
-endmacro()
-
-################################################################################
 # Add compile options to source file
 #     source_file_compile_options(<source_file> [compile_options...])
 # Input:

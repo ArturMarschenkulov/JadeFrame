@@ -179,11 +179,6 @@ add_library(${PROJECT_NAME} STATIC ${ALL_FILES})
 target_precompile_headers(${PROJECT_NAME} PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
 )
-# add_library(JF_MODULE_pch STATIC src/pch.cpp src/pch.h)
-# target_include_directories(JF_MODULE_pch INTERFACE src/)
-
-# use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")
-# set(ROOT_NAMESPACE JadeFrame)
 
 #########################################################################
 # Include directories
