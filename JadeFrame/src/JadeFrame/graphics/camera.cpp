@@ -12,8 +12,8 @@ auto Camera::perspective_mode(
 ) -> void {
     m_mode = MODE::PERSPECTIVE;
     m_position = position;
-    m_forward = {0.0f, 1.0f, 0.0f};  // y is forward
-    m_world_up = {0.0f, 0.0f, 1.0f}; // z is up
+    m_forward = {0.0F, 1.0F, 0.0F};  // y is forward
+    m_world_up = {0.0F, 0.0F, 1.0F}; // z is up
 
     m_projection_matrix = Matrix4x4::perspective_projection(fov, aspect, zNear, zFar);
 
@@ -39,12 +39,12 @@ auto Camera::orthographic_mode(
     m_projection_matrix =
         Matrix4x4::orthogonal_projection(left, right, bottom, top, near_, far_);
 
-    m_position = {0.0f, 0.0f, 0.0f};
+    m_position = {0.0F, 0.0F, 0.0F};
 
     // m_forward = { 1.0f, 0.0f, 0.0f };
     // m_up = { 0.0f, 1.0f, 0.0f };
-    m_forward = {0.0f, 0.0f, -1.0f};
-    m_up = {0.0f, 1.0f, 0.0f};
+    m_forward = {0.0F, 0.0F, -1.0F};
+    m_up = {0.0F, 1.0F, 0.0F};
 }
 
 auto Camera::get_projection() const -> Matrix4x4 { return m_projection_matrix; }

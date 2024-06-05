@@ -5,8 +5,6 @@
 // #include "../graphics_shared.h"
 #include "JadeFrame/graphics/reflect.h"
 
-#include <thread>
-#include <future>
 #include <vector>
 #include <JadeFrame/graphics/shader_loader.h>
 
@@ -64,8 +62,8 @@ public:
         const LogicalDevice* m_device = nullptr;
     };
 
-    VkPipeline           m_handle;
-    PipelineLayout       m_layout;
+    VkPipeline           m_handle = VK_NULL_HANDLE; 
+    PipelineLayout       m_layout = {};
     const LogicalDevice* m_device = nullptr;
     const RenderPass*    m_render_pass = nullptr;
 
