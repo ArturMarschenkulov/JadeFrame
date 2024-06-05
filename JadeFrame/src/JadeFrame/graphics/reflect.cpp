@@ -81,12 +81,14 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
     if (columns == 1) {
         switch (type.basetype) {
             case spirv_cross::SPIRType::Float: {
+                u32         index = rows - 1;
                 SHADER_TYPE arr[] = {
                     SHADER_TYPE::F32,
                     SHADER_TYPE::V_2_F32,
                     SHADER_TYPE::V_3_F32,
-                    SHADER_TYPE::V_4_F32};
-                result = arr[rows - 1];
+                    SHADER_TYPE::V_4_F32
+                };
+                result = arr[index];
             } break;
             default: JF_ASSERT(false, "this should not be reached!");
         }
@@ -104,9 +106,8 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
                                      "are not supported yet!");
                 }
                 SHADER_TYPE arr[] = {
-                    SHADER_TYPE::M_2_2_F32,
-                    SHADER_TYPE::M_3_3_F32,
-                    SHADER_TYPE::M_4_4_F32};
+                    SHADER_TYPE::M_2_2_F32, SHADER_TYPE::M_3_3_F32, SHADER_TYPE::M_4_4_F32
+                };
 
                 result = arr[rows - 2];
             } break;
@@ -126,13 +127,16 @@ auto temp_cmp_1(const ReflectedModule::Input& i0, const ReflectedModule::Input& 
     return i0.location < i1.location;
 }
 
-auto temp_cmp(ReflectedModule::Output i0, ReflectedModule::Output i1) -> bool {
+auto temp_cmp(const ReflectedModule::Output& i0, const ReflectedModule::Output& i1)
+    -> bool {
     return i0.location < i1.location;
 }
 
 auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
     ReflectedModule result = {};
     // result.m_stage = current_module.m_stage;
+
+    constexpr u32 BYTE_SIZE = 8;
 
     spirv_cross::Compiler        compiler(code);
     spirv_cross::ShaderResources resources = compiler.get_shader_resources();
@@ -147,9 +151,10 @@ auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
 
         const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
         const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
-        i32 member_count = static_cast<u32>(buffer_type.member_types.size());
+        u32 member_count = static_cast<u32>(buffer_type.member_types.size());
         u32 location = compiler.get_decoration(resource.id, spv::DecorationLocation);
-        u32 size = (buffer_type.width / 8) * buffer_type.vecsize * buffer_type.columns;
+        u32 size =
+            (buffer_type.width / BYTE_SIZE) * buffer_type.vecsize * buffer_type.columns;
 
         std::vector<ReflectedModule::Input>& inputs = result.m_inputs;
         inputs[j].name = name;
@@ -161,22 +166,23 @@ auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
 
     result.m_outputs.resize(resources.stage_inputs.size());
     for (u32 j = 0; j < resources.stage_outputs.size(); j++) {
+
         const spirv_cross::Resource& resource = resources.stage_outputs[j];
 
         const std::string& name = resource.name;
 
         const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
-        const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
-        i32 member_count = static_cast<u32>(buffer_type.member_types.size());
+        const spirv_cross::SPIRType& type = compiler.get_type(resource.type_id);
+        u32 member_count = static_cast<u32>(type.member_types.size());
         u32 location = compiler.get_decoration(resource.id, spv::DecorationLocation);
-        u32 size = (buffer_type.width / 8) * buffer_type.vecsize * buffer_type.columns;
+
+        u32 size = (type.width / BYTE_SIZE) * type.vecsize * type.columns;
 
         std::vector<ReflectedModule::Output>& outputs = result.m_outputs;
         outputs[j].name = name;
         outputs[j].location = location;
         outputs[j].size = size;
-        outputs[j].type =
-            to_SHADER_TYPE(buffer_type, buffer_type.vecsize, buffer_type.columns);
+        outputs[j].type = to_SHADER_TYPE(type, type.vecsize, type.columns);
     }
 
     result.m_uniform_buffers.resize(resources.uniform_buffers.size());
@@ -207,7 +213,7 @@ auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
         uniform_buffers[j].size = size;
 
         JF_ASSERT(
-            base_type.member_types.size() > 0,
+            !base_type.member_types.empty(),
             "this uniform buffer doesn't have any members"
         );
         for (u32 jj = 0; jj < base_type.member_types.size(); jj++) {
@@ -249,7 +255,7 @@ auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
         const std::string&           name = resource.name;
         const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
         const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
-        i32 member_count = static_cast<u32>(buffer_type.member_types.size());
+        u32 member_count = static_cast<u32>(buffer_type.member_types.size());
         u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
         u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
         u32 descriptor_set =
@@ -292,12 +298,13 @@ auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
 
 auto reflect(const ShadingCode& code) -> ReflectedCode {
     ReflectedCode result = {};
+    constexpr u32 BYTE_SIZE = 8;
 
     result.m_modules.resize(code.m_modules.size());
     for (u32 i = 0; i < code.m_modules.size(); i++) {
-        auto& current_module = code.m_modules[i];
-        auto& current_module_code = current_module.m_code;
-        auto& current_result_module = result.m_modules[i];
+        const auto& current_module = code.m_modules[i];
+        const auto& current_module_code = current_module.m_code;
+        auto&       current_result_module = result.m_modules[i];
         result.m_modules[i].m_stage = current_module.m_stage;
 
         spirv_cross::Compiler        compiler(current_module_code);
@@ -313,19 +320,16 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
 
             const spirv_cross::SPIRType& base_type =
                 compiler.get_type(resource.base_type_id);
-            const spirv_cross::SPIRType& buffer_type =
-                compiler.get_type(resource.type_id);
-            i32 member_count = static_cast<u32>(buffer_type.member_types.size());
+            const spirv_cross::SPIRType& type = compiler.get_type(resource.type_id);
+            u32 member_count = static_cast<u32>(type.member_types.size());
             u32 location = compiler.get_decoration(resource.id, spv::DecorationLocation);
-            u32 size =
-                (buffer_type.width / 8) * buffer_type.vecsize * buffer_type.columns;
+            u32 size = (type.width / BYTE_SIZE) * type.vecsize * type.columns;
 
             std::vector<ReflectedModule::Input>& inputs = current_result_module.m_inputs;
             inputs[j].name = name;
             inputs[j].location = location;
             inputs[j].size = size;
-            inputs[j].type =
-                to_SHADER_TYPE(buffer_type, buffer_type.vecsize, buffer_type.columns);
+            inputs[j].type = to_SHADER_TYPE(type, type.vecsize, type.columns);
         }
 
         result.m_modules[i].m_outputs.resize(resources.stage_inputs.size());
@@ -338,10 +342,10 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
                 compiler.get_type(resource.base_type_id);
             const spirv_cross::SPIRType& buffer_type =
                 compiler.get_type(resource.type_id);
-            i32 member_count = static_cast<u32>(buffer_type.member_types.size());
+            u32 member_count = static_cast<u32>(buffer_type.member_types.size());
             u32 location = compiler.get_decoration(resource.id, spv::DecorationLocation);
-            u32 size =
-                (buffer_type.width / 8) * buffer_type.vecsize * buffer_type.columns;
+            u32 size = (buffer_type.width / BYTE_SIZE) * buffer_type.vecsize *
+                       buffer_type.columns;
 
             std::vector<ReflectedModule::Output>& outputs =
                 current_result_module.m_outputs;
@@ -382,7 +386,7 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
             uniform_buffers[j].size = size;
 
             JF_ASSERT(
-                base_type.member_types.size() > 0,
+                !base_type.member_types.empty(),
                 "this uniform buffer doesn't have any members"
             );
             for (u32 jj = 0; jj < base_type.member_types.size(); jj++) {
@@ -426,7 +430,7 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
                 compiler.get_type(resource.base_type_id);
             const spirv_cross::SPIRType& buffer_type =
                 compiler.get_type(resource.type_id);
-            i32 member_count = static_cast<u32>(buffer_type.member_types.size());
+            u32 member_count = static_cast<u32>(buffer_type.member_types.size());
             u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
             u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
             u32 descriptor_set =
