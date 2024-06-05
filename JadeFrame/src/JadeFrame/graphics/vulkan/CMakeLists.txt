@@ -41,8 +41,7 @@ target_precompile_headers(gfx-vulkan PRIVATE pch.h)
 
 target_link_libraries(gfx-vulkan
     PUBLIC
-        ${stb}
-        stb
-        spdlog
+        Vulkan::Vulkan
+        ${Vulkan_LIBRARIES}
         JadeFrame
 )

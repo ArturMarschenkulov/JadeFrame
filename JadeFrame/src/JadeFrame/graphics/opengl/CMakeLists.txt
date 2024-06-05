@@ -54,9 +54,11 @@ if(MSVC)
     )
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(gfx-opengl PRIVATE
+        # -g
+        # -O0
         -Wall
         -Wextra
-        -Wshadow
+        # -Wshadow
         -Wconversion
         -Wpedantic
         -Wno-unused
