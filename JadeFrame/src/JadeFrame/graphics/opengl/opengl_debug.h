@@ -13,6 +13,6 @@ auto opengl_message_callback(
     const void* userParam
 ) -> void;
 
-auto set_debug_mode(bool b) -> void;
+auto set_debug_mode(bool enable_debug) -> void;
 } // namespace opengl
 } // namespace JadeFrame

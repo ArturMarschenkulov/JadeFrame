@@ -76,7 +76,7 @@ auto Buffer::reserve(GLuint size) const -> void {
 }
 
 auto Buffer::alloc(void* data, GLuint size) const -> void {
-    u32 usage;
+    u32 usage = 0;
     switch (m_type) {
         case TYPE::UNIFORM: usage = GL_DYNAMIC_DRAW; break;
         default: usage = GL_STATIC_DRAW; break;
@@ -144,12 +144,12 @@ GPUMeshData::GPUMeshData(
     const std::vector<f32> flat_data = convert_into_data(vertex_data, interleaved);
 
     void* data = (void*)flat_data.data();
-    u32   data_size = flat_data.size() * sizeof(f32);
+    u32   data_size = static_cast<u32>(flat_data.size() * sizeof(f32));
     m_vertex_buffer = context.create_buffer(Buffer::TYPE::VERTEX, data, data_size);
 
     if (!vertex_data.m_indices.empty()) {
         void* data = (void*)vertex_data.m_indices.data();
-        u32   data_size = vertex_data.m_indices.size() * sizeof(u32);
+        u32   data_size = static_cast<u32>(vertex_data.m_indices.size() * sizeof(u32));
         m_index_buffer = context.create_buffer(Buffer::TYPE::INDEX, data, data_size);
     }
 }

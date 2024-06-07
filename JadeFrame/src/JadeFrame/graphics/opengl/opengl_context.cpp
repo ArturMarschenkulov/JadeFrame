@@ -27,12 +27,12 @@ auto OpenGL_Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 si
 }
 
 auto OpenGL_Context::create_framebuffer() -> opengl::Framebuffer* {
-    opengl::Framebuffer* buffer = new opengl::Framebuffer(*this);
+    auto* buffer = new opengl::Framebuffer(*this);
     return buffer;
 }
 
 auto OpenGL_Context::create_renderbuffer() -> opengl::Renderbuffer* {
-    opengl::Renderbuffer* buffer = new opengl::Renderbuffer();
+    auto* buffer = new opengl::Renderbuffer();
     return buffer;
 }
 
@@ -57,7 +57,7 @@ OpenGL_Context::OpenGL_Context(const Window* window)
     // TODO: This is weird. Somehwere the macro `linux` got defined.
     #undef linux
     #if !defined(linux)
-    auto* win =
+    const auto* win =
         static_cast<const JadeFrame::Linux_Window*>(window->m_native_window.get());
     opengl::linux::load_glx_funcs(win);
     opengl::linux::load_opengl_funcs();
@@ -109,9 +109,9 @@ OpenGL_Context::OpenGL_Context(const Window* window)
     const v2u32& size = window->get_size();
     m_state.set_viewport(0, 0, size.x, size.y);
 
-    GLint max_texture_units;
+    GLint max_texture_units = 0;
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_texture_units);
-    m_texture_units.resize(max_texture_units, 0);
+    m_texture_units.resize(static_cast<u32>(max_texture_units), 0);
 }
 
 OpenGL_Context::~OpenGL_Context() {}
@@ -167,11 +167,11 @@ auto GL_State::set_clear_bitfield(const GLbitfield& bitfield) -> void {
 }
 
 auto GL_State::add_clear_bitfield(const GLbitfield& bitfield) -> void {
-    clear_bitfield |= (1 << bitfield);
+    clear_bitfield |= (1U << bitfield);
 }
 
 auto GL_State::remove_clear_bitfield(const GLbitfield& bitfield) -> void {
-    clear_bitfield &= ~(1 << bitfield);
+    clear_bitfield &= ~(1U << bitfield);
 }
 
 auto GL_State::set_depth_test(bool enable) -> void {

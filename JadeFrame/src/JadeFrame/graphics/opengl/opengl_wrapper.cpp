@@ -4,10 +4,12 @@
 #include "../graphics_shared.h"
 #include "opengl_context.h"
 
+#define GL_SHADER_BINARY_FORMAT_SPIR_V_ARB 0x9551
+
 namespace JadeFrame {
 
-OGLW_VertexArray::OGLW_VertexArray() {
-    m_ID = 0;
+OGLW_VertexArray::OGLW_VertexArray()
+    : m_ID(0) {
     m_vertex_format = {};
 }
 
@@ -15,12 +17,12 @@ OGLW_VertexArray::~OGLW_VertexArray() { glDeleteVertexArrays(1, &m_ID); }
 
 OGLW_VertexArray::OGLW_VertexArray(OGLW_VertexArray&& other) noexcept
     : m_ID(other.m_ID)
-    , m_vertex_format(other.m_vertex_format) {
+    , m_vertex_format(std::move(other.m_vertex_format)) {
     other.m_ID = 0;
     other.m_vertex_format = {};
 }
 
-auto OGLW_VertexArray::operator=(OGLW_VertexArray&& other) -> OGLW_VertexArray& {
+auto OGLW_VertexArray::operator=(OGLW_VertexArray&& other) noexcept -> OGLW_VertexArray& {
     m_ID = other.m_ID;
     m_vertex_format = other.m_vertex_format;
 
@@ -136,8 +138,6 @@ auto OGLW_Shader::set_source(const std::string& source_code) -> void {
 }
 
 auto OGLW_Shader::compile() -> void { glCompileShader(m_ID); }
-
-#define GL_SHADER_BINARY_FORMAT_SPIR_V_ARB 0x9551
 
 auto OGLW_Shader::set_binary(const std::vector<u32>& binary) -> void {
     glShaderBinary(

@@ -36,7 +36,7 @@ public:
     OGLW_VertexArray(OGLW_VertexArray&) = delete;
     auto operator=(const OGLW_VertexArray&) -> OGLW_VertexArray& = delete;
     OGLW_VertexArray(OGLW_VertexArray&& other) noexcept;
-    auto operator=(OGLW_VertexArray&&) -> OGLW_VertexArray&;
+    auto operator=(OGLW_VertexArray&&) noexcept -> OGLW_VertexArray&;
 
     OGLW_VertexArray(OpenGL_Context* context, const VertexFormat& vertex_format);
 
@@ -207,16 +207,17 @@ public:
 
     auto operator=(Framebuffer&&) noexcept -> Framebuffer&;
 
-    Framebuffer(OpenGL_Context& context);
+    explicit Framebuffer(OpenGL_Context& context);
 
     auto attach_texture(ATTACHMENT attachment, u32 i, const Texture& texture) const
         -> void;
     auto
     attach_renderbuffer(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer)
         const -> void;
-    auto check_status() const -> GLenum;
     auto bind() const -> void;
     auto unbind() const -> void;
+
+    [[nodiscard]] auto check_status() const -> GLenum;
 
 private:
     auto release() -> GLuint;

@@ -154,7 +154,7 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
     i32 width = vp[2];
     i32 height = vp[3];
 
-    u8* data = (u8*)malloc((size_t)(width * height * 3));
+    u8* data = static_cast<u8*>(malloc((size_t)(width * height * 3)));
     if (data == nullptr) {
         Logger::log("data failed");
         return;
