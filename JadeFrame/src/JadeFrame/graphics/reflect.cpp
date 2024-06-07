@@ -146,9 +146,7 @@ auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
     result.m_inputs.resize(resources.stage_inputs.size());
     for (u32 j = 0; j < resources.stage_inputs.size(); j++) {
         const spirv_cross::Resource& resource = resources.stage_inputs[j];
-
         const std::string& name = resource.name;
-
         const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
         const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
         u32 member_count = static_cast<u32>(buffer_type.member_types.size());

@@ -301,7 +301,7 @@ public:
     };
 
     GPUBuffer() = default;
-    ~GPUBuffer();
+    ~GPUBuffer() = default;
     GPUBuffer(const GPUBuffer&) = delete;
     auto operator=(const GPUBuffer&) -> GPUBuffer& = delete;
     GPUBuffer(GPUBuffer&& other) noexcept;
@@ -329,10 +329,9 @@ public:
     auto operator=(GPUMeshData&& other) noexcept -> GPUMeshData&;
 
     GPUMeshData(
-        RenderSystem*      system,
-        const VertexData&  vertex_data,
-        const VertexFormat vertex_format,
-        bool               interleaved = true
+        RenderSystem*     system,
+        const VertexData& vertex_data,
+        bool              interleaved = true
     );
 
 public:
@@ -429,7 +428,7 @@ public:
 class RenderSystem {
 public:
     RenderSystem() = default;
-    ~RenderSystem();
+    ~RenderSystem() = default;
     RenderSystem(const RenderSystem&) = delete;
     auto operator=(const RenderSystem&) -> RenderSystem& = delete;
     RenderSystem(RenderSystem&&) noexcept;

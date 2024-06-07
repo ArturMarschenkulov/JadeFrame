@@ -49,38 +49,37 @@ auto remap_for_opengl(
     compiler.set_common_options(options);
     spv_c::ShaderResources resources = compiler.get_shader_resources();
 
-    std::array<std::vector<spv_c::Resource*>, 4> uniform_buffer_sets;
+    std::array<std::vector<spv_c::Resource*>, 4> resource_sets;
     for (u32 j = 0; j < resources.uniform_buffers.size(); j++) {
-        spv_c::Resource& uniform_buffer = resources.uniform_buffers[j];
+        spv_c::Resource& ub = resources.uniform_buffers[j];
 
-        u32 set =
-            compiler.get_decoration(uniform_buffer.id, spv::DecorationDescriptorSet);
-        u32 binding = compiler.get_decoration(uniform_buffer.id, spv::DecorationBinding);
+        u32 set_index = compiler.get_decoration(ub.id, spv::DecorationDescriptorSet);
+        u32 binding = compiler.get_decoration(ub.id, spv::DecorationBinding);
         JF_ASSERT(
-            set <= 3,
+            set_index <= 3,
             "As of right now, only 4 descriptor sets are supported. (0, 1, 2, 3)"
         );
 
-        uniform_buffer_sets[set].push_back(&uniform_buffer);
+        resource_sets[set_index].push_back(&ub);
     }
     // What would be uniform Sampler2D?
     for (u32 j = 0; j < resources.sampled_images.size(); j++) {
-        spv_c::Resource& resource = resources.sampled_images[j];
+        spv_c::Resource& si = resources.sampled_images[j];
 
-        u32 set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-        u32 binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+        u32 set_index = compiler.get_decoration(si.id, spv::DecorationDescriptorSet);
+        u32 binding = compiler.get_decoration(si.id, spv::DecorationBinding);
         JF_ASSERT(
-            set <= 3,
+            set_index <= 3,
             "As of right now, only 4 descriptor sets are supported. (0, 1, 2, 3)"
         );
 
-        uniform_buffer_sets[set].push_back(&resource);
+        resource_sets[set_index].push_back(&si);
     }
 
     u32 binding = 0;
-    for (u32 i = 0; i < uniform_buffer_sets.size(); i++) {
-        for (u32 j = 0; j < uniform_buffer_sets[i].size(); j++) {
-            spv_c::Resource* ub = uniform_buffer_sets[i][j];
+    for (u32 i = 0; i < resource_sets.size(); i++) {
+        for (u32 j = 0; j < resource_sets[i].size(); j++) {
+            spv_c::Resource* ub = resource_sets[i][j];
             compiler.unset_decoration(ub->id, spv::DecorationDescriptorSet);
             // compiler.set_decoration(ub->id, spv::DecorationDescriptorSet, 0);
             compiler.set_decoration(ub->id, spv::DecorationBinding, binding);
@@ -101,11 +100,7 @@ static auto get_shader_kind(SHADER_STAGE stage) -> shaderc_shader_kind {
     }
 }
 
-// Translate GLSL to SPIR-V
-// Depending on the API, the SPIR-V will be different.
-auto GLSL_to_SPIRV(const std::string& glsl_code, SHADER_STAGE stage, GRAPHICS_API api)
-    -> std::vector<u32> {
-
+static auto set_compile_options(GRAPHICS_API api) -> shaderc::CompileOptions {
     shaderc::CompileOptions options;
     switch (api) {
         case GRAPHICS_API::VULKAN: {
@@ -120,13 +115,23 @@ auto GLSL_to_SPIRV(const std::string& glsl_code, SHADER_STAGE stage, GRAPHICS_AP
         } break;
         default: JF_UNIMPLEMENTED("");
     }
+
     options.SetWarningsAsErrors();
     options.SetGenerateDebugInfo();
     const bool optimize = false;
     if constexpr (optimize) {
         options.SetOptimizationLevel(shaderc_optimization_level_size);
     }
-    shaderc_shader_kind kind = get_shader_kind(stage);
+    return options;
+}
+
+// Translate GLSL to SPIR-V
+// Depending on the API, the SPIR-V will be different.
+auto GLSL_to_SPIRV(const std::string& glsl_code, SHADER_STAGE stage, GRAPHICS_API api)
+    -> std::vector<u32> {
+
+    shaderc::CompileOptions options = set_compile_options(api);
+    shaderc_shader_kind     kind = get_shader_kind(stage);
 
     shaderc::Compiler             compiler;
     shaderc::SpvCompilationResult comp_result =
@@ -134,7 +139,7 @@ auto GLSL_to_SPIRV(const std::string& glsl_code, SHADER_STAGE stage, GRAPHICS_AP
     shaderc_compilation_status comp_status = comp_result.GetCompilationStatus();
     if (comp_status != shaderc_compilation_status_success) {
         assert(false);
-        return std::vector<u32>();
+        return {};
     }
 
     std::vector<u32> result = {comp_result.cbegin(), comp_result.cend()};

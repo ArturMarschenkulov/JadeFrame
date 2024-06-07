@@ -44,8 +44,8 @@ auto Image::operator=(Image&& other) noexcept -> Image& {
     return *this;
 }
 
-static auto add_fourth_components(u8* data, i32 width, i32 height, i32 num_components)
-    -> u8* {
+static auto
+add_fourth_components(const u8* data, i32 width, i32 height, i32 num_components) -> u8* {
     u8* new_data = new u8[width * height * 4];
     for (i32 i = 0; i < width * height; i++) {
         new_data[i * 4 + 0] = data[i * num_components + 0];
@@ -63,7 +63,7 @@ auto Image::load(const std::string& path) -> Image {
     i32 num_components = 0;
 
     u8* data = stbi_load(path.c_str(), &width, &height, &num_components, 0);
-    if (stbi_failure_reason()) { std::cout << stbi_failure_reason(); }
+    if (stbi_failure_reason() != nullptr) { std::cout << stbi_failure_reason(); }
 
     if (data == nullptr) {
         Logger::err("Failed to load image: {}", path);
@@ -88,14 +88,13 @@ auto Image::load(const std::string& path) -> Image {
 /*---------------------------
     GPUBuffer
 ----------------------------*/
-GPUBuffer::~GPUBuffer() = default;
 
 GPUBuffer::GPUBuffer(GPUBuffer&& other) noexcept { (void)other; }
 
 auto GPUBuffer::operator=(GPUBuffer&& other) noexcept -> GPUBuffer& { return *this; }
 
 static auto to_opengl(GPUBuffer::TYPE type) -> opengl::Buffer::TYPE {
-    opengl::Buffer::TYPE result;
+    opengl::Buffer::TYPE result = {};
     switch (type) {
         case GPUBuffer::TYPE::VERTEX: result = opengl::Buffer::TYPE::VERTEX; break;
         case GPUBuffer::TYPE::INDEX: result = opengl::Buffer::TYPE::INDEX; break;
@@ -106,7 +105,7 @@ static auto to_opengl(GPUBuffer::TYPE type) -> opengl::Buffer::TYPE {
 }
 
 static auto to_vulkan(GPUBuffer::TYPE type) -> vulkan::Buffer::TYPE {
-    vulkan::Buffer::TYPE result;
+    vulkan::Buffer::TYPE result = {};
     switch (type) {
         case GPUBuffer::TYPE::VERTEX: result = vulkan::Buffer::TYPE::VERTEX; break;
         case GPUBuffer::TYPE::INDEX: result = vulkan::Buffer::TYPE::INDEX; break;
@@ -141,10 +140,9 @@ GPUBuffer::GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage)
 }
 
 GPUMeshData::GPUMeshData(
-    RenderSystem*      system,
-    const VertexData&  vertex_data,
-    const VertexFormat vertex_format,
-    bool               interleaved
+    RenderSystem*     system,
+    const VertexData& vertex_data,
+    bool              interleaved
 ) {
 
     const std::vector<f32> flat_data = convert_into_data(vertex_data, interleaved);
@@ -154,10 +152,10 @@ GPUMeshData::GPUMeshData(
     m_vertex_buffer = GPUBuffer(system, data, size, GPUBuffer::TYPE::VERTEX);
     // m_vertex_buffer = system->create_buffer(data, size, GPUBuffer::TYPE::VERTEX);
 
-    if (vertex_data.m_indices.size() > 0) {
-        auto&  i_data = vertex_data.m_indices;
-        void*  data = (void*)i_data.data();
-        size_t size = sizeof(i_data[0]) * i_data.size();
+    if (!vertex_data.m_indices.empty()) {
+        const auto& i_data = vertex_data.m_indices;
+        void*       data = (void*)i_data.data();
+        size_t      size = sizeof(i_data[0]) * i_data.size();
         m_index_buffer = GPUBuffer(system, data, size, GPUBuffer::TYPE::INDEX);
         // m_index_buffer = system->create_buffer(data, size, GPUBuffer::TYPE::INDEX);
     }
@@ -208,11 +206,11 @@ TextureHandle::~TextureHandle() {
 auto TextureHandle::init(void* context) -> void {
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            auto* d = (OpenGL_Context*)context;
+            auto* d = static_cast<OpenGL_Context*>(context);
             m_handle = d->create_texture(m_data, m_size, m_num_components);
         } break;
         case GRAPHICS_API::VULKAN: {
-            auto* d = (vulkan::LogicalDevice*)m_handle;
+            auto* d = static_cast<vulkan::LogicalDevice*>(m_handle);
             auto* texture =
                 new vulkan::Vulkan_Texture(*d, m_data, m_size, VK_FORMAT_R8G8B8A8_SRGB);
             m_handle = texture;
@@ -225,16 +223,15 @@ auto TextureHandle::init(void* context) -> void {
     ShaderHandle
 ---------------------------*/
 
-ShaderHandle::ShaderHandle(const Desc& desc) {
-    m_code = desc.shading_code;
-    m_vertex_format = desc.vertex_format;
-}
+ShaderHandle::ShaderHandle(const Desc& desc)
+    : m_code(desc.shading_code)
+    , m_vertex_format(desc.vertex_format) {}
 
-ShaderHandle::ShaderHandle(ShaderHandle&& other) noexcept {
-    m_code = other.m_code;
-    m_vertex_format = other.m_vertex_format;
-    m_api = other.m_api;
-    m_handle = other.m_handle;
+ShaderHandle::ShaderHandle(ShaderHandle&& other) noexcept
+    : m_code(std::move(other.m_code))
+    , m_vertex_format(std::move(other.m_vertex_format))
+    , m_api(other.m_api)
+    , m_handle(other.m_handle) {
 
     // other.m_code = nullptr;
     // other.m_vertex_format = nullptr;
@@ -324,8 +321,9 @@ auto VertexFormat::calculate_offset_and_stride(std::vector<VertexAttribute>& att
     RenderSystem
 ---------------------------*/
 
-RenderSystem::RenderSystem(GRAPHICS_API api, Window* window) {
-    m_api = api;
+RenderSystem::RenderSystem(GRAPHICS_API api, Window* window)
+    : m_api(api) {
+
     switch (api) {
         case GRAPHICS_API::OPENGL: {
             m_renderer = new OpenGL_Renderer(*this, window);
@@ -368,13 +366,11 @@ auto RenderSystem::init(GRAPHICS_API api, Window* window) -> void {
         default: assert(false);
     }
 }
+RenderSystem::RenderSystem(RenderSystem&& other) noexcept
+    : m_api(other.m_api)
+    , m_renderer(other.m_renderer)
+    , m_registered_textures(std::move(other.m_registered_textures)) {
 
-RenderSystem::~RenderSystem() {}
-
-RenderSystem::RenderSystem(RenderSystem&& other) noexcept {
-    m_api = other.m_api;
-    m_renderer = other.m_renderer;
-    m_registered_textures = std::move(other.m_registered_textures);
     other.m_api = GRAPHICS_API::UNDEFINED;
     other.m_renderer = nullptr;
     other.m_registered_textures.clear();
