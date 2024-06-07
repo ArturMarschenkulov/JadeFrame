@@ -49,7 +49,7 @@ auto Vulkan_Renderer::clear_background() -> void {}
 auto Vulkan_Renderer::submit(const Object& obj) -> void {
     const vulkan::LogicalDevice& d = *m_logical_device;
 
-    const Vulkan_RenderCommand command = {
+    const RenderCommand command = {
         .transform = &obj.m_transform,
         .vertex_data = obj.m_vertex_data,
         .material_handle = obj.m_material_handle,
@@ -163,7 +163,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 }
 
 auto Vulkan_Renderer::render_mesh(
-    const VertexData*    vertex_data,
+    const VertexData*          vertex_data,
     const vulkan::GPUMeshData* gpu_data
 ) -> void {
     vulkan::CommandBuffer& cb = m_frames[m_frame_index].m_cmd;

@@ -13,13 +13,6 @@ class Object;
 class Matrix4x4;
 class RGBAColor;
 
-struct Vulkan_RenderCommand {
-    const Matrix4x4*  transform = nullptr;
-    const VertexData* vertex_data = nullptr;
-    MaterialHandle    material_handle = {0, 0};
-    u32               m_GPU_mesh_data_id = 0;
-};
-
 class Vulkan_Renderer : public IRenderer {
 public:
     Vulkan_Renderer(RenderSystem& system, const Window* window);
@@ -36,11 +29,10 @@ public:
     // virtual auto main_loop() -> void override;
 
 public:
-    Vulkan_Context                           m_context;
-    vulkan::LogicalDevice*                   m_logical_device;
-    RenderSystem*                            m_system = nullptr;
-    mutable std::deque<Vulkan_RenderCommand> m_render_commands;
-    std::map<u32, vulkan::GPUMeshData>       m_registered_meshes;
+    Vulkan_Context                     m_context;
+    vulkan::LogicalDevice*             m_logical_device;
+    RenderSystem*                      m_system = nullptr;
+    std::map<u32, vulkan::GPUMeshData> m_registered_meshes;
 
 private: // NOTE: probably temporary
     RGBAColor m_clear_color;
@@ -92,6 +84,7 @@ public:
     bool                             m_framebuffer_resized = false;
 
 private:
-    auto render_mesh(const VertexData* vertex_data, const vulkan::GPUMeshData* gpu_data) -> void;
+    auto render_mesh(const VertexData* vertex_data, const vulkan::GPUMeshData* gpu_data)
+        -> void;
 };
 } // namespace JadeFrame

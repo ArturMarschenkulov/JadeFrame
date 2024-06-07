@@ -340,6 +340,12 @@ public:
     VertexFormat m_format;
 };
 
+struct RenderCommand {
+    const Matrix4x4*  transform = nullptr;
+    const VertexData* vertex_data = nullptr;
+    MaterialHandle    material_handle = {0, 0};
+    u32               m_GPU_mesh_data_id = 0;
+};
 /*
         TODO: Consider whether this is a good way and whether it is worth it to introdcue
    inheritance. Right now, inheritance should be mainly used as a sanity check such that
@@ -377,6 +383,9 @@ public: // more internal stuff
     virtual auto clear_background() -> void = 0;
     virtual auto render(const Matrix4x4& view_projection) -> void = 0;
     virtual auto present() -> void = 0;
+
+public:
+    mutable std::deque<RenderCommand> m_render_commands;
 };
 
 inline auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {

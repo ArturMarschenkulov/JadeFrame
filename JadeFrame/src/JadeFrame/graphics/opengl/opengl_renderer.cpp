@@ -67,7 +67,7 @@ auto OpenGL_Renderer::present() -> void { m_context.swap_buffers(); }
 
 auto OpenGL_Renderer::submit(const Object& obj) -> void {
 
-    const OpenGL_RenderCommand command = {
+    const RenderCommand command = {
         .transform = &obj.m_transform,
         .vertex_data = obj.m_vertex_data,
         .material_handle = obj.m_material_handle,
@@ -89,7 +89,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     // at binding point 0 and the transform uniform is at binding point 1.
 
     for (size_t i = 0; i < m_render_commands.size(); ++i) {
-        const OpenGL_RenderCommand& cmd = m_render_commands[i];
+        const RenderCommand& cmd = m_render_commands[i];
         const MaterialHandle&       mh = cmd.material_handle;
 
         auto&                 sh = m_system->m_registered_shaders[mh.m_shader_id];

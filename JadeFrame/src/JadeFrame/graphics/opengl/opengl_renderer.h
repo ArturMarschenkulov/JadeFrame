@@ -33,20 +33,6 @@ struct OpenGL_Material {
     opengl::Shader*        m_shader = nullptr;
 };
 
-struct OpenGL_RenderCommand {
-    const Matrix4x4*  transform = nullptr;
-    const VertexData* vertex_data = nullptr;
-    MaterialHandle    material_handle = {0, 0};
-    u32               m_GPU_mesh_data_id = 0;
-};
-
-class OpenGL_CommandBuffer {
-public:
-    // auto push(const Mesh& mesh, const OpenGL_Material& material, const Matrix4x4&
-    // tranform, const OpenGL_VertexArray& vertex_array) -> void;
-    std::vector<OpenGL_RenderCommand> m_render_commands;
-};
-
 class RenderSystem;
 
 class OpenGL_Renderer : public IRenderer {
@@ -68,9 +54,8 @@ private:
     static auto render_mesh(const VertexData* vertex_data) -> void;
 
 public:
-    OpenGL_Context                           m_context;
-    RenderSystem*                            m_system = nullptr;
-    mutable std::deque<OpenGL_RenderCommand> m_render_commands;
+    OpenGL_Context m_context;
+    RenderSystem*  m_system = nullptr;
 
     std::map<u32, opengl::GPUMeshData> m_registered_meshes;
 
