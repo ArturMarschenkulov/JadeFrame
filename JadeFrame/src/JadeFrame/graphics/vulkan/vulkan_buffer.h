@@ -49,8 +49,12 @@ public:
         size_t               size
     );
 
-    auto write(const Matrix4x4& m, VkDeviceSize offset) -> void;
-    auto write(void* data, VkDeviceSize offset, VkDeviceSize size) -> void;
+    template<typename T>
+    auto write(const T& data, VkDeviceSize offset) -> void {
+        this->write((void*)&data, sizeof(T), offset);
+    }
+
+    auto write(void* data, VkDeviceSize size, VkDeviceSize offset) -> void;
     auto resize(size_t size) -> void;
 
 private:

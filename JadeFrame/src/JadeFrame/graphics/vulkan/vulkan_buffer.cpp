@@ -195,7 +195,7 @@ Buffer::Buffer(
     if (b_with_staging_buffer) {
         Buffer* staging_buffer =
             device.create_buffer(Buffer::TYPE::STAGING, nullptr, size);
-        staging_buffer->write(data, 0, size);
+        staging_buffer->write(data, size, 0);
 #if JF_USE_VMA
         this->create_buffer(size, usage, vma_usage, m_handle);
 #else
@@ -228,11 +228,7 @@ Buffer::~Buffer() {
     }
 }
 
-auto Buffer::write(const Matrix4x4& m, VkDeviceSize offset) -> void {
-    this->write((void*)&m, offset, sizeof(m));
-}
-
-auto Buffer::write(void* data, VkDeviceSize offset, VkDeviceSize size) -> void {
+auto Buffer::write(void* data, VkDeviceSize size, VkDeviceSize offset) -> void {
 
     void* mapped_data;
 #if JF_USE_VMA
@@ -622,7 +618,7 @@ Vulkan_Texture::Vulkan_Texture(
     }
     VkDeviceSize image_size = size.width * size.height * comp_count;
     Buffer       staging_buffer(device, Buffer::TYPE::STAGING, nullptr, image_size);
-    staging_buffer.write(data, 0, image_size);
+    staging_buffer.write(data, image_size, 0);
 
     // Image image;
     m_image = Image(
