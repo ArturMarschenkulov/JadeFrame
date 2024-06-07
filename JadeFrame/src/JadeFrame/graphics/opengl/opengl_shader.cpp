@@ -41,6 +41,39 @@ static auto convert_SPIRV_to_GLSL(const std::vector<u32>& spirv) -> std::string 
     return glsl.compile();
 }
 
+static auto get_vertex_attributes(const ReflectedCode& reflected_code)
+    -> std::vector<Shader::VertexAttribute> {
+    std::vector<Shader::VertexAttribute> result;
+    for (size_t i = 0; i < reflected_code.m_modules[0].m_inputs.size(); i++) {
+        const auto&             input = reflected_code.m_modules[0].m_inputs[i];
+        Shader::VertexAttribute attribs;
+        attribs.name = input.name;
+        attribs.type = input.type;
+        attribs.location = input.location;
+        attribs.size = static_cast<i32>(input.size);
+        result.push_back(attribs);
+    }
+    return result;
+}
+
+static auto get_uniforms(const ReflectedCode& reflected_code)
+    -> std::vector<Shader::Uniform> {
+    std::vector<Shader::Uniform> result;
+    for (size_t i = 0; i < reflected_code.m_modules.size(); i++) {
+        auto& module = reflected_code.m_modules[i];
+        for (size_t j = 0; j < module.m_uniform_buffers.size(); j++) {
+            auto& uniform_buffer = module.m_uniform_buffers[j];
+
+            Shader::Uniform uniform;
+            uniform.name = uniform_buffer.name;
+            uniform.size = static_cast<i32>(uniform_buffer.size);
+            uniform.location = uniform_buffer.binding;
+            result.push_back(uniform);
+        }
+    }
+    return result;
+}
+
 Shader::Shader(OpenGL_Context& context, const Desc& desc)
     : m_vertex_shader(GL_VERTEX_SHADER)
     , m_fragment_shader(GL_FRAGMENT_SHADER)
@@ -52,80 +85,31 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     );
 
 #define JF_USE_SPIRV false
-#if JF_USE_SPIRV == false
-    std::array<std::string, 2> glsl_sources;
-    for (size_t i = 0; i < desc.code.m_modules.size(); i++) {
-        const auto& spirv = desc.code.m_modules[i].m_code;
-        glsl_sources[i] = convert_SPIRV_to_GLSL(spirv);
+    if constexpr (JF_USE_SPIRV == true) {
+        // NOTE: On some machines the drives won't allow it!!
+        m_fragment_shader.set_binary(desc.code.m_modules[0].m_code);
+        m_fragment_shader.compile_binary();
+
+        m_vertex_shader.set_binary(desc.code.m_modules[1].m_code);
+        m_vertex_shader.compile_binary();
+    } else {
+        std::array<std::string, 2> glsl_sources;
+        for (size_t i = 0; i < desc.code.m_modules.size(); i++) {
+            const auto& spirv = desc.code.m_modules[i].m_code;
+            glsl_sources[i] = convert_SPIRV_to_GLSL(spirv);
+        }
+
+        m_vertex_source = glsl_sources[0];
+        m_fragment_source = glsl_sources[1];
+
+        m_vertex_shader.set_source(m_vertex_source);
+        m_vertex_shader.compile();
+
+        m_fragment_shader.set_source(m_fragment_source);
+        m_fragment_shader.compile();
     }
-
-    m_vertex_source = glsl_sources[0];
-    m_fragment_source = glsl_sources[1];
-
-    m_vertex_shader.set_source(m_vertex_source);
-    m_vertex_shader.compile();
-
-    m_fragment_shader.set_source(m_fragment_source);
-    m_fragment_shader.compile();
-#else
-    // NOTE: On some machines the drives won't allow it!!
-    m_fragment_shader.set_binary(desc.code.m_modules[0].m_code);
-    m_fragment_shader.compile_binary();
-
-    m_vertex_shader.set_binary(desc.code.m_modules[1].m_code);
-    m_vertex_shader.compile_binary();
-#endif
 #undef JF_USE_SPIRV
     Logger::warn("OpenGL Shader compiled");
-
-    // spirv_cross::CompilerGLSL glsl(spirvs[0]);
-    // glsl.set_common_options(options);
-    // Logger::trace("{}", std::get<std::string>(desc.code.m_modules[0].m_code));
-    // Logger::trace("====================");
-    // Logger::trace("{}", glsl_sources[0]);
-    // Logger::trace("====================");
-    // spirv_cross::CompilerHLSL hlsl(spirvs[0]);
-    // Logger::trace("{}", hlsl.compile());
-
-    auto ref = reflect(desc.code);
-    for (size_t i = 0; i < ref.m_modules[0].m_inputs.size(); i++) {
-        auto& input = ref.m_modules[0].m_inputs[i];
-
-        Shader::VertexAttribute attribs;
-        attribs.name = input.name;
-        attribs.type = input.type;
-        attribs.location = input.location;
-        attribs.size = static_cast<i32>(input.size);
-        m_vertex_attributes.push_back(attribs);
-    }
-
-    for (size_t i = 0; i < ref.m_modules.size(); i++) {
-        auto& module = ref.m_modules[i];
-        for (size_t j = 0; j < module.m_uniform_buffers.size(); j++) {
-            auto& uniform_buffer = module.m_uniform_buffers[j];
-
-            Shader::Uniform uniform;
-            uniform.name = uniform_buffer.name;
-            uniform.size = static_cast<i32>(uniform_buffer.size);
-            uniform.location = uniform_buffer.binding;
-            m_uniforms.push_back(uniform);
-        }
-    }
-    // NOTE: The binding points will be somehow abstracted, since the high level will
-    // mimick the vulkan model and the vulkan combines sets and bindings points, while
-    // opengl has only binding points. That is while vulkan might have something like
-    // this (0, 0), (1, 0) and (1, 1), this would have to be mapped to opengl's flat
-    // model, something like this 0, 1, 2.
-    for (size_t i = 0; i < m_uniforms.size(); i++) {
-        const auto& uniform = m_uniforms[i];
-        const u32&  size = uniform.size;
-        const auto& location = uniform.location;
-
-        auto* buffer =
-            m_context->create_buffer(opengl::Buffer::TYPE::UNIFORM, nullptr, size);
-        buffer->bind_base(location);
-        m_uniform_buffers.push_back(buffer);
-    }
 
     m_program.attach(m_vertex_shader);
     m_program.attach(m_fragment_shader);
@@ -144,6 +128,25 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
 
     m_program.detach(m_vertex_shader);
     m_program.detach(m_fragment_shader);
+
+    ReflectedCode ref = reflect(desc.code);
+    m_vertex_attributes = get_vertex_attributes(ref);
+    m_uniforms = get_uniforms(ref);
+    // NOTE: The binding points will be somehow abstracted, since the high level will
+    // mimick the vulkan model and the vulkan combines sets and bindings points, while
+    // opengl has only binding points. That is while vulkan might have something like
+    // this (0, 0), (1, 0) and (1, 1), this would have to be mapped to opengl's flat
+    // model, something like this 0, 1, 2.
+    for (size_t i = 0; i < m_uniforms.size(); i++) {
+        const auto& uniform = m_uniforms[i];
+        const u32&  size = uniform.size;
+        const auto& location = uniform.location;
+        using namespace opengl;
+
+        auto* buffer = m_context->create_buffer(Buffer::TYPE::UNIFORM, nullptr, size);
+        buffer->bind_base(location);
+        m_uniform_buffers.push_back(buffer);
+    }
 
     m_vertex_array = OGLW_VertexArray(&context, desc.vertex_format);
 }
