@@ -92,6 +92,6 @@ public:
     bool                             m_framebuffer_resized = false;
 
 private:
-    auto render_mesh(const VertexData* vertex_data, vulkan::GPUMeshData* gpu_data) -> void;
+    auto render_mesh(const VertexData* vertex_data, const vulkan::GPUMeshData* gpu_data) -> void;
 };
 } // namespace JadeFrame

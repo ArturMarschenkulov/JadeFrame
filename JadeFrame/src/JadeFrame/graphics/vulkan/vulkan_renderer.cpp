@@ -121,13 +121,13 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     // cb.render_pass(framebuffer, m_render_pass, m_swapchain.m_extent, clear_value, [&] {
     cb.render_pass_begin(framebuffer, m_render_pass, m_swapchain.m_extent, clear_value);
     for (u64 i = 0; i < m_render_commands.size(); i++) {
-        const auto& cmd = m_render_commands[i];
+        const auto&           cmd = m_render_commands[i];
+        const MaterialHandle& mh = cmd.material_handle;
 
-        const ShaderHandle& shader_handle =
-            m_system->m_registered_shaders[cmd.material_handle.m_shader_id];
-        auto* shader = static_cast<Vulkan_Shader*>(shader_handle.m_handle);
+        const ShaderHandle& sh = m_system->m_registered_shaders[mh.m_shader_id];
+        auto*               shader = static_cast<Vulkan_Shader*>(sh.m_handle);
 
-        vulkan::GPUMeshData& gpu_data = m_registered_meshes[cmd.m_GPU_mesh_data_id];
+        const vulkan::GPUMeshData& gpu_data = m_registered_meshes[cmd.m_GPU_mesh_data_id];
 
         // Per Frame ubo
         auto* ub_cam = shader->m_uniform_buffers[0][0];
@@ -164,7 +164,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
 auto Vulkan_Renderer::render_mesh(
     const VertexData*    vertex_data,
-    vulkan::GPUMeshData* gpu_data
+    const vulkan::GPUMeshData* gpu_data
 ) -> void {
     vulkan::CommandBuffer& cb = m_frames[m_frame_index].m_cmd;
     const auto& vertex_amount = static_cast<u32>(vertex_data->m_positions.size());
