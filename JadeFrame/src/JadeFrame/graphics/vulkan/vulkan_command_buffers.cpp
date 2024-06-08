@@ -360,5 +360,20 @@ auto CommandPool::free_buffer(const CommandBuffer& command_buffer) const -> void
         );
     }
 }
+
+auto CommandPool::copy_buffer(
+    const Buffer& src_buffer,
+    const Buffer& dst_buffer,
+    VkDeviceSize  size
+) const -> void {
+
+    CommandBuffer cmd = this->allocate_buffer();
+
+    cmd.record([&] { cmd.copy_buffer(src_buffer, dst_buffer, size); });
+    cmd.m_device->m_graphics_queue.submit(cmd);
+    cmd.m_device->m_graphics_queue.wait_idle();
+
+    this->free_buffer(cmd);
+}
 } // namespace vulkan
 } // namespace JadeFrame

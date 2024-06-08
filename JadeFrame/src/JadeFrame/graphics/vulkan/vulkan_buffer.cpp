@@ -201,7 +201,7 @@ Buffer::Buffer(
 #else
         this->create_buffer(size, usage, properties, m_handle, m_memory);
 #endif
-        this->copy_buffer(*staging_buffer, *this, size);
+        m_device->m_command_pool.copy_buffer(*staging_buffer, *this, size);
     } else {
         assert(data == nullptr);
 #if JF_USE_VMA
@@ -323,22 +323,6 @@ auto Buffer::create_buffer(
     result = vkBindBufferMemory(m_device->m_handle, buffer, buffer_memory, 0);
     { Logger::trace("Created Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle)); }
 #endif
-}
-
-auto Buffer::copy_buffer(
-    const Buffer& src_buffer,
-    const Buffer& dst_buffer,
-    VkDeviceSize  size
-) const -> void {
-    const CommandPool& cmd_pool = m_device->m_command_pool;
-
-    CommandBuffer cmd = cmd_pool.allocate_buffer();
-
-    cmd.record([&] { cmd.copy_buffer(src_buffer, dst_buffer, size); });
-    cmd.m_device->m_graphics_queue.submit(cmd);
-    cmd.m_device->m_graphics_queue.wait_idle();
-
-    cmd_pool.free_buffer(cmd);
 }
 
 GPUMeshData::GPUMeshData(

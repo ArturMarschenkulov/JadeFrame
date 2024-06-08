@@ -74,9 +74,6 @@ private:
         VkDeviceMemory&       buffer_memory
     ) -> void;
 #endif
-    auto
-    copy_buffer(const Buffer& src_buffer, const Buffer& dst_buffer, VkDeviceSize size)
-        const -> void;
 
 public:
     /*const*/ Buffer::TYPE m_type = Buffer::TYPE::UNINIT;

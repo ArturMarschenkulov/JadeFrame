@@ -137,6 +137,10 @@ public:
     auto free_buffers(const std::vector<CommandBuffer>& command_buffers) const -> void;
     auto free_buffer(const CommandBuffer& command_buffer) const -> void;
 
+    auto
+    copy_buffer(const Buffer& src_buffer, const Buffer& dst_buffer, VkDeviceSize size)
+        const -> void;
+
 public:
     const LogicalDevice*    m_device = nullptr;
     VkCommandPool           m_handle = VK_NULL_HANDLE;
