@@ -50,11 +50,11 @@ public:
     );
 
     template<typename T>
-    auto write(const T& data, VkDeviceSize offset) -> void {
+    auto write(const T& data, VkDeviceSize offset) const -> void {
         this->write((void*)&data, sizeof(T), offset);
     }
 
-    auto write(void* data, VkDeviceSize size, VkDeviceSize offset) -> void;
+    auto write(const void* data, VkDeviceSize size, VkDeviceSize offset) const -> void;
     auto resize(size_t size) -> void;
 
 private:
