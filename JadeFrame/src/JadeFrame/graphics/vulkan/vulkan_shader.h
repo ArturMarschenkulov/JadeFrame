@@ -37,6 +37,14 @@ public:
     auto rebind_buffer(u32 set, u32 binding, const vulkan::Buffer& buffer) -> void;
     auto get_location(const std::string& name) -> std::tuple<u32, u32>;
 
+    auto write_ub(
+        vulkan::FREQUENCY frequency,
+        u32               index,
+        const void*       data,
+        size_t            size,
+        size_t            offset
+    ) -> void;
+
 public:
     const vulkan::LogicalDevice* m_device = nullptr;
     vulkan::Pipeline             m_pipeline;

@@ -13,7 +13,7 @@ class Vulkan_Texture;
 class DescriptorSetLayout;
 class DescriptorPool;
 
-enum class FREQUENCY : u8 {
+enum FREQUENCY : u8 {
     PER_FRAME,
     PER_PASS,
     PER_MATERIAL,

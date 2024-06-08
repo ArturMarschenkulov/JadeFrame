@@ -84,4 +84,46 @@ auto Vulkan_Shader::get_location(const std::string& name) -> std::tuple<u32, u32
     return {set, binding};
 }
 
+static auto get_aligned_block_size(const u64 block_size, const u64 alignment) -> u64 {
+#if 0 // more efficient
+        const u64 new_val = (block_size + alignment - 1) & ~(alignment - 1);
+        const u64 aligned_block_size = alignment > 0 ? new_val : block_size;
+#else // more readable
+    const u64 new_val = (block_size + alignment - (block_size % alignment));
+    const u64 aligned_block_size = (block_size % alignment == 0) ? block_size : new_val;
+#endif
+    return aligned_block_size;
+}
+
+auto Vulkan_Shader::write_ub(
+    vulkan::FREQUENCY frequency,
+    u32               index,
+    const void*       data,
+    size_t            size,
+    size_t            offset
+) -> void {
+    // TODO: Make it more solid
+
+    if (frequency == vulkan::FREQUENCY::PER_OBJECT) {
+        auto        type_size = sizeof(Matrix4x4);
+        const auto* pd = m_device->m_physical_device;
+        const u64   dyn_alignment = get_aligned_block_size(
+            type_size, pd->query_limits().minUniformBufferOffsetAlignment
+        );
+        auto* ub = m_uniform_buffers[frequency][index];
+        auto  ub_size = ub->m_size;
+
+        if (offset + size > ub_size) {
+            vkDeviceWaitIdle(m_device->m_handle);
+            ub->resize(2 * ub_size);
+            this->rebind_buffer(frequency, index, *ub);
+        }
+
+        ub->write(data, size, offset);
+    } else {
+        assert(offset == 0);
+        auto* ub = m_uniform_buffers[frequency][index];
+        ub->write(data, size, offset);
+    }
+}
 } // namespace JadeFrame
