@@ -322,8 +322,8 @@ DescriptorSetLayout::~DescriptorSetLayout() {
 }
 
 DescriptorSetLayout::DescriptorSetLayout(
-    const LogicalDevice&        device,
-    const std::vector<Binding>& bindings
+    const LogicalDevice&      device,
+    const std::span<Binding>& bindings
 )
     : m_device(&device) {
 
@@ -436,9 +436,9 @@ auto DescriptorPool::add_pool_size(const VkDescriptorPoolSize& pool_size) -> voi
 }
 
 DescriptorPool::DescriptorPool(
-    const LogicalDevice&               device,
-    u32                                max_sets,
-    std::vector<VkDescriptorPoolSize>& pool_sizes
+    const LogicalDevice&                   device,
+    u32                                    max_sets,
+    const std::span<VkDescriptorPoolSize>& pool_sizes
 )
     : m_device(&device) {
 
@@ -549,7 +549,7 @@ auto DescriptorPool::allocate_set(const DescriptorSetLayout& descriptor_set_layo
     return std::move(this->allocate_sets(descriptor_set_layout, 1)[0]);
 }
 
-auto DescriptorPool::free_sets(const std::vector<DescriptorSet>& /*descriptor_sets*/)
+auto DescriptorPool::free_sets(const std::span<DescriptorSet>& /*descriptor_sets*/)
     -> void {
     // for(u32 i = 0; i < descriptor_sets.size(); i++) {
     //	VkResult result;

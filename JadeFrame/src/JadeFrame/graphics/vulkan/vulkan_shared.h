@@ -2,6 +2,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <array>
+#include <span>
 #include "JadeFrame/math/mat_4.h"
 #include "../mesh.h"
 #include "../graphics_shared.h"
@@ -25,7 +26,6 @@ namespace vulkan {
 // VkVertexInputAttributeDescription> {
 //	return {};
 // }
-
 
 inline auto SHADER_TYPE_to_VkFormat(const SHADER_TYPE& shader_type) -> VkFormat {
     VkFormat result = VK_FORMAT_UNDEFINED;

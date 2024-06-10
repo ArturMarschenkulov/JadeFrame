@@ -264,7 +264,7 @@ auto Pipeline::PipelineLayout::operator=(PipelineLayout&& other) noexcept
 Pipeline::PipelineLayout::PipelineLayout(
     const LogicalDevice&                                                    device,
     const std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)>& set_layouts,
-    const std::vector<Pipeline::PushConstantRange>& push_constant_ranges
+    const std::span<Pipeline::PushConstantRange>& push_constant_ranges
 )
     : m_device(&device) {
 

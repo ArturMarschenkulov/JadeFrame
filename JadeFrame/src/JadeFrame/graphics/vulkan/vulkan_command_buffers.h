@@ -143,7 +143,7 @@ public:
     [[nodiscard]] auto allocate_buffers(u32 amount, CommandBuffer::LEVEL level) const
         -> std::vector<CommandBuffer>;
     [[nodiscard]] auto allocate_buffer() const -> CommandBuffer;
-    auto free_buffers(const std::vector<CommandBuffer>& command_buffers) const -> void;
+    auto free_buffers(const std::span<CommandBuffer>& command_buffers) const -> void;
     auto free_buffer(const CommandBuffer& command_buffer) const -> void;
 
     auto

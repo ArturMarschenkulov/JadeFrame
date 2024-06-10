@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 #include "JadeFrame/prelude.h"
+#include <span>
 
 #include <vector>
 
@@ -98,10 +99,7 @@ public:
     auto operator=(DescriptorSetLayout&& other) noexcept -> DescriptorSetLayout&;
 
 public:
-    DescriptorSetLayout(
-        const LogicalDevice&        device,
-        const std::vector<Binding>& bindings
-    );
+    DescriptorSetLayout(const LogicalDevice& device, const std::span<Binding>& bindings);
 
 private:
     auto add_binding(
@@ -131,9 +129,9 @@ public:
 
 public:
     DescriptorPool(
-        const LogicalDevice&               device,
-        u32                                max_sets,
-        std::vector<VkDescriptorPoolSize>& pool_sizes
+        const LogicalDevice&             device,
+        u32                              max_sets,
+        const std::span<VkDescriptorPoolSize>& pool_sizes
     );
 
 public:
@@ -145,8 +143,8 @@ public:
     ) const -> std::vector<DescriptorSet>;
     [[nodiscard]] auto allocate_set(const DescriptorSetLayout& descriptor_set_layout
     ) const -> DescriptorSet;
-    auto free_sets(const std::vector<DescriptorSet>& descriptor_sets) -> void;
-    auto free_set(const DescriptorSet& descriptor_sets) -> void;
+    auto               free_sets(const std::span<DescriptorSet>& descriptor_sets) -> void;
+    auto               free_set(const DescriptorSet& descriptor_sets) -> void;
 
 public:
     const LogicalDevice*              m_device = nullptr;

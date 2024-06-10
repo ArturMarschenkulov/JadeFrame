@@ -31,7 +31,7 @@ private:
     auto query_physical_devices() -> std::vector<vulkan::PhysicalDevice>;
     auto setup_debug() -> void;
     auto
-    check_validation_layer_support(const std::vector<VkLayerProperties>& available_layers)
+    check_validation_layer_support(const std::span<VkLayerProperties>& available_layers)
         -> bool;
 
     auto create_surface(const Window* window_handle) -> vulkan::Surface;

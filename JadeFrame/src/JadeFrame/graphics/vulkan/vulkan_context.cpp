@@ -78,8 +78,8 @@ auto Instance::allocator() -> VkAllocationCallbacks* {
 
 auto Instance::default_allocator() -> VkAllocationCallbacks* { return nullptr; }
 
-auto Instance::check_validation_layer_support(const std::vector<VkLayerProperties>& layers
-) -> bool {
+auto Instance::check_validation_layer_support(const std::span<VkLayerProperties>& layers)
+    -> bool {
 #if 1
     for (u32 i = 0; i < m_desired_layer_names.size(); i++) {
         bool found = false;

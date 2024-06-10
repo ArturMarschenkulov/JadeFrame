@@ -55,7 +55,7 @@ public:
             const LogicalDevice& device,
             const std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)>&
                                                   set_layouts,
-            const std::vector<PushConstantRange>& push_constant_ranges
+            const std::span<PushConstantRange>& push_constant_ranges
         );
 
         VkPipelineLayout     m_handle = VK_NULL_HANDLE;
