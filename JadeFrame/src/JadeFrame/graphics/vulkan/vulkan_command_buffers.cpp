@@ -68,6 +68,11 @@ auto CommandBuffer::render_pass_begin(
     const VkExtent2D&  extent,
     VkClearValue       clear_color
 ) -> void {
+    assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
+    assert(
+        m_level == LEVEL::PRIMARY &&
+        "Only primary command buffers can begin a render pass"
+    );
     const VkRenderPassBeginInfo info = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .pNext = nullptr,
@@ -85,20 +90,28 @@ auto CommandBuffer::render_pass_begin(
     vkCmdBeginRenderPass(m_handle, &info, VK_SUBPASS_CONTENTS_INLINE);
 }
 
-auto CommandBuffer::render_pass_end() -> void { vkCmdEndRenderPass(m_handle); }
+auto CommandBuffer::render_pass_end() -> void {
+    assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
+    vkCmdEndRenderPass(m_handle);
+}
 
 auto CommandBuffer::reset() -> void {
-
+    assert(m_stage == STAGE::EXCECUTABLE && "Command buffer must be in excecutable stage");
     VkCommandBufferResetFlags flags = {};
 
     VkResult result = vkResetCommandBuffer(m_handle, flags);
     JF_ASSERT(result == VK_SUCCESS, "");
+    m_stage = STAGE::INITIAL;
 }
 
 auto CommandBuffer::copy_buffer(const Buffer& src, const Buffer& dst, u64 size) const
     -> void {
+    assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
 
     // TODO: include bounds checking
+    if (size == 0) { assert(false && "size is 0"); }
+    if (size > src.m_size) { assert(false && "size is greater than src buffer size"); }
+    if (size > dst.m_size) { assert(false && "size is greater than dst buffer size"); }
 
     const VkBufferCopy region = {
         .srcOffset = 0,
@@ -110,6 +123,8 @@ auto CommandBuffer::copy_buffer(const Buffer& src, const Buffer& dst, u64 size) 
 
 auto CommandBuffer::copy_buffer_to_image(const Buffer& src, const Image& dst, v2u32 size)
     const -> void {
+    assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
+
     const VkBufferImageCopy region = {
         .bufferOffset = 0,
         .bufferRowLength = 0,
@@ -138,6 +153,8 @@ auto CommandBuffer::bind_pipeline(
     const VkPipelineBindPoint bind_point,
     const Pipeline&           pipeline
 ) -> void {
+    assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
+
     vkCmdBindPipeline(
         m_handle,         // commandBuffer
         bind_point,       // pipelineBindPoint
@@ -151,6 +168,8 @@ auto CommandBuffer::bind_vertex_buffers(
     const VkBuffer*     buffers,
     const VkDeviceSize* offsets
 ) -> void {
+    assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
+
     vkCmdBindVertexBuffers(
         m_handle,      // commandBuffer
         first_binding, // firstBinding
@@ -169,6 +188,7 @@ auto CommandBuffer::bind_descriptor_sets(
 ) -> void {
 
     // JF_ASSERT(descriptor_set_count == descriptor_set.m_descriptors.size(), "");
+    assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
 
     vkCmdBindDescriptorSets(
         m_handle,                   // commandBuffer
@@ -183,6 +203,8 @@ auto CommandBuffer::bind_descriptor_sets(
 }
 
 auto CommandBuffer::bind_index_buffer(const Buffer& buffer, VkDeviceSize offset) -> void {
+    assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
+
     vkCmdBindIndexBuffer(
         m_handle,            // commandBuffer
         buffer.m_handle,     // buffer
@@ -197,6 +219,8 @@ auto CommandBuffer::draw(
     u32 first_vertex,
     u32 first_instance
 ) -> void {
+    assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
+
     vkCmdDraw(
         m_handle,       // commandBuffer
         vertex_count,   // vertexCount
@@ -213,6 +237,8 @@ auto CommandBuffer::draw_indexed(
     u32 vertex_offset,
     u32 first_instance
 ) -> void {
+    assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
+
     vkCmdDrawIndexed(
         m_handle,                        // commandBuffer
         index_count,                     // indexCount
