@@ -199,7 +199,7 @@ Buffer::Buffer(
 #if JF_USE_VMA
         this->create_buffer(size, usage, vma_usage, m_handle);
 #else
-        this->create_buffer(size, usage, properties, m_handle, m_memory);
+        this->create_buffer(size, usage, properties, m_memory, m_handle);
 #endif
         m_device->m_command_pool.copy_buffer(*staging_buffer, *this, size);
     } else {
@@ -207,7 +207,7 @@ Buffer::Buffer(
 #if JF_USE_VMA
         this->create_buffer(size, usage, vma_usage, m_handle);
 #else
-        this->create_buffer(size, usage, properties, m_handle, m_memory);
+        this->create_buffer(size, usage, properties, m_memory, m_handle);
 #endif
     }
 }
@@ -260,12 +260,12 @@ auto Buffer::create_buffer(
     VkBufferUsageFlags usage,
 #if JF_USE_VMA
     VmaMemoryUsage vma_usage,
-    VkBuffer&      buffer
 #else
     VkMemoryPropertyFlags properties,
-    VkBuffer&             buffer,
-    VkDeviceMemory&       buffer_memory
+    VkDeviceMemory&       buffer_memory,
+
 #endif
+    VkBuffer& buffer
 ) -> void {
 
     const VkBufferCreateInfo buffer_info = {

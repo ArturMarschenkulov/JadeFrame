@@ -63,12 +63,11 @@ private:
         VkBufferUsageFlags usage,
 #if JF_USE_VMA
         VmaMemoryUsage vma_usage,
-        VkBuffer&      buffer
 #else
         VkMemoryPropertyFlags properties,
-        VkBuffer&             buffer,
-        VkDeviceMemory&       buffer_memory
+        VkDeviceMemory&       buffer_memory,
 #endif
+        VkBuffer& buffer
     ) -> void;
 
 public:
