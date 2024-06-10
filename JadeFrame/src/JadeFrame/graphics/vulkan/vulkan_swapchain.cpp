@@ -156,7 +156,7 @@ RenderPass::RenderPass(const LogicalDevice& device, VkFormat image_format)
         .pPreserveAttachments = {},
     };
 
-    const VkRenderPassCreateInfo render_pass_info = {
+    const VkRenderPassCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
         .pNext = {},
         .flags = {},
@@ -168,9 +168,8 @@ RenderPass::RenderPass(const LogicalDevice& device, VkFormat image_format)
         .pDependencies = {},
     };
 
-    VkResult result = vkCreateRenderPass(
-        device.m_handle, &render_pass_info, Instance::allocator(), &m_handle
-    );
+    VkResult result =
+        vkCreateRenderPass(device.m_handle, &info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
@@ -206,35 +205,34 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     const bool is_same_queue_family =
         indices.m_graphics_family == indices.m_present_family;
 
-    VkSwapchainCreateInfoKHR create_info = {};
-    create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    create_info.pNext = nullptr;
-    create_info.flags = 0;
-    create_info.surface = surface.m_handle;
-    create_info.minImageCount = image_count;
-    create_info.imageFormat = surface_format.format;
-    create_info.imageColorSpace = surface_format.colorSpace;
-    create_info.imageExtent = extent;
-    create_info.imageArrayLayers = 1;
-    create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    create_info.queueFamilyIndexCount = 0;
-    create_info.pQueueFamilyIndices = nullptr;
-    create_info.preTransform = caps.currentTransform;
-    create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    create_info.presentMode = present_mode;
-    create_info.clipped = VK_TRUE;
-    create_info.oldSwapchain = VK_NULL_HANDLE;
+    VkSwapchainCreateInfoKHR info = {};
+    info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    info.pNext = nullptr;
+    info.flags = 0;
+    info.surface = surface.m_handle;
+    info.minImageCount = image_count;
+    info.imageFormat = surface_format.format;
+    info.imageColorSpace = surface_format.colorSpace;
+    info.imageExtent = extent;
+    info.imageArrayLayers = 1;
+    info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    info.queueFamilyIndexCount = 0;
+    info.pQueueFamilyIndices = nullptr;
+    info.preTransform = caps.currentTransform;
+    info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    info.presentMode = present_mode;
+    info.clipped = VK_TRUE;
+    info.oldSwapchain = VK_NULL_HANDLE;
     if (!is_same_queue_family) {
-        create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-        create_info.queueFamilyIndexCount = 2;
-        create_info.pQueueFamilyIndices = queue_family_indices;
+        info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+        info.queueFamilyIndexCount = 2;
+        info.pQueueFamilyIndices = queue_family_indices;
     } else {
-        create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     }
-    VkResult result = vkCreateSwapchainKHR(
-        device.m_handle, &create_info, Instance::allocator(), &m_handle
-    );
+    VkResult result =
+        vkCreateSwapchainKHR(device.m_handle, &info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 
     m_images = this->query_images();
@@ -369,7 +367,7 @@ Framebuffer::Framebuffer(
 
     std::array<VkImageView, 1> attachments = {image_view.m_handle};
 
-    const VkFramebufferCreateInfo framebuffer_info = {
+    const VkFramebufferCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -381,9 +379,8 @@ Framebuffer::Framebuffer(
         .layers = 1,
     };
 
-    VkResult result = vkCreateFramebuffer(
-        device.m_handle, &framebuffer_info, Instance::allocator(), &m_handle
-    );
+    VkResult result =
+        vkCreateFramebuffer(device.m_handle, &info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
