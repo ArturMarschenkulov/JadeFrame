@@ -337,7 +337,7 @@ DescriptorSetLayout::DescriptorSetLayout(
         );
     }
 
-    const VkDescriptorSetLayoutCreateInfo layout_info = {
+    const VkDescriptorSetLayoutCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -346,7 +346,7 @@ DescriptorSetLayout::DescriptorSetLayout(
     };
 
     VkResult result = vkCreateDescriptorSetLayout(
-        device.m_handle, &layout_info, Instance::allocator(), &m_handle
+        device.m_handle, &info, Instance::allocator(), &m_handle
     );
     if (result != VK_SUCCESS) { assert(false); }
     {
@@ -444,7 +444,7 @@ DescriptorPool::DescriptorPool(
 
     for (size_t i = 0; i < pool_sizes.size(); i++) { this->add_pool_size(pool_sizes[i]); }
 
-    const VkDescriptorPoolCreateInfo pool_info = {
+    const VkDescriptorPoolCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0 /* | VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT*/,
@@ -452,12 +452,11 @@ DescriptorPool::DescriptorPool(
         .poolSizeCount = static_cast<u32>(m_pool_sizes.size()),
         .pPoolSizes = m_pool_sizes.data(),
     };
-    JF_ASSERT(pool_info.maxSets > 0, "");
-    JF_ASSERT(pool_info.poolSizeCount > 0, "");
+    JF_ASSERT(info.maxSets > 0, "");
+    JF_ASSERT(info.poolSizeCount > 0, "");
 
-    VkResult result = vkCreateDescriptorPool(
-        device.m_handle, &pool_info, Instance::allocator(), &m_handle
-    );
+    VkResult result =
+        vkCreateDescriptorPool(device.m_handle, &info, Instance::allocator(), &m_handle);
     if (result != VK_SUCCESS) { assert(false); }
     {
         Logger::trace(
@@ -491,7 +490,7 @@ auto DescriptorPool::allocate_sets(const DescriptorSetLayout& layout, u32 amount
 
     std::vector<VkDescriptorSetLayout> layouts(amount, layout.m_handle);
 
-    const VkDescriptorSetAllocateInfo alloc_info = {
+    const VkDescriptorSetAllocateInfo info = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
         .pNext = nullptr,
         .descriptorPool = m_handle,
@@ -500,8 +499,7 @@ auto DescriptorPool::allocate_sets(const DescriptorSetLayout& layout, u32 amount
     };
     std::vector<VkDescriptorSet> handles(amount);
 
-    VkResult result =
-        vkAllocateDescriptorSets(m_device->m_handle, &alloc_info, handles.data());
+    VkResult result = vkAllocateDescriptorSets(m_device->m_handle, &info, handles.data());
     if (result != VK_SUCCESS) {
         Logger::err("Failed to allocate descriptor sets {}", to_string(result));
         assert(false);

@@ -268,7 +268,7 @@ auto Buffer::create_buffer(
     VkBuffer& buffer
 ) -> void {
 
-    const VkBufferCreateInfo buffer_info = {
+    const VkBufferCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -279,15 +279,10 @@ auto Buffer::create_buffer(
         .pQueueFamilyIndices = nullptr,
     };
 #if JF_USE_VMA
-    VmaAllocationCreateInfo alloc_info = {};
-    alloc_info.usage = vma_usage;
+    VmaAllocationCreateInfo vma_info = {};
+    vma_info.usage = vma_usage;
     VkResult result = vmaCreateBuffer(
-        m_device->m_vma_allocator,
-        &buffer_info,
-        &alloc_info,
-        &buffer,
-        &m_allocation,
-        nullptr
+        m_device->m_vma_allocator, &info, &vma_info, &buffer, &m_allocation, nullptr
     );
 #else
     VkResult result =

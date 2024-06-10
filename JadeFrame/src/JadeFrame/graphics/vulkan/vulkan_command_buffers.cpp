@@ -44,14 +44,14 @@ auto CommandBuffer::operator=(CommandBuffer&& other) noexcept -> CommandBuffer& 
 
 auto CommandBuffer::record_begin() -> void {
 
-    const VkCommandBufferBeginInfo begin_info = {
+    const VkCommandBufferBeginInfo info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .pNext = nullptr,
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
         .pInheritanceInfo = nullptr,
     };
 
-    VkResult result = vkBeginCommandBuffer(m_handle, &begin_info);
+    VkResult result = vkBeginCommandBuffer(m_handle, &info);
     JF_ASSERT(result == VK_SUCCESS, "");
     m_stage = STAGE::RECORDING;
 }
@@ -68,7 +68,7 @@ auto CommandBuffer::render_pass_begin(
     const VkExtent2D&  extent,
     VkClearValue       clear_color
 ) -> void {
-    const VkRenderPassBeginInfo render_pass_info = {
+    const VkRenderPassBeginInfo info = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .pNext = nullptr,
         .renderPass = render_pass.m_handle,
@@ -82,7 +82,7 @@ auto CommandBuffer::render_pass_begin(
         .pClearValues = &clear_color,
     };
 
-    vkCmdBeginRenderPass(m_handle, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(m_handle, &info, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 auto CommandBuffer::render_pass_end() -> void { vkCmdEndRenderPass(m_handle); }
@@ -267,7 +267,7 @@ CommandPool::CommandPool(
 )
     : m_device(&device) {
 
-    const VkCommandPoolCreateInfo pool_info = {
+    const VkCommandPoolCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         .pNext = nullptr,
         .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, // Optional
@@ -275,20 +275,17 @@ CommandPool::CommandPool(
             queue_family_index /*queue_family_indices.m_graphics_family.unwrap()*/,
     };
 
-    VkResult result = vkCreateCommandPool(
-        device.m_handle, &pool_info, Instance::allocator(), &m_handle
-    );
+    VkResult result =
+        vkCreateCommandPool(device.m_handle, &info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
     {
         Logger::trace(
             "Created Command Pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)
         );
-        Logger::trace(
-            "-flags: {}", to_string_from_command_pool_create_flags(pool_info.flags)
-        );
-        Logger::trace("-queueFamilyIndex: {}", pool_info.queueFamilyIndex);
+        Logger::trace("-flags: {}", to_string_from_command_pool_create_flags(info.flags));
+        Logger::trace("-queueFamilyIndex: {}", info.queueFamilyIndex);
     }
-    m_create_info = pool_info;
+    m_create_info = info;
 }
 
 CommandPool::~CommandPool() {
@@ -300,15 +297,14 @@ CommandPool::~CommandPool() {
 auto CommandPool::allocate_buffers(u32 amount) const -> std::vector<CommandBuffer> {
 
     std::vector<VkCommandBuffer>      handles(amount);
-    const VkCommandBufferAllocateInfo alloc_info = {
+    const VkCommandBufferAllocateInfo info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
         .pNext = nullptr,
         .commandPool = m_handle,
         .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
         .commandBufferCount = static_cast<u32>(handles.size()),
     };
-    VkResult result =
-        vkAllocateCommandBuffers(m_device->m_handle, &alloc_info, handles.data());
+    VkResult result = vkAllocateCommandBuffers(m_device->m_handle, &info, handles.data());
     JF_ASSERT(result == VK_SUCCESS, "");
     {
         Logger::trace(
@@ -322,7 +318,7 @@ auto CommandPool::allocate_buffers(u32 amount) const -> std::vector<CommandBuffe
     std::vector<CommandBuffer> command_buffers(handles.size());
     for (u32 i = 0; i < command_buffers.size(); i++) {
         command_buffers[i].m_handle = handles[i];
-        command_buffers[i].m_alloc_info = alloc_info;
+        command_buffers[i].m_alloc_info = info;
         command_buffers[i].m_device = m_device;
         command_buffers[i].m_command_pool = this;
         command_buffers[i].m_stage = CommandBuffer::STAGE::INITIAL;

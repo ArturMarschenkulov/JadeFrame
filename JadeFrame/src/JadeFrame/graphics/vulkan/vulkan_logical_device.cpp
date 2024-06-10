@@ -89,18 +89,18 @@ auto Queue::submit(
     VkFence fence_handle = has_fenc ? fence->m_handle : 0;
 
     VkPipelineStageFlags wait_stages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-    const VkSubmitInfo   submit_info = {
+    const VkSubmitInfo   info = {
           .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
           .pNext = nullptr,
           .waitSemaphoreCount = has_wait_semaphore ? 1_u32 : 0,
-          .pWaitSemaphores = has_wait_semaphore ? &wait_semaphore->m_handle : 0,
+          .pWaitSemaphores = has_wait_semaphore ? &wait_semaphore->m_handle : nullptr,
           .pWaitDstStageMask = wait_stages,
           .commandBufferCount = 1,
           .pCommandBuffers = &cmd_buffer.m_handle,
           .signalSemaphoreCount = has_signal_semaphore ? 1_u32 : 0,
-          .pSignalSemaphores = has_signal_semaphore ? &signal_semaphore->m_handle : 0,
+          .pSignalSemaphores = has_signal_semaphore ? &signal_semaphore->m_handle : nullptr,
     };
-    VkResult result = vkQueueSubmit(m_handle, 1, &submit_info, fence_handle);
+    VkResult result = vkQueueSubmit(m_handle, 1, &info, fence_handle);
     if (result != VK_SUCCESS) { JF_ASSERT(false, to_string(result)); }
     cmd_buffer.m_stage = CommandBuffer::STAGE::PENDING;
 }
@@ -209,19 +209,19 @@ auto LogicalDevice::init(
     );
     if (result != VK_SUCCESS) { assert(false); }
 
-    VmaVulkanFunctions vulkanFunctions = {};
-    vulkanFunctions.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
-    vulkanFunctions.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
+    VmaVulkanFunctions vma_vk_fns = {};
+    vma_vk_fns.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
+    vma_vk_fns.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
 
-    VmaAllocatorCreateInfo allocatorCreateInfo = {};
-    allocatorCreateInfo.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
-    allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_2;
-    allocatorCreateInfo.physicalDevice = physical_device.m_handle;
-    allocatorCreateInfo.device = m_handle;
-    allocatorCreateInfo.instance = instance.m_instance;
-    allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
+    VmaAllocatorCreateInfo vma_info = {};
+    vma_info.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+    vma_info.vulkanApiVersion = VK_API_VERSION_1_2;
+    vma_info.physicalDevice = physical_device.m_handle;
+    vma_info.device = m_handle;
+    vma_info.instance = instance.m_instance;
+    vma_info.pVulkanFunctions = &vma_vk_fns;
 
-    vmaCreateAllocator(&allocatorCreateInfo, &m_vma_allocator);
+    vmaCreateAllocator(&vma_info, &m_vma_allocator);
 
     Logger::debug(
         "maxBoundDescriptorSets: {}",

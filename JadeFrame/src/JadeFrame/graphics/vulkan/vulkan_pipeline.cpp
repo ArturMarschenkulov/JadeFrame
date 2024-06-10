@@ -144,7 +144,7 @@ ShaderModule::ShaderModule(
     , m_spirv(spirv)
     , m_reflected(reflect(spirv)) {
 
-    const VkShaderModuleCreateInfo create_info = {
+    const VkShaderModuleCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -152,9 +152,8 @@ ShaderModule::ShaderModule(
         .pCode = spirv.data(),
     };
 
-    VkResult result = vkCreateShaderModule(
-        m_device->m_handle, &create_info, Instance::allocator(), &m_handle
-    );
+    VkResult result =
+        vkCreateShaderModule(m_device->m_handle, &info, Instance::allocator(), &m_handle);
     if (result != VK_SUCCESS) {
         Logger::err("Failed to create shader module.");
         assert(false);
@@ -226,7 +225,7 @@ static auto layout_create_info(
     const std::span<VkPushConstantRange>&         push_constants
 ) -> VkPipelineLayoutCreateInfo {
 
-    const VkPipelineLayoutCreateInfo layout_info = {
+    const VkPipelineLayoutCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -235,7 +234,7 @@ static auto layout_create_info(
         .pushConstantRangeCount = static_cast<u32>(push_constants.size()),
         .pPushConstantRanges = push_constants.data(),
     };
-    return layout_info;
+    return info;
 }
 
 Pipeline::PipelineLayout::~PipelineLayout() {
@@ -273,23 +272,19 @@ Pipeline::PipelineLayout::PipelineLayout(
     push_constants.resize(push_constant_ranges.size());
     for (u32 i = 0; i < push_constant_ranges.size(); i++) {
         const Pipeline::PushConstantRange& range = push_constant_ranges[i];
-        VkPushConstantRange&               vulkan_range = push_constants[i];
+        VkPushConstantRange&               vk_range = push_constants[i];
 
-        vulkan_range.stageFlags = range.shader_stage;
-        vulkan_range.offset = range.offset;
-        vulkan_range.size = range.size;
+        vk_range.stageFlags = range.shader_stage;
+        vk_range.offset = range.offset;
+        vk_range.size = range.size;
     }
 
-    std::array<VkDescriptorSetLayout, 4> set_layout_handles;
-    for (u32 i = 0; i < set_layouts.size(); i++) {
-        set_layout_handles[i] = set_layouts[i].m_handle;
-    }
+    std::array<VkDescriptorSetLayout, 4> layouts;
+    for (u32 i = 0; i < set_layouts.size(); i++) { layouts[i] = set_layouts[i].m_handle; }
 
-    const VkPipelineLayoutCreateInfo pipeline_layout_info =
-        layout_create_info(set_layout_handles, push_constants);
-    VkResult result = vkCreatePipelineLayout(
-        device.m_handle, &pipeline_layout_info, Instance::allocator(), &m_handle
-    );
+    const VkPipelineLayoutCreateInfo info = layout_create_info(layouts, push_constants);
+    VkResult                         result =
+        vkCreatePipelineLayout(device.m_handle, &info, Instance::allocator(), &m_handle);
     if (result != VK_SUCCESS) { assert(false); }
 
 #if 0
@@ -336,7 +331,7 @@ Pipeline::PipelineLayout::PipelineLayout(
 static auto
 shader_stage_create_info(VkShaderStageFlagBits stage, VkShaderModule shader_module)
     -> VkPipelineShaderStageCreateInfo {
-    const VkPipelineShaderStageCreateInfo shader_stage_info = {
+    const VkPipelineShaderStageCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -345,13 +340,13 @@ shader_stage_create_info(VkShaderStageFlagBits stage, VkShaderModule shader_modu
         .pName = "main",
         .pSpecializationInfo = nullptr,
     };
-    return shader_stage_info;
+    return info;
 }
 
 static auto
 viewport_state_create_info(const VkViewport& viewport, const VkRect2D& scissor)
     -> VkPipelineViewportStateCreateInfo {
-    const VkPipelineViewportStateCreateInfo viewport_info = {
+    const VkPipelineViewportStateCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -360,7 +355,7 @@ viewport_state_create_info(const VkViewport& viewport, const VkRect2D& scissor)
         .scissorCount = 1,
         .pScissors = &scissor,
     };
-    return viewport_info;
+    return info;
 }
 
 static auto get_binding_description(const VertexFormat& vertex_format)
@@ -379,18 +374,16 @@ static auto get_binding_description(const VertexFormat& vertex_format)
 
 static auto get_attribute_descriptions(const VertexFormat& vertex_format)
     -> std::vector<VkVertexInputAttributeDescription> {
-    std::vector<VkVertexInputAttributeDescription> attribute_descriptions;
-    attribute_descriptions.resize(vertex_format.m_attributes.size());
+    std::vector<VkVertexInputAttributeDescription> attribs;
+    attribs.resize(vertex_format.m_attributes.size());
     for (u32 i = 0; i < vertex_format.m_attributes.size(); i++) {
-        attribute_descriptions[i].binding = 0;
-        attribute_descriptions[i].location = i;
-        attribute_descriptions[i].format =
-            SHADER_TYPE_to_VkFormat(vertex_format.m_attributes[i].type);
-        attribute_descriptions[i].offset =
-            static_cast<u32>(vertex_format.m_attributes[i].offset);
+        attribs[i].binding = 0;
+        attribs[i].location = i;
+        attribs[i].format = SHADER_TYPE_to_VkFormat(vertex_format.m_attributes[i].type);
+        attribs[i].offset = static_cast<u32>(vertex_format.m_attributes[i].offset);
     }
 
-    return attribute_descriptions;
+    return attribs;
 }
 
 static auto vertex_input_state_create_info(
@@ -398,7 +391,7 @@ static auto vertex_input_state_create_info(
     const std::span<VkVertexInputAttributeDescription> attributes
 ) -> VkPipelineVertexInputStateCreateInfo {
 
-    const VkPipelineVertexInputStateCreateInfo vertex_input_info = {
+    const VkPipelineVertexInputStateCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -407,23 +400,23 @@ static auto vertex_input_state_create_info(
         .vertexAttributeDescriptionCount = static_cast<u32>(attributes.size()),
         .pVertexAttributeDescriptions = attributes.data(),
     };
-    return vertex_input_info;
+    return info;
 }
 
 static auto input_assembly_state_create_info(VkPrimitiveTopology topology)
     -> VkPipelineInputAssemblyStateCreateInfo {
-    const VkPipelineInputAssemblyStateCreateInfo input_assembly = {
+    const VkPipelineInputAssemblyStateCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .topology = topology,
         .primitiveRestartEnable = VK_FALSE,
     };
-    return input_assembly;
+    return info;
 }
 
 static auto rasterization_state_create_info() -> VkPipelineRasterizationStateCreateInfo {
-    const VkPipelineRasterizationStateCreateInfo rasterizer = {
+    const VkPipelineRasterizationStateCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -439,11 +432,11 @@ static auto rasterization_state_create_info() -> VkPipelineRasterizationStateCre
         .depthBiasSlopeFactor = {},
         .lineWidth = 1.0F,
     };
-    return rasterizer;
+    return info;
 }
 
 static auto multisample_state_create_info() -> VkPipelineMultisampleStateCreateInfo {
-    const VkPipelineMultisampleStateCreateInfo multisampling = {
+    const VkPipelineMultisampleStateCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -454,7 +447,7 @@ static auto multisample_state_create_info() -> VkPipelineMultisampleStateCreateI
         .alphaToCoverageEnable = VK_FALSE,
         .alphaToOneEnable = VK_FALSE,
     };
-    return multisampling;
+    return info;
 }
 
 static auto color_blend_attachment_state() -> VkPipelineColorBlendAttachmentState {
@@ -486,7 +479,7 @@ static auto color_blend_attachment_state() -> VkPipelineColorBlendAttachmentStat
 static auto color_blend_state_create_info(
     const VkPipelineColorBlendAttachmentState& color_blend_attachment
 ) -> VkPipelineColorBlendStateCreateInfo {
-    const VkPipelineColorBlendStateCreateInfo color_blending = {
+    const VkPipelineColorBlendStateCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -496,7 +489,7 @@ static auto color_blend_state_create_info(
         .pAttachments = &color_blend_attachment,
         .blendConstants = {0.0F, 0.0F, 0.0F, 0.0F},
     };
-    return color_blending;
+    return info;
 }
 
 Pipeline::Pipeline(Pipeline&& other) noexcept
@@ -609,15 +602,15 @@ Pipeline::Pipeline(
     , m_render_pass(&render_pass) {
 
     m_code.m_modules.resize(code.m_modules.size());
-    std::vector<ShaderModule> shader_modules;
-    shader_modules.resize(code.m_modules.size());
-    for (u32 i = 0; i < shader_modules.size(); i++) {
+    std::vector<ShaderModule> modules;
+    modules.resize(code.m_modules.size());
+    for (u32 i = 0; i < modules.size(); i++) {
         const auto& code_ = code.m_modules[i].m_code;
         const auto& stage_ = code.m_modules[i].m_stage;
-        shader_modules[i] = ShaderModule(device, code_, stage_);
+        modules[i] = ShaderModule(device, code_, stage_);
     }
 
-    auto module_interface = combine_modules_into_interface(shader_modules);
+    auto module_interface = combine_modules_into_interface(modules);
     m_reflected_interface = std::move(module_interface);
 
     /*
@@ -633,7 +626,7 @@ Pipeline::Pipeline(
         set 3: model matrix.
     */
     std::array<DescriptorSetLayout, 4> set_layouts =
-        extract_descriptor_set_layouts(shader_modules);
+        extract_descriptor_set_layouts(modules);
     m_set_layouts = std::move(set_layouts);
 
     // bool compatible = check_compatiblity(reflected_code.m_modules, binding_description,
@@ -642,11 +635,11 @@ Pipeline::Pipeline(
 
     m_layout = PipelineLayout(device, m_set_layouts, m_push_constant_ranges);
 
-    std::vector<VkPipelineShaderStageCreateInfo> shader_stages;
-    shader_stages.resize(m_code.m_modules.size());
-    for (u32 i = 0; i < shader_stages.size(); i++) {
-        shader_stages[i] = shader_stage_create_info(
-            from_SHADER_STAGE(shader_modules[i].m_stage), shader_modules[i].m_handle
+    std::vector<VkPipelineShaderStageCreateInfo> stages;
+    stages.resize(m_code.m_modules.size());
+    for (u32 i = 0; i < stages.size(); i++) {
+        stages[i] = shader_stage_create_info(
+            from_SHADER_STAGE(modules[i].m_stage), modules[i].m_handle
         );
     }
 
@@ -694,8 +687,8 @@ Pipeline::Pipeline(
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .stageCount = static_cast<u32>(shader_stages.size()),
-        .pStages = shader_stages.data(),
+        .stageCount = static_cast<u32>(stages.size()),
+        .pStages = stages.data(),
         .pVertexInputState = &vertex_input_info,
         .pInputAssemblyState = &input_assembly,
         .pTessellationState = nullptr,

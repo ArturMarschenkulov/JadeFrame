@@ -28,14 +28,14 @@ auto Fence::operator=(Fence&& other) noexcept -> Fence& {
 Fence::Fence(const LogicalDevice& device, bool signaled)
     : m_device(&device) {
 
-    const VkFenceCreateInfo create_info = {
+    const VkFenceCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
         .pNext = nullptr,
         .flags = signaled ? VK_FENCE_CREATE_SIGNALED_BIT : (VkFenceCreateFlags)0,
     };
 
     VkResult result =
-        vkCreateFence(device.m_handle, &create_info, Instance::allocator(), &m_handle);
+        vkCreateFence(device.m_handle, &info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
@@ -90,15 +90,14 @@ Semaphore::~Semaphore() {
 Semaphore::Semaphore(const LogicalDevice& device)
     : m_device(&device) {
 
-    const VkSemaphoreCreateInfo create_info = {
+    const VkSemaphoreCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
     };
 
-    VkResult result = vkCreateSemaphore(
-        device.m_handle, &create_info, Instance::allocator(), &m_handle
-    );
+    VkResult result =
+        vkCreateSemaphore(device.m_handle, &info, Instance::allocator(), &m_handle);
     JF_ASSERT(result == VK_SUCCESS, "");
 }
 
