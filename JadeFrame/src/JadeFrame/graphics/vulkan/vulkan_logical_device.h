@@ -102,11 +102,12 @@ public:
 
     CommandPool m_command_pool;
 
-    auto
-    create_descriptor_pool(u32 max_sets, std::vector<VkDescriptorPoolSize>& pool_sizes)
-        -> DescriptorPool;
+    auto create_descriptor_pool(
+        u32                                    max_sets,
+        const std::span<VkDescriptorPoolSize>& pool_sizes
+    ) -> DescriptorPool;
     auto create_descriptor_set_layout(
-        std::vector<vulkan::DescriptorSetLayout::Binding>& bindings
+        const std::span<vulkan::DescriptorSetLayout::Binding>& bindings
     ) const -> DescriptorSetLayout;
     DescriptorPool m_set_pool;
 
@@ -127,8 +128,7 @@ public: // synchro objects
     auto create_semaphore() const -> Semaphore;
     auto create_fence(bool signaled) const -> Fence;
     auto wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) const -> void;
-    auto
-    wait_for_fences(const std::vector<Fence>& fences, bool wait_all, u64 timeout) const
+    auto wait_for_fences(const std::span<Fence>& fences, bool wait_all, u64 timeout) const
         -> void;
 
 public: // Misc

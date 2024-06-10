@@ -58,6 +58,7 @@ Queue::Queue(const LogicalDevice& device, u32 queue_family_index, u32 queue_inde
 }
 
 auto Queue::submit(const CommandBuffer& cmd_buffer) const -> void {
+    assert(cmd_buffer.m_stage == CommandBuffer::STAGE::EXCECUTABLE);
     VkSubmitInfo submit_info = {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .pNext = nullptr,
@@ -71,6 +72,7 @@ auto Queue::submit(const CommandBuffer& cmd_buffer) const -> void {
     };
     VkResult result = vkQueueSubmit(m_handle, 1, &submit_info, VK_NULL_HANDLE);
     if (result != VK_SUCCESS) { assert(false); }
+    cmd_buffer.m_stage = CommandBuffer::STAGE::PENDING;
 
     // this->submit(cmd_buffer, nullptr, nullptr, nullptr);
 }
@@ -81,6 +83,7 @@ auto Queue::submit(
     const Semaphore*     signal_semaphore,
     const Fence*         fence
 ) const -> void {
+    assert(cmd_buffer.m_stage == CommandBuffer::STAGE::EXCECUTABLE);
 
     const bool has_fenc = fence != nullptr;
     const bool has_wait_semaphore = wait_semaphore != nullptr;
@@ -270,9 +273,9 @@ auto LogicalDevice::wait_for_fence(const Fence& fences, bool wait_all, u64 timeo
 }
 
 auto LogicalDevice::wait_for_fences(
-    const std::vector<Fence>& fences,
-    bool                      wait_all,
-    u64                       timeout
+    const std::span<Fence>& fences,
+    bool                    wait_all,
+    u64                     timeout
 ) const -> void {
     assert(fences.size() < 5);
     std::array<VkFence, 5> vk_fences;
@@ -299,15 +302,15 @@ auto LogicalDevice::create_buffer(Buffer::TYPE buffer_type, void* data, size_t s
 }
 
 auto LogicalDevice::create_descriptor_pool(
-    u32                                max_sets,
-    std::vector<VkDescriptorPoolSize>& pool_sizes
+    u32                              max_sets,
+    const std::span<VkDescriptorPoolSize>& pool_sizes
 ) -> DescriptorPool {
     DescriptorPool pool(*this, max_sets, pool_sizes);
     return pool;
 }
 
 auto LogicalDevice::create_descriptor_set_layout(
-    std::vector<vulkan::DescriptorSetLayout::Binding>& bindings
+    const std::span<vulkan::DescriptorSetLayout::Binding>& bindings
 ) const -> DescriptorSetLayout {
     DescriptorSetLayout layout(*this, bindings);
     return layout;

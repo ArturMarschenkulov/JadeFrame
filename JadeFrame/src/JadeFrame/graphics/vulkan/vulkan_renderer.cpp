@@ -111,6 +111,17 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         sizeof(Matrix4x4), pd->query_limits().minUniformBufferOffsetAlignment
     );
 
+    // prepare shaders and its dynamic uniform buffers
+    // TODO: Find a better way to do this, but for now it works
+    for (u64 i = 0; i < m_render_commands.size(); i++) {
+        const auto&           cmd = m_render_commands[i];
+        const MaterialHandle& mh = cmd.material_handle;
+        const ShaderHandle&   sh = m_system->m_registered_shaders[mh.m_shader_id];
+        auto*                 shader = static_cast<Vulkan_Shader*>(sh.m_handle);
+
+        shader->set_dynamic_ub_num(m_render_commands.size());
+    }
+
     vulkan::CommandBuffer& cb = m_frames[m_frame_index].m_cmd;
     // cb.record([&] {
     cb.record_begin();
@@ -131,8 +142,6 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
         // Per Frame ubo
         // vulkan::FREQUENCY::PER_FRAME == 0
-        // auto* ub_cam = shader->m_uniform_buffers[vulkan::FREQUENCY::PER_FRAME][0];
-        // ub_cam->write(view_projection, 0); // 0, 0
         shader->write_ub(
             vulkan::FREQUENCY::PER_FRAME, //
             0,
@@ -144,17 +153,14 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         // Per DrawCall ubo
 
         // vulkan::FREQUENCY::PER_OBJECT == 3
-        auto*     ub_tran = shader->m_uniform_buffers[vulkan::FREQUENCY::PER_OBJECT][0];
-        const u32 offset = static_cast<u32>(dyn_alignment * i);
-        update_ubo_buffers(shader, ub_tran, m_render_commands.size(), dyn_alignment);
-        ub_tran->write(*cmd.transform, offset); // 3, 0
-        // shader->write_ub(
-        //     vulkan::FREQUENCY::PER_OBJECT, //
-        //     0,
-        //     cmd.transform,
-        //     sizeof(*cmd.transform),
-        //     offset
-        // );
+        const u32 dyn_offset = static_cast<u32>(dyn_alignment * i);
+        shader->write_ub(
+            vulkan::FREQUENCY::PER_OBJECT, //
+            0,
+            cmd.transform,
+            sizeof(*cmd.transform),
+            dyn_offset
+        );
 
         const VkPipelineBindPoint bp = VK_PIPELINE_BIND_POINT_GRAPHICS;
         auto&                     pipeline = shader->m_pipeline;
@@ -168,22 +174,26 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
             sets[vulkan::FREQUENCY::PER_FRAME],
             nullptr
         );
-        // cb.bind_descriptor_sets(bp, //
-        // pipeline, 1, sets[vulkan::FREQUENCY::PER_PASS],
-        // nullptr);
-        // cb.bind_descriptor_sets(
-        //     bp, //
-        //     pl,
-        //     2,
-        //     sets[vulkan::FREQUENCY::PER_MATERIAL],
-        //     nullptr
-        // );
+        cb.bind_descriptor_sets(
+            bp, //
+            pipeline,
+            1,
+            sets[vulkan::FREQUENCY::PER_PASS],
+            nullptr
+        );
+        cb.bind_descriptor_sets(
+            bp, //
+            pipeline,
+            2,
+            sets[vulkan::FREQUENCY::PER_MATERIAL],
+            nullptr
+        );
         cb.bind_descriptor_sets(
             bp, //
             pipeline,
             3,
             sets[vulkan::FREQUENCY::PER_OBJECT],
-            &offset
+            &dyn_offset
         );
 
         this->render_mesh(cmd.vertex_data, &gpu_data);

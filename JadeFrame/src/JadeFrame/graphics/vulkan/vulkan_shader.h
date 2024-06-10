@@ -45,6 +45,8 @@ public:
         size_t            offset
     ) -> void;
 
+    auto set_dynamic_ub_num(u32 num) -> void;
+
 public:
     const vulkan::LogicalDevice* m_device = nullptr;
     vulkan::Pipeline             m_pipeline;

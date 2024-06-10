@@ -105,25 +105,30 @@ auto Vulkan_Shader::write_ub(
     // TODO: Make it more solid
 
     if (frequency == vulkan::FREQUENCY::PER_OBJECT) {
-        auto        type_size = sizeof(Matrix4x4);
-        const auto* pd = m_device->m_physical_device;
-        const u64   dyn_alignment = get_aligned_block_size(
-            type_size, pd->query_limits().minUniformBufferOffsetAlignment
-        );
         auto* ub = m_uniform_buffers[frequency][index];
-        auto  ub_size = ub->m_size;
-
-        if (offset + size > ub_size) {
-            vkDeviceWaitIdle(m_device->m_handle);
-            ub->resize(2 * ub_size);
-            this->rebind_buffer(frequency, index, *ub);
-        }
-
         ub->write(data, size, offset);
     } else {
         assert(offset == 0);
         auto* ub = m_uniform_buffers[frequency][index];
         ub->write(data, size, offset);
+    }
+}
+
+auto Vulkan_Shader::set_dynamic_ub_num(u32 num) -> void {
+    const vulkan::PhysicalDevice* pd = m_device->m_physical_device;
+
+    auto type_size = sizeof(Matrix4x4);
+
+    const u64 dyn_alignment = get_aligned_block_size(
+        type_size, pd->query_limits().minUniformBufferOffsetAlignment
+    );
+
+    for (auto& [index, ub] : m_uniform_buffers[vulkan::FREQUENCY::PER_OBJECT]) {
+        if(num * dyn_alignment == ub->m_size) {
+            return;
+        }
+        ub->resize(num * dyn_alignment);
+        this->rebind_buffer(vulkan::FREQUENCY::PER_OBJECT, index, *ub);
     }
 }
 } // namespace JadeFrame
