@@ -405,10 +405,19 @@ auto CommandPool::copy_buffer(
     CommandBuffer cmd = this->allocate_buffer();
 
     cmd.record([&] { cmd.copy_buffer(src_buffer, dst_buffer, size); });
+
+    // TODO: the queue should be provided by the user. It does not make sense for the
+    // command pool to decide which queue to use.
     cmd.m_device->m_graphics_queue.submit(cmd);
     cmd.m_device->m_graphics_queue.wait_idle();
 
     this->free_buffer(cmd);
+}
+
+auto CommandBuffer::execute_command(const CommandBuffer& command_buffer) -> void {
+    assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
+
+    vkCmdExecuteCommands(m_handle, 1, &command_buffer.m_handle);
 }
 } // namespace vulkan
 } // namespace JadeFrame

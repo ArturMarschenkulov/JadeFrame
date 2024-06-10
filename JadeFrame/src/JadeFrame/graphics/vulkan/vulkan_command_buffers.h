@@ -103,6 +103,9 @@ public: // draw methods
     ) -> void;
 
 public:
+    auto execute_command(const CommandBuffer& command_buffer) -> void;
+
+public:
     enum class STAGE {
         INITIAL,     // after vkBegineCommandBuffer, before vkCmdBeginRenderPass
         RECORDING,   // after vkCmdBeginRenderPass, before vkCmdEndRenderPass
