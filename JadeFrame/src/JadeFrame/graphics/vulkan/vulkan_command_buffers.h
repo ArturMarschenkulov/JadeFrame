@@ -110,11 +110,16 @@ public:
         PENDING,
         INVALID
     };
+    enum class LEVEL {
+        PRIMARY,
+        SECONDARY
+    };
     VkCommandBuffer             m_handle;
     VkCommandBufferAllocateInfo m_alloc_info;
     const LogicalDevice*        m_device = nullptr;
     const CommandPool*          m_command_pool = nullptr;
     mutable STAGE               m_stage = STAGE::INVALID;
+    LEVEL                       m_level = LEVEL::PRIMARY;
 };
 
 using QueueFamilyIndex = u32;
@@ -132,7 +137,8 @@ public:
     CommandPool(const LogicalDevice& device, const QueueFamilyIndex& queue_family_index);
 
 public:
-    [[nodiscard]] auto allocate_buffers(u32 amount) const -> std::vector<CommandBuffer>;
+    [[nodiscard]] auto allocate_buffers(u32 amount, CommandBuffer::LEVEL level) const
+        -> std::vector<CommandBuffer>;
     [[nodiscard]] auto allocate_buffer() const -> CommandBuffer;
     auto free_buffers(const std::vector<CommandBuffer>& command_buffers) const -> void;
     auto free_buffer(const CommandBuffer& command_buffer) const -> void;

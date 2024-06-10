@@ -320,14 +320,25 @@ CommandPool::~CommandPool() {
     }
 }
 
-auto CommandPool::allocate_buffers(u32 amount) const -> std::vector<CommandBuffer> {
+auto CommandPool::allocate_buffers(u32 amount, CommandBuffer::LEVEL level) const
+    -> std::vector<CommandBuffer> {
+
+    VkCommandBufferLevel level_ = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    switch (level) {
+        case CommandBuffer::LEVEL::PRIMARY: {
+            level_ = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        } break;
+        case CommandBuffer::LEVEL::SECONDARY: {
+            level_ = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+        } break;
+    }
 
     std::vector<VkCommandBuffer>      handles(amount);
     const VkCommandBufferAllocateInfo info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
         .pNext = nullptr,
         .commandPool = m_handle,
-        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .level = level_,
         .commandBufferCount = static_cast<u32>(handles.size()),
     };
     VkResult result = vkAllocateCommandBuffers(m_device->m_handle, &info, handles.data());
@@ -341,22 +352,24 @@ auto CommandPool::allocate_buffers(u32 amount) const -> std::vector<CommandBuffe
         );
     }
 
-    std::vector<CommandBuffer> command_buffers(handles.size());
-    for (u32 i = 0; i < command_buffers.size(); i++) {
-        command_buffers[i].m_handle = handles[i];
-        command_buffers[i].m_alloc_info = info;
-        command_buffers[i].m_device = m_device;
-        command_buffers[i].m_command_pool = this;
-        command_buffers[i].m_stage = CommandBuffer::STAGE::INITIAL;
+    std::vector<CommandBuffer> buffers(handles.size());
+    for (u32 i = 0; i < buffers.size(); i++) {
+        buffers[i].m_handle = handles[i];
+        buffers[i].m_alloc_info = info;
+        buffers[i].m_device = m_device;
+        buffers[i].m_command_pool = this;
+        buffers[i].m_stage = CommandBuffer::STAGE::INITIAL;
+        buffers[i].m_level = level;
     }
-    return command_buffers;
+    return buffers;
 }
 
 auto CommandPool::allocate_buffer() const -> CommandBuffer {
-    return std::move(this->allocate_buffers(1)[0]);
+    CommandBuffer::LEVEL level = CommandBuffer::LEVEL::PRIMARY;
+    return std::move(this->allocate_buffers(1, level)[0]);
 }
 
-auto CommandPool::free_buffers(const std::vector<CommandBuffer>& command_buffers) const
+auto CommandPool::free_buffers(const std::span<CommandBuffer>& command_buffers) const
     -> void {
     for (u32 i = 0; i < command_buffers.size(); i++) {
         vkFreeCommandBuffers(
