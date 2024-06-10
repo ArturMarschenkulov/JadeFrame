@@ -228,7 +228,8 @@ Buffer::~Buffer() {
     }
 }
 
-auto Buffer::write(const void* data, VkDeviceSize size, VkDeviceSize offset) const -> void {
+auto Buffer::write(const void* data, VkDeviceSize size, VkDeviceSize offset) const
+    -> void {
 
     void* mapped_data;
 #if JF_USE_VMA
@@ -259,14 +260,11 @@ auto Buffer::create_buffer(
     VkBufferUsageFlags usage,
 #if JF_USE_VMA
     VmaMemoryUsage vma_usage,
+    VkBuffer&      buffer
 #else
     VkMemoryPropertyFlags properties,
-#endif
-    VkBuffer& buffer
-#if JF_USE_VMA
-#else
-    ,
-    VkDeviceMemory& buffer_memory
+    VkBuffer&             buffer,
+    VkDeviceMemory&       buffer_memory
 #endif
 ) -> void {
 

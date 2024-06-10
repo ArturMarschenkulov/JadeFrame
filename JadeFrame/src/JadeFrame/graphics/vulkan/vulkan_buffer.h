@@ -58,22 +58,18 @@ public:
     auto resize(size_t size) -> void;
 
 private:
-#if JF_USE_VMA
     auto create_buffer(
         VkDeviceSize       size,
         VkBufferUsageFlags usage,
-        VmaMemoryUsage     vma_usage,
-        VkBuffer&          buffer
-    ) -> void;
+#if JF_USE_VMA
+        VmaMemoryUsage vma_usage,
+        VkBuffer&      buffer
 #else
-    auto create_buffer(
-        VkDeviceSize          size,
-        VkBufferUsageFlags    usage,
         VkMemoryPropertyFlags properties,
         VkBuffer&             buffer,
         VkDeviceMemory&       buffer_memory
-    ) -> void;
 #endif
+    ) -> void;
 
 public:
     /*const*/ Buffer::TYPE m_type = Buffer::TYPE::UNINIT;
