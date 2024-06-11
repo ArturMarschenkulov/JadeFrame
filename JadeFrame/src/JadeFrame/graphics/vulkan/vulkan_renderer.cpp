@@ -78,24 +78,6 @@ auto Vulkan_Renderer::recreate_swapchain() -> void {
 
 auto Vulkan_Renderer::cleanup_swapchain() -> void { m_swapchain.deinit(); }
 
-// Update ubo buffer and descriptor set when the amount of render
-// commands changes
-// Small helper function
-static auto update_ubo_buffers(
-    Vulkan_Shader*  shader,
-    vulkan::Buffer* ub_tran,
-    size_t          num_commands,
-    size_t          dyn_alignment
-) -> void {
-    // const size_t num_commands = m_render_commands.size();
-    if (num_commands * dyn_alignment != ub_tran->m_size) {
-        if (num_commands != 0) {
-            ub_tran->resize(num_commands * dyn_alignment);
-            shader->rebind_buffer(vulkan::FREQUENCY::PER_OBJECT, 0, *ub_tran);
-        }
-    }
-}
-
 auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     vulkan::LogicalDevice&        d = *m_logical_device;
     const vulkan::PhysicalDevice* pd = d.m_physical_device;
@@ -143,11 +125,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         // Per Frame ubo
         // vulkan::FREQUENCY::PER_FRAME == 0
         shader->write_ub(
-            vulkan::FREQUENCY::PER_FRAME, //
-            0,
-            &view_projection,
-            sizeof(view_projection),
-            0
+            vulkan::FREQUENCY::PER_FRAME, 0, &view_projection, sizeof(view_projection), 0
         );
 
         // Per DrawCall ubo
@@ -155,7 +133,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         // vulkan::FREQUENCY::PER_OBJECT == 3
         const u32 dyn_offset = static_cast<u32>(dyn_alignment * i);
         shader->write_ub(
-            vulkan::FREQUENCY::PER_OBJECT, //
+            vulkan::FREQUENCY::PER_OBJECT,
             0,
             cmd.transform,
             sizeof(*cmd.transform),
@@ -168,32 +146,16 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
         cb.bind_pipeline(bp, pipeline);
         cb.bind_descriptor_sets(
-            bp, //
-            pipeline,
-            0,
-            sets[vulkan::FREQUENCY::PER_FRAME],
-            nullptr
+            bp, pipeline, 0, sets[vulkan::FREQUENCY::PER_FRAME], nullptr
         );
         cb.bind_descriptor_sets(
-            bp, //
-            pipeline,
-            1,
-            sets[vulkan::FREQUENCY::PER_PASS],
-            nullptr
+            bp, pipeline, 1, sets[vulkan::FREQUENCY::PER_PASS], nullptr
         );
         cb.bind_descriptor_sets(
-            bp, //
-            pipeline,
-            2,
-            sets[vulkan::FREQUENCY::PER_MATERIAL],
-            nullptr
+            bp, pipeline, 2, sets[vulkan::FREQUENCY::PER_MATERIAL], nullptr
         );
         cb.bind_descriptor_sets(
-            bp, //
-            pipeline,
-            3,
-            sets[vulkan::FREQUENCY::PER_OBJECT],
-            &dyn_offset
+            bp, pipeline, 3, sets[vulkan::FREQUENCY::PER_OBJECT], &dyn_offset
         );
 
         this->render_mesh(cmd.vertex_data, &gpu_data);
