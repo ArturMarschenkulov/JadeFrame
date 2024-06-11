@@ -120,7 +120,7 @@ static auto is_device_suitable(
     if (physical_device.m_extension_support == true) {
         swapchain_adequate = !formats.empty() && !present_modes.empty();
     }
-    return physical_device.m_queue_family_indices.is_complete() &&
+    return physical_device.m_queue_family_pointers.is_complete() &&
            physical_device.m_extension_support && swapchain_adequate;
 }
 

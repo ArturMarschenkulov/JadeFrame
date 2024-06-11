@@ -198,12 +198,15 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     m_image_format = surface_format.format;
     m_extent = extent;
 
-    const QueueFamilyIndices& indices = gpu->m_queue_family_indices;
-    const u32                 queue_family_indices[] = {
-        indices.m_graphics_family.value(), indices.m_present_family.value()
+    const QueueFamilyPointers& pointers = gpu->m_queue_family_pointers;
+    const QueueFamily*         queue_family_pointers[] = {
+        pointers.m_graphics_family, pointers.m_present_family
+    };
+    const u32 queue_family_indices[] = {
+        pointers.m_graphics_family->m_index, pointers.m_present_family->m_index
     };
     const bool is_same_queue_family =
-        indices.m_graphics_family == indices.m_present_family;
+        pointers.m_graphics_family == pointers.m_present_family;
 
     VkSwapchainCreateInfoKHR info = {};
     info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;

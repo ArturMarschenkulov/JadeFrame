@@ -174,19 +174,19 @@ auto LogicalDevice::init(
 
     VkResult result;
 
-    const QueueFamilyIndices& indices = physical_device.m_queue_family_indices;
-    const std::set<u32>       unique_queue_families = {
-        indices.m_graphics_family.value(), indices.m_present_family.value()
+    const QueueFamilyPointers&   pointers = physical_device.m_queue_family_pointers;
+    const std::set<QueueFamily*> unique_queue_families = {
+        pointers.m_graphics_family, pointers.m_present_family
     };
 
     constexpr f32                        queue_priority = 1.0_f32;
     std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
-    for (u32 queue_familiy : unique_queue_families) {
+    for (const auto& queue_family : unique_queue_families) {
         const VkDeviceQueueCreateInfo queue_create_info = {
             .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
-            .queueFamilyIndex = queue_familiy,
+            .queueFamilyIndex = queue_family->m_index,
             .queueCount = 1,
             .pQueuePriorities = &queue_priority,
         };
@@ -235,11 +235,11 @@ auto LogicalDevice::init(
         "maxBoundDescriptorSets too low, it must be at least 4"
     );
 
-    m_graphics_queue = this->query_queues(indices.m_graphics_family.value(), 0);
-    m_present_queue = this->query_queues(indices.m_present_family.value(), 0);
+    m_graphics_queue = this->query_queues(*pointers.m_graphics_family, 0);
+    m_present_queue = this->query_queues(*pointers.m_present_family, 0);
 
     m_command_pool = this->create_command_pool(
-        m_physical_device->m_queue_family_indices.m_graphics_family.value()
+        *m_physical_device->m_queue_family_pointers.m_graphics_family
     );
     u32                               descriptor_count = 1000;
     std::vector<VkDescriptorPoolSize> pool_sizes = {
@@ -287,8 +287,8 @@ auto LogicalDevice::wait_for_fences(
     if (result != VK_SUCCESS) { assert(false); }
 }
 
-auto LogicalDevice::query_queues(u32 queue_family_index, u32 queue_index) -> Queue {
-    Queue queue(*this, queue_family_index, queue_index);
+auto LogicalDevice::query_queues(const QueueFamily& family, u32 queue_index) -> Queue {
+    Queue queue(*this, family.m_index, queue_index);
     return queue;
 }
 
@@ -302,7 +302,7 @@ auto LogicalDevice::create_buffer(Buffer::TYPE buffer_type, void* data, size_t s
 }
 
 auto LogicalDevice::create_descriptor_pool(
-    u32                              max_sets,
+    u32                                    max_sets,
     const std::span<VkDescriptorPoolSize>& pool_sizes
 ) -> DescriptorPool {
     DescriptorPool pool(*this, max_sets, pool_sizes);
@@ -333,9 +333,8 @@ auto LogicalDevice::create_fence(bool signaled) const -> Fence {
     return fence;
 }
 
-auto LogicalDevice::create_command_pool(const QueueFamilyIndex& queue_family_index)
-    -> CommandPool {
-    CommandPool cp(*this, queue_family_index);
+auto LogicalDevice::create_command_pool(const QueueFamily& queue_family) -> CommandPool {
+    CommandPool cp(*this, queue_family.m_index);
     return cp;
 }
 

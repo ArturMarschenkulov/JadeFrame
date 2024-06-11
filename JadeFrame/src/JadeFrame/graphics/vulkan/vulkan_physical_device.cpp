@@ -78,12 +78,12 @@ static auto query_queue_family_properties(const PhysicalDevice& physical_device)
 
 static auto query_surface_support(
     const PhysicalDevice& physical_device,
-    u32                   queue_family_index,
+    u32                   index,
     const Surface&        surface
 ) -> bool {
     VkBool32 present_support = false;
     vkGetPhysicalDeviceSurfaceSupportKHR(
-        physical_device.m_handle, queue_family_index, surface.m_handle, &present_support
+        physical_device.m_handle, index, surface.m_handle, &present_support
     );
     return (bool)present_support;
 }
@@ -179,7 +179,7 @@ auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
 
     */
     m_queue_families = this->query_queue_families();
-    m_queue_family_indices = this->find_queue_families(m_queue_families, surface);
+    m_queue_family_pointers = PhysicalDevice::find_queue_families(m_queue_families, surface);
     m_extension_properties = this->query_extension_properties();
 
     m_extension_support = this->check_extension_support(m_device_extensions);
@@ -276,23 +276,24 @@ auto PhysicalDevice::check_extension_support(const std::vector<const char*>& ext
     return required_extensions.empty();
 }
 
+// /// Returns a pair of queue family indices, one that supports graphics and one that
+// /// supports presenting.
 auto PhysicalDevice::find_queue_families(
-    const std::vector<QueueFamily>& queue_families,
-    const Surface&                  surface
-) const -> QueueFamilyIndices {
+    std::vector<QueueFamily>& queue_families,
+    const Surface&            surface
+) const -> QueueFamilyPointers {
 
-    QueueFamilyIndices indices;
+    QueueFamilyPointers pointers;
     for (u32 i = 0; i < queue_families.size(); i++) {
-        if (queue_families[i].m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            indices.m_graphics_family = queue_families[i].m_index;
-        }
+        auto&      family = queue_families[i];
+        const bool is_graphics = family.supports_graphics();
+        const bool is_present = family.supports_present(surface);
 
-        VkBool32 present_support = query_surface_support(*this, i, surface);
-        if (present_support) { indices.m_present_family = queue_families[i].m_index; }
-
-        if (indices.is_complete()) { break; }
+        if (is_graphics) { pointers.m_graphics_family = &family; }
+        if (is_present) { pointers.m_present_family = &family; }
+        if (pointers.is_complete()) { break; }
     }
-    return indices;
+    return pointers;
 }
 
 auto PhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties)
@@ -316,6 +317,7 @@ auto PhysicalDevice::query_queue_families() const -> std::vector<QueueFamily> {
     for (u32 i = 0; i < properties.size(); i++) {
         families[i].m_index = i;
         families[i].m_properties = properties[i];
+        families[i].m_physical_device = this;
     }
 
     return families;
@@ -331,5 +333,9 @@ auto PhysicalDevice::create_logical_device() -> LogicalDevice {
     return ld;
 }
 
+auto QueueFamily::supports_present(const Surface& surface) const -> bool {
+    auto present_support = query_surface_support(*m_physical_device, m_index, surface);
+    return present_support;
+}
 } // namespace vulkan
 } // namespace JadeFrame

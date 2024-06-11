@@ -13,18 +13,9 @@ namespace JadeFrame {
 namespace vulkan {
 class Instance;
 class Surface;
+class PhysicalDevice;
 
 using QueueFamilyIndex = u32;
-
-class QueueFamilyIndices {
-public:
-    std::optional<QueueFamilyIndex> m_graphics_family;
-    std::optional<QueueFamilyIndex> m_present_family;
-
-    auto is_complete() const -> bool {
-        return m_graphics_family.has_value() && m_present_family.has_value();
-    }
-};
 
 class QueueFamily {
 public:
@@ -32,6 +23,24 @@ public:
     VkQueueFamilyProperties m_properties;
     u32                     m_queue_amount;
     VkBool32                m_present_support;
+    const PhysicalDevice*   m_physical_device = nullptr;
+
+public:
+    [[nodiscard]] auto supports_graphics() const -> bool {
+        return (m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0U;
+    }
+
+    [[nodiscard]] auto supports_present(const Surface& surface) const -> bool;
+};
+
+class QueueFamilyPointers {
+public:
+    QueueFamily* m_graphics_family = nullptr;
+    QueueFamily* m_present_family = nullptr;
+
+    [[nodiscard]] auto is_complete() const -> bool {
+        return m_graphics_family != nullptr && m_present_family != nullptr;
+    }
 };
 
 class PhysicalDevice {
@@ -42,9 +51,9 @@ public:
     [[nodiscard]] auto check_extension_support(const std::vector<const char*>& extensions
     ) const -> bool;
     [[nodiscard]] auto find_queue_families(
-        const std::vector<QueueFamily>& queue_families,
-        const Surface&                  surface
-    ) const -> QueueFamilyIndices;
+        std::vector<QueueFamily>& queue_families,
+        const Surface&            surface
+    ) const -> QueueFamilyPointers;
     [[nodiscard]] auto
     find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32;
 
@@ -76,9 +85,8 @@ public:
     VkPhysicalDeviceMemoryProperties m_memory_properties = {};
 
     // Queue stuff
-    std::vector<QueueFamily>             m_queue_families;
-    std::vector<VkQueueFamilyProperties> m_queue_family_properties;
-    QueueFamilyIndices                   m_queue_family_indices;
+    std::vector<QueueFamily> m_queue_families;
+    QueueFamilyPointers      m_queue_family_pointers;
 
     // Extension stuff
     std::vector<VkExtensionProperties> m_extension_properties;

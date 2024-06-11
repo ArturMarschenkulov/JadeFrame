@@ -27,6 +27,7 @@ class Pipeline;
 class PhysicalDevice;
 class Fence;
 class Semaphore;
+class QueueFamily;
 
 class Queue {
 public:
@@ -35,10 +36,10 @@ public:
     Queue(const Queue&) = delete;
     auto operator=(const Queue&) -> Queue& = delete;
 
-    Queue(Queue&& other)
+    Queue(Queue&& other) noexcept
         : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE)) {}
 
-    auto operator=(Queue&& other) -> Queue& {
+    auto operator=(Queue&& other) noexcept -> Queue& {
         if (this != &other) { m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE); }
         return *this;
     }
@@ -92,13 +93,13 @@ public:
     const PhysicalDevice* m_physical_device = nullptr;
 
 public:
-    auto query_queues(u32 queue_family_index, u32 queue_index) -> Queue;
+    auto query_queues(const QueueFamily& family, u32 queue_index) -> Queue;
 
     Queue m_graphics_queue;
     Queue m_present_queue;
 
 public:
-    auto create_command_pool(const QueueFamilyIndex& queue_family_index) -> CommandPool;
+    auto create_command_pool(const QueueFamily& queue_family) -> CommandPool;
 
     CommandPool m_command_pool;
 
