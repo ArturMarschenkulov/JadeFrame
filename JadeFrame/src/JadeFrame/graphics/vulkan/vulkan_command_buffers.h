@@ -17,6 +17,7 @@ class Buffer;
 class Image;
 class Pipeline;
 class CommandPool;
+class QueueFamily;
 
 class CommandBuffer {
 public:
@@ -137,7 +138,7 @@ public:
     auto operator=(CommandPool&& other) noexcept -> CommandPool&;
 
 public:
-    CommandPool(const LogicalDevice& device, const QueueFamilyIndex& queue_family_index);
+    CommandPool(const LogicalDevice& device, QueueFamily& queue_family);
 
 public:
     [[nodiscard]] auto allocate_buffers(u32 amount, CommandBuffer::LEVEL level) const
@@ -154,6 +155,7 @@ public:
     const LogicalDevice*    m_device = nullptr;
     VkCommandPool           m_handle = VK_NULL_HANDLE;
     VkCommandPoolCreateInfo m_create_info = {};
+    QueueFamily*            m_queue_family = nullptr;
 };
 
 } // namespace vulkan

@@ -99,7 +99,7 @@ public:
     Queue m_present_queue;
 
 public:
-    auto create_command_pool(const QueueFamily& queue_family) -> CommandPool;
+    auto create_command_pool(QueueFamily& queue_family) -> CommandPool;
 
     CommandPool m_command_pool;
 

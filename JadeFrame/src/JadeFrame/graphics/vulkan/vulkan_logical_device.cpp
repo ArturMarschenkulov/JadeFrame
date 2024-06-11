@@ -333,8 +333,8 @@ auto LogicalDevice::create_fence(bool signaled) const -> Fence {
     return fence;
 }
 
-auto LogicalDevice::create_command_pool(const QueueFamily& queue_family) -> CommandPool {
-    CommandPool cp(*this, queue_family.m_index);
+auto LogicalDevice::create_command_pool(QueueFamily& queue_family) -> CommandPool {
+    CommandPool cp(*this, queue_family);
     return cp;
 }
 

@@ -96,7 +96,9 @@ auto CommandBuffer::render_pass_end() -> void {
 }
 
 auto CommandBuffer::reset() -> void {
-    assert(m_stage == STAGE::EXCECUTABLE && "Command buffer must be in excecutable stage");
+    assert(
+        m_stage == STAGE::EXCECUTABLE && "Command buffer must be in excecutable stage"
+    );
     VkCommandBufferResetFlags flags = {};
 
     VkResult result = vkResetCommandBuffer(m_handle, flags);
@@ -287,18 +289,16 @@ auto CommandPool::operator=(CommandPool&& other) noexcept -> CommandPool& {
     return *this;
 }
 
-CommandPool::CommandPool(
-    const LogicalDevice&    device,
-    const QueueFamilyIndex& queue_family_index
-)
-    : m_device(&device) {
+CommandPool::CommandPool(const LogicalDevice& device, QueueFamily& queue_family)
+    : m_device(&device)
+    , m_queue_family(&queue_family) {
 
     const VkCommandPoolCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         .pNext = nullptr,
         .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, // Optional
         .queueFamilyIndex =
-            queue_family_index /*queue_family_indices.m_graphics_family.unwrap()*/,
+            queue_family.m_index /*queue_family_indices.m_graphics_family.unwrap()*/,
     };
 
     VkResult result =
