@@ -22,7 +22,7 @@ namespace JadeFrame {
 namespace vulkan {
 
 static auto
-choose_surface_format(const std::vector<VkSurfaceFormatKHR>& available_surface_formats)
+choose_surface_format(const std::span<VkSurfaceFormatKHR>& available_surface_formats)
     -> VkSurfaceFormatKHR {
     for (u32 i = 0; i < available_surface_formats.size(); i++) {
         auto& format = available_surface_formats[i];
@@ -35,7 +35,7 @@ choose_surface_format(const std::vector<VkSurfaceFormatKHR>& available_surface_f
 }
 
 static auto
-choose_present_mode(const std::vector<VkPresentModeKHR>& available_surface_formats)
+choose_present_mode(const std::span<VkPresentModeKHR>& available_surface_formats)
     -> VkPresentModeKHR {
     std::array<VkPresentModeKHR, 3> mode_ranks = {
         VK_PRESENT_MODE_FIFO_KHR,
