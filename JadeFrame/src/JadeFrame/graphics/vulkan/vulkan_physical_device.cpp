@@ -179,7 +179,8 @@ auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
 
     */
     m_queue_families = this->query_queue_families();
-    m_queue_family_pointers = PhysicalDevice::find_queue_families(m_queue_families, surface);
+    m_queue_family_pointers =
+        PhysicalDevice::find_queue_families(m_queue_families, surface);
     m_extension_properties = this->query_extension_properties();
 
     m_extension_support = this->check_extension_support(m_device_extensions);

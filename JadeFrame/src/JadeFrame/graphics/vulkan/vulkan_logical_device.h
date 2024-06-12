@@ -13,8 +13,6 @@
 
 #include "JadeFrame/prelude.h"
 
-#include <array>
-#include <vector>
 
 namespace JadeFrame {
 

@@ -117,7 +117,7 @@ static auto is_device_suitable(
     auto present_modes = physical_device.query_surface_present_modes(surface);
 
     bool swapchain_adequate = false;
-    if (physical_device.m_extension_support == true) {
+    if (physical_device.m_extension_support) {
         swapchain_adequate = !formats.empty() && !present_modes.empty();
     }
     return physical_device.m_queue_family_pointers.is_complete() &&

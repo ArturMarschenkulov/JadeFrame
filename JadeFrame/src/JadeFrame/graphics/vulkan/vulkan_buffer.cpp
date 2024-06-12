@@ -40,7 +40,7 @@ struct Memory {
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
             );
 
-            VkDeviceMemory memory;
+            VkDeviceMemory memory = VK_NULL_HANDLE;
             vkAllocateMemory(
                 m_device->m_handle, &alloc_info, Instance::allocator(), &memory
             );

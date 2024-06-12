@@ -149,13 +149,13 @@ LogicalDevice::~LogicalDevice() {
     if (m_handle != VK_NULL_HANDLE) { deinit(); }
 }
 
-LogicalDevice::LogicalDevice(LogicalDevice&& other) {
+LogicalDevice::LogicalDevice(LogicalDevice&& other) noexcept {
     m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
     m_instance = std::exchange(other.m_instance, nullptr);
     m_physical_device = std::exchange(other.m_physical_device, nullptr);
 }
 
-auto LogicalDevice::operator=(LogicalDevice&& other) -> LogicalDevice& {
+auto LogicalDevice::operator=(LogicalDevice&& other) noexcept -> LogicalDevice& {
     if (this != &other) {
         m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
         m_instance = std::exchange(other.m_instance, nullptr);
@@ -164,15 +164,33 @@ auto LogicalDevice::operator=(LogicalDevice&& other) -> LogicalDevice& {
     return *this;
 }
 
-auto LogicalDevice::init(
+static auto init_vma(
     const Instance&       instance,
     const PhysicalDevice& physical_device,
-    const Surface&        surface
-) -> void {
+    const LogicalDevice&  logical_device
+
+) -> VmaAllocator {
+
+    VmaVulkanFunctions vma_vk_fns = {};
+    vma_vk_fns.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
+    vma_vk_fns.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
+
+    VmaAllocatorCreateInfo vma_info = {};
+    vma_info.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+    vma_info.vulkanApiVersion = VK_API_VERSION_1_2;
+    vma_info.physicalDevice = physical_device.m_handle;
+    vma_info.device = logical_device.m_handle;
+    vma_info.instance = instance.m_instance;
+    vma_info.pVulkanFunctions = &vma_vk_fns;
+
+    VmaAllocator vma_allocator = nullptr;
+    vmaCreateAllocator(&vma_info, &vma_allocator);
+    return vma_allocator;
+}
     m_physical_device = &physical_device;
     m_instance = &instance;
 
-    VkResult result;
+    VkResult result = VK_SUCCESS;
 
     const QueueFamilyPointers&   pointers = physical_device.m_queue_family_pointers;
     const std::set<QueueFamily*> unique_queue_families = {
@@ -212,19 +230,7 @@ auto LogicalDevice::init(
     );
     if (result != VK_SUCCESS) { assert(false); }
 
-    VmaVulkanFunctions vma_vk_fns = {};
-    vma_vk_fns.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
-    vma_vk_fns.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
-
-    VmaAllocatorCreateInfo vma_info = {};
-    vma_info.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
-    vma_info.vulkanApiVersion = VK_API_VERSION_1_2;
-    vma_info.physicalDevice = physical_device.m_handle;
-    vma_info.device = m_handle;
-    vma_info.instance = instance.m_instance;
-    vma_info.pVulkanFunctions = &vma_vk_fns;
-
-    vmaCreateAllocator(&vma_info, &m_vma_allocator);
+    m_vma_allocator = init_vma(instance, physical_device, *this);
 
     Logger::debug(
         "maxBoundDescriptorSets: {}",
@@ -241,7 +247,7 @@ auto LogicalDevice::init(
     m_command_pool = this->create_command_pool(
         *m_physical_device->m_queue_family_pointers.m_graphics_family
     );
-    u32                               descriptor_count = 1000;
+    const u32                         descriptor_count = 1000;
     std::vector<VkDescriptorPoolSize> pool_sizes = {
         {        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptor_count},
         {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, descriptor_count},
@@ -258,7 +264,7 @@ auto LogicalDevice::init(
 }
 
 auto LogicalDevice::deinit() -> void {
-    VkResult result;
+    VkResult result = VK_SUCCESS;
     result = vkDeviceWaitIdle(m_handle);
     if (result != VK_SUCCESS) { assert(false); }
     vmaDestroyAllocator(m_vma_allocator);
@@ -267,8 +273,10 @@ auto LogicalDevice::deinit() -> void {
 
 auto LogicalDevice::wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) const
     -> void {
-    VkResult result;
-    result = vkWaitForFences(m_handle, 1, &fences.m_handle, wait_all, timeout);
+    VkResult result = VK_SUCCESS;
+    result = vkWaitForFences(
+        m_handle, 1, &fences.m_handle, static_cast<VkBool32>(wait_all), timeout
+    );
     if (result != VK_SUCCESS) { assert(false); }
 }
 
@@ -280,9 +288,13 @@ auto LogicalDevice::wait_for_fences(
     assert(fences.size() < 5);
     std::array<VkFence, 5> vk_fences;
     for (u32 i = 0; i < fences.size(); ++i) { vk_fences[i] = fences[i].m_handle; }
-    VkResult result;
+    VkResult result = VK_SUCCESS;
     result = vkWaitForFences(
-        m_handle, static_cast<u32>(fences.size()), vk_fences.data(), wait_all, timeout
+        m_handle,
+        static_cast<u32>(fences.size()),
+        vk_fences.data(),
+        static_cast<VkBool32>(wait_all),
+        timeout
     );
     if (result != VK_SUCCESS) { assert(false); }
 }
