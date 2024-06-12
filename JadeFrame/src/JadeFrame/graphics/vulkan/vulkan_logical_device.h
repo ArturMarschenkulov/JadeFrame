@@ -78,11 +78,7 @@ public:
     LogicalDevice(LogicalDevice&& other) noexcept;
     auto operator=(LogicalDevice&& other) noexcept -> LogicalDevice&;
 
-    auto init(
-        const Instance&       instance,
-        const PhysicalDevice& physical_device,
-        const Surface&        surface
-    ) -> void;
+    auto init(const Instance& instance, const PhysicalDevice& physical_device) -> void;
     auto deinit() -> void;
 
 public:

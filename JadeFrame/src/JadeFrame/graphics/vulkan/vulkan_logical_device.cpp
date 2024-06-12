@@ -187,6 +187,9 @@ static auto init_vma(
     vmaCreateAllocator(&vma_info, &vma_allocator);
     return vma_allocator;
 }
+
+auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physical_device)
+    -> void {
     m_physical_device = &physical_device;
     m_instance = &instance;
 

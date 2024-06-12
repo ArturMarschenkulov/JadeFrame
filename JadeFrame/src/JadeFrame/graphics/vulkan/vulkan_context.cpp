@@ -286,7 +286,7 @@ auto Instance::init(const Window* window_handle) -> void {
         }
     }
 
-    m_logical_device.init(*this, *m_physical_device, m_surface);
+    m_logical_device.init(*this, *m_physical_device);
     // m_logical_device = m_physical_device.create_logical_device();
     Logger::trace("Instance::init end");
 }

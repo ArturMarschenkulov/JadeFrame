@@ -330,7 +330,7 @@ auto PhysicalDevice::query_limits() const -> VkPhysicalDeviceLimits {
 
 auto PhysicalDevice::create_logical_device() -> LogicalDevice {
     LogicalDevice ld;
-    ld.init(*m_instance_p, *this, m_instance_p->m_surface);
+    ld.init(*m_instance_p, *this);
     return ld;
 }
 
