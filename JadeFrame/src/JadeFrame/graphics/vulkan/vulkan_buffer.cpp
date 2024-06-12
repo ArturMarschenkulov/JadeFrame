@@ -174,7 +174,7 @@ auto Buffer::operator=(Buffer&& other) noexcept -> Buffer& {
     return *this;
 }
 
-#define JF_USE_MANAGED_STAGING_BUFFER
+#define JF_USE_MANAGED_STAGING_BUFFER 1
 #if JF_USE_MANAGED_STAGING_BUFFER
 static Buffer* g_staging_buffer = nullptr;
 #endif
