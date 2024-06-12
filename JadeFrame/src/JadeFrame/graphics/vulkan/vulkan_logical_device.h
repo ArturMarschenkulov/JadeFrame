@@ -131,6 +131,7 @@ public: // Misc
 public:
     auto create_buffer(Buffer::TYPE buffer_type, void* data, size_t size) const
         -> Buffer*;
+    auto destroy_buffer(Buffer* buffer) const -> void;
 
     auto create_shader(const Vulkan_Renderer& renderer, const Vulkan_Shader::Desc& desc)
         -> Vulkan_Shader;

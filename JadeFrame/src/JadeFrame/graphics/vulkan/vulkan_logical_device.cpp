@@ -316,6 +316,15 @@ auto LogicalDevice::create_buffer(Buffer::TYPE buffer_type, void* data, size_t s
     return &m_buffers[id - 1];
 }
 
+auto LogicalDevice::destroy_buffer(Buffer* buffer) const -> void {
+    for (auto it = m_buffers.begin(); it != m_buffers.end(); ++it) {
+        if (&it->second == buffer) {
+            m_buffers.erase(it);
+            return;
+        }
+    }
+}
+
 auto LogicalDevice::create_descriptor_pool(
     u32                                    max_sets,
     const std::span<VkDescriptorPoolSize>& pool_sizes
