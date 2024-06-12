@@ -75,8 +75,8 @@ public:
     LogicalDevice(const LogicalDevice&) = delete;
     auto operator=(const LogicalDevice&) -> LogicalDevice& = delete;
 
-    LogicalDevice(LogicalDevice&& other);
-    auto operator=(LogicalDevice&& other) -> LogicalDevice&;
+    LogicalDevice(LogicalDevice&& other) noexcept;
+    auto operator=(LogicalDevice&& other) noexcept -> LogicalDevice&;
 
     auto init(
         const Instance&       instance,

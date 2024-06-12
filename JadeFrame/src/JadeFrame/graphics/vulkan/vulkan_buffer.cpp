@@ -174,6 +174,35 @@ auto Buffer::operator=(Buffer&& other) noexcept -> Buffer& {
     return *this;
 }
 
+#define JF_USE_MANAGED_STAGING_BUFFER
+#if JF_USE_MANAGED_STAGING_BUFFER
+static Buffer* g_staging_buffer = nullptr;
+#endif
+
+static auto transfer_through_staging_buffer(
+    const LogicalDevice& device,
+    void*                data,
+    size_t               size,
+    Buffer*              buffer
+) -> void {
+#if JF_USE_MANAGED_STAGING_BUFFER
+
+    if (g_staging_buffer == nullptr) {
+        g_staging_buffer = device.create_buffer(Buffer::TYPE::STAGING, nullptr, size);
+    }
+
+    if (g_staging_buffer->m_size != size) { g_staging_buffer->resize(size); }
+
+    g_staging_buffer->write(data, size, 0);
+    device.m_command_pool.copy_buffer(*g_staging_buffer, *buffer, size);
+#else
+    Buffer* sb = device.create_buffer(Buffer::TYPE::STAGING, nullptr, size);
+    sb->write(data, size, 0);
+    device.m_command_pool.copy_buffer(*sb, *buffer, size);
+    device.destroy_buffer(sb);
+#endif
+}
+
 Buffer::Buffer(
     const LogicalDevice& device,
     Buffer::TYPE         buffer_type,
@@ -188,27 +217,16 @@ Buffer::Buffer(
     VkBufferUsageFlags usage = get_usage(buffer_type);
 #if JF_USE_VMA
     VmaMemoryUsage vma_usage = get_vma_usage(buffer_type);
+    this->create_buffer(size, usage, vma_usage, m_handle);
 #else
     VkMemoryPropertyFlags properties = get_properties(buffer_type);
+    this->create_buffer(size, usage, properties, m_memory, m_handle);
 #endif
 
     if (b_with_staging_buffer) {
-        Buffer* staging_buffer =
-            device.create_buffer(Buffer::TYPE::STAGING, nullptr, size);
-        staging_buffer->write(data, size, 0);
-#if JF_USE_VMA
-        this->create_buffer(size, usage, vma_usage, m_handle);
-#else
-        this->create_buffer(size, usage, properties, m_memory, m_handle);
-#endif
-        m_device->m_command_pool.copy_buffer(*staging_buffer, *this, size);
+        transfer_through_staging_buffer(device, data, size, this);
     } else {
-        assert(data == nullptr);
-#if JF_USE_VMA
-        this->create_buffer(size, usage, vma_usage, m_handle);
-#else
-        this->create_buffer(size, usage, properties, m_memory, m_handle);
-#endif
+        assert(data == nullptr && "If staging buffer is not used, it cannot have data");
     }
 }
 
