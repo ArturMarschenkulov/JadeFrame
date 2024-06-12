@@ -198,7 +198,7 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     m_image_format = surface_format.format;
     m_extent = extent;
 
-    const QueueFamilyPointers& pointers = gpu->m_queue_family_pointers;
+    const QueueFamilyPointers& pointers = gpu->m_chosen_queue_family_pointers;
     assert(pointers.m_graphics_family != nullptr && "graphics family is nullptr");
     assert(pointers.m_present_family != nullptr && "present family is nullptr");
 

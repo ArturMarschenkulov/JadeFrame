@@ -179,8 +179,8 @@ auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
 
     */
     m_queue_families = this->query_queue_families();
-    m_queue_family_pointers =
-        PhysicalDevice::find_queue_families(m_queue_families, surface);
+    m_chosen_queue_family_pointers =
+        PhysicalDevice::choose_fitting_queue_families(m_queue_families, surface);
     m_extension_properties = this->query_extension_properties();
 
     m_extension_support = this->check_extension_support(m_device_extensions);
@@ -279,10 +279,10 @@ auto PhysicalDevice::check_extension_support(const std::vector<const char*>& ext
 
 // /// Returns a pair of queue family indices, one that supports graphics and one that
 // /// supports presenting.
-auto PhysicalDevice::find_queue_families(
+auto PhysicalDevice::choose_fitting_queue_families(
     std::vector<QueueFamily>& queue_families,
     const Surface&            surface
-) const -> QueueFamilyPointers {
+) -> QueueFamilyPointers {
 
     QueueFamilyPointers pointers;
     for (u32 i = 0; i < queue_families.size(); i++) {

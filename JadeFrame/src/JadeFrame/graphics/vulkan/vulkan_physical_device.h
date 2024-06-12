@@ -50,10 +50,10 @@ public:
     auto               init(Instance& instance, const Surface& surface) -> void;
     [[nodiscard]] auto check_extension_support(const std::vector<const char*>& extensions
     ) const -> bool;
-    [[nodiscard]] auto find_queue_families(
+    [[nodiscard]] static auto choose_fitting_queue_families(
         std::vector<QueueFamily>& queue_families,
         const Surface&            surface
-    ) const -> QueueFamilyPointers;
+    ) -> QueueFamilyPointers;
     [[nodiscard]] auto
     find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32;
 
@@ -86,7 +86,7 @@ public:
 
     // Queue stuff
     std::vector<QueueFamily> m_queue_families;
-    QueueFamilyPointers      m_queue_family_pointers;
+    QueueFamilyPointers      m_chosen_queue_family_pointers;
 
     // Extension stuff
     std::vector<VkExtensionProperties> m_extension_properties;

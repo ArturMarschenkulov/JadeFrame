@@ -195,7 +195,7 @@ auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physica
 
     VkResult result = VK_SUCCESS;
 
-    const QueueFamilyPointers&   pointers = physical_device.m_queue_family_pointers;
+    const QueueFamilyPointers&   pointers = physical_device.m_chosen_queue_family_pointers;
     const std::set<QueueFamily*> unique_queue_families = {
         pointers.m_graphics_family, pointers.m_present_family
     };
@@ -248,7 +248,7 @@ auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physica
     m_present_queue = this->query_queues(*pointers.m_present_family, 0);
 
     m_command_pool = this->create_command_pool(
-        *m_physical_device->m_queue_family_pointers.m_graphics_family
+        *m_physical_device->m_chosen_queue_family_pointers.m_graphics_family
     );
     const u32                         descriptor_count = 1000;
     std::vector<VkDescriptorPoolSize> pool_sizes = {
