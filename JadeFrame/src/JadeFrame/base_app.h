@@ -96,7 +96,7 @@ public:
                 // m_material_handles[material_name].m_texture_handle =
                 // &m_texture_handles[texture_name];
                 return;
-            } else if (texture_name == "") {
+            } else if (texture_name.empty()) {
                 return;
             }
         }
@@ -193,14 +193,14 @@ public:
     template<typename T>
     auto request_app(BaseApp::Desc desc) -> T* {
         // For now only one app is allowed
-        assert(m_apps.size() == 0);
+        assert(m_apps.empty());
         m_apps.emplace_back(new T(desc));
         return (T*)m_apps.back();
     }
 
     auto register_app(BaseApp* app) -> void {
         // For now only one app is allowed
-        assert(m_apps.size() == 0);
+        assert(m_apps.empty());
         m_apps.emplace_back(app);
     }
 

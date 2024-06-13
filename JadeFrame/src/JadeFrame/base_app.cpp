@@ -157,9 +157,7 @@ BaseApp::BaseApp(const Desc& desc) {
     // m_render_system = m_system_manager.request_render_system(api, m_windows[0]);
 
     const std::string& title = m_current_window_p->get_title();
-
-    std::string new_title = title + " - " + to_string(desc.api);
-
+    std::string        new_title = title + " - " + to_string(desc.api);
     m_current_window_p->set_title(new_title);
     // m_gui.init(m_current_window_p, api);
 }

@@ -65,7 +65,7 @@ auto to_string(const Buffer::TYPE type) -> const char* {
         case Buffer::TYPE::UNIFORM: return "UNIFORM";
         case Buffer::TYPE::STAGING: return "STAGING";
         case Buffer::TYPE::UNINIT: return "UNINIT";
-        default: return "UNKNOWN";
+        default: JF_ASSERT(false, ""); return "";
     }
 }
 

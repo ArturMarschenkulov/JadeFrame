@@ -207,20 +207,16 @@ auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
 
         Logger::info("\tlimits:");
         Logger::info(
-            "\t\tmax image dimension 1D: {}",
-            m_properties.limits.maxImageDimension1D
+            "\t\tmax image dimension 1D: {}", m_properties.limits.maxImageDimension1D
         );
         Logger::info(
-            "\t\tmax image dimension 2D: {}",
-            m_properties.limits.maxImageDimension2D
+            "\t\tmax image dimension 2D: {}", m_properties.limits.maxImageDimension2D
         );
         Logger::info(
-            "\t\tmax image dimension 3D: {}",
-            m_properties.limits.maxImageDimension3D
+            "\t\tmax image dimension 3D: {}", m_properties.limits.maxImageDimension3D
         );
         Logger::info(
-            "\t\tvertex input bindings: {}",
-            m_properties.limits.maxVertexInputBindings
+            "\t\tvertex input bindings: {}", m_properties.limits.maxVertexInputBindings
         );
         Logger::info(
             "\t\tvertex input attributes: {}",
@@ -230,6 +226,58 @@ auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
             "\t\tvertex input attribute offset: {}",
             m_properties.limits.maxVertexInputAttributeOffset
         );
+        // push constants
+        Logger::info(
+            "\t\tpush constant size: {}", m_properties.limits.maxPushConstantsSize
+        );
+
+        // max descriptor set uniform buffers
+        Logger::info(
+            "\t\tmax descriptor set uniform buffers: {}",
+            m_properties.limits.maxDescriptorSetUniformBuffers
+        );
+        // max descriptor set uniform buffers dynamic
+        Logger::info(
+            "\t\tmax descriptor set uniform buffers dynamic: {}",
+            m_properties.limits.maxDescriptorSetUniformBuffersDynamic
+        );
+        // max descriptor set storage buffers
+        Logger::info(
+            "\t\tmax descriptor set storage buffers: {}",
+            m_properties.limits.maxDescriptorSetStorageBuffers
+        );
+        // max descriptor set storage buffers dynamic
+        Logger::info(
+            "\t\tmax descriptor set storage buffers dynamic: {}",
+            m_properties.limits.maxDescriptorSetStorageBuffersDynamic
+        );
+        // max descriptor set samplers
+        Logger::info(
+            "\t\tmax descriptor set samplers: {}",
+            m_properties.limits.maxDescriptorSetSamplers
+        );
+        // max descriptor set sampled images
+        Logger::info(
+            "\t\tmax descriptor set sampled images: {}",
+            m_properties.limits.maxDescriptorSetSampledImages
+        );
+        // max descriptor set storage images
+        Logger::info(
+            "\t\tmax descriptor set storage images: {}",
+            m_properties.limits.maxDescriptorSetStorageImages
+        );
+        // // max descriptor set combined images samplers
+        // Logger::info(
+        //     "\t\tmax descriptor set combined images samplers: {}",
+        //     m_properties.limits.maxDescriptorSetCombinedImageSamplers
+        // );
+        // max descriptor set input attachments
+        Logger::info(
+            "\t\tmax descriptor set input attachments: {}",
+            m_properties.limits.maxDescriptorSetInputAttachments
+        );
+
+
         // Logger::info(
         //     "\t\tmax vertex input attribute stride: {}",
         //     m_properties.limits.maxVertexInputAttributeStride

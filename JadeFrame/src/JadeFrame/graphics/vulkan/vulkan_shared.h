@@ -60,7 +60,7 @@ struct UniformBufferObject_bkp {
 inline auto to_string(const VkDescriptorType& type) -> const char* {
     const char* str = "";
 #define foo(x)                                                                           \
-    case x: str = &#x[sizeof("VK_DESCRIPTOR_TYPE_") - 1];
+    case x: str = &#x[sizeof("VK_DESCRIPTOR_TYPE_") - 1]; break
     switch (type) {
         foo(VK_DESCRIPTOR_TYPE_SAMPLER);
         foo(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
@@ -75,7 +75,11 @@ inline auto to_string(const VkDescriptorType& type) -> const char* {
         foo(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT);
         foo(VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT);
         foo(VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR);
-        default: return "UNKNOWN";
+        default:
+            Logger::err("Unknown VkDescriptorType: {}", type);
+            assert(false);
+            str = "";
+            break;
     }
 #undef foo
     return str;
@@ -84,7 +88,7 @@ inline auto to_string(const VkDescriptorType& type) -> const char* {
 inline auto to_string(const VkResult& result) -> const char* {
     const char* str = "";
 #define foo(x)                                                                           \
-    case x: str = &#x[sizeof("VK_") - 1];
+    case x: str = &#x[sizeof("VK_") - 1]; break
     switch (result) {
         foo(VK_SUCCESS);
         foo(VK_NOT_READY);
