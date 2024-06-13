@@ -100,7 +100,7 @@ static auto is_device_suitable(
 }
 
 auto Instance::query_layers() -> std::vector<VkLayerProperties> {
-    u32 layer_count;
+    u32 layer_count = 0;
     vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
     std::vector<VkLayerProperties> available_layers;
     available_layers.resize(layer_count);
@@ -110,7 +110,7 @@ auto Instance::query_layers() -> std::vector<VkLayerProperties> {
 }
 
 auto Instance::query_extensions() -> std::vector<VkExtensionProperties> {
-    VkResult result;
+    VkResult result = VK_SUCCESS;
 
     u32 extension_count = 0;
     result = vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
@@ -281,8 +281,8 @@ auto Instance::create_surface(const Window* window_handle) -> vulkan::Surface {
 }
 } // namespace vulkan
 
-Vulkan_Context::Vulkan_Context(const Window* window) {
-    m_window_handle = window;
+Vulkan_Context::Vulkan_Context(const Window* window)
+    : m_window_handle(window) {
     m_instance.init(window);
 }
 

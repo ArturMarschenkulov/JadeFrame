@@ -13,7 +13,6 @@
 
 #include "JadeFrame/prelude.h"
 
-
 namespace JadeFrame {
 
 class Vulkan_Renderer;
@@ -56,9 +55,8 @@ public: // submit methods
 public:
     auto               wait_idle() const -> void;
     [[nodiscard]] auto present(VkPresentInfoKHR info) const -> VkResult;
-    auto
-    present(const u32& index, const Swapchain& swapchain, const Semaphore* result) const
-        -> VkResult;
+    auto present(const u32& index, const Swapchain& swapchain, const Semaphore* semaphore)
+        const -> VkResult;
 
 public:
     VkQueue m_handle = VK_NULL_HANDLE;
@@ -141,7 +139,7 @@ public:
     // using HashMap = std::unordered_map<T, U>;
     mutable std::unordered_map<u32, vulkan::Buffer> m_buffers;
 
-    VmaAllocator m_vma_allocator;
+    VmaAllocator m_vma_allocator = VK_NULL_HANDLE;
 };
 
 } // namespace vulkan

@@ -146,16 +146,32 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
         cb.bind_pipeline(bp, pipeline);
         cb.bind_descriptor_sets(
-            bp, pipeline, 0, sets[vulkan::FREQUENCY::PER_FRAME], nullptr
+            bp,
+            pipeline,
+            vulkan::FREQUENCY::PER_FRAME,
+            sets[vulkan::FREQUENCY::PER_FRAME],
+            nullptr
         );
         cb.bind_descriptor_sets(
-            bp, pipeline, 1, sets[vulkan::FREQUENCY::PER_PASS], nullptr
+            bp,
+            pipeline,
+            vulkan::FREQUENCY::PER_PASS,
+            sets[vulkan::FREQUENCY::PER_PASS],
+            nullptr
         );
         cb.bind_descriptor_sets(
-            bp, pipeline, 2, sets[vulkan::FREQUENCY::PER_MATERIAL], nullptr
+            bp,
+            pipeline,
+            vulkan::FREQUENCY::PER_MATERIAL,
+            sets[vulkan::FREQUENCY::PER_MATERIAL],
+            nullptr
         );
         cb.bind_descriptor_sets(
-            bp, pipeline, 3, sets[vulkan::FREQUENCY::PER_OBJECT], &dyn_offset
+            bp,
+            pipeline,
+            vulkan::FREQUENCY::PER_OBJECT,
+            sets[vulkan::FREQUENCY::PER_OBJECT],
+            &dyn_offset
         );
 
         this->render_mesh(cmd.vertex_data, &gpu_data);

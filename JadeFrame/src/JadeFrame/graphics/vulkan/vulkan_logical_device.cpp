@@ -5,12 +5,8 @@
 #include "vulkan_buffer.h"
 #include "vulkan_sync_object.h"
 
-#include "JadeFrame/math/mat_4.h"
-#include "JadeFrame/math/math.h"
 #include "JadeFrame/utils/assert.h"
 
-#include <thread>
-#include <future>
 #include <set>
 #include <cassert>
 #include <array>
@@ -89,19 +85,21 @@ auto Queue::submit(
     const bool has_wait_semaphore = wait_semaphore != nullptr;
     const bool has_signal_semaphore = signal_semaphore != nullptr;
 
-    VkFence fence_handle = has_fenc ? fence->m_handle : 0;
+    VkFence fence_handle = has_fenc ? fence->m_handle : nullptr;
 
-    VkPipelineStageFlags wait_stages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-    const VkSubmitInfo   info = {
-          .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-          .pNext = nullptr,
-          .waitSemaphoreCount = has_wait_semaphore ? 1_u32 : 0,
-          .pWaitSemaphores = has_wait_semaphore ? &wait_semaphore->m_handle : nullptr,
-          .pWaitDstStageMask = wait_stages,
-          .commandBufferCount = 1,
-          .pCommandBuffers = &cmd_buffer.m_handle,
-          .signalSemaphoreCount = has_signal_semaphore ? 1_u32 : 0,
-          .pSignalSemaphores = has_signal_semaphore ? &signal_semaphore->m_handle : nullptr,
+    std::array<VkPipelineStageFlags, 1> wait_stages = {
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+    };
+    const VkSubmitInfo info = {
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .pNext = nullptr,
+        .waitSemaphoreCount = has_wait_semaphore ? 1_u32 : 0,
+        .pWaitSemaphores = has_wait_semaphore ? &wait_semaphore->m_handle : nullptr,
+        .pWaitDstStageMask = wait_stages.data(),
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmd_buffer.m_handle,
+        .signalSemaphoreCount = has_signal_semaphore ? 1_u32 : 0,
+        .pSignalSemaphores = has_signal_semaphore ? &signal_semaphore->m_handle : nullptr,
     };
     VkResult result = vkQueueSubmit(m_handle, 1, &info, fence_handle);
     if (result != VK_SUCCESS) { JF_ASSERT(false, to_string(result)); }
@@ -109,7 +107,7 @@ auto Queue::submit(
 }
 
 auto Queue::wait_idle() const -> void {
-    VkResult result;
+    VkResult result = VK_SUCCESS;
     result = vkQueueWaitIdle(m_handle);
     if (result != VK_SUCCESS) { assert(false); }
 }
@@ -195,7 +193,7 @@ auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physica
 
     VkResult result = VK_SUCCESS;
 
-    const QueueFamilyPointers&   pointers = physical_device.m_chosen_queue_family_pointers;
+    const QueueFamilyPointers& pointers = physical_device.m_chosen_queue_family_pointers;
     const std::set<QueueFamily*> unique_queue_families = {
         pointers.m_graphics_family, pointers.m_present_family
     };

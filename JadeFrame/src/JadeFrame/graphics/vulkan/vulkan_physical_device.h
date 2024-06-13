@@ -19,10 +19,10 @@ using QueueFamilyIndex = u32;
 
 class QueueFamily {
 public:
-    QueueFamilyIndex        m_index;
-    VkQueueFamilyProperties m_properties;
-    u32                     m_queue_amount;
-    VkBool32                m_present_support;
+    QueueFamilyIndex        m_index = 0;
+    VkQueueFamilyProperties m_properties = {};
+    u32                     m_queue_amount = 0;
+    VkBool32                m_present_support = VK_FALSE;
     const PhysicalDevice*   m_physical_device = nullptr;
 
 public:

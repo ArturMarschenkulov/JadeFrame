@@ -215,7 +215,7 @@ auto DescriptorSet::bind_combined_image_sampler(
     bool found = false;
     for (u32 i = 0; i < m_descriptors.size(); i++) {
         if (m_descriptors[i].binding == binding) {
-            Descriptor d;
+            Descriptor d = {};
             d.image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             d.image_info.imageView = texture.m_image_view.m_handle;
             d.image_info.sampler = texture.m_sampler.m_handle;
