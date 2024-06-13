@@ -58,66 +58,65 @@ struct UniformBufferObject_bkp {
 };
 
 inline auto to_string(const VkDescriptorType& type) -> const char* {
+    const char* str = "";
+#define foo(x)                                                                           \
+    case x: str = &#x[sizeof("VK_DESCRIPTOR_TYPE_") - 1];
     switch (type) {
-        case VK_DESCRIPTOR_TYPE_SAMPLER: return "SAMPLER";
-        case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: return "COMBINED_IMAGE_SAMPLER";
-        case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE: return "SAMPLED_IMAGE";
-        case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE: return "STORAGE_IMAGE";
-        case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER: return "UNIFORM_TEXEL_BUFFER";
-        case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER: return "STORAGE_TEXEL_BUFFER";
-        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER: return "UNIFORM_BUFFER";
-        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER: return "STORAGE_BUFFER";
-        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC: return "UNIFORM_BUFFER_DYNAMIC";
-        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC: return "STORAGE_BUFFER_DYNAMIC";
-        case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT: return "INPUT_ATTACHMENT";
-        case VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT:
-            return "INLINE_UNIFORM_BLOCK_EXT";
-        case VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR:
-            return "ACCELERATION_STRUCTURE_KHR";
+        foo(VK_DESCRIPTOR_TYPE_SAMPLER);
+        foo(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+        foo(VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
+        foo(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+        foo(VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER);
+        foo(VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER);
+        foo(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+        foo(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+        foo(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC);
+        foo(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC);
+        foo(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT);
+        foo(VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT);
+        foo(VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR);
         default: return "UNKNOWN";
     }
+#undef foo
+    return str;
 }
 
-inline auto to_string(const VkResult& result) -> std::string {
-    std::string str;
+inline auto to_string(const VkResult& result) -> const char* {
+    const char* str = "";
+#define foo(x)                                                                           \
+    case x: str = &#x[sizeof("VK_") - 1];
     switch (result) {
-        case VK_SUCCESS: str = "VK_SUCCESS"; break;
-        case VK_NOT_READY: str = "VK_NOT_READY"; break;
-        case VK_TIMEOUT: str = "VK_TIMEOUT"; break;
-        case VK_EVENT_SET: str = "VK_EVENT_SET"; break;
-        case VK_EVENT_RESET: str = "VK_EVENT_RESET"; break;
-        case VK_INCOMPLETE: str = "VK_INCOMPLETE"; break;
-        case VK_SUBOPTIMAL_KHR: str = "VK_SUBOPTIMAL_KHR"; break;
-        case VK_ERROR_OUT_OF_DATE_KHR: str = "VK_ERROR_OUT_OF_DATE_KHR"; break;
-        case VK_ERROR_OUT_OF_HOST_MEMORY: str = "VK_ERROR_OUT_OF_HOST_MEMORY"; break;
-        case VK_ERROR_OUT_OF_DEVICE_MEMORY: str = "VK_ERROR_OUT_OF_DEVICE_MEMORY"; break;
-        case VK_ERROR_INITIALIZATION_FAILED:
-            str = "VK_ERROR_INITIALIZATION_FAILED";
-            break;
-        case VK_ERROR_DEVICE_LOST: str = "VK_ERROR_DEVICE_LOST"; break;
-        case VK_ERROR_MEMORY_MAP_FAILED: str = "VK_ERROR_MEMORY_MAP_FAILED"; break;
-        case VK_ERROR_LAYER_NOT_PRESENT: str = "VK_ERROR_LAYER_NOT_PRESENT"; break;
-        case VK_ERROR_EXTENSION_NOT_PRESENT:
-            str = "VK_ERROR_EXTENSION_NOT_PRESENT";
-            break;
-        case VK_ERROR_FEATURE_NOT_PRESENT: str = "VK_ERROR_FEATURE_NOT_PRESENT"; break;
-        case VK_ERROR_INCOMPATIBLE_DRIVER: str = "VK_ERROR_INCOMPATIBLE_DRIVER"; break;
-        case VK_ERROR_TOO_MANY_OBJECTS: str = "VK_ERROR_TOO_MANY_OBJECTS"; break;
-        case VK_ERROR_FORMAT_NOT_SUPPORTED: str = "VK_ERROR_FORMAT_NOT_SUPPORTED"; break;
-        case VK_ERROR_FRAGMENTED_POOL: str = "VK_ERROR_FRAGMENTED_POOL"; break;
-        case VK_ERROR_SURFACE_LOST_KHR: str = "VK_ERROR_SURFACE_LOST_KHR"; break;
-        case VK_ERROR_NATIVE_WINDOW_IN_USE_KHR:
-            str = "VK_ERROR_NATIVE_WINDOW_IN_USE_KHR";
-            break;
-        case VK_ERROR_OUT_OF_POOL_MEMORY: str = "VK_ERROR_OUT_OF_POOL_MEMORY"; break;
-        // case VK_ERROR_OUT_OF_POOL_MEMORY_KHR: str = "VK_ERROR_OUT_OF_POOL_MEMORY_KHR";
-        // break;
+        foo(VK_SUCCESS);
+        foo(VK_NOT_READY);
+        foo(VK_TIMEOUT);
+        foo(VK_EVENT_SET);
+        foo(VK_EVENT_RESET);
+        foo(VK_INCOMPLETE);
+        foo(VK_SUBOPTIMAL_KHR);
+        foo(VK_ERROR_OUT_OF_DATE_KHR);
+        foo(VK_ERROR_OUT_OF_HOST_MEMORY);
+        foo(VK_ERROR_OUT_OF_DEVICE_MEMORY);
+        foo(VK_ERROR_INITIALIZATION_FAILED);
+        foo(VK_ERROR_DEVICE_LOST);
+        foo(VK_ERROR_MEMORY_MAP_FAILED);
+        foo(VK_ERROR_LAYER_NOT_PRESENT);
+        foo(VK_ERROR_EXTENSION_NOT_PRESENT);
+        foo(VK_ERROR_FEATURE_NOT_PRESENT);
+        foo(VK_ERROR_INCOMPATIBLE_DRIVER);
+        foo(VK_ERROR_TOO_MANY_OBJECTS);
+        foo(VK_ERROR_FORMAT_NOT_SUPPORTED);
+        foo(VK_ERROR_FRAGMENTED_POOL);
+        foo(VK_ERROR_SURFACE_LOST_KHR);
+        foo(VK_ERROR_NATIVE_WINDOW_IN_USE_KHR);
+        foo(VK_ERROR_OUT_OF_POOL_MEMORY);
+        // foo(VK_ERROR_OUT_OF_POOL_MEMORY_KHR);
         default:
             Logger::err("Unknown VkResult: {}", result);
             assert(false);
             str = "";
             break;
     }
+#undef foo
     return str;
 }
 
@@ -168,15 +167,23 @@ inline auto to_string(const VkMemoryHeap& memory_heap) -> std::string {
     return result;
 }
 
-inline auto to_string(const VkPhysicalDeviceType& device_type) -> std::string {
+inline auto to_string(const VkPhysicalDeviceType& device_type) -> const char* {
+    const char* result = "";
+#define foo(x)                                                                           \
+    case x: result = &#x[sizeof("VK_PHYSICAL_DEVICE_TYPE_") - 1]; break
     switch (device_type) {
-        case VK_PHYSICAL_DEVICE_TYPE_OTHER: return "Other";
-        case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: return "Integrated GPU";
-        case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU: return "Discrete GPU";
-        case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: return "Virtual GPU";
-        case VK_PHYSICAL_DEVICE_TYPE_CPU: return "CPU";
-        default: return "Unknown";
+        foo(VK_PHYSICAL_DEVICE_TYPE_OTHER);
+        foo(VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU);
+        foo(VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU);
+        foo(VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU);
+        foo(VK_PHYSICAL_DEVICE_TYPE_CPU);
+        case VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM:
+            JF_ASSERT(false, "");
+            result = "";
+            break;
     }
+#undef foo
+    return result;
 }
 
 inline auto to_string(const VkMemoryType& memory_type) -> std::string {

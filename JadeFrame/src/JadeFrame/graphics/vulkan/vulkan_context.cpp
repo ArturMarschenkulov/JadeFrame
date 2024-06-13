@@ -46,31 +46,6 @@ static auto vulkan_get_api_version(u32 version) -> VulkanVersion {
     return result;
 }
 
-static auto vulkan_get_device_type_string(const VkPhysicalDeviceType& device_type)
-    -> const char* {
-    const char* result = "";
-    switch (device_type) {
-        case VK_PHYSICAL_DEVICE_TYPE_OTHER:
-            result = "VK_PHYSICAL_DEVICE_TYPE_OTHER";
-            break;
-        case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-            result = "VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU";
-            break;
-        case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-            result = "VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU";
-            break;
-        case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-            result = "VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU";
-            break;
-        case VK_PHYSICAL_DEVICE_TYPE_CPU: result = "VK_PHYSICAL_DEVICE_TYPE_CPU"; break;
-        case VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM:
-            JF_ASSERT(false, "");
-            result = "";
-            break;
-    }
-    return result;
-}
-
 namespace vulkan {
 auto Instance::allocator() -> VkAllocationCallbacks* {
     return Instance::default_allocator();
