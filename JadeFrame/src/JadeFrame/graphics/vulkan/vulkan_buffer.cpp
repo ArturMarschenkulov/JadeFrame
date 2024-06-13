@@ -616,6 +616,7 @@ Vulkan_Texture::Vulkan_Texture(
     m_image = Image(
         device, size, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
     );
+    m_image_view = ImageView(device, m_image, format);
 
     m_device->m_command_pool.transition_layout(
         m_image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
