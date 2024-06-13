@@ -186,15 +186,6 @@ public:
 
     auto deinit() -> void;
 
-    auto transition_layout(
-        const Image&  image,
-        VkFormat      format,
-        VkImageLayout old_layout,
-        VkImageLayout new_layout
-    ) const -> void;
-    auto copy_buffer_to_image(const Buffer& buffer, const Image& image, v2u32 size) const
-        -> void;
-
 public:
     Image                m_image;
     ImageView            m_image_view;

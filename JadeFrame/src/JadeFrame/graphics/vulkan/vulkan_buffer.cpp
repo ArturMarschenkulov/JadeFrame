@@ -611,20 +611,22 @@ Vulkan_Texture::Vulkan_Texture(
     } else {
         assert(false);
     }
-    VkDeviceSize image_size = size.width * size.height * comp_count;
-    Buffer       staging_buffer(device, Buffer::TYPE::STAGING, nullptr, image_size);
-    staging_buffer.write(data, image_size, 0);
 
     // Image image;
     m_image = Image(
         device, size, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
     );
 
-    this->transition_layout(
+    m_device->m_command_pool.transition_layout(
         m_image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
     );
-    this->copy_buffer_to_image(staging_buffer, m_image, size);
-    this->transition_layout(
+
+    VkDeviceSize image_size = size.width * size.height * comp_count;
+    Buffer       staging_buffer(device, Buffer::TYPE::STAGING, nullptr, image_size);
+    staging_buffer.write(data, image_size, 0);
+    m_device->m_command_pool.copy_buffer_to_image(staging_buffer, m_image, size);
+
+    m_device->m_command_pool.transition_layout(
         m_image,
         format,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -636,89 +638,5 @@ Vulkan_Texture::Vulkan_Texture(
 
 auto Vulkan_Texture::deinit() -> void {}
 
-auto Vulkan_Texture::transition_layout(
-    const Image& image,
-    VkFormat /*format*/,
-    VkImageLayout old_layout,
-    VkImageLayout new_layout
-) const -> void {
-    const CommandPool& cmd_pool = m_device->m_command_pool;
-    auto               cmd = cmd_pool.allocate_buffer();
-
-    cmd.record([&] {
-        VkImageMemoryBarrier barrier = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .pNext = nullptr,
-            .srcAccessMask = 0,
-            .dstAccessMask = 0,
-            .oldLayout = old_layout,
-            .newLayout = new_layout,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = image.m_handle,
-            .subresourceRange =
-                {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                                   .baseMipLevel = 0,
-                                   .levelCount = 1,
-                                   .baseArrayLayer = 0,
-                                   .layerCount = 1},
-        };
-
-        VkPipelineStageFlags source_stage = {};
-        VkPipelineStageFlags destination_stage = {};
-
-        if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED &&
-            new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-            barrier.srcAccessMask = 0;
-            barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        } else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-            barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            destination_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        } else {
-            assert(false);
-        }
-
-        vkCmdPipelineBarrier(
-            cmd.m_handle,
-            source_stage,
-            destination_stage,
-            0,
-            0,
-            nullptr,
-            0,
-            nullptr,
-            1,
-            &barrier
-        );
-    });
-    // cb[0].record_end();
-
-    cmd.m_device->m_graphics_queue.submit(cmd);
-    cmd.m_device->m_graphics_queue.wait_idle();
-
-    cmd_pool.free_buffer(cmd);
-}
-
-auto Vulkan_Texture::copy_buffer_to_image(
-    const Buffer& buffer,
-    const Image&  image,
-    v2u32         size
-) const -> void {
-
-    const CommandPool& cmd_pool = m_device->m_command_pool;
-    auto               cmd = cmd_pool.allocate_buffer();
-
-    cmd.record([&] { cmd.copy_buffer_to_image(buffer, image, size); });
-    cmd.m_device->m_graphics_queue.submit(cmd);
-    cmd.m_device->m_graphics_queue.wait_idle();
-
-    cmd_pool.free_buffer(cmd);
-}
 } // namespace vulkan
 } // namespace JadeFrame
