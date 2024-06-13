@@ -380,26 +380,30 @@ auto RenderSystem::register_texture(TextureHandle&& texture) -> u32 {
             OpenGL_Context* device = &renderer->m_context;
 
             // m_registered_textures[id].init(&renderer->m_context);
-            auto& t = m_registered_textures[id];
-            t.m_handle = device->create_texture(t.m_data, t.m_size, t.m_num_components);
-
+            auto& tex = m_registered_textures[id];
+            tex.m_handle =
+                device->create_texture(tex.m_data, tex.m_size, tex.m_num_components);
+            // m_registered_textures[id].m_handle = tex.m_handle;
+            m_registered_textures[id].m_handle = tex.m_handle;
         } break;
         case GRAPHICS_API::VULKAN: {
             auto*                  renderer = dynamic_cast<Vulkan_Renderer*>(m_renderer);
             vulkan::LogicalDevice* device = renderer->m_logical_device;
-            auto&                  t = m_registered_textures[id];
+            auto&                  tex = m_registered_textures[id];
 
             VkFormat format = {};
-            switch (t.m_num_components) {
+            switch (tex.m_num_components) {
                 case 3: format = VK_FORMAT_R8G8B8_SRGB; break;
                 case 4: format = VK_FORMAT_R8G8B8A8_SRGB; break;
                 default:
                     Logger::err(
-                        "Unsupported number of components: {}", t.m_num_components
+                        "Unsupported number of components: {}", tex.m_num_components
                     );
                     assert(false);
             }
-            t.m_handle = new vulkan::Vulkan_Texture(*device, t.m_data, t.m_size, format);
+            tex.m_handle =
+                new vulkan::Vulkan_Texture(*device, tex.m_data, tex.m_size, format);
+            m_registered_textures[id].m_handle = tex.m_handle;
         } break;
         default: assert(false);
     }
@@ -513,8 +517,11 @@ auto to_string(SHADER_TYPE type) -> const char* {
         case SHADER_TYPE::SAMPLER_2D: return "SAMPLER_2D";
         case SHADER_TYPE::SAMPLER_3D: return "SAMPLER_3D";
         case SHADER_TYPE::SAMPLER_CUBE: return "SAMPLER_CUBE";
-        default: JF_UNIMPLEMENTED(""); return "UNKNOWN";
+        default:
+            Logger::err("Unknown SHADER_TYPE: {}", (int)type);
+            assert(false);
+            return "";
+            break;
     }
 }
-
 } // namespace JadeFrame

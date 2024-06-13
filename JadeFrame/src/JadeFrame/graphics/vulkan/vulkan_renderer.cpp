@@ -144,6 +144,15 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         auto&                     pipeline = shader->m_pipeline;
         auto&                     sets = shader->m_sets;
 
+        if (mh.m_texture_id != 0) {
+            auto&                   th = m_system->m_registered_textures[mh.m_texture_id];
+            vulkan::Vulkan_Texture& texture =
+                *static_cast<vulkan::Vulkan_Texture*>(th.m_handle);
+            auto& set = sets[vulkan::FREQUENCY::PER_MATERIAL];
+            set.bind_combined_image_sampler(0, texture);
+            set.update();
+        }
+
         cb.bind_pipeline(bp, pipeline);
         cb.bind_descriptor_sets(
             bp,
