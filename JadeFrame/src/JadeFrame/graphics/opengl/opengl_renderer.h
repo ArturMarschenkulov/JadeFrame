@@ -57,8 +57,6 @@ public:
     OpenGL_Context m_context;
     RenderSystem*  m_system = nullptr;
 
-    std::map<u32, opengl::GPUMeshData> m_registered_meshes;
-
     struct FB {
         Object                m_fb;
         opengl::Texture*      m_texture;

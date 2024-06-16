@@ -71,7 +71,7 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
         .transform = &obj.m_transform,
         .vertex_data = obj.m_vertex_data,
         .material_handle = obj.m_material_handle,
-        .m_GPU_mesh_data_id = obj.m_vertex_data_id,
+        .m_mesh = obj.m_mesh,
     };
     m_render_commands.push_back(command);
 }
@@ -89,13 +89,11 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     // at binding point 0 and the transform uniform is at binding point 1.
 
     for (size_t i = 0; i < m_render_commands.size(); ++i) {
-        const RenderCommand& cmd = m_render_commands[i];
-        const MaterialHandle&       mh = cmd.material_handle;
+        const RenderCommand&  cmd = m_render_commands[i];
+        const MaterialHandle& mh = cmd.material_handle;
 
         auto&                 sh = m_system->m_registered_shaders[mh.m_shader_id];
         const opengl::Shader* shader = static_cast<opengl::Shader*>(sh.m_handle);
-
-        const opengl::GPUMeshData& gpu_data = m_registered_meshes[cmd.m_GPU_mesh_data_id];
 
         // NOTE: As of right now this is not optimal, as it only needs to be updated once
         // outside the loop. But because of how the code is arranged one has to update it
@@ -113,7 +111,10 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
             texture.bind(0);
         }
 
-        shader->m_vertex_array.bind_buffer(*gpu_data.m_vertex_buffer);
+        GPUMeshData& gpu_data = *cmd.m_mesh;
+        shader->m_vertex_array.bind_buffer(
+            *static_cast<opengl::Buffer*>(gpu_data.m_vertex_buffer->m_handle)
+        );
         shader->m_vertex_array.bind();
         OpenGL_Renderer::render_mesh(cmd.vertex_data);
     }

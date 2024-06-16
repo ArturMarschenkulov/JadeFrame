@@ -335,17 +335,17 @@ public:
     );
 
 public:
-    GPUBuffer    m_vertex_buffer;
-    GPUBuffer    m_index_buffer;
-    VertexFormat m_format;
+    GPUBuffer* m_vertex_buffer;
+    GPUBuffer* m_index_buffer;
 };
 
 struct RenderCommand {
     const Matrix4x4*  transform = nullptr;
     const VertexData* vertex_data = nullptr;
     MaterialHandle    material_handle = {0, 0};
-    u32               m_GPU_mesh_data_id = 0;
+    GPUMeshData*      m_mesh = nullptr;
 };
+
 /*
         TODO: Consider whether this is a good way and whether it is worth it to introdcue
    inheritance. Right now, inheritance should be mainly used as a sanity check such that
@@ -428,7 +428,7 @@ class VertexData;
 
 class Object {
 public:
-    u32            m_vertex_data_id;
+    GPUMeshData*   m_mesh;
     VertexData*    m_vertex_data;
     MaterialHandle m_material_handle;
     Matrix4x4      m_transform;
@@ -449,6 +449,7 @@ public:
 
     auto register_texture(TextureHandle&& handle) -> u32;
     auto register_shader(const ShaderHandle::Desc& desc) -> u32;
+    auto register_mesh(const VertexData& data) -> GPUMeshData*;
 
 public:
     [[nodiscard]] static auto list_available_graphics_apis() -> std::vector<GRAPHICS_API>;
@@ -461,6 +462,7 @@ public:
     //     This is a bit of a hack, but it works for now.
     std::map<u32, TextureHandle> m_registered_textures;
     std::map<u32, ShaderHandle>  m_registered_shaders;
+    std::deque<GPUMeshData>      m_registered_meshes;
 };
 
 } // namespace JadeFrame

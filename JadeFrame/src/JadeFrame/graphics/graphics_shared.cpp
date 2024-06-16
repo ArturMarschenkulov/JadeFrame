@@ -149,15 +149,14 @@ GPUMeshData::GPUMeshData(
 
     void*  data = (void*)flat_data.data();
     size_t size = sizeof(flat_data[0]) * flat_data.size();
-    m_vertex_buffer = GPUBuffer(system, data, size, GPUBuffer::TYPE::VERTEX);
-    // m_vertex_buffer = system->create_buffer(data, size, GPUBuffer::TYPE::VERTEX);
+    m_vertex_buffer = new GPUBuffer(system, data, size, GPUBuffer::TYPE::VERTEX);
 
     if (!vertex_data.m_indices.empty()) {
-        const auto& i_data = vertex_data.m_indices;
-        void*       data = (void*)i_data.data();
-        size_t      size = sizeof(i_data[0]) * i_data.size();
-        m_index_buffer = GPUBuffer(system, data, size, GPUBuffer::TYPE::INDEX);
-        // m_index_buffer = system->create_buffer(data, size, GPUBuffer::TYPE::INDEX);
+        const auto& indices = vertex_data.m_indices;
+        void*       indices_data = (void*)indices.data();
+        size_t      indices_size = sizeof(indices[0]) * indices.size();
+        m_index_buffer =
+            new GPUBuffer(system, indices_data, indices_size, GPUBuffer::TYPE::INDEX);
     }
 }
 
@@ -480,23 +479,9 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> u32 {
  * @param data
  * @return u32
  */
-auto RenderSystem::register_mesh(const VertexData& data) -> u32 {
-    static u32 id = 1;
-
-    switch (m_api) {
-        case GRAPHICS_API::OPENGL: {
-            auto* r = dynamic_cast<OpenGL_Renderer*>(m_renderer);
-            r->m_registered_meshes[id] = opengl::GPUMeshData(r->m_context, data);
-        } break;
-        case GRAPHICS_API::VULKAN: {
-            auto* r = dynamic_cast<Vulkan_Renderer*>(m_renderer);
-            r->m_registered_meshes[id] = vulkan::GPUMeshData{*r->m_logical_device, data};
-        } break;
-        default: assert(false);
-    }
-    u32 old_id = id;
-    id++;
-    return old_id;
+auto RenderSystem::register_mesh(const VertexData& data) -> GPUMeshData* {
+    m_registered_meshes.emplace_back(this, data);
+    return &m_registered_meshes.back();
 }
 
 auto to_string(SHADER_TYPE type) -> const char* {

@@ -53,7 +53,7 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
         .transform = &obj.m_transform,
         .vertex_data = obj.m_vertex_data,
         .material_handle = obj.m_material_handle,
-        .m_GPU_mesh_data_id = obj.m_vertex_data_id,
+        .m_mesh = obj.m_mesh,
     };
     m_render_commands.push_back(command);
 }
@@ -121,8 +121,6 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         const ShaderHandle& sh = m_system->m_registered_shaders[mh.m_shader_id];
         auto*               shader = static_cast<Vulkan_Shader*>(sh.m_handle);
 
-        const vulkan::GPUMeshData& gpu_data = m_registered_meshes[cmd.m_GPU_mesh_data_id];
-
         // Per Frame ubo
         // vulkan::FREQUENCY::PER_FRAME == 0
         shader->write_ub(
@@ -184,7 +182,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
             &dyn_offset
         );
 
-        this->render_mesh(cmd.vertex_data, &gpu_data);
+        this->render_mesh(cmd.vertex_data, cmd.m_mesh);
     }
     //});
     cb.render_pass_end();
@@ -197,21 +195,23 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 }
 
 auto Vulkan_Renderer::render_mesh(
-    const VertexData*          vertex_data,
-    const vulkan::GPUMeshData* gpu_data
+    const VertexData*  vertex_data,
+    const GPUMeshData* gpu_data
 ) -> void {
     vulkan::CommandBuffer& cb = m_frames[m_frame_index].m_cmd;
     const auto& vertex_amount = static_cast<u32>(vertex_data->m_positions.size());
     const auto& index_amount = static_cast<u32>(vertex_data->m_indices.size());
 
-    const vulkan::Buffer* index_buffer = gpu_data->m_index_buffer;
-    const vulkan::Buffer* vertex_buffer = gpu_data->m_vertex_buffer;
+    const vulkan::Buffer* vertex_buffer =
+        static_cast<vulkan::Buffer*>(gpu_data->m_vertex_buffer->m_handle);
 
     // VkDeviceSize offsets[] = {0, 0};
 
     cb.bind_vertex_buffer(0, *vertex_buffer, 0);
 
     if (!vertex_data->m_indices.empty()) {
+        const vulkan::Buffer* index_buffer =
+            static_cast<vulkan::Buffer*>(gpu_data->m_index_buffer->m_handle);
         cb.bind_index_buffer(*index_buffer, 0);
         cb.draw_indexed(index_amount, 1, 0, 0, 0);
     } else {

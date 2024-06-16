@@ -32,8 +32,6 @@ public:
     Vulkan_Context                     m_context;
     vulkan::LogicalDevice*             m_logical_device;
     RenderSystem*                      m_system = nullptr;
-    std::map<u32, vulkan::GPUMeshData> m_registered_meshes;
-
 private: // NOTE: probably temporary
     RGBAColor m_clear_color;
 
@@ -84,7 +82,6 @@ public:
     bool                             m_framebuffer_resized = false;
 
 private:
-    auto render_mesh(const VertexData* vertex_data, const vulkan::GPUMeshData* gpu_data)
-        -> void;
+    auto render_mesh(const VertexData* vertex_data, const GPUMeshData* gpu_data) -> void;
 };
 } // namespace JadeFrame
