@@ -99,7 +99,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     for (u64 i = 0; i < m_render_commands.size(); i++) {
         const auto&           cmd = m_render_commands[i];
         const MaterialHandle& mh = cmd.material_handle;
-        const ShaderHandle&   sh = m_system->m_registered_shaders[mh.m_shader_id];
+        const ShaderHandle&   sh = *mh.m_shader;
         auto*                 shader = static_cast<Vulkan_Shader*>(sh.m_handle);
 
         shader->set_dynamic_ub_num(m_render_commands.size());
@@ -118,7 +118,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         const auto&           cmd = m_render_commands[i];
         const MaterialHandle& mh = cmd.material_handle;
 
-        const ShaderHandle& sh = m_system->m_registered_shaders[mh.m_shader_id];
+        const ShaderHandle& sh = *mh.m_shader;
         auto*               shader = static_cast<Vulkan_Shader*>(sh.m_handle);
 
         // Per Frame ubo

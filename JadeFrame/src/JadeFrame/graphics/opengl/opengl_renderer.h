@@ -63,7 +63,7 @@ public:
         opengl::Renderbuffer* m_renderbuffer;
         opengl::Framebuffer*  m_framebuffer;
         opengl::GPUMeshData*  m_framebuffer_rect;
-        u32                   m_shader;
+        ShaderHandle*         m_shader;
 
         auto init(OpenGL_Context* context, RenderSystem* system) -> void;
         auto render(RenderSystem* system) -> void;

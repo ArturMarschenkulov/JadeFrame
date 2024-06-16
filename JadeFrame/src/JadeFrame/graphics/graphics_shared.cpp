@@ -411,15 +411,14 @@ auto RenderSystem::register_texture(TextureHandle&& texture) -> u32 {
     return old_id;
 }
 
-auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> u32 {
-    static u32 id = 1;
+auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHandle* {
 
-    m_registered_shaders[id].m_code = desc.shading_code;
-    m_registered_shaders[id].m_vertex_format = desc.vertex_format;
-    m_registered_shaders[id].m_api = m_api;
-    // Right now all shaders are internally stored as SPIRV, usually coming from GLSL.
-    // Even if in the end one ends up using GLSL code again, it always has this
-    // intermediate step of being converted to SPIRV.
+    m_registered_shaders.emplace_back();
+    auto& shader = m_registered_shaders.back();
+    shader.m_code = desc.shading_code;
+    shader.m_vertex_format = desc.vertex_format;
+    shader.m_api = m_api;
+
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
             auto* ren = dynamic_cast<OpenGL_Renderer*>(m_renderer);
@@ -432,23 +431,22 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> u32 {
 
             std::string         v_source;
             ShadingCode::Module mod_0;
-            const auto& v_code = m_registered_shaders[id].m_code.m_modules[0].m_code;
+            const auto&         v_code = shader.m_code.m_modules[0].m_code;
             mod_0.m_code = remap_for_opengl(v_code, SHADER_STAGE::VERTEX, &v_source);
             mod_0.m_stage = SHADER_STAGE::VERTEX;
 
             std::string         f_source;
             ShadingCode::Module mod_1;
-            const auto& f_code = m_registered_shaders[id].m_code.m_modules[1].m_code;
+            const auto&         f_code = shader.m_code.m_modules[1].m_code;
             mod_1.m_code = remap_for_opengl(f_code, SHADER_STAGE::FRAGMENT, &f_source);
             mod_1.m_stage = SHADER_STAGE::FRAGMENT;
 
             shader_desc.code.m_modules.resize(2);
             shader_desc.code.m_modules[0] = std::move(mod_0);
             shader_desc.code.m_modules[1] = std::move(mod_1);
-            shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
+            shader_desc.vertex_format = shader.m_vertex_format;
 
-            auto* shader = new opengl::Shader(*ctx, shader_desc);
-            m_registered_shaders[id].m_handle = shader;
+            shader.m_handle = new opengl::Shader(*ctx, shader_desc);
 
             Logger::warn("Vertex source:\n {}", v_source);
             Logger::warn("Fragment source:\n {}", f_source);
@@ -458,18 +456,14 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> u32 {
             vulkan::LogicalDevice* ctx = ren->m_logical_device;
 
             Vulkan_Shader::Desc shader_desc;
-            shader_desc.code = m_registered_shaders[id].m_code;
-            shader_desc.vertex_format = m_registered_shaders[id].m_vertex_format;
+            shader_desc.code = shader.m_code;
+            shader_desc.vertex_format = shader.m_vertex_format;
 
-            auto* shader = new Vulkan_Shader(*ctx, *ren, shader_desc);
-            m_registered_shaders[id].m_handle = shader;
+            shader.m_handle = new Vulkan_Shader(*ctx, *ren, shader_desc);
         } break;
         default: assert(false);
     }
-
-    u32 old_id = id;
-    id++;
-    return old_id;
+    return &shader;
 }
 
 /**

@@ -92,7 +92,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         const RenderCommand&  cmd = m_render_commands[i];
         const MaterialHandle& mh = cmd.material_handle;
 
-        auto&                 sh = m_system->m_registered_shaders[mh.m_shader_id];
+        auto&                 sh = *mh.m_shader;
         const opengl::Shader* shader = static_cast<opengl::Shader*>(sh.m_handle);
 
         // NOTE: As of right now this is not optimal, as it only needs to be updated once
@@ -233,11 +233,11 @@ auto OpenGL_Renderer::FB::init(OpenGL_Context* context, RenderSystem* system) ->
 auto OpenGL_Renderer::FB::render(RenderSystem* system) -> void {
 
     // static_cast<opengl::Shader*>(fb.m_shader_handle_fb->m_handle)->bind();
-    ShaderHandle& sh_ = system->m_registered_shaders[m_shader];
+    ShaderHandle& sh_ = *m_shader;
     auto*         sh = static_cast<opengl::Shader*>(sh_.m_handle);
     sh->bind();
     m_texture->bind(0);
-    auto&                 shh = system->m_registered_shaders[m_shader];
+    auto&                 shh = *m_shader;
     const opengl::Shader* p_shader = static_cast<opengl::Shader*>(shh.m_handle);
     p_shader->m_vertex_array.bind_buffer(*m_framebuffer_rect->m_vertex_buffer);
     p_shader->m_vertex_array.bind();
