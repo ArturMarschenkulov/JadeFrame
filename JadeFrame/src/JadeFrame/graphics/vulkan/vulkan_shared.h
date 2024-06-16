@@ -27,7 +27,7 @@ namespace vulkan {
 //	return {};
 // }
 
-inline auto SHADER_TYPE_to_VkFormat(const SHADER_TYPE& shader_type) -> VkFormat {
+inline auto to_VkFormat(const SHADER_TYPE& shader_type) -> VkFormat {
     VkFormat result = VK_FORMAT_UNDEFINED;
 
     switch (shader_type) {

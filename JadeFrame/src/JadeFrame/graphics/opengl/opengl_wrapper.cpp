@@ -64,7 +64,7 @@ static auto SHADER_TYPE_to_openGL_type(const SHADER_TYPE type) -> GLenum {
 }
 
 auto OGLW_VertexArray::bind_buffer(const opengl::Buffer& buffer) const -> void {
-    glVertexArrayVertexBuffer(m_ID, 0, buffer.m_id, 0, m_vertex_format.m_stride);
+    glVertexArrayVertexBuffer(m_ID, 0, buffer.m_id, 0, static_cast<GLsizei>(m_vertex_format.m_stride));
 }
 
 auto OGLW_VertexArray::set_layout(const VertexFormat& vertex_format) -> void {

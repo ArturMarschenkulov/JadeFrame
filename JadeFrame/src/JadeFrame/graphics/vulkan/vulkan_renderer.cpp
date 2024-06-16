@@ -82,7 +82,8 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     vulkan::LogicalDevice&        d = *m_logical_device;
     const vulkan::PhysicalDevice* pd = d.m_physical_device;
 
-    m_frames[m_frame_index].acquire_image(m_swapchain);
+    auto& curr_frame = m_frames[m_frame_index];
+    curr_frame.acquire_image(m_swapchain);
 
     if (m_swapchain.m_is_recreated) {
         m_swapchain.m_is_recreated = false;
@@ -104,10 +105,10 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         shader->set_dynamic_ub_num(m_render_commands.size());
     }
 
-    vulkan::CommandBuffer& cb = m_frames[m_frame_index].m_cmd;
+    vulkan::CommandBuffer& cb = curr_frame.m_cmd;
     // cb.record([&] {
     cb.record_begin();
-    vulkan::Framebuffer& framebuffer = m_framebuffers[m_frames[m_frame_index].m_index];
+    vulkan::Framebuffer& framebuffer = m_framebuffers[curr_frame.m_index];
     const RGBAColor      c = m_clear_color;
     const VkClearValue   clear_value = VkClearValue{{{c.r, c.g, c.b, c.a}}};
 
@@ -190,7 +191,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     //});
     cb.record_end();
 
-    m_frames[m_frame_index].submit(d.m_graphics_queue);
+    curr_frame.submit(d.m_graphics_queue);
 
     m_render_commands.clear();
 }

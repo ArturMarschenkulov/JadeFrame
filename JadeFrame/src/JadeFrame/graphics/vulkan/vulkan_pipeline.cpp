@@ -54,7 +54,7 @@ static auto check_compatiblity(
         if (input_attributes.size() == vertex_module->m_inputs.size()) {
             for (u32 i = 0; i < input_attributes.size(); i++) {
                 if (input_attributes[i].format !=
-                    SHADER_TYPE_to_VkFormat(vertex_module->m_inputs[i].type)) {
+                    to_VkFormat(vertex_module->m_inputs[i].type)) {
                     compatible = false;
                 }
                 if (input_attributes[i].location != vertex_module->m_inputs[i].location) {
@@ -379,7 +379,7 @@ static auto get_attribute_descriptions(const VertexFormat& vertex_format)
     for (u32 i = 0; i < vertex_format.m_attributes.size(); i++) {
         attribs[i].binding = 0;
         attribs[i].location = i;
-        attribs[i].format = SHADER_TYPE_to_VkFormat(vertex_format.m_attributes[i].type);
+        attribs[i].format = to_VkFormat(vertex_format.m_attributes[i].type);
         attribs[i].offset = static_cast<u32>(vertex_format.m_attributes[i].offset);
     }
 

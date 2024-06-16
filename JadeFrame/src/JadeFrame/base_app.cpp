@@ -152,6 +152,8 @@ BaseApp::BaseApp(const Desc& desc) {
     m_windows[0] = i->m_system_manager.request_window(win_desc);
     m_current_window_p = m_windows[0];
 
+    auto apis = RenderSystem::list_available_graphics_apis();
+    for (auto& api : apis) { Logger::info("API: '{}'", to_string(api)); }
     Logger::info("Creating Renderer with API '{}'", to_string(desc.api));
     m_render_system.init(desc.api, m_windows[0]);
     // m_render_system = m_system_manager.request_render_system(api, m_windows[0]);

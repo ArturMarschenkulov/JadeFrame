@@ -42,92 +42,6 @@ using InputManager = Linux_InputManager;
 class BaseApp;
 class IRenderer;
 
-/*
-    This is the storage of various resources which should be accessible
-    "globally" in JadeFrame.
-    TODO: Think whether std::unordered_map is the best way to store it.
-        Technically, it shoud be fine as accessing should not be a
-        frequent thing.
-
-    This struct should be used for all "default" stuff and should be able to
-    have custom stuff
-*/
-struct ResourceStorage {
-public:
-    auto set_shader_handle(const std::string& name, ShaderHandle&& shader) -> void {
-        // m_shaders.insert({ name, shader });
-        m_shader_handles.emplace(name, std::move(shader));
-    }
-
-    auto get_shader_handle(const std::string& name) -> ShaderHandle& {
-        if (m_shader_handles.find(name) != m_shader_handles.end()) {
-            return m_shader_handles.at(name);
-        }
-        assert(false);
-        return m_shader_handles.at(name);
-    }
-
-    // auto set_texture_handle(const std::string& name, const std::string& path) -> void {
-    //     // m_shaders.insert({ name, shader });
-    //     m_texture_handles.emplace(name, path);
-    //     // m_texture_handles.emplace(name, std::move(texture));
-    // }
-    auto get_texture_handle(const std::string& name) -> TextureHandle& {
-        if (m_texture_handles.find(name) != m_texture_handles.end()) {
-            return m_texture_handles.at(name);
-        }
-        assert(false);
-        return m_texture_handles.at(name);
-    }
-
-    auto set_material_handle(
-        const std::string& material_name,
-        const std::string& shader_name,
-        const std::string& texture_name
-    ) -> void {
-        (void)material_name;
-
-        if (m_shader_handles.find(shader_name) != m_shader_handles.end()) {
-            // m_material_handles[material_name].m_shader_handle =
-            // &m_shader_handles[shader_name];
-            if (m_texture_handles.find(texture_name) != m_texture_handles.end()) {
-                Logger::err("shoudln#t be reachable!!!!!!");
-                assert(false);
-                // m_material_handles[material_name].m_texture_handle =
-                // &m_texture_handles[texture_name];
-                return;
-            } else if (texture_name.empty()) {
-                return;
-            }
-        }
-        assert(false);
-    }
-
-    auto get_material_handle(const std::string& name) -> MaterialHandle& {
-        if (m_material_handles.find(name) != m_material_handles.end()) {
-            return m_material_handles.at(name);
-        }
-        assert(false);
-        return m_material_handles.at(name);
-    }
-
-    auto set_mesh(const std::string& name, const VertexData& vertex_data) -> void {
-        m_meshes.emplace(name, vertex_data);
-    }
-
-    auto get_mesh(const std::string& name) -> VertexData& {
-        if (m_meshes.find(name) != m_meshes.end()) { return m_meshes.at(name); }
-        assert(false);
-        return m_meshes.at(name);
-    }
-
-private:
-    std::unordered_map<std::string, ShaderHandle>   m_shader_handles;
-    std::unordered_map<std::string, TextureHandle>  m_texture_handles;
-    std::unordered_map<std::string, MaterialHandle> m_material_handles;
-    std::unordered_map<std::string, VertexData>     m_meshes;
-};
-
 class BaseApp {
 public:
     struct Desc {
@@ -166,9 +80,7 @@ public:
     Camera m_camera;
 
     GUI m_gui;
-
-    ResourceStorage m_resources;
-    u64             m_tick = 0;
+    u64 m_tick = 0;
 };
 
 /*

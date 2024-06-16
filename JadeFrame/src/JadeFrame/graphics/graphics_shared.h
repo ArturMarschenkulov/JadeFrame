@@ -322,7 +322,7 @@ class VertexData;
 class GPUMeshData {
 public:
     GPUMeshData() = default;
-    ~GPUMeshData();
+    ~GPUMeshData() = default;
     GPUMeshData(const GPUMeshData&) = delete;
     auto operator=(const GPUMeshData&) -> GPUMeshData& = delete;
     GPUMeshData(GPUMeshData&& other) noexcept;
@@ -449,7 +449,9 @@ public:
 
     auto register_texture(TextureHandle&& handle) -> u32;
     auto register_shader(const ShaderHandle::Desc& desc) -> u32;
-    auto register_mesh(const VertexData& data) -> u32;
+
+public:
+    [[nodiscard]] static auto list_available_graphics_apis() -> std::vector<GRAPHICS_API>;
 
 public:
     GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
