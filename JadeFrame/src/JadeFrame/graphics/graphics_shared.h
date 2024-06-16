@@ -19,7 +19,7 @@ struct Image {
     Image(Image&& other) noexcept;
     auto operator=(Image&& other) noexcept -> Image&;
 
-    static auto load(const std::string& path) -> Image;
+    static auto load_from_path(const std::string& path) -> Image;
 
     u8* data = nullptr;
     i32 width = 0;

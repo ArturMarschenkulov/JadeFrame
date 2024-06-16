@@ -202,7 +202,7 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     assert(pointers.m_graphics_family != nullptr && "graphics family is nullptr");
     assert(pointers.m_present_family != nullptr && "present family is nullptr");
 
-    const u32 queue_family_indices[] = {
+    const std::array<u32, 2> queue_family_indices = {
         pointers.m_graphics_family->m_index, pointers.m_present_family->m_index
     };
     const bool is_same_queue_family =
@@ -230,7 +230,7 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     if (!is_same_queue_family) {
         info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         info.queueFamilyIndexCount = 2;
-        info.pQueueFamilyIndices = queue_family_indices;
+        info.pQueueFamilyIndices = queue_family_indices.data();
     } else {
         info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     }
@@ -247,7 +247,7 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
 }
 
 auto Swapchain::query_images() -> std::vector<Image> {
-    u32 image_count;
+    u32 image_count = 0;
 
     vkGetSwapchainImagesKHR(m_device->m_handle, m_handle, &image_count, nullptr);
     std::vector<VkImage> images(image_count);
@@ -277,7 +277,7 @@ auto Swapchain::acquire_image_index(
     const Fence*     fence,
     VkResult&        out_result
 ) -> u32 {
-    u32         image_index;
+    u32         image_index = 0;
     VkSemaphore p_semaphore = semaphore == nullptr ? VK_NULL_HANDLE : semaphore->m_handle;
     VkFence     p_fence = fence == nullptr ? VK_NULL_HANDLE : fence->m_handle;
 
@@ -295,7 +295,7 @@ auto Swapchain::acquire_image_index(
 auto Swapchain::acquire_image_index(const Semaphore* semaphore, const Fence* fence)
     -> u32 {
 
-    u32         image_index;
+    u32         image_index = 0;
     VkSemaphore p_semaphore = semaphore == nullptr ? VK_NULL_HANDLE : semaphore->m_handle;
     VkFence     p_fence = fence == nullptr ? VK_NULL_HANDLE : fence->m_handle;
 

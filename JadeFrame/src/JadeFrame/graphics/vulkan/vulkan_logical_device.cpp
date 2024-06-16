@@ -16,25 +16,17 @@ namespace JadeFrame {
 static auto VkResult_to_string(VkResult x) {
     std::string str;
 #define JF_SET_ENUM_STRING(str, name)                                                    \
-    case name: str = #name
+    case name: str = #name; break
 
     switch (x) {
         JF_SET_ENUM_STRING(str, VK_SUCCESS);
-        break;
         JF_SET_ENUM_STRING(str, VK_NOT_READY);
-        break;
         JF_SET_ENUM_STRING(str, VK_TIMEOUT);
-        break;
         JF_SET_ENUM_STRING(str, VK_EVENT_SET);
-        break;
         JF_SET_ENUM_STRING(str, VK_EVENT_RESET);
-        break;
         JF_SET_ENUM_STRING(str, VK_INCOMPLETE);
-        break;
         JF_SET_ENUM_STRING(str, VK_SUBOPTIMAL_KHR);
-        break;
         JF_SET_ENUM_STRING(str, VK_ERROR_OUT_OF_DATE_KHR);
-        break;
         default:
             JF_ASSERT(false, "Unknown VkResult");
             str = "";
@@ -287,7 +279,7 @@ auto LogicalDevice::wait_for_fences(
     u64                     timeout
 ) const -> void {
     assert(fences.size() < 5);
-    std::array<VkFence, 5> vk_fences;
+    std::array<VkFence, 5> vk_fences = {};
     for (u32 i = 0; i < fences.size(); ++i) { vk_fences[i] = fences[i].m_handle; }
     VkResult result = VK_SUCCESS;
     result = vkWaitForFences(

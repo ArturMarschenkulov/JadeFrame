@@ -56,7 +56,7 @@ add_fourth_components(const u8* data, i32 width, i32 height, i32 num_components)
     return new_data;
 }
 
-auto Image::load(const std::string& path) -> Image {
+auto Image::load_from_path(const std::string& path) -> Image {
     stbi_set_flip_vertically_on_load(true);
     i32 width = 0;
     i32 height = 0;

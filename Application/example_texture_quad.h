@@ -32,7 +32,7 @@ auto Example_Texture_Quad::on_init() -> void {
         {        "v_color", SHADER_TYPE::V_4_F32},
         {"v_texture_coord", SHADER_TYPE::V_2_F32},
     };
-    auto shader_id = m_render_system.register_shader(std::move(shader_handle_desc));
+    u32 shader_id = m_render_system.register_shader(shader_handle_desc);
 
     const f32 s = 0.5F;
     auto*     vertex_data = new VertexData();
@@ -59,9 +59,10 @@ auto Example_Texture_Quad::on_init() -> void {
     m_obj.m_vertex_data_id = mesh_id;
 
     // auto texture_path = "C:\\dev\\proj\\JadeFrame\\JadeFrame\\resource\\wall.jpg";
-    auto texture_path = "/home/artur/dev/proj/Jadeframe/JadeFrame/resource/wall.jpg";
-    auto img = Image::load(texture_path);
-    auto texture_id = m_render_system.register_texture(std::move(img));
+    const auto* texture_path =
+        "/home/artur/dev/proj/Jadeframe/JadeFrame/resource/wall.jpg";
+    auto img = Image::load_from_path(texture_path);
+    auto texture_id = m_render_system.register_texture(TextureHandle(img));
 
     m_material.m_shader_id = shader_id;
     m_material.m_texture_id = texture_id;

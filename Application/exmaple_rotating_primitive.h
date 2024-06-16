@@ -76,17 +76,17 @@ auto Example_Rotating_Primitive::on_init() -> void {
     m_obj_2.m_vertex_data = vertex_data_2;
     auto mesh_id_2 = m_render_system.register_mesh(*m_obj_2.m_vertex_data);
     m_obj_2.m_vertex_data_id = mesh_id_2;
+
+    JadeFrame::Logger::info("Example_Rotating_Primitive initialized");
 }
 
 auto Example_Rotating_Primitive::on_update() -> void {
 
-    static auto start_time = std::chrono::high_resolution_clock::now();
+    using namespace std::chrono;
+    static auto start_time = high_resolution_clock::now();
 
-    auto current_time = std::chrono::high_resolution_clock::now();
-    f32  time = std::chrono::duration<f32, std::chrono::seconds::period>(
-                   current_time - start_time
-    )
-                   .count();
+    auto current_time = high_resolution_clock::now();
+    f32  time = duration<f32, seconds::period>(current_time - start_time).count();
 
     m_obj.m_transform =
         Matrix4x4::rotation(time * to_radians(90.0F), v3(0.0F, 0.0F, 1.0F));
