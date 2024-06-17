@@ -52,7 +52,7 @@ auto Vulkan_Renderer::submit(const Object& obj) -> void {
     const RenderCommand command = {
         .transform = &obj.m_transform,
         .vertex_data = obj.m_vertex_data,
-        .material_handle = obj.m_material_handle,
+        .material = obj.m_material,
         .m_mesh = obj.m_mesh,
     };
     m_render_commands.push_back(command);
@@ -98,7 +98,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     // TODO: Find a better way to do this, but for now it works
     for (u64 i = 0; i < m_render_commands.size(); i++) {
         const auto&           cmd = m_render_commands[i];
-        const MaterialHandle& mh = cmd.material_handle;
+        const MaterialHandle& mh = *cmd.material;
         const ShaderHandle&   sh = *mh.m_shader;
         auto*                 shader = static_cast<Vulkan_Shader*>(sh.m_handle);
 
@@ -116,7 +116,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     cb.render_pass_begin(framebuffer, m_render_pass, m_swapchain.m_extent, clear_value);
     for (u64 i = 0; i < m_render_commands.size(); i++) {
         const auto&           cmd = m_render_commands[i];
-        const MaterialHandle& mh = cmd.material_handle;
+        const MaterialHandle& mh = *cmd.material;
 
         const ShaderHandle& sh = *mh.m_shader;
         auto*               shader = static_cast<Vulkan_Shader*>(sh.m_handle);
@@ -143,15 +143,6 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         auto&                     pipeline = shader->m_pipeline;
         auto&                     sets = shader->m_sets;
 
-        if (mh.m_texture != nullptr) {
-            auto*                   th = mh.m_texture;
-            vulkan::Vulkan_Texture& texture =
-                *static_cast<vulkan::Vulkan_Texture*>(th->m_handle);
-            auto& set = sets[vulkan::FREQUENCY::PER_MATERIAL];
-            set.bind_combined_image_sampler(0, texture);
-            set.update();
-        }
-
         cb.bind_pipeline(bp, pipeline);
         cb.bind_descriptor_sets(
             bp,
@@ -167,13 +158,15 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
             sets[vulkan::FREQUENCY::PER_PASS],
             nullptr
         );
-        cb.bind_descriptor_sets(
-            bp,
-            pipeline,
-            vulkan::FREQUENCY::PER_MATERIAL,
-            sets[vulkan::FREQUENCY::PER_MATERIAL],
-            nullptr
-        );
+        if (mh.m_texture != nullptr) {
+            cb.bind_descriptor_sets(
+                bp,
+                pipeline,
+                vulkan::FREQUENCY::PER_MATERIAL,
+                sets[vulkan::FREQUENCY::PER_MATERIAL],
+                nullptr
+            );
+        }
         cb.bind_descriptor_sets(
             bp,
             pipeline,

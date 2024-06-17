@@ -343,7 +343,7 @@ public:
 struct RenderCommand {
     const Matrix4x4*  transform = nullptr;
     const VertexData* vertex_data = nullptr;
-    MaterialHandle    material_handle = {0, 0};
+    MaterialHandle*   material = nullptr;
     GPUMeshData*      m_mesh = nullptr;
 };
 
@@ -429,10 +429,10 @@ class VertexData;
 
 class Object {
 public:
-    GPUMeshData*   m_mesh;
-    VertexData*    m_vertex_data;
-    MaterialHandle m_material_handle;
-    Matrix4x4      m_transform;
+    GPUMeshData*    m_mesh;
+    VertexData*     m_vertex_data;
+    MaterialHandle* m_material;
+    Matrix4x4       m_transform;
 };
 
 class RenderSystem {
@@ -451,6 +451,8 @@ public:
     auto register_texture(Image& image) -> TextureHandle*;
     auto register_shader(const ShaderHandle::Desc& desc) -> ShaderHandle*;
     auto register_mesh(const VertexData& data) -> GPUMeshData*;
+    auto register_material(ShaderHandle* shader, TextureHandle* texture)
+        -> MaterialHandle*;
 
 public:
     [[nodiscard]] static auto list_available_graphics_apis() -> std::vector<GRAPHICS_API>;
@@ -459,9 +461,10 @@ public:
     GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
     IRenderer*   m_renderer = nullptr;
 
-    std::deque<TextureHandle> m_registered_textures;
-    std::deque<ShaderHandle>  m_registered_shaders;
-    std::deque<GPUMeshData>   m_registered_meshes;
+    std::deque<TextureHandle>  m_registered_textures;
+    std::deque<ShaderHandle>   m_registered_shaders;
+    std::deque<MaterialHandle> m_registered_materials;
+    std::deque<GPUMeshData>    m_registered_meshes;
 };
 
 } // namespace JadeFrame

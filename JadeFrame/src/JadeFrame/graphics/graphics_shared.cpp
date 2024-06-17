@@ -497,4 +497,30 @@ auto to_string(SHADER_TYPE type) -> const char* {
             break;
     }
 }
+auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* texture)
+    -> MaterialHandle* {
+    m_registered_materials.emplace_back();
+    auto& material = m_registered_materials.back();
+
+    material.m_shader = shader;
+    material.m_texture = texture;
+
+    switch (m_api) {
+        case GRAPHICS_API::OPENGL: {
+        } break;
+        case GRAPHICS_API::VULKAN: {
+            if (texture != nullptr) {
+                auto* sh = (Vulkan_Shader*)shader->m_handle;
+                auto* tex = (vulkan::Vulkan_Texture*)texture->m_handle;
+
+                auto& set = sh->m_sets[vulkan::FREQUENCY::PER_MATERIAL];
+                set.bind_combined_image_sampler(0, *tex);
+                set.update();
+            }
+        } break;
+        default: assert(false);
+    }
+
+    return &material;
+}
 } // namespace JadeFrame

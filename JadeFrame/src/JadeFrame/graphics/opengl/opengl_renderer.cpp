@@ -70,7 +70,7 @@ auto OpenGL_Renderer::submit(const Object& obj) -> void {
     const RenderCommand command = {
         .transform = &obj.m_transform,
         .vertex_data = obj.m_vertex_data,
-        .material_handle = obj.m_material_handle,
+        .material = obj.m_material,
         .m_mesh = obj.m_mesh,
     };
     m_render_commands.push_back(command);
@@ -90,7 +90,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     for (size_t i = 0; i < m_render_commands.size(); ++i) {
         const RenderCommand&  cmd = m_render_commands[i];
-        const MaterialHandle& mh = cmd.material_handle;
+        const MaterialHandle& mh = *cmd.material;
 
         auto&                 sh = *mh.m_shader;
         const opengl::Shader* shader = static_cast<opengl::Shader*>(sh.m_handle);
