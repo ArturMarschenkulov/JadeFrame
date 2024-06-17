@@ -350,45 +350,41 @@ auto RenderSystem::init(GRAPHICS_API api, Window* window) -> void {
 
 RenderSystem::RenderSystem(RenderSystem&& other) noexcept
     : m_api(other.m_api)
-    , m_renderer(other.m_renderer)
-    , m_registered_textures(std::move(other.m_registered_textures)) {
+    , m_renderer(other.m_renderer) {
 
     other.m_api = GRAPHICS_API::UNDEFINED;
     other.m_renderer = nullptr;
-    other.m_registered_textures.clear();
 }
 
 auto RenderSystem::operator=(RenderSystem&& other) noexcept -> RenderSystem& {
     m_api = other.m_api;
     m_renderer = other.m_renderer;
-    m_registered_textures = std::move(other.m_registered_textures);
     other.m_api = GRAPHICS_API::UNDEFINED;
     other.m_renderer = nullptr;
-    other.m_registered_textures.clear();
     return *this;
 }
 
-auto RenderSystem::register_texture(TextureHandle&& texture) -> u32 {
-    static u32 id = 1;
-    m_registered_textures[id] = std::move(texture);
-    m_registered_textures[id].m_api = m_api;
+auto RenderSystem::register_texture(Image& image) -> TextureHandle* {
 
+    m_registered_textures.emplace_back();
+    auto& tex = m_registered_textures.back();
+    tex.m_data = image.data;
+    tex.m_size.x = image.width;
+    tex.m_size.y = image.height;
+    tex.m_num_components = image.num_components;
+    tex.m_api = m_api;
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
             auto*           renderer = dynamic_cast<OpenGL_Renderer*>(m_renderer);
             OpenGL_Context* device = &renderer->m_context;
 
-            // m_registered_textures[id].init(&renderer->m_context);
-            auto& tex = m_registered_textures[id];
             tex.m_handle =
                 device->create_texture(tex.m_data, tex.m_size, tex.m_num_components);
-            // m_registered_textures[id].m_handle = tex.m_handle;
-            m_registered_textures[id].m_handle = tex.m_handle;
+
         } break;
         case GRAPHICS_API::VULKAN: {
             auto*                  renderer = dynamic_cast<Vulkan_Renderer*>(m_renderer);
             vulkan::LogicalDevice* device = renderer->m_logical_device;
-            auto&                  tex = m_registered_textures[id];
 
             VkFormat format = {};
             switch (tex.m_num_components) {
@@ -402,13 +398,11 @@ auto RenderSystem::register_texture(TextureHandle&& texture) -> u32 {
             }
             tex.m_handle =
                 new vulkan::Vulkan_Texture(*device, tex.m_data, tex.m_size, format);
-            m_registered_textures[id].m_handle = tex.m_handle;
+
         } break;
         default: assert(false);
     }
-    u32 old_id = id;
-    id++;
-    return old_id;
+    return &tex;
 }
 
 auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHandle* {

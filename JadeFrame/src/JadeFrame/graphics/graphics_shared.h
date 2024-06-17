@@ -272,8 +272,8 @@ public:
 };
 
 struct MaterialHandle {
-    ShaderHandle* m_shader;
-    u32           m_texture_id = 0;
+    ShaderHandle*  m_shader;
+    TextureHandle* m_texture;
 };
 
 // This struct saves the shader code. The common language is SPIRV.
@@ -448,7 +448,7 @@ public:
 
     auto init(GRAPHICS_API api, Window* window) -> void;
 
-    auto register_texture(TextureHandle&& handle) -> u32;
+    auto register_texture(Image& image) -> TextureHandle*;
     auto register_shader(const ShaderHandle::Desc& desc) -> ShaderHandle*;
     auto register_mesh(const VertexData& data) -> GPUMeshData*;
 
@@ -459,11 +459,9 @@ public:
     GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
     IRenderer*   m_renderer = nullptr;
 
-    // NOTE: For now the key/id 0 refers to no texture or default texture
-    //     This is a bit of a hack, but it works for now.
-    std::map<u32, TextureHandle> m_registered_textures;
-    std::deque<ShaderHandle>     m_registered_shaders;
-    std::deque<GPUMeshData>      m_registered_meshes;
+    std::deque<TextureHandle> m_registered_textures;
+    std::deque<ShaderHandle>  m_registered_shaders;
+    std::deque<GPUMeshData>   m_registered_meshes;
 };
 
 } // namespace JadeFrame

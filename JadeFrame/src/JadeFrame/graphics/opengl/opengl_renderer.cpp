@@ -105,9 +105,9 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         ub_tran->write({*cmd.transform});
 
         shader->bind();
-        if (mh.m_texture_id != 0) {
-            auto&            th = m_system->m_registered_textures[mh.m_texture_id];
-            opengl::Texture& texture = *static_cast<opengl::Texture*>(th.m_handle);
+        if (mh.m_texture != nullptr) {
+            auto*            th = mh.m_texture;
+            opengl::Texture& texture = *static_cast<opengl::Texture*>(th->m_handle);
             texture.bind(0);
         }
 
