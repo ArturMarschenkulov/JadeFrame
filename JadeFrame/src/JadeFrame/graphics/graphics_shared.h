@@ -187,6 +187,8 @@ struct VertexAttribute {
     size_t      offset;
     bool        normalized;
 
+    VertexAttribute() = default;
+
     VertexAttribute(const std::string& name, SHADER_TYPE type, bool normalized = false);
 };
 
@@ -203,9 +205,11 @@ public:
 
     static auto default_format() -> VertexFormat;
 
-    VertexFormat(const std::initializer_list<VertexAttribute>& attributes);
+    explicit VertexFormat(const std::vector<VertexAttribute>& attributes);
 
     auto calculate_offset_and_stride(std::vector<VertexAttribute>& attributes) -> void;
+
+    [[nodiscard]] auto has_same_interface(const VertexFormat& other) const -> bool;
 
     std::vector<VertexAttribute> m_attributes;
     u32                          m_stride = 0;

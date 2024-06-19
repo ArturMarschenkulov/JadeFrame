@@ -50,6 +50,8 @@ struct ReflectedModule {
     std::vector<UniformBuffer> m_uniform_buffers;
     std::vector<SampledImage>  m_sampled_images;
     // std::vector<VkPushConstantRange> m_push_constant_ranges;
+    static auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule;
+    auto get_vertex_format() -> VertexFormat;
 };
 
 struct ReflectedCode {

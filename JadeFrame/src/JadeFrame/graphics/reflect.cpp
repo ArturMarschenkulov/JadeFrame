@@ -132,7 +132,7 @@ auto temp_cmp(const ReflectedModule::Output& i0, const ReflectedModule::Output& 
     return i0.location < i1.location;
 }
 
-auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
+auto ReflectedModule::reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
     ReflectedModule result = {};
     // result.m_stage = current_module.m_stage;
 
@@ -146,7 +146,7 @@ auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
     result.m_inputs.resize(resources.stage_inputs.size());
     for (u32 j = 0; j < resources.stage_inputs.size(); j++) {
         const spirv_cross::Resource& resource = resources.stage_inputs[j];
-        const std::string& name = resource.name;
+        const std::string&           name = resource.name;
         const spirv_cross::SPIRType& base_type = compiler.get_type(resource.base_type_id);
         const spirv_cross::SPIRType& buffer_type = compiler.get_type(resource.type_id);
         u32 member_count = static_cast<u32>(buffer_type.member_types.size());
@@ -474,5 +474,16 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
         // }
     }
     return result;
+}
+
+auto ReflectedModule::get_vertex_format() -> VertexFormat {
+    VertexFormat result;
+    result.m_attributes.resize(m_inputs.size());
+    std::vector<VertexAttribute> list;
+    for (u32 i = 0; i < m_inputs.size(); i++) {
+        const Input& input = m_inputs[i];
+        list.emplace_back(input.name, input.type);
+    }
+    return VertexFormat{list};
 }
 } // namespace JadeFrame

@@ -290,18 +290,18 @@ VertexAttribute::VertexAttribute(
 /*---------------------------
     VertexFormat
 ---------------------------*/
-VertexFormat::VertexFormat(const std::initializer_list<VertexAttribute>& attributes)
+VertexFormat::VertexFormat(const std::vector<VertexAttribute>& attributes)
     : m_attributes(attributes) {
     this->calculate_offset_and_stride(m_attributes);
 }
 
 auto VertexFormat::default_format() -> VertexFormat {
-    const VertexFormat result = {
+    const VertexFormat result = VertexFormat({
         {     "v_position", SHADER_TYPE::V_3_F32},
         {        "v_color", SHADER_TYPE::V_4_F32},
         {"v_texture_coord", SHADER_TYPE::V_2_F32},
         {       "v_normal", SHADER_TYPE::V_3_F32},
-    };
+    });
     return result;
 }
 

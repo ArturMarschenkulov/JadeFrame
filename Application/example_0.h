@@ -172,11 +172,11 @@ auto Example_0::on_init() -> void {
 
         ShaderHandle::Desc sh_0;
         sh_0.shading_code = flat_0_code;
-        sh_0.vertex_format = VertexFormat{
+        sh_0.vertex_format = VertexFormat({
             {     "v_position", SHADER_TYPE::V_3_F32},
             {        "v_color", SHADER_TYPE::V_4_F32},
             {"v_texture_coord", SHADER_TYPE::V_2_F32},
-        };
+        });
 
         auto* flat_shader = m_render_system.register_shader(sh_0);
         auto* flat_shader_0_test_0 = m_render_system.register_shader(sh_0);

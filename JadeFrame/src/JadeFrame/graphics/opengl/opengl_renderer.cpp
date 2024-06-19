@@ -205,10 +205,10 @@ auto OpenGL_Renderer::FB::init(OpenGL_Context* context, RenderSystem* system) ->
     vdf_desc.has_normals = false;
     VertexData vertex_data =
         VertexData::make_rectangle({-1.0F, -1.0F, 0.0F}, {2.0F, 2.0F, 0.0F}, vdf_desc);
-    VertexFormat layout = {
+    VertexFormat layout = VertexFormat({
         {           "v_position", SHADER_TYPE::V_3_F32},
         {"v_texture_coordinates", SHADER_TYPE::V_2_F32}
-    };
+    });
     m_framebuffer_rect = new opengl::GPUMeshData(*context, vertex_data);
 
     ShaderHandle::Desc shader_handle_desc;
