@@ -595,8 +595,7 @@ Pipeline::Pipeline(
     const LogicalDevice& device,
     const VkExtent2D&    extent,
     const RenderPass&    render_pass,
-    const ShadingCode&   code,
-    const VertexFormat&  vertex_format
+    const ShadingCode&   code
 )
     : m_device(&device)
     , m_render_pass(&render_pass) {
@@ -612,6 +611,7 @@ Pipeline::Pipeline(
 
     auto module_interface = combine_modules_into_interface(modules);
     m_reflected_interface = std::move(module_interface);
+    auto vf = m_reflected_interface.get_vertex_format();
 
     /*
         There are always 4 descriptor set layouts. They are grouped by binding
@@ -673,13 +673,10 @@ Pipeline::Pipeline(
     const VkPipelineColorBlendStateCreateInfo color_blending =
         color_blend_state_create_info(color_blend_attachment);
 
-    // TODO: One can probably get binding and attribute description from the reflection of
-    // the shader code. This allows us to remove the dependency of the vertex format as a
-    // parameter.
     const VkVertexInputBindingDescription binding_description =
-        get_binding_description(vertex_format);
+        get_binding_description(vf);
     std::vector<VkVertexInputAttributeDescription> attribute_descriptions =
-        get_attribute_descriptions(vertex_format);
+        get_attribute_descriptions(vf);
     const VkPipelineVertexInputStateCreateInfo vertex_input_info =
         vertex_input_state_create_info(binding_description, attribute_descriptions);
 

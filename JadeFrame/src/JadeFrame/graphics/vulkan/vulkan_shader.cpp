@@ -18,8 +18,7 @@ Vulkan_Shader::Vulkan_Shader(
         device,
         renderer.m_swapchain.m_extent,
         renderer.m_render_pass,
-        desc.code,
-        desc.vertex_format
+        desc.code
     );
     Logger::info("Created Vulkan shader");
 

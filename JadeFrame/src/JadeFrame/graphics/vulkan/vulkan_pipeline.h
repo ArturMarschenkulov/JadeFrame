@@ -31,8 +31,7 @@ public:
         const LogicalDevice& device,
         const VkExtent2D&    extend,
         const RenderPass&    render_pass,
-        const ShadingCode&   code,
-        const VertexFormat&  vertex_format
+        const ShadingCode&   code
     );
 
 public:
