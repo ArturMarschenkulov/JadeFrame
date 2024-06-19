@@ -358,7 +358,6 @@ concept is_renderer = requires(T& t) {
     { t.present() } -> std::same_as<void>;
     { t.clear_background() } -> std::same_as<void>;
     { t.render(std::declval<Matrix4x4>()) } -> std::same_as<void>;
-    { t.submit(std::declval<Object>()) } -> std::same_as<void>;
     { t.set_clear_color(std::declval<RGBAColor>()) } -> std::same_as<void>;
     { t.set_viewport(u32{}, u32{}, u32{}, u32{}) } -> std::same_as<void>;
     { t.take_screenshot(std::declval<char*>()) } -> std::same_as<void>;
@@ -374,7 +373,6 @@ public:
     virtual ~IRenderer() = default;
 
     // client stuff
-    virtual auto submit(const Object& obj) -> void = 0;
     virtual auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void = 0;
 
     virtual auto take_screenshot(const char* filename) -> void = 0;
@@ -384,9 +382,6 @@ public: // more internal stuff
     virtual auto clear_background() -> void = 0;
     virtual auto render(const Matrix4x4& view_projection) -> void = 0;
     virtual auto present() -> void = 0;
-
-public:
-    mutable std::deque<RenderCommand> m_render_commands;
 };
 
 inline auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
@@ -454,12 +449,16 @@ public:
     auto register_material(ShaderHandle* shader, TextureHandle* texture)
         -> MaterialHandle*;
 
+    auto submit(const Object& obj) -> void;
+
 public:
     [[nodiscard]] static auto list_available_graphics_apis() -> std::vector<GRAPHICS_API>;
 
 public:
     GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
     IRenderer*   m_renderer = nullptr;
+
+    mutable std::deque<RenderCommand> m_render_commands;
 
     std::deque<TextureHandle>  m_registered_textures;
     std::deque<ShaderHandle>   m_registered_shaders;

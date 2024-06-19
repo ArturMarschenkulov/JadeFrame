@@ -19,7 +19,6 @@ public:
 
     auto set_clear_color(const RGBAColor& color) -> void override;
 
-    auto submit(const Object& obj) -> void override;
     auto render(const Matrix4x4& view_projection) -> void override;
     auto present() -> void override;
     auto clear_background() -> void override;

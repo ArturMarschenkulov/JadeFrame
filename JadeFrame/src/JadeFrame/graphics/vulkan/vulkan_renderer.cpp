@@ -97,6 +97,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         sizeof(Matrix4x4), pd->query_limits().minUniformBufferOffsetAlignment
     );
 
+    auto& m_render_commands = m_system->m_render_commands;
     // prepare shaders and its dynamic uniform buffers
     // TODO: Find a better way to do this, but for now it works
     for (u64 i = 0; i < m_render_commands.size(); i++) {

@@ -65,17 +65,6 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const Window* window)
 
 auto OpenGL_Renderer::present() -> void { m_context.swap_buffers(); }
 
-auto OpenGL_Renderer::submit(const Object& obj) -> void {
-
-    const RenderCommand command = {
-        .transform = &obj.m_transform,
-        .vertex_data = obj.m_vertex_data,
-        .material = obj.m_material,
-        .m_mesh = obj.m_mesh,
-    };
-    m_render_commands.push_back(command);
-}
-
 auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
 #if JF_OPENGL_FB
@@ -87,6 +76,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     // NOTE: At the time of writing this is mainly compatible with
     // `get_shader_spirv_test_1` or rather on any renderer where the camera uniform is
     // at binding point 0 and the transform uniform is at binding point 1.
+    auto& m_render_commands = m_system->m_render_commands;
 
     for (size_t i = 0; i < m_render_commands.size(); ++i) {
         const RenderCommand&  cmd = m_render_commands[i];

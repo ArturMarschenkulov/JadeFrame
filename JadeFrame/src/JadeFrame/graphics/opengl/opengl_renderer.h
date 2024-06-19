@@ -43,8 +43,6 @@ public:
     auto clear_background() -> void override;
     auto render(const Matrix4x4& view_projection) -> void override;
 
-    auto submit(const Object& obj) -> void override;
-
     auto set_clear_color(const RGBAColor& color) -> void override;
     auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void override;
 
