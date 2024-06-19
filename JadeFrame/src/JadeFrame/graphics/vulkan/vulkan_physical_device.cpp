@@ -386,5 +386,27 @@ auto QueueFamily::supports_present(const Surface& surface) const -> bool {
     auto present_support = query_surface_support(*m_physical_device, m_index, surface);
     return present_support;
 }
+
+auto PhysicalDevice::find_depth_format() const -> VkFormat {
+    std::vector<VkFormat> depth_formats = {
+        VK_FORMAT_D32_SFLOAT,
+        VK_FORMAT_D32_SFLOAT_S8_UINT,
+        VK_FORMAT_D24_UNORM_S8_UINT,
+        VK_FORMAT_D16_UNORM,
+        VK_FORMAT_D16_UNORM_S8_UINT,
+    };
+
+    for (u32 i = 0; i < depth_formats.size(); i++) {
+        auto& format = depth_formats[i];
+
+        VkFormatProperties props;
+        vkGetPhysicalDeviceFormatProperties(m_handle, format, &props);
+        if (props.optimalTilingFeatures &
+            VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+            return format;
+        }
+    }
+    return VK_FORMAT_UNDEFINED;
+}
 } // namespace vulkan
 } // namespace JadeFrame

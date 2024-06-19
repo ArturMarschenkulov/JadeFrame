@@ -148,7 +148,12 @@ public:
     auto operator=(ImageView&& other) noexcept -> ImageView&;
 
 public:
-    ImageView(const LogicalDevice& device, const Image& image, VkFormat format);
+    ImageView(
+        const LogicalDevice& device,
+        const Image&         image,
+        VkFormat             format,
+        VkImageAspectFlags   aspect_flags
+    );
 
 public:
     VkImageView          m_handle = VK_NULL_HANDLE;

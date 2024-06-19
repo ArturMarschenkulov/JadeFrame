@@ -30,7 +30,10 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const Window* window)
     m_framebuffers.resize(swapchain_image_amount);
     for (size_t i = 0; i < swapchain_image_amount; i++) {
         m_framebuffers[i] = m_logical_device->create_framebuffer(
-            m_swapchain.m_image_views[i], m_render_pass, m_swapchain.m_extent
+            m_swapchain.m_image_views[i],
+            m_swapchain.m_depth_image_view,
+            m_render_pass,
+            m_swapchain.m_extent
         );
     }
 

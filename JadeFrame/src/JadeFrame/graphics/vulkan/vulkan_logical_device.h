@@ -109,13 +109,15 @@ public: // Swapchain stuff
     auto create_render_pass(VkFormat image_format) -> RenderPass;
     auto create_framebuffer(
         const ImageView&  image_view,
+        const ImageView&  depth_view,
         const RenderPass& render_pass,
         VkExtent2D        extent
     ) -> Framebuffer;
 
 public:
     // auto create_image() -> vulkan::Image;
-    auto create_image_view(Image& image, VkFormat) -> ImageView;
+    auto create_image_view(Image& image, VkFormat, VkImageAspectFlagBits aspect_flags)
+        -> ImageView;
 
 public: // synchro objects
     auto create_semaphore() const -> Semaphore;

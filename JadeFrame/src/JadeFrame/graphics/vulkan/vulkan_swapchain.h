@@ -49,6 +49,7 @@ public:
     Framebuffer(
         const LogicalDevice& device,
         const ImageView&     image_view,
+        const ImageView&     depth_view,
         const RenderPass&    render_pass,
         VkExtent2D           extent
     );
@@ -94,6 +95,9 @@ public:
     VkExtent2D m_extent;
 
     bool m_is_recreated = false;
+
+    Image     m_depth_image;
+    ImageView m_depth_image_view;
 };
 } // namespace vulkan
 } // namespace JadeFrame

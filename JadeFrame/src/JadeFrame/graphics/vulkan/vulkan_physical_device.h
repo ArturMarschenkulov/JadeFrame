@@ -74,6 +74,8 @@ public:
 
     [[nodiscard]] auto query_limits() const -> VkPhysicalDeviceLimits;
 
+    [[nodiscard]] auto find_depth_format() const -> VkFormat;
+
     auto create_logical_device() -> LogicalDevice;
 
 public:

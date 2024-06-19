@@ -358,8 +358,12 @@ auto LogicalDevice::create_swapchain(const Surface& surface) -> Swapchain {
     return sc;
 }
 
-auto LogicalDevice::create_image_view(Image& image, VkFormat format) -> ImageView {
-    ImageView iv(*this, image, format);
+auto LogicalDevice::create_image_view(
+    Image&                image,
+    VkFormat              format,
+    VkImageAspectFlagBits aspect_flags
+) -> ImageView {
+    ImageView iv(*this, image, format, aspect_flags);
     return iv;
 }
 
@@ -370,10 +374,11 @@ auto LogicalDevice::create_render_pass(VkFormat image_format) -> RenderPass {
 
 auto LogicalDevice::create_framebuffer(
     const ImageView&  image_view,
+    const ImageView&  depth_view,
     const RenderPass& render_pass,
     VkExtent2D        extent
 ) -> Framebuffer {
-    Framebuffer fb(*this, image_view, render_pass, extent);
+    Framebuffer fb(*this, image_view, depth_view, render_pass, extent);
     return fb;
 }
 

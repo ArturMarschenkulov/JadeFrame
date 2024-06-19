@@ -514,7 +514,12 @@ auto ImageView::operator=(ImageView&& other) noexcept -> ImageView& {
     return *this;
 }
 
-ImageView::ImageView(const LogicalDevice& device, const Image& image, VkFormat format)
+ImageView::ImageView(
+    const LogicalDevice& device,
+    const Image&         image,
+    VkFormat             format,
+    VkImageAspectFlags   aspect_flags
+)
     : m_device(&device)
     , m_image(&image) {
 
@@ -534,7 +539,7 @@ ImageView::ImageView(const LogicalDevice& device, const Image& image, VkFormat f
                          },
         .subresourceRange =
             {
-                         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                         .aspectMask = aspect_flags,
                          .baseMipLevel = 0,
                          .levelCount = 1,
                          .baseArrayLayer = 0,
@@ -616,7 +621,7 @@ Vulkan_Texture::Vulkan_Texture(
     m_image = Image(
         device, size, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
     );
-    m_image_view = ImageView(device, m_image, format);
+    m_image_view = ImageView(device, m_image, format, VK_IMAGE_ASPECT_COLOR_BIT);
 
     m_device->m_command_pool.transition_layout(
         m_image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL

@@ -73,6 +73,10 @@ auto CommandBuffer::render_pass_begin(
         m_level == LEVEL::PRIMARY &&
         "Only primary command buffers can begin a render pass"
     );
+
+    std::array<VkClearValue, 2> clear_values = {
+        clear_color, {1.0F, 0}
+    };
     const VkRenderPassBeginInfo info = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .pNext = nullptr,
@@ -83,8 +87,8 @@ auto CommandBuffer::render_pass_begin(
                          .offset = {0, 0},
                          .extent = extent,
                          },
-        .clearValueCount = 1,
-        .pClearValues = &clear_color,
+        .clearValueCount = static_cast<u32>(clear_values.size()),
+        .pClearValues = clear_values.data(),
     };
 
     vkCmdBeginRenderPass(m_handle, &info, VK_SUBPASS_CONTENTS_INLINE);

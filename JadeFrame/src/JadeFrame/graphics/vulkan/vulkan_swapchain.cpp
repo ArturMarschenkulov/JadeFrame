@@ -143,29 +143,65 @@ RenderPass::RenderPass(const LogicalDevice& device, VkFormat image_format)
         .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
     };
 
+    const VkAttachmentDescription depth_attachment = {
+        .flags = {},
+        .format = VK_FORMAT_D32_SFLOAT,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+    };
+    const VkAttachmentReference depth_attachment_ref = {
+        .attachment = 1,
+        .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+    };
+
     const VkSubpassDescription subpass = {
         .flags = {},
         .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .inputAttachmentCount = {},
+        .inputAttachmentCount = 0,
         .pInputAttachments = {},
         .colorAttachmentCount = 1,
         .pColorAttachments = &color_attachment_ref,
         .pResolveAttachments = {},
-        .pDepthStencilAttachment = {},
-        .preserveAttachmentCount = {},
+        .pDepthStencilAttachment = &depth_attachment_ref,
+        .preserveAttachmentCount = 0,
         .pPreserveAttachments = {},
     };
 
+    VkSubpassDependency dependency = {
+        .srcSubpass = VK_SUBPASS_EXTERNAL,
+        .dstSubpass = 0,
+        .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        .srcAccessMask = 0,
+        .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+        .dependencyFlags = 0,
+    };
+
+    bool dependency_with_depth = true;
+    if (dependency_with_depth) {
+        dependency.srcStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.dstStageMask |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.srcAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        dependency.dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    }
+    std::array<VkAttachmentDescription, 2> attachments = {
+        color_attachment, depth_attachment
+    };
     const VkRenderPassCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
         .pNext = {},
         .flags = {},
-        .attachmentCount = 1,
-        .pAttachments = &color_attachment,
+        .attachmentCount = static_cast<u32>(attachments.size()),
+        .pAttachments = attachments.data(),
         .subpassCount = 1,
         .pSubpasses = &subpass,
-        .dependencyCount = {},
-        .pDependencies = {},
+        .dependencyCount = 1,
+        .pDependencies = &dependency,
     };
 
     VkResult result =
@@ -242,8 +278,21 @@ auto Swapchain::init(LogicalDevice& device, const Surface& surface) -> void {
     assert(m_images.size() == image_count);
     m_image_views.resize(m_images.size());
     for (u32 i = 0; i < m_images.size(); i++) {
-        m_image_views[i] = device.create_image_view(m_images[i], surface_format.format);
+        m_image_views[i] = device.create_image_view(
+            m_images[i], surface_format.format, VK_IMAGE_ASPECT_COLOR_BIT
+        );
     }
+
+    auto depth_format = VK_FORMAT_D32_SFLOAT;
+    m_depth_image = Image(
+        device,
+        {extent.width, extent.height},
+        depth_format,
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
+    );
+
+    m_depth_image_view =
+        ImageView(device, m_depth_image, depth_format, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
 auto Swapchain::query_images() -> std::vector<Image> {
@@ -361,6 +410,7 @@ Framebuffer::~Framebuffer() {
 Framebuffer::Framebuffer(
     const LogicalDevice& device,
     const ImageView&     image_view,
+    const ImageView&     depth_view,
     const RenderPass&    render_pass,
     VkExtent2D           extent
 )
@@ -368,7 +418,7 @@ Framebuffer::Framebuffer(
     , m_image_view(&image_view)
     , m_render_pass(&render_pass) {
 
-    std::array<VkImageView, 1> attachments = {image_view.m_handle};
+    std::array<VkImageView, 2> attachments = {image_view.m_handle, depth_view.m_handle};
 
     const VkFramebufferCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
