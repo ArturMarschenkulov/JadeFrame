@@ -18,11 +18,11 @@ public:
     App(Desc desc)
         : BaseApp(desc) {}
 
-    virtual auto on_init() -> void override {}
+    auto on_init() -> void override {}
 
-    virtual auto on_update() -> void override {}
+    auto on_update() -> void override {}
 
-    virtual auto on_draw() -> void override {}
+    auto on_draw() -> void override {}
 };
 
 int main() {

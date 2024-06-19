@@ -32,7 +32,7 @@ auto Example_Texture_Quad::on_init() -> void {
         {        "v_color", SHADER_TYPE::V_4_F32},
         {"v_texture_coord", SHADER_TYPE::V_2_F32},
     };
-    u32 shader_id = m_render_system.register_shader(shader_handle_desc);
+    auto* shader = m_render_system.register_shader(shader_handle_desc);
 
     const f32 s = 0.5F;
     auto*     vertex_data = new VertexData();
@@ -55,27 +55,23 @@ auto Example_Texture_Quad::on_init() -> void {
     vertex_data->m_normals = {};
     m_obj.m_vertex_data = vertex_data;
 
-    auto mesh_id = m_render_system.register_mesh(*m_obj.m_vertex_data);
-    m_obj.m_vertex_data_id = mesh_id;
+    auto* mesh = m_render_system.register_mesh(*m_obj.m_vertex_data);
+    m_obj.m_mesh = mesh;
 
     // auto texture_path = "C:\\dev\\proj\\JadeFrame\\JadeFrame\\resource\\wall.jpg";
     const auto* texture_path =
         "/home/artur/dev/proj/Jadeframe/JadeFrame/resource/wall.jpg";
-    auto img = Image::load_from_path(texture_path);
-    auto texture_id = m_render_system.register_texture(TextureHandle(img));
+    auto  img = Image::load_from_path(texture_path);
+    auto* texture = m_render_system.register_texture(img);
+    auto* material = m_render_system.register_material(shader, texture);
 
-    m_material.m_shader_id = shader_id;
-    m_material.m_texture_id = texture_id;
-    m_obj.m_material_handle = m_material;
-
+    m_obj.m_material = material;
     m_obj.m_transform = Matrix4x4::identity();
 }
 
 auto Example_Texture_Quad::on_update() -> void {}
 
-auto Example_Texture_Quad::on_draw() -> void {
-    m_render_system.m_renderer->submit(m_obj);
-}
+auto Example_Texture_Quad::on_draw() -> void { m_render_system.submit(m_obj); }
 
 using TestApp = Example_Texture_Quad;
 } // namespace JadeFrame

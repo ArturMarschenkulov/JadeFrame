@@ -41,7 +41,7 @@ auto Example_Hello_Triangle::on_init() -> void {
 
     m_obj.m_vertex_data = vertex_data;
 
-    m_obj.m_vertex_data_id = m_render_system.register_mesh(*m_obj.m_vertex_data);
+    m_obj.m_mesh = m_render_system.register_mesh(*m_obj.m_vertex_data);
 
     ShaderHandle::Desc shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("spirv_test_1");
@@ -49,18 +49,16 @@ auto Example_Hello_Triangle::on_init() -> void {
         {"v_position", SHADER_TYPE::V_3_F32},
         {   "v_color", SHADER_TYPE::V_4_F32},
     };
-    m_obj.m_material_handle.m_shader_id =
-        m_render_system.register_shader(shader_handle_desc);
-    m_obj.m_material_handle.m_texture_id = 0;
+    auto* shader = m_render_system.register_shader(shader_handle_desc);
+    auto* material = m_render_system.register_material(shader, nullptr);
+    m_obj.m_material = material;
 
     m_obj.m_transform = Matrix4x4::identity();
 }
 
 auto Example_Hello_Triangle::on_update() -> void {}
 
-auto Example_Hello_Triangle::on_draw() -> void {
-    m_render_system.m_renderer->submit(m_obj);
-}
+auto Example_Hello_Triangle::on_draw() -> void { m_render_system.submit(m_obj); }
 
 using TestApp = Example_Hello_Triangle;
 

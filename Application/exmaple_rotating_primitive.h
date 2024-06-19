@@ -32,23 +32,19 @@ auto Example_Rotating_Primitive::on_init() -> void {
         {"v_position", SHADER_TYPE::V_3_F32},
         {   "v_color", SHADER_TYPE::V_4_F32},
     };
-    u32 shader = m_render_system.register_shader(shader_desc);
+    ShaderHandle*   shader = m_render_system.register_shader(shader_desc);
+    MaterialHandle* material = m_render_system.register_material(shader, nullptr);
 
-    MaterialHandle material;
-    material.m_shader_id = shader;
-    material.m_texture_id = 0;
-
-    const f32 s = 0.5F;
-    auto      pos_v2 = std::vector<v3>{
-        {-s, +s, 0.0F},
-        {+s, +s, 0.0F},
-        {-s, -s, 0.0F}
-    };
-
+    const f32  s = 0.5F;
     const auto opacity = 0.1F;
 
     auto* vertex_data = new VertexData();
-    vertex_data->m_positions = pos_v2;
+    vertex_data->m_positions = std::vector<v3>{
+        {-s, +s, -0.03F},
+        {+s, +s, -0.03F},
+        {-s, -s, -0.03F}
+    };
+
     vertex_data->m_colors = {
         RGBAColor::solid_red().set_opacity(opacity),
         RGBAColor::solid_green().set_opacity(opacity),
@@ -56,26 +52,26 @@ auto Example_Rotating_Primitive::on_init() -> void {
     };
 
     m_obj.m_vertex_data = vertex_data;
-    auto mesh_id_0 = m_render_system.register_mesh(*m_obj.m_vertex_data);
-    m_obj.m_vertex_data_id = mesh_id_0;
+    GPUMeshData* mesh = m_render_system.register_mesh(*m_obj.m_vertex_data);
+    m_obj.m_mesh = mesh;
 
-    m_obj.m_material_handle = material;
+    m_obj.m_material = material;
 
     auto* vertex_data_2 = new VertexData();
     vertex_data_2->m_positions = std::vector<v3>{
-        {-s, +s + 0.1F, 0.0F},
-        {+s,        +s, 0.0F},
-        {-s,        -s, 0.0F}
+        {-s, +s + 0.1F, -0.02F},
+        {+s,        +s, -0.02F},
+        {-s,        -s, -0.02F}
     };
     vertex_data_2->m_colors = {
         RGBAColor::solid_yellow(),
         RGBAColor::solid_yellow().set_opacity(opacity),
         RGBAColor::solid_black(),
     };
-    m_obj_2.m_material_handle = material;
+    m_obj_2.m_material = material;
     m_obj_2.m_vertex_data = vertex_data_2;
-    auto mesh_id_2 = m_render_system.register_mesh(*m_obj_2.m_vertex_data);
-    m_obj_2.m_vertex_data_id = mesh_id_2;
+    GPUMeshData* mesh_2 = m_render_system.register_mesh(*m_obj_2.m_vertex_data);
+    m_obj_2.m_mesh = mesh_2;
 
     JadeFrame::Logger::info("Example_Rotating_Primitive initialized");
 }
@@ -95,9 +91,8 @@ auto Example_Rotating_Primitive::on_update() -> void {
 }
 
 auto Example_Rotating_Primitive::on_draw() -> void {
-
-    m_render_system.m_renderer->submit(m_obj);   // rainbow triangle
-    m_render_system.m_renderer->submit(m_obj_2); // yellow triangle
+    m_render_system.submit(m_obj); // rainbow triangle
+    m_render_system.submit(m_obj_2); // yellow triangle
 }
 
 using TestApp = Example_Rotating_Primitive;

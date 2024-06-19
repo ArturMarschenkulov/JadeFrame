@@ -34,57 +34,67 @@ add_executable(${PROJECT_NAME} ${ALL_FILES})
 # Include directories
 ################################################################################
 target_include_directories(${PROJECT_NAME} PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/../JadeFrame/src"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../JadeFrame/src/extern"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../JadeFrame/src/extern/glad/include"
+    "../JadeFrame/src"
+    "../JadeFrame/src/extern"
+    "../JadeFrame/src/extern/glad/include"
 
     
-    ${CMAKE_CURRENT_SOURCE_DIR}/../JadeFrame/src/extern/spdlog/include
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../../../VulkanSDK/1.2.176.1/Include"
+    # ${CMAKE_CURRENT_SOURCE_DIR}/../JadeFrame/src/extern/spdlog/include
 )
 
 ################################################################################
 # Compile definitions
 ################################################################################
+        # _CONSOLE
+        # UNICODE
+        # _UNICODE
 target_compile_definitions(${PROJECT_NAME} 
     PRIVATE
         $<$<CONFIG:Debug>:_DEBUG>
         $<$<CONFIG:Release>:NDEBUG>
-        _CONSOLE
-        UNICODE
-        _UNICODE
 )
 
 ################################################################################
-# Compile and link options
+# Compile options
 ################################################################################
+
+set(COMPILE_OPTIONS 
+    # -O3
+)
 if(MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE
+    list(APPEND ${COMPILE_OPTIONS}
         $<$<CONFIG:Release>:
-            /Od;
             /Oi;
             /Gy
         >
-        /permissive-;
+        # /permissive-;
         /std:c++latest;
         /sdl;
         /W3;
-        ${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT};
+        -W4;
     )
-    target_link_options(${PROJECT_NAME} PRIVATE
-        $<$<CONFIG:Debug>:
-            /INCREMENTAL
-        >
-        $<$<CONFIG:Release>:
-            /OPT:REF;
-            /OPT:ICF;
-            /INCREMENTAL:NO
-        >
-        /DEBUG;
-        /SUBSYSTEM:CONSOLE;
-        /LTCG:incremental
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    
+    list(APPEND ${COMPILE_OPTIONS}
+        -g
+        -O0
+    )
+    list(APPEND ${COMPILE_OPTIONS}
+        -Wall
+        -Wextra
+        # -Weverything
+        -Wpedantic
+        -Werror
+        # -Werror
     )
 endif()
+target_compile_options(${PROJECT_NAME} PRIVATE
+    ${COMPILE_OPTIONS}
+)
+
+################################################################################
+# Link options
+################################################################################
 
 ################################################################################
 # Dependencies
@@ -97,13 +107,7 @@ set(ADDITIONAL_LIBRARY_DEPENDENCIES
     JadeFrame
 )
 target_link_libraries(${PROJECT_NAME} 
-    PRIVATE 
+    PUBLIC 
         ${ADDITIONAL_LIBRARY_DEPENDENCIES}
-)
-
-# NOTE: CMAKE_VS_PLATFORM_NAME was removed. Change this later.
-target_link_directories(${PROJECT_NAME} 
-    PRIVATE
-        ${CMAKE_SOURCE_DIR}/bin/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>/
 )
 
