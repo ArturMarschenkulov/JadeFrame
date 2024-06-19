@@ -523,4 +523,23 @@ auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* textur
 
     return &material;
 }
+
+auto RenderSystem::submit(const Object& obj) -> void {
+    const RenderCommand command = {
+        .transform = &obj.m_transform,
+        .vertex_data = obj.m_vertex_data,
+        .material = obj.m_material,
+        .m_mesh = obj.m_mesh,
+    };
+    m_render_commands.push_back(command);
+}
+
+auto VertexFormat::has_same_interface(const VertexFormat& other) const -> bool {
+    if (m_attributes.size() != other.m_attributes.size()) { return false; }
+    for (size_t i = 0; i < m_attributes.size(); i++) {
+        if (m_attributes[i].name != other.m_attributes[i].name) { return false; }
+        if (m_attributes[i].type != other.m_attributes[i].type) { return false; }
+    }
+    return true;
+}
 } // namespace JadeFrame
