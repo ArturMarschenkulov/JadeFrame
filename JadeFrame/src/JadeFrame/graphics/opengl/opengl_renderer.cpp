@@ -34,22 +34,18 @@ auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const ->
 }
 
 static auto framebuffer_res_to_str(GLenum e) -> const char* {
+#define foo(name)                                                                        \
+    case name: return &#name[sizeof("GL_FRAMEBUFFER_") - 1]
     switch (e) {
-        case GL_FRAMEBUFFER_UNDEFINED: return "GL_FRAMEBUFFER_UNDEFINED";
-        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-            return "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
-        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-            return "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
-        case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-            return "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER";
-        case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-            return "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER";
-        case GL_FRAMEBUFFER_UNSUPPORTED: return "GL_FRAMEBUFFER_UNSUPPORTED";
-        case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-            return "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE";
-        case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-            return "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS";
-        case GL_FRAMEBUFFER_COMPLETE: return "GL_FRAMEBUFFER_COMPLETE";
+        foo(GL_FRAMEBUFFER_UNDEFINED);
+        foo(GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT);
+        foo(GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT);
+        foo(GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER);
+        foo(GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER);
+        foo(GL_FRAMEBUFFER_UNSUPPORTED);
+        foo(GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE);
+        foo(GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS);
+        foo(GL_FRAMEBUFFER_COMPLETE);
         default: return "UNKNOWN";
     }
 }

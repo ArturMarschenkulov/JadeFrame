@@ -6,6 +6,9 @@
 
         These wrapper classes should have as little state as possible. The optimal would
    be to only have their ID and nothing more
+
+
+   https://github.com/fendevel/Guide-to-Modern-OpenGL-Functions/blob/master/README.md
 */
 #include "JadeFrame/prelude.h"
 #include "JadeFrame/math/vec.h"

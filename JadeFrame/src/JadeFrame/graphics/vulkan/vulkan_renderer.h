@@ -28,9 +28,10 @@ public:
     // virtual auto main_loop() -> void override;
 
 public:
-    Vulkan_Context                     m_context;
-    vulkan::LogicalDevice*             m_logical_device;
-    RenderSystem*                      m_system = nullptr;
+    Vulkan_Context         m_context;
+    vulkan::LogicalDevice* m_logical_device;
+    RenderSystem*          m_system = nullptr;
+
 private: // NOTE: probably temporary
     RGBAColor m_clear_color;
 
@@ -55,6 +56,9 @@ public:
         }
 
         auto acquire_image(vulkan::Swapchain& swapchain) -> void {
+            // Before acquiring the image we wait for the fence to be signaled.
+            // If the fence is signaled, it means that the gpu has finished rendering the
+            // frame.
             m_device->wait_for_fence(m_fence, VK_TRUE, UINT64_MAX);
             m_index = swapchain.acquire_image_index(&m_sem_available, nullptr);
         }
