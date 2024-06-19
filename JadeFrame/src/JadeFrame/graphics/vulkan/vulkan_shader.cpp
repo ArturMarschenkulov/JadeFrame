@@ -84,13 +84,13 @@ auto Vulkan_Shader::get_location(const std::string& name) -> std::tuple<u32, u32
     return {set, binding};
 }
 
-static auto get_aligned_block_size(const u64 block_size, const u64 alignment) -> u64 {
+static constexpr auto ceil_to_aligned(const u64 value, const u64 alignment) -> u64 {
 #if 0 // more efficient
-        const u64 new_val = (block_size + alignment - 1) & ~(alignment - 1);
-        const u64 aligned_block_size = alignment > 0 ? new_val : block_size;
+        const u64 new_val = (value + alignment - 1) & ~(alignment - 1);
+        const u64 aligned_block_size = alignment > 0 ? new_val : value;
 #else // more readable
-    const u64 new_val = (block_size + alignment - (block_size % alignment));
-    const u64 aligned_block_size = (block_size % alignment == 0) ? block_size : new_val;
+    const u64 new_val = (value + alignment - (value % alignment));
+    const u64 aligned_block_size = (value % alignment == 0) ? value : new_val;
 #endif
     return aligned_block_size;
 }
@@ -119,14 +119,11 @@ auto Vulkan_Shader::set_dynamic_ub_num(u32 num) -> void {
 
     auto type_size = sizeof(Matrix4x4);
 
-    const u64 dyn_alignment = get_aligned_block_size(
-        type_size, pd->query_limits().minUniformBufferOffsetAlignment
-    );
+    const u64 dyn_alignment =
+        ceil_to_aligned(type_size, pd->query_limits().minUniformBufferOffsetAlignment);
 
     for (auto& [index, ub] : m_uniform_buffers[vulkan::FREQUENCY::PER_OBJECT]) {
-        if(num * dyn_alignment == ub->m_size) {
-            return;
-        }
+        if (num * dyn_alignment == ub->m_size) { return; }
         ub->resize(num * dyn_alignment);
         this->rebind_buffer(vulkan::FREQUENCY::PER_OBJECT, index, *ub);
     }

@@ -49,25 +49,28 @@ auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void {
 
 auto Vulkan_Renderer::clear_background() -> void {}
 
-auto Vulkan_Renderer::submit(const Object& obj) -> void {
-    const vulkan::LogicalDevice& d = *m_logical_device;
-
-    const RenderCommand command = {
-        .transform = &obj.m_transform,
-        .vertex_data = obj.m_vertex_data,
-        .material = obj.m_material,
-        .m_mesh = obj.m_mesh,
-    };
-    m_render_commands.push_back(command);
-}
-
-static auto get_aligned_block_size(const u64 block_size, const u64 alignment) -> u64 {
+/**
+ * Calculates the aligned block size based on the given block size and alignment.
+ *
+ * @param block_size The size of the block.
+ * @param alignment The desired alignment.
+ * @return The aligned block size.
+ *
+ * @example
+ * ceil_to_multiple(20, 16) == 32
+ * ceil_to_multiple(32, 32) == 32
+ * ceil_to_multiple(13, 16) == 16
+ * ceil_to_multiple(15, 16) == 16
+ * ceil_to_multiple(16, 16) == 16
+ * ceil_to_multiple(17, 16) == 32
+ */
+static constexpr auto ceil_to_aligned(const u64 value, const u64 alignment) -> u64 {
 #if 0 // more efficient
-        const u64 new_val = (block_size + alignment - 1) & ~(alignment - 1);
-        const u64 aligned_block_size = alignment > 0 ? new_val : block_size;
+        const u64 new_val = (value + alignment - 1) & ~(alignment - 1);
+        const u64 aligned_block_size = alignment > 0 ? new_val : value;
 #else // more readable
-    const u64 new_val = (block_size + alignment - (block_size % alignment));
-    const u64 aligned_block_size = (block_size % alignment == 0) ? block_size : new_val;
+    const u64 new_val = (value + alignment - (value % alignment));
+    const u64 aligned_block_size = (value % alignment == 0) ? value : new_val;
 #endif
     return aligned_block_size;
 }
@@ -93,7 +96,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         return;
     }
 
-    const u64 dyn_alignment = get_aligned_block_size(
+    const u64 dyn_alignment = ceil_to_aligned(
         sizeof(Matrix4x4), pd->query_limits().minUniformBufferOffsetAlignment
     );
 
