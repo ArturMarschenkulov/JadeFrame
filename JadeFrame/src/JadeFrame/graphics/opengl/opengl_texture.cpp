@@ -184,8 +184,7 @@ auto Texture::reset(GLuint id) -> void {
 }
 
 auto Texture::bind(u32 unit) const -> void {
-    glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_2D, m_id);
+    glBindTextureUnit(unit, m_id);
 }
 
 auto Texture::unbind() -> void { glBindTexture(GL_TEXTURE_2D, 0); }

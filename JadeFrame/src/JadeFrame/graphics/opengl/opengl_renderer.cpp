@@ -98,7 +98,9 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         if (mh.m_texture != nullptr) {
             auto*            th = mh.m_texture;
             opengl::Texture& texture = *static_cast<opengl::Texture*>(th->m_handle);
-            texture.bind(0);
+
+            u32 texture_unit = 0;
+            texture.bind(texture_unit);
         }
 
         GPUMeshData& gpu_data = *cmd.m_mesh;
