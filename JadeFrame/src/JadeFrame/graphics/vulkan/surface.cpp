@@ -1,6 +1,6 @@
 #include "pch.h"
-#include "vulkan_surface.h"
-#include "vulkan_context.h"
+#include "surface.h"
+#include "context.h"
 #if defined(_WIN32)
     #include "JadeFrame/platform/windows/windows_window.h"
     #include "platform/win32/surface.h"

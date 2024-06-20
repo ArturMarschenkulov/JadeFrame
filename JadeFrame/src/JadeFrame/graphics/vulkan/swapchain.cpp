@@ -1,13 +1,13 @@
 #include "pch.h"
-#include "vulkan_swapchain.h"
+#include "swapchain.h"
 
 #if _WIN32
     #include <Windows.h> // TODO: Try to remove it
 #endif
 
-#include "vulkan_logical_device.h"
-#include "vulkan_context.h"
-#include "vulkan_sync_object.h"
+#include "logical_device.h"
+#include "context.h"
+#include "sync_object.h"
 #include "JadeFrame/utils/assert.h"
 #if _WIN32
     #include "JadeFrame/platform/windows/windows_window.h"

@@ -1,13 +1,13 @@
 #include "pch.h"
 
-#include "vulkan_renderer.h"
+#include "renderer.h"
 #if defined(_WIN32)
     #include "JadeFrame/platform/windows/windows_window.h"
 #elif defined(__linux__)
     #include "JadeFrame/platform/linux/linux_window.h"
 #endif
 
-#include "vulkan_shader.h"
+#include "shader.h"
 
 #include "../graphics_shared.h"
 #include "JadeFrame/utils/logger.h"

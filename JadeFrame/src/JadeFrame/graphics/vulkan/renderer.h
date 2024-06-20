@@ -1,8 +1,8 @@
 #pragma once
 #include "JadeFrame/prelude.h"
 #include "../mesh.h"
-#include "vulkan_context.h"
-#include "vulkan_sync_object.h"
+#include "context.h"
+#include "sync_object.h"
 
 #include "../graphics_shared.h"
 

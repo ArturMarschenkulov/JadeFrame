@@ -1,9 +1,9 @@
 #include "pch.h"
-#include "vulkan_buffer.h"
+#include "buffer.h"
 
-#include "vulkan_logical_device.h"
-#include "vulkan_physical_device.h"
-#include "vulkan_context.h"
+#include "logical_device.h"
+#include "physical_device.h"
+#include "context.h"
 
 #include "JadeFrame/math/mat_4.h"
 #include "JadeFrame/utils/assert.h"

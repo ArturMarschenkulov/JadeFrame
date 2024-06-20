@@ -2,7 +2,7 @@
 #include <vulkan/vulkan.h>
 
 #include "JadeFrame/prelude.h"
-#include "vulkan_buffer.h"
+#include "buffer.h"
 
 #include <vector>
 

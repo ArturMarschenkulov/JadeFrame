@@ -1,5 +1,5 @@
 #include "surface.h"
-#include "../../vulkan_context.h"
+#include "../../context.h"
 #define VK_USE_PLATFORM_XLIB_KHR
 #include <vulkan/vulkan.h>
 #include <X11/Xlib.h>

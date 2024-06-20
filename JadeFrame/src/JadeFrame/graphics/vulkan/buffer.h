@@ -1,7 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
-#include "vulkan_shared.h"
+#include "shared.h"
 #include "VulkanMemoryAllocator/include/vk_mem_alloc.h"
 #include "../graphics_shared.h"
 #include "../mesh.h"

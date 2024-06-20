@@ -1,8 +1,8 @@
 #include "pch.h"
-#include "vulkan_shader.h"
-#include "vulkan_logical_device.h"
-#include "vulkan_buffer.h"
-#include "vulkan_renderer.h"
+#include "shader.h"
+#include "logical_device.h"
+#include "buffer.h"
+#include "renderer.h"
 
 namespace JadeFrame {
 

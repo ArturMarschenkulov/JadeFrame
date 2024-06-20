@@ -1,8 +1,7 @@
 #include "pch.h"
-#include "vulkan_physical_device.h"
-
-#include "vulkan_context.h"
-#include "vulkan_surface.h"
+#include "physical_device.h"
+#include "context.h"
+#include "surface.h"
 
 #include <set>
 #include <string>

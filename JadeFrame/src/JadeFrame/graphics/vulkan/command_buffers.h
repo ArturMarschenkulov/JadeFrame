@@ -1,6 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.h>
-#include "JadeFrame/graphics/vulkan/vulkan_buffer.h"
+#include "JadeFrame/graphics/vulkan/buffer.h"
 #include "JadeFrame/prelude.h"
 
 #include <vector>

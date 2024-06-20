@@ -1,6 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.h>
-#include "vulkan_descriptor_set.h"
+#include "descriptor_set.h"
 #include "JadeFrame/prelude.h"
 // #include "../graphics_shared.h"
 #include "JadeFrame/graphics/reflect.h"

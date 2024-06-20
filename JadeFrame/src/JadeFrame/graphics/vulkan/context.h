@@ -1,8 +1,8 @@
 #pragma once
 #include <vulkan/vulkan.h>
-#include "vulkan_surface.h"
-#include "vulkan_physical_device.h"
-#include "vulkan_logical_device.h"
+#include "surface.h"
+#include "physical_device.h"
+#include "logical_device.h"
 #include <vector>
 
 namespace JadeFrame {

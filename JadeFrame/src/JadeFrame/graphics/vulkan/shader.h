@@ -1,6 +1,6 @@
 #pragma once
 #include "../graphics_shared.h"
-#include "vulkan_pipeline.h"
+#include "pipeline.h"
 #include <tuple>
 #include <unordered_map>
 

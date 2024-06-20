@@ -5,10 +5,10 @@
 #elif __linux__
     #define VK_USE_PLATFORM_XLIB_KHR
 #endif
-#include "vulkan_context.h"
-#include "vulkan_shared.h"
-#include "vulkan_physical_device.h"
-#include "vulkan_debug.h"
+#include "context.h"
+#include "shared.h"
+#include "physical_device.h"
+#include "debug.h"
 #if defined(_WIN32)
     #include "JadeFrame/platform/windows/windows_window.h"
 #elif defined(__linux__)

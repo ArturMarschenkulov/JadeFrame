@@ -1,7 +1,7 @@
 #include "pch.h"
-#include "vulkan_sync_object.h"
-#include "vulkan_logical_device.h"
-#include "vulkan_context.h"
+#include "sync_object.h"
+#include "logical_device.h"
+#include "context.h"
 
 #include "JadeFrame/utils/assert.h"
 

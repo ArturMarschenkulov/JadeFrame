@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "vulkan_debug.h"
+#include "debug.h"
 #include "JadeFrame/utils/logger.h"
 
 namespace JadeFrame {

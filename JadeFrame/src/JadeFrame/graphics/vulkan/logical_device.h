@@ -1,13 +1,13 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "vulkan_shared.h"
-#include "vulkan_swapchain.h"
-#include "vulkan_pipeline.h"
-#include "vulkan_buffer.h"
-#include "vulkan_shader.h"
-#include "vulkan_descriptor_set.h"
-#include "vulkan_command_buffers.h"
+#include "shared.h"
+#include "swapchain.h"
+#include "pipeline.h"
+#include "buffer.h"
+#include "shader.h"
+#include "descriptor_set.h"
+#include "command_buffers.h"
 
 #include "VulkanMemoryAllocator/include/vk_mem_alloc.h"
 

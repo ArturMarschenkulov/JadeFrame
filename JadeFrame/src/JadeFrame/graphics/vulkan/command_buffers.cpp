@@ -1,11 +1,11 @@
 #include "pch.h"
-#include "vulkan_logical_device.h"
-#include "vulkan_context.h"
-#include "vulkan_command_buffers.h"
-#include "vulkan_swapchain.h"
-#include "vulkan_pipeline.h"
-#include "vulkan_descriptor_set.h"
-#include "vulkan_physical_device.h"
+#include "logical_device.h"
+#include "context.h"
+#include "command_buffers.h"
+#include "swapchain.h"
+#include "pipeline.h"
+#include "descriptor_set.h"
+#include "physical_device.h"
 #include "JadeFrame/utils/assert.h"
 
 namespace JadeFrame {
