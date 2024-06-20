@@ -8,6 +8,7 @@
 #include "shader.h"
 #include "descriptor_set.h"
 #include "command_buffer.h"
+#include "queue.h"
 
 #include "VulkanMemoryAllocator/include/vk_mem_alloc.h"
 
@@ -24,44 +25,6 @@ class Pipeline;
 class PhysicalDevice;
 class Fence;
 class Semaphore;
-class QueueFamily;
-
-class Queue {
-public:
-    Queue() = default;
-    ~Queue() = default;
-    Queue(const Queue&) = delete;
-    auto operator=(const Queue&) -> Queue& = delete;
-
-    Queue(Queue&& other) noexcept
-        : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE)) {}
-
-    auto operator=(Queue&& other) noexcept -> Queue& {
-        if (this != &other) { m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE); }
-        return *this;
-    }
-
-    Queue(const LogicalDevice& device, u32 queue_family_index, u32 queue_index);
-
-public: // submit methods
-    auto submit(const CommandBuffer& cmd_buffer) const -> void;
-    auto submit(
-        const CommandBuffer& cmd_buffer,
-        const Semaphore*     wait_semaphore,
-        const Semaphore*     signal_semaphore,
-        const Fence*         p_fence
-    ) const -> void;
-
-public:
-    auto               wait_idle() const -> void;
-    [[nodiscard]] auto present(VkPresentInfoKHR info) const -> VkResult;
-    auto present(const u32& index, const Swapchain& swapchain, const Semaphore* semaphore)
-        const -> VkResult;
-
-public:
-    VkQueue m_handle = VK_NULL_HANDLE;
-    // const QueueFamily* = nullptr;
-};
 
 class LogicalDevice {
 private:

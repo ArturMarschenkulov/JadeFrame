@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 #include "logical_device.h"
+#include "queue.h"
 #include "JadeFrame/utils/option.h"
 
 #include "JadeFrame/prelude.h"
@@ -14,24 +15,6 @@ namespace vulkan {
 class Instance;
 class Surface;
 class PhysicalDevice;
-
-using QueueFamilyIndex = u32;
-
-class QueueFamily {
-public:
-    QueueFamilyIndex        m_index = 0;
-    VkQueueFamilyProperties m_properties = {};
-    u32                     m_queue_amount = 0;
-    VkBool32                m_present_support = VK_FALSE;
-    const PhysicalDevice*   m_physical_device = nullptr;
-
-public:
-    [[nodiscard]] auto supports_graphics() const -> bool {
-        return (m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0U;
-    }
-
-    [[nodiscard]] auto supports_present(const Surface& surface) const -> bool;
-};
 
 class QueueFamilyPointers {
 public:

@@ -13,6 +13,7 @@ set(SOURCE_FILES
     "surface.h"
     "swapchain.h"
     "sync_object.h"
+    "queue.h"
     "buffer.cpp"
     "command_buffer.cpp"
     "context.cpp"
@@ -26,6 +27,7 @@ set(SOURCE_FILES
     "surface.cpp"
     "swapchain.cpp"
     "sync_object.cpp"
+    "queue.cpp"
 )
 if(WIN32)
     list(APPEND SOURCE_FILES "platform/win32/surface.h" "platform/win32/surface.cpp")
