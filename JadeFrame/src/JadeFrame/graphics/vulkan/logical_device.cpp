@@ -233,9 +233,8 @@ auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physica
         m_physical_device->m_properties.limits.maxBoundDescriptorSets >= 4,
         "maxBoundDescriptorSets too low, it must be at least 4"
     );
-
-    m_graphics_queue = this->query_queues(*pointers.m_graphics_family, 0);
-    m_present_queue = this->query_queues(*pointers.m_present_family, 0);
+    m_graphics_queue = pointers.m_graphics_family->query_queues(*this, 0);
+    m_present_queue = pointers.m_present_family->query_queues(*this, 0);
 
     m_command_pool = this->create_command_pool(
         *m_physical_device->m_chosen_queue_family_pointers.m_graphics_family
@@ -290,11 +289,6 @@ auto LogicalDevice::wait_for_fences(
         timeout
     );
     if (result != VK_SUCCESS) { assert(false); }
-}
-
-auto LogicalDevice::query_queues(const QueueFamily& family, u32 queue_index) -> Queue {
-    Queue queue(*this, family.m_index, queue_index);
-    return queue;
 }
 
 auto LogicalDevice::create_buffer(Buffer::TYPE buffer_type, void* data, size_t size) const

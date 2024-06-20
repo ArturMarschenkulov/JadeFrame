@@ -4,7 +4,6 @@
 
 #include <utility>
 
-
 namespace JadeFrame {
 namespace vulkan {
 using QueueFamilyIndex = u32;
@@ -15,22 +14,6 @@ class CommandBuffer;
 class Semaphore;
 class Fence;
 class Swapchain;
-
-class QueueFamily {
-public:
-    QueueFamilyIndex        m_index = 0;
-    VkQueueFamilyProperties m_properties = {};
-    u32                     m_queue_amount = 0;
-    VkBool32                m_present_support = VK_FALSE;
-    const PhysicalDevice*   m_physical_device = nullptr;
-
-public:
-    [[nodiscard]] auto supports_graphics() const -> bool {
-        return (m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0U;
-    }
-
-    [[nodiscard]] auto supports_present(const Surface& surface) const -> bool;
-};
 
 class Queue {
 public:
@@ -67,6 +50,25 @@ public:
 public:
     VkQueue m_handle = VK_NULL_HANDLE;
     // const QueueFamily* = nullptr;
+};
+
+class QueueFamily {
+public:
+    QueueFamilyIndex        m_index = 0;
+    VkQueueFamilyProperties m_properties = {};
+    u32                     m_queue_amount = 0;
+    VkBool32                m_present_support = VK_FALSE;
+    const PhysicalDevice*   m_physical_device = nullptr;
+
+public:
+    [[nodiscard]] auto supports_graphics() const -> bool {
+        return (m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0U;
+    }
+
+    [[nodiscard]] auto supports_present(const Surface& surface) const -> bool;
+
+    [[nodiscard]] auto query_queues(const LogicalDevice& device, u32 index) const
+        -> Queue;
 };
 } // namespace vulkan
 } // namespace JadeFrame

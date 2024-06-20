@@ -48,8 +48,6 @@ public:
     const PhysicalDevice* m_physical_device = nullptr;
 
 public:
-    auto query_queues(const QueueFamily& family, u32 queue_index) -> Queue;
-
     Queue m_graphics_queue;
     Queue m_present_queue;
 

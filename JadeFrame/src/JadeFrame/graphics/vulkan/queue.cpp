@@ -45,5 +45,9 @@ auto QueueFamily::supports_present(const Surface& surface) const -> bool {
     return present_support;
 }
 
+auto QueueFamily::query_queues(const LogicalDevice& device, u32 index) const -> Queue {
+    return Queue(device, m_index, index);
+}
+
 } // namespace vulkan
 } // namespace JadeFrame
