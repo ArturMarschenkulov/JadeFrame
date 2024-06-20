@@ -1,6 +1,6 @@
 set(SOURCE_FILES
     "buffer.h"
-    "command_buffers.h"
+    "command_buffer.h"
     "context.h"
     "debug.h"
     "descriptor_set.h"
@@ -14,7 +14,7 @@ set(SOURCE_FILES
     "swapchain.h"
     "sync_object.h"
     "buffer.cpp"
-    "command_buffers.cpp"
+    "command_buffer.cpp"
     "context.cpp"
     "debug.cpp"
     "descriptor_set.cpp"
