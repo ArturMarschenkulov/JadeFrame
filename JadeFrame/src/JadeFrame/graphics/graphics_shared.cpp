@@ -2,8 +2,8 @@
 #include "pch.h"
 #include "graphics_shared.h"
 #include "JadeFrame/platform/platform_shared.h"
-#include "vulkan/vulkan_renderer.h"
-#include "vulkan/vulkan_shader.h"
+#include "vulkan/renderer.h"
+#include "vulkan/shader.h"
 #include "opengl/opengl_renderer.h"
 #include "graphics_language.h"
 
