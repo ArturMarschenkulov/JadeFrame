@@ -142,7 +142,7 @@ ShaderModule::ShaderModule(
     : m_device(&device)
     , m_stage(stage)
     , m_spirv(spirv)
-    , m_reflected(reflect(spirv)) {
+    , m_reflected(ReflectedModule::reflect(spirv)) {
 
     const VkShaderModuleCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
@@ -546,10 +546,20 @@ Pipeline::~Pipeline() {
     }
 }
 
+static auto get_reflected_modules(const std::vector<ShaderModule>& modules)
+    -> std::vector<ReflectedModule> {
+    std::vector<ReflectedModule> reflected_modules;
+    reflected_modules.resize(modules.size());
+    for (u32 i = 0; i < modules.size(); i++) {
+        reflected_modules[i] = modules[i].m_reflected;
+    }
+    return reflected_modules;
+}
+
 // Takes in modules and returns a single module which is the interface to the whole
 // pipeline, that is only the actually interactible points are exposed.
-static auto combine_modules_into_interface(const std::span<const ShaderModule>& modules)
-    -> ReflectedModule {
+static auto combine_modules_into_interface(const std::span<const ReflectedModule>& modules
+) -> ReflectedModule {
     ReflectedModule                result = {};
     std::set<u32>                  input_locs;
     std::set<u32>                  output_locs;
@@ -558,24 +568,24 @@ static auto combine_modules_into_interface(const std::span<const ShaderModule>& 
     for (size_t i = 0; i < modules.size(); i++) {
         const auto& mod = modules[i];
 
-        for (size_t j = 0; j < mod.m_reflected.m_inputs.size(); j++) {
-            const auto& input = mod.m_reflected.m_inputs[j];
+        for (size_t j = 0; j < mod.m_inputs.size(); j++) {
+            const auto& input = mod.m_inputs[j];
             if (!input_locs.contains(input.location)) {
                 result.m_inputs.push_back(input);
                 input_locs.insert(input.location);
             }
         }
 
-        for (int j = (int)mod.m_reflected.m_outputs.size() - 1; j >= 0; j--) {
-            const auto& output = mod.m_reflected.m_outputs[j];
+        for (int j = (int)mod.m_outputs.size() - 1; j >= 0; j--) {
+            const auto& output = mod.m_outputs[j];
             if (!output_locs.contains(output.location)) {
                 result.m_outputs.push_back(output);
                 output_locs.insert(output.location);
             }
         }
 
-        for (size_t j = 0; j < mod.m_reflected.m_uniform_buffers.size(); j++) {
-            const auto& uniform = mod.m_reflected.m_uniform_buffers[j];
+        for (size_t j = 0; j < mod.m_uniform_buffers.size(); j++) {
+            const auto& uniform = mod.m_uniform_buffers[j];
             if (!uniform_locs.contains({uniform.set, uniform.binding})) {
                 result.m_uniform_buffers.push_back(uniform);
                 uniform_locs.insert({uniform.set, uniform.binding});
@@ -609,7 +619,8 @@ Pipeline::Pipeline(
         modules[i] = ShaderModule(device, code_, stage_);
     }
 
-    auto module_interface = combine_modules_into_interface(modules);
+    auto reflected_modules = get_reflected_modules(modules);
+    auto module_interface = combine_modules_into_interface(reflected_modules);
     m_reflected_interface = std::move(module_interface);
     auto vf = m_reflected_interface.get_vertex_format();
 
