@@ -41,15 +41,13 @@ auto to_string_vendor_id(uint32_t vendor_id) -> std::string {
     }
 }
 
-static auto query_queue_family_properties(const PhysicalDevice& physical_device)
+auto PhysicalDevice::query_queue_family_properties() const
     -> std::vector<VkQueueFamilyProperties> {
     u32 count = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(physical_device.m_handle, &count, nullptr);
+    vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, nullptr);
     std::vector<VkQueueFamilyProperties> properties;
     properties.resize(count);
-    vkGetPhysicalDeviceQueueFamilyProperties(
-        physical_device.m_handle, &count, properties.data()
-    );
+    vkGetPhysicalDeviceQueueFamilyProperties(m_handle, &count, properties.data());
     return properties;
 }
 
@@ -323,7 +321,7 @@ auto PhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFlags pro
 
 auto PhysicalDevice::query_queue_families() const -> std::vector<QueueFamily> {
     std::vector<VkQueueFamilyProperties> properties =
-        query_queue_family_properties(*this);
+        this->query_queue_family_properties();
 
     std::vector<QueueFamily> families;
     families.resize(properties.size());
@@ -336,7 +334,7 @@ auto PhysicalDevice::query_queue_families() const -> std::vector<QueueFamily> {
     return families;
 }
 
-auto PhysicalDevice::query_limits() const -> VkPhysicalDeviceLimits {
+auto PhysicalDevice::limits() const -> VkPhysicalDeviceLimits {
     return m_properties.limits;
 }
 

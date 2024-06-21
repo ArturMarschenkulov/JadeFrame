@@ -44,6 +44,9 @@ public:
         -> VkPhysicalDeviceMemoryProperties;
     [[nodiscard]] auto query_properties() const -> VkPhysicalDeviceProperties;
     [[nodiscard]] auto query_features() const -> VkPhysicalDeviceFeatures;
+
+    [[nodiscard]] auto query_queue_family_properties() const
+        -> std::vector<VkQueueFamilyProperties>;
     [[nodiscard]] auto query_queue_families() const -> std::vector<QueueFamily>;
     [[nodiscard]] auto query_surface_capabilities(const Surface& surface) const
         -> VkSurfaceCapabilitiesKHR;
@@ -55,7 +58,7 @@ public:
     [[nodiscard]] auto query_extension_properties() const
         -> std::vector<VkExtensionProperties>;
 
-    [[nodiscard]] auto query_limits() const -> VkPhysicalDeviceLimits;
+    [[nodiscard]] auto limits() const -> VkPhysicalDeviceLimits;
 
     [[nodiscard]] auto find_depth_format() const -> VkFormat;
 

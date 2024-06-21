@@ -1,18 +1,20 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "shared.h"
 #include "swapchain.h"
+#include "physical_device.h"
 #include "pipeline.h"
 #include "buffer.h"
 #include "shader.h"
 #include "descriptor_set.h"
 #include "command_buffer.h"
 #include "queue.h"
+#include "sync_object.h"
+#include "surface.h"
 
 #include "VulkanMemoryAllocator/include/vk_mem_alloc.h"
 
-#include "JadeFrame/prelude.h"
+// #include "JadeFrame/prelude.h"
 
 namespace JadeFrame {
 

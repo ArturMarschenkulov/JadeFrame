@@ -41,7 +41,7 @@ public:
     Surface    m_surface;
 
     std::vector<VkLayerProperties> m_layers;
-    const std::vector<const char*> m_desired_layer_names =
+    std::vector<const char*>       m_desired_layer_names =
         {"VK_LAYER_KHRONOS_validation" /*, "VK_LAYER_LUNARG_monitor"*/};
     // std::vector<VkLayerProperties> m_desired_layers;
 
@@ -49,9 +49,9 @@ public:
 
     VkDebugUtilsMessengerEXT m_debug_messenger = VK_NULL_HANDLE;
 #ifdef NDEBUG
-    const bool m_enable_validation_layers = false;
+    bool m_enable_validation_layers = false;
 #else
-    const bool m_enable_validation_layers = true;
+    bool m_enable_validation_layers = true;
 #endif
 
     std::vector<PhysicalDevice> m_physical_devices;

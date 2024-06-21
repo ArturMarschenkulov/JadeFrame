@@ -15,10 +15,7 @@ Vulkan_Shader::Vulkan_Shader(
 
     Logger::info("Creating Vulkan shader");
     m_pipeline = vulkan::Pipeline(
-        device,
-        renderer.m_swapchain.m_extent,
-        renderer.m_render_pass,
-        desc.code
+        device, renderer.m_swapchain.m_extent, renderer.m_render_pass, desc.code
     );
     Logger::info("Created Vulkan shader");
 
@@ -119,7 +116,7 @@ auto Vulkan_Shader::set_dynamic_ub_num(u32 num) -> void {
     auto type_size = sizeof(Matrix4x4);
 
     const u64 dyn_alignment =
-        ceil_to_aligned(type_size, pd->query_limits().minUniformBufferOffsetAlignment);
+        ceil_to_aligned(type_size, pd->limits().minUniformBufferOffsetAlignment);
 
     for (auto& [index, ub] : m_uniform_buffers[vulkan::FREQUENCY::PER_OBJECT]) {
         if (num * dyn_alignment == ub->m_size) { return; }

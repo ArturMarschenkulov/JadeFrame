@@ -96,9 +96,8 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         return;
     }
 
-    const u64 dyn_alignment = ceil_to_aligned(
-        sizeof(Matrix4x4), pd->query_limits().minUniformBufferOffsetAlignment
-    );
+    const u64 dyn_alignment =
+        ceil_to_aligned(sizeof(Matrix4x4), pd->limits().minUniformBufferOffsetAlignment);
 
     auto& m_render_commands = m_system->m_render_commands;
     // prepare shaders and its dynamic uniform buffers
