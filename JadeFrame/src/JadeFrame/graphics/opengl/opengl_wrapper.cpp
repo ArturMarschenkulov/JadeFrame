@@ -64,12 +64,15 @@ static auto SHADER_TYPE_to_openGL_type(const SHADER_TYPE type) -> GLenum {
 }
 
 auto OGLW_VertexArray::bind_buffer(const opengl::Buffer& buffer) const -> void {
-    glVertexArrayVertexBuffer(m_ID, 0, buffer.m_id, 0, static_cast<GLsizei>(m_vertex_format.m_stride));
+    glVertexArrayVertexBuffer(
+        m_ID, 0, buffer.m_id, 0, static_cast<GLsizei>(m_vertex_format.m_stride)
+    );
 }
 
 auto OGLW_VertexArray::set_layout(const VertexFormat& vertex_format) -> void {
     m_vertex_format = vertex_format;
 
+    size_t offset = 0;
     for (u32 i = 0; i != vertex_format.m_attributes.size(); i++) {
         const VertexAttribute& attribute = vertex_format.m_attributes[i];
 
@@ -85,9 +88,9 @@ auto OGLW_VertexArray::set_layout(const VertexFormat& vertex_format) -> void {
             }
         }
         this->enable_attrib(i);
-        this->set_attrib_format(
-            i, attribute.type, attribute.normalized, attribute.offset
-        );
+        // always unnormalized
+        this->set_attrib_format(i, attribute.type, false, offset);
+        offset += get_size(attribute.type);
         this->set_attrib_binding(i, 0);
     }
 }

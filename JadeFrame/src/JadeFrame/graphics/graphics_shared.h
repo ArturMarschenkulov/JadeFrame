@@ -182,14 +182,7 @@ auto to_string(SHADER_TYPE type) -> const char*;
 
 struct VertexAttribute {
     std::string name;
-    SHADER_TYPE type;
-    u32         size;
-    size_t      offset;
-    bool        normalized;
-
-    VertexAttribute() = default;
-
-    VertexAttribute(const std::string& name, SHADER_TYPE type, bool normalized = false);
+    SHADER_TYPE type = SHADER_TYPE::NONE;
 };
 
 class VertexFormat {
@@ -206,8 +199,6 @@ public:
     static auto default_format() -> VertexFormat;
 
     explicit VertexFormat(const std::vector<VertexAttribute>& attributes);
-
-    auto calculate_offset_and_stride(std::vector<VertexAttribute>& attributes) -> void;
 
     [[nodiscard]] auto has_same_interface(const VertexFormat& other) const -> bool;
 
@@ -388,7 +379,7 @@ public: // more internal stuff
     virtual auto present() -> void = 0;
 };
 
-inline auto SHADER_TYPE_get_size(const SHADER_TYPE type) -> u32 {
+inline auto get_size(const SHADER_TYPE type) -> u32 {
     u32 result = 0;
     switch (type) {
         case SHADER_TYPE::F32: result = 4; break;

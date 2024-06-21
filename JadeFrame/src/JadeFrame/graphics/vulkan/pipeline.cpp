@@ -362,7 +362,7 @@ static auto get_binding_description(const VertexFormat& vertex_format)
     -> VkVertexInputBindingDescription {
     u32 stride = 0;
     for (const VertexAttribute& attribute : vertex_format.m_attributes) {
-        stride += attribute.size;
+        stride += get_size(attribute.type);
     }
     VkVertexInputBindingDescription const binding_description = {
         .binding = 0,
@@ -376,11 +376,15 @@ static auto get_attribute_descriptions(const VertexFormat& vertex_format)
     -> std::vector<VkVertexInputAttributeDescription> {
     std::vector<VkVertexInputAttributeDescription> attribs;
     attribs.resize(vertex_format.m_attributes.size());
+
+    size_t offset = 0;
     for (u32 i = 0; i < vertex_format.m_attributes.size(); i++) {
+        attribs[i].offset = offset;
+        auto type_size = get_size(vertex_format.m_attributes[i].type);
+        offset += type_size;
         attribs[i].binding = 0;
         attribs[i].location = i;
         attribs[i].format = to_VkFormat(vertex_format.m_attributes[i].type);
-        attribs[i].offset = static_cast<u32>(vertex_format.m_attributes[i].offset);
     }
 
     return attribs;

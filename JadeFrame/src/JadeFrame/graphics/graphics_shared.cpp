@@ -276,23 +276,15 @@ auto ShaderHandle::set_uniform(const std::string& name, const void* data, size_t
     VertexAttribute
 ---------------------------*/
 
-VertexAttribute::VertexAttribute(
-    const std::string& name,
-    SHADER_TYPE        type,
-    bool               normalized
-)
-    : name(name)
-    , type(type)
-    , size(SHADER_TYPE_get_size(type))
-    , offset(0)
-    , normalized(normalized) {}
 
 /*---------------------------
     VertexFormat
 ---------------------------*/
 VertexFormat::VertexFormat(const std::vector<VertexAttribute>& attributes)
     : m_attributes(attributes) {
-    this->calculate_offset_and_stride(m_attributes);
+    for (const VertexAttribute& attribute : attributes) {
+        m_stride += get_size(attribute.type);
+    }
 }
 
 auto VertexFormat::default_format() -> VertexFormat {
@@ -304,18 +296,6 @@ auto VertexFormat::default_format() -> VertexFormat {
     });
     return result;
 }
-
-auto VertexFormat::calculate_offset_and_stride(std::vector<VertexAttribute>& attributes)
-    -> void {
-    size_t offset = 0;
-    m_stride = 0;
-    for (VertexAttribute& attribute : attributes) {
-        attribute.offset = offset;
-        offset += attribute.size;
-        m_stride += attribute.size;
-    }
-}
-
 /*---------------------------
     RenderSystem
 ---------------------------*/
