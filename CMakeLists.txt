@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 
 
 #set(CMAKE_SYSTEM_VERSION 10.0 CACHE STRING "" FORCE)
@@ -114,8 +114,6 @@ set(CMAKE_CONFIGURATION_TYPES
 
 set(CMAKE_BUILD_TYPE "Debug")
 
-
-include(cmake/Utils.cmake) # Common utils
 set_property(GLOBAL PROPERTY USE_FOLDERS ON) # Use solution folders feature
 
 ################################################################################

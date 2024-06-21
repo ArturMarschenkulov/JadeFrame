@@ -11,14 +11,20 @@ Checks: "*,
         -readability-static-accessed-through-instance,
         -readability-avoid-const-params-in-decls,
         -readability-redundant-access-specifiers,
+        -readability-identifier-length,
+        -cppcoreguidelines-owning-memory,
         -cppcoreguidelines-non-private-member-variables-in-classes,
         -cppcoreguidelines-pro-type-vararg,
+        -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+        -cppcoreguidelines-pro-bounds-constant-array-index,
         -misc-non-private-member-variables-in-classes,
         -misc-use-anonymous-namespace,
+        -misc-static-assert,
         -modernize-loop-convert,
-        -bugprone-easily-swappable-parameters,
-        -readability-identifier-length,
-        -cppcoreguidelines-owning-memory
+        -hicpp-static-assert,
+        -cert-dcl03-c,
+        -bugprone-easily-swappable-parameters
+        
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
@@ -28,6 +34,9 @@ FormatStyle:     none
 # HeaderFilterRegex: ''
 # FormatStyle:     none
 # User:            ''
+CheckOptions:
+  - key: cppcoreguidelines-avoid-do-while.IgnoreMacros
+    value: '1'
 # CheckOptions:
 #   - key:             modernize-use-trailing-return-type.CheckFollowUp
 #     value:           '0'

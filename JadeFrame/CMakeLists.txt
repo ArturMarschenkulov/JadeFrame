@@ -26,7 +26,7 @@ if(WIN32)
         ${imgui_DIR}/backends/imgui_impl_win32.cpp
         ${imgui_DIR}/backends/imgui_impl_dx11.cpp
     )
-elseif(UNIX AND NOT APPLE)
+elseif(LINUX)
     set(imgui_platform_specific_sources
         ${imgui_DIR}/backends/imgui_impl_x11.h
         ${imgui_DIR}/backends/imgui_impl_x11.h
@@ -64,15 +64,30 @@ add_subdirectory(src/extern/glad/)
 add_subdirectory(src/extern/spdlog/)
 
 # TODO: shaderc and SPIRV-Cross take a long time to compile. Find ways to cache their compilation.
+
+# if(
+#     NOT EXISTS "${CMAKE_SOURCE_DIR}/JadeFrame/src/lib/libshaderc.a" AND 
+#     NOT EXISTS "${CMAKE_SOURCE_DIR}/JadeFrame/src/lib/libshaderc_util.a" AND
+#     NOT EXISTS "${CMAKE_SOURCE_DIR}/JadeFrame/src/lib/libspirv-cross-core.a" AND
+#     NOT EXISTS "${CMAKE_SOURCE_DIR}/JadeFrame/src/lib/libspirv-cross-glsl.a" AND
+#     NOT EXISTS "${CMAKE_SOURCE_DIR}/JadeFrame/src/lib/libspirv-cross-hlsl.a" AND
+#     NOT EXISTS "${CMAKE_SOURCE_DIR}/JadeFrame/src/lib/libspirv-cross-msl.a"
+# )
+message("Did not found prebuild shaderc and SPIRV-Cross libraries. Building them now. This will take a while.")
 set(SHADERC_SKIP_TESTS ON)
 set(SHADERC_SKIP_EXAMPLES ON)
+
+
 add_subdirectory(src/extern/shaderc/ EXCLUDE_FROM_ALL)
+
+# TODO: as of right now we do not need metal and hlsl support.
+# set(SPIRV_CROSS_CLI OFF)
+# set(SPIRV_CROSS_ENABLE_HLSL OFF)
+# set(SPIRV_CROSS_ENABLE_MSL OFF)
+# set(SPIRV_CROSS_ENABLE_TESTS OFF)
 add_subdirectory(src/extern/SPIRV-Cross/ EXCLUDE_FROM_ALL)
 
-# target_compile_options(shaderc PRIVATE -w)
-# target_compile_options(stb INTERFACE -w)
-# target_compile_options(glad PRIVATE -w)
-# target_compile_options(imgui PRIVATE -w)
+# endif()
 
 
 
@@ -117,9 +132,6 @@ set(Files_Graphics
 
     "src/JadeFrame/graphics/software/software_renderer.h"
 )
-
-
-
 
 set(Files_Datatypes
     "src/JadeFrame/datatypes/cowdata.h"
@@ -186,9 +198,6 @@ target_precompile_headers(${PROJECT_NAME} PUBLIC
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/JadeFrame/src
     ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern
-    
-
-    
     ${Vulkan_INCLUDE_DIRS}
 )
 include_directories(
@@ -214,11 +223,13 @@ if(WIN32)
 endif()
 
 ################################################################################
-# Compile and link options
+# Compile options
 ################################################################################
-
+set(COMPILE_OPTIONS 
+    # -O3
+)
 if(MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE
+    list(APPEND ${COMPILE_OPTIONS}
         $<$<CONFIG:Release>:
             /Oi;
             /Gy
@@ -229,33 +240,29 @@ if(MSVC)
         /W3;
         -W4;
     )
-
-
-
-    string(CONCAT FILE_CL_OPTIONS
-        "/Y-"
-    )
-
-    source_file_compile_options(src/extern/imgui/imgui.cpp ${FILE_CL_OPTIONS})
-    source_file_compile_options(src/extern/imgui/imgui_demo.cpp ${FILE_CL_OPTIONS})
-    source_file_compile_options(src/extern/imgui/imgui_draw.cpp ${FILE_CL_OPTIONS})
-    source_file_compile_options(src/extern/imgui/imgui_impl_dx11.cpp ${FILE_CL_OPTIONS})
-    source_file_compile_options(src/extern/imgui/imgui_impl_opengl3.cpp ${FILE_CL_OPTIONS})
-    source_file_compile_options(src/extern/imgui/imgui_impl_win32.cpp ${FILE_CL_OPTIONS})
-    source_file_compile_options(src/extern/imgui/imgui_widgets.cpp ${FILE_CL_OPTIONS})
-
-    source_file_compile_options(src/extern/SPIRV-Cross/spirv_cfg.cpp ${FILE_CL_OPTIONS})
-    source_file_compile_options(src/extern/SPIRV-Cross/spirv_cpp.cpp ${FILE_CL_OPTIONS})
-    source_file_compile_options(src/extern/SPIRV-Cross/spirv_cross.cpp ${FILE_CL_OPTIONS})
-    source_file_compile_options(src/extern/SPIRV-Cross/spirv_cross_c.cpp ${FILE_CL_OPTIONS})
-    source_file_compile_options(src/extern/SPIRV-Cross/spirv_cross_parsed_ir.cpp ${FILE_CL_OPTIONS})
-    source_file_compile_options(src/extern/SPIRV-Cross/spirv_cross_util.cpp ${FILE_CL_OPTIONS})
-    source_file_compile_options(src/extern/SPIRV-Cross/spirv_glsl.cpp ${FILE_CL_OPTIONS})
-    source_file_compile_options(src/extern/SPIRV-Cross/spirv_hlsl.cpp ${FILE_CL_OPTIONS})
-    source_file_compile_options(src/extern/SPIRV-Cross/spirv_msl.cpp ${FILE_CL_OPTIONS})
-    source_file_compile_options(src/extern/SPIRV-Cross/spirv_parser.cpp ${FILE_CL_OPTIONS})
-    source_file_compile_options(src/extern/SPIRV-Cross/spirv_reflect.cpp ${FILE_CL_OPTIONS})
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     
+    list(APPEND ${COMPILE_OPTIONS}
+        -g
+        -O0
+    )
+    list(APPEND ${COMPILE_OPTIONS}
+        -Wall
+        -Wextra
+        # -Weverything
+        -Wpedantic
+        -Werror
+        # -Werror
+    )
+endif()
+target_compile_options(${PROJECT_NAME} PRIVATE
+    ${COMPILE_OPTIONS}
+)
+
+################################################################################
+# Link options
+################################################################################
+if(MSVC)
     target_link_options(${PROJECT_NAME} PRIVATE
         $<$<CONFIG:Release>:
             /OPT:REF;
@@ -263,29 +270,8 @@ if(MSVC)
         >
         /SUBSYSTEM:CONSOLE
     )
-
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(${PROJECT_NAME} PRIVATE
-        -Wall 
-        # -Weverything
-        -Wno-unused
-        -Wextra 
-        -Wpedantic 
-        # -Werror
-    )
 endif()
 
-# if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-#     target_compile_options(${PROJECT_NAME} PRIVATE
-#         -fcolor-diagnostics
-#     )
-# elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-#     target_compile_options(${PROJECT_NAME} PRIVATE
-#         -fdiagnostics-color=always
-#         -fanalyzer
-#     )
-# else()
-# endif()
 
 ################################################################################
 # Dependencies
@@ -335,9 +321,7 @@ target_link_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
     ${CMAKE_SOURCE_DIR}/JadeFrame/src/
     ${CMAKE_SOURCE_DIR}/JadeFrame/
-    # "C:/VulkanSDK/1.2.176.1/Lib/
-    C:/VulkanSDK/1.3.224.1/Lib/ # TODO: make this less hard-coded
-    # "~/proj_3rd/shaderc/build/"
+    # C:/VulkanSDK/1.3.224.1/Lib/ # TODO: make this less hard-coded
 )
 
 message("JadeFrame cmake: Finished")
