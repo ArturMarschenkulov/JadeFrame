@@ -266,7 +266,7 @@ auto Buffer::write(const void* data, VkDeviceSize size, VkDeviceSize offset) con
 }
 
 auto Buffer::resize(size_t size) -> void {
-    assert(m_type == TYPE::UNIFORM);
+    assert(m_type == TYPE::UNIFORM || m_type == TYPE::STAGING);
     if (size == m_size) { return; }
 
     this->~Buffer();

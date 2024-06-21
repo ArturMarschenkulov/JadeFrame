@@ -48,6 +48,7 @@ static auto framebuffer_res_to_str(GLenum e) -> const char* {
         foo(GL_FRAMEBUFFER_COMPLETE);
         default: return "UNKNOWN";
     }
+#undef foo
 }
 
 OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const Window* window)

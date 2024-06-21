@@ -17,40 +17,49 @@ auto opengl_message_callback(
     const void* /*userParam*/
 ) -> void {
     std::string _source;
+#define foo(name)                                                                        \
+    case name: _source = #name[sizeof("GL_DEBUG_SOURCE_") - 1]; break
     switch (source) {
-        case GL_DEBUG_SOURCE_API: _source = "API"; break;
-        case GL_DEBUG_SOURCE_WINDOW_SYSTEM: _source = "Window"; break;
-        case GL_DEBUG_SOURCE_SHADER_COMPILER: _source = "Shader"; break;
-        case GL_DEBUG_SOURCE_THIRD_PARTY: _source = "Third Party"; break;
-        case GL_DEBUG_SOURCE_APPLICATION: _source = "Application"; break;
-        case GL_DEBUG_SOURCE_OTHER: _source = "Other"; break;
+        foo(GL_DEBUG_SOURCE_API);
+        foo(GL_DEBUG_SOURCE_WINDOW_SYSTEM);
+        foo(GL_DEBUG_SOURCE_SHADER_COMPILER);
+        foo(GL_DEBUG_SOURCE_THIRD_PARTY);
+        foo(GL_DEBUG_SOURCE_APPLICATION);
+        foo(GL_DEBUG_SOURCE_OTHER);
         default: _source = "UNKNOWN"; break;
     }
+#undef foo
 
     std::string _type;
+#define foo(name)                                                                        \
+    case name: _type = #name[sizeof("GL_DEBUG_TYPE_") - 1]; break
     switch (type) {
-        case GL_DEBUG_TYPE_ERROR: _type = "Type Error"; break;
-        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: _type = "Deprecated Behavior"; break;
-        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: _type = "Undefined Behavior"; break;
-        case GL_DEBUG_TYPE_PORTABILITY: _type = "Protability"; break;
-        case GL_DEBUG_TYPE_PERFORMANCE: _type = "Performance"; break;
-        case GL_DEBUG_TYPE_OTHER: _type = "Other"; break;
-        case GL_DEBUG_TYPE_MARKER: _type = "Marker"; break;
-        case GL_DEBUG_TYPE_PUSH_GROUP: _type = "Push Group"; break;
-        case GL_DEBUG_TYPE_POP_GROUP: _type = "Pop Group"; break;
+        foo(GL_DEBUG_TYPE_ERROR);
+        foo(GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR);
+        foo(GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR);
+        foo(GL_DEBUG_TYPE_PORTABILITY);
+        foo(GL_DEBUG_TYPE_PERFORMANCE);
+        foo(GL_DEBUG_TYPE_OTHER);
+        foo(GL_DEBUG_TYPE_MARKER);
+        foo(GL_DEBUG_TYPE_PUSH_GROUP);
+        foo(GL_DEBUG_TYPE_POP_GROUP);
         default: _type = "UKNOWN"; break;
     }
+#undef foo
 
     auto _id = id;
 
     std::string _severity;
+#define foo(name)                                                                        \
+    case name: _type = #name[sizeof("GL_DEBUG_SEVERITY_") - 1]; break
     switch (severity) {
-        case GL_DEBUG_SEVERITY_HIGH: _severity = "High"; break;
-        case GL_DEBUG_SEVERITY_MEDIUM: _severity = "Medium"; break;
-        case GL_DEBUG_SEVERITY_LOW: _severity = "Low"; break;
-        case GL_DEBUG_SEVERITY_NOTIFICATION: _severity = "Notification"; break;
+        foo(GL_DEBUG_SEVERITY_HIGH);
+        foo(GL_DEBUG_SEVERITY_MEDIUM);
+        foo(GL_DEBUG_SEVERITY_LOW);
+        foo(GL_DEBUG_SEVERITY_NOTIFICATION);
         default: _severity = "UKNOWN"; break;
     }
+#undef foo
 
     if (0) {
         Logger::log(
