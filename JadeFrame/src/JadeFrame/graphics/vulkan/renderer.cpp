@@ -121,6 +121,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     // cb.render_pass(framebuffer, m_render_pass, m_swapchain.m_extent, clear_value, [&] {
     cb.render_pass_begin(framebuffer, m_render_pass, m_swapchain.m_extent, clear_value);
     for (u64 i = 0; i < m_render_commands.size(); i++) {
+        using namespace vulkan;
         const auto&           cmd = m_render_commands[i];
         const MaterialHandle& mh = *cmd.material;
 
@@ -130,7 +131,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         // Per Frame ubo
         // vulkan::FREQUENCY::PER_FRAME == 0
         shader->write_ub(
-            vulkan::FREQUENCY::PER_FRAME, 0, &view_projection, sizeof(view_projection), 0
+            FREQUENCY::PER_FRAME, 0, &view_projection, sizeof(view_projection), 0
         );
 
         // Per DrawCall ubo
@@ -138,11 +139,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         // vulkan::FREQUENCY::PER_OBJECT == 3
         const u32 dyn_offset = static_cast<u32>(dyn_alignment * i);
         shader->write_ub(
-            vulkan::FREQUENCY::PER_OBJECT,
-            0,
-            cmd.transform,
-            sizeof(*cmd.transform),
-            dyn_offset
+            FREQUENCY::PER_OBJECT, 0, cmd.transform, sizeof(*cmd.transform), dyn_offset
         );
 
         const VkPipelineBindPoint bp = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -151,34 +148,22 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
         cb.bind_pipeline(bp, pipeline);
         cb.bind_descriptor_sets(
-            bp,
-            pipeline,
-            vulkan::FREQUENCY::PER_FRAME,
-            sets[vulkan::FREQUENCY::PER_FRAME],
-            nullptr
+            bp, pipeline, FREQUENCY::PER_FRAME, sets[FREQUENCY::PER_FRAME], nullptr
         );
         cb.bind_descriptor_sets(
-            bp,
-            pipeline,
-            vulkan::FREQUENCY::PER_PASS,
-            sets[vulkan::FREQUENCY::PER_PASS],
-            nullptr
+            bp, pipeline, FREQUENCY::PER_PASS, sets[FREQUENCY::PER_PASS], nullptr
         );
         if (mh.m_texture != nullptr) {
             cb.bind_descriptor_sets(
                 bp,
                 pipeline,
-                vulkan::FREQUENCY::PER_MATERIAL,
-                sets[vulkan::FREQUENCY::PER_MATERIAL],
+                FREQUENCY::PER_MATERIAL,
+                sets[FREQUENCY::PER_MATERIAL],
                 nullptr
             );
         }
         cb.bind_descriptor_sets(
-            bp,
-            pipeline,
-            vulkan::FREQUENCY::PER_OBJECT,
-            sets[vulkan::FREQUENCY::PER_OBJECT],
-            &dyn_offset
+            bp, pipeline, FREQUENCY::PER_OBJECT, sets[FREQUENCY::PER_OBJECT], &dyn_offset
         );
 
         this->render_mesh(cmd.vertex_data, cmd.m_mesh);

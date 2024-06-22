@@ -188,34 +188,6 @@ static auto get_sampled_image_type(FREQUENCY freq) -> VkDescriptorType {
     return result;
 }
 
-static auto extract_descriptor_set_layouts(const std::span<ShaderModule>& modules)
-    -> std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)> {
-
-    // TODO: Needs more checking.
-    constexpr u8 max_sets = static_cast<u8>(FREQUENCY::MAX);
-
-    std::array<DescriptorSetLayout, max_sets>                       set_layouts;
-    std::array<std::vector<DescriptorSetLayout::Binding>, max_sets> bindings_set;
-
-    for (const auto& module : modules) {
-        const auto stage = from_SHADER_STAGE(module.m_stage);
-
-        for (const auto& buffer : module.m_reflected.m_uniform_buffers) {
-            auto type = get_uniform_buffer_type(static_cast<FREQUENCY>(buffer.set));
-            bindings_set[buffer.set].emplace_back(buffer.binding, type, 1, stage);
-        }
-        for (const auto& image : module.m_reflected.m_sampled_images) {
-            auto type = get_sampled_image_type(static_cast<FREQUENCY>(image.set));
-            bindings_set[image.set].emplace_back(image.binding, type, 1, stage);
-        }
-    }
-    auto& dev = modules[0].m_device;
-    for (u32 i = 0; i < set_layouts.size(); i++) {
-        set_layouts[i] = dev->create_descriptor_set_layout(bindings_set[i]);
-    }
-    return set_layouts;
-}
-
 /*--------------------
     Pipeline Layout
 ----------------------*/
@@ -420,16 +392,21 @@ static auto input_assembly_state_create_info(VkPrimitiveTopology topology)
 }
 
 static auto rasterization_state_create_info() -> VkPipelineRasterizationStateCreateInfo {
+    auto polygon_mode = VK_POLYGON_MODE_FILL;
+    // NOTE: In debugging one might want to use VK_CULL_MODE_NONE, as opposed to
+    // VK_CULL_MODE_BACK_BIT
+    auto cull_mode = VK_CULL_MODE_BACK_BIT;
+    auto front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+
     const VkPipelineRasterizationStateCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .depthClampEnable = VK_FALSE,
         .rasterizerDiscardEnable = VK_FALSE,
-        .polygonMode = VK_POLYGON_MODE_FILL,
-        .cullMode = VK_CULL_MODE_NONE, // VK_CULL_MODE_BACK_BIT, //NOTE: after debugging
-                                       // make it cull mode back again
-        .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
+        .polygonMode = polygon_mode,
+        .cullMode = cull_mode,
+        .frontFace = front_face,
         .depthBiasEnable = VK_FALSE,
         .depthBiasConstantFactor = {},
         .depthBiasClamp = {},
@@ -455,6 +432,12 @@ static auto multisample_state_create_info() -> VkPipelineMultisampleStateCreateI
 }
 
 static auto color_blend_attachment_state() -> VkPipelineColorBlendAttachmentState {
+
+    VkColorComponentFlags color_write_mask = {};
+    color_write_mask |= VK_COLOR_COMPONENT_R_BIT;
+    color_write_mask |= VK_COLOR_COMPONENT_G_BIT;
+    color_write_mask |= VK_COLOR_COMPONENT_B_BIT;
+    color_write_mask |= VK_COLOR_COMPONENT_A_BIT;
     const VkPipelineColorBlendAttachmentState color_blend_attachment = {
         .blendEnable = VK_TRUE,
         .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
@@ -463,8 +446,7 @@ static auto color_blend_attachment_state() -> VkPipelineColorBlendAttachmentStat
         .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
         .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
         .alphaBlendOp = VK_BLEND_OP_ADD,
-        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                          VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+        .colorWriteMask = color_write_mask,
     };
     // const VkPipelineColorBlendAttachmentState color_blend_attachment = {
     //     .blendEnable = VK_FALSE,
@@ -605,6 +587,38 @@ static auto combine_modules_into_interface(const std::span<const ReflectedModule
     return result;
 }
 
+static auto extract_descriptor_set_layouts(
+    const std::span<ReflectedModule>& modules,
+    const LogicalDevice&              device
+) -> std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)> {
+
+    // TODO: Needs more checking.
+    constexpr u8 max_sets = static_cast<u8>(FREQUENCY::MAX);
+
+    std::array<DescriptorSetLayout, max_sets>                       set_layouts;
+    std::array<std::vector<DescriptorSetLayout::Binding>, max_sets> bindings_set;
+
+    for (const auto& module : modules) {
+        const auto stage = from_SHADER_STAGE(module.m_stage);
+
+        for (const auto& buffer : module.m_uniform_buffers) {
+            auto             freq = static_cast<FREQUENCY>(buffer.set);
+            VkDescriptorType type = get_uniform_buffer_type(freq);
+            bindings_set[buffer.set].emplace_back(buffer.binding, type, 1, stage);
+        }
+        for (const auto& image : module.m_sampled_images) {
+            auto             freq = static_cast<FREQUENCY>(image.set);
+            VkDescriptorType type = get_sampled_image_type(freq);
+            bindings_set[image.set].emplace_back(image.binding, type, 1, stage);
+        }
+    }
+    const auto& dev = device;
+    for (u32 i = 0; i < set_layouts.size(); i++) {
+        set_layouts[i] = dev.create_descriptor_set_layout(bindings_set[i]);
+    }
+    return set_layouts;
+}
+
 Pipeline::Pipeline(
     const LogicalDevice& device,
     const VkExtent2D&    extent,
@@ -641,7 +655,7 @@ Pipeline::Pipeline(
         set 3: model matrix.
     */
     std::array<DescriptorSetLayout, 4> set_layouts =
-        extract_descriptor_set_layouts(modules);
+        extract_descriptor_set_layouts(reflected_modules, device);
     m_set_layouts = std::move(set_layouts);
 
     // bool compatible = check_compatiblity(reflected_code.m_modules, binding_description,
