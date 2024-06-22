@@ -199,5 +199,9 @@ static auto gl_type_enum_to_string(GLenum type) -> std::string {
     }
     return result;
 }
+
+auto Shader::write_ub(u32 index, const void* data, size_t size, size_t offset) -> void {
+    m_uniform_buffers[index]->write(data, size, offset);
+}
 } // namespace opengl
 } // namespace JadeFrame

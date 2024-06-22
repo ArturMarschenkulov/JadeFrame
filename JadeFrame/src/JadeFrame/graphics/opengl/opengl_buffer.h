@@ -38,22 +38,12 @@ private:
     auto alloc(void* data, GLuint size) const -> void;
     auto reserve(GLuint size) const -> void;
 
-    template<typename U>
-    auto alloc(const std::initializer_list<U>& data) const -> void {
-        this->alloc((void*)data.begin(), data.size() * sizeof(U));
-    }
-
-    template<typename U>
-    auto alloc(const std::vector<U>& data) const -> void {
-        this->alloc((void*)data.data(), data.size() * sizeof(U));
-    }
-
 public:
-    auto write(const void* data, GLint offset, GLuint size) const -> void;
+    auto write(const void* data, GLuint size, GLint offset) const -> void;
 
-    template<typename U>
-    auto write(const std::initializer_list<U>& data) const -> void {
-        this->write((void*)data.begin(), 0, data.size() * sizeof(U));
+    template<typename T>
+    auto write(const T& data, GLint offset = 0) const -> void {
+        this->write((void*)&data, sizeof(T), offset);
     }
 
     auto bind_base(GLuint binding_point) const -> void;

@@ -42,6 +42,8 @@ public:
     auto bind() const -> void;
     auto unbind() const -> void;
 
+    auto write_ub(u32 index, const void* data, size_t size, size_t offset) -> void;
+
 private:
     OGLW_Program m_program;
     OGLW_Shader  m_vertex_shader;

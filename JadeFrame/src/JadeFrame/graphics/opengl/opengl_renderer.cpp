@@ -85,11 +85,12 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         // NOTE: As of right now this is not optimal, as it only needs to be updated once
         // outside the loop. But because of how the code is arranged one has to update it
         // every iteration of the loop. Late on one HAS TO fix this.
-        auto* ub_cam = shader->m_uniform_buffers[0];
-        ub_cam->write({view_projection});
 
-        auto* ub_tran = shader->m_uniform_buffers[1];
-        ub_tran->write({*cmd.transform});
+        // ub_cam
+        shader->write_ub(0, &view_projection, sizeof(view_projection), 0);
+
+        // ub_tran
+        shader->write_ub(1, cmd.transform, sizeof(*cmd.transform), 0);
 
         shader->bind();
         if (mh.m_texture != nullptr) {
