@@ -73,14 +73,14 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     // NOTE: At the time of writing this is mainly compatible with
     // `get_shader_spirv_test_1` or rather on any renderer where the camera uniform is
     // at binding point 0 and the transform uniform is at binding point 1.
-    auto& m_render_commands = m_system->m_render_commands;
+    auto& render_commands = m_system->m_render_commands;
 
-    for (size_t i = 0; i < m_render_commands.size(); ++i) {
-        const RenderCommand&  cmd = m_render_commands[i];
+    for (size_t i = 0; i < render_commands.size(); ++i) {
+        const RenderCommand&  cmd = render_commands[i];
         const MaterialHandle& mh = *cmd.material;
 
-        auto&                 sh = *mh.m_shader;
-        const opengl::Shader* shader = static_cast<opengl::Shader*>(sh.m_handle);
+        auto& sh = *mh.m_shader;
+        auto* shader = static_cast<opengl::Shader*>(sh.m_handle);
 
         // NOTE: As of right now this is not optimal, as it only needs to be updated once
         // outside the loop. But because of how the code is arranged one has to update it
@@ -101,38 +101,48 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
             texture.bind(texture_unit);
         }
 
-        GPUMeshData& gpu_data = *cmd.m_mesh;
-        shader->m_vertex_array.bind_buffer(
-            *static_cast<opengl::Buffer*>(gpu_data.m_vertex_buffer->m_handle)
+        OpenGL_Renderer::render_mesh(
+            cmd.vertex_data, cmd.m_mesh, &shader->m_vertex_array
         );
-        shader->m_vertex_array.bind();
-        OpenGL_Renderer::render_mesh(cmd.vertex_data);
     }
 #if JF_OPENGL_FB
     fb.m_framebuffer->unbind();
-    // GL_State old_state = m_context.m_state;
     m_context.m_state.set_depth_test(false);
     fb.render(m_system);
     m_context.m_state.set_depth_test(true);
 #endif
 #undef JF_OPENGL_FB
-    m_render_commands.clear();
+    render_commands.clear();
 }
 
-auto OpenGL_Renderer::render_mesh(const VertexData* vertex_data) -> void {
+auto OpenGL_Renderer::render_mesh(
+    const VertexData*       vertex_data,
+    const GPUMeshData*      gpu_data,
+    const OGLW_VertexArray* vao
+) -> void {
+    // TODO: Considering we are replicating Vulkan's way of doing things, the primitive
+    // type should be defined in the pipeline or shader, and here it should be simply
+    // queried.
+
+    vao->bind();
+    vao->bind_buffer(*static_cast<opengl::Buffer*>(gpu_data->m_vertex_buffer->m_handle));
 
     if (!vertex_data->m_indices.empty()) {
+        auto primitive_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
+        auto num_indices = static_cast<GLsizei>(vertex_data->m_indices.size());
         glDrawElements(
-            static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES),      // mode
-            static_cast<GLsizei>(vertex_data->m_indices.size()), // count
-            GL_UNSIGNED_INT,                                     // type
-            nullptr                                              // indices
+            primitive_type,  // mode
+            num_indices,     // count
+            GL_UNSIGNED_INT, // type
+            nullptr          // indices
         );
     } else {
+        auto primitive_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
+        auto num_vertices = static_cast<GLsizei>(vertex_data->m_positions.size());
         glDrawArrays(
-            static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES),       // mode
-            0,                                                    // first
-            static_cast<GLsizei>(vertex_data->m_positions.size()) // count
+            primitive_type, // mode
+            0,              // first
+            num_vertices    // count
         );
     }
 }
@@ -222,15 +232,12 @@ auto OpenGL_Renderer::FB::init(OpenGL_Context* context, RenderSystem* system) ->
 
 auto OpenGL_Renderer::FB::render(RenderSystem* system) -> void {
 
-    // static_cast<opengl::Shader*>(fb.m_shader_handle_fb->m_handle)->bind();
     ShaderHandle& sh_ = *m_shader;
     auto*         sh = static_cast<opengl::Shader*>(sh_.m_handle);
     sh->bind();
     m_texture->bind(0);
-    auto&                 shh = *m_shader;
-    const opengl::Shader* p_shader = static_cast<opengl::Shader*>(shh.m_handle);
-    p_shader->m_vertex_array.bind_buffer(*m_framebuffer_rect->m_vertex_buffer);
-    p_shader->m_vertex_array.bind();
+    sh->m_vertex_array.bind_buffer(*m_framebuffer_rect->m_vertex_buffer);
+    sh->m_vertex_array.bind();
 
     const GLsizei num_vertices = 6;
     glDrawArrays(GL_TRIANGLES, 0, num_vertices);

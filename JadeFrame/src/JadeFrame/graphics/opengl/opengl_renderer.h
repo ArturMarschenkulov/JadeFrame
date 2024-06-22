@@ -49,7 +49,11 @@ public:
     auto take_screenshot(const char* filename) -> void override;
 
 private:
-    static auto render_mesh(const VertexData* vertex_data) -> void;
+    static auto render_mesh(
+        const VertexData*  vertex_data,
+        const GPUMeshData* gpu_data,
+        const OGLW_VertexArray* vao
+    ) -> void;
 
 public:
     OpenGL_Context m_context;

@@ -84,12 +84,13 @@ auto OGLW_VertexArray::set_layout(const VertexFormat& vertex_format) -> void {
 
             } break;
             default: {
-                assert(false);
+                assert(false && "Unsupported type");
             }
         }
         this->enable_attrib(i);
         // always unnormalized
-        this->set_attrib_format(i, attribute.type, false, offset);
+        const bool normalized = false;
+        this->set_attrib_format(i, attribute.type, normalized, offset);
         offset += get_size(attribute.type);
         this->set_attrib_binding(i, 0);
     }
