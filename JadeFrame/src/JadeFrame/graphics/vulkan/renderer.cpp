@@ -99,16 +99,16 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     const u64 dyn_alignment =
         ceil_to_aligned(sizeof(Matrix4x4), pd->limits().minUniformBufferOffsetAlignment);
 
-    auto& m_render_commands = m_system->m_render_commands;
+    auto& render_commands = m_system->m_render_commands;
     // prepare shaders and its dynamic uniform buffers
     // TODO: Find a better way to do this, but for now it works
-    for (u64 i = 0; i < m_render_commands.size(); i++) {
-        const auto&           cmd = m_render_commands[i];
+    for (u64 i = 0; i < render_commands.size(); i++) {
+        const auto&           cmd = render_commands[i];
         const MaterialHandle& mh = *cmd.material;
         const ShaderHandle&   sh = *mh.m_shader;
         auto*                 shader = static_cast<Vulkan_Shader*>(sh.m_handle);
 
-        shader->set_dynamic_ub_num(m_render_commands.size());
+        shader->set_dynamic_ub_num(render_commands.size());
     }
 
     vulkan::CommandBuffer& cb = curr_frame.m_cmd;
@@ -120,9 +120,9 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     // cb.render_pass(framebuffer, m_render_pass, m_swapchain.m_extent, clear_value, [&] {
     cb.render_pass_begin(framebuffer, m_render_pass, m_swapchain.m_extent, clear_value);
-    for (u64 i = 0; i < m_render_commands.size(); i++) {
+    for (u64 i = 0; i < render_commands.size(); i++) {
         using namespace vulkan;
-        const auto&           cmd = m_render_commands[i];
+        const auto&           cmd = render_commands[i];
         const MaterialHandle& mh = *cmd.material;
 
         const ShaderHandle& sh = *mh.m_shader;
@@ -175,7 +175,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
 
     curr_frame.submit(d.m_graphics_queue);
 
-    m_render_commands.clear();
+    render_commands.clear();
 }
 
 auto Vulkan_Renderer::render_mesh(
