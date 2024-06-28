@@ -15,7 +15,7 @@
 namespace JadeFrame {
 namespace vulkan {
 
-static auto from_SHADER_STAGE(SHADER_STAGE stage) -> VkShaderStageFlagBits {
+static auto to_ShaderStageFlagsBits(SHADER_STAGE stage) -> VkShaderStageFlagBits {
     VkShaderStageFlagBits result = {};
     switch (stage) {
         case SHADER_STAGE::VERTEX: {
@@ -160,16 +160,14 @@ ShaderModule::ShaderModule(
     }
 }
 
+// Here it is deccided which `FREQUNCY` create a dynamic uniform buffer.
 static auto get_uniform_buffer_type(FREQUENCY freq) -> VkDescriptorType {
     VkDescriptorType result = {};
     switch (freq) {
         case FREQUENCY::PER_OBJECT: {
             result = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
         } break;
-        case FREQUENCY::PER_FRAME: {
-            result = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        } break;
-        default: assert(false);
+        default: result = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     }
     return result;
 }
@@ -599,7 +597,7 @@ static auto extract_descriptor_set_layouts(
     std::array<std::vector<DescriptorSetLayout::Binding>, max_sets> bindings_set;
 
     for (const auto& module : modules) {
-        const auto stage = from_SHADER_STAGE(module.m_stage);
+        const auto stage = to_ShaderStageFlagsBits(module.m_stage);
 
         for (const auto& buffer : module.m_uniform_buffers) {
             auto             freq = static_cast<FREQUENCY>(buffer.set);
@@ -632,8 +630,9 @@ Pipeline::Pipeline(
     std::vector<ShaderModule> modules;
     modules.resize(code.m_modules.size());
     for (u32 i = 0; i < modules.size(); i++) {
-        const auto& code_ = code.m_modules[i].m_code;
-        const auto& stage_ = code.m_modules[i].m_stage;
+        const auto& module_ = code.m_modules[i];
+        const auto& code_ = module_.m_code;
+        const auto& stage_ = module_.m_stage;
         modules[i] = ShaderModule(device, code_, stage_);
     }
 
@@ -668,7 +667,7 @@ Pipeline::Pipeline(
     stages.resize(m_code.m_modules.size());
     for (u32 i = 0; i < stages.size(); i++) {
         stages[i] = shader_stage_create_info(
-            from_SHADER_STAGE(modules[i].m_stage), modules[i].m_handle
+            to_ShaderStageFlagsBits(modules[i].m_stage), modules[i].m_handle
         );
     }
 

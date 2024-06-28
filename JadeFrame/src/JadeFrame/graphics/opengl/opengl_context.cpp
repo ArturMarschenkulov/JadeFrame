@@ -80,7 +80,12 @@ OpenGL_Context::OpenGL_Context(const Window* window)
         reinterpret_cast<char const*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
     glGetIntegerv(GL_MAJOR_VERSION, &major_version);
     glGetIntegerv(GL_MINOR_VERSION, &minor_version);
-    assert(major_version >= 4 && minor_version >= 5);
+    if (major_version < 4 && minor_version < 5) {
+        Logger::err("OpenGL version 4.5 or higher is required!");
+        exit(EXIT_FAILURE);
+    }
+
+    // At this point OpenGL is initialized
 
     Logger::info("OpenGL Vendor: {}", vendor);
     Logger::info("OpenGL Renderer: {}", renderer);

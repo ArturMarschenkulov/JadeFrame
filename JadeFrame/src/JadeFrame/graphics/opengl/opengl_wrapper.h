@@ -243,25 +243,25 @@ inline Framebuffer::Framebuffer(OpenGL_Context&) { glCreateFramebuffers(1, &m_ID
 
 inline Framebuffer::~Framebuffer() { this->reset(); }
 
+inline auto to_GLenum(ATTACHMENT attachment) -> GLenum {
+    switch (attachment) {
+        case ATTACHMENT::COLOR: return GL_COLOR_ATTACHMENT0;
+        case ATTACHMENT::DEPTH: return GL_DEPTH_ATTACHMENT;
+        case ATTACHMENT::STENCIL: return GL_STENCIL_ATTACHMENT;
+        case ATTACHMENT::DEPTH_STENCIL: return GL_DEPTH_STENCIL_ATTACHMENT;
+    }
+    return 0;
+}
+
 inline auto
 Framebuffer::attach_texture(ATTACHMENT attachment, u32 i, const Texture& texture) const
     -> void {
 
     assert(i < GL_MAX_COLOR_ATTACHMENTS - 1);
 
-    i32 attachment_point = 0;
-    if (attachment == ATTACHMENT::COLOR) {
-        attachment_point = GL_COLOR_ATTACHMENT0 + static_cast<i32>(i);
-    } else if (attachment == ATTACHMENT::DEPTH) {
-        attachment_point = GL_DEPTH_ATTACHMENT;
-    } else if (attachment == ATTACHMENT::STENCIL) {
-        attachment_point = GL_STENCIL_ATTACHMENT;
-    } else if (attachment == ATTACHMENT::DEPTH_STENCIL) {
-        attachment_point = GL_DEPTH_STENCIL_ATTACHMENT;
-    }
-    glNamedFramebufferTexture(
-        m_ID, static_cast<GLenum>(attachment_point), texture.m_id, 0
-    );
+    GLenum attach = to_GLenum(attachment);
+    attach == GL_COLOR_ATTACHMENT0 ? attach += i : attach;
+    glNamedFramebufferTexture(m_ID, attach, texture.m_id, 0);
 }
 
 inline auto Framebuffer::attach_renderbuffer(
@@ -271,19 +271,9 @@ inline auto Framebuffer::attach_renderbuffer(
 ) const -> void {
     assert(i < GL_MAX_COLOR_ATTACHMENTS - 1);
 
-    i32 attachment_point = 0;
-    if (attachment == ATTACHMENT::COLOR) {
-        attachment_point = GL_COLOR_ATTACHMENT0 + static_cast<i32>(i);
-    } else if (attachment == ATTACHMENT::DEPTH) {
-        attachment_point = GL_DEPTH_ATTACHMENT;
-    } else if (attachment == ATTACHMENT::STENCIL) {
-        attachment_point = GL_STENCIL_ATTACHMENT;
-    } else if (attachment == ATTACHMENT::DEPTH_STENCIL) {
-        attachment_point = GL_DEPTH_STENCIL_ATTACHMENT;
-    }
-    glNamedFramebufferRenderbuffer(
-        m_ID, static_cast<GLenum>(attachment_point), GL_RENDERBUFFER, renderbuffer.m_ID
-    );
+    GLenum attach = to_GLenum(attachment);
+    attach == GL_COLOR_ATTACHMENT0 ? attach += i : attach;
+    glNamedFramebufferRenderbuffer(m_ID, attach, GL_RENDERBUFFER, renderbuffer.m_ID);
 }
 
 inline auto Framebuffer::bind() const -> void { glBindFramebuffer(GL_FRAMEBUFFER, m_ID); }
