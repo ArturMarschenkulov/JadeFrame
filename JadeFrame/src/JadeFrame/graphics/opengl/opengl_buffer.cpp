@@ -118,40 +118,5 @@ auto Buffer::bind_buffer_range(GLuint index, GLintptr offset, GLsizeiptr size) c
     }
 }
 
-/*---------------------------
-    GPUMeshData
----------------------------*/
-
-auto GPUMeshData::operator=(GPUMeshData&& other) noexcept -> GPUMeshData& {
-    m_vertex_buffer = other.m_vertex_buffer;
-    m_index_buffer = other.m_index_buffer;
-
-    m_vertex_buffer = other.m_vertex_buffer;
-    m_index_buffer = other.m_index_buffer;
-
-    return *this;
-}
-
-GPUMeshData::GPUMeshData(
-    OpenGL_Context&   context,
-    const VertexData& vertex_data,
-    bool              interleaved
-)
-    : m_vertex_buffer()
-    , m_index_buffer() {
-
-    const std::vector<f32> flat_data = convert_into_data(vertex_data, interleaved);
-
-    void* data = (void*)flat_data.data();
-    u32   data_size = static_cast<u32>(flat_data.size() * sizeof(f32));
-    m_vertex_buffer = context.create_buffer(Buffer::TYPE::VERTEX, data, data_size);
-
-    if (!vertex_data.m_indices.empty()) {
-        void* data = (void*)vertex_data.m_indices.data();
-        u32   data_size = static_cast<u32>(vertex_data.m_indices.size() * sizeof(u32));
-        m_index_buffer = context.create_buffer(Buffer::TYPE::INDEX, data, data_size);
-    }
-}
-
 } // namespace opengl
 } // namespace JadeFrame

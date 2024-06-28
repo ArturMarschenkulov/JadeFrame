@@ -68,27 +68,5 @@ public:
     GLuint          m_id;
 };
 
-class GPUMeshData {
-public:
-    // auto operator=(const GPUMeshData& other) -> GPUMeshData&;
-    GPUMeshData() = default;
-    ~GPUMeshData() = default;
-
-    GPUMeshData(const GPUMeshData&) = delete;
-    auto operator=(const GPUMeshData&) -> GPUMeshData& = delete;
-
-    // GPUMeshData(GPUMeshData&& other);
-    auto operator=(GPUMeshData&& other) noexcept -> GPUMeshData&;
-
-    GPUMeshData(
-        OpenGL_Context&   context,
-        const VertexData& vertex_data,
-        bool              interleaved = true
-    );
-
-public: // private:
-    Buffer* m_vertex_buffer;
-    Buffer* m_index_buffer;
-};
 } // namespace opengl
 } // namespace JadeFrame

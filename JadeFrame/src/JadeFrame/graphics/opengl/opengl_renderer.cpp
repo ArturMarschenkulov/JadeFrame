@@ -5,6 +5,7 @@
 // #include "JadeFrame/base_app.h"
 // #include "graphics/opengl/opengl_renderer.h"
 // #include "graphics/vulkan/vulkan_renderer.h"
+#include "JadeFrame/graphics/mesh.h"
 
 #ifdef _WIN32
     #include "Windows.h"
@@ -56,7 +57,7 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const Window* window)
     , m_system(&system) {
 
 #if JF_OPENGL_FB
-    fb.init(&m_context, m_system);
+    m_render_target.init(&m_context, m_system);
 #endif
 }
 
@@ -65,7 +66,7 @@ auto OpenGL_Renderer::present() -> void { m_context.swap_buffers(); }
 auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
 #if JF_OPENGL_FB
-    fb.m_framebuffer->bind();
+    m_render_target.m_framebuffer->bind();
 #endif
 
     this->clear_background();
@@ -106,9 +107,9 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         );
     }
 #if JF_OPENGL_FB
-    fb.m_framebuffer->unbind();
+    m_render_target.m_framebuffer->unbind();
     m_context.m_state.set_depth_test(false);
-    fb.render(m_system);
+    m_render_target.render(m_system);
     m_context.m_state.set_depth_test(true);
 #endif
 #undef JF_OPENGL_FB
@@ -173,7 +174,8 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
     t.detach();
 }
 
-auto OpenGL_Renderer::FB::init(OpenGL_Context* context, RenderSystem* system) -> void {
+auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* system)
+    -> void {
     { // TODO: The whole fb thing is now a mess!!!! This is because
         // `m_system->register_shader(shader_handle_desc);` requires an already
         // initialized `OpenGL_Renderer`. Thus for now `JF_OPENGL_FB` should be defined to
@@ -221,7 +223,10 @@ auto OpenGL_Renderer::FB::init(OpenGL_Context* context, RenderSystem* system) ->
         {           "v_position", SHADER_TYPE::V_3_F32},
         {"v_texture_coordinates", SHADER_TYPE::V_2_F32}
     });
-    m_framebuffer_rect = new opengl::GPUMeshData(*context, vertex_data);
+    auto  flat_data = convert_into_data(vertex_data, true);
+    u32   data_size = static_cast<u32>(flat_data.size() * sizeof(f32));
+    m_vertex_buffer =
+        context->create_buffer(opengl::Buffer::TYPE::VERTEX, flat_data.data(), data_size);
 
     ShaderHandle::Desc shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
@@ -230,13 +235,13 @@ auto OpenGL_Renderer::FB::init(OpenGL_Context* context, RenderSystem* system) ->
     m_shader = system->register_shader(shader_handle_desc);
 }
 
-auto OpenGL_Renderer::FB::render(RenderSystem* system) -> void {
+auto OpenGL_Renderer::RenderTarget::render(RenderSystem* system) -> void {
 
     ShaderHandle& sh_ = *m_shader;
     auto*         sh = static_cast<opengl::Shader*>(sh_.m_handle);
     sh->bind();
     m_texture->bind(0);
-    sh->m_vertex_array.bind_buffer(*m_framebuffer_rect->m_vertex_buffer);
+    sh->m_vertex_array.bind_buffer(*m_vertex_buffer);
     sh->m_vertex_array.bind();
 
     const GLsizei num_vertices = 6;

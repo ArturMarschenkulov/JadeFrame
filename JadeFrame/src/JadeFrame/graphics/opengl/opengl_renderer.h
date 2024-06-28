@@ -50,8 +50,8 @@ public:
 
 private:
     static auto render_mesh(
-        const VertexData*  vertex_data,
-        const GPUMeshData* gpu_data,
+        const VertexData*       vertex_data,
+        const GPUMeshData*      gpu_data,
         const OGLW_VertexArray* vao
     ) -> void;
 
@@ -59,17 +59,17 @@ public:
     OpenGL_Context m_context;
     RenderSystem*  m_system = nullptr;
 
-    struct FB {
+    struct RenderTarget {
         Object                m_fb;
         opengl::Texture*      m_texture;
         opengl::Renderbuffer* m_renderbuffer;
         opengl::Framebuffer*  m_framebuffer;
-        opengl::GPUMeshData*  m_framebuffer_rect;
+        opengl::Buffer*       m_vertex_buffer;
         ShaderHandle*         m_shader;
 
         auto init(OpenGL_Context* context, RenderSystem* system) -> void;
         auto render(RenderSystem* system) -> void;
-    } fb;
+    } m_render_target;
 };
 
 static_assert(is_renderer<OpenGL_Renderer>);

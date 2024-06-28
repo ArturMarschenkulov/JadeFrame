@@ -85,29 +85,6 @@ public:
     const LogicalDevice* m_device = nullptr;
 };
 
-class GPUMeshData {
-public:
-    GPUMeshData() = default;
-    ~GPUMeshData() = default;
-    GPUMeshData(const GPUMeshData&) = delete;
-    auto operator=(const GPUMeshData&) -> GPUMeshData& = delete;
-    GPUMeshData(GPUMeshData&& other) noexcept = default;
-    auto operator=(GPUMeshData&& other) noexcept -> GPUMeshData& = default;
-
-    GPUMeshData(
-        const LogicalDevice& device,
-        const VertexData&    vertex_data,
-        bool                 interleaved = true
-    );
-
-    auto bind() const -> void;
-    auto set_layout(const VertexFormat& vertex_format) -> void;
-
-public:
-    Buffer* m_vertex_buffer;
-    Buffer* m_index_buffer;
-};
-
 class Image {
 public:
     enum class SOURCE {

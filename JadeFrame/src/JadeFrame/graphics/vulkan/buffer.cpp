@@ -336,32 +336,6 @@ auto Buffer::create_buffer(
 #endif
 }
 
-GPUMeshData::GPUMeshData(
-    const LogicalDevice& device,
-    const VertexData&    vertex_data,
-    bool                 interleaved
-) {
-
-    const std::vector<f32> flat_data = convert_into_data(vertex_data, interleaved);
-
-    void*  data = (void*)flat_data.data();
-    size_t size = sizeof(flat_data[0]) * flat_data.size();
-    m_vertex_buffer = device.create_buffer(Buffer::TYPE::VERTEX, data, size);
-
-    if (!vertex_data.m_indices.empty()) {
-        const auto& indices = vertex_data.m_indices;
-
-        void*  indices_data = (void*)indices.data();
-        size_t indices_size = sizeof(indices[0]) * indices.size();
-        m_index_buffer =
-            device.create_buffer(Buffer::TYPE::INDEX, indices_data, indices_size);
-    }
-}
-
-auto GPUMeshData::bind() const -> void {}
-
-auto GPUMeshData::set_layout(const VertexFormat& /*vertex_format*/) -> void {}
-
 /*---------------------------
     Image
 ---------------------------*/
