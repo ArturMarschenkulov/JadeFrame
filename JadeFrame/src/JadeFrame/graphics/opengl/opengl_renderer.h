@@ -49,10 +49,10 @@ public:
     auto take_screenshot(const char* filename) -> void override;
 
 private:
-    static auto render_mesh(
+    auto render_mesh(
         const VertexData*       vertex_data,
         const GPUMeshData*      gpu_data,
-        const OGLW_VertexArray* vao
+        OGLW_VertexArray* vao
     ) -> void;
 
 public:
@@ -66,6 +66,7 @@ public:
         opengl::Framebuffer*  m_framebuffer;
         opengl::Buffer*       m_vertex_buffer;
         ShaderHandle*         m_shader;
+        OpenGL_Context*       m_context;
 
         auto init(OpenGL_Context* context, RenderSystem* system) -> void;
         auto render(RenderSystem* system) -> void;

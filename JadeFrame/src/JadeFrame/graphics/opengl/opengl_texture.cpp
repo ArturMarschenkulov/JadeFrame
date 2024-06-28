@@ -43,7 +43,7 @@ Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_
     glCreateTextures(GL_TEXTURE_2D, 1, &m_id);
     Logger::warn("TextureHandle::init() - Texture created sjknmlml");
 
-    this->bind(0);
+    context.bind_texture(*this, 0);
 
     /*
         GL_TEXTURE_WRAP_S and GL_TEXTURE_WRAP_T define how the texture should
@@ -79,7 +79,7 @@ Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_
     // if (m_mipmapping) {
     this->generate_mipmap();
     //}
-    Texture::unbind();
+    context.unbind_texture();
 }
 
 Texture::Texture(Texture&& other) noexcept
@@ -150,7 +150,7 @@ auto Texture::set_image(
 
 auto Texture::resize(u32 width, u32 height, u32 /*depth*/) -> void {
 
-    this->bind(0);
+    m_context->bind_texture(*this, 0);
     assert(width > 0 && height > 0);
     this->set_image(0, m_internal_format, {width, height}, 0, m_format, m_type, 0);
 
@@ -182,12 +182,6 @@ auto Texture::reset(GLuint id) -> void {
     glDeleteTextures(1, &m_id);
     m_id = id;
 }
-
-auto Texture::bind(u32 unit) const -> void {
-    glBindTextureUnit(unit, m_id);
-}
-
-auto Texture::unbind() -> void { glBindTexture(GL_TEXTURE_2D, 0); }
 
 } // namespace opengl
 } // namespace JadeFrame

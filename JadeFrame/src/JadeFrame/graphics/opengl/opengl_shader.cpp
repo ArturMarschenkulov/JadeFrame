@@ -151,10 +151,6 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     m_vertex_array = OGLW_VertexArray(&context, desc.vertex_format);
 }
 
-auto Shader::bind() const -> void { m_program.bind(); }
-
-auto Shader::unbind() const -> void { m_program.unbind(); }
-
 static auto gl_type_enum_to_string(GLenum type) -> std::string {
     std::string result;
     switch (type) {

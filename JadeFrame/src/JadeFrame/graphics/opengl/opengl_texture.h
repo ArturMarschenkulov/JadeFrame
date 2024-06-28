@@ -29,9 +29,7 @@ public:
     explicit Texture(OpenGL_Context& context);
     Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_num);
 
-    auto        resize(u32 width, u32 height, u32 depth) -> void;
-    auto        bind(u32 unit) const -> void;
-    static auto unbind() -> void;
+    auto resize(u32 width, u32 height, u32 depth) -> void;
 
     auto generate_mipmap() const -> void;
     auto set_parameters(GLenum pname, GLint param) const -> void;

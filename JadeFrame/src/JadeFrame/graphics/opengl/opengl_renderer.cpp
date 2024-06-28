@@ -66,7 +66,7 @@ auto OpenGL_Renderer::present() -> void { m_context.swap_buffers(); }
 auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 
 #if JF_OPENGL_FB
-    m_render_target.m_framebuffer->bind();
+    m_context.bind_framebuffer(*m_render_target.m_framebuffer);
 #endif
 
     this->clear_background();
@@ -93,13 +93,12 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         // ub_tran
         shader->write_ub(1, cmd.transform, sizeof(*cmd.transform), 0);
 
-        shader->bind();
+        m_context.bind_shader(*shader);
         if (mh.m_texture != nullptr) {
-            auto*            th = mh.m_texture;
-            opengl::Texture& texture = *static_cast<opengl::Texture*>(th->m_handle);
+            auto* texture = static_cast<opengl::Texture*>(mh.m_texture->m_handle);
 
             u32 texture_unit = 0;
-            texture.bind(texture_unit);
+            m_context.bind_texture(*texture, texture_unit);
         }
 
         OpenGL_Renderer::render_mesh(
@@ -107,7 +106,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         );
     }
 #if JF_OPENGL_FB
-    m_render_target.m_framebuffer->unbind();
+    m_context.unbind_framebuffer();
     m_context.m_state.set_depth_test(false);
     m_render_target.render(m_system);
     m_context.m_state.set_depth_test(true);
@@ -125,7 +124,7 @@ auto OpenGL_Renderer::render_mesh(
     // type should be defined in the pipeline or shader, and here it should be simply
     // queried.
 
-    vao->bind();
+    m_context.bind_vertex_array(*vao);
     vao->bind_buffer(*static_cast<opengl::Buffer*>(gpu_data->m_vertex_buffer->m_handle));
 
     if (!vertex_data->m_indices.empty()) {
@@ -176,6 +175,7 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
 
 auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* system)
     -> void {
+    m_context = context;
     { // TODO: The whole fb thing is now a mess!!!! This is because
         // `m_system->register_shader(shader_handle_desc);` requires an already
         // initialized `OpenGL_Renderer`. Thus for now `JF_OPENGL_FB` should be defined to
@@ -189,7 +189,7 @@ auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* 
         const v2u32 size = context->m_state.viewport[1];
 
         m_texture = context->create_texture();
-        m_texture->bind(0);
+        context->bind_texture(*m_texture, 0);
         m_texture->set_image(0, GL_RGB, size, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
         m_texture->set_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         m_texture->set_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -239,10 +239,10 @@ auto OpenGL_Renderer::RenderTarget::render(RenderSystem* system) -> void {
 
     ShaderHandle& sh_ = *m_shader;
     auto*         sh = static_cast<opengl::Shader*>(sh_.m_handle);
-    sh->bind();
-    m_texture->bind(0);
+    m_context->bind_shader(*sh);
+    m_context->bind_texture(*m_texture, 0);
+    m_context->bind_vertex_array(sh->m_vertex_array);
     sh->m_vertex_array.bind_buffer(*m_vertex_buffer);
-    sh->m_vertex_array.bind();
 
     const GLsizei num_vertices = 6;
     glDrawArrays(GL_TRIANGLES, 0, num_vertices);

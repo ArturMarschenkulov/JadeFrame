@@ -19,6 +19,10 @@ typedef HDC__* HDC;
 
 namespace JadeFrame {
 
+namespace opengl {
+class Shader;
+}
+
 enum BLENDING_FACTOR : i32 {
     ZERO = GL_ZERO,
     ONE = GL_ONE,
@@ -117,14 +121,33 @@ public:
     auto create_framebuffer() -> opengl::Framebuffer*;
     auto create_renderbuffer() -> opengl::Renderbuffer*;
 
+    auto bind_texture(opengl::Texture& texture, u32 unit) -> void;
+    auto unbind_texture() -> void;
+
+    opengl::Texture* m_bound_texture = nullptr;
+
+    auto bind_vertex_array(OGLW_VertexArray& vao) -> void;
+    auto unbind_vertex_array() -> void;
+
+    OGLW_VertexArray* m_bound_vertex_array = nullptr;
+
+    auto bind_shader(opengl::Shader& shader) -> void;
+    // auto unbind_shader() -> void {}
+
+    opengl::Shader* m_bound_shader = nullptr;
+
+    auto bind_framebuffer(opengl::Framebuffer& framebuffer) -> void;
+    auto unbind_framebuffer() -> void;
+
+    opengl::Framebuffer* m_bound_framebuffer;
+
     // std::vector<opengl::Buffer> m_uniform_buffers;
 
     std::vector<GLuint> m_buffers;
     GLuint              m_bound_buffer;
 
-    std::vector<u32> m_textures;
-    std::vector<u32> m_texture_units;
-    u32              m_active_texture_unit;
+    std::vector<opengl::Texture*> m_textures = {};
+    std::vector<u32>              m_texture_units;
 
     template<typename T, typename U>
     using HashMap = std::unordered_map<T, U>;

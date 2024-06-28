@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "opengl_context.h"
 #include "opengl_debug.h"
+#include "opengl_shader.h"
 #if defined(_WIN32)
     #include "platform/win32/win32.h"
 #elif defined(__linux__)
@@ -8,6 +9,45 @@
 #endif
 
 namespace JadeFrame {
+auto OpenGL_Context::unbind_framebuffer() -> void {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    m_bound_framebuffer = nullptr;
+}
+
+auto OpenGL_Context::bind_framebuffer(opengl::Framebuffer& framebuffer) -> void {
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.m_ID);
+    m_bound_framebuffer = &framebuffer;
+}
+
+auto OpenGL_Context::bind_shader(opengl::Shader& shader) -> void {
+    assert(shader.m_program.m_ID != 0);
+    if (m_bound_shader == &shader) { return; }
+    glUseProgram(shader.m_program.m_ID);
+    m_bound_shader = &shader;
+}
+
+auto OpenGL_Context::bind_vertex_array(OGLW_VertexArray& vao) -> void {
+    assert(vao.m_ID != 0);
+    if (m_bound_vertex_array == &vao) { return; }
+    glBindVertexArray(vao.m_ID);
+    m_bound_vertex_array = &vao;
+}
+
+auto OpenGL_Context::unbind_vertex_array() -> void {
+    glBindVertexArray(0);
+    m_bound_vertex_array = nullptr;
+}
+
+auto OpenGL_Context::bind_texture(opengl::Texture& texture, u32 unit) -> void {
+    if (m_bound_texture == &texture) { return; }
+    glBindTextureUnit(unit, texture.m_id);
+    m_bound_texture = &texture;
+}
+
+auto OpenGL_Context::unbind_texture() -> void {
+    glBindTexture(GL_TEXTURE_2D, 0);
+    m_bound_texture = nullptr;
+}
 
 auto OpenGL_Context::create_texture() -> opengl::Texture* {
     return new opengl::Texture(*this);

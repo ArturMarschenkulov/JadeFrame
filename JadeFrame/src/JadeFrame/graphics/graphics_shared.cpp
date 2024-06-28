@@ -477,6 +477,33 @@ auto to_string(SHADER_TYPE type) -> const char* {
             break;
     }
 }
+
+auto RenderSystem::list_available_graphics_apis() -> std::vector<GRAPHICS_API> {
+    std::vector<GRAPHICS_API> result;
+
+    void* opengl = nullptr;
+#if defined(JF_PLATFORM_LINUX)
+    opengl = load_module("libGL.so.1");
+#elif defined(JF_PLATFORM_WINDOWS)
+    opengl = load_module("opengl32.dll");
+#else
+    JF_UNIMPLEMENTED("");
+#endif
+    if (opengl != nullptr) { result.push_back(GRAPHICS_API::OPENGL); }
+
+    void* vulkan = nullptr;
+#if defined(JF_PLATFORM_LINUX)
+    vulkan = load_module("libvulkan.so.1");
+#elif defined(JF_PLATFORM_WINDOWS)
+    vulkan = load_module("vulkan-1.dll");
+#else
+    JF_UNIMPLEMENTED("");
+#endif
+    if (vulkan != nullptr) { result.push_back(GRAPHICS_API::VULKAN); }
+
+    return result;
+}
+
 auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* texture)
     -> MaterialHandle* {
     m_registered_materials.emplace_back();
@@ -487,6 +514,8 @@ auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* textur
 
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
+            //  NOTE: AFAIK, nothing needs to be done
+
         } break;
         case GRAPHICS_API::VULKAN: {
             if (texture != nullptr) {
@@ -494,6 +523,11 @@ auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* textur
                 auto* tex = (vulkan::Vulkan_Texture*)texture->m_handle;
 
                 auto& set = sh->m_sets[vulkan::FREQUENCY::PER_MATERIAL];
+                if (set.m_descriptors.empty()) {
+                    Logger::err("The shader does not support textures");
+                    assert(false);
+                    return nullptr;
+                }
                 set.bind_combined_image_sampler(0, *tex);
                 set.update();
             }

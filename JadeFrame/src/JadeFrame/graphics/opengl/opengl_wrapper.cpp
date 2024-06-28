@@ -41,13 +41,6 @@ OGLW_VertexArray::OGLW_VertexArray(
     this->set_layout(vertex_format);
 }
 
-auto OGLW_VertexArray::bind() const -> void {
-    assert(m_ID != 0);
-    glBindVertexArray(m_ID);
-}
-
-auto OGLW_VertexArray::unbind() const -> void { glBindVertexArray(0); }
-
 static auto SHADER_TYPE_to_openGL_type(const SHADER_TYPE type) -> GLenum {
     GLenum result;
     switch (type) {
@@ -64,6 +57,8 @@ static auto SHADER_TYPE_to_openGL_type(const SHADER_TYPE type) -> GLenum {
 }
 
 auto OGLW_VertexArray::bind_buffer(const opengl::Buffer& buffer) const -> void {
+    // Check whether this vao is bound
+    
     glVertexArrayVertexBuffer(
         m_ID, 0, buffer.m_id, 0, static_cast<GLsizei>(m_vertex_format.m_stride)
     );

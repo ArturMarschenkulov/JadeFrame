@@ -39,12 +39,9 @@ public:
 
     Shader(OpenGL_Context& context, const Desc& desc);
 
-    auto bind() const -> void;
-    auto unbind() const -> void;
-
     auto write_ub(u32 index, const void* data, size_t size, size_t offset) -> void;
 
-private:
+public:
     OGLW_Program m_program;
     OGLW_Shader  m_vertex_shader;
     OGLW_Shader  m_fragment_shader;

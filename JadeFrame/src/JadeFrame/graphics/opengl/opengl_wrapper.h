@@ -43,9 +43,6 @@ public:
 
     OGLW_VertexArray(OpenGL_Context* context, const VertexFormat& vertex_format);
 
-    auto bind() const -> void;
-    auto unbind() const -> void;
-
     auto bind_buffer(const opengl::Buffer& buffer) const -> void;
     auto set_layout(const VertexFormat& vertex_format) -> void;
 
@@ -59,7 +56,7 @@ private:
     ) const -> void;
     auto set_attrib_binding(const u32 index, const u32 binding) const -> void;
 
-private:
+public:
     GLuint m_ID;
 
     VertexFormat m_vertex_format;
@@ -217,8 +214,6 @@ public:
     auto
     attach_renderbuffer(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer)
         const -> void;
-    auto bind() const -> void;
-    auto unbind() const -> void;
 
     [[nodiscard]] auto check_status() const -> GLenum;
 
@@ -275,10 +270,6 @@ inline auto Framebuffer::attach_renderbuffer(
     attach == GL_COLOR_ATTACHMENT0 ? attach += i : attach;
     glNamedFramebufferRenderbuffer(m_ID, attach, GL_RENDERBUFFER, renderbuffer.m_ID);
 }
-
-inline auto Framebuffer::bind() const -> void { glBindFramebuffer(GL_FRAMEBUFFER, m_ID); }
-
-inline auto Framebuffer::unbind() const -> void { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
 inline auto Framebuffer::check_status() const -> GLenum {
     GLenum result = glCheckNamedFramebufferStatus(m_ID, GL_FRAMEBUFFER);
