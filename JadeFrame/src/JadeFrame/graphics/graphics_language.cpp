@@ -15,6 +15,17 @@ JF_PRAGMA_NO_WARNINGS_POP
 
 namespace JadeFrame {
 
+auto convert_SPIRV_to_GLSL(const std::vector<u32>& spirv) -> std::string {
+    spirv_cross::CompilerGLSL::Options options;
+    options.version = 450;
+    options.es = false;
+    options.vulkan_semantics = false;
+
+    spirv_cross::CompilerGLSL glsl(spirv);
+    glsl.set_common_options(options);
+    return glsl.compile();
+}
+
 // Makes the SPIRV code compatible with opengl.
 // The SPIRV of Vulkan and SPIRV of OpenGL are slightly different.
 //

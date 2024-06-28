@@ -12,6 +12,7 @@
 */
 #include "JadeFrame/prelude.h"
 #include "JadeFrame/math/vec.h"
+#include "JadeFrame/graphics/reflect.h"
 #include <glad/glad.h>
 #include "opengl_texture.h"
 #include "../graphics_shared.h"
@@ -73,10 +74,11 @@ struct OGLW_Shader {
     OGLW_Shader(const OGLW_Shader&) = delete;
     auto operator=(const OGLW_Shader&) -> OGLW_Shader& = delete;
 
-    OGLW_Shader(OGLW_Shader&& other) noexcept = delete;
-    auto operator=(OGLW_Shader&&) -> OGLW_Shader& = delete;
+    OGLW_Shader(OGLW_Shader&& other) noexcept;
+    auto operator=(OGLW_Shader&&) noexcept -> OGLW_Shader&;
 
-    explicit OGLW_Shader(const GLenum type);
+    explicit OGLW_Shader(const GLenum type, const std::vector<u32>& binary);
+
     // OGLW_Shader(const GLenum type, const std::string& source_code);
 
     auto set_source(const std::string& source_code) -> void;
@@ -89,6 +91,9 @@ struct OGLW_Shader {
 
 public:
     GLuint m_ID = 0;
+    // SHADER_STAGE     m_stage = SHADER_STAGE::VERTEX;
+    // std::vector<u32> m_spirv;
+    // ReflectedModule  m_reflected;
 
 private:
     auto release() -> GLuint;

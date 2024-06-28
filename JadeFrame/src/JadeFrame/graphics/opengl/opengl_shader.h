@@ -43,10 +43,7 @@ public:
 
 public:
     OGLW_Program m_program;
-    OGLW_Shader  m_vertex_shader;
-    OGLW_Shader  m_fragment_shader;
-    std::string  m_vertex_source;
-    std::string  m_fragment_source;
+    std::vector<OGLW_Shader> m_shaders;
 
     OpenGL_Context* m_context;
 

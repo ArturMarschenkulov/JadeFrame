@@ -9,4 +9,6 @@ auto remap_for_opengl(
     SHADER_STAGE                      stage,
     std::string*                      out_source
 ) -> ShadingCode::Module::SPIRV;
+auto convert_SPIRV_to_GLSL(const std::vector<u32>& spirv) -> std::string;
+
 } // namespace JadeFrame

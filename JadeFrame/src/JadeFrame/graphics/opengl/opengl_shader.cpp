@@ -31,16 +31,6 @@ static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
 
 namespace opengl {
 
-static auto convert_SPIRV_to_GLSL(const std::vector<u32>& spirv) -> std::string {
-    spirv_cross::CompilerGLSL          glsl(spirv);
-    spirv_cross::CompilerGLSL::Options options;
-    options.version = 450;
-    options.es = false;
-    options.vulkan_semantics = false;
-    glsl.set_common_options(options);
-    return glsl.compile();
-}
-
 static auto get_vertex_attributes(const ReflectedCode& reflected_code)
     -> std::vector<Shader::VertexAttribute> {
     std::vector<Shader::VertexAttribute> result;
@@ -74,45 +64,38 @@ static auto get_uniforms(const ReflectedCode& reflected_code)
     return result;
 }
 
+static auto to_opengl_shader_stage(SHADER_STAGE type) -> GLenum {
+    switch (type) {
+        case SHADER_STAGE::VERTEX: return GL_VERTEX_SHADER;
+        case SHADER_STAGE::FRAGMENT: return GL_FRAGMENT_SHADER;
+        case SHADER_STAGE::GEOMETRY: return GL_GEOMETRY_SHADER;
+        case SHADER_STAGE::COMPUTE: return GL_COMPUTE_SHADER;
+        default: assert(false); return 0;
+    }
+}
+
 Shader::Shader(OpenGL_Context& context, const Desc& desc)
-    : m_vertex_shader(GL_VERTEX_SHADER)
-    , m_fragment_shader(GL_FRAGMENT_SHADER)
-    , m_context(&context) {
+    : m_context(&context) {
 
     JF_ASSERT(
         desc.code.m_modules.size() == 2,
         "OpenGL Shaders must have 2 modules for right now"
     );
 
-#define JF_USE_SPIRV false
-    if constexpr (JF_USE_SPIRV == true) {
-        // NOTE: On some machines the drives won't allow it!!
-        m_fragment_shader.set_binary(desc.code.m_modules[0].m_code);
-        m_fragment_shader.compile_binary();
+    m_shaders.resize(2);
 
-        m_vertex_shader.set_binary(desc.code.m_modules[1].m_code);
-        m_vertex_shader.compile_binary();
-    } else {
-        std::array<std::string, 2> glsl_sources;
-        for (size_t i = 0; i < desc.code.m_modules.size(); i++) {
-            const auto& spirv = desc.code.m_modules[i].m_code;
-            glsl_sources[i] = convert_SPIRV_to_GLSL(spirv);
-        }
-
-        m_vertex_source = glsl_sources[0];
-        m_fragment_source = glsl_sources[1];
-
-        m_vertex_shader.set_source(m_vertex_source);
-        m_vertex_shader.compile();
-
-        m_fragment_shader.set_source(m_fragment_source);
-        m_fragment_shader.compile();
+    for (u32 i = 0; i < desc.code.m_modules.size(); i++) {
+        const auto& module_ = desc.code.m_modules[i];
+        const auto& spirv = module_.m_code;
+        const auto& type = to_opengl_shader_stage(module_.m_stage);
+        m_shaders[i] = OGLW_Shader(type, spirv);
+        m_program.attach(m_shaders[i]);
     }
-#undef JF_USE_SPIRV
-    Logger::warn("OpenGL Shader compiled");
 
-    m_program.attach(m_vertex_shader);
-    m_program.attach(m_fragment_shader);
+    auto& vert_shader = m_shaders[0];
+    auto& frag_shader = m_shaders[1];
+
+    Logger::warn("OpenGL Shader compiled");
 
     const bool is_linked = m_program.link();
     if (!is_linked) {
@@ -126,8 +109,9 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
         Logger::log("{}", info_log);
     }
 
-    m_program.detach(m_vertex_shader);
-    m_program.detach(m_fragment_shader);
+    for(u32 i = 0; i < m_shaders.size(); i++) {
+        m_program.detach(m_shaders[i]);
+    }
 
     ReflectedCode ref = reflect(desc.code);
     m_vertex_attributes = get_vertex_attributes(ref);

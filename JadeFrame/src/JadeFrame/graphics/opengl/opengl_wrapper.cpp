@@ -2,6 +2,7 @@
 #include "opengl_wrapper.h"
 #include "opengl_buffer.h"
 #include "../graphics_shared.h"
+#include "../graphics_language.h"
 #include "opengl_context.h"
 
 #define GL_SHADER_BINARY_FORMAT_SPIR_V_ARB 0x9551
@@ -115,12 +116,42 @@ auto OGLW_VertexArray::set_attrib_binding(const u32 index, const u32 binding) co
 
 // OGLW_Shader::OGLW_Shader(OGLW_Shader&& other) noexcept : m_ID(other.release()) {
 // }
-OGLW_Shader::OGLW_Shader(const GLenum type)
-    : m_ID(glCreateShader(type)) {}
+
+static auto to_opengl_shader_stage(SHADER_STAGE type) -> GLenum {
+    switch (type) {
+        case SHADER_STAGE::VERTEX: return GL_VERTEX_SHADER;
+        case SHADER_STAGE::FRAGMENT: return GL_FRAGMENT_SHADER;
+        case SHADER_STAGE::GEOMETRY: return GL_GEOMETRY_SHADER;
+        case SHADER_STAGE::COMPUTE: return GL_COMPUTE_SHADER;
+        default: assert(false); return 0;
+    }
+}
+
+OGLW_Shader::OGLW_Shader(const GLenum type, const std::vector<u32>& binary)
+    : m_ID(glCreateShader(type)) {
+#define JF_USE_SPIRV false
+    if constexpr (JF_USE_SPIRV) {
+        this->set_binary(binary);
+        this->compile_binary();
+    } else {
+        auto s = convert_SPIRV_to_GLSL(binary);
+        this->set_source(s);
+        this->compile();
+    }
+#undef JF_USE_SPIRV
+}
+
+OGLW_Shader::OGLW_Shader(OGLW_Shader&& other) noexcept
+    : m_ID(other.release()) {}
+
+auto OGLW_Shader::operator=(OGLW_Shader&& other) noexcept -> OGLW_Shader& {
+    m_ID = other.release();
+    return *this;
+}
 
 OGLW_Shader::~OGLW_Shader() { this->reset(); }
 
-auto OGLW_Shader::release() -> GLuint {
+auto OGLW_Shader::OGLW_Shader::release() -> GLuint {
     GLuint ret = m_ID;
     m_ID = 0;
     return ret;
