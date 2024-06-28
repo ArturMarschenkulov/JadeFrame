@@ -115,10 +115,25 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
     render_commands.clear();
 }
 
+template<typename T>
+static auto to_opengl_type() -> GLenum {
+    if constexpr (std::is_same_v<T, f32>) {
+        return GL_FLOAT;
+    } else if constexpr (std::is_same_v<T, i32>) {
+        return GL_INT;
+    } else if constexpr (std::is_same_v<T, u32>) {
+        return GL_UNSIGNED_INT;
+    } else if constexpr (std::is_same_v<T, u8>) {
+        return GL_UNSIGNED_BYTE;
+    } else {
+        static_assert(false, "Unsupported type");
+    }
+}
+
 auto OpenGL_Renderer::render_mesh(
-    const VertexData*       vertex_data,
-    const GPUMeshData*      gpu_data,
-    const OGLW_VertexArray* vao
+    const VertexData*  vertex_data,
+    const GPUMeshData* gpu_data,
+    OGLW_VertexArray*  vao
 ) -> void {
     // TODO: Considering we are replicating Vulkan's way of doing things, the primitive
     // type should be defined in the pipeline or shader, and here it should be simply
@@ -127,23 +142,14 @@ auto OpenGL_Renderer::render_mesh(
     m_context.bind_vertex_array(*vao);
     vao->bind_buffer(*static_cast<opengl::Buffer*>(gpu_data->m_vertex_buffer->m_handle));
 
+    auto prim_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
     if (!vertex_data->m_indices.empty()) {
-        auto primitive_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
         auto num_indices = static_cast<GLsizei>(vertex_data->m_indices.size());
-        glDrawElements(
-            primitive_type,  // mode
-            num_indices,     // count
-            GL_UNSIGNED_INT, // type
-            nullptr          // indices
-        );
+        auto gl_type = to_opengl_type<u32>();
+        glDrawElements(prim_type, num_indices, gl_type, nullptr);
     } else {
-        auto primitive_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
         auto num_vertices = static_cast<GLsizei>(vertex_data->m_positions.size());
-        glDrawArrays(
-            primitive_type, // mode
-            0,              // first
-            num_vertices    // count
-        );
+        glDrawArrays(prim_type, 0, num_vertices);
     }
 }
 
@@ -164,6 +170,13 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+    Image image;
+    image.data = data;
+    image.width = width;
+    image.height = height;
+    image.num_components = 3;
+    // return image;
 
     auto c = [](const char* filename, i32 width, i32 height, u8* data) {
         stbi_write_png(filename, width, height, 3, data, 0);
@@ -223,8 +236,8 @@ auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* 
         {           "v_position", SHADER_TYPE::V_3_F32},
         {"v_texture_coordinates", SHADER_TYPE::V_2_F32}
     });
-    auto  flat_data = convert_into_data(vertex_data, true);
-    u32   data_size = static_cast<u32>(flat_data.size() * sizeof(f32));
+    auto         flat_data = convert_into_data(vertex_data, true);
+    u32          data_size = static_cast<u32>(flat_data.size() * sizeof(f32));
     m_vertex_buffer =
         context->create_buffer(opengl::Buffer::TYPE::VERTEX, flat_data.data(), data_size);
 

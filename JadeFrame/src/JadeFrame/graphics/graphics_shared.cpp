@@ -46,12 +46,14 @@ auto Image::operator=(Image&& other) noexcept -> Image& {
 
 static auto
 add_fourth_components(const u8* data, i32 width, i32 height, i32 num_components) -> u8* {
-    u8* new_data = new u8[width * height * 4];
-    for (i32 i = 0; i < width * height; i++) {
+    u32 size = width * height;
+    u32 size_in_bytes = size * 4;
+    u8* new_data = new u8[size_in_bytes];
+    for (i32 i = 0; i < size; i++) {
         new_data[i * 4 + 0] = data[i * num_components + 0];
         new_data[i * 4 + 1] = data[i * num_components + 1];
         new_data[i * 4 + 2] = data[i * num_components + 2];
-        new_data[i * 4 + 3] = 255;
+        new_data[i * 4 + 3] = 255_u8;
     }
     return new_data;
 }
@@ -276,7 +278,6 @@ auto ShaderHandle::set_uniform(const std::string& name, const void* data, size_t
     VertexAttribute
 ---------------------------*/
 
-
 /*---------------------------
     VertexFormat
 ---------------------------*/
@@ -296,6 +297,7 @@ auto VertexFormat::default_format() -> VertexFormat {
     });
     return result;
 }
+
 /*---------------------------
     RenderSystem
 ---------------------------*/
@@ -476,6 +478,36 @@ auto to_string(SHADER_TYPE type) -> const char* {
             return "";
             break;
     }
+}
+
+#include <dlfcn.h>
+
+static auto load_module(const char* path) -> void* {
+#if defined(JF_PLATFORM_LINUX)
+    return dlopen(path, RTLD_LAZY | RTLD_LOCAL);
+#elif defined(JF_PLATFORM_WINDOWS)
+#else
+    JF_UNIMPLEMENTED("");
+#endif
+}
+
+static auto get_program_path() -> std::string {
+    char    buf[1024] = {0};
+    ssize_t buf_size = readlink("/proc/self/exe", buf, sizeof(buf) /*- 1*/);
+
+    if (buf_size == -1) {
+        auto  error_code = errno;
+        char* error_str = std::strerror(error_code);
+        Logger::err(
+            "readlink(/proc/self/exe) failed with error code: {}: {}",
+            error_code,
+            error_str
+        );
+    }
+    std::string path = buf;
+    std::size_t path_end = path.find_last_of('/');
+    if (path_end != std::string::npos) { path.resize(path_end + 1); }
+    return path;
 }
 
 auto RenderSystem::list_available_graphics_apis() -> std::vector<GRAPHICS_API> {

@@ -226,6 +226,14 @@ public:
         bool has_normals = true;
     };
 
+
+
+    auto set_color(const RGBAColor& color) -> void {
+        auto num_vertices = m_positions.size();
+        m_colors.clear();
+        m_colors.resize(num_vertices, color);
+    }
+
     static auto make_line(const v3& pos1, const v3& pos2) -> VertexData;
 
     static auto make_rectangle(

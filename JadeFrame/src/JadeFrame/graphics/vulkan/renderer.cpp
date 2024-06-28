@@ -182,24 +182,24 @@ auto Vulkan_Renderer::render_mesh(
     const VertexData*  vertex_data,
     const GPUMeshData* gpu_data
 ) -> void {
-    vulkan::CommandBuffer& cb = m_frames[m_frame_index].m_cmd;
-    const auto& vertex_amount = static_cast<u32>(vertex_data->m_positions.size());
-    const auto& index_amount = static_cast<u32>(vertex_data->m_indices.size());
+    const auto& num_vertices = static_cast<u32>(vertex_data->m_positions.size());
+    const auto& num_indices = static_cast<u32>(vertex_data->m_indices.size());
 
     const vulkan::Buffer* vertex_buffer =
         static_cast<vulkan::Buffer*>(gpu_data->m_vertex_buffer->m_handle);
 
     // VkDeviceSize offsets[] = {0, 0};
-
+    
+    vulkan::CommandBuffer& cb = m_frames[m_frame_index].m_cmd;
     cb.bind_vertex_buffer(0, *vertex_buffer, 0);
 
     if (!vertex_data->m_indices.empty()) {
         const vulkan::Buffer* index_buffer =
             static_cast<vulkan::Buffer*>(gpu_data->m_index_buffer->m_handle);
         cb.bind_index_buffer(*index_buffer, 0);
-        cb.draw_indexed(index_amount, 1, 0, 0, 0);
+        cb.draw_indexed(num_indices, 1, 0, 0, 0);
     } else {
-        cb.draw(vertex_amount, 1, 0, 0);
+        cb.draw(num_vertices, 1, 0, 0);
     }
 }
 
