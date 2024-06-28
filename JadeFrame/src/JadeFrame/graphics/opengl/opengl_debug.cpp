@@ -18,7 +18,7 @@ auto opengl_message_callback(
 ) -> void {
     std::string _source;
 #define foo(name)                                                                        \
-    case name: _source = #name[sizeof("GL_DEBUG_SOURCE_") - 1]; break
+    case name: _source = #name; break
     switch (source) {
         foo(GL_DEBUG_SOURCE_API);
         foo(GL_DEBUG_SOURCE_WINDOW_SYSTEM);
@@ -32,7 +32,7 @@ auto opengl_message_callback(
 
     std::string _type;
 #define foo(name)                                                                        \
-    case name: _type = #name[sizeof("GL_DEBUG_TYPE_") - 1]; break
+    case name: _type = #name; break
     switch (type) {
         foo(GL_DEBUG_TYPE_ERROR);
         foo(GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR);
@@ -51,7 +51,8 @@ auto opengl_message_callback(
 
     std::string _severity;
 #define foo(name)                                                                        \
-    case name: _type = #name[sizeof("GL_DEBUG_SEVERITY_") - 1]; break
+    case name: _severity = #name; break
+
     switch (severity) {
         foo(GL_DEBUG_SEVERITY_HIGH);
         foo(GL_DEBUG_SEVERITY_MEDIUM);
@@ -76,8 +77,8 @@ auto opengl_message_callback(
 GL_ERR: Source: {} 
 | Type: {} 
 | ID: {} 
-| Severity {} 
-| Message {}
+| Severity: {} 
+| Message: {}
 |-----------------------------------------|
 )",
             _source,

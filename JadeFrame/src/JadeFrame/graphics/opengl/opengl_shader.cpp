@@ -60,9 +60,9 @@ static auto get_uniforms(const ReflectedCode& reflected_code)
     -> std::vector<Shader::Uniform> {
     std::vector<Shader::Uniform> result;
     for (size_t i = 0; i < reflected_code.m_modules.size(); i++) {
-        auto& module = reflected_code.m_modules[i];
+        const auto& module = reflected_code.m_modules[i];
         for (size_t j = 0; j < module.m_uniform_buffers.size(); j++) {
-            auto& uniform_buffer = module.m_uniform_buffers[j];
+            const auto& uniform_buffer = module.m_uniform_buffers[j];
 
             Shader::Uniform uniform;
             uniform.name = uniform_buffer.name;

@@ -12,10 +12,12 @@
     #include <GL/glx.h>
 #endif
 
+#ifdef _WIN32
 struct HGLRC__;
-typedef HGLRC__* HGLRC;
+using HGLRC = HGLRC__*;
 struct HDC__;
-typedef HDC__* HDC;
+using HDC = HDC__*;
+#endif
 
 namespace JadeFrame {
 
@@ -101,6 +103,9 @@ public:
 public:
     mutable GL_State m_state;
 
+    template<typename T, typename U>
+    using HashMap = std::unordered_map<T, U>;
+
     std::string              vendor;
     std::string              renderer;
     std::string              version;
@@ -116,43 +121,38 @@ public:
     // Resource creation
     auto create_texture() -> opengl::Texture*;
     auto create_texture(void* data, v2u32 size, u32 component_num) -> opengl::Texture*;
-    auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
-        -> opengl::Buffer*;
-    auto create_framebuffer() -> opengl::Framebuffer*;
-    auto create_renderbuffer() -> opengl::Renderbuffer*;
-
     auto bind_texture(opengl::Texture& texture, u32 unit) -> void;
     auto unbind_texture() -> void;
 
-    opengl::Texture* m_bound_texture = nullptr;
+    opengl::Texture*              m_bound_texture = nullptr;
+    std::vector<opengl::Texture*> m_textures = {};
+    std::vector<u32>              m_texture_units;
 
-    auto bind_vertex_array(OGLW_VertexArray& vao) -> void;
-    auto unbind_vertex_array() -> void;
+    auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
+        -> opengl::Buffer*;
+    // std::vector<opengl::Buffer> m_uniform_buffers;
 
-    OGLW_VertexArray* m_bound_vertex_array = nullptr;
+    std::vector<GLuint>          m_buffers;
+    GLuint                       m_bound_buffer;
+    HashMap<u32, opengl::Buffer> m_bufferss;
 
-    auto bind_shader(opengl::Shader& shader) -> void;
-    // auto unbind_shader() -> void {}
-
-    opengl::Shader* m_bound_shader = nullptr;
-
+    auto create_framebuffer() -> opengl::Framebuffer*;
     auto bind_framebuffer(opengl::Framebuffer& framebuffer) -> void;
     auto unbind_framebuffer() -> void;
 
     opengl::Framebuffer* m_bound_framebuffer;
 
-    // std::vector<opengl::Buffer> m_uniform_buffers;
+    auto create_renderbuffer() -> opengl::Renderbuffer*;
 
-    std::vector<GLuint> m_buffers;
-    GLuint              m_bound_buffer;
+    auto bind_vertex_array(OGLW_VertexArray& vao) -> void;
+    auto unbind_vertex_array() -> void;
 
-    std::vector<opengl::Texture*> m_textures = {};
-    std::vector<u32>              m_texture_units;
-
-    template<typename T, typename U>
-    using HashMap = std::unordered_map<T, U>;
-
-    HashMap<u32, opengl::Buffer>   m_bufferss;
+    OGLW_VertexArray*              m_bound_vertex_array = nullptr;
     HashMap<u32, OGLW_VertexArray> m_vertex_arrays;
+
+    auto bind_shader(opengl::Shader& shader) -> void;
+    // auto unbind_shader() -> void {}
+
+    opengl::Shader* m_bound_shader = nullptr;
 };
 } // namespace JadeFrame
