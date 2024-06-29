@@ -251,7 +251,6 @@ public:
 
     struct Desc {
         ShadingCode  shading_code;
-        VertexFormat vertex_format;
     };
 
     explicit ShaderHandle(const Desc& desc);
@@ -260,7 +259,6 @@ public:
 
 public:
     ShadingCode  m_code;
-    VertexFormat m_vertex_format;
 
     GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
     void*        m_handle = nullptr;
@@ -406,7 +404,6 @@ public:
     struct Desc {
         SHADING_LANGUAGE shading_language;
         ShadingCode      code;
-        VertexFormat     vertex_format;
     };
 
 public:

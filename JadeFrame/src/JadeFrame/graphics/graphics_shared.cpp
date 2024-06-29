@@ -225,12 +225,10 @@ auto TextureHandle::init(void* context) -> void {
 ---------------------------*/
 
 ShaderHandle::ShaderHandle(const Desc& desc)
-    : m_code(desc.shading_code)
-    , m_vertex_format(desc.vertex_format) {}
+    : m_code(desc.shading_code) {}
 
 ShaderHandle::ShaderHandle(ShaderHandle&& other) noexcept
     : m_code(std::move(other.m_code))
-    , m_vertex_format(std::move(other.m_vertex_format))
     , m_api(other.m_api)
     , m_handle(other.m_handle) {
 
@@ -242,7 +240,6 @@ ShaderHandle::ShaderHandle(ShaderHandle&& other) noexcept
 
 auto ShaderHandle::operator=(ShaderHandle&& other) noexcept -> ShaderHandle& {
     m_code = other.m_code;
-    m_vertex_format = other.m_vertex_format;
     m_api = other.m_api;
     m_handle = other.m_handle;
 
@@ -392,7 +389,6 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
     m_registered_shaders.emplace_back();
     auto& shader = m_registered_shaders.back();
     shader.m_code = desc.shading_code;
-    shader.m_vertex_format = desc.vertex_format;
     shader.m_api = m_api;
 
     switch (m_api) {
@@ -420,7 +416,6 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
             shader_desc.code.m_modules.resize(2);
             shader_desc.code.m_modules[0] = std::move(mod_0);
             shader_desc.code.m_modules[1] = std::move(mod_1);
-            shader_desc.vertex_format = shader.m_vertex_format;
 
             shader.m_handle = new opengl::Shader(*ctx, shader_desc);
 
@@ -433,7 +428,6 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
 
             Vulkan_Shader::Desc shader_desc;
             shader_desc.code = shader.m_code;
-            shader_desc.vertex_format = shader.m_vertex_format;
 
             shader.m_handle = new Vulkan_Shader(*ctx, *ren, shader_desc);
         } break;

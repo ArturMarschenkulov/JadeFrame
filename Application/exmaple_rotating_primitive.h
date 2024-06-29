@@ -28,10 +28,7 @@ auto Example_Rotating_Primitive::on_init() -> void {
 
     ShaderHandle::Desc shader_desc;
     shader_desc.shading_code = GLSLCodeLoader::get_by_name("spirv_test_1");
-    shader_desc.vertex_format = VertexFormat({
-        {"v_position", SHADER_TYPE::V_3_F32},
-        {   "v_color", SHADER_TYPE::V_4_F32},
-    });
+
     ShaderHandle*   shader = m_render_system.register_shader(shader_desc);
     MaterialHandle* material = m_render_system.register_material(shader, nullptr);
 
@@ -91,7 +88,7 @@ auto Example_Rotating_Primitive::on_update() -> void {
 }
 
 auto Example_Rotating_Primitive::on_draw() -> void {
-    m_render_system.submit(m_obj); // rainbow triangle
+    m_render_system.submit(m_obj);   // rainbow triangle
     m_render_system.submit(m_obj_2); // yellow triangle
 }
 

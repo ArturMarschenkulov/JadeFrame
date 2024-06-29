@@ -232,18 +232,13 @@ auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* 
     vdf_desc.has_normals = false;
     VertexData vertex_data =
         VertexData::make_rectangle({-1.0F, -1.0F, 0.0F}, {2.0F, 2.0F, 0.0F}, vdf_desc);
-    VertexFormat layout = VertexFormat({
-        {           "v_position", SHADER_TYPE::V_3_F32},
-        {"v_texture_coordinates", SHADER_TYPE::V_2_F32}
-    });
-    auto         flat_data = convert_into_data(vertex_data, true);
-    u32          data_size = static_cast<u32>(flat_data.size() * sizeof(f32));
+    auto flat_data = convert_into_data(vertex_data, true);
+    u32  data_size = static_cast<u32>(flat_data.size() * sizeof(f32));
     m_vertex_buffer =
         context->create_buffer(opengl::Buffer::TYPE::VERTEX, flat_data.data(), data_size);
 
     ShaderHandle::Desc shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
-    shader_handle_desc.vertex_format = layout;
 
     m_shader = system->register_shader(shader_handle_desc);
 }

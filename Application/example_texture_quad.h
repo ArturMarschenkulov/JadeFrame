@@ -27,11 +27,7 @@ auto Example_Texture_Quad::on_init() -> void {
 
     ShaderHandle::Desc shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("with_texture_0");
-    shader_handle_desc.vertex_format = VertexFormat({
-        {     "v_position", SHADER_TYPE::V_3_F32},
-        {        "v_color", SHADER_TYPE::V_4_F32},
-        {"v_texture_coord", SHADER_TYPE::V_2_F32},
-    });
+
     auto* shader = m_render_system.register_shader(shader_handle_desc);
 
     const f32 s = 0.5F;

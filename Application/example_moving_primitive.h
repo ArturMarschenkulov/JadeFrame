@@ -32,14 +32,9 @@ auto Example_Moving_Primitive::on_init() -> void {
     u32  win_width = m_windows[0]->get_size().x;
     auto block_width = win_width / (f32)block_count;
 
-    auto format = VertexFormat({
-        {"v_position", SHADER_TYPE::V_3_F32},
-        {   "v_color", SHADER_TYPE::V_4_F32},
-    });
-
     ShaderHandle::Desc shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("spirv_test_1");
-    shader_handle_desc.vertex_format = format;
+
     auto*           shader = m_render_system.register_shader(shader_handle_desc);
     MaterialHandle* material = m_render_system.register_material(shader, nullptr);
 
