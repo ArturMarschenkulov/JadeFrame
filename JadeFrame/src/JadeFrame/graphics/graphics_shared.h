@@ -52,12 +52,17 @@ inline auto to_string(GRAPHICS_API api) -> const char* {
         default: assert(false); return "UNKNOWN";
     }
 }
+
+// NOTE: Since GLSL and SPIRV are slightly different for both opengl and vulkan, they are
+// treated like different shading languages here.
 enum class SHADING_LANGUAGE {
     // High level
-    GLSL,
+    GLSL_VULKAN,
+    GLSL_OPENGL,
     HLSL,
     // Low level
-    SPIRV
+    SPIRV_VULKAN,
+    SPIRV_OPENGL,
 };
 enum class SHADER_STAGE {
     VERTEX,

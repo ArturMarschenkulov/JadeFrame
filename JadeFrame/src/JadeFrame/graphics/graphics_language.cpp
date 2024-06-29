@@ -60,37 +60,32 @@ auto remap_for_opengl(
     compiler.set_common_options(options);
     spv_c::ShaderResources resources = compiler.get_shader_resources();
 
-    std::array<std::vector<spv_c::Resource*>, 4> resource_sets;
+    using Set = std::vector<spv_c::Resource*>;
+    std::array<Set, 4> sets;
     for (u32 j = 0; j < resources.uniform_buffers.size(); j++) {
         spv_c::Resource& ub = resources.uniform_buffers[j];
 
-        u32 set_index = compiler.get_decoration(ub.id, spv::DecorationDescriptorSet);
+        u32 set = compiler.get_decoration(ub.id, spv::DecorationDescriptorSet);
         u32 binding = compiler.get_decoration(ub.id, spv::DecorationBinding);
-        JF_ASSERT(
-            set_index <= 3,
-            "As of right now, only 4 descriptor sets are supported. (0, 1, 2, 3)"
-        );
+        JF_ASSERT(set <= 3, "Only 4 descriptor sets are supported. (0, 1, 2, 3)");
 
-        resource_sets[set_index].push_back(&ub);
+        sets[set].push_back(&ub);
     }
     // What would be uniform Sampler2D?
     for (u32 j = 0; j < resources.sampled_images.size(); j++) {
         spv_c::Resource& si = resources.sampled_images[j];
 
-        u32 set_index = compiler.get_decoration(si.id, spv::DecorationDescriptorSet);
+        u32 set = compiler.get_decoration(si.id, spv::DecorationDescriptorSet);
         u32 binding = compiler.get_decoration(si.id, spv::DecorationBinding);
-        JF_ASSERT(
-            set_index <= 3,
-            "As of right now, only 4 descriptor sets are supported. (0, 1, 2, 3)"
-        );
+        JF_ASSERT(set <= 3, "Only 4 descriptor sets are supported. (0, 1, 2, 3)");
 
-        resource_sets[set_index].push_back(&si);
+        sets[set].push_back(&si);
     }
 
     u32 binding = 0;
-    for (u32 i = 0; i < resource_sets.size(); i++) {
-        for (u32 j = 0; j < resource_sets[i].size(); j++) {
-            spv_c::Resource* ub = resource_sets[i][j];
+    for (u32 i = 0; i < sets.size(); i++) {
+        for (u32 j = 0; j < sets[i].size(); j++) {
+            spv_c::Resource* ub = sets[i][j];
             compiler.unset_decoration(ub->id, spv::DecorationDescriptorSet);
             // compiler.set_decoration(ub->id, spv::DecorationDescriptorSet, 0);
             compiler.set_decoration(ub->id, spv::DecorationBinding, binding);
@@ -98,7 +93,7 @@ auto remap_for_opengl(
         }
     }
     auto source = compiler.compile();
-    *out_source = source;
+    if (out_source != nullptr) { *out_source = source; }
     return GLSL_to_SPIRV(source, stage, GRAPHICS_API::OPENGL);
 }
 

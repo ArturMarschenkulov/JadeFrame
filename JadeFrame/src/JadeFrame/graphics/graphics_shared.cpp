@@ -403,15 +403,15 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
 
             std::string         v_source;
             ShadingCode::Module mod_0;
-            const auto&         v_code = shader.m_code.m_modules[0].m_code;
-            mod_0.m_code = remap_for_opengl(v_code, SHADER_STAGE::VERTEX, &v_source);
-            mod_0.m_stage = SHADER_STAGE::VERTEX;
+            auto&               vert_mod = shader.m_code.m_modules[0];
+            mod_0.m_code = remap_for_opengl(vert_mod.m_code, vert_mod.m_stage, nullptr);
+            mod_0.m_stage = vert_mod.m_stage;
 
             std::string         f_source;
             ShadingCode::Module mod_1;
-            const auto&         f_code = shader.m_code.m_modules[1].m_code;
-            mod_1.m_code = remap_for_opengl(f_code, SHADER_STAGE::FRAGMENT, &f_source);
-            mod_1.m_stage = SHADER_STAGE::FRAGMENT;
+            auto&               frag_mod = shader.m_code.m_modules[1];
+            mod_1.m_code = remap_for_opengl(frag_mod.m_code, frag_mod.m_stage, nullptr);
+            mod_1.m_stage = frag_mod.m_stage;
 
             shader_desc.code.m_modules.resize(2);
             shader_desc.code.m_modules[0] = std::move(mod_0);
@@ -419,8 +419,8 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
 
             shader.m_handle = new opengl::Shader(*ctx, shader_desc);
 
-            Logger::warn("Vertex source:\n {}", v_source);
-            Logger::warn("Fragment source:\n {}", f_source);
+            // Logger::warn("Vertex source:\n {}", v_source);
+            // Logger::warn("Fragment source:\n {}", f_source);
         } break;
         case GRAPHICS_API::VULKAN: {
             auto*                  ren = dynamic_cast<Vulkan_Renderer*>(m_renderer);

@@ -453,7 +453,7 @@ auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
     auto [vs, fs] = shader_tuple;
     ShadingCode code;
     auto        api = GRAPHICS_API::VULKAN;
-    code.m_shading_language = SHADING_LANGUAGE::GLSL;
+    code.m_shading_language = SHADING_LANGUAGE::GLSL_VULKAN;
     code.m_modules.resize(2);
     code.m_modules[0].m_stage = SHADER_STAGE::VERTEX;
     code.m_modules[0].m_code = GLSL_to_SPIRV(vs, SHADER_STAGE::VERTEX, api);
