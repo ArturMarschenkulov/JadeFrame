@@ -5,6 +5,8 @@
 #include "../graphics_language.h"
 #include "opengl_context.h"
 
+#include "JadeFrame/graphics/reflect.h"
+
 #define GL_SHADER_BINARY_FORMAT_SPIR_V_ARB 0x9551
 
 namespace JadeFrame {
@@ -59,7 +61,7 @@ static auto SHADER_TYPE_to_openGL_type(const SHADER_TYPE type) -> GLenum {
 
 auto OGLW_VertexArray::bind_buffer(const opengl::Buffer& buffer) const -> void {
     // Check whether this vao is bound
-    
+
     glVertexArrayVertexBuffer(
         m_ID, 0, buffer.m_id, 0, static_cast<GLsizei>(m_vertex_format.m_stride)
     );
@@ -128,7 +130,8 @@ static auto to_opengl_shader_stage(SHADER_STAGE type) -> GLenum {
 }
 
 OGLW_Shader::OGLW_Shader(const GLenum type, const std::vector<u32>& binary)
-    : m_ID(glCreateShader(type)) {
+    : m_ID(glCreateShader(type))
+    , m_reflected(ReflectedModule::reflect(binary)) {
 #define JF_USE_SPIRV false
     if constexpr (JF_USE_SPIRV) {
         this->set_binary(binary);
@@ -142,10 +145,16 @@ OGLW_Shader::OGLW_Shader(const GLenum type, const std::vector<u32>& binary)
 }
 
 OGLW_Shader::OGLW_Shader(OGLW_Shader&& other) noexcept
-    : m_ID(other.release()) {}
+    : m_ID(other.release())
+    , m_reflected(std::move(other.m_reflected)) {
+    other.m_reflected = {};
+}
 
 auto OGLW_Shader::operator=(OGLW_Shader&& other) noexcept -> OGLW_Shader& {
     m_ID = other.release();
+    m_reflected = std::move(other.m_reflected);
+
+    other.m_reflected = {};
     return *this;
 }
 

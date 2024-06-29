@@ -51,6 +51,8 @@ struct ReflectedModule {
     std::vector<SampledImage>  m_sampled_images;
     // std::vector<VkPushConstantRange> m_push_constant_ranges;
     static auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule;
+    static auto into_interface(const std::span<const ReflectedModule>& modules)
+        -> ReflectedModule;
     auto get_vertex_format() -> VertexFormat;
 };
 
@@ -59,5 +61,4 @@ struct ReflectedCode {
 };
 
 auto reflect(const ShadingCode& code) -> ReflectedCode;
-auto reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule;
 } // namespace JadeFrame

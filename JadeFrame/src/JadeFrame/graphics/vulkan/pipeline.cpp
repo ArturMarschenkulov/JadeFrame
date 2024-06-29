@@ -540,51 +540,6 @@ static auto get_reflected_modules(const std::vector<ShaderModule>& modules)
     return reflected_modules;
 }
 
-// Takes in modules and returns a single module which is the interface to the whole
-// pipeline, that is only the actually interactible points are exposed.
-static auto combine_modules_into_interface(const std::span<const ReflectedModule>& modules
-) -> ReflectedModule {
-    ReflectedModule                result = {};
-    std::set<u32>                  input_locs;
-    std::set<u32>                  output_locs;
-    std::set<std::tuple<u32, u32>> uniform_locs;
-
-    for (size_t i = 0; i < modules.size(); i++) {
-        const auto& mod = modules[i];
-
-        for (size_t j = 0; j < mod.m_inputs.size(); j++) {
-            const auto& input = mod.m_inputs[j];
-            if (!input_locs.contains(input.location)) {
-                result.m_inputs.push_back(input);
-                input_locs.insert(input.location);
-            }
-        }
-
-        for (int j = (int)mod.m_outputs.size() - 1; j >= 0; j--) {
-            const auto& output = mod.m_outputs[j];
-            if (!output_locs.contains(output.location)) {
-                result.m_outputs.push_back(output);
-                output_locs.insert(output.location);
-            }
-        }
-
-        for (size_t j = 0; j < mod.m_uniform_buffers.size(); j++) {
-            const auto& uniform = mod.m_uniform_buffers[j];
-            if (!uniform_locs.contains({uniform.set, uniform.binding})) {
-                result.m_uniform_buffers.push_back(uniform);
-                uniform_locs.insert({uniform.set, uniform.binding});
-            } else {
-                // This means that the same set and binding is used in another module.
-                // TODO: As of right now we won't do anything about it, however in the
-                // future we will create extra requirements so that one can't make dumb
-                // mistakes.
-            }
-        }
-    }
-
-    return result;
-}
-
 static auto extract_descriptor_set_layouts(
     const std::span<ReflectedModule>& modules,
     const LogicalDevice&              device
@@ -637,8 +592,7 @@ Pipeline::Pipeline(
     }
 
     auto reflected_modules = get_reflected_modules(modules);
-    auto module_interface = combine_modules_into_interface(reflected_modules);
-    m_reflected_interface = std::move(module_interface);
+    m_reflected_interface = ReflectedModule::into_interface(reflected_modules);
     auto vf = m_reflected_interface.get_vertex_format();
 
     /*

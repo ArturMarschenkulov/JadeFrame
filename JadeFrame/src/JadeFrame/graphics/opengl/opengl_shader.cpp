@@ -74,6 +74,16 @@ static auto to_opengl_shader_stage(SHADER_STAGE type) -> GLenum {
     }
 }
 
+static auto get_reflected_modules(const std::vector<OGLW_Shader>& modules)
+    -> std::vector<ReflectedModule> {
+    std::vector<ReflectedModule> reflected_modules;
+    reflected_modules.resize(modules.size());
+    for (u32 i = 0; i < modules.size(); i++) {
+        reflected_modules[i] = modules[i].m_reflected;
+    }
+    return reflected_modules;
+}
+
 Shader::Shader(OpenGL_Context& context, const Desc& desc)
     : m_context(&context) {
 
@@ -91,31 +101,34 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
         m_shaders[i] = OGLW_Shader(type, spirv);
         m_program.attach(m_shaders[i]);
     }
+    auto reflected_modules = get_reflected_modules(m_shaders);
+    auto reflected_interface = ReflectedModule::into_interface(reflected_modules);
+    auto vf = reflected_interface.get_vertex_format();
 
-    auto& vert_shader = m_shaders[0];
-    auto& frag_shader = m_shaders[1];
+    m_vertex_array = OGLW_VertexArray(&context, vf);
 
     Logger::warn("OpenGL Shader compiled");
 
-    const bool is_linked = m_program.link();
-    if (!is_linked) {
+    if (!m_program.link()) {
         std::string info_log = m_program.get_info_log();
         Logger::log("{}", info_log);
     }
 
-    const bool is_validated = m_program.validate();
-    if (!is_validated) {
+    if (!m_program.validate()) {
         std::string info_log = m_program.get_info_log();
         Logger::log("{}", info_log);
     }
 
-    for(u32 i = 0; i < m_shaders.size(); i++) {
-        m_program.detach(m_shaders[i]);
-    }
+    for (u32 i = 0; i < m_shaders.size(); i++) { m_program.detach(m_shaders[i]); }
+
+    // Now the shader is ready to be used
 
     ReflectedCode ref = reflect(desc.code);
     m_vertex_attributes = get_vertex_attributes(ref);
     m_uniforms = get_uniforms(ref);
+
+    // Here we create the various graphics objects
+
     // NOTE: The binding points will be somehow abstracted, since the high level will
     // mimick the vulkan model and the vulkan combines sets and bindings points, while
     // opengl has only binding points. That is while vulkan might have something like
@@ -131,8 +144,6 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
         buffer->bind_base(location);
         m_uniform_buffers.push_back(buffer);
     }
-
-    m_vertex_array = OGLW_VertexArray(&context, desc.vertex_format);
 }
 
 static auto gl_type_enum_to_string(GLenum type) -> std::string {
