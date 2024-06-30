@@ -38,15 +38,26 @@ auto OpenGL_Context::unbind_vertex_array() -> void {
     m_bound_vertex_array = nullptr;
 }
 
-auto OpenGL_Context::bind_texture(opengl::Texture& texture, u32 unit) -> void {
-    if (m_bound_texture == &texture) { return; }
-    glBindTextureUnit(unit, texture.m_id);
-    m_bound_texture = &texture;
+auto OpenGL_Context::bind_texture_to_unit(opengl::Texture& texture, u32 unit) -> void {
+    // Search through `m_texture_units` and find `unit`.
+    if (!m_texture_units.contains(unit)) {
+        glBindTextureUnit(unit, texture.m_id);
+        m_texture_units[unit] = &texture;
+    } else if (m_texture_units[unit] == &texture) {
+        return;
+    } else {
+        // // If the unit is already bound to another texture, unbind it first.
+        // unbind_texture_from_unit(*m_texture_units[unit], unit);
+        glBindTextureUnit(unit, texture.m_id);
+        m_texture_units[unit] = &texture;
+    }
 }
 
-auto OpenGL_Context::unbind_texture() -> void {
-    glBindTexture(GL_TEXTURE_2D, 0);
-    m_bound_texture = nullptr;
+auto OpenGL_Context::unbind_texture_from_unit(opengl::Texture& texture, u32 unit)
+    -> void {
+    
+    glBindTextureUnit(unit, 0);
+    m_texture_units[unit] = nullptr;
 }
 
 auto OpenGL_Context::create_texture() -> opengl::Texture* {
@@ -156,7 +167,6 @@ OpenGL_Context::OpenGL_Context(const Window* window)
 
     GLint max_texture_units = 0;
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_texture_units);
-    m_texture_units.resize(static_cast<u32>(max_texture_units), 0);
 }
 
 OpenGL_Context::~OpenGL_Context() {}

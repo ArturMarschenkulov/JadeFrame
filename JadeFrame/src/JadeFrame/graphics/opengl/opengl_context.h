@@ -1,6 +1,7 @@
 #pragma once
 #include <glad/glad.h>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include "JadeFrame/graphics/mesh.h" // For Color
 #include "opengl_buffer.h"
@@ -121,12 +122,10 @@ public:
     // Resource creation
     auto create_texture() -> opengl::Texture*;
     auto create_texture(void* data, v2u32 size, u32 component_num) -> opengl::Texture*;
-    auto bind_texture(opengl::Texture& texture, u32 unit) -> void;
-    auto unbind_texture() -> void;
-
-    opengl::Texture*              m_bound_texture = nullptr;
-    std::vector<opengl::Texture*> m_textures = {};
-    std::vector<u32>              m_texture_units;
+    auto bind_texture_to_unit(opengl::Texture& texture, u32 unit) -> void;
+    auto unbind_texture_from_unit(opengl::Texture& texture, u32 unit) -> void;
+    std::unordered_map<u32, opengl::Texture*> m_texture_units;
+    std::vector<opengl::Texture*>             m_textures = {};
 
     auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
         -> opengl::Buffer*;

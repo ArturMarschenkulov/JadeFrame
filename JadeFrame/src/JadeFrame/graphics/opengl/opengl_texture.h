@@ -32,30 +32,27 @@ public:
     auto resize(u32 width, u32 height, u32 depth) -> void;
 
     auto generate_mipmap() const -> void;
-    auto set_parameters(GLenum pname, GLint param) const -> void;
+    auto set_parameters(GLenum pname, GLenum param) const -> void;
     auto set_image(
         GLint       level,
-        GLint       internalformat,
+        GLenum      internal_format,
         u32         size,
-        GLint       border,
         GLenum      format,
         GLenum      type,
         const void* pixels
     ) -> void;
     auto set_image(
         GLint       level,
-        GLint       internalformat,
+        GLenum      internal_format,
         v2u32       size,
-        GLint       border,
         GLenum      format,
         GLenum      type,
         const void* pixels
     ) -> void;
     auto set_image(
         GLint       level,
-        GLint       internalformat,
+        GLenum      internal_format,
         v3u32       size,
-        GLint       border,
         GLenum      format,
         GLenum      type,
         const void* pixels

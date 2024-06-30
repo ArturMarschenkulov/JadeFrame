@@ -98,7 +98,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
             auto* texture = static_cast<opengl::Texture*>(mh.m_texture->m_handle);
 
             u32 texture_unit = 0;
-            m_context.bind_texture(*texture, texture_unit);
+            m_context.bind_texture_to_unit(*texture, texture_unit);
         }
 
         OpenGL_Renderer::render_mesh(
@@ -202,8 +202,7 @@ auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* 
         const v2u32 size = context->m_state.viewport[1];
 
         m_texture = context->create_texture();
-        context->bind_texture(*m_texture, 0);
-        m_texture->set_image(0, GL_RGB, size, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        m_texture->set_image(0, GL_RGB8, size, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
         m_texture->set_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         m_texture->set_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         m_texture->set_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -248,7 +247,7 @@ auto OpenGL_Renderer::RenderTarget::render(RenderSystem* system) -> void {
     ShaderHandle& sh_ = *m_shader;
     auto*         sh = static_cast<opengl::Shader*>(sh_.m_handle);
     m_context->bind_shader(*sh);
-    m_context->bind_texture(*m_texture, 0);
+    m_context->bind_texture_to_unit(*m_texture, 0);
     m_context->bind_vertex_array(sh->m_vertex_array);
     sh->m_vertex_array.bind_buffer(*m_vertex_buffer);
 

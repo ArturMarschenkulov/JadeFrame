@@ -19,16 +19,19 @@ auto Texture::operator=(Texture&& other) noexcept -> Texture& {
     return *this;
 }
 
-Texture::Texture(OpenGL_Context&) { glCreateTextures(GL_TEXTURE_2D, 1, &m_id); }
+Texture::Texture(OpenGL_Context& context)
+    : m_context(&context) {
+    glCreateTextures(GL_TEXTURE_2D, 1, &m_id);
+}
 
 Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_num)
     : m_size(size)
     , m_context(&context) {
 
-    GLenum format_ = {};
+    GLenum internal_format = {};
     switch (component_num) {
-        case 3: format_ = GL_RGB; break;
-        case 4: format_ = GL_RGBA; break;
+        case 3: internal_format = GL_RGB8; break;
+        case 4: internal_format = GL_RGBA8; break;
         default:
             Logger::err(
                 "TextureHandle::init() - Unsupported number of components: {}",
@@ -36,15 +39,24 @@ Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_
             );
             assert(false);
     }
-    m_internal_format = format_;
-    m_format = format_;
+
+    GLenum format = {};
+    switch (component_num) {
+        case 3: format = GL_RGB; break;
+        case 4: format = GL_RGBA; break;
+        default:
+            Logger::err(
+                "TextureHandle::init() - Unsupported number of components: {}",
+                component_num
+            );
+            assert(false);
+    }
+    m_internal_format = internal_format;
+    m_format = format;
     m_type = GL_UNSIGNED_BYTE;
 
     glCreateTextures(GL_TEXTURE_2D, 1, &m_id);
     Logger::warn("TextureHandle::init() - Texture created sjknmlml");
-
-    context.bind_texture(*this, 0);
-
     /*
         GL_TEXTURE_WRAP_S and GL_TEXTURE_WRAP_T define how the texture should
        behave when the texture coordinates are outside the range [0, 1].
@@ -75,11 +87,10 @@ Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_
     // this->set_texture_min_filter(GL_LINEAR)
     // this->set_texture_mag_filter(GL_LINEAR)
 
-    this->set_image(0, format_, size, 0, format_, m_type, data);
+    this->set_image(0, internal_format, size, format, m_type, data);
     // if (m_mipmapping) {
     this->generate_mipmap();
     //}
-    context.unbind_texture();
 }
 
 Texture::Texture(Texture&& other) noexcept
@@ -93,66 +104,64 @@ Texture::~Texture() { this->reset(); }
 
 auto Texture::generate_mipmap() const -> void { glGenerateTextureMipmap(m_id); }
 
-auto Texture::set_parameters(GLenum pname, GLint param) const -> void {
+auto Texture::set_parameters(GLenum pname, GLenum param) const -> void {
     glTextureParameteri(m_id, pname, param);
 }
 
 auto Texture::set_image(
     GLint       level,
-    GLint       internalformat,
+    GLenum      internal_format,
     u32         size,
-    GLint       border,
     GLenum      format,
     GLenum      type,
     const void* pixels
 ) -> void {
-    glTexImage1D(
-        GL_TEXTURE_2D, level, internalformat, size, border, format, type, pixels
-    );
+    assert(size > 0);
+    i32 size_i = static_cast<i32>(size);
+    glTextureStorage1D(m_id, 1, internal_format, size_i);
+    glTextureSubImage1D(m_id, level, 0, size_i, format, type, pixels);
 }
 
+// https://docs.gl/gl4/glTexStorage2D
+// https://docs.gl/gl4/glTexSubImage2D
+// https://docs.gl/gl4/glTexImage2D
 auto Texture::set_image(
     GLint       level,
-    GLint       internalformat,
+    GLenum      internal_format,
     v2u32       size,
-    GLint       border,
     GLenum      format,
     GLenum      type,
     const void* pixels
 ) -> void {
-    glTexImage2D(
-        GL_TEXTURE_2D, level, internalformat, size.x, size.y, border, format, type, pixels
-    );
+    assert(size.x > 0 && size.y > 0);
+    i32 size_x = static_cast<i32>(size.x);
+    i32 size_y = static_cast<i32>(size.y);
+    glTextureStorage2D(m_id, 1, internal_format, size_x, size_y);
+    glTextureSubImage2D(m_id, level, 0, 0, size_x, size_y, format, type, pixels);
 }
 
 auto Texture::set_image(
     GLint       level,
-    GLint       internalformat,
+    GLenum      internal_format,
     v3u32       size,
-    GLint       border,
     GLenum      format,
     GLenum      type,
     const void* pixels
 ) -> void {
-    glTexImage3D(
-        GL_TEXTURE_2D,
-        level,
-        internalformat,
-        size.x,
-        size.y,
-        size.z,
-        border,
-        format,
-        type,
-        pixels
+    assert(size.x > 0 && size.y > 0 && size.z > 0);
+    i32 size_x = static_cast<i32>(size.x);
+    i32 size_y = static_cast<i32>(size.y);
+    i32 size_z = static_cast<i32>(size.z);
+    glTextureStorage3D(m_id, 1, internal_format, size_x, size_y, size_z);
+    glTextureSubImage3D(
+        m_id, level, 0, 0, 0, size_x, size_y, size_z, format, type, pixels
     );
 }
 
 auto Texture::resize(u32 width, u32 height, u32 /*depth*/) -> void {
 
-    m_context->bind_texture(*this, 0);
     assert(width > 0 && height > 0);
-    this->set_image(0, m_internal_format, {width, height}, 0, m_format, m_type, 0);
+    this->set_image(0, m_internal_format, {width, height}, m_format, m_type, 0);
 
     // switch (m_target) {
     //	case GL_TEXTURE_1D:
