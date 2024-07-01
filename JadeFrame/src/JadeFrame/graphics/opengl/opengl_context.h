@@ -84,6 +84,19 @@ public:
     v2u32 viewport[2]; // TODO: Create an appropriate "rectangle" struct!
 };
 
+class SwapchainContext {
+public:
+#ifdef WIN32
+    HDC   m_device_context;
+    HGLRC m_render_context;
+#elif __linux__
+    ::Display*    m_display = nullptr;
+    ::GLXContext* m_render_context = nullptr;
+    ::Window      m_window = 0;
+#endif
+    auto swap_buffers() -> void;
+};
+
 class OpenGL_Context {
 public:
     OpenGL_Context() = default;
@@ -91,15 +104,7 @@ public:
     ~OpenGL_Context();
 
 public:
-#ifdef WIN32
-    HDC   m_device_context; // NOTE: Windows specific!
-    HGLRC m_render_context;
-#elif __linux__
-    ::Display*    m_display = nullptr;
-    ::GLXContext* m_render_context = nullptr;
-    ::Window      m_window;
-#endif
-    auto swap_buffers() -> void;
+    SwapchainContext m_swapchain_context;
 
 public:
     mutable GL_State m_state;

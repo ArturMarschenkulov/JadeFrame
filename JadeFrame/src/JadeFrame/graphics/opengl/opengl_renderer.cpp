@@ -61,7 +61,7 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const Window* window)
 #endif
 }
 
-auto OpenGL_Renderer::present() -> void { m_context.swap_buffers(); }
+auto OpenGL_Renderer::present() -> void { m_context.m_swapchain_context.swap_buffers(); }
 
 auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
 

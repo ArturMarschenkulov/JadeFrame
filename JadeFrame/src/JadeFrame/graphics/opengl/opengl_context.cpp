@@ -112,8 +112,8 @@ OpenGL_Context::OpenGL_Context(const Window* window)
         static_cast<const JadeFrame::Linux_Window*>(window->m_native_window.get());
     opengl::linux::load_glx_funcs(win);
     opengl::linux::load_opengl_funcs();
-    m_display = win->m_display;
-    m_window = win->m_window;
+    m_swapchain_context.m_display = win->m_display;
+    m_swapchain_context.m_window = win->m_window;
     #endif
     // : m_device_context(opengl::linux::init_device_context(window.m_window_handle)) {
     // auto m_render_context = opengl::linux::init_render_context(m_device_context);
@@ -171,7 +171,7 @@ OpenGL_Context::OpenGL_Context(const Window* window)
 
 OpenGL_Context::~OpenGL_Context() {}
 
-auto OpenGL_Context::swap_buffers() -> void {
+auto SwapchainContext::swap_buffers() -> void {
 #ifdef _WIN32
     ::SwapBuffers(m_device_context); // TODO: This is Windows specific. Abstract his away!
 #elif __linux__
