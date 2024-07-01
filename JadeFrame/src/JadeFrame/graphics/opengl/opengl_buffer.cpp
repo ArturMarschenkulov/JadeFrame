@@ -7,21 +7,6 @@
 namespace JadeFrame {
 namespace opengl {
 
-static auto SHADER_TYPE_to_openGL_type(const SHADER_TYPE type) -> GLenum {
-    GLenum result = {};
-    switch (type) {
-        case SHADER_TYPE::F32:
-        case SHADER_TYPE::V_2_F32:
-        case SHADER_TYPE::V_3_F32:
-        case SHADER_TYPE::V_4_F32: result = GL_FLOAT; break;
-        default:
-            assert(false);
-            result = 0;
-            break;
-    }
-    return result;
-}
-
 /*---------------------------
     Buffer
 ---------------------------*/

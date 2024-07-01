@@ -224,5 +224,7 @@ auto Vulkan_Renderer::present() -> void {
 auto Vulkan_Renderer::set_viewport(u32 /*x*/, u32 /*y*/, u32 /*width*/, u32 /*height*/)
     const -> void {}
 
-auto Vulkan_Renderer::take_screenshot(const char* /*filename*/) -> void { assert(false); }
+auto Vulkan_Renderer::take_screenshot(const char* /*filename*/) -> Image {
+    assert(false);
+}
 } // namespace JadeFrame

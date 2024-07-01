@@ -84,6 +84,13 @@ public:
     v2u32 viewport[2]; // TODO: Create an appropriate "rectangle" struct!
 };
 
+struct Limits {
+    GLint max_uniform_buffer_binding_points;
+    GLint max_uniform_block_size;
+    GLint max_vertex_uniform_blocks;
+    GLint max_fragment_uniform_blocks;
+};
+
 class SwapchainContext {
 public:
 #ifdef WIN32

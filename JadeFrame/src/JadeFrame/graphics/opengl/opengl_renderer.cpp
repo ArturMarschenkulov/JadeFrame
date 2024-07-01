@@ -153,7 +153,7 @@ auto OpenGL_Renderer::render_mesh(
     }
 }
 
-auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
+auto OpenGL_Renderer::take_screenshot(const char* filename) -> Image {
     GLint vp[4];
     glGetIntegerv(GL_VIEWPORT, vp);
 
@@ -165,7 +165,9 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
     u8* data = static_cast<u8*>(malloc((size_t)(width * height * 3)));
     if (data == nullptr) {
         Logger::log("data failed");
-        return;
+        Image image = {};
+        image.data = nullptr;
+        return image;
     }
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -176,14 +178,14 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
     image.width = width;
     image.height = height;
     image.num_components = 3;
-    // return image;
+    return image;
 
-    auto c = [](const char* filename, i32 width, i32 height, u8* data) {
-        stbi_write_png(filename, width, height, 3, data, 0);
-        free(data);
-    };
-    std::thread t(c, filename, width, height, data);
-    t.detach();
+    // auto c = [](const char* filename, i32 width, i32 height, u8* data) {
+    //     stbi_write_png(filename, width, height, 3, data, 0);
+    //     free(data);
+    // };
+    // std::thread t(c, filename, width, height, data);
+    // t.detach();
 }
 
 auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* system)
@@ -222,14 +224,13 @@ auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* 
     vdf_desc.has_normals = false;
     VertexData vertex_data =
         VertexData::make_rectangle({-1.0F, -1.0F, 0.0F}, {2.0F, 2.0F, 0.0F}, vdf_desc);
-    auto flat_data = convert_into_data(vertex_data, true);
-    u32  data_size = static_cast<u32>(flat_data.size() * sizeof(f32));
+    auto data = convert_into_data(vertex_data, true);
+    u32  size = static_cast<u32>(data.size() * sizeof(f32));
     m_vertex_buffer =
-        context->create_buffer(opengl::Buffer::TYPE::VERTEX, flat_data.data(), data_size);
+        context->create_buffer(opengl::Buffer::TYPE::VERTEX, data.data(), size);
 
     ShaderHandle::Desc shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
-
     m_shader = system->register_shader(shader_handle_desc);
 }
 

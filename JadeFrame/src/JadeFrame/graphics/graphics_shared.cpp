@@ -285,16 +285,6 @@ VertexFormat::VertexFormat(const std::vector<VertexAttribute>& attributes)
     }
 }
 
-auto VertexFormat::default_format() -> VertexFormat {
-    const VertexFormat result = VertexFormat({
-        {     "v_position", SHADER_TYPE::V_3_F32},
-        {        "v_color", SHADER_TYPE::V_4_F32},
-        {"v_texture_coord", SHADER_TYPE::V_2_F32},
-        {       "v_normal", SHADER_TYPE::V_3_F32},
-    });
-    return result;
-}
-
 /*---------------------------
     RenderSystem
 ---------------------------*/

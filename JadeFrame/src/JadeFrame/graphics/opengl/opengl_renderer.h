@@ -46,7 +46,7 @@ public:
     auto set_clear_color(const RGBAColor& color) -> void override;
     auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void override;
 
-    auto take_screenshot(const char* filename) -> void override;
+    auto take_screenshot(const char* filename) -> Image override;
 
 private:
     auto render_mesh(

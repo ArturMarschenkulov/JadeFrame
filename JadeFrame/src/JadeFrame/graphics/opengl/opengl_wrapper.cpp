@@ -44,7 +44,7 @@ OGLW_VertexArray::OGLW_VertexArray(
     this->set_layout(vertex_format);
 }
 
-static auto SHADER_TYPE_to_openGL_type(const SHADER_TYPE type) -> GLenum {
+static auto to_gl_type(const SHADER_TYPE type) -> GLenum {
     GLenum result;
     switch (type) {
         case SHADER_TYPE::F32:
@@ -105,7 +105,7 @@ auto OGLW_VertexArray::set_attrib_format(
     const size_t      offset
 ) const -> void {
     const u32    count = get_component_count(type);
-    const GLenum gl_type = SHADER_TYPE_to_openGL_type(type);
+    const GLenum gl_type = to_gl_type(type);
     glVertexArrayAttribFormat(
         m_ID, index, count, gl_type, normalized ? GL_TRUE : GL_FALSE, offset
     );

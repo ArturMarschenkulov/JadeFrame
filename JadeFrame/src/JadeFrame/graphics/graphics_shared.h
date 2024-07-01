@@ -201,8 +201,6 @@ public:
     auto operator=(VertexFormat&&) -> VertexFormat& = default;
     ~VertexFormat() = default;
 
-    static auto default_format() -> VertexFormat;
-
     explicit VertexFormat(const std::vector<VertexAttribute>& attributes);
 
     [[nodiscard]] auto has_same_interface(const VertexFormat& other) const -> bool;
@@ -255,7 +253,7 @@ public:
     auto operator=(ShaderHandle&& other) noexcept -> ShaderHandle&;
 
     struct Desc {
-        ShadingCode  shading_code;
+        ShadingCode shading_code;
     };
 
     explicit ShaderHandle(const Desc& desc);
@@ -263,7 +261,7 @@ public:
     auto set_uniform(const std::string& name, const void* data, size_t size) -> void;
 
 public:
-    ShadingCode  m_code;
+    ShadingCode m_code;
 
     GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
     void*        m_handle = nullptr;
@@ -358,7 +356,7 @@ concept is_renderer = requires(T& t) {
     { t.render(std::declval<Matrix4x4>()) } -> std::same_as<void>;
     { t.set_clear_color(std::declval<RGBAColor>()) } -> std::same_as<void>;
     { t.set_viewport(u32{}, u32{}, u32{}, u32{}) } -> std::same_as<void>;
-    { t.take_screenshot(std::declval<char*>()) } -> std::same_as<void>;
+    { t.take_screenshot(std::declval<char*>()) } -> std::same_as<Image>;
 };
 
 class IRenderer {
@@ -373,7 +371,7 @@ public:
     // client stuff
     virtual auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void = 0;
 
-    virtual auto take_screenshot(const char* filename) -> void = 0;
+    virtual auto take_screenshot(const char* filename) -> Image = 0;
 
 public: // more internal stuff
     virtual auto set_clear_color(const RGBAColor& color) -> void = 0;

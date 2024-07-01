@@ -23,7 +23,7 @@ public:
     auto present() -> void override;
     auto clear_background() -> void override;
     auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void override;
-    auto take_screenshot(const char* filename) -> void override;
+    auto take_screenshot(const char* filename) -> Image override;
 
     // virtual auto main_loop() -> void override;
 

@@ -93,7 +93,7 @@ public:
     GLuint m_ID = 0;
     // SHADER_STAGE     m_stage = SHADER_STAGE::VERTEX;
     // std::vector<u32> m_spirv;
-    ReflectedModule  m_reflected;
+    ReflectedModule m_reflected;
 
 private:
     auto release() -> GLuint;

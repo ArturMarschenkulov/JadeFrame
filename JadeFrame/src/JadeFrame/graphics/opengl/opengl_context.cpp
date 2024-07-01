@@ -55,7 +55,7 @@ auto OpenGL_Context::bind_texture_to_unit(opengl::Texture& texture, u32 unit) ->
 
 auto OpenGL_Context::unbind_texture_from_unit(opengl::Texture& texture, u32 unit)
     -> void {
-    
+
     glBindTextureUnit(unit, 0);
     m_texture_units[unit] = nullptr;
 }
@@ -105,18 +105,15 @@ OpenGL_Context::OpenGL_Context(const Window* window)
 #elif __linux__
 {
 
-    // TODO: This is weird. Somehwere the macro `linux` got defined.
+    // NOTE: This is weird. Somehwere the macro `linux` got defined.
     #undef linux
     #if !defined(linux)
-    const auto* win =
-        static_cast<const JadeFrame::Linux_Window*>(window->m_native_window.get());
+    auto* win = dynamic_cast<JadeFrame::Linux_Window*>(window->m_native_window.get());
     opengl::linux::load_glx_funcs(win);
     opengl::linux::load_opengl_funcs();
     m_swapchain_context.m_display = win->m_display;
     m_swapchain_context.m_window = win->m_window;
     #endif
-    // : m_device_context(opengl::linux::init_device_context(window.m_window_handle)) {
-    // auto m_render_context = opengl::linux::init_render_context(m_device_context);
 #else
 {
 #endif
