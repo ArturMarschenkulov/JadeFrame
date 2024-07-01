@@ -566,7 +566,7 @@ auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* textur
 
 auto RenderSystem::submit(const Object& obj) -> void {
     const RenderCommand command = {
-        .transform = &obj.m_transform,
+        .transform = obj.m_transform,
         .vertex_data = obj.m_vertex_data,
         .material = obj.m_material,
         .m_mesh = obj.m_mesh,

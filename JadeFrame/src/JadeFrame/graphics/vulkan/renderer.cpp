@@ -139,7 +139,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
         // vulkan::FREQUENCY::PER_OBJECT == 3
         const u32 dyn_offset = static_cast<u32>(dyn_alignment * i);
         shader->write_ub(
-            FREQUENCY::PER_OBJECT, 0, cmd.transform, sizeof(*cmd.transform), dyn_offset
+            FREQUENCY::PER_OBJECT, 0, &cmd.transform, sizeof(cmd.transform), dyn_offset
         );
 
         const VkPipelineBindPoint bp = VK_PIPELINE_BIND_POINT_GRAPHICS;

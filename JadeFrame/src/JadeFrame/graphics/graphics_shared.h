@@ -339,7 +339,7 @@ public:
 };
 
 struct RenderCommand {
-    const Matrix4x4*  transform = nullptr;
+    Matrix4x4         transform = {};
     const VertexData* vertex_data = nullptr;
     MaterialHandle*   material = nullptr;
     GPUMeshData*      m_mesh = nullptr;

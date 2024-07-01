@@ -91,7 +91,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         shader->write_ub(0, &view_projection, sizeof(view_projection), 0);
 
         // ub_tran
-        shader->write_ub(1, cmd.transform, sizeof(*cmd.transform), 0);
+        shader->write_ub(1, &cmd.transform, sizeof(cmd.transform), 0);
 
         m_context.bind_shader(*shader);
         if (mh.m_texture != nullptr) {
