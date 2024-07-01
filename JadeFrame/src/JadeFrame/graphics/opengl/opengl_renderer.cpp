@@ -189,15 +189,7 @@ auto OpenGL_Renderer::take_screenshot(const char* filename) -> void {
 auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* system)
     -> void {
     m_context = context;
-    { // TODO: The whole fb thing is now a mess!!!! This is because
-        // `m_system->register_shader(shader_handle_desc);` requires an already
-        // initialized `OpenGL_Renderer`. Thus for now `JF_OPENGL_FB` should be defined to
-        // 0, because otherwise it will always crash!!!!
-
-        // TODO: Now it somehow works again, however I do not think I have changed
-        // anything to actually solve this. This might be some undefined behavior. Thus
-        // one should watch
-        m_framebuffer = context->create_framebuffer();
+    {
 
         const v2u32 size = context->m_state.viewport[1];
 
@@ -211,10 +203,9 @@ auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* 
         m_renderbuffer = context->create_renderbuffer();
         m_renderbuffer->store(GL_DEPTH24_STENCIL8, size.x, size.y);
 
-        m_framebuffer->attach_texture(opengl::ATTACHMENT::COLOR, 0, *m_texture);
-        m_framebuffer->attach_renderbuffer(
-            opengl::ATTACHMENT::DEPTH_STENCIL, 0, *m_renderbuffer
-        );
+        m_framebuffer = context->create_framebuffer();
+        m_framebuffer->attach(opengl::ATTACHMENT::COLOR, 0, *m_texture);
+        m_framebuffer->attach(opengl::ATTACHMENT::DEPTH_STENCIL, 0, *m_renderbuffer);
 
         const GLenum res = m_framebuffer->check_status();
         if (res != GL_FRAMEBUFFER_COMPLETE) {

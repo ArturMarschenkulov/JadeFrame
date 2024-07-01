@@ -214,11 +214,9 @@ public:
 
     explicit Framebuffer(OpenGL_Context& context);
 
-    auto attach_texture(ATTACHMENT attachment, u32 i, const Texture& texture) const
+    auto attach(ATTACHMENT attachment, u32 i, const Texture& texture) const -> void;
+    auto attach(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer) const
         -> void;
-    auto
-    attach_renderbuffer(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer)
-        const -> void;
 
     [[nodiscard]] auto check_status() const -> GLenum;
 
@@ -254,8 +252,7 @@ inline auto to_GLenum(ATTACHMENT attachment) -> GLenum {
 }
 
 inline auto
-Framebuffer::attach_texture(ATTACHMENT attachment, u32 i, const Texture& texture) const
-    -> void {
+Framebuffer::attach(ATTACHMENT attachment, u32 i, const Texture& texture) const -> void {
 
     assert(i < GL_MAX_COLOR_ATTACHMENTS - 1);
 
@@ -264,11 +261,9 @@ Framebuffer::attach_texture(ATTACHMENT attachment, u32 i, const Texture& texture
     glNamedFramebufferTexture(m_ID, attach, texture.m_id, 0);
 }
 
-inline auto Framebuffer::attach_renderbuffer(
-    ATTACHMENT          attachment,
-    u32                 i,
-    const Renderbuffer& renderbuffer
-) const -> void {
+inline auto
+Framebuffer::attach(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer) const
+    -> void {
     assert(i < GL_MAX_COLOR_ATTACHMENTS - 1);
 
     GLenum attach = to_GLenum(attachment);
