@@ -49,18 +49,6 @@ public:
     auto bind_base(GLuint binding_point) const -> void;
     auto bind_buffer_range(GLuint index, GLintptr offset, GLsizeiptr size) const -> void;
 
-private:
-    auto release() -> GLuint {
-        auto id = m_id;
-        m_id = 0;
-        return id;
-    }
-
-    auto reset(GLuint id = 0) -> void {
-        glDeleteBuffers(1, &m_id);
-        m_id = id;
-    }
-
 public:
     OpenGL_Context* m_context;
     TYPE            m_type;

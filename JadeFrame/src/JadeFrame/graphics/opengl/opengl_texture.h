@@ -12,10 +12,6 @@ class Texture {
 public:
     // auto operator=(Texture&&) noexcept -> Texture& = delete;
 
-private:
-    auto release() -> GLuint;
-    auto reset(GLuint id = 0) -> void;
-
 public:
     Texture() noexcept;
     ~Texture();

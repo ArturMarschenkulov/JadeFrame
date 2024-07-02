@@ -19,19 +19,12 @@ OGLW_VertexArray::OGLW_VertexArray()
 OGLW_VertexArray::~OGLW_VertexArray() { glDeleteVertexArrays(1, &m_ID); }
 
 OGLW_VertexArray::OGLW_VertexArray(OGLW_VertexArray&& other) noexcept
-    : m_ID(other.m_ID)
-    , m_vertex_format(std::move(other.m_vertex_format)) {
-    other.m_ID = 0;
-    other.m_vertex_format = {};
-}
+    : m_ID(std::exchange(other.m_ID, 0))
+    , m_vertex_format(std::exchange(other.m_vertex_format, {})) {}
 
 auto OGLW_VertexArray::operator=(OGLW_VertexArray&& other) noexcept -> OGLW_VertexArray& {
-    m_ID = other.m_ID;
-    m_vertex_format = other.m_vertex_format;
-
-    other.m_ID = 0;
-    other.m_vertex_format = {};
-
+    m_ID = std::exchange(other.m_ID, 0);
+    m_vertex_format = std::exchange(other.m_vertex_format, {});
     return *this;
 }
 
@@ -116,9 +109,6 @@ auto OGLW_VertexArray::set_attrib_binding(const u32 index, const u32 binding) co
     glVertexArrayAttribBinding(m_ID, index, binding);
 }
 
-// OGLW_Shader::OGLW_Shader(OGLW_Shader&& other) noexcept : m_ID(other.release()) {
-// }
-
 static auto to_opengl_shader_stage(SHADER_STAGE type) -> GLenum {
     switch (type) {
         case SHADER_STAGE::VERTEX: return GL_VERTEX_SHADER;
@@ -145,30 +135,18 @@ OGLW_Shader::OGLW_Shader(const GLenum type, const std::vector<u32>& binary)
 }
 
 OGLW_Shader::OGLW_Shader(OGLW_Shader&& other) noexcept
-    : m_ID(other.release())
-    , m_reflected(std::move(other.m_reflected)) {
-    other.m_reflected = {};
-}
+    : m_ID(std::exchange(other.m_ID, 0))
+    , m_reflected(std::exchange(other.m_reflected, {})) {}
 
 auto OGLW_Shader::operator=(OGLW_Shader&& other) noexcept -> OGLW_Shader& {
-    m_ID = other.release();
-    m_reflected = std::move(other.m_reflected);
-
-    other.m_reflected = {};
+    m_ID = std::exchange(other.m_ID, 0);
+    m_reflected = std::exchange(other.m_reflected, {});
     return *this;
 }
 
-OGLW_Shader::~OGLW_Shader() { this->reset(); }
-
-auto OGLW_Shader::OGLW_Shader::release() -> GLuint {
-    GLuint ret = m_ID;
-    m_ID = 0;
-    return ret;
-}
-
-auto OGLW_Shader::reset(GLuint ID) -> void {
+OGLW_Shader::~OGLW_Shader() {
     glDeleteShader(m_ID);
-    m_ID = ID;
+    m_ID = 0;
 }
 
 auto OGLW_Shader::set_source(const std::string& source_code) -> void {
@@ -216,19 +194,9 @@ auto OGLW_Shader::get_info_log(GLsizei max_length) -> std::string {
 OGLW_Program::OGLW_Program()
     : m_ID(glCreateProgram()) {}
 
-// OGLW_Program::OGLW_Program(OGLW_Program&& other) noexcept : m_ID(other.release()) {
-// }
-OGLW_Program::~OGLW_Program() { this->reset(); }
-
-auto OGLW_Program::release() -> GLuint {
-    GLuint ret = m_ID;
-    m_ID = 0;
-    return ret;
-}
-
-auto OGLW_Program::reset(GLuint ID) -> void {
+OGLW_Program::~OGLW_Program() {
     glDeleteProgram(m_ID);
-    m_ID = ID;
+    m_ID = 0;
 }
 
 auto OGLW_Program::bind() const -> void {

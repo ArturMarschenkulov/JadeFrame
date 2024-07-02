@@ -15,7 +15,7 @@ Texture::Texture() noexcept {
 }
 
 auto Texture::operator=(Texture&& other) noexcept -> Texture& {
-    m_id = other.release();
+    m_id = std::exchange(other.m_id, 0);
     return *this;
 }
 
@@ -94,13 +94,16 @@ Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_
 }
 
 Texture::Texture(Texture&& other) noexcept
-    : m_id(other.release())
+    : m_id(std::exchange(other.m_id, 0))
     , m_internal_format(other.m_internal_format)
     , m_format(other.m_format)
     , m_type(other.m_type)
     , m_size(other.m_size) {}
 
-Texture::~Texture() { this->reset(); }
+Texture::~Texture() {
+    glDeleteTextures(1, &m_id);
+    m_id = 0;
+}
 
 auto Texture::generate_mipmap() const -> void { glGenerateTextureMipmap(m_id); }
 
@@ -179,17 +182,6 @@ auto Texture::resize(u32 width, u32 height, u32 /*depth*/) -> void {
     // m_internal_format, width, height, depth, 0, m_format, m_type, 0);
     // break; 	default: assert(false);
     // }
-}
-
-auto Texture::release() -> GLuint {
-    GLuint id = m_id;
-    m_id = 0;
-    return id;
-}
-
-auto Texture::reset(GLuint id) -> void {
-    glDeleteTextures(1, &m_id);
-    m_id = id;
 }
 
 } // namespace opengl

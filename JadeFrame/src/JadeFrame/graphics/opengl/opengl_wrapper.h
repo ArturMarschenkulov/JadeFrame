@@ -94,10 +94,6 @@ public:
     // SHADER_STAGE     m_stage = SHADER_STAGE::VERTEX;
     // std::vector<u32> m_spirv;
     ReflectedModule m_reflected;
-
-private:
-    auto release() -> GLuint;
-    auto reset(GLuint ID = 0) -> void;
 };
 
 /*******************
@@ -129,10 +125,6 @@ struct OGLW_Program {
 
 public:
     GLuint m_ID = 0;
-
-private:
-    auto release() -> GLuint;
-    auto reset(GLuint ID = 0) -> void;
 };
 
 namespace opengl {
@@ -158,13 +150,15 @@ public:
     GLuint m_ID = 0;
 
 private:
-    auto release() -> GLuint;
     auto reset(GLuint ID = 0) -> void;
 };
 
 inline Renderbuffer::Renderbuffer() { glCreateRenderbuffers(1, &m_ID); }
 
-inline Renderbuffer::~Renderbuffer() {}
+inline Renderbuffer::~Renderbuffer() {
+    glDeleteRenderbuffers(1, &m_ID);
+    m_ID = 0;
+}
 
 inline auto
 Renderbuffer::store(GLenum internal_format, GLsizei width, GLsizei height) const -> void {
@@ -177,18 +171,6 @@ inline auto Renderbuffer::bind() const -> void {
 
 inline auto Renderbuffer::unbind() const -> void {
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
-}
-
-inline auto Renderbuffer::release() -> GLuint {
-    GLuint ret = m_ID;
-    m_ID = 0;
-    return ret;
-}
-
-inline auto Renderbuffer::reset(GLuint ID) -> void {
-    // glDeleteFramebuffers(1, &m_ID);
-    glDeleteRenderbuffers(1, &m_ID);
-    m_ID = ID;
 }
 
 /*******************
@@ -220,16 +202,12 @@ public:
 
     [[nodiscard]] auto check_status() const -> GLenum;
 
-private:
-    auto release() -> GLuint;
-    auto reset(GLuint ID = 0) -> void;
-
 public:
     GLuint m_ID = 0;
 };
 
 inline auto Framebuffer::operator=(Framebuffer&& other) noexcept -> Framebuffer& {
-    m_ID = other.release();
+    m_ID = std::exchange(other.m_ID, 0);
     return *this;
 }
 
@@ -239,7 +217,10 @@ inline Framebuffer::Framebuffer() {
 
 inline Framebuffer::Framebuffer(OpenGL_Context&) { glCreateFramebuffers(1, &m_ID); }
 
-inline Framebuffer::~Framebuffer() { this->reset(); }
+inline Framebuffer::~Framebuffer() {
+    glDeleteFramebuffers(1, &m_ID);
+    m_ID = 0;
+}
 
 inline auto to_GLenum(ATTACHMENT attachment) -> GLenum {
     switch (attachment) {
@@ -276,15 +257,5 @@ inline auto Framebuffer::check_status() const -> GLenum {
     return result;
 }
 
-inline auto Framebuffer::release() -> GLuint {
-    GLuint ret = m_ID;
-    m_ID = 0;
-    return ret;
-}
-
-inline auto Framebuffer::reset(GLuint ID) -> void {
-    glDeleteFramebuffers(1, &m_ID);
-    m_ID = ID;
-}
 } // namespace opengl
 } // namespace JadeFrame

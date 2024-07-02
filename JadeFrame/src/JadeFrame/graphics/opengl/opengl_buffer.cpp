@@ -3,6 +3,7 @@
 
 #include "JadeFrame/graphics/mesh.h"
 #include "opengl_context.h"
+#include <utility>
 
 namespace JadeFrame {
 namespace opengl {
@@ -16,27 +17,22 @@ Buffer::Buffer()
     , m_size(0)
     , m_id(0) {}
 
-Buffer::~Buffer() { this->reset(); }
-
-Buffer::Buffer(Buffer&& other) noexcept
-    : m_context(other.m_context)
-
-    , m_type(other.m_type)
-    , m_size(other.m_size)
-    , m_id(other.release()) {
-
-    other.m_context = nullptr;
-    other.m_size = 0;
+Buffer::~Buffer() {
+    glDeleteBuffers(1, &m_id);
+    m_id = 0;
 }
 
-auto Buffer::operator=(Buffer&& other) noexcept -> Buffer& {
-    m_id = other.release();
-    m_type = other.m_type;
-    m_context = other.m_context;
-    m_size = other.m_size;
+Buffer::Buffer(Buffer&& other) noexcept
+    : m_context(std::exchange(other.m_context, nullptr))
+    , m_type(other.m_type)
+    , m_size(std::exchange(other.m_size, 0))
+    , m_id(std::exchange(other.m_id, 0)) {}
 
-    other.m_context = nullptr;
-    other.m_size = 0;
+auto Buffer::operator=(Buffer&& other) noexcept -> Buffer& {
+    m_id = std::exchange(other.m_id, 0);
+    m_type = other.m_type;
+    m_context = std::exchange(other.m_context, nullptr);
+    m_size = std::exchange(other.m_size, 0);
     return *this;
 }
 
