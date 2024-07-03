@@ -130,47 +130,28 @@ static auto get_properties(const Buffer::TYPE type) -> VkMemoryPropertyFlags {
 }
 
 Buffer::Buffer(Buffer&& other) noexcept
-    : m_type(other.m_type)
-    , m_size(other.m_size)
-    , m_handle(other.m_handle)
+    : m_type(std::exchange(other.m_type, TYPE::UNINIT))
+    , m_size(std::exchange(other.m_size, 0))
+    , m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
 #if JF_USE_VMA
-    , m_allocation(other.m_allocation)
+    , m_allocation(std::exchange(other.m_allocation, VK_NULL_HANDLE))
 #else
-    , m_memory(other.m_memory)
+    , m_memory(std::exchange(other.m_memory, VK_NULL_HANDLE))
 #endif
-    , m_device(other.m_device) {
-
-    other.m_type = TYPE::UNINIT;
-    other.m_size = 0;
-    other.m_handle = VK_NULL_HANDLE;
-#if JF_USE_VMA
-    other.m_allocation = VK_NULL_HANDLE;
-#else
-    other.m_memory = VK_NULL_HANDLE;
-#endif
-    other.m_device = nullptr;
+    , m_device(std::exchange(other.m_device, nullptr)) {
 }
 
 auto Buffer::operator=(Buffer&& other) noexcept -> Buffer& {
-    m_type = other.m_type;
-    m_size = other.m_size;
-    m_handle = other.m_handle;
+    m_type = std::exchange(other.m_type, TYPE::UNINIT);
+    m_size = std::exchange(other.m_size, 0);
+    m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
 #if JF_USE_VMA
-    m_allocation = other.m_allocation;
+    m_allocation = std::exchange(other.m_allocation, VK_NULL_HANDLE);
 #else
-    m_memory = other.m_memory;
+    m_memory = std::exchange(other.m_memory, VK_NULL_HANDLE);
 #endif
-    m_device = other.m_device;
+    m_device = std::exchange(other.m_device, nullptr);
 
-    other.m_type = TYPE::UNINIT;
-    other.m_size = 0;
-    other.m_handle = VK_NULL_HANDLE;
-#if JF_USE_VMA
-    other.m_allocation = VK_NULL_HANDLE;
-#else
-    other.m_memory = VK_NULL_HANDLE;
-#endif
-    other.m_device = nullptr;
     return *this;
 }
 
@@ -341,31 +322,19 @@ auto Buffer::create_buffer(
 ---------------------------*/
 
 Image::Image(Image&& other) noexcept
-    : m_handle(other.m_handle)
-    , m_device(other.m_device)
-    , m_memory(other.m_memory)
-    , m_source(other.m_source)
-    , m_size(other.m_size) {
-
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
-    other.m_memory = VK_NULL_HANDLE;
-    other.m_source = SOURCE::REGULAR;
-    other.m_size = {0, 0};
-}
+    : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
+    , m_device(std::exchange(other.m_device, nullptr))
+    , m_memory(std::exchange(other.m_memory, VK_NULL_HANDLE))
+    , m_source(std::exchange(other.m_source, SOURCE::REGULAR))
+    , m_size(std::exchange(other.m_size, v2u32{0, 0})) {}
 
 auto Image::operator=(Image&& other) noexcept -> Image& {
     if (this != &other) {
-        m_handle = other.m_handle;
-        m_device = other.m_device;
-        m_memory = other.m_memory;
-        m_source = other.m_source;
-        m_size = other.m_size;
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_device = nullptr;
-        other.m_memory = VK_NULL_HANDLE;
-        other.m_source = SOURCE::REGULAR;
-        other.m_size = {0, 0};
+        m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+        m_device = std::exchange(other.m_device, nullptr);
+        m_memory = std::exchange(other.m_memory, VK_NULL_HANDLE);
+        m_source = std::exchange(other.m_source, SOURCE::REGULAR);
+        m_size = std::exchange(other.m_size, v2u32{0, 0});
     }
     return *this;
 }
@@ -468,22 +437,15 @@ Image::Image(const LogicalDevice& device, VkImage image)
 ---------------------------*/
 
 ImageView::ImageView(ImageView&& other) noexcept
-    : m_handle(other.m_handle)
-    , m_device(other.m_device)
-    , m_image(other.m_image) {
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
-    other.m_image = nullptr;
-}
+    : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
+    , m_device(std::exchange(other.m_device, nullptr))
+    , m_image(std::exchange(other.m_image, nullptr)) {}
 
 auto ImageView::operator=(ImageView&& other) noexcept -> ImageView& {
     if (this != &other) {
-        m_handle = other.m_handle;
-        m_device = other.m_device;
-        m_image = other.m_image;
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_device = nullptr;
-        other.m_image = nullptr;
+        m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+        m_device = std::exchange(other.m_device, nullptr);
+        m_image = std::exchange(other.m_image, nullptr);
     }
     return *this;
 }

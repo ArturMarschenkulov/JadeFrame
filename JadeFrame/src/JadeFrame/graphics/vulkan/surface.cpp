@@ -13,23 +13,15 @@ namespace vulkan {
 // namespace win32 {
 
 Surface::Surface(Surface&& other) noexcept
-    : m_handle(other.m_handle)
-    , m_window_handle(other.m_window_handle)
-    , m_instance(other.m_instance) {
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_window_handle = nullptr;
-    other.m_instance = nullptr;
-}
+    : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
+    , m_window_handle(std::exchange(other.m_window_handle, nullptr))
+    , m_instance(std::exchange(other.m_instance, nullptr)) {}
 
 auto Surface::operator=(Surface&& other) noexcept -> Surface& {
     if (this != &other) {
-        m_handle = other.m_handle;
-        m_window_handle = other.m_window_handle;
-        m_instance = other.m_instance;
-
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_window_handle = nullptr;
-        other.m_instance = nullptr;
+        m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+        m_window_handle = std::exchange(other.m_window_handle, nullptr);
+        m_instance = std::exchange(other.m_instance, nullptr);
     }
     return *this;
 }

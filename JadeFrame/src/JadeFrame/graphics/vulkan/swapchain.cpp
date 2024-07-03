@@ -103,17 +103,12 @@ static auto choose_extent(
 ---------------------------*/
 
 RenderPass::RenderPass(RenderPass&& other) noexcept
-    : m_handle(other.m_handle)
-    , m_device(other.m_device) {
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
-}
+    : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
+    , m_device(std::exchange(other.m_device, nullptr)) {}
 
 auto RenderPass::operator=(RenderPass&& other) noexcept -> RenderPass& {
-    m_handle = other.m_handle;
-    m_device = other.m_device;
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
+    m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+    m_device = std::exchange(other.m_device, nullptr);
     return *this;
 }
 
@@ -125,7 +120,6 @@ RenderPass::~RenderPass() {
 
 RenderPass::RenderPass(const LogicalDevice& device, VkFormat image_format)
     : m_device(&device) {
-
     const VkAttachmentDescription color_attachment = {
         .flags = {},
         .format = image_format,
@@ -343,7 +337,6 @@ auto Swapchain::acquire_image_index(
 
 auto Swapchain::acquire_image_index(const Semaphore* semaphore, const Fence* fence)
     -> u32 {
-
     u32         image_index = 0;
     VkSemaphore p_semaphore = semaphore == nullptr ? VK_NULL_HANDLE : semaphore->m_handle;
     VkFence     p_fence = fence == nullptr ? VK_NULL_HANDLE : fence->m_handle;
@@ -376,28 +369,17 @@ auto Swapchain::acquire_image_index(const Semaphore* semaphore, const Fence* fen
 ---------------------------*/
 
 Framebuffer::Framebuffer(Framebuffer&& other) noexcept
-    : m_handle(other.m_handle)
-    , m_device(other.m_device)
-    , m_image_view(other.m_image_view)
-    , m_render_pass(other.m_render_pass) {
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
-    other.m_image_view = nullptr;
-    other.m_render_pass = nullptr;
-}
+    : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
+    , m_device(std::exchange(other.m_device, nullptr))
+    , m_image_view(std::exchange(other.m_image_view, nullptr))
+    , m_render_pass(std::exchange(other.m_render_pass, nullptr)) {}
 
 auto Framebuffer::operator=(Framebuffer&& other) noexcept -> Framebuffer& {
     if (&other == this) { return *this; }
-    m_handle = other.m_handle;
-    m_device = other.m_device;
-    m_image_view = other.m_image_view;
-    m_render_pass = other.m_render_pass;
-
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
-    other.m_image_view = nullptr;
-    other.m_render_pass = nullptr;
-
+    m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+    m_device = std::exchange(other.m_device, nullptr);
+    m_image_view = std::exchange(other.m_image_view, nullptr);
+    m_render_pass = std::exchange(other.m_render_pass, nullptr);
     return *this;
 }
 
@@ -417,7 +399,6 @@ Framebuffer::Framebuffer(
     : m_device(&device)
     , m_image_view(&image_view)
     , m_render_pass(&render_pass) {
-
     std::array<VkImageView, 2> attachments = {image_view.m_handle, depth_view.m_handle};
 
     const VkFramebufferCreateInfo info = {

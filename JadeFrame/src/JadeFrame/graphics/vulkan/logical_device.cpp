@@ -331,12 +331,12 @@ auto LogicalDevice::create_shader(
     return Vulkan_Shader(*this, renderer, desc);
 }
 
-auto LogicalDevice::create_semaphore() const -> Semaphore {
+auto LogicalDevice::create_semaphore() -> Semaphore {
     Semaphore semaphore(*this);
     return semaphore;
 }
 
-auto LogicalDevice::create_fence(bool signaled) const -> Fence {
+auto LogicalDevice::create_fence(bool signaled) -> Fence {
     Fence fence(*this, signaled);
     return fence;
 }

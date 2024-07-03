@@ -11,6 +11,7 @@
 
 #include <array>
 #include <span>
+#include <utility>
 
 namespace JadeFrame {
 namespace vulkan {
@@ -114,22 +115,19 @@ ShaderModule::~ShaderModule() {
 }
 
 ShaderModule::ShaderModule(ShaderModule&& other) noexcept
-    : m_device(other.m_device)
-    , m_handle(other.m_handle)
+    : m_device(std::exchange(other.m_device, nullptr))
+    , m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
     , m_stage(other.m_stage)
-    , m_spirv(std::move(other.m_spirv)) {
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = VK_NULL_HANDLE;
-}
+    , m_spirv(std::move(other.m_spirv)) {}
 
 auto ShaderModule::operator=(ShaderModule&& other) noexcept -> ShaderModule& {
     if (this != &other) {
-        m_device = other.m_device;
-        m_handle = other.m_handle;
+        m_device = std::exchange(other.m_device, nullptr);
+        m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+
         m_stage = other.m_stage;
         m_spirv = std::move(other.m_spirv);
         m_reflected = std::move(other.m_reflected);
-        other.m_handle = VK_NULL_HANDLE;
     }
     return *this;
 }
@@ -214,19 +212,14 @@ Pipeline::PipelineLayout::~PipelineLayout() {
 }
 
 Pipeline::PipelineLayout::PipelineLayout(PipelineLayout&& other) noexcept
-    : m_handle(other.m_handle)
-    , m_device(other.m_device) {
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
-}
+    : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
+    , m_device(std::exchange(other.m_device, nullptr)) {}
 
 auto Pipeline::PipelineLayout::operator=(PipelineLayout&& other) noexcept
     -> PipelineLayout& {
     if (this != &other) {
-        m_handle = other.m_handle;
-        m_device = other.m_device;
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_device = nullptr;
+        m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+        m_device = std::exchange(other.m_device, nullptr);
     }
     return *this;
 }
@@ -477,49 +470,29 @@ static auto color_blend_state_create_info(
 }
 
 Pipeline::Pipeline(Pipeline&& other) noexcept
-    : m_handle(other.m_handle)
-    , m_layout(std::move(other.m_layout))
-    , m_device(other.m_device)
-    , m_render_pass(other.m_render_pass)
-    , m_set_layouts(std::move(other.m_set_layouts))
-    , m_code(std::move(other.m_code))
-    , m_is_compiled(other.m_is_compiled)
-    , m_push_constant_ranges(std::move(other.m_push_constant_ranges))
-    , m_reflected_code(std::move(other.m_reflected_code))
-    , m_reflected_interface(std::move(other.m_reflected_interface)) {
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_layout = {};
-    other.m_device = nullptr;
-    other.m_render_pass = nullptr;
-    other.m_set_layouts = {};
-    other.m_code = {};
-    other.m_is_compiled = false;
-    other.m_push_constant_ranges.clear();
-    other.m_reflected_code = {};
-}
+    : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
+    , m_layout(std::exchange(other.m_layout, {}))
+    , m_device(std::exchange(other.m_device, nullptr))
+    , m_render_pass(std::exchange(other.m_render_pass, nullptr))
+    , m_set_layouts(std::exchange(other.m_set_layouts, {}))
+    , m_code(std::exchange(other.m_code, {}))
+    , m_is_compiled(std::exchange(other.m_is_compiled, false))
+    , m_push_constant_ranges(std::exchange(other.m_push_constant_ranges, {}))
+    , m_reflected_code(std::exchange(other.m_reflected_code, {}))
+    , m_reflected_interface(std::exchange(other.m_reflected_interface, {})) {}
 
 auto Pipeline::operator=(Pipeline&& other) noexcept -> Pipeline& {
     if (this != &other) {
-        m_handle = other.m_handle;
-        m_layout = std::move(other.m_layout);
-        m_device = other.m_device;
-        m_render_pass = other.m_render_pass;
-        m_set_layouts = std::move(other.m_set_layouts);
-        m_code = std::move(other.m_code);
-        m_is_compiled = other.m_is_compiled;
-        m_push_constant_ranges = other.m_push_constant_ranges;
-        m_reflected_code = other.m_reflected_code;
-        m_reflected_interface = std::move(other.m_reflected_interface);
-
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_layout = {};
-        other.m_device = nullptr;
-        other.m_render_pass = nullptr;
-        other.m_set_layouts = {};
-        other.m_code = {};
-        other.m_is_compiled = false;
-        other.m_push_constant_ranges.clear();
-        other.m_reflected_code = {};
+        m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+        m_layout = std::exchange(other.m_layout, {});
+        m_device = std::exchange(other.m_device, nullptr);
+        m_render_pass = std::exchange(other.m_render_pass, nullptr);
+        m_set_layouts = std::exchange(other.m_set_layouts, {});
+        m_code = std::exchange(other.m_code, {});
+        m_is_compiled = std::exchange(other.m_is_compiled, false);
+        m_push_constant_ranges = std::exchange(other.m_push_constant_ranges, {});
+        m_reflected_code = std::exchange(other.m_reflected_code, {});
+        m_reflected_interface = std::exchange(other.m_reflected_interface, {});
     }
     return *this;
 }

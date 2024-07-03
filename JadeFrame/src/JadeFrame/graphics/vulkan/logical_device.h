@@ -83,8 +83,8 @@ public:
         -> ImageView;
 
 public: // synchro objects
-    auto create_semaphore() const -> Semaphore;
-    auto create_fence(bool signaled) const -> Fence;
+    auto create_semaphore() -> Semaphore;
+    auto create_fence(bool signaled) -> Fence;
     auto wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) const -> void;
     auto wait_for_fences(const std::span<Fence>& fences, bool wait_all, u64 timeout) const
         -> void;

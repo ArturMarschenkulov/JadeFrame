@@ -7,6 +7,7 @@
 #include "JadeFrame/utils/utils.h"
 #include "JadeFrame/utils/assert.h"
 
+#include <utility>
 #include <vector>
 #include <cassert>
 
@@ -19,32 +20,19 @@ class LogicalDevice;
         Descriptor
 ---------------------------*/
 
-Descriptor::Descriptor(Descriptor&& other) {
-    this->buffer_info = other.buffer_info;
-    this->image_info = other.image_info;
-    this->type = other.type;
-    this->stage_flags = other.stage_flags;
-    this->binding = other.binding;
-
-    other.buffer_info = {};
-    other.image_info = {};
-    other.type = VK_DESCRIPTOR_TYPE_MAX_ENUM;
-    other.stage_flags = 0;
-    other.binding = 0;
-}
+Descriptor::Descriptor(Descriptor&& other)
+    : buffer_info(std::exchange(other.buffer_info, {}))
+    // , image_info(std::exchange(other.image_info, {}))
+    , type(std::exchange(other.type, VK_DESCRIPTOR_TYPE_MAX_ENUM))
+    , stage_flags(std::exchange(other.stage_flags, 0))
+    , binding(std::exchange(other.binding, 0)) {}
 
 auto Descriptor::operator=(Descriptor&& other) -> Descriptor& {
-    this->buffer_info = other.buffer_info;
-    this->image_info = other.image_info;
-    this->type = other.type;
-    this->stage_flags = other.stage_flags;
-    this->binding = other.binding;
-
-    other.buffer_info = {};
-    other.image_info = {};
-    other.type = VK_DESCRIPTOR_TYPE_MAX_ENUM;
-    other.stage_flags = 0;
-    other.binding = 0;
+    buffer_info = std::exchange(other.buffer_info, {});
+    // image_info = std::exchange(other.image_info, {});
+    type = std::exchange(other.type, VK_DESCRIPTOR_TYPE_MAX_ENUM);
+    stage_flags = std::exchange(other.stage_flags, 0);
+    binding = std::exchange(other.binding, 0);
     return *this;
 }
 
@@ -75,25 +63,16 @@ DescriptorSet::~DescriptorSet() {
 }
 
 DescriptorSet::DescriptorSet(DescriptorSet&& other) noexcept
-    : m_handle(other.m_handle)
-    , m_device(other.m_device)
-    , m_layout(other.m_layout)
-    , m_descriptors(std::move(other.m_descriptors)) {
-
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
-    other.m_layout = nullptr;
-}
+    : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
+    , m_device(std::exchange(other.m_device, nullptr))
+    , m_layout(std::exchange(other.m_layout, nullptr))
+    , m_descriptors(std::move(other.m_descriptors)) {}
 
 auto DescriptorSet::operator=(DescriptorSet&& other) noexcept -> DescriptorSet& {
-    this->m_handle = other.m_handle;
-    this->m_device = other.m_device;
-    this->m_layout = other.m_layout;
+    m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+    m_device = std::exchange(other.m_device, nullptr);
+    m_layout = std::exchange(other.m_layout, nullptr);
     this->m_descriptors = std::move(other.m_descriptors);
-
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
-    other.m_layout = nullptr;
     return *this;
 }
 
@@ -281,29 +260,18 @@ auto DescriptorSet::update() -> void {
 ---------------------------*/
 
 DescriptorSetLayout::DescriptorSetLayout(DescriptorSetLayout&& other) noexcept
-    : m_handle(other.m_handle)
-    , m_device(other.m_device)
-    , m_bindings(std::move(other.m_bindings))
-    , m_dynamic_count(other.m_dynamic_count) {
-
-    other.m_device = nullptr;
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_bindings = {};
-    other.m_dynamic_count = 0;
-}
+    : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
+    , m_device(std::exchange(other.m_device, nullptr))
+    , m_bindings(std::exchange(other.m_bindings, {}))
+    , m_dynamic_count(std::exchange(other.m_dynamic_count, 0)) {}
 
 auto DescriptorSetLayout::operator=(DescriptorSetLayout&& other) noexcept
     -> DescriptorSetLayout& {
     if (this != &other) {
-        this->m_device = other.m_device;
-        this->m_handle = other.m_handle;
-        this->m_bindings = std::move(other.m_bindings);
-        this->m_dynamic_count = other.m_dynamic_count;
-
-        other.m_device = nullptr;
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_bindings = {};
-        other.m_dynamic_count = 0;
+        m_device = std::exchange(other.m_device, nullptr);
+        m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+        this->m_bindings = std::exchange(other.m_bindings, {});
+        this->m_dynamic_count = std::exchange(other.m_dynamic_count, 0);
     }
     return *this;
 }
@@ -400,22 +368,15 @@ auto DescriptorSetLayout::add_binding(
 ---------------------------*/
 
 DescriptorPool::DescriptorPool(DescriptorPool&& other) noexcept
-    : m_device(other.m_device)
-    , m_handle(other.m_handle)
-    , m_pool_sizes(std::move(other.m_pool_sizes)) {
-
-    other.m_device = nullptr;
-    other.m_handle = VK_NULL_HANDLE;
-}
+    : m_device(std::exchange(other.m_device, nullptr))
+    , m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
+    , m_pool_sizes(std::move(other.m_pool_sizes)) {}
 
 auto DescriptorPool::operator=(DescriptorPool&& other) noexcept -> DescriptorPool& {
     if (this != &other) {
-        this->m_device = other.m_device;
-        this->m_handle = other.m_handle;
+        m_device = std::exchange(other.m_device, nullptr);
+        m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
         this->m_pool_sizes = std::move(other.m_pool_sizes);
-
-        other.m_device = nullptr;
-        other.m_handle = VK_NULL_HANDLE;
     }
     return *this;
 }

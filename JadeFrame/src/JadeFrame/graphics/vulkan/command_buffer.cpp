@@ -16,29 +16,19 @@ namespace vulkan {
     Command Buffer
 ---------------------------*/
 CommandBuffer::CommandBuffer(CommandBuffer&& other) noexcept
-    : m_handle(other.m_handle)
+    : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
     , m_alloc_info(other.m_alloc_info)
-    , m_device(other.m_device)
-    , m_command_pool(other.m_command_pool)
-    , m_stage(other.m_stage) {
-
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
-    other.m_command_pool = nullptr;
-    other.m_stage = STAGE::INVALID;
-}
+    , m_device(std::exchange(other.m_device, nullptr))
+    , m_command_pool(std::exchange(other.m_command_pool, nullptr))
+    , m_stage(std::exchange(other.m_stage, STAGE::INVALID)) {}
 
 auto CommandBuffer::operator=(CommandBuffer&& other) noexcept -> CommandBuffer& {
-    this->m_handle = other.m_handle;
-    this->m_alloc_info = other.m_alloc_info;
-    this->m_device = other.m_device;
-    this->m_command_pool = other.m_command_pool;
-    this->m_stage = other.m_stage;
+    m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+    m_alloc_info = other.m_alloc_info;
+    m_device = std::exchange(other.m_device, nullptr);
+    m_command_pool = std::exchange(other.m_command_pool, nullptr);
+    m_stage = std::exchange(other.m_stage, STAGE::INVALID);
 
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
-    other.m_command_pool = nullptr;
-    other.m_stage = STAGE::INVALID;
     return *this;
 }
 
@@ -272,23 +262,15 @@ static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFl
 ---------------------------*/
 
 CommandPool::CommandPool(CommandPool&& other) noexcept
-    : m_device(other.m_device)
-    , m_handle(other.m_handle)
-    , m_create_info(other.m_create_info) {
-
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
-}
+    : m_device(std::exchange(other.m_device, nullptr))
+    , m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
+    , m_create_info(other.m_create_info) {}
 
 auto CommandPool::operator=(CommandPool&& other) noexcept -> CommandPool& {
     if (this != &other) {
-        this->m_handle = other.m_handle;
-        this->m_create_info = other.m_create_info;
-        this->m_device = other.m_device;
-
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_create_info = {};
-        other.m_device = nullptr;
+        m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+        m_create_info = std::exchange(other.m_create_info, {});
+        m_device = std::exchange(other.m_device, nullptr);
     }
     return *this;
 }

@@ -8,24 +8,19 @@
 namespace JadeFrame {
 namespace vulkan {
 
-Fence::Fence(Fence&& other) noexcept {
-
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
-}
+Fence::Fence(Fence&& other) noexcept
+    : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
+    , m_device(std::exchange(other.m_device, nullptr)) {}
 
 auto Fence::operator=(Fence&& other) noexcept -> Fence& {
     if (this != &other) {
-        m_handle = other.m_handle;
-        m_device = other.m_device;
-
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_device = nullptr;
+        m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+        m_device = std::exchange(other.m_device, nullptr);
     }
     return *this;
 }
 
-Fence::Fence(const LogicalDevice& device, bool signaled)
+Fence::Fence(LogicalDevice& device, bool signaled)
     : m_device(&device) {
 
     const VkFenceCreateInfo info = {
@@ -65,18 +60,14 @@ auto Fence::is_signaled() const -> bool {
     }
 }
 
-Semaphore::Semaphore(Semaphore&& other) noexcept {
-    other.m_handle = VK_NULL_HANDLE;
-    other.m_device = nullptr;
-}
+Semaphore::Semaphore(Semaphore&& other) noexcept
+    : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
+    , m_device(std::exchange(other.m_device, nullptr)) {}
 
 auto Semaphore::operator=(Semaphore&& other) noexcept -> Semaphore& {
     if (this != &other) {
-        m_handle = other.m_handle;
-        m_device = other.m_device;
-
-        other.m_handle = VK_NULL_HANDLE;
-        other.m_device = nullptr;
+        m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+        m_device = std::exchange(other.m_device, nullptr);
     }
     return *this;
 }
@@ -87,7 +78,7 @@ Semaphore::~Semaphore() {
     }
 }
 
-Semaphore::Semaphore(const LogicalDevice& device)
+Semaphore::Semaphore(LogicalDevice& device)
     : m_device(&device) {
 
     const VkSemaphoreCreateInfo info = {
