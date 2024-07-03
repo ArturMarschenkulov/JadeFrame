@@ -132,9 +132,10 @@ auto temp_cmp(const ReflectedModule::Output& i0, const ReflectedModule::Output& 
     return i0.location < i1.location;
 }
 
-auto ReflectedModule::reflect(const ShadingCode::Module::SPIRV& code) -> ReflectedModule {
+auto ReflectedModule::reflect(const ShadingCode::Module::SPIRV& code, SHADER_STAGE stage)
+    -> ReflectedModule {
     ReflectedModule result = {};
-    // result.m_stage = current_module.m_stage;
+    result.m_stage = stage;
 
     constexpr u32 BYTE_SIZE = 8;
 
@@ -478,9 +479,8 @@ auto reflect(const ShadingCode& code) -> ReflectedCode {
 
 // Takes in modules and returns a single module which is the interface to the whole
 // pipeline, that is only the actually interactible points are exposed.
-auto ReflectedModule::into_interface(
-    const std::span<const ReflectedModule>& modules
-) -> ReflectedModule {
+auto ReflectedModule::into_interface(const std::span<const ReflectedModule>& modules)
+    -> ReflectedModule {
     ReflectedModule                result = {};
     std::set<u32>                  input_locs;
     std::set<u32>                  output_locs;

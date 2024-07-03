@@ -119,9 +119,19 @@ static auto to_opengl_shader_stage(SHADER_STAGE type) -> GLenum {
     }
 }
 
+static auto gl_type_to_jf_type(GLenum type) -> SHADER_STAGE {
+    switch (type) {
+        case GL_VERTEX_SHADER: return SHADER_STAGE::VERTEX;
+        case GL_FRAGMENT_SHADER: return SHADER_STAGE::FRAGMENT;
+        case GL_GEOMETRY_SHADER: return SHADER_STAGE::GEOMETRY;
+        case GL_COMPUTE_SHADER: return SHADER_STAGE::COMPUTE;
+        default: assert(false); return SHADER_STAGE::VERTEX;
+    }
+}
+
 OGLW_Shader::OGLW_Shader(const GLenum type, const std::vector<u32>& binary)
     : m_ID(glCreateShader(type))
-    , m_reflected(ReflectedModule::reflect(binary)) {
+    , m_reflected(ReflectedModule::reflect(binary, gl_type_to_jf_type(type))) {
 #define JF_USE_SPIRV false
     if constexpr (JF_USE_SPIRV) {
         this->set_binary(binary);

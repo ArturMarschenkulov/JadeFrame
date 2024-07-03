@@ -142,7 +142,7 @@ ShaderModule::ShaderModule(
     : m_device(&device)
     , m_stage(stage)
     , m_spirv(spirv)
-    , m_reflected(ReflectedModule::reflect(spirv)) {
+    , m_reflected(ReflectedModule::reflect(spirv, m_stage)) {
 
     const VkShaderModuleCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
@@ -607,9 +607,8 @@ Pipeline::Pipeline(
         set 2: materials. textures. samplers.
         set 3: model matrix.
     */
-    std::array<DescriptorSetLayout, 4> set_layouts =
-        extract_descriptor_set_layouts(reflected_modules, device);
-    m_set_layouts = std::move(set_layouts);
+
+    m_set_layouts = extract_descriptor_set_layouts(reflected_modules, device);
 
     // bool compatible = check_compatiblity(reflected_code.m_modules, binding_description,
     // attribute_descriptions); JF_ASSERT(compatible == true, "The vertex format is not
