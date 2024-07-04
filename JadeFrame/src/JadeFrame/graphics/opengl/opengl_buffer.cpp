@@ -76,28 +76,5 @@ auto Buffer::write(const void* data, GLuint size, GLint offset) const -> void {
     glNamedBufferSubData(m_id, offset, size, data);
 }
 
-auto Buffer::bind_base(GLuint binding_point) const -> void {
-    if (m_type == TYPE::UNIFORM) {
-        glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, m_id);
-    } else {
-        Logger::err("Buffer::bind_base() called on non-uniform buffer, only works with "
-                    "uniform buffers");
-        assert(false);
-    }
-}
-
-auto Buffer::bind_buffer_range(GLuint index, GLintptr offset, GLsizeiptr size) const
-    -> void {
-    if (m_type == TYPE::UNIFORM) {
-        glBindBufferRange(GL_UNIFORM_BUFFER, index, m_id, offset, size);
-    } else {
-        Logger::err(
-            "Buffer::bind_buffer_range() called on non-uniform buffer, only works with "
-            "uniform buffers"
-        );
-        assert(false);
-    }
-}
-
 } // namespace opengl
 } // namespace JadeFrame

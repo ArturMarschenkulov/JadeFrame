@@ -1,3 +1,4 @@
+#include "opengl_wrapper.h"
 #include "pch.h"
 #include "opengl_context.h"
 #include "opengl_debug.h"
@@ -9,14 +10,40 @@
 #endif
 
 namespace JadeFrame {
-auto OpenGL_Context::unbind_framebuffer() -> void {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    m_bound_framebuffer = nullptr;
+auto OpenGL_Context::bind_uniform_buffer_to_location(opengl::Buffer& buffer, u32 location)
+    -> void {
+    if (buffer.m_type != opengl::Buffer::TYPE::UNIFORM) {
+        Logger::err("Buffer is not of type uniform!");
+        assert(false);
+        return;
+    }
+    if (m_bound_uniform_buffer_locations.contains(location)) {
+        if (m_bound_uniform_buffer_locations[location] == &buffer) { return; }
+    }
+
+    glBindBufferBase(GL_UNIFORM_BUFFER, location, buffer.m_id);
+    // glBindBufferRange(GL_UNIFORM_BUFFER, binding_point, buffer.m_id, 0, buffer.m_size);
+    m_bound_uniform_buffer_locations[location] = &buffer;
 }
 
 auto OpenGL_Context::bind_framebuffer(opengl::Framebuffer& framebuffer) -> void {
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.m_ID);
     m_bound_framebuffer = &framebuffer;
+}
+
+auto OpenGL_Context::unbind_framebuffer() -> void {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    m_bound_framebuffer = nullptr;
+}
+
+auto OpenGL_Context::bind_renderbuffer(opengl::Renderbuffer& renderbuffer) -> void {
+    glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer.m_ID);
+    m_bound_renderbuffer = &renderbuffer;
+}
+
+auto OpenGL_Context::unbind_renderbuffer() -> void {
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    m_bound_renderbuffer = nullptr;
 }
 
 auto OpenGL_Context::bind_shader(opengl::Shader& shader) -> void {

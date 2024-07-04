@@ -80,8 +80,8 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         const RenderCommand&  cmd = render_commands[i];
         const MaterialHandle& mh = *cmd.material;
 
-        auto& sh = *mh.m_shader;
-        auto* shader = static_cast<opengl::Shader*>(sh.m_handle);
+        auto* shader = static_cast<opengl::Shader*>(mh.m_shader->m_handle);
+        m_context.bind_shader(*shader);
 
         // NOTE: As of right now this is not optimal, as it only needs to be updated once
         // outside the loop. But because of how the code is arranged one has to update it
@@ -93,7 +93,7 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         // ub_tran
         shader->write_ub(1, &cmd.transform, sizeof(cmd.transform), 0);
 
-        m_context.bind_shader(*shader);
+  
         if (mh.m_texture != nullptr) {
             auto* texture = static_cast<opengl::Texture*>(mh.m_texture->m_handle);
 
@@ -192,7 +192,8 @@ auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* 
     -> void {
     m_context = context;
     {
-
+        // TODO: the use of `GL_RGB8`, `GL_RGB` and `GL_UNSIGNED_BYTE` is hardcoded. Find
+        // a way to make it more flexible.
         const v2u32 size = context->m_state.viewport[1];
 
         m_texture = context->create_texture();

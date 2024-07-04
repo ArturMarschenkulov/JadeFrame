@@ -42,18 +42,17 @@ public:
     auto write_ub(u32 index, const void* data, size_t size, size_t offset) -> void;
 
 public:
-    OGLW_Program m_program;
+    OGLW_Program             m_program;
     std::vector<OGLW_Shader> m_shaders;
 
     OpenGL_Context* m_context;
-
-    std::vector<Uniform>         m_uniforms;
-    std::vector<VertexAttribute> m_vertex_attributes;
 
 public:
     std::vector<opengl::Buffer*> m_uniform_buffers;
 
     OGLW_VertexArray m_vertex_array;
+
+    ReflectedModule m_reflected_interface;
 };
 } // namespace opengl
 } // namespace JadeFrame

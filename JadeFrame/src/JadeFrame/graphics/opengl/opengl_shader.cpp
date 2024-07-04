@@ -102,8 +102,8 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
         m_program.attach(m_shaders[i]);
     }
     auto reflected_modules = get_reflected_modules(m_shaders);
-    auto reflected_interface = ReflectedModule::into_interface(reflected_modules);
-    auto vf = reflected_interface.get_vertex_format();
+    m_reflected_interface = ReflectedModule::into_interface(reflected_modules);
+    auto vf = m_reflected_interface.get_vertex_format();
 
     m_vertex_array = OGLW_VertexArray(&context, vf);
 
@@ -123,10 +123,6 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
 
     // Now the shader is ready to be used
 
-    ReflectedCode ref = reflect(desc.code);
-    m_vertex_attributes = get_vertex_attributes(ref);
-    m_uniforms = get_uniforms(ref);
-
     // Here we create the various graphics objects
 
     // NOTE: The binding points will be somehow abstracted, since the high level will
@@ -134,14 +130,19 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     // opengl has only binding points. That is while vulkan might have something like
     // this (0, 0), (1, 0) and (1, 1), this would have to be mapped to opengl's flat
     // model, something like this 0, 1, 2.
-    for (size_t i = 0; i < m_uniforms.size(); i++) {
-        const auto& uniform = m_uniforms[i];
-        const u32&  size = uniform.size;
-        const auto& location = uniform.location;
+    m_reflected_interface.m_uniform_buffers;
+    for (size_t i = 0; i < m_reflected_interface.m_uniform_buffers.size(); i++) {
+        auto& uniform_buffer = m_reflected_interface.m_uniform_buffers[i];
+        auto  set = uniform_buffer.set;
+        auto  binding = uniform_buffer.binding;
+        auto  size = uniform_buffer.size;
+
+        JF_ASSERT(size == sizeof(Matrix4x4), "Uniform buffer size is not 64 bytes");
+
         using namespace opengl;
 
         auto* buffer = m_context->create_buffer(Buffer::TYPE::UNIFORM, nullptr, size);
-        buffer->bind_base(location);
+        context.bind_uniform_buffer_to_location(*buffer, binding);
         m_uniform_buffers.push_back(buffer);
     }
 }

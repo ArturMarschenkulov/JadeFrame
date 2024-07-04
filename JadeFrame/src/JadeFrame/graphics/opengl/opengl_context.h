@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <utility>
 #include "JadeFrame/graphics/mesh.h" // For Color
+#include "JadeFrame/graphics/opengl/opengl_wrapper.h"
 #include "opengl_buffer.h"
 
 #ifdef _WIN32
@@ -141,6 +142,10 @@ public:
 
     auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
         -> opengl::Buffer*;
+    auto bind_uniform_buffer_to_location(opengl::Buffer& buffer, u32 location) -> void;
+
+    std::unordered_map<u32, opengl::Buffer*> m_bound_uniform_buffer_locations;
+
     // std::vector<opengl::Buffer> m_uniform_buffers;
 
     std::vector<GLuint>          m_buffers;
@@ -154,6 +159,10 @@ public:
     opengl::Framebuffer* m_bound_framebuffer;
 
     auto create_renderbuffer() -> opengl::Renderbuffer*;
+    auto bind_renderbuffer(opengl::Renderbuffer& renderbuffer) -> void;
+    auto unbind_renderbuffer() -> void;
+
+    opengl::Renderbuffer* m_bound_renderbuffer;
 
     auto bind_vertex_array(OGLW_VertexArray& vao) -> void;
     auto unbind_vertex_array() -> void;

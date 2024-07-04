@@ -144,9 +144,6 @@ public:
 
     auto store(GLenum internal_format, GLsizei width, GLsizei height) const -> void;
 
-    auto bind() const -> void;
-    auto unbind() const -> void;
-
     GLuint m_ID = 0;
 
 private:
@@ -163,14 +160,6 @@ inline Renderbuffer::~Renderbuffer() {
 inline auto
 Renderbuffer::store(GLenum internal_format, GLsizei width, GLsizei height) const -> void {
     glNamedRenderbufferStorage(m_ID, internal_format, width, height);
-}
-
-inline auto Renderbuffer::bind() const -> void {
-    glBindRenderbuffer(GL_RENDERBUFFER, m_ID);
-}
-
-inline auto Renderbuffer::unbind() const -> void {
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
 }
 
 /*******************
