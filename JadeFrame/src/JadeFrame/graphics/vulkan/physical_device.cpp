@@ -123,6 +123,28 @@ auto PhysicalDevice::query_extension_properties() const
     return extension_properties;
 }
 
+static auto to_format_string_queue_family(const QueueFamily& queue_family)
+    -> std::string {
+    std::string result = "{ ";
+    if ((queue_family.m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0U) {
+        result += "Graphics ";
+    }
+    if ((queue_family.m_properties.queueFlags & VK_QUEUE_COMPUTE_BIT) != 0U) {
+        result += "Compute ";
+    }
+    if ((queue_family.m_properties.queueFlags & VK_QUEUE_TRANSFER_BIT) != 0U) {
+        result += "Transfer ";
+    }
+    if ((queue_family.m_properties.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) != 0U) {
+        result += "SparseBinding ";
+    }
+    if ((queue_family.m_properties.queueFlags & VK_QUEUE_PROTECTED_BIT) != 0U) {
+        result += "Protected ";
+    }
+    result += "}";
+    return result;
+}
+
 auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
     m_instance_p = &instance;
     m_properties = this->query_properties();
@@ -142,11 +164,11 @@ auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
 
     */
     m_queue_families = this->query_queue_families();
+    m_extension_properties = this->query_extension_properties();
+    m_extension_support = this->check_extension_support(m_device_extensions);
+
     m_chosen_queue_family_pointers =
         PhysicalDevice::choose_fitting_queue_families(m_queue_families, surface);
-    m_extension_properties = this->query_extension_properties();
-
-    m_extension_support = this->check_extension_support(m_device_extensions);
 
     {
         Logger::info("Physical device: {}", m_properties.deviceName);
@@ -266,15 +288,15 @@ auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
                 "\t\t{}: {} with {} bytes", i, to_string(memory_heap), memory_heap.size
             );
         }
-        // for (size_t i = 0; i < m_queue_families.size(); i++) {
-        //     QueueFamily& queue_family = m_queue_families[i];
-        //     Logger::debug(
-        //         "Queue family {} has {} queues capable of {}",
-        //         i,
-        //         queue_family.m_properties.queueCount,
-        //         to_format_string_queue_family(queue_family)
-        //     );
-        // }
+        for (size_t i = 0; i < m_queue_families.size(); i++) {
+            QueueFamily& queue_family = m_queue_families[i];
+            Logger::debug(
+                "Queue family {} has {} queues capable of {}",
+                i,
+                queue_family.m_properties.queueCount,
+                to_format_string_queue_family(queue_family)
+            );
+        }
     }
 }
 
@@ -294,17 +316,53 @@ auto PhysicalDevice::choose_fitting_queue_families(
     const Surface&            surface
 ) -> QueueFamilyPointers {
 
-    QueueFamilyPointers pointers;
-    for (u32 i = 0; i < queue_families.size(); i++) {
-        auto&      family = queue_families[i];
-        const bool is_graphics = family.supports_graphics();
-        const bool is_present = family.supports_present(surface);
+    // TODO: Make it more efficient. As of right now we simply find the first queue family
+    // which does the job.
 
-        if (is_graphics) { pointers.m_graphics_family = &family; }
-        if (is_present) { pointers.m_present_family = &family; }
-        if (pointers.is_complete()) { break; }
+    QueueFamilyPointers fam_pointers;
+    for (u32 i = 0; i < queue_families.size(); i++) {
+        auto& family = queue_families[i];
+
+        const bool is_graphics = family.supports_graphics();
+        if (is_graphics) { fam_pointers.m_graphics_family = &family; }
     }
-    return pointers;
+    for (u32 i = 0; i < queue_families.size(); i++) {
+        auto& family = queue_families[i];
+
+        const bool is_compute = family.supports_compute();
+        if (is_compute) { fam_pointers.m_compute_family = &family; }
+    }
+
+    for (u32 i = 0; i < queue_families.size(); i++) {
+        auto& family = queue_families[i];
+
+        const bool is_transfer = family.supports_compute();
+        if (is_transfer) { fam_pointers.m_transfer_family = &family; }
+    }
+
+    for (u32 i = 0; i < queue_families.size(); i++) {
+        auto& family = queue_families[i];
+
+        const bool is_present = family.supports_present(surface);
+        if (is_present) { fam_pointers.m_present_family = &family; }
+    }
+
+    return fam_pointers;
+
+    // QueueFamilyPointers pointers;
+    // for (u32 i = 0; i < queue_families.size(); i++) {
+    //     auto&      family = queue_families[i];
+    //     const bool is_graphics = family.supports_graphics();
+    //     const bool is_transfer = family.supports_transfer();
+    //     const bool is_compute = family.supports_compute();
+
+    //     const bool is_present = family.supports_present(surface);
+
+    //     if (is_graphics) { pointers.m_graphics_family = &family; }
+    //     if (is_present) { pointers.m_present_family = &family; }
+    //     if (pointers.is_complete()) { break; }
+    // }
+    // return pointers;
 }
 
 auto PhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties)

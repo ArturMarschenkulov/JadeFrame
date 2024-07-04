@@ -34,6 +34,7 @@ private:
     check_validation_layer_support(const std::span<VkLayerProperties>& available_layers)
         -> bool;
 
+public:
     auto create_surface(const Window* window_handle) -> vulkan::Surface;
 
 public:

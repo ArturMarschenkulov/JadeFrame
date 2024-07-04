@@ -75,15 +75,6 @@ static constexpr auto ceil_to_aligned(const u64 value, const u64 alignment) -> u
     return aligned_block_size;
 }
 
-auto Vulkan_Renderer::recreate_swapchain() -> void {
-    vkDeviceWaitIdle(m_logical_device->m_handle);
-    m_swapchain.deinit();
-
-    m_swapchain.init(*m_logical_device, m_logical_device->m_instance->m_surface);
-}
-
-auto Vulkan_Renderer::cleanup_swapchain() -> void { m_swapchain.deinit(); }
-
 auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     vulkan::LogicalDevice&        d = *m_logical_device;
     const vulkan::PhysicalDevice* pd = d.m_physical_device;
@@ -122,31 +113,29 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     cb.render_pass_begin(framebuffer, m_render_pass, m_swapchain.m_extent, clear_value);
     for (u64 i = 0; i < render_commands.size(); i++) {
         using namespace vulkan;
-        const auto&           cmd = render_commands[i];
+        const RenderCommand&  cmd = render_commands[i];
         const MaterialHandle& mh = *cmd.material;
 
-        const ShaderHandle& sh = *mh.m_shader;
-        auto*               shader = static_cast<Vulkan_Shader*>(sh.m_handle);
+        auto* shader = static_cast<Vulkan_Shader*>(mh.m_shader->m_handle);
+        const VkPipelineBindPoint bp = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        auto&                     pipeline = shader->m_pipeline;
+        auto&                     sets = shader->m_sets;
+        cb.bind_pipeline(bp, pipeline);
 
         // Per Frame ubo
         // vulkan::FREQUENCY::PER_FRAME == 0
+        // Per DrawCall ubo
+        // vulkan::FREQUENCY::PER_OBJECT == 3
+
         shader->write_ub(
             FREQUENCY::PER_FRAME, 0, &view_projection, sizeof(view_projection), 0
         );
 
-        // Per DrawCall ubo
-
-        // vulkan::FREQUENCY::PER_OBJECT == 3
         const u32 dyn_offset = static_cast<u32>(dyn_alignment * i);
         shader->write_ub(
             FREQUENCY::PER_OBJECT, 0, &cmd.transform, sizeof(cmd.transform), dyn_offset
         );
 
-        const VkPipelineBindPoint bp = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        auto&                     pipeline = shader->m_pipeline;
-        auto&                     sets = shader->m_sets;
-
-        cb.bind_pipeline(bp, pipeline);
         cb.bind_descriptor_sets(
             bp, pipeline, FREQUENCY::PER_FRAME, sets[FREQUENCY::PER_FRAME], nullptr
         );
@@ -188,8 +177,6 @@ auto Vulkan_Renderer::render_mesh(
     const vulkan::Buffer* vertex_buffer =
         static_cast<vulkan::Buffer*>(gpu_data->m_vertex_buffer->m_handle);
 
-    // VkDeviceSize offsets[] = {0, 0};
-    
     vulkan::CommandBuffer& cb = m_frames[m_frame_index].m_cmd;
     cb.bind_vertex_buffer(0, *vertex_buffer, 0);
 

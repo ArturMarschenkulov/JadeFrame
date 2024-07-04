@@ -83,10 +83,9 @@ auto Instance::check_validation_layer_support(const std::span<VkLayerProperties>
 #endif
 }
 
-static auto is_device_suitable(
-    const vulkan::PhysicalDevice& physical_device,
-    vulkan::Surface&              surface
-) -> bool {
+static auto
+is_device_suitable(vulkan::PhysicalDevice& physical_device, vulkan::Surface& surface)
+    -> bool {
 
     auto formats = physical_device.query_surface_formats(surface);
     auto present_modes = physical_device.query_surface_present_modes(surface);
@@ -97,6 +96,16 @@ static auto is_device_suitable(
     }
     return physical_device.m_chosen_queue_family_pointers.is_complete() &&
            physical_device.m_extension_support && swapchain_adequate;
+}
+
+static auto choose_physical_device(
+    std::span<vulkan::PhysicalDevice> devices,
+    vulkan::Surface&                  surface
+) -> vulkan::PhysicalDevice* {
+    for (u32 i = 0; i < devices.size(); i++) {
+        if (is_device_suitable(devices[i], surface)) { return &devices[i]; }
+    }
+    assert(false);
 }
 
 auto Instance::query_layers() -> std::vector<VkLayerProperties> {
@@ -158,14 +167,21 @@ auto Instance::init(const Window* window_handle) -> void {
 
     VkResult result;
 
-    VkValidationFeatureEnableEXT enables[] = {
-        VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT
-    };
+    constexpr bool                            enable_validation_layers = true;
+    std::vector<VkValidationFeatureEnableEXT> vals;
+    if (enable_validation_layers) {
+        vals.push_back(VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT);
+        // vals.push_back(VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT);
+        // vals.push_back(VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_RESERVE_BINDING_SLOT_EXT
+        // );
+        // vals.push_back(VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT);
+        // vals.push_back(VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT);
+    }
     VkValidationFeaturesEXT features = {};
     features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
     features.pNext = VK_NULL_HANDLE;
-    features.enabledValidationFeatureCount = 1;
-    features.pEnabledValidationFeatures = enables;
+    features.enabledValidationFeatureCount = vals.size();
+    features.pEnabledValidationFeatures = vals.data();
     features.disabledValidationFeatureCount = 0;
     features.pDisabledValidationFeatures = VK_NULL_HANDLE;
 
@@ -254,12 +270,8 @@ auto Instance::init(const Window* window_handle) -> void {
     for (u32 i = 0; i < m_physical_devices.size(); i++) {
         m_physical_devices[i].init(*this, m_surface);
     }
-    for (u32 i = 0; i < m_physical_devices.size(); i++) {
-        if (is_device_suitable(m_physical_devices[i], m_surface)) {
-            m_physical_device = &m_physical_devices[i];
-            break;
-        }
-    }
+
+    m_physical_device = choose_physical_device(m_physical_devices, m_surface);
 
     m_logical_device.init(*this, *m_physical_device);
     // m_logical_device = m_physical_device.create_logical_device();

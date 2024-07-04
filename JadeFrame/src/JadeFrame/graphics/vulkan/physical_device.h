@@ -19,6 +19,8 @@ class PhysicalDevice;
 class QueueFamilyPointers {
 public:
     QueueFamily* m_graphics_family = nullptr;
+    QueueFamily* m_compute_family = nullptr;
+    QueueFamily* m_transfer_family = nullptr;
     QueueFamily* m_present_family = nullptr;
 
     [[nodiscard]] auto is_complete() const -> bool {
