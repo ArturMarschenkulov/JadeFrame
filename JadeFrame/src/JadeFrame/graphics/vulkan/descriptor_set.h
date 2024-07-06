@@ -27,8 +27,8 @@ struct Descriptor {
     ~Descriptor() = default;
     Descriptor(const Descriptor&) = delete;
     auto operator=(const Descriptor&) -> Descriptor& = delete;
-    Descriptor(Descriptor&& other);
-    auto operator=(Descriptor&& other) -> Descriptor&;
+    Descriptor(Descriptor&& other) noexcept;
+    auto operator=(Descriptor&& other) noexcept -> Descriptor&;
 
     Descriptor(
         const Buffer&                buffer,
@@ -129,8 +129,8 @@ public:
 
 public:
     DescriptorPool(
-        const LogicalDevice&             device,
-        u32                              max_sets,
+        const LogicalDevice&                   device,
+        u32                                    max_sets,
         const std::span<VkDescriptorPoolSize>& pool_sizes
     );
 

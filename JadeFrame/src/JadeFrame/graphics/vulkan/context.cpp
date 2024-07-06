@@ -83,27 +83,16 @@ auto Instance::check_validation_layer_support(const std::span<VkLayerProperties>
 #endif
 }
 
-static auto
-is_device_suitable(vulkan::PhysicalDevice& physical_device, vulkan::Surface& surface)
-    -> bool {
+static auto is_device_suitable(vulkan::PhysicalDevice& physical_device) -> bool {
 
-    auto formats = physical_device.query_surface_formats(surface);
-    auto present_modes = physical_device.query_surface_present_modes(surface);
-
-    bool swapchain_adequate = false;
-    if (physical_device.m_extension_support) {
-        swapchain_adequate = !formats.empty() && !present_modes.empty();
-    }
     return physical_device.m_chosen_queue_family_pointers.is_complete() &&
-           physical_device.m_extension_support && swapchain_adequate;
+           physical_device.m_extension_support;
 }
 
-static auto choose_physical_device(
-    std::span<vulkan::PhysicalDevice> devices,
-    vulkan::Surface&                  surface
-) -> vulkan::PhysicalDevice* {
+static auto choose_physical_device(std::span<vulkan::PhysicalDevice> devices)
+    -> vulkan::PhysicalDevice* {
     for (u32 i = 0; i < devices.size(); i++) {
-        if (is_device_suitable(devices[i], surface)) { return &devices[i]; }
+        if (is_device_suitable(devices[i])) { return &devices[i]; }
     }
     assert(false);
 }
@@ -162,7 +151,7 @@ auto Instance::setup_debug() -> void {
     if (result != VK_SUCCESS) { assert(false); }
 }
 
-auto Instance::init(const Window* window_handle) -> void {
+auto Instance::init() -> void {
     Logger::trace("Instance::init start");
 
     VkResult result;
@@ -262,16 +251,15 @@ auto Instance::init(const Window* window_handle) -> void {
         );
         if (result != VK_SUCCESS) { assert(false); }
     }
-    m_surface = this->create_surface(window_handle);
 
     Logger::debug("Querying Physical Devices");
     Logger::debug("There are {} physical devices", m_physical_devices.size());
     m_physical_devices = this->query_physical_devices();
     for (u32 i = 0; i < m_physical_devices.size(); i++) {
-        m_physical_devices[i].init(*this, m_surface);
+        m_physical_devices[i].init(*this);
     }
 
-    m_physical_device = choose_physical_device(m_physical_devices, m_surface);
+    m_physical_device = choose_physical_device(m_physical_devices);
 
     m_logical_device.init(*this, *m_physical_device);
     // m_logical_device = m_physical_device.create_logical_device();
@@ -295,7 +283,7 @@ auto Instance::create_surface(const Window* window_handle) -> vulkan::Surface {
 
 Vulkan_Context::Vulkan_Context(const Window* window)
     : m_window_handle(window) {
-    m_instance.init(window);
+    m_instance.init();
 }
 
 Vulkan_Context::~Vulkan_Context() {

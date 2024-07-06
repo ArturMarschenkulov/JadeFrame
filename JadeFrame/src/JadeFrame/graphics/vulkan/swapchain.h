@@ -1,8 +1,10 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
+#include "JadeFrame/graphics/vulkan/queue.h"
 #include "JadeFrame/prelude.h"
 #include "buffer.h"
+#include "surface.h"
 
 #include <vector>
 
@@ -72,7 +74,7 @@ public:
     auto operator=(Swapchain&& other) noexcept -> Swapchain& = default;
 
 public:
-    auto init(LogicalDevice& device, const Surface& surface) -> void;
+    auto init(LogicalDevice& device, const Window* window) -> void;
     auto deinit() -> void;
     auto recreate() -> void;
 
@@ -86,7 +88,7 @@ public:
 public:
     VkSwapchainKHR m_handle = VK_NULL_HANDLE;
     LogicalDevice* m_device = nullptr;
-    const Surface* m_surface = nullptr;
+    Surface        m_surface;
 
     std::vector<Image>     m_images;
     std::vector<ImageView> m_image_views;
@@ -98,6 +100,8 @@ public:
 
     Image     m_depth_image;
     ImageView m_depth_image_view;
+
+    Queue m_present_queue;
 };
 } // namespace vulkan
 } // namespace JadeFrame

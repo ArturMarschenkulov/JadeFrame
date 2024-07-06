@@ -22,7 +22,7 @@ public:
     Instance(Instance&& other) = delete;
     auto operator=(Instance&& other) -> Instance& = delete;
 
-    auto init(const Window* window_handle) -> void;
+    auto init() -> void;
     auto deinit() -> void;
 
 private:
@@ -39,7 +39,6 @@ public:
 
 public:
     VkInstance m_instance = VK_NULL_HANDLE;
-    Surface    m_surface;
 
     std::vector<VkLayerProperties> m_layers;
     std::vector<const char*>       m_desired_layer_names =

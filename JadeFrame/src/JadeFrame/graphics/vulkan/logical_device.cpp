@@ -187,7 +187,7 @@ auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physica
 
     const QueueFamilyPointers& pointers = physical_device.m_chosen_queue_family_pointers;
     const std::set<QueueFamily*> unique_queue_families = {
-        pointers.m_graphics_family, pointers.m_present_family
+        pointers.m_graphics_family, pointers.m_transfer_family
     };
 
     constexpr f32                        queue_priority = 1.0_f32;
@@ -234,7 +234,6 @@ auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physica
         "maxBoundDescriptorSets too low, it must be at least 4"
     );
     m_graphics_queue = pointers.m_graphics_family->query_queues(*this, 0);
-    m_present_queue = pointers.m_present_family->query_queues(*this, 0);
 
     m_command_pool = this->create_command_pool(
         *m_physical_device->m_chosen_queue_family_pointers.m_graphics_family
@@ -346,9 +345,9 @@ auto LogicalDevice::create_command_pool(QueueFamily& queue_family) -> CommandPoo
     return cp;
 }
 
-auto LogicalDevice::create_swapchain(const Surface& surface) -> Swapchain {
+auto LogicalDevice::create_swapchain(const Window* window) -> Swapchain {
     Swapchain sc;
-    sc.init(*this, surface);
+    sc.init(*this, window);
     return sc;
 }
 

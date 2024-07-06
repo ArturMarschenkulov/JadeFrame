@@ -51,7 +51,6 @@ public:
 
 public:
     Queue m_graphics_queue;
-    Queue m_present_queue;
 
 public:
     auto create_command_pool(QueueFamily& queue_family) -> CommandPool;
@@ -68,7 +67,7 @@ public:
     DescriptorPool m_set_pool;
 
 public: // Swapchain stuff
-    auto create_swapchain(const Surface& surface) -> Swapchain;
+    auto create_swapchain(const Window* window) -> Swapchain;
     auto create_render_pass(VkFormat image_format) -> RenderPass;
     auto create_framebuffer(
         const ImageView&  image_view,

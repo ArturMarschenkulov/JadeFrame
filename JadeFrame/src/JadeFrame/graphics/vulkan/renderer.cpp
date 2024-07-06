@@ -22,7 +22,7 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const Window* window)
     , m_system(&system) {
 
     // Swapchain stuff
-    m_swapchain = m_logical_device->create_swapchain(m_context.m_instance.m_surface);
+    m_swapchain = m_logical_device->create_swapchain(window);
     const u32 swapchain_image_amount = static_cast<u32>(m_swapchain.m_images.size());
 
     m_render_pass = m_logical_device->create_render_pass(m_swapchain.m_image_format);
@@ -193,7 +193,8 @@ auto Vulkan_Renderer::render_mesh(
 auto Vulkan_Renderer::present() -> void {
     vulkan::LogicalDevice& d = *m_logical_device;
 
-    VkResult result = m_frames[m_frame_index].present(d.m_present_queue, m_swapchain);
+    VkResult result =
+        m_frames[m_frame_index].present(m_swapchain.m_present_queue, m_swapchain);
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
         m_framebuffer_resized) {
         m_framebuffer_resized = false;

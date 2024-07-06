@@ -145,7 +145,7 @@ static auto to_format_string_queue_family(const QueueFamily& queue_family)
     return result;
 }
 
-auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
+auto PhysicalDevice::init(Instance& instance) -> void {
     m_instance_p = &instance;
     m_properties = this->query_properties();
     m_features = this->query_features();
@@ -168,7 +168,7 @@ auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
     m_extension_support = this->check_extension_support(m_device_extensions);
 
     m_chosen_queue_family_pointers =
-        PhysicalDevice::choose_fitting_queue_families(m_queue_families, surface);
+        PhysicalDevice::choose_fitting_queue_families(m_queue_families);
 
     {
         Logger::info("Physical device: {}", m_properties.deviceName);
@@ -312,8 +312,7 @@ auto PhysicalDevice::check_extension_support(const std::vector<const char*>& ext
 // /// Returns a pair of queue family indices, one that supports graphics and one that
 // /// supports presenting.
 auto PhysicalDevice::choose_fitting_queue_families(
-    std::vector<QueueFamily>& queue_families,
-    const Surface&            surface
+    std::vector<QueueFamily>& queue_families
 ) -> QueueFamilyPointers {
 
     // TODO: Make it more efficient. As of right now we simply find the first queue family
@@ -340,29 +339,7 @@ auto PhysicalDevice::choose_fitting_queue_families(
         if (is_transfer) { fam_pointers.m_transfer_family = &family; }
     }
 
-    for (u32 i = 0; i < queue_families.size(); i++) {
-        auto& family = queue_families[i];
-
-        const bool is_present = family.supports_present(surface);
-        if (is_present) { fam_pointers.m_present_family = &family; }
-    }
-
     return fam_pointers;
-
-    // QueueFamilyPointers pointers;
-    // for (u32 i = 0; i < queue_families.size(); i++) {
-    //     auto&      family = queue_families[i];
-    //     const bool is_graphics = family.supports_graphics();
-    //     const bool is_transfer = family.supports_transfer();
-    //     const bool is_compute = family.supports_compute();
-
-    //     const bool is_present = family.supports_present(surface);
-
-    //     if (is_graphics) { pointers.m_graphics_family = &family; }
-    //     if (is_present) { pointers.m_present_family = &family; }
-    //     if (pointers.is_complete()) { break; }
-    // }
-    // return pointers;
 }
 
 auto PhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties)
