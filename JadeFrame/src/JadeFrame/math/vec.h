@@ -1,7 +1,8 @@
 #pragma once
 #include "JadeFrame/prelude.h"
+#include "JadeFrame/types.h"
 // #include <concepts>
-#include <cmath>
+// #include <cmath>
 #include <cstring>
 #include <type_traits>
 
@@ -25,6 +26,273 @@ JF_PRAGMA_PUSH
 //
 // template <typename T>
 // concept number = std::integral<T> || std::floating_point<T>;
+
+template<typename T>
+    requires std::integral<T> || std::floating_point<T>
+class _v2 {
+public:
+    constexpr _v2() noexcept = default;
+    constexpr _v2(const _v2&) = default;
+    constexpr auto operator=(const _v2& other) -> _v2& = default;
+    constexpr _v2(_v2&&) = default;
+    constexpr auto operator=(_v2&& other) noexcept -> _v2& = default;
+    constexpr ~_v2() = default;
+
+public:
+    constexpr _v2(const T x, const T y) noexcept
+        : x(x)
+        , y(y) {}
+
+public: // operators
+    constexpr auto operator+(const _v2& other) const -> _v2 {
+        return _v2(x + other.x, y + other.y);
+    }
+
+    constexpr auto operator-(const _v2& other) const -> _v2 {
+        return _v2(x - other.x, y - other.y);
+    }
+
+    // this is a dot product
+    constexpr auto operator*(const T& other) const -> _v2 {
+        return _v2(x * other, y * other);
+    }
+
+    constexpr auto operator/(const T& other) const -> _v2 {
+        return _v2(x / other, y / other);
+    }
+
+    constexpr auto operator+=(const _v2& other) -> _v2& {
+        *this = *this + other;
+        return *this;
+    }
+
+    constexpr auto operator-=(const _v2& other) -> _v2& {
+        *this = *this - other;
+        return *this;
+    }
+
+    constexpr auto operator*=(const T& other) -> _v2& {
+        *this = *this * other;
+        return *this;
+    }
+
+    constexpr auto operator/=(const T& other) -> _v2& {
+        *this = *this / other;
+        return *this;
+    }
+
+    constexpr auto operator==(const _v2& other) -> bool {
+        return (x == other.x) && (y == other.y);
+    }
+
+    constexpr auto operator!=(const _v2& other) -> bool { return !(*this == other); }
+
+    constexpr auto operator-() const -> _v2 { return _v2(-x, -y); }
+
+    // constexpr auto operator[](const u32 index) const -> T& {
+    //     if (index == 0) { return x; }
+    //     if (index == 1) { return y; }
+    //     assert(false && "index out of bounds");
+    // }
+
+    // constexpr auto operator[](const u32 index) -> T& {
+    //     if (index == 0) { return x; }
+    //     if (index == 1) { return y; }
+    //     assert(false && "index out of bounds");
+    // }
+
+public: // named operations
+    constexpr auto add(const _v2 o) const -> _v2 { return _v2(x + o.x, y + o.y); }
+
+    constexpr auto sub(const _v2 o) const -> _v2 { return _v2(x - o.x, y - o.y); }
+
+    constexpr auto mult(const T o) const -> _v2 { return _v2(x * o, y * o); }
+
+    constexpr auto div(const T o) const -> _v2 { return _v2(x / o, y / o); }
+
+    constexpr auto dot(const _v2& o) const -> T { return x * o.x + y * o.y; }
+
+public:
+    T x = {}; // width, r
+    T y = {}; // height, g
+
+public:
+    constexpr static auto splat(const T& value) noexcept -> _v2 {
+        return _v2(value, value);
+    }
+
+    constexpr static auto create(const T x, const T y) noexcept -> _v2 {
+        return _v2(x, y);
+    }
+
+    constexpr static auto zero() noexcept -> _v2 { return _v2(0, 0); }
+
+    constexpr static auto one() noexcept -> _v2 { return _v2(1, 1); }
+
+    constexpr static auto X() noexcept -> _v2 { return _v2(1, 0); }
+
+    constexpr static auto Y() noexcept -> _v2 { return _v2(0, 1); }
+
+    constexpr static auto NEG_X() noexcept -> _v2 { return -_v2::X(); }
+
+    constexpr static auto NEG_Y() noexcept -> _v2 { return -_v2::Y(); }
+};
+
+template<typename T>
+class _v3 {
+public:
+    constexpr _v3() noexcept = default;
+    constexpr _v3(const _v3&) = default;
+    constexpr auto operator=(const _v3& other) -> _v3& = default;
+    constexpr _v3(_v3&&) = default;
+    constexpr auto operator=(_v3&& other) noexcept -> _v3& = default;
+    constexpr ~_v3() = default;
+
+public:
+    constexpr _v3(const T x, const T y, const T z) noexcept
+        : x(x)
+        , y(y)
+        , z(z) {}
+
+public: // operators
+    constexpr auto operator+(const _v3& other) const -> _v3 {
+        return _v3(x + other.x, y + other.y, z + other.z);
+    }
+
+    constexpr auto operator-(const _v3& other) const -> _v3 {
+        return _v3(x - other.x, y - other.y, z - other.z);
+    }
+
+    constexpr auto operator*(const T& other) const -> _v3 {
+        return _v3(x * other, y * other, z * other);
+    }
+
+    constexpr auto operator/(const T& other) const -> _v3 {
+        return _v3(x / other, y / other, z / other);
+    }
+
+    constexpr auto operator+=(const _v3& other) -> _v3& {
+        *this = *this + other;
+        return *this;
+    }
+
+    constexpr auto operator-=(const _v3& other) -> _v3& {
+        *this = *this - other;
+        return *this;
+    }
+
+    constexpr auto operator*=(const T& other) -> _v3& {
+        *this = *this * other;
+        return *this;
+    }
+
+    constexpr auto operator/=(const T& other) -> _v3& {
+        *this = *this / other;
+        return *this;
+    }
+
+    constexpr auto operator==(const _v3& other) -> bool {
+        return (x == other.x) && (y == other.y) && (z == other.z);
+    }
+
+    constexpr auto operator!=(const _v3& other) -> bool { return !(*this == other); }
+
+    constexpr auto operator-() const -> _v3 { return _v3(-x, -y, -z); }
+
+    // constexpr auto operator[](const u32 index) const -> T& {
+    //     if (index == 0) { return x; }
+    //     if (index == 1) { return y; }
+    //     if (index == 2) { return z; }
+    //     assert(false && "index out of bounds");
+    // }
+
+    // constexpr auto operator[](const u32 index) -> T& {
+    //     if (index == 0) { return x; }
+    //     if (index == 1) { return y; }
+    //     if (index == 2) { return z; }
+    //     assert(false && "index out of bounds");
+    // }
+
+public: // named operations
+    constexpr auto add(const _v3 o) const -> _v3 {
+        return _v3(x + o.x, y + o.y, z + o.z);
+    }
+
+    constexpr auto sub(const _v3 o) const -> _v3 {
+        return _v3(x - o.x, y - o.y, z - o.z);
+    }
+
+    constexpr auto mult(const T o) const -> _v3 { return _v3(x * o, y * o, z * o); }
+
+    constexpr auto div(const T o) const -> _v3 { return _v3(x / o, y / o, z / o); }
+
+    constexpr auto dot(const _v3& o) const -> T { return x * o.x + y * o.y + z * o.z; }
+
+    constexpr auto cross(const _v3& o) const -> _v3 {
+        return _v3(y * o.z - z * o.y, z * o.x - x * o.z, x * o.y - y * o.x);
+    }
+
+    constexpr auto get_length() const -> T {
+        const T dot = this->dot(*this);
+        return dot * dot /*std::sqrt(dot)*/;
+    }
+
+    constexpr auto get_normal() const -> _v3 {
+        const T length = static_cast<T>(this->get_length());
+        return _v3(x / length, y / length, z / length);
+    }
+
+public:
+    T x = {}; // width, r
+    T y = {}; // height, g
+    T z = {}; // depth, b
+
+public:
+    constexpr static auto splat(const T& value) -> _v3 {
+        return _v3(value, value, value);
+    }
+
+    constexpr static auto zero() -> _v3 { return _v3(0, 0, 0); }
+
+    constexpr static auto one() -> _v3 { return _v3(1, 1, 1); }
+
+    constexpr static auto X() -> _v3 { return _v3(1, 0, 0); }
+
+    constexpr static auto Y() -> _v3 { return _v3(0, 1, 0); }
+
+    constexpr static auto Z() -> _v3 { return _v3(0, 0, 1); }
+
+    constexpr static auto NEG_X() -> _v3 { return -_v3::X(); }
+
+    constexpr static auto NEG_Y() -> _v3 { return -_v3::Y(); }
+
+    constexpr static auto NEG_Z() -> _v3 { return -_v3::Z(); }
+};
+
+template<typename T>
+class _v4 {
+public:
+    T x;
+    T y;
+    T z;
+    T w;
+
+public:
+    constexpr static auto splat(const T& value) -> _v4 {
+        return _v4(value, value, value, value);
+    }
+
+    constexpr static _v4 ZERO = _v4::splat(0);
+    constexpr static _v4 ONE = _v4::splat(1);
+    constexpr static _v4 X = _v4(1, 0, 0, 0);
+    constexpr static _v4 Y = _v4(0, 1, 0, 0);
+    constexpr static _v4 Z = _v4(0, 0, 1, 0);
+    constexpr static _v4 W = _v4(0, 0, 0, 1);
+    constexpr static _v4 NEG_X = _v4(-1, 0, 0, 0);
+    constexpr static _v4 NEG_Y = _v4(0, -10, 0, 0);
+    constexpr static _v4 NEG_Z = _v4(0, 0, -1, 0);
+    constexpr static _v4 NEG_W = _v4(0, 0, 0, -1);
+};
 
 template<size_t N, typename T>
 class vector_t {
@@ -78,6 +346,7 @@ public:
     constexpr VectorT() noexcept { std::memset(el, 0, N); }
 
     constexpr auto operator=(const VectorT& other) -> VectorT& {
+        if (this == &other) { return *this; }
         for (u32 i = 0; i < N; i++) { el[i] = other.el[i]; }
         return *this;
     }
@@ -249,6 +518,11 @@ public:
     //	return VectorT(x / length, y / length, z / length);
     // }
 
+    // create a template concept thingy where if the T is unsigned, it will not call
+    // `std::abs`, otherwise it will.
+
+    constexpr auto abs() const -> VectorT { return VectorT(std::abs(x), std::abs(y)); }
+
 public:
     union {
         T el[2];
@@ -356,9 +630,39 @@ public:
     }
 
     constexpr auto get_normal() const -> VectorT {
-        const f32& length = static_cast<f32>(this->get_length());
-        return VectorT(x / (T)length, y / (T)length, z / (T)length);
+        const T length = static_cast<T>(this->get_length());
+        return VectorT(x / length, y / length, z / length);
     }
+
+public:
+    constexpr static auto splat(const T& value) -> VectorT {
+        return VectorT(value, value, value);
+    }
+
+    constexpr static auto zero() -> VectorT { return VectorT(0, 0, 0); }
+
+    constexpr static auto one() -> VectorT { return VectorT(1, 1, 1); }
+
+    constexpr static auto X() -> VectorT { return VectorT(1, 0, 0); }
+
+    constexpr static auto Y() -> VectorT { return VectorT(0, 1, 0); }
+
+    constexpr static auto Z() -> VectorT { return VectorT(0, 0, 1); }
+
+    constexpr static auto NEG_X() -> VectorT { return VectorT(-1, 0, 0); }
+
+    constexpr static auto NEG_Y() -> VectorT { return VectorT(0, -1, 0); }
+
+    constexpr static auto NEG_Z() -> VectorT { return VectorT(0, 0, -1); }
+
+    // constexpr static VectorT ZERO = VectorT(0, 0, 0);
+    // constexpr static VectorT ONE = VectorT(1, 1, 1);
+    // constexpr static VectorT X = VectorT(1, 0, 0);
+    // constexpr static VectorT Y = VectorT(0, 1, 0);
+    // constexpr static VectorT Z = VectorT(0, 0, 1);
+    // constexpr static VectorT NEG_X = VectorT(-1, 0, 0);
+    // constexpr static VectorT NEG_Y = VectorT(0, -1, 0);
+    // constexpr static VectorT NEG_Z = VectorT(0, 0, -1);
 
 public:
     union {
@@ -486,43 +790,43 @@ public:
 
 ---------------------------*/
 
-using v2f32 = VectorT<2, f32>;
-using v3f32 = VectorT<3, f32>;
+using v2f32 = _v2<f32>;
+using v3f32 = _v3<f32>;
 using v4f32 = VectorT<4, f32>;
 
-using v2f64 = VectorT<2, f64>;
+using v2f64 = _v2<f64>;
 using v3f64 = VectorT<3, f64>;
 using v4f64 = VectorT<4, f64>;
 
-using v2u8 = VectorT<2, u8>;
+using v2u8 = _v2<u8>;
 using v3u8 = VectorT<3, u8>;
 using v4u8 = VectorT<4, u8>;
 
-using v2u16 = VectorT<2, u16>;
+using v2u16 = _v2<u16>;
 using v3u16 = VectorT<3, u16>;
 using v4u16 = VectorT<4, u16>;
 
-using v2u32 = VectorT<2, u32>;
+using v2u32 = _v2<u32>;
 using v3u32 = VectorT<3, u32>;
 using v4u32 = VectorT<4, u32>;
 
-using v2u64 = VectorT<2, u64>;
+using v2u64 = _v2<u64>;
 using v3u64 = VectorT<3, u64>;
 using v4u64 = VectorT<4, u64>;
 
-using v2i8 = VectorT<2, i8>;
+using v2i8 = _v2<i8>;
 using v3i8 = VectorT<3, i8>;
 using v4i8 = VectorT<4, i8>;
 
-using v2i16 = VectorT<2, i16>;
+using v2i16 = _v2<i16>;
 using v3i16 = VectorT<3, i16>;
 using v4i16 = VectorT<4, i16>;
 
-using v2i32 = VectorT<2, i32>;
+using v2i32 = _v2<i32>;
 using v3i32 = VectorT<3, i32>;
 using v4i32 = VectorT<4, i32>;
 
-using v2i64 = VectorT<2, i64>;
+using v2i64 = _v2<i64>;
 using v3i64 = VectorT<3, i64>;
 using v4i64 = VectorT<4, i64>;
 
