@@ -564,12 +564,4 @@ auto RenderSystem::submit(const Object& obj) -> void {
     m_render_commands.push_back(command);
 }
 
-auto VertexFormat::has_same_interface(const VertexFormat& other) const -> bool {
-    if (m_attributes.size() != other.m_attributes.size()) { return false; }
-    for (size_t i = 0; i < m_attributes.size(); i++) {
-        if (m_attributes[i].name != other.m_attributes[i].name) { return false; }
-        if (m_attributes[i].type != other.m_attributes[i].type) { return false; }
-    }
-    return true;
-}
 } // namespace JadeFrame

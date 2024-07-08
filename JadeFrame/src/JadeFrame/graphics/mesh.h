@@ -226,8 +226,6 @@ public:
         bool has_normals = true;
     };
 
-
-
     auto set_color(const RGBAColor& color) -> void {
         auto num_vertices = m_positions.size();
         m_colors.clear();

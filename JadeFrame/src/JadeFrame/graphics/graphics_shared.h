@@ -186,7 +186,6 @@ inline auto is_vector(SHADER_TYPE type) -> bool {
 auto to_string(SHADER_TYPE type) -> const char*;
 
 struct VertexAttribute {
-    std::string name;
     SHADER_TYPE type = SHADER_TYPE::NONE;
 };
 
@@ -202,8 +201,6 @@ public:
     ~VertexFormat() = default;
 
     explicit VertexFormat(const std::vector<VertexAttribute>& attributes);
-
-    [[nodiscard]] auto has_same_interface(const VertexFormat& other) const -> bool;
 
     std::vector<VertexAttribute> m_attributes;
     u32                          m_stride = 0;
