@@ -20,14 +20,14 @@ class LogicalDevice;
         Descriptor
 ---------------------------*/
 
-Descriptor::Descriptor(Descriptor&& other)
+Descriptor::Descriptor(Descriptor&& other) noexcept
     : buffer_info(std::exchange(other.buffer_info, {}))
     // , image_info(std::exchange(other.image_info, {}))
     , type(std::exchange(other.type, VK_DESCRIPTOR_TYPE_MAX_ENUM))
     , stage_flags(std::exchange(other.stage_flags, 0))
     , binding(std::exchange(other.binding, 0)) {}
 
-auto Descriptor::operator=(Descriptor&& other) -> Descriptor& {
+auto Descriptor::operator=(Descriptor&& other) noexcept -> Descriptor& {
     buffer_info = std::exchange(other.buffer_info, {});
     // image_info = std::exchange(other.image_info, {});
     type = std::exchange(other.type, VK_DESCRIPTOR_TYPE_MAX_ENUM);
@@ -163,7 +163,7 @@ auto DescriptorSet::bind_uniform_buffer(
     );
 
     for (u32 i = 0; i < m_descriptors.size(); i++) {
-        auto& l_binding = m_layout->m_bindings[i];
+        const auto& l_binding = m_layout->m_bindings[i];
         if (l_binding.binding == binding) {
             JF_ASSERT(true == is_uniform(l_binding.descriptorType), "type mismatch");
             m_descriptors[i] = Descriptor(buffer, offset, range, l_binding);

@@ -93,7 +93,6 @@ auto OpenGL_Renderer::render(const Matrix4x4& view_projection) -> void {
         // ub_tran
         shader->write_ub(1, &cmd.transform, sizeof(cmd.transform), 0);
 
-  
         if (mh.m_texture != nullptr) {
             auto* texture = static_cast<opengl::Texture*>(mh.m_texture->m_handle);
 

@@ -223,6 +223,8 @@ auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physica
     );
     if (result != VK_SUCCESS) { assert(false); }
 
+    // TODO: Maybe the VMA allocator should be created somewhere else, but for now it is
+    // here.
     m_vma_allocator = init_vma(instance, physical_device, *this);
 
     Logger::debug(

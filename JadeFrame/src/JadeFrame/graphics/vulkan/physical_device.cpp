@@ -145,6 +145,132 @@ static auto to_format_string_queue_family(const QueueFamily& queue_family)
     return result;
 }
 
+static auto log_physical_device(PhysicalDevice& pd) -> void {
+    Logger::info("Physical device: {}", pd.m_properties.deviceName);
+    Logger::info("\tDevice Type: {}", to_string(pd.m_properties.deviceType));
+    Logger::info(
+        "\tVendor (ID): {} ({})",
+        to_string_vendor_id(pd.m_properties.vendorID),
+        pd.m_properties.vendorID
+    );
+    Logger::info("\tDevice ID: {}", pd.m_properties.deviceID);
+    Logger::info("\tDriver Version: {}", pd.m_properties.driverVersion);
+    Logger::info(
+        "\tVulkan Api Version: {}.{}.{}",
+        VK_VERSION_MAJOR(pd.m_properties.apiVersion),
+        VK_VERSION_MINOR(pd.m_properties.apiVersion),
+        VK_VERSION_PATCH(pd.m_properties.apiVersion)
+    );
+    Logger::info(
+        "\tPipeline Cache UUID: {}", to_string(pd.m_properties.pipelineCacheUUID)
+    );
+
+    Logger::info("\tlimits:");
+    Logger::info(
+        "\t\tmax image dimension 1D: {}", pd.m_properties.limits.maxImageDimension1D
+    );
+    Logger::info(
+        "\t\tmax image dimension 2D: {}", pd.m_properties.limits.maxImageDimension2D
+    );
+    Logger::info(
+        "\t\tmax image dimension 3D: {}", pd.m_properties.limits.maxImageDimension3D
+    );
+    Logger::info(
+        "\t\tvertex input bindings: {}", pd.m_properties.limits.maxVertexInputBindings
+    );
+    Logger::info(
+        "\t\tvertex input attributes: {}", pd.m_properties.limits.maxVertexInputAttributes
+    );
+    Logger::info(
+        "\t\tvertex input attribute offset: {}",
+        pd.m_properties.limits.maxVertexInputAttributeOffset
+    );
+    // push constants
+    Logger::info(
+        "\t\tpush constant size: {}", pd.m_properties.limits.maxPushConstantsSize
+    );
+
+    // max descriptor set uniform buffers
+    Logger::info(
+        "\t\tmax descriptor set uniform buffers: {}",
+        pd.m_properties.limits.maxDescriptorSetUniformBuffers
+    );
+    // max descriptor set uniform buffers dynamic
+    Logger::info(
+        "\t\tmax descriptor set uniform buffers dynamic: {}",
+        pd.m_properties.limits.maxDescriptorSetUniformBuffersDynamic
+    );
+    // max descriptor set storage buffers
+    Logger::info(
+        "\t\tmax descriptor set storage buffers: {}",
+        pd.m_properties.limits.maxDescriptorSetStorageBuffers
+    );
+    // max descriptor set storage buffers dynamic
+    Logger::info(
+        "\t\tmax descriptor set storage buffers dynamic: {}",
+        pd.m_properties.limits.maxDescriptorSetStorageBuffersDynamic
+    );
+    // max descriptor set samplers
+    Logger::info(
+        "\t\tmax descriptor set samplers: {}",
+        pd.m_properties.limits.maxDescriptorSetSamplers
+    );
+    // max descriptor set sampled images
+    Logger::info(
+        "\t\tmax descriptor set sampled images: {}",
+        pd.m_properties.limits.maxDescriptorSetSampledImages
+    );
+    // max descriptor set storage images
+    Logger::info(
+        "\t\tmax descriptor set storage images: {}",
+        pd.m_properties.limits.maxDescriptorSetStorageImages
+    );
+    // // max descriptor set combined images samplers
+    // Logger::info(
+    //     "\t\tmax descriptor set combined images samplers: {}",
+    //     pd.m_properties.limits.maxDescriptorSetCombinedImageSamplers
+    // );
+    // max descriptor set input attachments
+    Logger::info(
+        "\t\tmax descriptor set input attachments: {}",
+        pd.m_properties.limits.maxDescriptorSetInputAttachments
+    );
+
+    // Logger::info(
+    //     "\t\tmax vertex input attribute stride: {}",
+    //     pd.m_properties.limits.maxVertexInputAttributeStride
+    // );
+    Logger::info(
+        "\t{} memory types from {}:",
+        pd.m_memory_properties.memoryTypeCount,
+        VK_MAX_MEMORY_TYPES
+    );
+    for (u32 i = 0; i < pd.m_memory_properties.memoryTypeCount; ++i) {
+        VkMemoryType memory_type = pd.m_memory_properties.memoryTypes[i];
+        Logger::info("\t\t{}: {} {}", i, memory_type.heapIndex, to_string(memory_type));
+    }
+    Logger::info(
+        "\t{} memory heaps from {}:",
+        pd.m_memory_properties.memoryHeapCount,
+        VK_MAX_MEMORY_HEAPS
+    );
+    for (u32 i = 0; i < pd.m_memory_properties.memoryHeapCount; ++i) {
+        VkMemoryHeap memory_heap = pd.m_memory_properties.memoryHeaps[i];
+        Logger::info(
+            "\t\t{}: {} with {} bytes", i, to_string(memory_heap), memory_heap.size
+        );
+    }
+    for (size_t i = 0; i < pd.m_queue_families.size(); i++) {
+        QueueFamily& queue_family = pd.m_queue_families[i];
+        Logger::debug(
+            "Queue family {} has {} queues capable of {}",
+            i,
+            queue_family.m_properties.queueCount,
+            to_format_string_queue_family(queue_family)
+        );
+    }
+}
+
 auto PhysicalDevice::init(Instance& instance) -> void {
     m_instance_p = &instance;
     m_properties = this->query_properties();
@@ -170,134 +296,7 @@ auto PhysicalDevice::init(Instance& instance) -> void {
     m_chosen_queue_family_pointers =
         PhysicalDevice::choose_fitting_queue_families(m_queue_families);
 
-    {
-        Logger::info("Physical device: {}", m_properties.deviceName);
-        Logger::info("\tDevice Type: {}", to_string(m_properties.deviceType));
-        Logger::info(
-            "\tVendor (ID): {} ({})",
-            to_string_vendor_id(m_properties.vendorID),
-            m_properties.vendorID
-        );
-        Logger::info("\tDevice ID: {}", m_properties.deviceID);
-        Logger::info("\tDriver Version: {}", m_properties.driverVersion);
-        Logger::info(
-            "\tVulkan Api Version: {}.{}.{}",
-            VK_VERSION_MAJOR(m_properties.apiVersion),
-            VK_VERSION_MINOR(m_properties.apiVersion),
-            VK_VERSION_PATCH(m_properties.apiVersion)
-        );
-        Logger::info(
-            "\tPipeline Cache UUID: {}", to_string(m_properties.pipelineCacheUUID)
-        );
-
-        Logger::info("\tlimits:");
-        Logger::info(
-            "\t\tmax image dimension 1D: {}", m_properties.limits.maxImageDimension1D
-        );
-        Logger::info(
-            "\t\tmax image dimension 2D: {}", m_properties.limits.maxImageDimension2D
-        );
-        Logger::info(
-            "\t\tmax image dimension 3D: {}", m_properties.limits.maxImageDimension3D
-        );
-        Logger::info(
-            "\t\tvertex input bindings: {}", m_properties.limits.maxVertexInputBindings
-        );
-        Logger::info(
-            "\t\tvertex input attributes: {}",
-            m_properties.limits.maxVertexInputAttributes
-        );
-        Logger::info(
-            "\t\tvertex input attribute offset: {}",
-            m_properties.limits.maxVertexInputAttributeOffset
-        );
-        // push constants
-        Logger::info(
-            "\t\tpush constant size: {}", m_properties.limits.maxPushConstantsSize
-        );
-
-        // max descriptor set uniform buffers
-        Logger::info(
-            "\t\tmax descriptor set uniform buffers: {}",
-            m_properties.limits.maxDescriptorSetUniformBuffers
-        );
-        // max descriptor set uniform buffers dynamic
-        Logger::info(
-            "\t\tmax descriptor set uniform buffers dynamic: {}",
-            m_properties.limits.maxDescriptorSetUniformBuffersDynamic
-        );
-        // max descriptor set storage buffers
-        Logger::info(
-            "\t\tmax descriptor set storage buffers: {}",
-            m_properties.limits.maxDescriptorSetStorageBuffers
-        );
-        // max descriptor set storage buffers dynamic
-        Logger::info(
-            "\t\tmax descriptor set storage buffers dynamic: {}",
-            m_properties.limits.maxDescriptorSetStorageBuffersDynamic
-        );
-        // max descriptor set samplers
-        Logger::info(
-            "\t\tmax descriptor set samplers: {}",
-            m_properties.limits.maxDescriptorSetSamplers
-        );
-        // max descriptor set sampled images
-        Logger::info(
-            "\t\tmax descriptor set sampled images: {}",
-            m_properties.limits.maxDescriptorSetSampledImages
-        );
-        // max descriptor set storage images
-        Logger::info(
-            "\t\tmax descriptor set storage images: {}",
-            m_properties.limits.maxDescriptorSetStorageImages
-        );
-        // // max descriptor set combined images samplers
-        // Logger::info(
-        //     "\t\tmax descriptor set combined images samplers: {}",
-        //     m_properties.limits.maxDescriptorSetCombinedImageSamplers
-        // );
-        // max descriptor set input attachments
-        Logger::info(
-            "\t\tmax descriptor set input attachments: {}",
-            m_properties.limits.maxDescriptorSetInputAttachments
-        );
-
-        // Logger::info(
-        //     "\t\tmax vertex input attribute stride: {}",
-        //     m_properties.limits.maxVertexInputAttributeStride
-        // );
-        Logger::info(
-            "\t{} memory types from {}:",
-            m_memory_properties.memoryTypeCount,
-            VK_MAX_MEMORY_TYPES
-        );
-        for (u32 i = 0; i < m_memory_properties.memoryTypeCount; ++i) {
-            VkMemoryType memory_type = m_memory_properties.memoryTypes[i];
-            Logger::info(
-                "\t\t{}: {} {}", i, memory_type.heapIndex, to_string(memory_type)
-            );
-        }
-        Logger::info(
-            "\t{} memory heaps from {}:",
-            m_memory_properties.memoryHeapCount,
-            VK_MAX_MEMORY_HEAPS
-        );
-        for (u32 i = 0; i < m_memory_properties.memoryHeapCount; ++i) {
-            VkMemoryHeap memory_heap = m_memory_properties.memoryHeaps[i];
-            Logger::info(
-                "\t\t{}: {} with {} bytes", i, to_string(memory_heap), memory_heap.size
-            );
-        }
-        for (size_t i = 0; i < m_queue_families.size(); i++) {
-            QueueFamily& queue_family = m_queue_families[i];
-            Logger::debug(
-                "Queue family {} has {} queues capable of {}",
-                i,
-                queue_family.m_properties.queueCount,
-                to_format_string_queue_family(queue_family)
-            );
-        }
-    }
+    { log_physical_device(*this); }
 }
 
 auto PhysicalDevice::check_extension_support(const std::vector<const char*>& extensions
@@ -314,9 +313,8 @@ auto PhysicalDevice::check_extension_support(const std::vector<const char*>& ext
 auto PhysicalDevice::choose_fitting_queue_families(
     std::vector<QueueFamily>& queue_families
 ) -> QueueFamilyPointers {
-
-    // TODO: Make it more efficient. As of right now we simply find the first queue family
-    // which does the job.
+    // TODO: Make it more efficient. As of right now we simply find the first queue
+    // family which does the job.
 
     QueueFamilyPointers fam_pointers;
     for (u32 i = 0; i < queue_families.size(); i++) {

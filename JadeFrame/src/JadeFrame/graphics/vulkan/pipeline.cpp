@@ -7,8 +7,6 @@
 #include "descriptor_set.h"
 #include "shared.h"
 
-#include "JadeFrame/utils/assert.h"
-
 #include <array>
 #include <span>
 #include <utility>
