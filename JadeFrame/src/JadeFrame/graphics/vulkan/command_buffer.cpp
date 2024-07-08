@@ -132,8 +132,8 @@ auto CommandBuffer::copy_buffer_to_image(const Buffer& src, const Image& dst, v2
                                .baseArrayLayer = 0,
                                .layerCount = 1,
                                },
-        .imageOffset = {                                      0,           0,    0 },
-        .imageExtent = {                             size.width, size.height,    1 },
+        .imageOffset = {                                      0,      0,    0 },
+        .imageExtent = {                                 size.x, size.y,    1 },
     };
     vkCmdCopyBufferToImage(
         m_handle,

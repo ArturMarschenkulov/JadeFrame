@@ -380,7 +380,7 @@ Image::Image(
         .flags = 0,
         .imageType = VK_IMAGE_TYPE_2D,
         .format = format,
-        .extent = {.width = size.width, .height = size.height, .depth = 1},
+        .extent = {.width = size.x, .height = size.y, .depth = 1},
         .mipLevels = 1,
         .arrayLayers = 1,
         .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -563,7 +563,7 @@ Vulkan_Texture::Vulkan_Texture(
         m_image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
     );
 
-    VkDeviceSize image_size = size.width * size.height * comp_count;
+    VkDeviceSize image_size = size.x * size.y * comp_count;
     Buffer       staging_buffer(device, Buffer::TYPE::STAGING, nullptr, image_size);
     staging_buffer.write(data, image_size, 0);
     m_device->m_command_pool.copy_buffer_to_image(staging_buffer, m_image, size);
