@@ -44,6 +44,8 @@ public:
     auto init(const Instance& instance, const PhysicalDevice& physical_device) -> void;
     auto deinit() -> void;
 
+    auto wait_until_idle() const -> void;
+
 public:
     VkDevice              m_handle = VK_NULL_HANDLE;
     const Instance*       m_instance = nullptr;

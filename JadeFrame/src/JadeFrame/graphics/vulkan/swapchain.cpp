@@ -334,7 +334,7 @@ auto Swapchain::deinit() -> void {
 }
 
 auto Swapchain::recreate() -> void {
-    vkDeviceWaitIdle(m_device->m_handle);
+    m_device->wait_until_idle();
     assert("not implemented yet");
     // this->deinit();
 

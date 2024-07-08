@@ -254,10 +254,14 @@ auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physica
     m_set_pool = this->create_descriptor_pool(4, pool_sizes);
 }
 
-auto LogicalDevice::deinit() -> void {
+auto LogicalDevice::wait_until_idle() const -> void {
     VkResult result = VK_SUCCESS;
     result = vkDeviceWaitIdle(m_handle);
     if (result != VK_SUCCESS) { assert(false); }
+}
+
+auto LogicalDevice::deinit() -> void {
+    this->wait_until_idle();
     vmaDestroyAllocator(m_vma_allocator);
     vkDestroyDevice(m_handle, nullptr);
 }
