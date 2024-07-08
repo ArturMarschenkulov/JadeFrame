@@ -552,7 +552,7 @@ auto ReflectedModule::get_vertex_format() -> VertexFormat {
     std::vector<VertexAttribute> list;
     for (u32 i = 0; i < m_inputs.size(); i++) {
         const Input& input = m_inputs[i];
-        list.emplace_back(input.name, input.type);
+        list.emplace_back(input.type);
     }
     return VertexFormat{list};
 }

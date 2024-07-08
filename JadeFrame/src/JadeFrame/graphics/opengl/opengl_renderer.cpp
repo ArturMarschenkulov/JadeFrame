@@ -223,7 +223,7 @@ auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* 
     VertexData::Desc vdf_desc;
     vdf_desc.has_normals = false;
     VertexData vertex_data =
-        VertexData::make_rectangle({-1.0F, -1.0F, 0.0F}, {2.0F, 2.0F, 0.0F}, vdf_desc);
+        VertexData::rectangle({-1.0F, -1.0F, 0.0F}, {2.0F, 2.0F, 0.0F}, vdf_desc);
     auto data = convert_into_data(vertex_data, true);
     u32  size = static_cast<u32>(data.size() * sizeof(f32));
     m_vertex_buffer =

@@ -88,23 +88,22 @@ auto convert_into_data(const VertexData& vertex_data, const bool interleaved)
     return data;
 }
 
-auto VertexData::make_line(const v3& pos1, const v3& pos2) -> VertexData {
+auto VertexData::line(const v3& pos1, const v3& pos2) -> VertexData {
     VertexData vertex_data;
     vertex_data.m_positions.resize(2);
     vertex_data.m_positions[0] = pos1;
     vertex_data.m_positions[1] = pos2;
 
     vertex_data.m_texture_coordinates.resize(2);
-    vertex_data.m_texture_coordinates[0] = {0.0f, 0.0f};
-    vertex_data.m_texture_coordinates[1] = {0.0f, 0.0f};
+    vertex_data.m_texture_coordinates[0] = {0.0F, 0.0F};
+    vertex_data.m_texture_coordinates[1] = {0.0F, 0.0F};
 
     vertex_data.m_indices.reserve(2);
     vertex_data.m_indices = {0, 1};
     return vertex_data;
 }
 
-auto VertexData::make_rectangle(const v3& pos, const v3& size, const Desc desc)
-    -> VertexData {
+auto VertexData::rectangle(const v3& pos, const v3& size, const Desc desc) -> VertexData {
     VertexData vertex_data;
     vertex_data.m_positions.resize(6);
     vertex_data.m_positions[00] = {pos.x, pos.y, pos.z};
@@ -142,8 +141,7 @@ auto VertexData::make_rectangle(const v3& pos, const v3& size, const Desc desc)
     return vertex_data;
 }
 
-auto VertexData::make_triangle(const v3& pos1, const v3& pos2, const v3& pos3)
-    -> VertexData {
+auto VertexData::triangle(const v3& pos1, const v3& pos2, const v3& pos3) -> VertexData {
     VertexData vertex_data;
     vertex_data.m_positions.resize(3);
     vertex_data.m_positions[0] = v3{pos1.x, pos1.y, pos1.z};
@@ -157,7 +155,7 @@ auto VertexData::make_triangle(const v3& pos1, const v3& pos2, const v3& pos3)
     return vertex_data;
 }
 
-auto VertexData::make_circle(const v3& position, const f32 radius, const u32 numSegments)
+auto VertexData::circle(const v3& position, const f32 radius, const u32 numSegments)
     -> VertexData {
     const f32 theta = 2.0F * 3.1415926F / f32(numSegments); // get the current angle
     const f32 cos = cosf(theta);                            // calculate the x component
@@ -191,7 +189,7 @@ auto VertexData::make_circle(const v3& position, const f32 radius, const u32 num
     return vertex_data;
 }
 
-auto VertexData::make_cube(const v3& pos, const v3& size) -> VertexData {
+auto VertexData::cube(const v3& pos, const v3& size) -> VertexData {
     VertexData vertex_data;
 
     vertex_data.m_positions.resize(36);

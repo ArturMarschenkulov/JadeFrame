@@ -232,19 +232,18 @@ public:
         m_colors.resize(num_vertices, color);
     }
 
-    static auto make_line(const v3& pos1, const v3& pos2) -> VertexData;
+    static auto line(const v3& pos1, const v3& pos2) -> VertexData;
 
-    static auto make_rectangle(
+    static auto rectangle(
         const v3&  pos,
         const v3&  size,
         const Desc desc = Desc{true, true, false, true}
     ) -> VertexData;
-    static auto make_triangle(const v3& pos1, const v3& pos2, const v3& pos3)
-        -> VertexData;
-    static auto make_circle(const v3& position, const f32 radius, const u32 numSegments)
+    static auto triangle(const v3& pos1, const v3& pos2, const v3& pos3) -> VertexData;
+    static auto circle(const v3& position, const f32 radius, const u32 numSegments)
         -> VertexData;
 
-    static auto make_cube(const v3& pos, const v3& size) -> VertexData;
+    static auto cube(const v3& pos, const v3& size) -> VertexData;
 };
 
 auto convert_into_data(const VertexData& vertex_data, const bool interleaved)
