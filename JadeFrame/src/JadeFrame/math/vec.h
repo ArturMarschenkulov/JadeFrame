@@ -278,20 +278,34 @@ public:
     T w;
 
 public:
+    constexpr static auto create(const T x, const T y, const T z, const T w) noexcept
+        -> _v4 {
+        return _v4(x, y, z, w);
+    }
+
     constexpr static auto splat(const T& value) -> _v4 {
         return _v4(value, value, value, value);
     }
 
-    constexpr static _v4 ZERO = _v4::splat(0);
-    constexpr static _v4 ONE = _v4::splat(1);
-    constexpr static _v4 X = _v4(1, 0, 0, 0);
-    constexpr static _v4 Y = _v4(0, 1, 0, 0);
-    constexpr static _v4 Z = _v4(0, 0, 1, 0);
-    constexpr static _v4 W = _v4(0, 0, 0, 1);
-    constexpr static _v4 NEG_X = _v4(-1, 0, 0, 0);
-    constexpr static _v4 NEG_Y = _v4(0, -10, 0, 0);
-    constexpr static _v4 NEG_Z = _v4(0, 0, -1, 0);
-    constexpr static _v4 NEG_W = _v4(0, 0, 0, -1);
+    constexpr static auto zero() -> _v4 { return _v4::splat(0); }
+
+    constexpr static auto one() -> _v4 { return _v4::splat(1); }
+
+    constexpr static auto X() -> _v4 { return _v4(1, 0, 0, 0); }
+
+    constexpr static auto Y() -> _v4 { return _v4(0, 1, 0, 0); }
+
+    constexpr static auto Z() -> _v4 { return _v4(0, 0, 1, 0); }
+
+    constexpr static auto W() -> _v4 { return _v4(0, 0, 0, 1); }
+
+    constexpr static auto NEG_X() -> _v4 { return -_v4::X(); }
+
+    constexpr static auto NEG_Y() -> _v4 { return -_v4::Y(); }
+
+    constexpr static auto NEG_Z() -> _v4 { return -_v4::Z(); }
+
+    constexpr static auto NEG_W() -> _v4 { return -_v4::W(); }
 };
 
 template<size_t N, typename T>
@@ -792,43 +806,43 @@ public:
 
 using v2f32 = _v2<f32>;
 using v3f32 = _v3<f32>;
-using v4f32 = VectorT<4, f32>;
+using v4f32 = _v4<f32>;
 
 using v2f64 = _v2<f64>;
-using v3f64 = VectorT<3, f64>;
-using v4f64 = VectorT<4, f64>;
+using v3f64 = _v3<f64>;
+using v4f64 = _v4<f64>;
 
 using v2u8 = _v2<u8>;
-using v3u8 = VectorT<3, u8>;
-using v4u8 = VectorT<4, u8>;
+using v3u8 = _v3<u8>;
+using v4u8 = _v4<u8>;
 
 using v2u16 = _v2<u16>;
-using v3u16 = VectorT<3, u16>;
-using v4u16 = VectorT<4, u16>;
+using v3u16 = _v3<u16>;
+using v4u16 = _v4<u16>;
 
 using v2u32 = _v2<u32>;
-using v3u32 = VectorT<3, u32>;
-using v4u32 = VectorT<4, u32>;
+using v3u32 = _v3<u32>;
+using v4u32 = _v4<u32>;
 
 using v2u64 = _v2<u64>;
-using v3u64 = VectorT<3, u64>;
-using v4u64 = VectorT<4, u64>;
+using v3u64 = _v3<u64>;
+using v4u64 = _v4<u64>;
 
 using v2i8 = _v2<i8>;
-using v3i8 = VectorT<3, i8>;
-using v4i8 = VectorT<4, i8>;
+using v3i8 = _v3<i8>;
+using v4i8 = _v4<i8>;
 
 using v2i16 = _v2<i16>;
-using v3i16 = VectorT<3, i16>;
-using v4i16 = VectorT<4, i16>;
+using v3i16 = _v3<i16>;
+using v4i16 = _v4<i16>;
 
 using v2i32 = _v2<i32>;
-using v3i32 = VectorT<3, i32>;
-using v4i32 = VectorT<4, i32>;
+using v3i32 = _v3<i32>;
+using v4i32 = _v4<i32>;
 
 using v2i64 = _v2<i64>;
-using v3i64 = VectorT<3, i64>;
-using v4i64 = VectorT<4, i64>;
+using v3i64 = _v3<i64>;
+using v4i64 = _v4<i64>;
 
 using v2i = v2i32;
 using v3i = v3i32;

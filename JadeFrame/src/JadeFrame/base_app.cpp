@@ -164,7 +164,7 @@ BaseApp::BaseApp(const Desc& desc) {
     // m_gui.init(m_current_window_p, api);
 }
 
-inline auto to_string(const Matrix4x4& m) -> std::string {
+inline auto to_string(const mat4x4& m) -> std::string {
     std::string result;
     for (u32 col = 0; col < 4; col++) {
         for (u32 row = col + 1; row < 4; row++) {
@@ -179,7 +179,7 @@ inline auto to_string(const Matrix4x4& m) -> std::string {
 auto BaseApp::start() -> void {
     // Before `this->on_init();` come all the default stuff
     // The client can later override those in `this->on_init();`
-    m_camera.orthographic_mode(
+    m_camera = Camera::orthographic(
         0, m_windows[0]->get_size().x, m_windows[0]->get_size().y, 0, -1, 1
     );
     SystemManager& platform = Instance::get_singleton()->m_system_manager;
@@ -196,7 +196,7 @@ auto BaseApp::start() -> void {
             // m_gui.new_frame();
 
             this->on_draw();
-            const Matrix4x4& view_projection = m_camera.get_view_projection();
+            const mat4x4& view_projection = m_camera.get_view_projection();
             // control_camera(&m_camera);
             renderer->render(view_projection);
 

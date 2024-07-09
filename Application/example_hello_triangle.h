@@ -22,8 +22,8 @@ inline Example_Hello_Triangle::Example_Hello_Triangle(const Desc& desc)
 
 auto Example_Hello_Triangle::on_init() -> void {
     m_render_system.m_renderer->set_clear_color(RGBAColor::solid_black());
-    m_camera.orthographic_mode(-1.0F, 1.0F, -1.0F, 1.0F, -1.0F, 1.0F);
     // m_camera.perspective_mode({1.0, 1.0, 1.0}, 1.0f, 0.1f, 100.0f);
+    m_camera = Camera::orthographic(-1.0F, 1.0F, -1.0F, 1.0F, -1.0F, 1.0F);
 
     const f32 s = 0.5F;
 
@@ -50,7 +50,7 @@ auto Example_Hello_Triangle::on_init() -> void {
     auto* material = m_render_system.register_material(shader, nullptr);
     m_obj.m_material = material;
 
-    m_obj.m_transform = Matrix4x4::identity();
+    m_obj.m_transform = mat4x4::identity();
 }
 
 auto Example_Hello_Triangle::on_update() -> void {}

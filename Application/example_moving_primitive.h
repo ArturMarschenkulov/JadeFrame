@@ -23,7 +23,7 @@ Example_Moving_Primitive::Example_Moving_Primitive(const Desc& desc)
 
 auto Example_Moving_Primitive::on_init() -> void {
     m_render_system.m_renderer->set_clear_color(RGBAColor::from_hex(0x9E1030FF));
-    m_camera.orthographic_mode(
+    m_camera = Camera::orthographic(
         0.0f, m_windows[0]->get_size().x, 0.0f, m_windows[0]->get_size().y, -1.0f, 1.0f
     );
 
@@ -66,13 +66,13 @@ auto Example_Moving_Primitive::on_init() -> void {
                 {       0.0F,        0.0F, 0.0F},
                 {block_width, block_width, 0.0F}
             };
-            vertex_data->m_colors = {
-                col[i][j], col[i][j], col[i][j], col[i][j], col[i][j], col[i][j]
-            };
+
+            vertex_data->set_color(col[i][j]);
+
             Object obj;
             obj.m_transform =
-                Matrix4x4::identity() *
-                Matrix4x4::translation(v3(block_width * j, block_width * i, 0.0f));
+                mat4x4::identity() *
+                mat4x4::translation(v3(block_width * j, block_width * i, 0.0f));
             obj.m_vertex_data = vertex_data;
 
             obj.m_mesh = m_render_system.register_mesh(*obj.m_vertex_data);

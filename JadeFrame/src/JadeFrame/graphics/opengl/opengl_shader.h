@@ -7,7 +7,6 @@
 #include <string>
 
 namespace JadeFrame {
-class Matrix4x4;
 class OpenGL_Context;
 
 namespace opengl {

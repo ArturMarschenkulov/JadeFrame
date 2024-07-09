@@ -23,8 +23,8 @@ Example_Rotating_Primitive::Example_Rotating_Primitive(const Desc& desc)
 
 auto Example_Rotating_Primitive::on_init() -> void {
     m_render_system.m_renderer->set_clear_color({0.2f, 0.0f, 0.0f, 1.0f});
-    m_camera.orthographic_mode(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
     // m_camera.perspective_mode({1.0, 1.0, 1.0}, 1.0f, 0.1f, 100.0f);
+    m_camera = Camera::orthographic(-1.0F, 1.0F, -1.0F, 1.0F, -1.0F, 1.0F);
 
     ShaderHandle::Desc shader_desc;
     shader_desc.shading_code = GLSLCodeLoader::get_by_name("spirv_test_1");
@@ -81,10 +81,8 @@ auto Example_Rotating_Primitive::on_update() -> void {
     auto current_time = high_resolution_clock::now();
     f32  time = duration<f32, seconds::period>(current_time - start_time).count();
 
-    m_obj.m_transform =
-        Matrix4x4::rotation(time * to_radians(90.0F), v3(0.0F, 0.0F, 1.0F));
-    m_obj_2.m_transform =
-        Matrix4x4::rotation(time * to_radians(45.0F), v3(0.0F, 0.0F, 1.0F));
+    m_obj.m_transform = mat4x4::rotation(time * to_radians(90.0F), v3::Z());
+    m_obj_2.m_transform = mat4x4::rotation(time * to_radians(45.0F), v3::Z());
 }
 
 auto Example_Rotating_Primitive::on_draw() -> void {

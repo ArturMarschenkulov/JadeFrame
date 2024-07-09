@@ -47,14 +47,14 @@ inline auto to_VkFormat(const SHADER_TYPE& shader_type) -> VkFormat {
 }
 
 struct UniformBufferObject {
-    Matrix4x4 view_projection;
-    // Matrix4x4 model;
+    mat4x4 view_projection;
+    // mat4x4 model;
 };
 
 struct UniformBufferObject_bkp {
-    Matrix4x4 model;
-    Matrix4x4 view;
-    Matrix4x4 proj;
+    mat4x4 model;
+    mat4x4 view;
+    mat4x4 proj;
 };
 
 inline auto to_string(const VkDescriptorType& type) -> const char* {

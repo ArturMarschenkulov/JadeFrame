@@ -75,7 +75,7 @@ static constexpr auto ceil_to_aligned(const u64 value, const u64 alignment) -> u
     return aligned_block_size;
 }
 
-auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
+auto Vulkan_Renderer::render(const mat4x4& view_projection) -> void {
     vulkan::LogicalDevice&        d = *m_logical_device;
     const vulkan::PhysicalDevice* pd = d.m_physical_device;
 
@@ -88,7 +88,7 @@ auto Vulkan_Renderer::render(const Matrix4x4& view_projection) -> void {
     }
 
     const u64 dyn_alignment =
-        ceil_to_aligned(sizeof(Matrix4x4), pd->limits().minUniformBufferOffsetAlignment);
+        ceil_to_aligned(sizeof(mat4x4), pd->limits().minUniformBufferOffsetAlignment);
 
     auto& render_commands = m_system->m_render_commands;
     // prepare shaders and its dynamic uniform buffers

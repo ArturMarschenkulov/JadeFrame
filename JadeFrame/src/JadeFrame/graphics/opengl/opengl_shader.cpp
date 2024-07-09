@@ -137,7 +137,7 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
         auto  binding = uniform_buffer.binding;
         auto  size = uniform_buffer.size;
 
-        JF_ASSERT(size == sizeof(Matrix4x4), "Uniform buffer size is not 64 bytes");
+        JF_ASSERT(size == sizeof(mat4x4), "Uniform buffer size is not 64 bytes");
 
         using namespace opengl;
 

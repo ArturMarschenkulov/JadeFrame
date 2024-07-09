@@ -334,7 +334,7 @@ public:
 };
 
 struct RenderCommand {
-    Matrix4x4         transform = {};
+    mat4x4            transform = {};
     const VertexData* vertex_data = nullptr;
     MaterialHandle*   material = nullptr;
     GPUMeshData*      m_mesh = nullptr;
@@ -350,7 +350,7 @@ template<typename T>
 concept is_renderer = requires(T& t) {
     { t.present() } -> std::same_as<void>;
     { t.clear_background() } -> std::same_as<void>;
-    { t.render(std::declval<Matrix4x4>()) } -> std::same_as<void>;
+    { t.render(std::declval<mat4x4>()) } -> std::same_as<void>;
     { t.set_clear_color(std::declval<RGBAColor>()) } -> std::same_as<void>;
     { t.set_viewport(u32{}, u32{}, u32{}, u32{}) } -> std::same_as<void>;
     { t.take_screenshot(std::declval<char*>()) } -> std::same_as<Image>;
@@ -373,7 +373,7 @@ public:
 public: // more internal stuff
     virtual auto set_clear_color(const RGBAColor& color) -> void = 0;
     virtual auto clear_background() -> void = 0;
-    virtual auto render(const Matrix4x4& view_projection) -> void = 0;
+    virtual auto render(const mat4x4& view_projection) -> void = 0;
     virtual auto present() -> void = 0;
 };
 
@@ -419,7 +419,7 @@ public:
     GPUMeshData*    m_mesh;
     VertexData*     m_vertex_data;
     MaterialHandle* m_material;
-    Matrix4x4       m_transform;
+    mat4x4          m_transform;
 };
 
 class RenderSystem {

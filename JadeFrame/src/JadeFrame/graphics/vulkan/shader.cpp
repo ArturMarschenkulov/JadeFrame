@@ -29,7 +29,7 @@ Vulkan_Shader::Vulkan_Shader(
         auto binding = uniform_buffer.binding;
         auto size = uniform_buffer.size;
 
-        JF_ASSERT(size == sizeof(Matrix4x4), "Uniform buffer size is not 64 bytes");
+        JF_ASSERT(size == sizeof(mat4x4), "Uniform buffer size is not 64 bytes");
         vulkan::Buffer* buf =
             device.create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, size);
         this->bind_buffer(set, binding, *buf, 0, size);
@@ -113,7 +113,7 @@ auto Vulkan_Shader::write_ub(
 auto Vulkan_Shader::set_dynamic_ub_num(u32 num) -> void {
     const vulkan::PhysicalDevice* pd = m_device->m_physical_device;
 
-    auto type_size = sizeof(Matrix4x4);
+    auto type_size = sizeof(mat4x4);
 
     const u64 dyn_alignment =
         ceil_to_aligned(type_size, pd->limits().minUniformBufferOffsetAlignment);

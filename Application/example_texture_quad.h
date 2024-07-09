@@ -1,4 +1,5 @@
 #pragma once
+#include "JadeFrame/graphics/camera.h"
 #include <JadeFrame.h>
 
 namespace JadeFrame {
@@ -23,7 +24,7 @@ auto Example_Texture_Quad::on_init() -> void {
     m_render_system.m_renderer->set_clear_color({50_u8, 230_u8, 250_u8, 253_u8});
     // m_camera.orthographic_mode(0, m_windows[0]->get_size().x,,
     // m_windows[0]->get_size().y, 0, -1, 1);
-    m_camera.orthographic_mode(-1.0F, 1.0F, -1.0F, 1.0F, -1.0F, 1.0F);
+    m_camera = Camera::orthographic(-1.0F, 1.0F, -1.0F, 1.0F, -1.0F, 1.0F);
 
     ShaderHandle::Desc shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("with_texture_0");
@@ -62,7 +63,7 @@ auto Example_Texture_Quad::on_init() -> void {
     auto* material = m_render_system.register_material(shader, texture);
 
     m_obj.m_material = material;
-    m_obj.m_transform = Matrix4x4::identity();
+    m_obj.m_transform = mat4x4::identity();
 }
 
 auto Example_Texture_Quad::on_update() -> void {}
