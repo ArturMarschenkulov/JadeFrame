@@ -1,9 +1,9 @@
 #pragma once
 #include "JadeFrame/prelude.h"
+#include "JadeFrame/types.h"
 #include "vec.h"
 
 #include <array>
-#include <vector>
 
 JF_PRAGMA_PUSH
 
@@ -77,15 +77,87 @@ public: // static methods for matrices
         return result;
     }
 
-    constexpr static auto
-    orthographic_rh(f32 left, f32 right, f32 buttom, f32 top, f32 near, f32 far) noexcept
-        -> mat4x4;
-    /*constexpr*/ static auto
-    perspective_rh(f32 fovy, f32 aspect, f32 near, f32 far) noexcept -> mat4x4;
+    constexpr static auto orthographic_rh_gl(
+        f32 left,
+        f32 right,
+        f32 bottom,
+        f32 top,
+        f32 z_near,
+        f32 z_far
+    ) noexcept -> mat4x4;
 
-    constexpr static auto     orthographic_rh(v2 lr, v2 bt, v2 nf) noexcept -> mat4x4;
-    /*constexpr*/ static auto perspective_rh(f32 fovy, f32 aspect, v2 nf) noexcept
-        -> mat4x4;
+    constexpr static auto
+    orthographic_lh(f32 left, f32 right, f32 bottom, f32 top, f32 z_near, f32 z_far)
+        -> mat4x4 {
+        auto rcp_width = 1.0F / (right - left);
+        auto rcp_height = 1.0F / (top - bottom);
+        auto rcp_depth = 1.0F / (z_far - z_near);
+
+        return mat4x4::from_cols(
+            v4::create(2.0F * rcp_width, 0.0F, 0.0F, 0.0F),
+            v4::create(0.0F, 2.0F * rcp_height, 0.0F, 0.0F),
+            v4::create(0.0F, 0.0F, rcp_depth, 0.0F),
+            v4::create(
+                -(right + left) * rcp_width,
+                -(top + bottom) * rcp_height,
+                -z_near * rcp_depth,
+                1.0F
+            )
+        );
+    }
+
+    constexpr static auto
+    orthographic_rh(f32 left, f32 right, f32 bottom, f32 top, f32 z_near, f32 z_far)
+        -> mat4x4 {
+        auto rcp_width = 1.0F / (right - left);
+        auto rcp_height = 1.0F / (top - bottom);
+        auto rcp_depth = 1.0F / (z_near - z_far);
+
+        return mat4x4::from_cols(
+            v4::create(2.0F * rcp_width, 0.0F, 0.0F, 0.0F),
+            v4::create(0.0F, 2.0F * rcp_height, 0.0F, 0.0F),
+            v4::create(0.0F, 0.0F, rcp_depth, 0.0F),
+            v4::create(
+                -(right + left) * rcp_width,
+                -(top + bottom) * rcp_height,
+                z_near * rcp_depth,
+                1.0F
+            )
+        );
+    }
+
+    /*constexpr*/ static auto
+    perspective_rh_gl(f32 fovy, f32 aspect, f32 near, f32 far) noexcept -> mat4x4;
+
+    /*constexpr*/ static auto
+    perspective_rh(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4 {
+        auto sin_fov = static_cast<f32>(std::sin(fovy / 2.0F));
+        auto cos_fov = static_cast<f32>(std::cos(fovy / 2.0F));
+        auto h = cos_fov / sin_fov;
+        auto w = h / aspect;
+        auto r = z_far / (z_near - z_far);
+        return mat4x4::from_cols(
+            v4::create(w, 0.0F, 0.0F, 0.0F),
+            v4::create(0.0F, h, 0.0F, 0.0F),
+            v4::create(0.0F, 0.0F, r, -1.0F),
+            v4::create(0.0F, 0.0F, r * z_near, 0.0F)
+        );
+    }
+
+    /*constexpr*/ static auto
+    perspective_lh(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4 {
+        auto sin_fov = static_cast<f32>(std::sin(fovy / 2.0F));
+        auto cos_fov = static_cast<f32>(std::cos(fovy / 2.0F));
+        auto h = cos_fov / sin_fov;
+        auto w = h / aspect;
+        auto r = z_far / (z_near - z_far);
+        return mat4x4::from_cols(
+            v4::create(w, 0.0F, 0.0F, 0.0F),
+            v4::create(0.0F, h, 0.0F, 0.0F),
+            v4::create(0.0F, 0.0F, r, 1.0F),
+            v4::create(0.0F, 0.0F, -r * z_near, 0.0F)
+        );
+    }
 
     constexpr static auto identity() noexcept -> mat4x4;
     constexpr static auto zero() noexcept -> mat4x4;
@@ -93,7 +165,14 @@ public: // static methods for matrices
     constexpr static auto diagonal(f32 diag) noexcept -> mat4x4;
     constexpr static auto diagonal(const v4& diag) noexcept -> mat4x4;
 
-    constexpr static auto translation(const v3& trans) noexcept -> mat4x4;
+    constexpr static auto translation(const v3& trans) noexcept -> mat4x4 {
+        return mat4x4::from_cols(
+            v4::X(), //
+            v4::Y(),
+            v4::Z(),
+            v4::create(trans.x, trans.y, trans.z, 1.0F)
+        );
+    }
 
     /*constexpr*/ static auto rotation(f32 angle, const v3& axis) noexcept -> mat4x4;
     static auto               rotation_x(f32 angle) noexcept -> mat4x4 {
@@ -132,8 +211,15 @@ public: // static methods for matrices
         );
     }
 
-    constexpr static auto scale(const v3& scale) noexcept -> mat4x4;
-    constexpr static auto shear() noexcept -> mat4x4;
+    constexpr static auto scale(const v3& scale) noexcept -> mat4x4 {
+        return mat4x4::from_cols(
+            v4::create(scale.x, 0.0F, 0.0F, 0.0F),
+            v4::create(0.0F, scale.y, 0.0F, 0.0F),
+            v4::create(0.0F, 0.0F, scale.z, 0.0F),
+            v4::W()
+
+        );
+    }
 
     constexpr static auto
     look_to_rh(const v3& eye, const v3& direction, const v3& up) noexcept -> mat4x4 {
@@ -225,7 +311,7 @@ inline constexpr auto mat4x4::operator*(const mat4x4& other) const noexcept -> m
     return result;
 }
 
-inline constexpr auto mat4x4::orthographic_rh(
+inline constexpr auto mat4x4::orthographic_rh_gl(
     f32 left,
     f32 right,
     f32 bottom,
@@ -250,10 +336,13 @@ inline constexpr auto mat4x4::orthographic_rh(
 }
 
 inline /*constexpr*/ auto
-mat4x4::perspective_rh(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4 {
+mat4x4::perspective_rh_gl(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
+    -> mat4x4 {
     auto tan_half_fovy = static_cast<f32>(std::tan(fovy / 2.0F));
+    auto zoom = 1.0F / tan_half_fovy;
+
     auto a = 1.0F / (aspect * tan_half_fovy);
-    auto b = 1.0F / tan_half_fovy;
+    auto b = zoom;
     auto c = -(z_far + z_near) / (z_far - z_near);
     auto d = -(2.0F * z_far * z_near) / (z_far - z_near);
     return mat4x4::from_cols(
@@ -263,26 +352,20 @@ mat4x4::perspective_rh(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> 
         v4::create(0.0F, 0.0F, d, 0.0F)
     );
 
-    // auto inv_length = 1.0F / (z_near - z_far);
-    // auto f = 1.0F / static_cast<f32>(std::tan(0.5F * fovy));
-    // auto a = f / aspect;
-    // auto b = (z_near + z_far) * inv_length;
-    // auto c = (2.0F * z_near * z_far) * inv_length;
-    // return mat4x4::from_cols(
-    //     v4::create(a, 0.0F, 0.0F, 0.0F),
-    //     v4::create(0.0F, f, 0.0F, 0.0F),
-    //     v4::create(0.0F, 0.0F, b, -1.0F),
-    //     v4::create(0.0F, 0.0F, c, 0.0F)
-    // );
-}
-
-inline constexpr auto mat4x4::orthographic_rh(v2 lr, v2 bt, v2 nf) noexcept -> mat4x4 {
-    return mat4x4::orthographic_rh(lr.x, lr.y, bt.x, bt.y, nf.x, nf.y);
-}
-
-inline /*constexpr*/ auto mat4x4::perspective_rh(f32 fovy, f32 aspect, v2 nf) noexcept
-    -> mat4x4 {
-    return mat4x4::perspective_rh(fovy, aspect, nf.x, nf.y);
+    {
+        auto inv_length = 1.0F / (z_near - z_far);
+        auto zoom = 1.0F / static_cast<f32>(std::tan(0.5F * fovy));
+        auto a = zoom / aspect;
+        auto b = zoom;
+        auto c = (z_near + z_far) * inv_length;
+        auto d = (2.0F * z_near * z_far) * inv_length;
+        return mat4x4::from_cols(
+            v4::create(a, 0.0F, 0.0F, 0.0F),
+            v4::create(0.0F, b, 0.0F, 0.0F),
+            v4::create(0.0F, 0.0F, c, -1.0F),
+            v4::create(0.0F, 0.0F, d, 0.0F)
+        );
+    }
 }
 
 inline constexpr auto mat4x4::identity() noexcept -> mat4x4 {
@@ -308,12 +391,6 @@ inline constexpr auto mat4x4::diagonal(const v4& diag) noexcept -> mat4x4 {
     return m;
 }
 
-inline constexpr auto mat4x4::translation(const v3& trans) noexcept -> mat4x4 {
-    return mat4x4::from_cols(
-        v4::X(), v4::Y(), v4::Z(), v4(trans.x, trans.y, trans.z, 1.0F)
-    );
-}
-
 inline /*constexpr*/ auto mat4x4::rotation(f32 angle, const v3& axis) noexcept -> mat4x4 {
     const f32 c = static_cast<f32>(cos(angle));
     const f32 omc = 1 - c;
@@ -331,14 +408,6 @@ inline /*constexpr*/ auto mat4x4::rotation(f32 angle, const v3& axis) noexcept -
     result.el[2][0] = axis.x * axis.z * omc + axis.y * s;
     result.el[2][1] = axis.y * axis.z * omc - axis.x * s;
     result.el[2][2] = axis.z * axis.z * omc + c;
-    return result;
-}
-
-inline constexpr auto mat4x4::scale(const v3& scale) noexcept -> mat4x4 {
-    mat4x4 result = mat4x4::identity();
-    result.el[0][0] = scale.x;
-    result.el[1][1] = scale.y;
-    result.el[2][2] = scale.z;
     return result;
 }
 

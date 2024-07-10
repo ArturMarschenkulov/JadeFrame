@@ -116,7 +116,7 @@ auto Camera::perspective(
     camera.m_mode = MODE::PERSPECTIVE;
     camera.m_position = position;
 
-    camera.m_projection_matrix = mat4x4::perspective_rh(fov, aspect, near, far);
+    camera.m_projection_matrix = mat4x4::perspective_rh_gl(fov, aspect, near, far);
 
     camera.m_fov = fov;
     camera.m_aspect = aspect;
@@ -144,7 +144,7 @@ auto Camera::orthographic(
 
     camera.m_mode = MODE::ORTHOGRAPHIC;
     camera.m_projection_matrix =
-        mat4x4::orthographic_rh(left, right, bottom, top, near_, far_);
+        mat4x4::orthographic_rh_gl(left, right, bottom, top, near_, far_);
     camera.m_position = {0.0F, 0.0F, 0.0F};
 
     return camera;
