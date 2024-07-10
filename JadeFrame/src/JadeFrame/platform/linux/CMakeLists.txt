@@ -1,4 +1,4 @@
-add_library(Platform_Linux
+add_library(platform-linux
     "linux_input_manager.h"
 
     "linux_system_manager.h"
@@ -8,7 +8,7 @@ add_library(Platform_Linux
     "linux_window.cpp"
 )
 
-target_link_libraries(Platform_Linux
+target_link_libraries(platform-linux
     PUBLIC
         spdlog
         JadeFrame

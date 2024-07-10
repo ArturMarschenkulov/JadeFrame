@@ -279,13 +279,13 @@ endif()
 ################################################################################
 IF(WIN32)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
-        Platform_Win32
+        platform-win32
         opengl32
         vulkan-1
     )
 ELSEIF(UNIX AND NOT APPLE)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
-        Platform_Linux
+        platform-linux
         pthread
         X11
         GL

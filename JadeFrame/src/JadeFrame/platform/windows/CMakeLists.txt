@@ -1,4 +1,4 @@
-add_library(Platform_Win32
+add_library(platform-win32
     "windows_input_manager.h"
     "windows_input_manager.cpp"
     "windows_message_map.h"
@@ -11,7 +11,7 @@ add_library(Platform_Win32
     "windows_window.cpp"
 )
 
-target_include_directories(Platform_Win32
+target_include_directories(platform-win32
     PUBLIC
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/
         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
@@ -20,13 +20,13 @@ target_include_directories(Platform_Win32
 
 )
 
-target_link_libraries(Platform_Win32
+target_link_libraries(platform-win32
     PUBLIC
         winmm
         spdlog
 )
 
-target_compile_definitions(Platform_Win32 PRIVATE
+target_compile_definitions(platform-win32 PRIVATE
     $<$<CONFIG:Debug>:_DEBUG>
     $<$<CONFIG:Release>:NDEBUG>
     _CRT_SECURE_NO_WARNINGS
@@ -35,11 +35,11 @@ target_compile_definitions(Platform_Win32 PRIVATE
     _UNICODE
 )
 if(MSVC)
-    target_compile_options(Platform_Win32 PRIVATE
+    target_compile_options(platform-win32 PRIVATE
         /EHsc
     )
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(Platform_Win32 PRIVATE
+    target_compile_options(platform-win32 PRIVATE
         -Wall 
         -Wextra 
         -Wpedantic 
