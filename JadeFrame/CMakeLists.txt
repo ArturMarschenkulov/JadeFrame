@@ -131,6 +131,7 @@ set(Files_Graphics
 
 
     "src/JadeFrame/graphics/software/software_renderer.h"
+    "src/JadeFrame/graphics/software/software_renderer.cpp"
 )
 
 set(Files_Datatypes
