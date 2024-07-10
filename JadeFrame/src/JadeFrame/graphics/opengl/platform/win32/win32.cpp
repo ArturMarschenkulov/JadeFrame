@@ -106,15 +106,15 @@ static auto get_proc_address_wgl_funcs() -> void {
 auto load_wgl_funcs(HMODULE instance) -> bool {
     // To load wgl functions we need to create a dummy window and context
     const LPCWSTR class_name = L"Dummy OpenGL Window";
-    WNDCLASS      window_class;
+    WNDCLASSW     window_class;
     ZeroMemory(&window_class, sizeof(window_class));
     window_class.style = CS_OWNDC;
     window_class.lpfnWndProc = ::DefWindowProcW;
     window_class.cbClsExtra = 0;
     window_class.cbWndExtra = 0;
     window_class.hInstance = instance;
-    window_class.hIcon = ::LoadIconW(NULL, IDI_WINLOGO);
-    window_class.hCursor = ::LoadCursorW(NULL, IDC_ARROW);
+    window_class.hIcon = ::LoadIconW(NULL, (LPCWSTR)IDI_WINLOGO);
+    window_class.hCursor = ::LoadCursorW(NULL, (LPCWSTR)IDC_ARROW);
     window_class.hbrBackground = (HBRUSH)(COLOR_MENUTEXT);
     window_class.lpszMenuName = NULL;
     window_class.lpszClassName = class_name;

@@ -21,13 +21,13 @@ static auto window_resize_callback(Window& window, const EventMessage& wm) -> vo
 
     switch (wm.wParam) {
         case SIZE_MAXIMIZED:
-            window.set_window_state(Window::WINDOW_STATE::MAXIMIZED);
+            window.set_window_state(JadeFrame::Window::WINDOW_STATE::MAXIMIZED);
             break;
         case SIZE_MINIMIZED:
-            window.set_window_state(Window::WINDOW_STATE::MINIMIZED);
+            window.set_window_state(JadeFrame::Window::WINDOW_STATE::MINIMIZED);
             break;
         case SIZE_RESTORED:
-            window.set_window_state(Window::WINDOW_STATE::WINDOWED);
+            window.set_window_state(JadeFrame::Window::WINDOW_STATE::WINDOWED);
             break;
         case SIZE_MAXHIDE: break;
         case SIZE_MAXSHOW: break;
@@ -38,7 +38,7 @@ static auto window_resize_callback(Window& window, const EventMessage& wm) -> vo
     const v2u32& size = window.get_size();
     auto&        renderer =
         Instance::get_singleton()->m_current_app_p->m_render_system.m_renderer;
-    renderer->set_viewport(0, 0, size.width, size.height);
+    renderer->set_viewport(0, 0, size.x, size.y);
 }
 
 static auto window_move_callback(Window& window, const EventMessage& wm) -> void {
@@ -67,7 +67,9 @@ window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
     InputManager& input_manager = Instance::get_singleton()->m_input_manager;
     i32           current_window_id = -1;
     for (auto const& [window_id, window] : app->m_windows) {
-        if (window->get() == hWnd) { current_window_id = window_id; }
+        // if (window->get() == hWnd) { 
+            current_window_id = window_id; 
+        // }
     }
     Window& current_window =
         *reinterpret_cast<Window*>(app->m_windows[current_window_id]);
@@ -158,7 +160,7 @@ window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
     return 0; // message handled
 }
 
-static auto get_style(const Window::Desc& desc) -> ::DWORD {
+static auto get_style(const JadeFrame::Window::Desc& desc) -> ::DWORD {
     DWORD style = 0;
 
     style |=
@@ -201,7 +203,7 @@ static auto register_class(HINSTANCE instance) -> ::WNDCLASSEX {
     return window_class;
 }
 
-Window::Window(const Window::Desc& desc, ::HMODULE instance) {
+Window::Window(const JadeFrame::Window::Desc& desc, ::HMODULE instance) {
     ::WNDCLASSEX wc = register_class(instance);
 
     ::DWORD window_style = get_style(desc);
@@ -234,17 +236,15 @@ Window::Window(const Window::Desc& desc, ::HMODULE instance) {
     m_size = v2u32(client_rect.right, client_rect.bottom);
     m_position = v2u32(window_rect.left, window_rect.top);
     m_window_handle = window_handle;
-    m_window_state = WINDOW_STATE::WINDOWED;
+    m_window_state = JadeFrame::Window::WINDOW_STATE::WINDOWED;
     if (desc.visable == true) {
         ::ShowWindow(window_handle, SW_SHOW);
-        m_window_state = WINDOW_STATE::WINDOWED;
+        m_window_state = JadeFrame::Window::WINDOW_STATE::WINDOWED;
     } else {
         //::ShowWindow(window_handle, SW_SHOW);
         // m_window_state = WINDOW_STATE::MINIMIZED;
     }
 }
-
-auto Window::get() const -> void* { return reinterpret_cast<void*>(m_window_handle); }
 
 Window::~Window() { ::DestroyWindow(m_window_handle); }
 
@@ -276,11 +276,11 @@ auto Window::set_position(const v2u32& position) -> void { m_position = position
 
 auto Window::get_position() const -> const v2u32& { return m_position; }
 
-auto Window::set_window_state(const WINDOW_STATE window_state) -> void {
+auto Window::set_window_state(const JadeFrame::Window::WINDOW_STATE window_state) -> void {
     m_window_state = window_state;
 }
 
-auto Window::get_window_state() const -> WINDOW_STATE { return m_window_state; }
+auto Window::get_window_state() const -> JadeFrame::Window::WINDOW_STATE { return m_window_state; }
 
 auto Window::query_client_size() const -> v2u64 {
     ::RECT rect = {};

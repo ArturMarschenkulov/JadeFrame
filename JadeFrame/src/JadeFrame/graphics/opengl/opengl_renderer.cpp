@@ -125,7 +125,8 @@ static auto to_opengl_type() -> GLenum {
     } else if constexpr (std::is_same_v<T, u8>) {
         return GL_UNSIGNED_BYTE;
     } else {
-        static_assert(false, "Unsupported type");
+        // static_assert(false, "Unsupported type");
+        return 0;
     }
 }
 
@@ -144,7 +145,8 @@ auto OpenGL_Renderer::render_mesh(
     auto prim_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
     if (!vertex_data->m_indices.empty()) {
         auto num_indices = static_cast<GLsizei>(vertex_data->m_indices.size());
-        auto gl_type = to_opengl_type<u32>();
+        // auto gl_type = to_opengl_type<u32>();
+        auto gl_type = GL_UNSIGNED_INT;
         glDrawElements(prim_type, num_indices, gl_type, nullptr);
     } else {
         auto num_vertices = static_cast<GLsizei>(vertex_data->m_positions.size());

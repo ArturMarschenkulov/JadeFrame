@@ -1,6 +1,7 @@
 #pragma once
 #include "JadeFrame/prelude.h"
 #include "graphics_shared.h"
+#include <span>
 
 namespace JadeFrame {
 

@@ -15,7 +15,7 @@ namespace JadeFrame {
 */
 
 namespace win32 {
-class Window : public Window {
+class Window : public NativeWindow {
 public:
     Window(const Window&) = delete;
     Window(Window&&) = delete;
@@ -23,7 +23,7 @@ public:
     auto operator=(Window&&) -> Window& = delete;
 
     Window() = default;
-    Window(const Window::Desc& desc, ::HMODULE instance);
+    Window(const JadeFrame::Window::Desc& desc, ::HMODULE instance);
     ~Window();
 
     virtual auto handle_events(bool& running) -> void override;
@@ -37,12 +37,10 @@ public:
     auto set_position(const v2u32& position) -> void;
     auto get_position() const -> const v2u32&;
 
-    auto         set_window_state(const WINDOW_STATE window_state) -> void;
-    virtual auto get_window_state() const -> WINDOW_STATE override;
+    auto set_window_state(const JadeFrame::Window::WINDOW_STATE window_state) -> void;
+    auto get_window_state() const -> JadeFrame::Window::WINDOW_STATE;
 
     auto query_client_size() const -> v2u64;
-
-    virtual auto get() const -> void* override;
 
 public:
     HWND    m_window_handle = nullptr;
@@ -54,7 +52,7 @@ public:
     v2u32       m_position;
     bool        has_focus = true;
 
-    WINDOW_STATE m_window_state = WINDOW_STATE::MINIMIZED;
+    JadeFrame::Window::WINDOW_STATE m_window_state = JadeFrame::Window::WINDOW_STATE::MINIMIZED;
 };
 } // namespace win32
 

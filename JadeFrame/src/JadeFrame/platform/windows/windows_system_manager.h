@@ -12,18 +12,18 @@ auto to_multi_byte(const wchar_t* wide_char_array) -> char*;
 auto from_wstring_to_string(const std::wstring& wstr) -> std::string;
 auto from_string_to_wstring(const std::string& str) -> std::wstring;
 
-class SystemManager : ISystemManager {
+class SystemManager : ISystemManager<SystemManager> {
 public:
     virtual auto initialize() -> void override;
     virtual auto log() const -> void override;
 
-    virtual auto request_window(Window::Desc desc) -> Window* override;
+    auto request_window(JadeFrame::Window::Desc desc) -> JadeFrame::Window*;
 
 public: // Window stuff
     i32 m_window_counter = 0;
     using WindowID = i32;
-    std::map<WindowID, std::unique_ptr<Window>> m_windows;
-    Window*                                     m_curr_window = nullptr;
+    std::map<WindowID, std::unique_ptr<JadeFrame::Window>> m_windows;
+    JadeFrame::Window*                                     m_curr_window = nullptr;
 
 public: // Time stuff
 
@@ -33,10 +33,10 @@ private:
     u64  m_offset;
 
 public:
-    virtual auto get_time() const -> f64 override;
-    virtual auto calc_elapsed() -> f64 override;
-    virtual auto frame_control(f64 delta_time) -> void override;
-    virtual auto set_target_FPS(f64 FPS) -> void override;
+    auto get_time() const -> f64;
+    auto calc_elapsed() -> f64;
+    auto frame_control(f64 delta_time) -> void;
+    auto set_target_FPS(f64 FPS) -> void;
 
     struct Time {
         f64 previous = 0;

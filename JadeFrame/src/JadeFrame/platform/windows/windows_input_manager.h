@@ -27,11 +27,11 @@ struct KeyEvent : public Event {
     u64  key_code;
 };
 
-class InputManager : public IInputManager {
+class InputManager : public IInputManager<InputManager> {
     friend class WinWindow;
 
 public:
-    virtual auto handle_input() -> void override;
+    auto handle_input() -> void override;
 
 public:
     // key part

@@ -273,8 +273,8 @@ auto test() -> void {
 //	return nError;
 // }
 
-auto SystemManager::request_window(Window::Desc desc) -> Window* {
-    m_windows[m_window_counter] = std::make_unique<Window>(desc, m_instance);
+auto SystemManager::request_window(JadeFrame::Window::Desc desc) -> JadeFrame::Window* {
+    m_windows[m_window_counter] = std::make_unique<JadeFrame::Window>(desc);
     m_window_counter++;
     return m_windows[m_window_counter - 1].get();
 }

@@ -384,7 +384,7 @@ static auto rasterization_state_create_info() -> VkPipelineRasterizationStateCre
     auto polygon_mode = VK_POLYGON_MODE_FILL;
     // NOTE: In debugging one might want to use VK_CULL_MODE_NONE, as opposed to
     // VK_CULL_MODE_BACK_BIT
-    auto cull_mode = VK_CULL_MODE_BACK_BIT;
+    VkCullModeFlags cull_mode = VK_CULL_MODE_BACK_BIT;
     auto front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
     const VkPipelineRasterizationStateCreateInfo info = {
