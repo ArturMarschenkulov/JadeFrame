@@ -1,7 +1,32 @@
 #include "pch.h"
 #include "mesh.h"
+#include "graphics_shared.h"
 
 namespace JadeFrame {
+
+class Mesh {
+public:
+    using AttributeId = u32;
+
+    struct VertexAttribute {
+        using Id = u32;
+        /// human readable name of the attribute
+        const char* m_name;
+        /// the id of the attribute
+        Id m_id;
+        /// the format of the attribute
+        SHADER_TYPE m_format;
+    };
+
+    std::map<AttributeId, VertexAttribute> m_attributes;
+    std::vector<u32>                       m_indices;
+
+    constexpr static VertexAttribute POSITION = {"POSITION", 0, SHADER_TYPE::V_3_F32};
+    constexpr static VertexAttribute NORMAL = {"NORMAL", 1, SHADER_TYPE::V_3_F32};
+    constexpr static VertexAttribute UV = {"UV", 2, SHADER_TYPE::V_2_F32};
+    constexpr static VertexAttribute TANGENT = {"TANGENT", 3, SHADER_TYPE::V_4_F32};
+    constexpr static VertexAttribute COLOR = {"COLOR", 4, SHADER_TYPE::V_4_F32};
+};
 
 // Mesh::Mesh(const VertexData& vertex_data) {
 //	this->add_to_data(vertex_data);
