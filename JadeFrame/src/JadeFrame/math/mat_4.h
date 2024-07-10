@@ -58,6 +58,7 @@ public:
     constexpr mat4x4(mat4x4&&) noexcept = default;
     constexpr auto operator=(mat4x4&& mat) noexcept -> mat4x4& = default;
 
+public:
     constexpr auto operator[](const u32 index) noexcept
         -> std::array<f32, 4>&; // for writing
     constexpr auto operator[](const u32 index) const noexcept

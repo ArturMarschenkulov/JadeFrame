@@ -121,19 +121,29 @@ auto CommandBuffer::copy_buffer_to_image(const Buffer& src, const Image& dst, v2
     const -> void {
     assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
 
+    VkExtent3D extent = {
+        .width = size.x,
+        .height = size.y,
+        .depth = 1,
+    };
+    VkOffset3D offset = {
+        .x = 0,
+        .y = 0,
+        .z = 0,
+    };
+    VkImageSubresourceLayers subresource = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .mipLevel = 0,
+        .baseArrayLayer = 0,
+        .layerCount = 1,
+    };
     const VkBufferImageCopy region = {
         .bufferOffset = 0,
         .bufferRowLength = 0,
         .bufferImageHeight = 0,
-        .imageSubresource =
-            {
-                               .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                               .mipLevel = 0,
-                               .baseArrayLayer = 0,
-                               .layerCount = 1,
-                               },
-        .imageOffset = {                                      0,      0,    0 },
-        .imageExtent = {                                 size.x, size.y,    1 },
+        .imageSubresource = subresource,
+        .imageOffset = offset,
+        .imageExtent = extent,
     };
     vkCmdCopyBufferToImage(
         m_handle,

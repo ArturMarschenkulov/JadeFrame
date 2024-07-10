@@ -310,7 +310,9 @@ public:
     virtual auto request_window(Window::Desc desc) -> Window* = 0;
 
     // time management
-    auto get_time() const -> f64 { return static_cast<const T*>(this)->get_time(); }
+    [[nodiscard]] auto get_time() const -> f64 {
+        return static_cast<const T*>(this)->get_time();
+    }
 
     auto calc_elapsed() -> f64 { return static_cast<T*>(this)->calc_elapsed(); }
 
