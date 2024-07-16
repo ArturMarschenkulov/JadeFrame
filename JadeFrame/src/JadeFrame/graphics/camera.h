@@ -18,16 +18,16 @@ public:
         const f32 right,
         const f32 bottom,
         const f32 top,
-        const f32 near_,
-        const f32 far_
+        const f32 z_near,
+        const f32 z_far
     ) -> Camera;
 
     static auto perspective(
         const v3& position,
         const f32 fov,
         const f32 aspect,
-        const f32 zNear,
-        const f32 zFar
+        const f32 z_near,
+        const f32 z_far
     ) -> Camera;
 
     [[nodiscard]] auto get_projection() const -> mat4x4;

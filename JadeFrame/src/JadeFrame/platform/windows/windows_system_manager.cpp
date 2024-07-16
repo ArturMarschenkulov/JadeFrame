@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "windows_system_manager.h"
 #include "windows_shared.h"
 #include "windows_window.h"

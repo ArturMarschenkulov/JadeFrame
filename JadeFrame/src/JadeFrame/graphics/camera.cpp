@@ -104,8 +104,8 @@ auto Camera::perspective(
     const v3& position,
     const f32 fov,
     const f32 aspect,
-    const f32 near,
-    const f32 far
+    const f32 z_near,
+    const f32 z_far
 ) -> Camera {
     const auto coordinate_system = CoordinateSystem::z_up_right_handed();
 
@@ -116,12 +116,12 @@ auto Camera::perspective(
     camera.m_mode = MODE::PERSPECTIVE;
     camera.m_position = position;
 
-    camera.m_projection_matrix = mat4x4::perspective_rh_gl(fov, aspect, near, far);
+    camera.m_projection_matrix = mat4x4::perspective_rh_gl(fov, aspect, z_near, z_far);
 
     camera.m_fov = fov;
     camera.m_aspect = aspect;
-    camera.m_near = near;
-    camera.m_far = far;
+    camera.m_near = z_near;
+    camera.m_far = z_far;
     return camera;
 }
 

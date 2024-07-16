@@ -1,7 +1,7 @@
 #pragma once
 
-#include "JadeFrame/math/vec.h"
 #include "../platform_shared.h"
+#include "JadeFrame/math/vec.h"
 
 #include <string>
 
@@ -23,10 +23,10 @@ public:
     auto operator=(Window&&) -> Window& = delete;
 
     Window() = default;
-    Window(const JadeFrame::Window::Desc& desc, ::HMODULE instance);
+    Window(const JadeFrame::Window::Desc& desc);
     ~Window();
 
-    virtual auto handle_events(bool& running) -> void override;
+    auto handle_events(bool& running) -> void override;
 
     virtual auto set_title(const std::string& title) -> void override;
     virtual auto get_title() const -> std::string override;

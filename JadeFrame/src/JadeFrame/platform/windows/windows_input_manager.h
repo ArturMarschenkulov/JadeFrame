@@ -1,5 +1,4 @@
 #pragma once
-#include "JadeFrame/prelude.h"
 #include "JadeFrame/math/vec.h"
 #include "../platform_shared.h"
 #include <Windows.h>

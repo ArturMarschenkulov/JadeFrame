@@ -163,6 +163,7 @@ IF (WIN32)
     add_subdirectory(src/JadeFrame/platform/windows/)
     set(Files_Platform
         "src/JadeFrame/platform/platform_shared.h"
+        "src/JadeFrame/platform/platform_shared.cpp"
     )
 ELSEIF(LINUX)
     add_subdirectory(src/JadeFrame/platform/linux/)
@@ -281,7 +282,7 @@ IF(WIN32)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
         platform-win32
         opengl32
-        vulkan-1
+        ${Vulkan_LIBRARIES}
     )
 ELSEIF(UNIX AND NOT APPLE)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES

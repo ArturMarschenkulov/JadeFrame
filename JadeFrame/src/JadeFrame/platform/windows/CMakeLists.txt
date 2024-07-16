@@ -11,40 +11,42 @@ add_library(platform-win32
     "windows_window.cpp"
 )
 
-target_include_directories(platform-win32
-    PUBLIC
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/
-        ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/spdlog/details/
+# target_include_directories(platform-win32
+#     PUBLIC
+#         ${CMAKE_SOURCE_DIR}/JadeFrame/src/
+#         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
+#         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/
+#         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/spdlog/details/
 
-)
+# )
 
 target_link_libraries(platform-win32
     PUBLIC
         winmm
         spdlog
+        JadeFrame
 )
 
 target_compile_definitions(platform-win32 PRIVATE
     $<$<CONFIG:Debug>:_DEBUG>
     $<$<CONFIG:Release>:NDEBUG>
     _CRT_SECURE_NO_WARNINGS
+    NOMINMAX
     _CONSOLE
     UNICODE
     _UNICODE
 )
-if(MSVC)
-    target_compile_options(platform-win32 PRIVATE
-        /EHsc
-    )
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(platform-win32 PRIVATE
-        -Wall 
-        -Wextra 
-        -Wpedantic 
-        # -Werror
-    )
-elseif(CMKAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    message(ERROR "GCC is not supported yet")
-endif()
+# if(MSVC)
+#     target_compile_options(platform-win32 PRIVATE
+#         /EHsc
+#     )
+# elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+#     target_compile_options(platform-win32 PRIVATE
+#         -Wall 
+#         -Wextra 
+#         -Wpedantic 
+#         # -Werror
+#     )
+# elseif(CMKAKE_CXX_COMPILER_ID STREQUAL "GNU")
+#     message(ERROR "GCC is not supported yet")
+# endif()

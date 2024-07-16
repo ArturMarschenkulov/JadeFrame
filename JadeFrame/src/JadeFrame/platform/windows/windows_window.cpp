@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "windows_window.h"
 
 #include <Windows.h>
@@ -196,15 +195,16 @@ static auto register_class(HINSTANCE instance) -> ::WNDCLASSEX {
     window_class.lpszMenuName = nullptr;
     window_class.lpszClassName = L"JadeFrame"; //"L"JadeFrame Window";
 
-    ::ATOM res = ::RegisterClassExW(&window_class);
+    ::ATOM res = ::RegisterClassEx(&window_class);
     if (!res) { Logger::err("Window Registration Failed! {}", ::GetLastError()); }
 
     is_window_class_registered = true;
     return window_class;
 }
 
-Window::Window(const JadeFrame::Window::Desc& desc, ::HMODULE instance) {
-    ::WNDCLASSEX wc = register_class(instance);
+Window::Window(const JadeFrame::Window::Desc& desc) {
+    ::HMODULE inst = ::GetModuleHandleW(NULL);
+    ::WNDCLASSEX wc = register_class(inst);
 
     ::DWORD window_style = get_style(desc);
 
@@ -219,7 +219,7 @@ Window::Window(const JadeFrame::Window::Desc& desc, ::HMODULE instance) {
         static_cast<int32_t>(desc.size.y), // window_height, //CW_USEDEFAULT;
         NULL,                              // parent_window
         NULL,                              // menu
-        instance,
+        inst,
         NULL // lpParam
     );
     if (window_handle == NULL) {

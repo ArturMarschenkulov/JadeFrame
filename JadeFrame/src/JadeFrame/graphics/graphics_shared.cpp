@@ -463,16 +463,11 @@ auto to_string(SHADER_TYPE type) -> const char* {
             break;
     }
 }
-
+#if defined(JF_PLATFORM_LINUX)
 #include <dlfcn.h>
 
 static auto load_module(const char* path) -> void* {
-#if defined(JF_PLATFORM_LINUX)
     return dlopen(path, RTLD_LAZY | RTLD_LOCAL);
-#elif defined(JF_PLATFORM_WINDOWS)
-#else
-    JF_UNIMPLEMENTED("");
-#endif
 }
 
 static auto get_program_path() -> std::string {
@@ -494,6 +489,22 @@ static auto get_program_path() -> std::string {
     return path;
 }
 
+#elif defined(JF_PLATFORM_WINDOWS)
+#else
+#endif
+
+static auto load_module(const char* path) -> void* {
+#if defined(JF_PLATFORM_LINUX)
+    return dlopen(path, RTLD_LAZY | RTLD_LOCAL);
+#elif defined(JF_PLATFORM_WINDOWS)
+    return LoadLibraryA(path);
+#else
+    JF_UNIMPLEMENTED("");
+#endif
+}
+
+
+
 auto RenderSystem::list_available_graphics_apis() -> std::vector<GRAPHICS_API> {
     std::vector<GRAPHICS_API> result;
 
@@ -511,7 +522,8 @@ auto RenderSystem::list_available_graphics_apis() -> std::vector<GRAPHICS_API> {
 #if defined(JF_PLATFORM_LINUX)
     vulkan = load_module("libvulkan.so.1");
 #elif defined(JF_PLATFORM_WINDOWS)
-    vulkan = load_module("vulkan-1.dll");
+    // vulkan = load_module("vulkan-1.dll");
+    vulkan = (void*)1;
 #else
     JF_UNIMPLEMENTED("");
 #endif

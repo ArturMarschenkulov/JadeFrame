@@ -13,6 +13,7 @@
 #include "opengl_wrapper.h"
 
 JF_PRAGMA_NO_WARNINGS_PUSH
+#undef min
 #include "SPIRV-Cross/spirv_glsl.hpp"
 JF_PRAGMA_NO_WARNINGS_POP
 
