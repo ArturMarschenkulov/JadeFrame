@@ -464,13 +464,11 @@ auto to_string(SHADER_TYPE type) -> const char* {
     }
 }
 #if defined(JF_PLATFORM_LINUX)
-#include <dlfcn.h>
-
-static auto load_module(const char* path) -> void* {
-    return dlopen(path, RTLD_LAZY | RTLD_LOCAL);
-}
+    #include <dlfcn.h>
+#endif
 
 static auto get_program_path() -> std::string {
+#if defined(JF_PLATFORM_LINUX)
     char    buf[1024] = {0};
     ssize_t buf_size = readlink("/proc/self/exe", buf, sizeof(buf) /*- 1*/);
 
@@ -487,11 +485,10 @@ static auto get_program_path() -> std::string {
     std::size_t path_end = path.find_last_of('/');
     if (path_end != std::string::npos) { path.resize(path_end + 1); }
     return path;
-}
-
 #elif defined(JF_PLATFORM_WINDOWS)
-#else
+    return "";
 #endif
+}
 
 static auto load_module(const char* path) -> void* {
 #if defined(JF_PLATFORM_LINUX)
@@ -502,8 +499,6 @@ static auto load_module(const char* path) -> void* {
     JF_UNIMPLEMENTED("");
 #endif
 }
-
-
 
 auto RenderSystem::list_available_graphics_apis() -> std::vector<GRAPHICS_API> {
     std::vector<GRAPHICS_API> result;
