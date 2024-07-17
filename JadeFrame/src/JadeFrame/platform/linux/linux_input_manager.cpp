@@ -1,12 +1,9 @@
 #include "linux_input_manager.h"
-#include <X11/Xlib.h>
-#include <X11/keysym.h>
-#include "../platform_shared.h"
 
 namespace JadeFrame {
 
-static auto ttt(KeySym keysym) -> KEY {
-    switch(keysym) {
+auto translate_key(KeySym keysym) -> KEY {
+    switch (keysym) {
         case XK_a: return KEY::A;
         case XK_b: return KEY::B;
         case XK_c: return KEY::C;

@@ -1,5 +1,7 @@
 #pragma once
 #include "../platform_shared.h"
+#include <X11/Xlib.h>
+#include <X11/keysym.h>
 
 namespace JadeFrame {
 // enum class INPUT_STATE {
@@ -118,6 +120,8 @@ public:
         return {};
     }
 };
+
+auto translate_key(KeySym keysym) -> KEY;
 #ifdef __linux__
 using InputManager = Linux_InputManager;
 #endif

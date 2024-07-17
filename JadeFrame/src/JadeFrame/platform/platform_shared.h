@@ -3,6 +3,7 @@
 #include "JadeFrame/math/vec.h"
 #include <string>
 #include <memory>
+#include "window_event.h"
 
 namespace JadeFrame {
 
@@ -122,127 +123,6 @@ consteval auto get_architecture_info() -> const char* {
 #endif
     return name;
 }
-
-enum class INPUT_STATE {
-    RELEASED,
-    PRESSED
-};
-
-enum class BUTTON {
-    LEFT,
-    RIGHT,
-    MIDDLE,
-    X1,
-    X2,
-    MAX
-};
-enum class KEY {
-    SPACE,
-    ESCAPE,
-    ENTER,
-    TAB,
-    BACKSPACE,
-    INSERT,
-    DELET,
-    RIGHT,
-    LEFT,
-    DOWN,
-    UP,
-    PAGE_UP,
-    PAGE_DOWN,
-    HOME,
-    END,
-    CAPS_LOCK,
-    SCROLL_LOCK,
-    NUM_LOCK,
-    PRINT_SCREEN,
-    PAUSE,
-
-    // Extra. Names may be changed
-    OEM_1,
-    OEM_PLUS,
-    OEM_COMMA,
-    OEM_MINUS,
-    OEM_PERIOD,
-    OEM_2,
-    OEM_3,
-    OEM_4,
-    OEM_5,
-    OEM_6,
-    OEM_7,
-    OEM_8,
-    OEM_AX,
-    OEM_102,
-    ICO_HELP,
-    ICO_00,
-    // The F keys
-    F1,
-    F2,
-    F3,
-    F4,
-    F5,
-    F6,
-    F7,
-    F8,
-    F9,
-    F10,
-    F11,
-    F12,
-
-    LEFT_SHIFT,
-    LEFT_CONTROL,
-    LEFT_ALT,
-    RIGHT_SHIFT,
-    RIGHT_CONTROL,
-    RIGHT_ALT,
-    GRAVE,
-    SLASH,
-    BACKSLASH,
-
-    LEFT_SUPER, // Windows key
-
-    // The number keys
-    ZERO,
-    ONE,
-    TWO,
-    THREE,
-    FOUR,
-    FIVE,
-    SIX,
-    SEVEN,
-    EIGHT,
-    NINE,
-
-    // The letter keys
-    A,
-    B,
-    C,
-    D,
-    E,
-    F,
-    G,
-    H,
-    I,
-    J,
-    K,
-    L,
-    M,
-    N,
-    O,
-    P,
-    Q,
-    R,
-    S,
-    T,
-    U,
-    V,
-    W,
-    X,
-    Y,
-    Z,
-    // Denotes the number of keys and an invalid/unknown key
-    MAX
-};
 
 class NativeWindow;
 

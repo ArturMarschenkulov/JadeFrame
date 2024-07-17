@@ -1,4 +1,6 @@
 #include "linux_window.h"
+#include "JadeFrame/platform/linux/linux_input_manager.h"
+#include "JadeFrame/platform/window_event.h"
 #include <GL/gl.h>
 #include <GL/glx.h>
 
@@ -124,7 +126,16 @@ static auto XCreateWindow(XEvent* event) -> bool {
     return event->type == KeyPress || event->type == KeyRelease;
 }
 
-static auto process_event(XEvent* event, X11_NativeWindow* win) -> void {
+static auto to_key_event_type(const int type) -> KeyEvent::TYPE {
+    switch (type) {
+        case KeyPress: return KeyEvent::TYPE::PRESSED;
+        case KeyRelease: return KeyEvent::TYPE::RELEASED;
+        default: assert(false && "Invalid key event type");
+    }
+}
+
+static auto process_event(XEvent* event, X11_NativeWindow* win, WindowEventQueue* event_queu)
+    -> void {
 
     switch (event->type) {
         case Expose: {
@@ -132,7 +143,32 @@ static auto process_event(XEvent* event, X11_NativeWindow* win) -> void {
         } break;
         case KeyPress:
         case KeyRelease: {
-            auto keycode = event->xkey.keycode;
+            unsigned int keycode = event->xkey.keycode;
+
+            KeySym keysym = {};
+            XLookupString(&event->xkey, nullptr, 0, &keysym, nullptr);
+
+            // make sure it is the latin-1 alphabet
+            bool is_latin_1 = false;
+            if ((keysym >= 0x0020 && keysym <= 0x007e) ||
+                (keysym >= 0x00a0 && keysym <= 0x00ff)) {
+                is_latin_1 = true;
+            }
+            assert(is_latin_1 && "Only latin-1 alphabet is supported");
+
+            KEY            key = translate_key(keysym);
+            KeyEvent::TYPE keyevent_type = to_key_event_type(event->type);
+
+            KeyEvent key_event = {
+                .type = keyevent_type,
+                .key = key,
+            };
+            WindowEvent we = {
+                .type = WindowEvent::TYPE::KEY,
+                .key_event = key_event,
+            };
+
+            event_queu->push(we);
 
         } break;
         case ConfigureNotify: {
@@ -145,11 +181,11 @@ static auto process_event(XEvent* event, X11_NativeWindow* win) -> void {
 auto X11_NativeWindow::handle_events(bool&) -> void {
 
     XPending(m_display);
-
+    WindowEventQueue event_queue;
     while (XQLength(m_display) != 0) {
         XEvent event;
         XNextEvent(m_display, &event);
-        process_event(&event, this);
+        process_event(&event, this, &event_queue);
     }
 }
 } // namespace JadeFrame
