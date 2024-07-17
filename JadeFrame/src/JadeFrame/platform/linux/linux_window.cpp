@@ -9,7 +9,7 @@
 
 namespace JadeFrame {
 
-Linux_Window::Linux_Window(const Window::Desc& desc) {
+X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
 
     const char* x11_display_env = std::getenv("DISPLAY");
     if (x11_display_env == nullptr) {
@@ -118,13 +118,13 @@ Linux_Window::Linux_Window(const Window::Desc& desc) {
     );
 }
 
-Linux_Window::~Linux_Window() { XDestroyWindow(m_display, m_window); }
+X11_NativeWindow::~X11_NativeWindow() { XDestroyWindow(m_display, m_window); }
 
 static auto XCreateWindow(XEvent* event) -> bool {
     return event->type == KeyPress || event->type == KeyRelease;
 }
 
-static auto process_event(XEvent* event, Linux_Window* win) -> void {
+static auto process_event(XEvent* event, X11_NativeWindow* win) -> void {
 
     switch (event->type) {
         case Expose: {
@@ -142,7 +142,7 @@ static auto process_event(XEvent* event, Linux_Window* win) -> void {
     }
 }
 
-auto Linux_Window::handle_events(bool&) -> void {
+auto X11_NativeWindow::handle_events(bool&) -> void {
 
     XPending(m_display);
 

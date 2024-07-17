@@ -6,16 +6,16 @@
 
 namespace JadeFrame {
 
-class Linux_Window : public NativeWindow {
+class X11_NativeWindow : public NativeWindow {
 public:
-    Linux_Window(const Linux_Window&) = delete;
-    auto operator=(const Linux_Window&) -> Linux_Window& = delete;
-    Linux_Window(Linux_Window&&) = delete;
-    auto operator=(Linux_Window&&) -> Linux_Window& = delete;
+    X11_NativeWindow(const X11_NativeWindow&) = delete;
+    auto operator=(const X11_NativeWindow&) -> X11_NativeWindow& = delete;
+    X11_NativeWindow(X11_NativeWindow&&) = delete;
+    auto operator=(X11_NativeWindow&&) -> X11_NativeWindow& = delete;
 
-    Linux_Window() = default;
-    explicit Linux_Window(const Window::Desc& desc);
-    ~Linux_Window() override;
+    X11_NativeWindow() = default;
+    explicit X11_NativeWindow(const Window::Desc& desc);
+    ~X11_NativeWindow() override;
 
     auto handle_events(bool&) -> void override;
 

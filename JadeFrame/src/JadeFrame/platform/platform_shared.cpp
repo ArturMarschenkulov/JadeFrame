@@ -10,7 +10,7 @@
 namespace JadeFrame {
 Window::Window(const Window::Desc& desc) {
 #if defined(JF_PLATFORM_LINUX)
-    m_native_window = std::make_unique<Linux_Window>(desc);
+    m_native_window = std::make_unique<X11_NativeWindow>(desc);
 #elif defined(JF_PLATFORM_WINDOWS)
     m_native_window = std::make_unique<win32::Window>(desc);
 #else
