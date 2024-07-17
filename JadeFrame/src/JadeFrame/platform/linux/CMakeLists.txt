@@ -1,5 +1,6 @@
 add_library(platform-linux
     "linux_input_manager.h"
+    "linux_input_manager.cpp"
 
     "linux_system_manager.h"
     "linux_system_manager.cpp"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../platform_shared.h"
+#include "../window.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 

@@ -161,18 +161,16 @@ set(Files_Utils
 )
 IF (WIN32)
     add_subdirectory(src/JadeFrame/platform/windows/)
-    set(Files_Platform
-        "src/JadeFrame/platform/platform_shared.h"
-        "src/JadeFrame/platform/platform_shared.cpp"
-    )
 ELSEIF(LINUX)
     add_subdirectory(src/JadeFrame/platform/linux/)
+ENDIF()
     set(Files_Platform
         "src/JadeFrame/platform/platform_shared.h"
         "src/JadeFrame/platform/platform_shared.cpp"
+        "src/JadeFrame/platform/window.h"
+        "src/JadeFrame/platform/window.cpp"
+        "src/JadeFrame/platform/window_event.h"
     )
-  # set stuff for other systems
-ENDIF()
 
 set(ALL_FILES
     ${Files_Base}

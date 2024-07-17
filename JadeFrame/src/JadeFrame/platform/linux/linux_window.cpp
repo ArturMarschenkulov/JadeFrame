@@ -1,5 +1,6 @@
 #include "linux_window.h"
 #include "JadeFrame/platform/linux/linux_input_manager.h"
+#include "JadeFrame/platform/window.h"
 #include "JadeFrame/platform/window_event.h"
 #include <GL/gl.h>
 #include <GL/glx.h>
@@ -13,6 +14,8 @@ namespace JadeFrame {
 
 X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
 
+    // TODO: This should be done by the caller before calling this function/constructor.
+    // There it should be decided whether to call this at all.
     const char* x11_display_env = std::getenv("DISPLAY");
     if (x11_display_env == nullptr) {
         printf("The DISPLAY environment variable is not set. This is required for X11.\n"
@@ -134,7 +137,8 @@ static auto to_key_event_type(const int type) -> KeyEvent::TYPE {
     }
 }
 
-static auto process_event(XEvent* event, X11_NativeWindow* win, WindowEventQueue* event_queu)
+static auto
+process_event(XEvent* event, X11_NativeWindow* win, WindowEventQueue* event_queue)
     -> void {
 
     switch (event->type) {
@@ -168,7 +172,7 @@ static auto process_event(XEvent* event, X11_NativeWindow* win, WindowEventQueue
                 .key_event = key_event,
             };
 
-            event_queu->push(we);
+            event_queue->push(we);
 
         } break;
         case ConfigureNotify: {
