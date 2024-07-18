@@ -119,21 +119,71 @@ X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
     XSelectInput(
         m_display,
         m_window,
-        KeyPressMask | KeyReleaseMask | StructureNotifyMask | ExposureMask
+        KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
+            PointerMotionMask | StructureNotifyMask | ExposureMask
     );
 }
 
 X11_NativeWindow::~X11_NativeWindow() { XDestroyWindow(m_display, m_window); }
 
-static auto XCreateWindow(XEvent* event) -> bool {
+static auto is_key_event(XEvent* event) -> bool {
     return event->type == KeyPress || event->type == KeyRelease;
 }
 
-static auto to_key_event_type(const int type) -> KeyEvent::TYPE {
+static auto from_x11_key_to_input_state(const int type) -> INPUT_STATE {
     switch (type) {
-        case KeyPress: return KeyEvent::TYPE::PRESSED;
-        case KeyRelease: return KeyEvent::TYPE::RELEASED;
+        case KeyPress: return INPUT_STATE::PRESSED;
+        case KeyRelease: return INPUT_STATE::RELEASED;
         default: assert(false && "Invalid key event type");
+    }
+}
+
+static auto from_x11_button_to_input_state(const int type) -> INPUT_STATE {
+    switch (type) {
+        case ButtonPress: return INPUT_STATE::PRESSED;
+        case ButtonRelease: return INPUT_STATE::RELEASED;
+        default: assert(false && "Invalid button event type");
+    }
+}
+
+static auto x11_event_defines_to_string(const int type) -> std::string {
+    switch (type) {
+        case KeyPress: return "KeyPress";
+        case KeyRelease: return "KeyRelease";
+        case ButtonPress: return "ButtonPress";
+        case ButtonRelease: return "ButtonRelease";
+        case MotionNotify: return "MotionNotify";
+        case EnterNotify: return "EnterNotify";
+        case LeaveNotify: return "LeaveNotify";
+        case FocusIn: return "FocusIn";
+        case FocusOut: return "FocusOut";
+        case KeymapNotify: return "KeymapNotify";
+        case Expose: return "Expose";
+        case GraphicsExpose: return "GraphicsExpose";
+        case NoExpose: return "NoExpose";
+        case VisibilityNotify: return "VisibilityNotify";
+        case CreateNotify: return "CreateNotify";
+        case DestroyNotify: return "DestroyNotify";
+        case UnmapNotify: return "UnmapNotify";
+        case MapNotify: return "MapNotify";
+        case MapRequest: return "MapRequest";
+        case ReparentNotify: return "ReparentNotify";
+        case ConfigureNotify: return "ConfigureNotify";
+        case ConfigureRequest: return "ConfigureRequest";
+        case GravityNotify: return "GravityNotify";
+        case ResizeRequest: return "ResizeRequest";
+        case CirculateNotify: return "CirculateNotify";
+        case CirculateRequest: return "CirculateRequest";
+        case PropertyNotify: return "PropertyNotify";
+        case SelectionClear: return "SelectionClear";
+        case SelectionRequest: return "SelectionRequest";
+        case SelectionNotify: return "SelectionNotify";
+        case ColormapNotify: return "ColormapNotify";
+        case ClientMessage: return "ClientMessage";
+        case MappingNotify: return "MappingNotify";
+        case GenericEvent: return "GenericEvent";
+        case LASTEvent: return "LASTEvent";
+        default: return "Unknown";
     }
 }
 
@@ -143,6 +193,23 @@ process_event(XEvent* event, X11_NativeWindow* win, WindowEventQueue* event_queu
 
     switch (event->type) {
         case Expose: {
+
+        } break;
+        case ButtonRelease:
+        case ButtonPress: {
+            unsigned int button = event->xbutton.button;
+            BUTTON       button_ = translate_button(button);
+            INPUT_STATE  button_event_type = from_x11_button_to_input_state(event->type);
+
+            ButtonEvent button_event = {
+                .type = button_event_type,
+                .button = button_,
+            };
+            WindowEvent we = {
+                .type = WindowEvent::TYPE::BUTTON,
+                .button_event = button_event,
+            };
+            event_queue->push(we);
 
         } break;
         case KeyPress:
@@ -160,8 +227,8 @@ process_event(XEvent* event, X11_NativeWindow* win, WindowEventQueue* event_queu
             }
             assert(is_latin_1 && "Only latin-1 alphabet is supported");
 
-            KEY            key = translate_key(keysym);
-            KeyEvent::TYPE keyevent_type = to_key_event_type(event->type);
+            KEY         key = translate_key(keysym);
+            INPUT_STATE keyevent_type = from_x11_key_to_input_state(event->type);
 
             KeyEvent key_event = {
                 .type = keyevent_type,
@@ -175,6 +242,22 @@ process_event(XEvent* event, X11_NativeWindow* win, WindowEventQueue* event_queu
             event_queue->push(we);
 
         } break;
+
+        case MotionNotify: {
+            auto x = event->xbutton.x;
+            auto y = event->xbutton.y;
+
+            MouseEvent mouse_event = {
+                .m_x = x,
+                .m_y = y,
+            };
+            WindowEvent we = {
+                .type = WindowEvent::TYPE::MOUSE,
+                .mouse_event = mouse_event,
+            };
+            event_queue->push(we);
+
+        } break;
         case ConfigureNotify: {
 
         } break;
@@ -184,12 +267,16 @@ process_event(XEvent* event, X11_NativeWindow* win, WindowEventQueue* event_queu
 
 auto X11_NativeWindow::handle_events(bool&) -> void {
 
-    XPending(m_display);
-    WindowEventQueue event_queue;
+    // XPending == XEventsQueued(display, QueuedAfterFlush)
+    // XQLength == XEventsQueued(display, QueuedAlready)
+    // ???      == XEventsQueued(display, QueuedAfterReading)
+
+    auto events_left = XPending(m_display);
+    // m_platform_window->m_queue.clear();
     while (XQLength(m_display) != 0) {
         XEvent event;
         XNextEvent(m_display, &event);
-        process_event(&event, this, &event_queue);
+        process_event(&event, this, &m_platform_window->m_queue);
     }
 }
 } // namespace JadeFrame

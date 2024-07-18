@@ -18,9 +18,8 @@
 
 namespace JadeFrame {
 
-auto control_camera(Camera* self) -> void {
-    const f32           velocity = 0.1f;
-    const InputManager& i = Instance::get_singleton()->m_input_manager;
+auto control_camera(Camera* self, const InputState& i) -> void {
+    const f32 velocity = 0.1f;
     if (self->m_mode == Camera::MODE::PERSPECTIVE) {
         if (i.is_key_down(KEY::E)) { self->m_position += self->m_up * velocity; }
         if (i.is_key_down(KEY::Q)) { self->m_position -= self->m_up * velocity; }
@@ -122,7 +121,6 @@ Instance::Instance() {
     Logger::info("Detected C++ Version is '{}'", li);
 
     m_system_manager.initialize();
-    // m_input_manager.initialize();
 
     m_system_manager.log();
 }
@@ -179,9 +177,9 @@ inline auto to_string(const mat4x4& m) -> std::string {
 auto BaseApp::start() -> void {
     // Before `this->on_init();` come all the default stuff
     // The client can later override those in `this->on_init();`
-    m_camera = Camera::orthographic(
-        0, m_windows[0]->get_size().x, m_windows[0]->get_size().y, 0, -1, 1
-    );
+    auto& curr_win = m_windows[0];
+    m_camera =
+        Camera::orthographic(0, curr_win->get_size().x, curr_win->get_size().y, 0, -1, 1);
     SystemManager& platform = Instance::get_singleton()->m_system_manager;
     platform.set_target_FPS(60);
     this->on_init();
@@ -190,6 +188,7 @@ auto BaseApp::start() -> void {
     while (m_is_running) {
         const f64 delta_time = platform.calc_elapsed();
         this->on_update();
+        control_camera(&m_camera, m_windows[0]->m_input_state);
 
         if (m_current_window_p->get_window_state() != Window::WINDOW_STATE::MINIMIZED) {
             renderer->clear_background();
@@ -211,8 +210,7 @@ auto BaseApp::start() -> void {
 }
 
 auto BaseApp::poll_events() -> void {
-    Instance::get_singleton()->m_input_manager.handle_input();
-    m_windows[0]->handle_events(m_is_running);
+    for (auto& [id, window] : m_windows) { window->handle_events(m_is_running); }
 }
 
 //**************************************************************

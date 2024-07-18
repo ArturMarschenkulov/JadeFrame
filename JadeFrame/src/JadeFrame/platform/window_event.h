@@ -123,18 +123,19 @@ enum class KEY {
 };
 
 struct KeyEvent {
-    enum class TYPE {
-        PRESSED,
-        RELEASED
-    };
-
-    TYPE type;
-    KEY  key;
+    INPUT_STATE type;
+    KEY         key;
 };
 
-struct ButtonEvent {};
+struct ButtonEvent {
+    INPUT_STATE type;
+    BUTTON      button;
+};
 
-struct MouseEvent {};
+struct MouseEvent {
+    i32 m_x;
+    i32 m_y;
+};
 
 struct WindowEvent {
     enum class TYPE {
@@ -163,7 +164,9 @@ public:
 
     auto is_empty() -> bool { return m_queue.empty(); }
 
-private:
-    std::deque<WindowEvent> m_queue;
+    auto clear() -> void { m_queue.clear(); }
+
+public:
+    std::deque<WindowEvent> m_queue = {};
 };
 } // namespace JadeFrame

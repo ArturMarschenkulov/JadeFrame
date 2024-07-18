@@ -26,9 +26,9 @@ public:
     [[nodiscard]] auto get_size() const -> const v2u32& override { return m_size; }
 
 public:
-    ::Display*     m_display;
-    ::XVisualInfo* m_visual_info;
-    ::Window       m_window;
-    v2u32          m_size;
+    ::Display*     m_display = nullptr;
+    ::XVisualInfo* m_visual_info = nullptr;
+    ::Window       m_window = 0;
+    v2u32          m_size = {};
 };
 } // namespace JadeFrame

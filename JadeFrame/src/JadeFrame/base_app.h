@@ -30,13 +30,12 @@ namespace JadeFrame {
         It also allows an abtraction, which may allow to have several
    applications at the same time in a JadeFrame context.
 */
-auto control_camera(Camera* self) -> void;
+auto control_camera(Camera* self, const InputState& i) -> void;
 #ifdef _WIN32
 using SystemManager = win32::SystemManager;
 using InputManager = win32::InputManager;
 #elif __linux__
 using SystemManager = Linux_SystemManager;
-using InputManager = Linux_InputManager;
 #endif
 
 class BaseApp;
@@ -123,7 +122,6 @@ public:
     u32          m_cpp_version;
 
     SystemManager m_system_manager;
-    InputManager  m_input_manager;
 
     std::deque<BaseApp*>
         m_apps; // TODO: Consider whether there should be support for multiple apps

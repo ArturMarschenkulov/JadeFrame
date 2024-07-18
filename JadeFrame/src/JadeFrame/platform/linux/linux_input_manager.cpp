@@ -2,6 +2,15 @@
 
 namespace JadeFrame {
 
+auto translate_button(unsigned int button) -> BUTTON {
+    switch (button) {
+        case Button1: return BUTTON::LEFT;
+        case Button2: return BUTTON::MIDDLE;
+        case Button3: return BUTTON::RIGHT;
+        default: return BUTTON::MAX;
+    }
+}
+
 auto translate_key(KeySym keysym) -> KEY {
     switch (keysym) {
         case XK_a: return KEY::A;
