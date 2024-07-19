@@ -1,8 +1,6 @@
 add_library(platform-win32
     "windows_input_manager.h"
     "windows_input_manager.cpp"
-    "windows_message_map.h"
-    "windows_message_map.cpp"
     "windows_shared.h"
     "windows_shared.cpp"
     "windows_system_manager.h"

@@ -14,7 +14,6 @@
 namespace JadeFrame {
 
 namespace win32 {
-static EventMessageMap g_windows_message_map;
 
 static auto window_resize_callback(NativeWindow& window, const EventMessage& wm) -> void {
 
@@ -57,10 +56,8 @@ window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
 
     BaseApp* app = Instance::get_singleton()->m_current_app_p;
     if (app == nullptr) {
-        // Logger::trace("WindowProced___: {}", g_windows_message_map(wm));
         return ::DefWindowProcW(hWnd, message, wParam, lParam);
     } else {
-        // Logger::trace("WindowProcedure: {}", g_windows_message_map(wm));
     }
 
     auto* nat_window = reinterpret_cast<NativeWindow*>(::GetPropW(hWnd, L"Window"));
@@ -77,7 +74,6 @@ window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
     switch (message) {
         case WM_SETFOCUS:
         case WM_KILLFOCUS: {
-            // Logger::log("WindowProced___: {}", g_windows_message_map(wm));
             bool should_focus = message == WM_SETFOCUS ? true : false;
             window_focus_callback(current_window, should_focus);
         } break;
@@ -92,11 +88,9 @@ window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
         case WM_SYSKEYDOWN:
         case WM_KEYUP:
         case WM_SYSKEYUP: {
-            // Logger::log("WindowProcedure: {}", g_windows_message_map(wm));
             key_callback(wm, &input_manager);
         } break;
         case WM_CHAR: {
-            // Logger::log("WindowProcedure: {}", g_windows_message_map(wm));
             char_callback(wm);
         } break;
         case WM_LBUTTONDOWN:
@@ -123,7 +117,6 @@ window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
         case WM_CLOSE: {
             // TODO: This code needs to be moved to WM_DESTROY.
 
-            Logger::trace("WindowProcedure: {}.", g_windows_message_map(wm));
 
             app->m_windows.erase(current_window_id);
 
@@ -141,18 +134,15 @@ window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
 
         } break;
         case WM_DESTROY: {
-            Logger::trace("WindowProcedure: {}", g_windows_message_map(wm));
             //::PostQuitMessage(0);
             return DefWindowProc(hWnd, message, wParam, lParam);
         } break;
         case WM_QUIT: {
-            Logger::trace("WindowProcedure: {}", g_windows_message_map(wm));
             return DefWindowProc(hWnd, message, wParam, lParam);
             //::PostQuitMessage(0);
         } break;
 
         default: {
-            // Logger::log("WindowProced___: {}", g_windows_message_map(wm));
             return DefWindowProc(hWnd, message, wParam, lParam);
         }
     }
