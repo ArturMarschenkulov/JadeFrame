@@ -15,7 +15,7 @@ Window::Window(const Window::Desc& desc) {
     m_native_window = std::make_unique<X11_NativeWindow>(desc);
     m_native_window->m_platform_window = this;
 #elif defined(JF_PLATFORM_WINDOWS)
-    m_native_window = std::make_unique<win32::Window>(desc);
+    m_native_window = std::make_unique<win32::NativeWindow>(desc);
 #else
     #error "Unsupported platform"
 #endif
@@ -145,7 +145,9 @@ auto InputState::is_button_released(const BUTTON button) const -> bool {
     return is_changed && is_released;
 }
 
-auto InputState::get_mouse_position() const -> v2 {}
+auto InputState::get_mouse_position() const -> v2 {
+    return {};
+}
 
 auto InputState::update() -> void {
     m_prev_key_state = m_curr_key_state;

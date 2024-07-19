@@ -163,27 +163,6 @@ public:
     virtual auto set_FPS(f64 FPS) -> void = 0;
 };
 
-template<typename T>
-class IInputManager {
-public:
-    virtual auto handle_input() -> void { static_cast<T*>(this)->handle_input(); }
-
-    static auto is_key_down(const KEY key) -> bool {
-        return IInputManager<T>::is_key_down(key);
-    }
-
-    static auto is_key_up(const KEY key) -> bool {
-        return IInputManager<T>::is_key_up(key);
-    }
-
-    static auto is_key_pressed(const KEY key) -> bool {
-        return IInputManager<T>::is_key_pressed(key);
-    }
-
-    static auto is_key_released(const KEY key) -> bool {
-        return IInputManager<T>::is_key_released(key);
-    }
-};
 
 #if defined(JF_PLATFORM_LINUX)
     #include <dlfcn.h>

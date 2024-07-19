@@ -16,7 +16,7 @@ namespace JadeFrame {
 namespace win32 {
 static EventMessageMap g_windows_message_map;
 
-static auto window_resize_callback(Window& window, const EventMessage& wm) -> void {
+static auto window_resize_callback(NativeWindow& window, const EventMessage& wm) -> void {
 
     switch (wm.wParam) {
         case SIZE_MAXIMIZED:
@@ -40,13 +40,13 @@ static auto window_resize_callback(Window& window, const EventMessage& wm) -> vo
     renderer->set_viewport(0, 0, size.x, size.y);
 }
 
-static auto window_move_callback(Window& window, const EventMessage& wm) -> void {
+static auto window_move_callback(NativeWindow& window, const EventMessage& wm) -> void {
     // NOTE: wParam is not used
 
     window.set_position(v2u32(LOWORD(wm.lParam), HIWORD(wm.lParam)));
 }
 
-static auto window_focus_callback(Window& window, bool should_focus) {
+static auto window_focus_callback(NativeWindow& window, bool should_focus) {
     window.has_focus = should_focus;
 }
 
@@ -63,15 +63,16 @@ window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
         // Logger::trace("WindowProcedure: {}", g_windows_message_map(wm));
     }
 
-    InputManager& input_manager = Instance::get_singleton()->m_input_manager;
+    auto* nat_window = reinterpret_cast<NativeWindow*>(::GetPropW(hWnd, L"Window"));
+    auto& input_manager = nat_window->m_platform_window->m_queue;
     i32           current_window_id = -1;
     for (auto const& [window_id, window] : app->m_windows) {
         // if (window->get() == hWnd) { 
             current_window_id = window_id; 
-        // }
+        //}
     }
-    Window& current_window =
-        *reinterpret_cast<Window*>(app->m_windows[current_window_id]);
+    NativeWindow& current_window =
+        *reinterpret_cast<NativeWindow*>(app->m_windows[current_window_id]);
 
     switch (message) {
         case WM_SETFOCUS:
@@ -92,11 +93,11 @@ window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
         case WM_KEYUP:
         case WM_SYSKEYUP: {
             // Logger::log("WindowProcedure: {}", g_windows_message_map(wm));
-            input_manager.key_callback(wm);
+            key_callback(wm, &input_manager);
         } break;
         case WM_CHAR: {
             // Logger::log("WindowProcedure: {}", g_windows_message_map(wm));
-            input_manager.char_callback(wm);
+            char_callback(wm);
         } break;
         case WM_LBUTTONDOWN:
         case WM_LBUTTONUP:
@@ -105,7 +106,7 @@ window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
         case WM_MBUTTONDOWN:
         case WM_MBUTTONUP:
         case WM_MOUSEMOVE: {
-            input_manager.mouse_button_callback(wm);
+            mouse_button_callback(wm, &input_manager);
         } break;
 
         /*
@@ -202,7 +203,7 @@ static auto register_class(HINSTANCE instance) -> ::WNDCLASSEX {
     return window_class;
 }
 
-Window::Window(const JadeFrame::Window::Desc& desc) {
+NativeWindow::NativeWindow(const JadeFrame::Window::Desc& desc) {
     ::HMODULE inst = ::GetModuleHandleW(NULL);
     ::WNDCLASSEX wc = register_class(inst);
 
@@ -232,6 +233,9 @@ Window::Window(const JadeFrame::Window::Desc& desc) {
     ::RECT window_rect = {};
     ::GetWindowRect(window_handle, &window_rect);
 
+
+    ::SetPropW(window_handle, L"Window", reinterpret_cast<HANDLE>(this));
+
     m_title = desc.title;
     m_size = v2u32(client_rect.right, client_rect.bottom);
     m_position = v2u32(window_rect.left, window_rect.top);
@@ -246,9 +250,9 @@ Window::Window(const JadeFrame::Window::Desc& desc) {
     }
 }
 
-Window::~Window() { ::DestroyWindow(m_window_handle); }
+NativeWindow::~NativeWindow() { ::DestroyWindow(m_window_handle); }
 
-auto Window::handle_events(bool& is_running) -> void {
+auto NativeWindow::handle_events(bool& is_running) -> void {
     // TODO: Abstract the Windows code away
     ::MSG message;
     while (::PeekMessageW(&message, NULL, 0, 0, PM_REMOVE)) {
@@ -261,28 +265,28 @@ auto Window::handle_events(bool& is_running) -> void {
     }
 }
 
-auto Window::set_title(const std::string& title) -> void {
+auto NativeWindow::set_title(const std::string& title) -> void {
     m_title = title;
     ::SetWindowTextA(m_window_handle, m_title.c_str());
 }
 
-auto Window::get_title() const -> std::string { return m_title; }
+auto NativeWindow::get_title() const -> std::string { return m_title; }
 
-auto Window::set_size(const v2u32& size) -> void { m_size = size; }
+auto NativeWindow::set_size(const v2u32& size) -> void { m_size = size; }
 
-auto Window::get_size() const -> const v2u32& { return m_size; }
+auto NativeWindow::get_size() const -> const v2u32& { return m_size; }
 
-auto Window::set_position(const v2u32& position) -> void { m_position = position; }
+auto NativeWindow::set_position(const v2u32& position) -> void { m_position = position; }
 
-auto Window::get_position() const -> const v2u32& { return m_position; }
+auto NativeWindow::get_position() const -> const v2u32& { return m_position; }
 
-auto Window::set_window_state(const JadeFrame::Window::WINDOW_STATE window_state) -> void {
+auto NativeWindow::set_window_state(const JadeFrame::Window::WINDOW_STATE window_state) -> void {
     m_window_state = window_state;
 }
 
-auto Window::get_window_state() const -> JadeFrame::Window::WINDOW_STATE { return m_window_state; }
+auto NativeWindow::get_window_state() const -> JadeFrame::Window::WINDOW_STATE { return m_window_state; }
 
-auto Window::query_client_size() const -> v2u64 {
+auto NativeWindow::query_client_size() const -> v2u64 {
     ::RECT rect = {};
     ::GetClientRect(m_window_handle, &rect);
     return v2u64(rect.right, rect.bottom);

@@ -15,16 +15,16 @@ namespace JadeFrame {
 */
 
 namespace win32 {
-class Window : public NativeWindow {
+class NativeWindow : public JadeFrame::NativeWindow {
 public:
-    Window(const Window&) = delete;
-    Window(Window&&) = delete;
-    auto operator=(const Window&) -> Window& = delete;
-    auto operator=(Window&&) -> Window& = delete;
+    NativeWindow(const NativeWindow&) = delete;
+    NativeWindow(NativeWindow&&) = delete;
+    auto operator=(const NativeWindow&) -> NativeWindow& = delete;
+    auto operator=(NativeWindow&&) -> NativeWindow& = delete;
 
-    Window() = default;
-    Window(const JadeFrame::Window::Desc& desc);
-    ~Window();
+    NativeWindow() = default;
+    NativeWindow(const JadeFrame::Window::Desc& desc);
+    ~NativeWindow();
 
     auto handle_events(bool& running) -> void override;
 

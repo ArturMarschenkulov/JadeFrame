@@ -67,7 +67,7 @@ static auto choose_extent(
 #ifdef _WIN32
         RECT       area;
         auto&      native_window = surface.m_window_handle->m_native_window;
-        auto       win32_native_window = dynamic_cast<win32::Window*>(native_window.get());
+        auto       win32_native_window = dynamic_cast<win32::NativeWindow*>(native_window.get());
         auto        window_handle = win32_native_window->m_window_handle;
         const HWND  wh = window_handle;
         GetClientRect(wh, &area);

@@ -117,7 +117,7 @@ auto OpenGL_Context::create_renderbuffer() -> opengl::Renderbuffer* {
 OpenGL_Context::OpenGL_Context(const Window* window)
 #ifdef WIN32
 {
-    auto* win = dynamic_cast<const JadeFrame::win32::Window*>(window->m_native_window.get());
+    auto* win = dynamic_cast<const JadeFrame::win32::NativeWindow*>(window->m_native_window.get());
 
     // NOTE: This function might have to be moved, as in theory one could have multiple
     // contexts. NOTE: Think about removing the parameter from this function then just

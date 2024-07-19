@@ -11,10 +11,8 @@ namespace win32 {
 /*
         KEY INPUT
 */
-std::array<INPUT_STATE, static_cast<u32>(KEY::MAX)> InputManager::m_curr_key_state = {};
-std::array<INPUT_STATE, static_cast<u32>(KEY::MAX)> InputManager::m_prev_key_state = {};
 
-auto InputManager::translate_button_code(const u64 button_code) -> BUTTON {
+auto translate_button_code(const u64 button_code) -> BUTTON {
     BUTTON result;
     switch (button_code) {
         case VK_LBUTTON: result = BUTTON::LEFT; break;
@@ -26,7 +24,7 @@ auto InputManager::translate_button_code(const u64 button_code) -> BUTTON {
     return result;
 }
 
-auto InputManager::translate_key_code(const u64 key_code) -> KEY {
+auto translate_key_code(const u64 key_code) -> KEY {
     KEY result;
     switch (key_code) {
         case VK_SPACE: result = KEY::SPACE; break;
@@ -129,13 +127,7 @@ auto InputManager::translate_key_code(const u64 key_code) -> KEY {
     return result;
 }
 
-auto InputManager::handle_input() -> void {
-    for (size_t i = 0; i < m_curr_key_state.size(); i++) {
-        m_prev_key_state[i] = m_curr_key_state[i];
-    }
-}
-
-auto InputManager::key_callback(const EventMessage& wm) -> void {
+auto key_callback(const EventMessage& wm,  WindowEventQueue* event_queue) -> void {
 
     /*
         The lParam parameter of a keystroke message contains additional information about
@@ -217,26 +209,36 @@ auto InputManager::key_callback(const EventMessage& wm) -> void {
     }
     KEY jf_keycode = translate_key_code(virtual_key);
 
-    m_curr_key_state[static_cast<u32>(jf_keycode)] =
-        static_cast<INPUT_STATE>(!is_released);
+    KeyEvent key_event = {
+        .type = static_cast<INPUT_STATE>(!is_released),
+        .key = jf_keycode,
+    };
+    WindowEvent we = {
+        .type = WindowEvent::TYPE::KEY,
+        .key_event = key_event,
+    };
+    event_queue->push(we);
+
+    // m_curr_key_state[static_cast<u32>(jf_keycode)] =
+    //     static_cast<INPUT_STATE>(!is_released);
     // ImGuiIO& io = ImGui::GetIO();
     // io.KeysDown[key_code] = b_is_pressed;
 
-    // TODO: Try to extract that to somewhere else. So th
-    if (m_curr_key_state[static_cast<u32>(KEY::ESCAPE)] == INPUT_STATE::PRESSED) {
-        if (::MessageBoxW(
-                wm.hWnd, L"Quit through ESC?", L"My application", MB_OKCANCEL
-            ) == IDOK) {
-            Instance::get_singleton()->m_current_app_p->m_is_running = false;
-            ::PostQuitMessage(0);
-            // DestroyWindow(hwnd);
-        }
-        // JadeFrame::get_singleton()->m_current_app->m_is_running = false;
-        //::PostQuitMessage(0);
-    }
+    // // TODO: Try to extract that to somewhere else. So th
+    // if (m_curr_key_state[static_cast<u32>(KEY::ESCAPE)] == INPUT_STATE::PRESSED) {
+    //     if (::MessageBoxW(
+    //             wm.hWnd, L"Quit through ESC?", L"My application", MB_OKCANCEL
+    //         ) == IDOK) {
+    //         Instance::get_singleton()->m_current_app_p->m_is_running = false;
+    //         ::PostQuitMessage(0);
+    //         // DestroyWindow(hwnd);
+    //     }
+    //     // JadeFrame::get_singleton()->m_current_app->m_is_running = false;
+    //     //::PostQuitMessage(0);
+    // }
 }
 
-auto InputManager::char_callback(const EventMessage& wm) -> void {
+auto char_callback(const EventMessage& wm) -> void {
     // window_message.hWnd;
     // window_message.message;
     auto wParam = wm.wParam;
@@ -251,51 +253,10 @@ auto InputManager::char_callback(const EventMessage& wm) -> void {
     }
 }
 
-auto InputManager::is_key_down(const KEY key) -> bool {
-    i32         key_0 = static_cast<u32>(key);
-    INPUT_STATE curr = m_curr_key_state[key_0];
-
-    bool is_pressed = (curr == INPUT_STATE::PRESSED);
-    return is_pressed ? true : false;
-}
-
-auto InputManager::is_key_up(const KEY key) -> bool {
-    i32         key_0 = static_cast<u32>(key);
-    INPUT_STATE curr = m_curr_key_state[key_0];
-
-    bool is_current_released = (curr == INPUT_STATE::RELEASED);
-    return is_current_released ? true : false;
-}
-
-auto InputManager::is_key_pressed(const KEY key) -> bool {
-    i32         key_0 = static_cast<u32>(key);
-    INPUT_STATE curr = m_curr_key_state[key_0];
-    INPUT_STATE prev = m_prev_key_state[key_0];
-
-    bool is_changed = (m_curr_key_state[key_0] != m_prev_key_state[key_0]);
-    bool is_pressed = (m_curr_key_state[key_0] == INPUT_STATE::PRESSED);
-    return (is_changed && is_pressed) ? true : false;
-}
-
-auto InputManager::is_key_released(const KEY key) -> bool {
-    u32         key_0 = static_cast<u32>(key);
-    INPUT_STATE curr = m_curr_key_state[key_0];
-    INPUT_STATE prev = m_prev_key_state[key_0];
-
-    bool is_changed = (curr != prev);
-    bool is_released = (curr == INPUT_STATE::RELEASED);
-    return (is_changed && is_released) ? true : false;
-}
-
 /*
         MOUSE INPUT
 */
-std::array<INPUT_STATE, static_cast<u32>(BUTTON::MAX)>
-    InputManager::m_current_mouse_button_state = {};
-std::array<INPUT_STATE, static_cast<u32>(BUTTON::MAX)>
-    InputManager::m_previous_mouse_button_state = {};
 
-v2 InputManager::m_mouse_posiition{};
 
 static auto convert_buttons_from_JF_to_imgui(BUTTON button) -> i32 {
     i32 result;
@@ -323,7 +284,7 @@ static auto convert_buttons_from_JF_to_imgui(BUTTON button) -> i32 {
 // }
 
 // auto InputManager::mouse_button_callback(i64 lParam, i64 wParam, i32 message) -> void {
-auto InputManager::mouse_button_callback(const EventMessage& wm) -> void {
+auto mouse_button_callback(const EventMessage& wm, WindowEventQueue* event_queue) -> void {
     // window_message.hWnd;
     auto message = wm.message;
     // auto wParam = window_message.wParam;
@@ -332,6 +293,7 @@ auto InputManager::mouse_button_callback(const EventMessage& wm) -> void {
     // ImGuiIO& io = ImGui::GetIO();
 
     BUTTON button = BUTTON::MAX;
+    INPUT_STATE button_event_type = {};
     switch (message) {
         case WM_LBUTTONDOWN:
         case WM_LBUTTONDBLCLK:
@@ -349,7 +311,17 @@ auto InputManager::mouse_button_callback(const EventMessage& wm) -> void {
                 button = BUTTON::MIDDLE;
             }
 
-            m_current_mouse_button_state[static_cast<u32>(button)] = INPUT_STATE::PRESSED;
+            ButtonEvent button_event = {
+                .type = INPUT_STATE::PRESSED,
+                .button = button,
+            };
+            WindowEvent we = {
+                .type = WindowEvent::TYPE::BUTTON,
+                .button_event = button_event,
+            };
+            event_queue->push(we);
+
+            // m_current_mouse_button_state[static_cast<u32>(button)] = INPUT_STATE::PRESSED;
             // io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = true;
 
         } break;
@@ -359,65 +331,43 @@ auto InputManager::mouse_button_callback(const EventMessage& wm) -> void {
             if (message == WM_LBUTTONUP) { button = BUTTON::LEFT; }
             if (message == WM_RBUTTONUP) { button = BUTTON::RIGHT; }
             if (message == WM_MBUTTONUP) { button = BUTTON::MIDDLE; }
-            m_current_mouse_button_state[static_cast<i32>(button)] =
-                INPUT_STATE::RELEASED;
+
+            
+            ButtonEvent button_event = {
+                .type = INPUT_STATE::RELEASED,
+                .button = button,
+            };
+            WindowEvent we = {
+                .type = WindowEvent::TYPE::BUTTON,
+                .button_event = button_event,
+            };
+            event_queue->push(we);
+            // m_current_mouse_button_state[static_cast<i32>(button)] =
+            //     INPUT_STATE::RELEASED;
             // io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = false;
         } break;
         case WM_MOUSEMOVE: {
             i32 mposx = GET_X_LPARAM(lParam);
             i32 mposy = GET_Y_LPARAM(lParam);
-            m_mouse_posiition.x = static_cast<f32>(mposx);
-            m_mouse_posiition.y = static_cast<f32>(mposy);
+            // m_mouse_posiition.x = static_cast<f32>(mposx);
+            // m_mouse_posiition.y = static_cast<f32>(mposy);
+
+            
+            MouseEvent mouse_event = {
+                .m_x = mposx,
+                .m_y = mposy,
+            };
+            WindowEvent we = {
+                .type = WindowEvent::TYPE::MOUSE,
+                .mouse_event = mouse_event,
+            };
+            event_queue->push(we);
         } break;
     }
-    i32 mposx = GET_X_LPARAM(lParam);
-    i32 mposy = GET_Y_LPARAM(lParam);
-    m_mouse_posiition.x = static_cast<f32>(mposx);
-    m_mouse_posiition.y = static_cast<f32>(mposy);
-    if (is_key_down(KEY::L)) { assert(false); }
+
+
     // io.DeltaTime = 1.0f / 60.0f;
 }
 
-auto InputManager::is_button_down(const BUTTON button) const -> bool {
-    i32 button_0 = static_cast<i32>(button);
-
-    INPUT_STATE curr = m_curr_key_state[button_0];
-
-    bool is_pressed = (curr == INPUT_STATE::PRESSED);
-    return is_pressed ? true : false;
-}
-
-auto InputManager::is_button_up(const BUTTON button) const -> bool {
-    i32 button_0 = static_cast<i32>(button);
-
-    INPUT_STATE curr = m_curr_key_state[button_0];
-
-    bool is_released = (curr == INPUT_STATE::RELEASED);
-    return is_released ? true : false;
-}
-
-auto InputManager::is_button_pressed(const BUTTON button) const -> bool {
-    i32 button_0 = static_cast<i32>(button);
-
-    INPUT_STATE curr = m_curr_key_state[button_0];
-    INPUT_STATE prev = m_prev_key_state[button_0];
-
-    bool is_changed = (curr != prev);
-    bool is_pressed = (curr == INPUT_STATE::PRESSED);
-    return (is_changed && is_pressed) ? true : false;
-}
-
-auto InputManager::is_button_released(const BUTTON button) const -> bool {
-    i32 button_0 = static_cast<i32>(button);
-
-    INPUT_STATE curr = m_curr_key_state[button_0];
-    INPUT_STATE prev = m_prev_key_state[button_0];
-
-    bool is_changed = (curr != prev);
-    bool is_released = (curr == INPUT_STATE::RELEASED);
-    return (is_changed && is_released) ? true : false;
-}
-
-auto InputManager::get_mouse_position() const -> v2 { return m_mouse_posiition; }
 } // namespace win32
 } // namespace JadeFrame
