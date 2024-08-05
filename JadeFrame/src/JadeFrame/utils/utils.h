@@ -1,6 +1,7 @@
 #pragma once
 #include "JadeFrame/prelude.h"
 #include <string>
+#include <bitset>
 
 namespace JadeFrame {
 auto custom_simple_hash_0(const std::string& str) -> u32;
@@ -48,5 +49,89 @@ template<typename T>
 auto make_ref(T* obj) -> Ref<T> {
     return std::make_shared<T>(obj);
 }
+
+namespace bit {
+
+template<typename T>
+auto lshift(T value, u32 shift) -> T {
+    return value << shift;
+}
+
+template<typename T, typename U>
+auto set(T value, u32 bit) -> T {
+    return value | (1 << bit);
+}
+
+template<typename T, typename U>
+auto unset(T value, u32 bit) -> T {
+    return value & ~(1 << bit);
+}
+
+template<typename T>
+auto toggle(T value, u32 bit) -> T {
+    return value ^ (1 << bit);
+}
+
+template<typename T>
+auto check(T value, u32 bit) -> bool {
+    return value & (1 << bit);
+}
+
+template<typename T>
+auto set_flag(T value, u32 flag) -> T {
+    return value | flag;
+}
+
+template<typename T>
+auto set_flags(const T value, std::span<u32> flags) -> T {
+    T result = value;
+    for (const u32 flag : flags) { result |= flag; }
+    return result;
+}
+
+inline auto set_flags(std::span<u32> flags) -> u32 {
+    u32 result = 0;
+    for (const u32 flag : flags) { result |= flag; }
+    return result;
+}
+
+template<typename T>
+auto unset_flag(T value, u32 flag) -> T {
+    return value & ~flag;
+}
+
+template<typename T>
+auto toggle_flag(T value, u32 flag) -> T {
+    return value ^ flag;
+}
+
+template<typename T>
+auto flag(u32 flag) -> bool {
+    return 0U | flag;
+}
+
+template<typename T>
+auto check_flag(T value, u32 flag) -> bool {
+    return value & flag;
+}
+
+template<typename T>
+auto count_ones(T value) -> u32 {
+    return std::bitset<sizeof(T) * 8>(value).count();
+}
+
+template<typename T>
+auto to_byte_array(const T& value) -> std::array<u8, sizeof(T)> {
+    std::array<u8, sizeof(T)> bytes;
+    std::memcpy(bytes.data(), &value, sizeof(T));
+    return bytes;
+}
+
+template<typename T>
+auto to_bitset(const T& value) -> std::bitset<sizeof(T) * 8> {
+    return std::bitset<sizeof(T) * 8>(value);
+}
+
+} // namespace bit
 
 } // namespace JadeFrame

@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <string>
 #include "JadeFrame/prelude.h"
+#include "JadeFrame/utils/utils.h"
 
 namespace JadeFrame {
 namespace opengl {
@@ -93,7 +94,7 @@ GL_ERR: Source: {}
 auto set_debug_mode(bool enable_debug) -> void {
     int flags = 0;
     glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-    bool is_debug_enabled = (flags & GL_CONTEXT_FLAG_DEBUG_BIT) != 0;
+    bool is_debug_enabled = bit::check_flag(flags, GL_CONTEXT_FLAG_DEBUG_BIT);
 
     if (is_debug_enabled) {
         Logger::info("OpenGL debug mode enabled");

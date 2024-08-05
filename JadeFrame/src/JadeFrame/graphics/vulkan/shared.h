@@ -124,47 +124,68 @@ inline auto to_string(const VkResult& result) -> const char* {
     return str;
 }
 
-inline auto to_string_from_shader_stage_flags(const VkShaderStageFlags& flags)
-    -> std::string {
+inline auto to_string_from_shader_stage_flags(const VkShaderStageFlags& flags
+) -> std::string {
     std::string result;
     result += "{ ";
-    if (flags & VK_SHADER_STAGE_VERTEX_BIT) { result += "VERTEX "; }
-    if (flags & VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT) {
+    if (bit::check_flag(flags, VK_SHADER_STAGE_VERTEX_BIT)) { result += "VERTEX "; }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT)) {
         result += "TESSELLATION_CONTROL ";
     }
-    if (flags & VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT) {
+    if (bit::check_flag(flags, VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT)) {
         result += "TESSELLATION_EVALUATION ";
     }
-    if (flags & VK_SHADER_STAGE_GEOMETRY_BIT) { result += "GEOMETRY "; }
-    if (flags & VK_SHADER_STAGE_FRAGMENT_BIT) { result += "FRAGMENT "; }
-    if (flags & VK_SHADER_STAGE_COMPUTE_BIT) { result += "COMPUTE "; }
-    if (flags & VK_SHADER_STAGE_ALL_GRAPHICS) { result += "ALL_GRAPHICS "; }
-    if (flags & VK_SHADER_STAGE_ALL) { result += "ALL "; }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_GEOMETRY_BIT)) { result += "GEOMETRY "; }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_FRAGMENT_BIT)) { result += "FRAGMENT "; }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_COMPUTE_BIT)) { result += "COMPUTE "; }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_ALL_GRAPHICS)) {
+        result += "ALL_GRAPHICS ";
+    }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_ALL)) { result += "ALL "; }
 
-    if (flags & VK_SHADER_STAGE_RAYGEN_BIT_KHR) { result += "RAYGEN_KHR "; }
-    if (flags & VK_SHADER_STAGE_ANY_HIT_BIT_KHR) { result += "ANY_HIT_KHR "; }
-    if (flags & VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR) { result += "CLOSEST_HIT_KHR "; }
-    if (flags & VK_SHADER_STAGE_MISS_BIT_KHR) { result += "MISS_KHR "; }
-    if (flags & VK_SHADER_STAGE_INTERSECTION_BIT_KHR) { result += "INTERSECTION_KHR "; }
-    if (flags & VK_SHADER_STAGE_CALLABLE_BIT_KHR) { result += "CALLABLE_KHR "; }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_RAYGEN_BIT_KHR)) {
+        result += "RAYGEN_KHR ";
+    }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_ANY_HIT_BIT_KHR)) {
+        result += "ANY_HIT_KHR ";
+    }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR)) {
+        result += "CLOSEST_HIT_KHR ";
+    }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_MISS_BIT_KHR)) { result += "MISS_KHR "; }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_INTERSECTION_BIT_KHR)) {
+        result += "INTERSECTION_KHR ";
+    }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_CALLABLE_BIT_KHR)) {
+        result += "CALLABLE_KHR ";
+    }
 
-    if (flags & VK_SHADER_STAGE_TASK_BIT_NV) { result += "TASK_KHR "; }
-    if (flags & VK_SHADER_STAGE_MESH_BIT_NV) { result += "MESH_KHR "; }
-    if (flags & VK_SHADER_STAGE_RAYGEN_BIT_NV) { result += "RAYGEN_KHR "; }
-    if (flags & VK_SHADER_STAGE_ANY_HIT_BIT_NV) { result += "ANY_HIT_KHR "; }
-    if (flags & VK_SHADER_STAGE_CLOSEST_HIT_BIT_NV) { result += "CLOSEST_HIT_KHR "; }
-    if (flags & VK_SHADER_STAGE_MISS_BIT_NV) { result += "MISS_KHR "; }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_TASK_BIT_NV)) { result += "TASK_KHR "; }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_MESH_BIT_NV)) { result += "MESH_KHR "; }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_RAYGEN_BIT_NV)) {
+        result += "RAYGEN_KHR ";
+    }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_ANY_HIT_BIT_NV)) {
+        result += "ANY_HIT_KHR ";
+    }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_CLOSEST_HIT_BIT_NV)) {
+        result += "CLOSEST_HIT_KHR ";
+    }
+    if (bit::check_flag(flags, VK_SHADER_STAGE_MISS_BIT_NV)) { result += "MISS_KHR "; }
     result += "}";
     return result;
 }
 
 inline auto to_string(const VkMemoryHeap& memory_heap) -> std::string {
     std::string result = "{ ";
-    if (memory_heap.flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) { result += "DeviceLocal "; }
-    if (memory_heap.flags & VK_MEMORY_HEAP_MULTI_INSTANCE_BIT) {
+    auto        flags = memory_heap.flags;
+    if (bit::check_flag(flags, VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)) {
+        result += "DeviceLocal ";
+    }
+    if (bit::check_flag(flags, VK_MEMORY_HEAP_MULTI_INSTANCE_BIT)) {
         result += "MultiInstance ";
     }
-    if (memory_heap.flags & VK_MEMORY_HEAP_MULTI_INSTANCE_BIT_KHR) {
+    if (bit::check_flag(flags, VK_MEMORY_HEAP_MULTI_INSTANCE_BIT_KHR)) {
         result += "MultiInstance_KHR ";
     }
     result += "}";
@@ -192,29 +213,30 @@ inline auto to_string(const VkPhysicalDeviceType& device_type) -> const char* {
 
 inline auto to_string(const VkMemoryType& memory_type) -> std::string {
     std::string result = "{ ";
-    if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
+    auto        flags = memory_type.propertyFlags;
+    if (bit::check_flag(flags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
         result += "DeviceLocal ";
     }
-    if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
+    if (bit::check_flag(flags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)) {
         result += "HostVisible ";
     }
-    if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
+    if (bit::check_flag(flags, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
         result += "HostCoherent ";
     }
-    if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) {
+    if (bit::check_flag(flags, VK_MEMORY_PROPERTY_HOST_CACHED_BIT)) {
         result += "HostCached ";
     }
-    if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT) {
+    if (bit::check_flag(flags, VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT)) {
         result += "LazilyAllocated ";
     }
-    if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_PROTECTED_BIT) {
+    if (bit::check_flag(flags, VK_MEMORY_PROPERTY_PROTECTED_BIT)) {
         result += "Protected ";
     }
     // AMD Specific
-    // if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD) {
-    // result += "DeviceCoherent "; } if (memory_type.propertyFlags &
+    // if (flags & VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD) {
+    // result += "DeviceCoherent "; } if (flags &
     // VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD) { result += "DeviceUncached "; } NV
-    // Specific if (memory_type.propertyFlags & VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV ) {
+    // Specific if (flags & VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV ) {
     // result += "Protected
     // "; }
     result += "}";

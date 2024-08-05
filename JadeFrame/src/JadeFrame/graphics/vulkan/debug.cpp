@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "debug.h"
 #include "JadeFrame/utils/logger.h"
+#include "JadeFrame/utils/utils.h"
+#include <span>
+#include <array>
 
 namespace JadeFrame {
 namespace vulkan {
@@ -36,22 +39,25 @@ debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity, VkDebugU
     return VK_FALSE;
 }
 
-auto populate_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT& info)
-    -> void {
+auto populate_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT& info
+) -> void {
     info = {};
     info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 
-    info.messageSeverity = {};
-    info.messageSeverity |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
-    info.messageSeverity |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
-    info.messageSeverity |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
-    info.messageSeverity |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    auto severity_flags = std::array<u32, 4>{
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT,
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT,
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT,
+        VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT
+    };
 
-    info.messageType = {};
-    info.messageType |= VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT;
-    info.messageType |= VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
-    info.messageType |= VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    
+    auto type_flags = std::array<u32, 4>{
+        VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT,
+        VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT,
+        VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT
+    };
+    info.messageSeverity = bit::set_flags(severity_flags);
+    info.messageType = bit::set_flags(type_flags);
     info.pfnUserCallback = debug_callback;
 }
 } // namespace vulkan

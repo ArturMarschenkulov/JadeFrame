@@ -123,24 +123,17 @@ auto PhysicalDevice::query_extension_properties() const
     return extension_properties;
 }
 
-static auto to_format_string_queue_family(const QueueFamily& queue_family)
-    -> std::string {
+static auto to_format_string_queue_family(const QueueFamily& queue_family
+) -> std::string {
     std::string result = "{ ";
-    if ((queue_family.m_properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0U) {
-        result += "Graphics ";
-    }
-    if ((queue_family.m_properties.queueFlags & VK_QUEUE_COMPUTE_BIT) != 0U) {
-        result += "Compute ";
-    }
-    if ((queue_family.m_properties.queueFlags & VK_QUEUE_TRANSFER_BIT) != 0U) {
-        result += "Transfer ";
-    }
-    if ((queue_family.m_properties.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) != 0U) {
+    auto        flags = queue_family.m_properties.queueFlags;
+    if (bit::check_flag(flags, VK_QUEUE_GRAPHICS_BIT)) { result += "Graphics "; }
+    if (bit::check_flag(flags, VK_QUEUE_COMPUTE_BIT)) { result += "Compute "; }
+    if (bit::check_flag(flags, VK_QUEUE_TRANSFER_BIT)) { result += "Transfer "; }
+    if (bit::check_flag(flags, VK_QUEUE_SPARSE_BINDING_BIT)) {
         result += "SparseBinding ";
     }
-    if ((queue_family.m_properties.queueFlags & VK_QUEUE_PROTECTED_BIT) != 0U) {
-        result += "Protected ";
-    }
+    if (bit::check_flag(flags, VK_QUEUE_PROTECTED_BIT)) { result += "Protected "; }
     result += "}";
     return result;
 }
@@ -344,7 +337,7 @@ auto PhysicalDevice::find_memory_type(u32 type_filter, VkMemoryPropertyFlags pro
     const -> u32 {
     const VkPhysicalDeviceMemoryProperties& mem_props = m_memory_properties;
     for (u32 i = 0; i < mem_props.memoryTypeCount; i++) {
-        if ((type_filter & (1U << i)) &&
+        if (bit::check(type_filter, i) &&
             (mem_props.memoryTypes[i].propertyFlags & properties) == properties) {
             return i;
         }

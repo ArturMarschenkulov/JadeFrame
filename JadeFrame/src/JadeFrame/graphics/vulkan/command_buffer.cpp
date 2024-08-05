@@ -7,6 +7,7 @@
 #include "descriptor_set.h"
 #include "physical_device.h"
 #include "JadeFrame/utils/assert.h"
+#include "JadeFrame/utils/utils.h"
 
 namespace JadeFrame {
 
@@ -255,14 +256,19 @@ auto CommandBuffer::draw_indexed(
     );
 }
 
-static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFlags& flag)
-    -> std::string {
+static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFlags& flag
+) -> std::string {
     std::string result = "{ ";
-    if ((flag & VK_COMMAND_POOL_CREATE_TRANSIENT_BIT) != 0U) { result += "TRANSIENT "; }
-    if ((flag & VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT) != 0U) {
+
+    if (bit::check_flag(flag, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT)) {
+        result += "TRANSIENT ";
+    }
+    if (bit::check_flag(flag, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT)) {
         result += "RESET_COMMAND_BUFFER ";
     }
-    if ((flag & VK_COMMAND_POOL_CREATE_PROTECTED_BIT) != 0U) { result += "PROTECTED "; }
+    if (bit::check_flag(flag, VK_COMMAND_POOL_CREATE_PROTECTED_BIT)) {
+        result += "PROTECTED ";
+    }
     result += "}";
     return result;
 }
