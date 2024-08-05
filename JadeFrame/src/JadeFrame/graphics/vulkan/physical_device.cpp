@@ -51,15 +51,15 @@ auto PhysicalDevice::query_queue_family_properties() const
     return properties;
 }
 
-auto PhysicalDevice::query_surface_capabilities(const Surface& surface) const
-    -> VkSurfaceCapabilitiesKHR {
+auto PhysicalDevice::query_surface_capabilities(const Surface& surface
+) const -> VkSurfaceCapabilitiesKHR {
     VkSurfaceCapabilitiesKHR result;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_handle, &result);
     return result;
 }
 
-auto PhysicalDevice::query_surface_formats(const Surface& surface) const
-    -> std::vector<VkSurfaceFormatKHR> {
+auto PhysicalDevice::query_surface_formats(const Surface& surface
+) const -> std::vector<VkSurfaceFormatKHR> {
     u32      count = 0;
     VkResult result =
         vkGetPhysicalDeviceSurfaceFormatsKHR(m_handle, surface.m_handle, &count, nullptr);
@@ -73,8 +73,8 @@ auto PhysicalDevice::query_surface_formats(const Surface& surface) const
     return formats;
 }
 
-auto PhysicalDevice::query_surface_present_modes(const Surface& surface) const
-    -> std::vector<VkPresentModeKHR> {
+auto PhysicalDevice::query_surface_present_modes(const Surface& surface
+) const -> std::vector<VkPresentModeKHR> {
     u32      count = 0;
     VkResult result = vkGetPhysicalDeviceSurfacePresentModesKHR(
         m_handle, surface.m_handle, &count, nullptr

@@ -145,9 +145,7 @@ auto InputState::is_button_released(const BUTTON button) const -> bool {
     return is_changed && is_released;
 }
 
-auto InputState::get_mouse_position() const -> v2 {
-    return {};
-}
+auto InputState::get_mouse_position() const -> v2 { return {}; }
 
 auto InputState::update() -> void {
     m_prev_key_state = m_curr_key_state;

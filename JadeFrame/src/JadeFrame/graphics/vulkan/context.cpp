@@ -53,8 +53,8 @@ auto Instance::allocator() -> VkAllocationCallbacks* {
 
 auto Instance::default_allocator() -> VkAllocationCallbacks* { return nullptr; }
 
-auto Instance::check_validation_layer_support(const std::span<VkLayerProperties>& layers)
-    -> bool {
+auto Instance::check_validation_layer_support(const std::span<VkLayerProperties>& layers
+) -> bool {
 #if 1
     for (u32 i = 0; i < m_desired_layer_names.size(); i++) {
         bool found = false;
@@ -89,8 +89,8 @@ static auto is_device_suitable(vulkan::PhysicalDevice& physical_device) -> bool 
            physical_device.m_extension_support;
 }
 
-static auto choose_physical_device(std::span<vulkan::PhysicalDevice> devices)
-    -> vulkan::PhysicalDevice* {
+static auto choose_physical_device(std::span<vulkan::PhysicalDevice> devices
+) -> vulkan::PhysicalDevice* {
     for (u32 i = 0; i < devices.size(); i++) {
         if (is_device_suitable(devices[i])) { return &devices[i]; }
     }

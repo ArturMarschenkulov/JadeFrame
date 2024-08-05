@@ -371,8 +371,8 @@ auto CommandPool::allocate_buffer() const -> CommandBuffer {
     return std::move(this->allocate_buffers(1, level)[0]);
 }
 
-auto CommandPool::free_buffers(const std::span<CommandBuffer>& command_buffers) const
-    -> void {
+auto CommandPool::free_buffers(const std::span<CommandBuffer>& command_buffers
+) const -> void {
     for (u32 i = 0; i < command_buffers.size(); i++) {
         vkFreeCommandBuffers(
             m_device->m_handle, m_handle, 1, &command_buffers[i].m_handle
@@ -454,7 +454,8 @@ auto CommandPool::transition_layout(
 
             source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
             destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        } else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+        } else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+                   new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
             barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
             barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 

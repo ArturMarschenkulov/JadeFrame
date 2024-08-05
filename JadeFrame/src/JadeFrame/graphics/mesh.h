@@ -1,6 +1,7 @@
 #pragma once
 #include "JadeFrame/math/vec.h"
 #include "JadeFrame/math/mat_4.h"
+#include "JadeFrame/utils/utils.h"
 
 #include <vector>
 
@@ -8,8 +9,8 @@ namespace JadeFrame {
 
 class RGBAColor {
 public:
-    constexpr static auto from_rgba(f32 red, f32 green, f32 blue, f32 alpha)
-        -> RGBAColor {
+    constexpr static auto
+    from_rgba(f32 red, f32 green, f32 blue, f32 alpha) -> RGBAColor {
         return RGBAColor{.r = red, .g = green, .b = blue, .a = alpha};
     }
 
@@ -21,8 +22,8 @@ public:
         return RGBAColor::from_rgba_u32(red, green, blue, 255);
     }
 
-    constexpr static auto from_rgba_u32(u32 red, u32 green, u32 blue, u32 alpha)
-        -> RGBAColor {
+    constexpr static auto
+    from_rgba_u32(u32 red, u32 green, u32 blue, u32 alpha) -> RGBAColor {
         constexpr auto COLOR_SCALE = 255.0F;
 
         return RGBAColor{
@@ -282,8 +283,8 @@ public:
         const Desc desc = Desc{true, true, false, true}
     ) -> VertexData;
     static auto triangle(const v3& pos1, const v3& pos2, const v3& pos3) -> VertexData;
-    static auto circle(const v3& position, const f32 radius, const u32 numSegments)
-        -> VertexData;
+    static auto
+    circle(const v3& position, const f32 radius, const u32 numSegments) -> VertexData;
 
     static auto cube(const v3& pos, const v3& size) -> VertexData;
 };

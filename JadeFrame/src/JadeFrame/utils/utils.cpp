@@ -3,10 +3,41 @@
 
 #include <cstdlib>
 #include <ctime>
+#include <memory>
+#include <type_traits>
 
 #include "option.h"
 
 namespace JadeFrame {
+
+template<class U>
+constexpr auto implicit_cast(std::type_identity_t<U> value) -> U {
+    return value;
+}
+
+template<typename U, typename T>
+constexpr auto pun_cast(const T& value) -> U {
+    return std::bit_cast<U>(value);
+}
+
+template<typename T, typename U>
+constexpr auto copy_bits_to(U* to, const T& from, size_t range) -> void {
+    auto x = from << range;
+    *to = x;
+}
+
+auto fast_inverse_square_root(f32 number) -> f32 {
+
+    i32 i = pun_cast<i32>(number);
+    i = 0x5f3759df - (i >> 1);
+    f32 y = pun_cast<f32>(i);
+
+    f32       x2 = number * 0.5F;
+    const f32 threehalfs = 1.5F;
+    y = y * (threehalfs - (x2 * y * y));
+    return y;
+}
+
 auto custom_simple_hash_0(const std::string& str) -> u32 {
     u32 hash = 0;
     for (auto& it : str) { hash = 37 * hash + 17 * static_cast<char>(it); }
@@ -48,9 +79,7 @@ namespace T1 {
 template<class T>
     requires std::same_as<T, bool>
 auto init_memory(T& data) -> void {
-    static_assert(
-        !std::is_pointer_v<T>, "'init_memory' does not allow pointertypes"
-    );
+    static_assert(!std::is_pointer_v<T>, "'init_memory' does not allow pointertypes");
 
     static_assert(
         /*std::is_pod<T>::value*/ std::is_standard_layout<T>() && std::is_trivial<T>(),
@@ -164,6 +193,40 @@ static auto take_ownership(
     object_set.emplace_back(std::forward<std::unique_ptr<SubType>>(object));
     return ref;
 }
+
+struct NonZero {
+    // prevent people from creating default non-zero values; it makes no sense
+    NonZero() = delete;
+    ~NonZero() = default;
+
+    // let C++ automatically implement some stuff for us, which won’t break the invariant
+    NonZero(NonZero const&) = default;
+    NonZero(NonZero&&) = default;
+
+    auto operator=(NonZero const&) -> NonZero& = default;
+    auto operator=(NonZero&&) -> NonZero& = default;
+
+    // static method used to create a NonZero; the only way to create one
+    // using the public interface
+    static auto from_u32(uint32_t value) -> std::optional<NonZero> {
+        std::optional<NonZero> r;
+
+        if (value != 0) {
+            // call to the private ctor; the invariant is already checked in this branch
+            r = NonZero(value);
+        }
+
+        return r;
+    }
+
+private:
+    // private constructor that doesn’t check the invariant
+    explicit NonZero(uint32_t value)
+        : _wrapped(value) {}
+
+    // the invariant must be held on this value
+    uint32_t _wrapped;
+};
 
 template<typename Left, typename Right>
 class Either {

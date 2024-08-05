@@ -10,10 +10,6 @@ typedef HWND__* HWND;
 
 namespace JadeFrame {
 
-/*
-        TOOD: Consider whether this class should be RAII or not. Right now it is.
-*/
-
 namespace win32 {
 class NativeWindow : public JadeFrame::NativeWindow {
 public:
@@ -52,7 +48,8 @@ public:
     v2u32       m_position;
     bool        has_focus = true;
 
-    JadeFrame::Window::WINDOW_STATE m_window_state = JadeFrame::Window::WINDOW_STATE::MINIMIZED;
+    JadeFrame::Window::WINDOW_STATE m_window_state =
+        JadeFrame::Window::WINDOW_STATE::MINIMIZED;
 };
 } // namespace win32
 

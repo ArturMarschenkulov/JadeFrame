@@ -117,7 +117,9 @@ auto OpenGL_Context::create_renderbuffer() -> opengl::Renderbuffer* {
 OpenGL_Context::OpenGL_Context(const Window* window)
 #ifdef WIN32
 {
-    auto* win = dynamic_cast<const JadeFrame::win32::NativeWindow*>(window->m_native_window.get());
+    auto* win =
+        dynamic_cast<const JadeFrame::win32::NativeWindow*>(window->m_native_window.get()
+        );
 
     // NOTE: This function might have to be moved, as in theory one could have multiple
     // contexts. NOTE: Think about removing the parameter from this function then just
@@ -125,8 +127,11 @@ OpenGL_Context::OpenGL_Context(const Window* window)
     opengl::win32::load_wgl_funcs(win->m_instance_handle);
 
     m_swapchain_context.m_device_context = ::GetDC(win->m_window_handle);
-    m_swapchain_context.m_render_context = opengl::win32::init_render_context(m_swapchain_context.m_device_context);
-    wglMakeCurrent(m_swapchain_context.m_device_context, m_swapchain_context.m_render_context);
+    m_swapchain_context.m_render_context =
+        opengl::win32::init_render_context(m_swapchain_context.m_device_context);
+    wglMakeCurrent(
+        m_swapchain_context.m_device_context, m_swapchain_context.m_render_context
+    );
     opengl::win32::load_opengl_funcs(/*m_device_context, render_context*/);
 
 #elif __linux__

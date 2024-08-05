@@ -5,9 +5,7 @@
     #include "JadeFrame/platform/windows/windows_system_manager.h"
     #include "JadeFrame/platform/windows/windows_window.h"
 #elif defined(__linux__)
-    #include "JadeFrame/platform/linux/linux_input_manager.h"
     #include "JadeFrame/platform/linux/linux_system_manager.h"
-    #include "JadeFrame/platform/linux/linux_window.h"
 #endif
 #include "JadeFrame/utils/logger.h"
 #include "JadeFrame/math/vec.h"
