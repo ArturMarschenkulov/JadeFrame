@@ -326,7 +326,7 @@ Image::Image(Image&& other) noexcept
     , m_device(std::exchange(other.m_device, nullptr))
     , m_memory(std::exchange(other.m_memory, VK_NULL_HANDLE))
     , m_source(std::exchange(other.m_source, SOURCE::REGULAR))
-    , m_size(std::exchange(other.m_size, v2u32{0, 0})) {}
+    , m_size(std::exchange(other.m_size, v2u32::create(0, 0))) {}
 
 auto Image::operator=(Image&& other) noexcept -> Image& {
     if (this != &other) {
@@ -334,7 +334,7 @@ auto Image::operator=(Image&& other) noexcept -> Image& {
         m_device = std::exchange(other.m_device, nullptr);
         m_memory = std::exchange(other.m_memory, VK_NULL_HANDLE);
         m_source = std::exchange(other.m_source, SOURCE::REGULAR);
-        m_size = std::exchange(other.m_size, v2u32{0, 0});
+        m_size = std::exchange(other.m_size, v2u32::create(0, 0));
     }
     return *this;
 }

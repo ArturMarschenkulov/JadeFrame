@@ -275,8 +275,8 @@ auto GL_State::set_face_culling(bool enable, GLenum mode) -> void {
 }
 
 auto GL_State::set_viewport(u32 x, u32 y, u32 width, u32 height) -> void {
-    viewport[0] = {x, y};
-    viewport[1] = {width, height};
+    viewport[0] = v2u32::create(x, y);
+    viewport[1] = v2u32::create(width, height);
     glViewport(
         static_cast<GLint>(x),
         static_cast<GLint>(y),

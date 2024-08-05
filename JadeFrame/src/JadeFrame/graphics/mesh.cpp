@@ -120,8 +120,8 @@ auto VertexData::line(const v3& pos1, const v3& pos2) -> VertexData {
     vertex_data.m_positions[1] = pos2;
 
     vertex_data.m_texture_coordinates.resize(2);
-    vertex_data.m_texture_coordinates[0] = {0.0F, 0.0F};
-    vertex_data.m_texture_coordinates[1] = {0.0F, 0.0F};
+    vertex_data.m_texture_coordinates[0] = v2::zero();
+    vertex_data.m_texture_coordinates[1] = v2::zero();
 
     vertex_data.m_indices.reserve(2);
     vertex_data.m_indices = {0, 1};
@@ -131,31 +131,31 @@ auto VertexData::line(const v3& pos1, const v3& pos2) -> VertexData {
 auto VertexData::rectangle(const v3& pos, const v3& size, const Desc desc) -> VertexData {
     VertexData vertex_data;
     vertex_data.m_positions.resize(6);
-    vertex_data.m_positions[00] = {pos.x, pos.y, pos.z};
-    vertex_data.m_positions[01] = {pos.x + size.x, pos.y + size.y, pos.z};
-    vertex_data.m_positions[02] = {pos.x + size.x, pos.y, pos.z};
-    vertex_data.m_positions[03] = {pos.x + size.x, pos.y + size.y, pos.z};
-    vertex_data.m_positions[04] = {pos.x, pos.y, pos.z};
-    vertex_data.m_positions[05] = {pos.x, pos.y + size.y, pos.z};
+    vertex_data.m_positions[00] = v3::create(pos.x, pos.y, pos.z);
+    vertex_data.m_positions[01] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+    vertex_data.m_positions[02] = v3::create(pos.x + size.x, pos.y, pos.z);
+    vertex_data.m_positions[03] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+    vertex_data.m_positions[04] = v3::create(pos.x, pos.y, pos.z);
+    vertex_data.m_positions[05] = v3::create(pos.x, pos.y + size.y, pos.z);
 
     if (desc.has_texture_coordinates) {
         vertex_data.m_texture_coordinates.resize(6);
-        vertex_data.m_texture_coordinates[00] = {+0.0f, +0.0f};
-        vertex_data.m_texture_coordinates[01] = {+1.0f, +1.0f};
-        vertex_data.m_texture_coordinates[02] = {+1.0f, +0.0f};
-        vertex_data.m_texture_coordinates[03] = {+1.0f, +1.0f};
-        vertex_data.m_texture_coordinates[04] = {+0.0f, +0.0f};
-        vertex_data.m_texture_coordinates[05] = {+0.0f, +1.0f};
+        vertex_data.m_texture_coordinates[00] = v2::zero();
+        vertex_data.m_texture_coordinates[01] = v2::splat(1.0f);
+        vertex_data.m_texture_coordinates[02] = v2::X();
+        vertex_data.m_texture_coordinates[03] = v2::splat(1.0f);
+        vertex_data.m_texture_coordinates[04] = v2::zero();
+        vertex_data.m_texture_coordinates[05] = v2::Y();
     }
 
     if (desc.has_normals) {
         vertex_data.m_normals.resize(6);
-        vertex_data.m_normals[00] = {+0.0f, +0.0f, +1.0f};
-        vertex_data.m_normals[01] = {+0.0f, +0.0f, +1.0f};
-        vertex_data.m_normals[02] = {+0.0f, +0.0f, +1.0f};
-        vertex_data.m_normals[03] = {+0.0f, +0.0f, +1.0f};
-        vertex_data.m_normals[04] = {+0.0f, +0.0f, +1.0f};
-        vertex_data.m_normals[05] = {+0.0f, +0.0f, +1.0f};
+        vertex_data.m_normals[00] = v3::X();
+        vertex_data.m_normals[01] = v3::X();
+        vertex_data.m_normals[02] = v3::X();
+        vertex_data.m_normals[03] = v3::X();
+        vertex_data.m_normals[04] = v3::X();
+        vertex_data.m_normals[05] = v3::X();
     }
 
     if (desc.has_indices) {
@@ -169,9 +169,9 @@ auto VertexData::rectangle(const v3& pos, const v3& size, const Desc desc) -> Ve
 auto VertexData::triangle(const v3& pos1, const v3& pos2, const v3& pos3) -> VertexData {
     VertexData vertex_data;
     vertex_data.m_positions.resize(3);
-    vertex_data.m_positions[0] = v3{pos1.x, pos1.y, pos1.z};
-    vertex_data.m_positions[1] = v3{pos2.x, pos2.y, pos2.z};
-    vertex_data.m_positions[2] = v3{pos3.x, pos3.y, pos3.z};
+    vertex_data.m_positions[0] = v3::create(pos1.x, pos1.y, pos1.z);
+    vertex_data.m_positions[1] = v3::create(pos2.x, pos2.y, pos2.z);
+    vertex_data.m_positions[2] = v3::create(pos3.x, pos3.y, pos3.z);
 
     // vertex_data.m_indices.reserve(3);
     // vertex_data.m_indices = {
@@ -193,8 +193,8 @@ auto VertexData::circle(const v3& position, const f32 radius, const u32 numSegme
     f32 y = 0;
     for (u32 i = 1; i < numSegments + 1; i++) {
         vertex_data.m_positions[i] =
-            v3{x + position.x, y + position.y, position.z}; // output
-                                                            // vertex
+            v3::create(x + position.x, y + position.y, position.z); // output
+                                                                    // vertex
 
         const f32 t = x;
         x = cos * x - sin * y;
@@ -219,113 +219,119 @@ auto VertexData::cube(const v3& pos, const v3& size) -> VertexData {
 
     vertex_data.m_positions.resize(36);
     // back face -z
-    vertex_data.m_positions[00] = {pos.x, pos.y, pos.z};
-    vertex_data.m_positions[01] = {pos.x + size.x, pos.y + size.y, pos.z};
-    vertex_data.m_positions[02] = {pos.x + size.x, pos.y, pos.z};
-    vertex_data.m_positions[03] = {pos.x + size.x, pos.y + size.y, pos.z};
-    vertex_data.m_positions[04] = {pos.x, pos.y, pos.z};
-    vertex_data.m_positions[05] = {pos.x, pos.y + size.y, pos.z};
+    vertex_data.m_positions[00] = v3::create(pos.x, pos.y, pos.z);
+    vertex_data.m_positions[01] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+    vertex_data.m_positions[02] = v3::create(pos.x + size.x, pos.y, pos.z);
+    vertex_data.m_positions[03] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+    vertex_data.m_positions[04] = v3::create(pos.x, pos.y, pos.z);
+    vertex_data.m_positions[05] = v3::create(pos.x, pos.y + size.y, pos.z);
 
     // front face +z
-    vertex_data.m_positions[06] = {pos.x, pos.y, pos.z + size.z};
-    vertex_data.m_positions[07] = {pos.x + size.x, pos.y, pos.z + size.z};
-    vertex_data.m_positions[8l] = {pos.x + size.x, pos.y + size.y, pos.z + size.z};
-    vertex_data.m_positions[9l] = {pos.x + size.x, pos.y + size.y, pos.z + size.z};
-    vertex_data.m_positions[10] = {pos.x, pos.y + size.y, pos.z + size.z};
-    vertex_data.m_positions[11] = {pos.x, pos.y, pos.z + size.z};
+    vertex_data.m_positions[06] = v3::create(pos.x, pos.y, pos.z + size.z);
+    vertex_data.m_positions[07] = v3::create(pos.x + size.x, pos.y, pos.z + size.z);
+    vertex_data.m_positions[8l] =
+        v3::create(pos.x + size.x, pos.y + size.y, pos.z + size.z);
+    vertex_data.m_positions[9l] =
+        v3::create(pos.x + size.x, pos.y + size.y, pos.z + size.z);
+    vertex_data.m_positions[10] = v3::create(pos.x, pos.y + size.y, pos.z + size.z);
+    vertex_data.m_positions[11] = v3::create(pos.x, pos.y, pos.z + size.z);
 
     // left face -x
-    vertex_data.m_positions[12] = {pos.x, pos.y + size.y, pos.z + size.z};
-    vertex_data.m_positions[13] = {pos.x, pos.y + size.y, pos.z};
-    vertex_data.m_positions[14] = {pos.x, pos.y, pos.z};
-    vertex_data.m_positions[15] = {pos.x, pos.y, pos.z};
-    vertex_data.m_positions[16] = {pos.x, pos.y, pos.z + size.z};
-    vertex_data.m_positions[17] = {pos.x, pos.y + size.y, pos.z + size.z};
+    vertex_data.m_positions[12] = v3::create(pos.x, pos.y + size.y, pos.z + size.z);
+    vertex_data.m_positions[13] = v3::create(pos.x, pos.y + size.y, pos.z);
+    vertex_data.m_positions[14] = v3::create(pos.x, pos.y, pos.z);
+    vertex_data.m_positions[15] = v3::create(pos.x, pos.y, pos.z);
+    vertex_data.m_positions[16] = v3::create(pos.x, pos.y, pos.z + size.z);
+    vertex_data.m_positions[17] = v3::create(pos.x, pos.y + size.y, pos.z + size.z);
 
     // right face +x
-    vertex_data.m_positions[18] = {pos.x + size.x, pos.y + size.y, pos.z + size.z};
-    vertex_data.m_positions[19] = {pos.x + size.x, pos.y, pos.z};
-    vertex_data.m_positions[20] = {pos.x + size.x, pos.y + size.y, pos.z};
-    vertex_data.m_positions[21] = {pos.x + size.x, pos.y, pos.z};
-    vertex_data.m_positions[22] = {pos.x + size.x, pos.y + size.y, pos.z + size.z};
-    vertex_data.m_positions[23] = {pos.x + size.x, pos.y, pos.z + size.z};
+    vertex_data.m_positions[18] =
+        v3::create(pos.x + size.x, pos.y + size.y, pos.z + size.z);
+    vertex_data.m_positions[19] = v3::create(pos.x + size.x, pos.y, pos.z);
+    vertex_data.m_positions[20] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+    vertex_data.m_positions[21] = v3::create(pos.x + size.x, pos.y, pos.z);
+    vertex_data.m_positions[22] =
+        v3::create(pos.x + size.x, pos.y + size.y, pos.z + size.z);
+    vertex_data.m_positions[23] = v3::create(pos.x + size.x, pos.y, pos.z + size.z);
 
     // bottom face
-    vertex_data.m_positions[24] = {pos.x, pos.y, pos.z};
-    vertex_data.m_positions[25] = {pos.x + size.x, pos.y, pos.z};
-    vertex_data.m_positions[26] = {pos.x + size.x, pos.y, pos.z + size.z};
-    vertex_data.m_positions[27] = {pos.x + size.x, pos.y, pos.z + size.z};
-    vertex_data.m_positions[28] = {pos.x, pos.y, pos.z + size.z};
-    vertex_data.m_positions[29] = {pos.x, pos.y, pos.z};
+    vertex_data.m_positions[24] = v3::create(pos.x, pos.y, pos.z);
+    vertex_data.m_positions[25] = v3::create(pos.x + size.x, pos.y, pos.z);
+    vertex_data.m_positions[26] = v3::create(pos.x + size.x, pos.y, pos.z + size.z);
+    vertex_data.m_positions[27] = v3::create(pos.x + size.x, pos.y, pos.z + size.z);
+    vertex_data.m_positions[28] = v3::create(pos.x, pos.y, pos.z + size.z);
+    vertex_data.m_positions[29] = v3::create(pos.x, pos.y, pos.z);
 
     // top face
-    vertex_data.m_positions[30] = {pos.x, pos.y + size.y, pos.z};
-    vertex_data.m_positions[31] = {pos.x + size.x, pos.y + size.y, pos.z + size.z};
-    vertex_data.m_positions[32] = {pos.x + size.x, pos.y + size.y, pos.z};
-    vertex_data.m_positions[33] = {pos.x + size.x, pos.y + size.y, pos.z + size.z};
-    vertex_data.m_positions[34] = {pos.x, pos.y + size.y, pos.z};
-    vertex_data.m_positions[35] = {pos.x, pos.y + size.y, pos.z + size.z};
+    vertex_data.m_positions[30] = v3::create(pos.x, pos.y + size.y, pos.z);
+    vertex_data.m_positions[31] =
+        v3::create(pos.x + size.x, pos.y + size.y, pos.z + size.z);
+    vertex_data.m_positions[32] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+    vertex_data.m_positions[33] =
+        v3::create(pos.x + size.x, pos.y + size.y, pos.z + size.z);
+    vertex_data.m_positions[34] = v3::create(pos.x, pos.y + size.y, pos.z);
+    vertex_data.m_positions[35] = v3::create(pos.x, pos.y + size.y, pos.z + size.z);
 
     vertex_data.m_texture_coordinates.resize(36);
     {
         // back face -z
-        vertex_data.m_texture_coordinates[00] = {+1.0f, +0.0f};
-        vertex_data.m_texture_coordinates[01] = {+1.0f, +1.0f};
-        vertex_data.m_texture_coordinates[02] = {+0.0f, +1.0f};
-        vertex_data.m_texture_coordinates[03] = {+0.0f, +1.0f};
-        vertex_data.m_texture_coordinates[04] = {+0.0f, +0.0f};
-        vertex_data.m_texture_coordinates[05] = {+1.0f, +0.0f};
+        vertex_data.m_texture_coordinates[00] = v2::X();
+        vertex_data.m_texture_coordinates[01] = v2::splat(1.0F);
+        vertex_data.m_texture_coordinates[02] = v2::Y();
+        vertex_data.m_texture_coordinates[03] = v2::Y();
+        vertex_data.m_texture_coordinates[04] = v2::zero();
+        vertex_data.m_texture_coordinates[05] = v2::X();
 
         // front face +z
-        vertex_data.m_texture_coordinates[06] = {+0.0f, +0.0f};
-        vertex_data.m_texture_coordinates[07] = {+0.0f, +0.0f};
-        vertex_data.m_texture_coordinates[+8] = {+0.0f, +0.0f};
-        vertex_data.m_texture_coordinates[+9] = {+0.0f, +0.0f};
-        vertex_data.m_texture_coordinates[10] = {+0.0f, +0.0f};
-        vertex_data.m_texture_coordinates[11] = {+0.0f, +0.0f};
+        vertex_data.m_texture_coordinates[06] = v2::zero();
+        vertex_data.m_texture_coordinates[07] = v2::zero();
+        vertex_data.m_texture_coordinates[+8] = v2::zero();
+        vertex_data.m_texture_coordinates[+9] = v2::zero();
+        vertex_data.m_texture_coordinates[10] = v2::zero();
+        vertex_data.m_texture_coordinates[11] = v2::zero();
 
         // left face
-        vertex_data.m_texture_coordinates[12] = {-1.0f, +0.0f};
-        vertex_data.m_texture_coordinates[13] = {-1.0f, +0.0f};
-        vertex_data.m_texture_coordinates[14] = {-1.0f, +0.0f};
-        vertex_data.m_texture_coordinates[15] = {-1.0f, +0.0f};
-        vertex_data.m_texture_coordinates[16] = {-1.0f, +0.0f};
-        vertex_data.m_texture_coordinates[17] = {-1.0f, +0.0f};
+        vertex_data.m_texture_coordinates[12] = v2::NEG_X();
+        vertex_data.m_texture_coordinates[13] = v2::NEG_X();
+        vertex_data.m_texture_coordinates[14] = v2::NEG_X();
+        vertex_data.m_texture_coordinates[15] = v2::NEG_X();
+        vertex_data.m_texture_coordinates[16] = v2::NEG_X();
+        vertex_data.m_texture_coordinates[17] = v2::NEG_X();
 
         // right face +x
-        vertex_data.m_texture_coordinates[18] = {+1.0f, +0.0f};
-        vertex_data.m_texture_coordinates[19] = {+1.0f, +0.0f};
-        vertex_data.m_texture_coordinates[20] = {+1.0f, +0.0f};
-        vertex_data.m_texture_coordinates[21] = {+1.0f, +0.0f};
-        vertex_data.m_texture_coordinates[22] = {+1.0f, +0.0f};
-        vertex_data.m_texture_coordinates[23] = {+1.0f, +0.0f};
+        vertex_data.m_texture_coordinates[18] = v2::X();
+        vertex_data.m_texture_coordinates[19] = v2::X();
+        vertex_data.m_texture_coordinates[20] = v2::X();
+        vertex_data.m_texture_coordinates[21] = v2::X();
+        vertex_data.m_texture_coordinates[22] = v2::X();
+        vertex_data.m_texture_coordinates[23] = v2::X();
 
         // bottom face -y
-        vertex_data.m_texture_coordinates[24] = {+1.0f, +0.0f};
-        vertex_data.m_texture_coordinates[25] = {+1.0f, +1.0f};
-        vertex_data.m_texture_coordinates[26] = {+0.0f, +1.0f};
-        vertex_data.m_texture_coordinates[27] = {+0.0f, +1.0f};
-        vertex_data.m_texture_coordinates[28] = {+0.0f, +0.0f};
-        vertex_data.m_texture_coordinates[29] = {+1.0f, +0.0f};
+        vertex_data.m_texture_coordinates[24] = v2::X();
+        vertex_data.m_texture_coordinates[25] = v2::splat(1.0F);
+        vertex_data.m_texture_coordinates[26] = v2::Y();
+        vertex_data.m_texture_coordinates[27] = v2::Y();
+        vertex_data.m_texture_coordinates[28] = v2::zero();
+        vertex_data.m_texture_coordinates[29] = v2::X();
 
         // top face +y
-        vertex_data.m_texture_coordinates[30] = {+0.0f, +1.0f};
-        vertex_data.m_texture_coordinates[31] = {+0.0f, +1.0f};
-        vertex_data.m_texture_coordinates[32] = {+0.0f, +1.0f};
-        vertex_data.m_texture_coordinates[33] = {+0.0f, +1.0f};
-        vertex_data.m_texture_coordinates[34] = {+0.0f, +1.0f};
-        vertex_data.m_texture_coordinates[35] = {+0.0f, +1.0f};
+        vertex_data.m_texture_coordinates[30] = v2::Y();
+        vertex_data.m_texture_coordinates[31] = v2::Y();
+        vertex_data.m_texture_coordinates[32] = v2::Y();
+        vertex_data.m_texture_coordinates[33] = v2::Y();
+        vertex_data.m_texture_coordinates[34] = v2::Y();
+        vertex_data.m_texture_coordinates[35] = v2::Y();
     }
 
     vertex_data.m_normals.resize(36);
     for (size_t i = 0; i < vertex_data.m_normals.size(); i++) {
         std::array<v3, 6> s;
-        s[0] = {+0.0f, +0.0f, -1.0f}; // back
-        s[1] = {+0.0f, +0.0f, +1.0f}; // front
-        s[2] = {-1.0f, +0.0f, +0.0f}; // left
-        s[3] = {+1.0f, +0.0f, +0.0f}; // right
-        s[4] = {+0.0f, -1.0f, +0.0f}; // bottom
-        s[5] = {+0.0f, +1.0f, +0.0f}; // up
+        s[0] = v3::create(+0.0f, +0.0f, -1.0f); // back
+        s[1] = v3::create(+0.0f, +0.0f, +1.0f); // front
+        s[2] = v3::create(-1.0f, +0.0f, +0.0f); // left
+        s[3] = v3::create(+1.0f, +0.0f, +0.0f); // right
+        s[4] = v3::create(+0.0f, -1.0f, +0.0f); // bottom
+        s[5] = v3::create(+0.0f, +1.0f, +0.0f); // up
 
         vertex_data.m_normals[i] = s[i / 6];
     };

@@ -50,7 +50,7 @@ auto Window::handle_events(bool& running) -> void {
             } break;
             case WindowEvent::TYPE::MOUSE: {
                 auto mouse_event = event.mouse_event;
-                m_input_state.m_mouse_pos = v2(mouse_event.m_x, mouse_event.m_y);
+                m_input_state.m_mouse_pos = v2::create(mouse_event.m_x, mouse_event.m_y);
                 Logger::info(
                     "Mouse moved to: x: {}, y: {}", mouse_event.m_x, mouse_event.m_y
                 );

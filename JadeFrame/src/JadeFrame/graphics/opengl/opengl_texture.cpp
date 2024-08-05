@@ -164,7 +164,7 @@ auto Texture::set_image(
 auto Texture::resize(u32 width, u32 height, u32 /*depth*/) -> void {
 
     assert(width > 0 && height > 0);
-    this->set_image(0, m_internal_format, {width, height}, m_format, m_type, 0);
+    this->set_image(0, m_internal_format, v2u32::create(width, height), m_format, m_type, 0);
 
     // switch (m_target) {
     //	case GL_TEXTURE_1D:

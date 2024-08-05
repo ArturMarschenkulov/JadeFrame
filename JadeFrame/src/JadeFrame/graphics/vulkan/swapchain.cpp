@@ -308,7 +308,7 @@ auto Swapchain::init(LogicalDevice& device, const Window* window) -> void {
     auto depth_format = VK_FORMAT_D32_SFLOAT;
     m_depth_image = Image(
         device,
-        {extent.width, extent.height},
+        v2u32::create(extent.width, extent.height),
         depth_format,
         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
     );

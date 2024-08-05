@@ -24,8 +24,8 @@ static State g_state;
 static auto draw_rectangle(f32 x, f32 y, f32 width, f32 height) -> void {
 
     Object obj;
-    auto   scale = mat4x4::scale({width, height, 1.0F});
-    auto   trans = mat4x4::translation({x, y, 0.0F});
+    auto   scale = mat4x4::scale(v3::create(width, height, 1.0F));
+    auto   trans = mat4x4::translation(v3::create(x, y, 0.0F));
 
     obj.m_transform = scale * trans;
 
@@ -129,7 +129,7 @@ auto Example_0::on_init() -> void {
         VertexData::Desc vdf_desc;
         vdf_desc.has_normals = false;
         VertexData rectangle_vd =
-            VertexData::rectangle({0.0F, 0.0F, 0.0F}, {1.0F, 1.0F, 0.0F}, vdf_desc);
+            VertexData::rectangle(v3::zero(), v3::create(1.0F, 1.0F, 0.0F), vdf_desc);
         rectangle_vd.set_color(RGBAColor::solid_blue());
         auto* rectangle_mesh = m_render_system.register_mesh(rectangle_vd);
 
@@ -146,7 +146,7 @@ auto Example_0::on_init() -> void {
             for (u32 i = 0; i < amount; i++) {
                 for (u32 j = 0; j < amount; j++) {
                     if ((i + j) % 2 == 0) {
-                        m_checkerbox.emplace_back(size, v2(i * size, j * size));
+                        m_checkerbox.emplace_back(size, v2::create(i * size, j * size));
                     }
                 }
             }

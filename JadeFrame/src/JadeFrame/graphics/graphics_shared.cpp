@@ -168,7 +168,7 @@ GPUMeshData::GPUMeshData(
 
 TextureHandle::TextureHandle(const Image& img)
     : m_data(img.data)
-    , m_size({(u32)img.width, (u32)img.height})
+    , m_size(v2u32::create((u32)img.width, (u32)img.height))
     , m_num_components(img.num_components) {}
 
 TextureHandle::TextureHandle(TextureHandle&& other) noexcept
@@ -178,7 +178,7 @@ TextureHandle::TextureHandle(TextureHandle&& other) noexcept
     , m_api(other.m_api)
     , m_handle(other.m_handle) {
     other.m_data = nullptr;
-    other.m_size = {0, 0};
+    other.m_size = v2u32::create(0, 0);
     other.m_num_components = 0;
     other.m_api = GRAPHICS_API::UNDEFINED;
     other.m_handle = nullptr;
@@ -193,7 +193,7 @@ auto TextureHandle::operator=(TextureHandle&& other) noexcept -> TextureHandle& 
     m_handle = other.m_handle;
 
     other.m_data = nullptr;
-    other.m_size = {0, 0};
+    other.m_size = v2u32::create(0, 0);
     other.m_num_components = 0;
     other.m_api = GRAPHICS_API::UNDEFINED;
     other.m_handle = nullptr;

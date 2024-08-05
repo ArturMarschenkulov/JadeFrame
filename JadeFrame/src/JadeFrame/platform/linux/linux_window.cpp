@@ -94,7 +94,7 @@ X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
     );
 
     // m_title = desc.title;
-    m_size = v2u32(window_width, window_height);
+    m_size = v2u32::create(window_width, window_height);
     // m_position = v2u32(window_rect.left, window_rect.top);
 
     ::XIM xim = XOpenIM(m_display, nullptr, nullptr, nullptr);

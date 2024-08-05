@@ -145,7 +145,7 @@ auto Camera::orthographic(
     camera.m_mode = MODE::ORTHOGRAPHIC;
     camera.m_projection_matrix =
         mat4x4::orthographic_rh_gl(left, right, bottom, top, near_, far_);
-    camera.m_position = {0.0F, 0.0F, 0.0F};
+    camera.m_position = v3::zero();
 
     return camera;
 }

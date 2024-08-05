@@ -38,11 +38,6 @@ public:
     constexpr auto operator=(_v2&& other) noexcept -> _v2& = default;
     constexpr ~_v2() = default;
 
-public:
-    constexpr _v2(const T x, const T y) noexcept
-        : x(x)
-        , y(y) {}
-
 public: // operators
     constexpr auto operator+(const _v2& other) const -> _v2 {
         return _v2(x + other.x, y + other.y);
@@ -116,9 +111,14 @@ public:
     T x = {}; // width, r
     T y = {}; // height, g
 
+private:
+    constexpr _v2(const T x, const T y) noexcept
+        : x(x)
+        , y(y) {}
+
 public:
     constexpr static auto splat(const T& value) noexcept -> _v2 {
-        return _v2(value, value);
+        return _v2::create(value, value);
     }
 
     constexpr static auto create(const T x, const T y) noexcept -> _v2 {
@@ -147,12 +147,6 @@ public:
     constexpr _v3(_v3&&) = default;
     constexpr auto operator=(_v3&& other) noexcept -> _v3& = default;
     constexpr ~_v3() = default;
-
-public:
-    constexpr _v3(const T x, const T y, const T z) noexcept
-        : x(x)
-        , y(y)
-        , z(z) {}
 
 public: // operators
     constexpr auto operator+(const _v3& other) const -> _v3 {
@@ -247,9 +241,19 @@ public:
     T y = {}; // height, g
     T z = {}; // depth, b
 
+private:
+    constexpr _v3(const T x, const T y, const T z) noexcept
+        : x(x)
+        , y(y)
+        , z(z) {}
+
 public:
+    constexpr static auto create(const T x, const T y, const T z) noexcept -> _v3 {
+        return _v3(x, y, z);
+    }
+
     constexpr static auto splat(const T& value) -> _v3 {
-        return _v3(value, value, value);
+        return _v3::create(value, value, value);
     }
 
     constexpr static auto zero() -> _v3 { return _v3(0, 0, 0); }
@@ -278,8 +282,8 @@ public:
     T w;
 
 public:
-    constexpr static auto create(const T x, const T y, const T z, const T w) noexcept
-        -> _v4 {
+    constexpr static auto
+    create(const T x, const T y, const T z, const T w) noexcept -> _v4 {
         return _v4(x, y, z, w);
     }
 

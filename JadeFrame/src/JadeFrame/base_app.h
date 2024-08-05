@@ -45,7 +45,7 @@ public:
     struct Desc {
         std::string  title;
         v2u32        size;
-        v2u32        position = {0, 0};
+        v2u32        position = v2u32::create(0, 0);
         GRAPHICS_API api;
     };
 
