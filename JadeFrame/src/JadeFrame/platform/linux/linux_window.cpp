@@ -12,6 +12,126 @@
 
 namespace JadeFrame {
 
+auto X11_NativeWindow::create(const Window::Desc& desc) -> X11_NativeWindow {
+
+    // X11_NativeWindow win;
+
+    // // TODO: This should be done by the caller before calling this
+    // function/constructor.
+    // // There it should be decided whether to call this at all.
+    // const char* x11_display_env = std::getenv("DISPLAY");
+    // if (x11_display_env == nullptr) {
+    //     printf("The DISPLAY environment variable is not set. This is required for
+    //     X11.\n"
+    //     );
+    //     std::exit(1);
+    // }
+
+    // win.m_display = XOpenDisplay(nullptr);
+    // if (win.m_display == nullptr) {
+    //     printf("\n\tcannot connect to X server\n\n");
+    //     std::exit(0);
+    // }
+
+    // XID root = DefaultRootWindow(win.m_display);
+    // (void)root;
+
+    // GLint att[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None};
+
+    // win.m_visual_info = glXChooseVisual(win.m_display, 0, att);
+    // int     screen = DefaultScreen(win.m_display);
+    // Visual* visual = DefaultVisual(win.m_display, screen);
+    // int     depth = DefaultDepth(win.m_display, screen);
+
+    // Colormap colormap = XCreateColormap(
+    //     win.m_display, RootWindow(win.m_display, screen), visual, AllocNone
+    // );
+
+    // XSetWindowAttributes window_attributes = {};
+    // window_attributes.colormap = colormap;
+    // window_attributes.background_pixel = 0xFFFFFFFF;
+    // window_attributes.border_pixel = 0;
+    // window_attributes.event_mask =
+    //     KeyPressMask | KeyReleaseMask | StructureNotifyMask | ExposureMask;
+
+    // win.m_window = ::XCreateWindow(
+    //     win.m_display,
+    //     RootWindow(win.m_display, screen),
+    //     0,
+    //     0,
+    //     desc.size.x,
+    //     desc.size.y,
+    //     0,
+    //     depth,
+    //     InputOutput,
+    //     visual,
+    //     CWBackPixel | CWBorderPixel | CWEventMask | CWColormap,
+    //     &window_attributes
+    // );
+    // XSelectInput(win.m_display, win.m_window, ExposureMask | KeyPressMask);
+    // XMapWindow(win.m_display, win.m_window);
+    // XFlush(win.m_display);
+
+    // // Client area dimensions
+    // XWindowAttributes client_attributes;
+    // XGetWindowAttributes(win.m_display, win.m_window, &client_attributes);
+    // // int client_width = client_attributes.width;
+    // // int client_height = client_attributes.height;
+
+    // // Window dimensions
+    // ::Window     root_window;
+    // int          x;
+    // int          y;
+    // unsigned int border_width;
+    // unsigned int depth_;
+    // unsigned int window_width;
+    // unsigned int window_height;
+    // XGetGeometry(
+    //     win.m_display,
+    //     win.m_window,
+    //     &root_window,
+    //     &x,
+    //     &y,
+    //     &window_width,
+    //     &window_height,
+    //     &border_width,
+    //     &depth_
+    // );
+
+    // // m_title = desc.title;
+    // win.m_size = v2u32::create(window_width, window_height);
+    // // m_position = v2u32(window_rect.left, window_rect.top);
+
+    // ::XIM xim = XOpenIM(win.m_display, nullptr, nullptr, nullptr);
+    // if (xim == nullptr) {
+    //     // fallback to internal input method
+    //     XSetLocaleModifiers("@im=none");
+    //     xim = XOpenIM(win.m_display, nullptr, nullptr, nullptr);
+    // }
+    // ::XIC xic = ::XCreateIC(
+    //     xim,
+    //     XNInputStyle,
+    //     XIMPreeditNothing | XIMStatusNothing,
+    //     XNClientWindow,
+    //     win.m_window,
+    //     XNFocusWindow,
+    //     win.m_window,
+    //     nullptr
+    // );
+
+    // XSetICFocus(xic);
+
+    // XSelectInput(
+    //     win.m_display,
+    //     win.m_window,
+    //     KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
+    //         PointerMotionMask | StructureNotifyMask | ExposureMask
+    // );
+    // return win;
+
+    return X11_NativeWindow{desc};
+}
+
 X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
 
     // TODO: This should be done by the caller before calling this function/constructor.
@@ -124,7 +244,9 @@ X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
     );
 }
 
-X11_NativeWindow::~X11_NativeWindow() { XDestroyWindow(m_display, m_window); }
+X11_NativeWindow::~X11_NativeWindow() {
+    if (m_display != nullptr && m_window != 0) { XDestroyWindow(m_display, m_window); }
+}
 
 static auto is_key_event(XEvent* event) -> bool {
     return event->type == KeyPress || event->type == KeyRelease;
@@ -278,5 +400,21 @@ auto X11_NativeWindow::handle_events(bool&) -> void {
         XNextEvent(m_display, &event);
         process_event(&event, this, &m_platform_window->m_queue);
     }
+}
+
+X11_NativeWindow::X11_NativeWindow(X11_NativeWindow&& other) noexcept {
+    m_display = std::exchange(other.m_display, nullptr);
+    m_visual_info = std::exchange(other.m_visual_info, nullptr);
+    m_window = std::exchange(other.m_window, 0);
+    m_size = std::exchange(other.m_size, {});
+}
+
+auto X11_NativeWindow::operator=(X11_NativeWindow&& other) noexcept -> X11_NativeWindow& {
+    if (this == &other) { return *this; }
+    m_display = std::exchange(other.m_display, nullptr);
+    m_visual_info = std::exchange(other.m_visual_info, nullptr);
+    m_window = std::exchange(other.m_window, 0);
+    m_size = std::exchange(other.m_size, {});
+    return *this;
 }
 } // namespace JadeFrame

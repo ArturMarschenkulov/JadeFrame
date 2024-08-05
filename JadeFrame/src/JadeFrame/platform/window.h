@@ -81,8 +81,8 @@ public:
     NativeWindow() = default;
     NativeWindow(const NativeWindow&) = delete;
     auto operator=(const NativeWindow&) -> NativeWindow& = delete;
-    NativeWindow(NativeWindow&&) = delete;
-    auto operator=(NativeWindow&&) -> NativeWindow& = delete;
+    NativeWindow(NativeWindow&&) = default;
+    auto operator=(NativeWindow&&) -> NativeWindow& = default;
     virtual ~NativeWindow() = default;
 
 public:

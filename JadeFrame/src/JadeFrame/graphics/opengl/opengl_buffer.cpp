@@ -36,6 +36,21 @@ auto Buffer::operator=(Buffer&& other) noexcept -> Buffer& {
     return *this;
 }
 
+auto Buffer::create(OpenGL_Context& context, TYPE type, void* data, GLuint size)
+    -> Buffer {
+    Buffer buffer;
+    buffer.m_context = &context;
+    buffer.m_type = type;
+    buffer.m_size = size;
+    glCreateBuffers(1, &buffer.m_id);
+    buffer.alloc(data, size);
+
+    // TODO: Move this registering into OpenGL_Context?
+    context.m_buffers.push_back(buffer.m_id);
+    context.m_bound_buffer = buffer.m_id;
+    return buffer;
+}
+
 Buffer::Buffer(OpenGL_Context& context, TYPE type, void* data, GLuint size)
     : m_context(&context)
 

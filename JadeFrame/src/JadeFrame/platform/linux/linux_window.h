@@ -7,14 +7,18 @@
 namespace JadeFrame {
 
 class X11_NativeWindow : public NativeWindow {
+private:
+    explicit X11_NativeWindow(const Window::Desc& desc);
+
 public:
     X11_NativeWindow(const X11_NativeWindow&) = delete;
     auto operator=(const X11_NativeWindow&) -> X11_NativeWindow& = delete;
-    X11_NativeWindow(X11_NativeWindow&&) = delete;
-    auto operator=(X11_NativeWindow&&) -> X11_NativeWindow& = delete;
+    X11_NativeWindow(X11_NativeWindow&& other) noexcept;
+    auto operator=(X11_NativeWindow&& other) noexcept -> X11_NativeWindow&;
 
     X11_NativeWindow() = default;
-    explicit X11_NativeWindow(const Window::Desc& desc);
+    static auto create(const Window::Desc& desc) -> X11_NativeWindow;
+
     ~X11_NativeWindow() override;
 
     auto handle_events(bool&) -> void override;

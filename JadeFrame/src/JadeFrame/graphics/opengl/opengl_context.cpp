@@ -99,7 +99,7 @@ auto OpenGL_Context::create_texture(void* data, v2u32 size, u32 component_num)
 auto OpenGL_Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
     -> opengl::Buffer* {
     static u32 id = 0;
-    m_bufferss[id] = opengl::Buffer(*this, type, data, size);
+    m_bufferss[id] = opengl::Buffer::create(*this, type, data, size);
     id++;
     return &m_bufferss[id - 1];
 }
