@@ -159,8 +159,8 @@ auto Example_0::on_update() -> void {
     // camera_control(&m_camera);
 
     for (u32 i = 0; i < drops.size(); i++) { drops[i].fall(); }
-
-    if (Instance::get_singleton()->m_input_manager.is_key_released(KEY::P)) {
+    auto& input = Instance::get_singleton()->m_current_app_p->m_windows[0]->m_input_state;
+    if (input.is_key_released(KEY::P)) {
         // std::thread t(&Renderer::take_screenshot, &m_renderer);
         m_render_system.m_renderer->take_screenshot("im.png");
     }
