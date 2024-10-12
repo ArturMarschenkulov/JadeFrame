@@ -2,3 +2,6 @@
 [submodule "JadeFrame/src/extern/VulkanMemoryAllocator"]
 	path = JadeFrame/src/extern/VulkanMemoryAllocator
 	url = git@github.com:GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "JadeFrame/src/extern/assimp"]
+	path = JadeFrame/src/extern/assimp
+	url = git@github.com:assimp/assimp.git

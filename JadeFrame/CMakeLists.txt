@@ -9,6 +9,40 @@ add_subdirectory(src/extern/VulkanMemoryAllocator/)
 add_subdirectory(src/extern/glfw/)
 
 
+# Assimp
+option(USE_PRECOMPILED_ASSIMP "Use precompiled Assimp library" ON)
+set(ASSIMP_PRECOMPILED_PATH ${CMAKE_SOURCE_DIR}/libs/assimp)
+set(ASSIMP_PRECOMPILED_LIB_PATH ${ASSIMP_PRECOMPILED_PATH}/lib)
+
+
+if(EXISTS ${ASSIMP_PRECOMPILED_LIB_PATH}/libassimp.a OR EXISTS ${ASSIMP_PRECOMPILED_LIB_PATH}/libassimpd.a)
+    set(ASSIMP_FOUND TRUE)
+else()
+    set(ASSIMP_FOUND FALSE)
+endif()
+# For now no static import, it is always compiled by source
+set(ASSIMP_FOUND FALSE)
+if (ASSIMP_FOUND)
+    message("Precompiled Assimp library found. Using precompiled Assimp library")
+    message("ASSIMP_PRECOMPILED_LIB_PATH: ${ASSIMP_PRECOMPILED_LIB_PATH}")
+    add_library(assimp STATIC IMPORTED)
+    set_property(TARGET assimp PROPERTY IMPORTED_LOCATION ${ASSIMP_PRECOMPILED_LIB_PATH}/libassimp.lib)
+    set_property(TARGET assimp PROPERTY IMPORTED_LOCATION_DEBUG ${ASSIMP_PRECOMPILED_LIB_PATH}/libassimpd.lib)
+    target_link_libraries(assimp INTERFACE ${ASSIMP_PRECOMPILED_LIB_PATH}/libassimp.a)
+    target_include_directories(assimp INTERFACE ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/assimp/include/)
+else()
+    message("Precompiled Assimp library not found. Building Assimp from source.")
+    add_subdirectory(src/extern/assimp/)
+    set_target_properties(assimp PROPERTIES
+        ARCHIVE_OUTPUT_DIRECTORY "${ASSIMP_PRECOMPILED_LIB_PATH}"
+        LIBRARY_OUTPUT_DIRECTORY "${ASSIMP_PRECOMPILED_LIB_PATH}"
+        RUNTIME_OUTPUT_DIRECTORY "${ASSIMP_PRECOMPILED_LIB_PATH}"
+    )
+endif()
+
+
+
+
 # Add ImGUI
 set(imgui_DIR 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/extern/imgui/
@@ -158,6 +192,9 @@ set(Files_Utils
 
     "src/JadeFrame/utils/logger.cpp"
     "src/JadeFrame/utils/utils.cpp"
+
+    "src/JadeFrame/utils/asset_loader.h"
+    "src/JadeFrame/utils/asset_loader.cpp"
 )
 IF (WIN32)
     add_subdirectory(src/JadeFrame/platform/windows/)
@@ -302,26 +339,23 @@ target_link_libraries(
         Vulkan::Vulkan
         ${Vulkan_LIBRARIES}
         glad
-        glfw
+        # glfw
         imgui
         stb
         shaderc
         spirv-cross-hlsl
         spirv-cross-glsl
         spirv-cross-msl
-        # ${glad}
-        # ${imgui}
-        # ${stb}
         gfx-opengl
         gfx-vulkan
         GPUOpen::VulkanMemoryAllocator
+        assimp
 )
 
 target_link_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
     ${CMAKE_SOURCE_DIR}/JadeFrame/src/
     ${CMAKE_SOURCE_DIR}/JadeFrame/
-    # C:/VulkanSDK/1.3.224.1/Lib/ # TODO: make this less hard-coded
 )
 
 message("JadeFrame cmake: Finished")
