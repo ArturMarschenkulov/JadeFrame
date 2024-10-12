@@ -24,8 +24,8 @@ public:
 
     auto handle_events(bool& running) -> void override;
 
-    virtual auto set_title(const std::string& title) -> void override;
-    virtual auto get_title() const -> std::string override;
+    auto set_title(const std::string& title) -> void override;
+    auto get_title() const -> std::string override;
 
     auto set_size(const v2u32& size) -> void;
     auto get_size() const -> const v2u32& override;

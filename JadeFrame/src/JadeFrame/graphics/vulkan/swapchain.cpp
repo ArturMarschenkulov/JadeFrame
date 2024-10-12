@@ -22,8 +22,8 @@ namespace JadeFrame {
 namespace vulkan {
 
 static auto
-choose_surface_format(const std::span<VkSurfaceFormatKHR>& available_surface_formats)
-    -> VkSurfaceFormatKHR {
+choose_surface_format(const std::span<VkSurfaceFormatKHR>& available_surface_formats
+) -> VkSurfaceFormatKHR {
     for (u32 i = 0; i < available_surface_formats.size(); i++) {
         auto& format = available_surface_formats[i];
         if (format.format == VK_FORMAT_B8G8R8A8_SRGB &&
@@ -35,8 +35,8 @@ choose_surface_format(const std::span<VkSurfaceFormatKHR>& available_surface_for
 }
 
 static auto
-choose_present_mode(const std::span<VkPresentModeKHR>& available_surface_formats)
-    -> VkPresentModeKHR {
+choose_present_mode(const std::span<VkPresentModeKHR>& available_surface_formats
+) -> VkPresentModeKHR {
     std::array<VkPresentModeKHR, 3> mode_ranks = {
         VK_PRESENT_MODE_FIFO_KHR,
         VK_PRESENT_MODE_MAILBOX_KHR,
@@ -65,11 +65,12 @@ static auto choose_extent(
         return available_capabilities.currentExtent;
     } else {
 #ifdef _WIN32
-        RECT       area;
-        auto&      native_window = surface.m_window_handle->m_native_window;
-        auto       win32_native_window = dynamic_cast<win32::NativeWindow*>(native_window.get());
-        auto        window_handle = win32_native_window->m_window_handle;
-        const HWND  wh = window_handle;
+        RECT  area;
+        auto& native_window = surface.m_window_handle->m_native_window;
+        auto  win32_native_window =
+            dynamic_cast<win32::NativeWindow*>(native_window.get());
+        auto       window_handle = win32_native_window->m_window_handle;
+        const HWND wh = window_handle;
         GetClientRect(wh, &area);
         i32 width = area.right;
         i32 height = area.bottom;
@@ -317,7 +318,7 @@ auto Swapchain::init(LogicalDevice& device, const Window* window) -> void {
         ImageView(device, m_depth_image, depth_format, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
-auto Swapchain::query_images() -> std::vector<Image> {
+auto Swapchain::query_images() const -> std::vector<Image> {
     u32 image_count = 0;
 
     vkGetSwapchainImagesKHR(m_device->m_handle, m_handle, &image_count, nullptr);

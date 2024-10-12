@@ -141,9 +141,9 @@ auto VertexData::rectangle(const v3& pos, const v3& size, const Desc desc) -> Ve
     if (desc.has_texture_coordinates) {
         vertex_data.m_texture_coordinates.resize(6);
         vertex_data.m_texture_coordinates[00] = v2::zero();
-        vertex_data.m_texture_coordinates[01] = v2::splat(1.0f);
+        vertex_data.m_texture_coordinates[01] = v2::splat(1.0F);
         vertex_data.m_texture_coordinates[02] = v2::X();
-        vertex_data.m_texture_coordinates[03] = v2::splat(1.0f);
+        vertex_data.m_texture_coordinates[03] = v2::splat(1.0F);
         vertex_data.m_texture_coordinates[04] = v2::zero();
         vertex_data.m_texture_coordinates[05] = v2::Y();
     }

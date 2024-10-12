@@ -83,7 +83,7 @@ public:
         -> u32;
     auto acquire_image_index(const Semaphore* semaphore, const Fence* fence) -> u32;
 
-    auto query_images() -> std::vector<Image>;
+    [[nodiscard]] auto query_images() const -> std::vector<Image>;
 
 public:
     VkSwapchainKHR m_handle = VK_NULL_HANDLE;

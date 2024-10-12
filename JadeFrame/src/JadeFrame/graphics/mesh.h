@@ -24,13 +24,13 @@ public:
 
     constexpr static auto
     from_rgba_u32(u32 red, u32 green, u32 blue, u32 alpha) -> RGBAColor {
-        constexpr auto COLOR_SCALE = 255.0F;
+        constexpr auto COLOR_SCALE = 255.0_f32;
 
         return RGBAColor{
-            .r = red / COLOR_SCALE,
-            .g = green / COLOR_SCALE,
-            .b = blue / COLOR_SCALE,
-            .a = alpha / COLOR_SCALE
+            .r = (f32)red / COLOR_SCALE,
+            .g = (f32)green / COLOR_SCALE,
+            .b = (f32)blue / COLOR_SCALE,
+            .a = (f32)alpha / COLOR_SCALE
         };
     }
 
