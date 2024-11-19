@@ -1,5 +1,6 @@
 #pragma once
 #include "JadeFrame/base_app.h"
+#include "JadeFrame/graphics/mesh.h"
 #include <JadeFrame.h>
 #include <JadeFrame/math/math.h>
 #include <JadeFrame/gui.h>
@@ -22,15 +23,14 @@ struct State {
 static State g_state;
 
 static auto draw_rectangle(f32 x, f32 y, f32 width, f32 height) -> void {
+    auto scale = mat4x4::scale(v3::create(width, height, 1.0F));
+    auto trans = mat4x4::translation(v3::create(x, y, 0.0F));
 
     Object obj;
-    auto   scale = mat4x4::scale(v3::create(width, height, 1.0F));
-    auto   trans = mat4x4::translation(v3::create(x, y, 0.0F));
-
     obj.m_transform = scale * trans;
 
     VertexData& m = g_state.rectangle_vd;
-    m.set_color({138_u8, 43_u8, 226_u8, 255_u8});
+    m.set_color(RGBAColor::from_rgba_u32(138, 43, 226, 255));
     obj.m_mesh = g_state.rectangle_mesh;
 
     obj.m_vertex_data = &g_state.rectangle_vd;
@@ -52,11 +52,14 @@ struct Drop {
     }
 
     auto fall() -> void {
-        BaseApp* app = g_state.m_app;
+        const BaseApp* app = g_state.m_app;
         y = y + y_speed;
 
         const f32 window_height = app->m_current_window_p->get_size().y;
-        if (y >= window_height) { y = -100; }
+        if (y >= window_height) {
+            const i32 restart_hight = -100;
+            y = restart_hight;
+        }
     }
 
     auto show() -> void { draw_rectangle(x, y, width, height); }
@@ -69,10 +72,10 @@ struct Drop {
 };
 
 struct Checkerbox {
-    Checkerbox(f32 size, v2 pos) {
-        m_size = size;
-        x = pos.x;
-        y = pos.y;
+    Checkerbox(f32 size, v2 pos)
+        : x(pos.x)
+        , y(pos.y)
+        , m_size(size) {
 
         BaseApp*  app = g_state.m_app;
         const f32 window_width = app->m_current_window_p->get_size().x;
@@ -106,7 +109,9 @@ Example_0::Example_0(const Desc& desc)
 }
 
 auto Example_0::on_init() -> void {
-    m_render_system.m_renderer->set_clear_color({230_u8, 230_u8, 250_u8, 253_u8});
+    m_render_system.m_renderer->set_clear_color(
+        RGBAColor::from_rgba_u32(230, 230, 250, 253)
+    );
 
     // Set Up Camera
     m_camera = Camera::orthographic(
@@ -119,10 +124,9 @@ auto Example_0::on_init() -> void {
             "/home/artur/dev/proj/Jadeframe/JadeFrame/resource/wall.jpg";
         auto  wall_image = Image::load_from_path(wall_picture_path);
         auto* wall_texture = m_render_system.register_texture(wall_image);
-        auto  flat_0_code = GLSLCodeLoader::get_by_name("with_texture_0");
 
         ShaderHandle::Desc sh_0;
-        sh_0.shading_code = flat_0_code;
+        sh_0.shading_code = GLSLCodeLoader::get_by_name("with_texture_0");
         auto* flat_shader = m_render_system.register_shader(sh_0);
         auto* flat_mat = m_render_system.register_material(flat_shader, wall_texture);
 

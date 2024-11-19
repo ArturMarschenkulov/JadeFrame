@@ -35,14 +35,12 @@ auto Example_Texture_Quad::on_init() -> void {
     auto*     vertex_data = new VertexData();
 
     vertex_data->m_positions = std::vector<v3>{
-        {-s, +s, 0.0F},
-        {-s, -s, 0.0F},
-        {+s, +s, 0.0F}
+        v3::create(-s, +s, 0.0F), v3::create(-s, -s, 0.0F), v3::create(+s, +s, 0.0F)
     };
     vertex_data->m_texture_coordinates = {
-        {-1, +1},
-        {+1, +1},
-        {-1, -1},
+        v2::create(-1, +1),
+        v2::create(+1, +1),
+        v2::create(-1, -1),
     };
     vertex_data->m_colors = {
         RGBAColor::solid_black().set_opacity(0.1F), //

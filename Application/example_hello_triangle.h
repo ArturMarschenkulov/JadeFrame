@@ -29,9 +29,7 @@ auto Example_Hello_Triangle::on_init() -> void {
 
     auto* vertex_data = new VertexData;
     vertex_data->m_positions = std::vector<v3>{
-        {  -s, -s, 0.0F},
-        {  +s, -s, 0.0F},
-        {0.0F, +s, 0.0F}
+        v3::create(-s, -s, 0.0F), v3::create(+s, -s, 0.0F), v3::create(0.0F, +s, 0.0F)
     };
     vertex_data->m_colors = {
         RGBAColor::solid_red(),

@@ -37,9 +37,7 @@ auto Example_Rotating_Primitive::on_init() -> void {
 
     auto* vertex_data = new VertexData();
     vertex_data->m_positions = std::vector<v3>{
-        {-s, +s, -0.03F},
-        {+s, +s, -0.03F},
-        {-s, -s, -0.03F}
+        v3::create(-s, +s, -0.03F), v3::create(+s, +s, -0.03F), v3::create(-s, -s, -0.03F)
     };
 
     vertex_data->m_colors = {
@@ -56,9 +54,9 @@ auto Example_Rotating_Primitive::on_init() -> void {
 
     auto* vertex_data_2 = new VertexData();
     vertex_data_2->m_positions = std::vector<v3>{
-        {-s, +s + 0.1F, -0.02F},
-        {+s,        +s, -0.02F},
-        {-s,        -s, -0.02F}
+        v3::create(-s, +s + 0.1F, -0.02F),
+        v3::create(+s, +s, -0.02F),
+        v3::create(-s, -s, -0.02F)
     };
     vertex_data_2->m_colors = {
         RGBAColor::solid_yellow(),

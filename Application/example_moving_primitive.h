@@ -59,12 +59,12 @@ auto Example_Moving_Primitive::on_init() -> void {
         for (int j = 0; j < block_count; j++) {
             auto* vertex_data = new VertexData();
             vertex_data->m_positions = std::vector<v3>{
-                {       0.0F,        0.0F, 0.0F},
-                {block_width,        0.0F, 0.0F},
-                {block_width, block_width, 0.0F},
-                {       0.0F, block_width, 0.0F},
-                {       0.0F,        0.0F, 0.0F},
-                {block_width, block_width, 0.0F}
+                v3::create(0.0F, 0.0F, 0.0F),
+                v3::create(block_width, 0.0F, 0.0F),
+                v3::create(block_width, block_width, 0.0F),
+                v3::create(0.0F, block_width, 0.0F),
+                v3::create(0.0F, 0.0F, 0.0F),
+                v3::create(block_width, block_width, 0.0F)
             };
 
             vertex_data->set_color(col[i][j]);
@@ -72,7 +72,7 @@ auto Example_Moving_Primitive::on_init() -> void {
             Object obj;
             obj.m_transform =
                 mat4x4::identity() *
-                mat4x4::translation(v3(block_width * j, block_width * i, 0.0f));
+                mat4x4::translation(v3::create(block_width * j, block_width * i, 0.0f));
             obj.m_vertex_data = vertex_data;
 
             obj.m_mesh = m_render_system.register_mesh(*obj.m_vertex_data);
