@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.6)
 
-project(Example_hello_triangle CXX)
+project(Example_empty CXX)
 
 
 set(Source_Files
