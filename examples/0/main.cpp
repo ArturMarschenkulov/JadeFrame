@@ -1,4 +1,3 @@
-#pragma once
 #include "JadeFrame/base_app.h"
 #include "JadeFrame/graphics/mesh.h"
 #include <JadeFrame.h>
@@ -181,3 +180,18 @@ auto Example_0::on_draw() -> void {
 
 using TestApp = Example_0;
 } // namespace JadeFrame
+
+int main() {
+    JadeFrame::Instance jade_frame;
+
+    using GApp = JadeFrame::TestApp;
+    GApp::Desc win_desc;
+    win_desc.title = "Test";
+    win_desc.size.x = 800; // = 1280;
+    win_desc.size.y = 800; // = 720;
+    win_desc.api = JadeFrame::GRAPHICS_API::OPENGL;
+
+    GApp* app = jade_frame.request_app<GApp>(win_desc);
+    jade_frame.run();
+    return 0;
+}

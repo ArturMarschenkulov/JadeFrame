@@ -121,4 +121,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON) # Use solution folders feature
 ################################################################################
 # set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_subdirectory(JadeFrame)
-add_subdirectory(Application)
+
+option(BUILD_EXAMPLES "Build example programs" ON)
+if(BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()

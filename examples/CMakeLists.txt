@@ -1,5 +1,6 @@
 
 
+add_subdirectory(0)
 add_subdirectory(empty)
 add_subdirectory(hello_triangle)
 add_subdirectory(moving_primitive)
