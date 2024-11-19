@@ -19,6 +19,36 @@ That is very useful, because in case there is no syntax highlighting available f
 - C++ style type casting, no C style
 # Inspirations
 The following is a list of interesting projects and resources in general, which may be relevant to the project.
+## Framework-like
+Those are projects where one has to actually write code.
+
+- [raylib](https://github.com/raysan5/raylib)
+- [cinder](https://github.com/cinder/Cinder)
+- [MagnumEngine](https://github.com/mosra/magnum)
+- [SFML](https://github.com/SFML/SFML)
+- [bgfx](https://github.com/bkaradzic/bgfx)
+
+- [Ogre](https://github.com/OGRECave/ogre): Has multiple Graphics APIs. Opengl, Vulkan,...
+- [Ogre-Next](https://github.com/OGRECave/ogre-next): 
+- [Urho3D](https://github.com/urho3d/Urho3D)
+- [Handmade Hero](https://github.com/HandmadeHero/cpp)
+- [CrystalSpace3D](https://github.com/crystalspace/CS)
+- [JUCE](https://github.com/juce-framework/JUCE)
+- [NoahGameFrame](https://github.com/ketoo/NoahGameFrame)
+- [olcConsoleGameEngine](https://github.com/OneLoneCoder/videos)
+- [olcPixelGameEngine](https://github.com/OneLoneCoder/olcPixelGameEngine): This is intereseting because it is a renderer in the console. This can be used for my own terminal renderer.
+- [McEngine](https://github.com/McKay42/McEngine)
+- [HorizonEngine](https://github.com/FergusGriggs/HorizonEngine)
+
+- [Cell](https://github.com/JoeyDeVries/Cell)
+- [Hazel](https://github.com/TheCherno/Hazel)
+- [Sparky](https://github.com/TheCherno/Sparky)
+- [toy](https://github.com/hugoam/toy)
+
+- [tinyrenderer](https://github.com/ssloy/tinyrenderer): implements a software render API similar to OpenGL.
+
+
+
 ## Engine-like
 Those are projects which have an editor abstraction. Meaning in normal use one does not write actual code.
 - [Blender](https://github.com/blender/blender)
@@ -31,28 +61,6 @@ Those are projects which have an editor abstraction. Meaning in normal use one d
 - [limonEngine](https://github.com/enginmanap/limonEngine)
 - [Horde3D](https://github.com/horde3d/Horde3D)
 - [iris]()
-## Framework-like
-Those are projects where one has to actually write code.
-- [Ogre](https://github.com/OGRECave/ogre): Has multiple Graphics APIs. Opengl, Vulkan,...
-- [Ogre-Next](https://github.com/OGRECave/ogre-next): 
-- [Urho3D](https://github.com/urho3d/Urho3D)
-- [Handmade Hero](https://github.com/HandmadeHero/cpp)
-- [CrystalSpace3D](https://github.com/crystalspace/CS)
-- [JUCE](https://github.com/juce-framework/JUCE)
-- [NoahGameFrame](https://github.com/ketoo/NoahGameFrame)
-- [olcConsoleGameEngine](https://github.com/OneLoneCoder/videos)
-- [olcPixelGameEngine](https://github.com/OneLoneCoder/olcPixelGameEngine): This is intereseting because it is a renderer in the console. This can be used for my own terminal renderer.
-- [McEngine](https://github.com/McKay42/McEngine)
-- [HorizonEngine](https://github.com/FergusGriggs/HorizonEngine)
-- [SFML](https://github.com/SFML/SFML)
-- [Cell](https://github.com/JoeyDeVries/Cell)
-- [MagnumEngine](https://github.com/mosra/magnum)
-- [Hazel](https://github.com/TheCherno/Hazel)
-- [Sparky](https://github.com/TheCherno/Sparky)
-- [raylib](https://github.com/raysan5/raylib)
-- [toy](https://github.com/hugoam/toy)
-- [cinder](https://github.com/cinder/Cinder)
-- [tinyrenderer](https://github.com/ssloy/tinyrenderer): implements a software render API similar to OpenGL.
 
 
 

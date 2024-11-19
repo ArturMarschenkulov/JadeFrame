@@ -45,6 +45,9 @@ function(my_print_cmake_data)
     message("CMAKE_MODULE_LINKER_FLAGS    -> ${CMAKE_MODULE_LINKER_FLAGS}")
     message("CMAKE_SHARED_LINKER_FLAGS    -> ${CMAKE_SHARED_LINKER_FLAGS}")
     message("CMAKE_STATIC_LINKER_FLAGS    -> ${CMAKE_STATIC_LINKER_FLAGS}")
+
+
+    message("COMPILE_OPTIONS -> ${COMPILE_OPTIONS}")
     
 
 

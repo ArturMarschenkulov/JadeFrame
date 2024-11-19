@@ -70,7 +70,6 @@ include(cmake/my_utils.cmake)
 my_print_platform_data()
 
 
-
 set(ENABLE_DEVELOPER_MODE
     TRUE
     CACHE BOOL "Enable 'developer mode'"
@@ -79,30 +78,6 @@ set(ENABLE_DEVELOPER_MODE
 my_print_generator_data()
 my_print_compiler_data()
 my_print_cmake_data()
-
-
-################################################################################
-# Global configuration types
-################################################################################
-
-# Single-Configuration Generators: 
-# - Makefiles
-# - Ninja
-# This uses CMAKE_BUILD_TYPE to set the configuration type.
-
-# Multi-Configuration Generators:
-# - Visual Studio
-# - Xcode
-# - Ninja Multi-Config
-# This uses CMAKE_CONFIGURATION_TYPES to set the configuration types.
-
-# Usually the default configuration types are:
-# - Debug          : Development and debugging
-# - Release        : Production use
-# - RelWithDebInfo : Production debugging
-# - MinSizeRel     : Embedded systems
-# But this can be changed by the user.
-
 
 set(CMAKE_CONFIGURATION_TYPES
     "Debug"
