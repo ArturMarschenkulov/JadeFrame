@@ -32,6 +32,7 @@ using u64 = uint64;
 using f32 = float;
 using f64 = double;
 
+namespace literals {
 constexpr auto operator"" _u8(unsigned long long x) -> u8 { return static_cast<u8>(x); }
 
 constexpr auto operator"" _u16(unsigned long long x) -> u16 {
@@ -71,5 +72,6 @@ constexpr auto operator"" _f64(unsigned long long x) -> f64 {
 constexpr auto operator"" _f32(long double x) -> f32 { return static_cast<f32>(x); }
 
 constexpr auto operator"" _f64(long double x) -> f64 { return static_cast<f64>(x); }
-
+} // namespace literals
+using namespace literals;
 } // namespace JadeFrame

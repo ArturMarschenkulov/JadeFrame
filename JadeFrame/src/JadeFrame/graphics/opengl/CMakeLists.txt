@@ -45,25 +45,25 @@ target_link_libraries(gfx-opengl
         JadeFrame
 )
 
-if(MSVC)
-    target_compile_options(gfx-opengl PRIVATE
-        /EHsc
-        /Z7
-        /Od
-        /W4
-    )
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(gfx-opengl PRIVATE
-        # -g
-        # -O0
-        -Wall
-        -Wextra
-        # -Wshadow
-        -Wconversion
-        -Wpedantic
-        -Wno-unused
-        # -Werror
-    )
-else()
-    message(ERROR "${CMAKE_CXX_COMPILER_ID} is not supported yet")
-endif()
+# if(MSVC)
+#     target_compile_options(gfx-opengl PRIVATE
+#         /EHsc
+#         /Z7
+#         /Od
+#         /W4
+#     )
+# elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+#     target_compile_options(gfx-opengl PRIVATE
+#         # -g
+#         # -O0
+#         -Wall
+#         -Wextra
+#         # -Wshadow
+#         -Wconversion
+#         -Wpedantic
+#         -Wno-unused
+#         # -Werror
+#     )
+# else()
+#     message(ERROR "${CMAKE_CXX_COMPILER_ID} is not supported yet")
+# endif()

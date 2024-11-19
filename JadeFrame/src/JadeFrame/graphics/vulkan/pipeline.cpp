@@ -213,8 +213,8 @@ Pipeline::PipelineLayout::PipelineLayout(PipelineLayout&& other) noexcept
     : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
     , m_device(std::exchange(other.m_device, nullptr)) {}
 
-auto Pipeline::PipelineLayout::operator=(PipelineLayout&& other) noexcept
-    -> PipelineLayout& {
+auto Pipeline::PipelineLayout::operator=(PipelineLayout&& other
+) noexcept -> PipelineLayout& {
     if (this != &other) {
         m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
         m_device = std::exchange(other.m_device, nullptr);
@@ -319,8 +319,8 @@ viewport_state_create_info(const VkViewport& viewport, const VkRect2D& scissor)
     return info;
 }
 
-static auto get_binding_description(const VertexFormat& vertex_format)
-    -> VkVertexInputBindingDescription {
+static auto get_binding_description(const VertexFormat& vertex_format
+) -> VkVertexInputBindingDescription {
     u32 stride = 0;
     for (const VertexAttribute& attribute : vertex_format.m_attributes) {
         stride += get_size(attribute.type);
@@ -333,8 +333,8 @@ static auto get_binding_description(const VertexFormat& vertex_format)
     return binding_description;
 }
 
-static auto get_attribute_descriptions(const VertexFormat& vertex_format)
-    -> std::vector<VkVertexInputAttributeDescription> {
+static auto get_attribute_descriptions(const VertexFormat& vertex_format
+) -> std::vector<VkVertexInputAttributeDescription> {
     std::vector<VkVertexInputAttributeDescription> attribs;
     attribs.resize(vertex_format.m_attributes.size());
 
@@ -368,8 +368,8 @@ static auto vertex_input_state_create_info(
     return info;
 }
 
-static auto input_assembly_state_create_info(VkPrimitiveTopology topology)
-    -> VkPipelineInputAssemblyStateCreateInfo {
+static auto input_assembly_state_create_info(VkPrimitiveTopology topology
+) -> VkPipelineInputAssemblyStateCreateInfo {
     const VkPipelineInputAssemblyStateCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .pNext = nullptr,
@@ -385,7 +385,7 @@ static auto rasterization_state_create_info() -> VkPipelineRasterizationStateCre
     // NOTE: In debugging one might want to use VK_CULL_MODE_NONE, as opposed to
     // VK_CULL_MODE_BACK_BIT
     VkCullModeFlags cull_mode = VK_CULL_MODE_BACK_BIT;
-    auto front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    auto            front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
     const VkPipelineRasterizationStateCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
@@ -501,8 +501,8 @@ Pipeline::~Pipeline() {
     }
 }
 
-static auto get_reflected_modules(const std::vector<ShaderModule>& modules)
-    -> std::vector<ReflectedModule> {
+static auto get_reflected_modules(const std::vector<ShaderModule>& modules
+) -> std::vector<ReflectedModule> {
     std::vector<ReflectedModule> reflected_modules;
     reflected_modules.resize(modules.size());
     for (u32 i = 0; i < modules.size(); i++) {
@@ -564,7 +564,7 @@ Pipeline::Pipeline(
 
     auto reflected_modules = get_reflected_modules(modules);
     m_reflected_interface = ReflectedModule::into_interface(reflected_modules);
-    auto vf = m_reflected_interface.get_vertex_format();
+    VertexFormat vertex_format = m_reflected_interface.get_vertex_format();
 
     /*
         There are always 4 descriptor set layouts. They are grouped by binding
@@ -626,9 +626,9 @@ Pipeline::Pipeline(
         color_blend_state_create_info(color_blend_attachment);
 
     const VkVertexInputBindingDescription binding_description =
-        get_binding_description(vf);
+        get_binding_description(vertex_format);
     std::vector<VkVertexInputAttributeDescription> attribute_descriptions =
-        get_attribute_descriptions(vf);
+        get_attribute_descriptions(vertex_format);
     const VkPipelineVertexInputStateCreateInfo vertex_input_info =
         vertex_input_state_create_info(binding_description, attribute_descriptions);
 

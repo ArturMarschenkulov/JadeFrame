@@ -21,6 +21,7 @@ auto Texture::operator=(Texture&& other) noexcept -> Texture& {
 
 Texture::Texture(OpenGL_Context& context)
     : m_context(&context) {
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glCreateTextures(GL_TEXTURE_2D, 1, &m_id);
 }
 
@@ -55,6 +56,7 @@ Texture::Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_
     m_format = format;
     m_type = GL_UNSIGNED_BYTE;
 
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glCreateTextures(GL_TEXTURE_2D, 1, &m_id);
     Logger::warn("TextureHandle::init() - Texture created sjknmlml");
     /*

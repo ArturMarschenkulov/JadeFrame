@@ -9,6 +9,15 @@ namespace JadeFrame {
 
 class RGBAColor {
 public:
+    constexpr static auto to_u32_vector(const RGBAColor& color) -> std::vector<u32> {
+        return {
+            static_cast<u32>(color.r * 255),
+            static_cast<u32>(color.g * 255),
+            static_cast<u32>(color.b * 255),
+            static_cast<u32>(color.a * 255)
+        };
+    }
+
     constexpr static auto
     from_rgba(f32 red, f32 green, f32 blue, f32 alpha) -> RGBAColor {
         return RGBAColor{.r = red, .g = green, .b = blue, .a = alpha};

@@ -6,6 +6,10 @@ find_package(Vulkan REQUIRED)
 add_subdirectory(src/extern/VulkanMemoryAllocator/)
 
 # Add GLFW
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 add_subdirectory(src/extern/glfw/)
 
 
@@ -13,7 +17,7 @@ add_subdirectory(src/extern/glfw/)
 option(USE_PRECOMPILED_ASSIMP "Use precompiled Assimp library" ON)
 set(ASSIMP_PRECOMPILED_PATH ${CMAKE_SOURCE_DIR}/libs/assimp)
 set(ASSIMP_PRECOMPILED_LIB_PATH ${ASSIMP_PRECOMPILED_PATH}/lib)
-
+set(ASSIMP_BUILD_TESTS OFF)
 
 if(EXISTS ${ASSIMP_PRECOMPILED_LIB_PATH}/libassimp.a OR EXISTS ${ASSIMP_PRECOMPILED_LIB_PATH}/libassimpd.a)
     set(ASSIMP_FOUND TRUE)
@@ -291,6 +295,13 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL 
         -Werror
         # -Werror
     )
+
+    # list(APPEND ${COMPILE_OPTIONS}
+    #     -fsanitize=address,undefined
+    #     -fno-omit-frame-pointer
+    #     -fno-sanitize=signed-integer-overflow
+    #     -fno-sanitize-recover=all
+    # )
 endif()
 target_compile_options(${PROJECT_NAME} PRIVATE
     ${COMPILE_OPTIONS}
@@ -350,6 +361,7 @@ target_link_libraries(
         gfx-vulkan
         GPUOpen::VulkanMemoryAllocator
         assimp
+        # -fsanitize=address,undefined
 )
 
 target_link_directories(${PROJECT_NAME} PUBLIC

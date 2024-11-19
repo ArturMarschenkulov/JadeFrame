@@ -282,8 +282,9 @@ auto LogicalDevice::wait_for_fences(
     bool                    wait_all,
     u64                     timeout
 ) const -> void {
-    assert(fences.size() < 5);
-    std::array<VkFence, 5> vk_fences = {};
+    constexpr auto max_fences = 5;
+    assert(fences.size() < max_fences);
+    std::array<VkFence, max_fences> vk_fences = {};
     for (u32 i = 0; i < fences.size(); ++i) { vk_fences[i] = fences[i].m_handle; }
     VkResult result = VK_SUCCESS;
     result = vkWaitForFences(
@@ -333,7 +334,7 @@ auto LogicalDevice::create_shader(
     const Vulkan_Renderer&     renderer,
     const Vulkan_Shader::Desc& desc
 ) -> Vulkan_Shader {
-    return Vulkan_Shader(*this, renderer, desc);
+    return {*this, renderer, desc};
 }
 
 auto LogicalDevice::create_semaphore() -> Semaphore {

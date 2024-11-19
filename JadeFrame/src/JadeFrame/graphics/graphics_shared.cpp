@@ -1,3 +1,4 @@
+#include "JadeFrame/graphics/mesh.h"
 #include "JadeFrame/utils/logger.h"
 #include "pch.h"
 #include "graphics_shared.h"
@@ -48,7 +49,7 @@ static auto
 add_fourth_components(const u8* data, i32 width, i32 height, i32 num_components) -> u8* {
     u32 size = width * height;
     u32 size_in_bytes = size * 4;
-    u8* new_data = new u8[size_in_bytes];
+    u8* new_data = (u8*)malloc(size_in_bytes);
     for (i32 i = 0; i < size; i++) {
         new_data[i * 4 + 0] = data[i * num_components + 0];
         new_data[i * 4 + 1] = data[i * num_components + 1];
@@ -85,6 +86,24 @@ auto Image::load_from_path(const std::string& path) -> Image {
     img.height = height;
     img.num_components = num_components;
     return img;
+}
+
+auto Image::gen_checked(v2u32 size, v2u32 check_size, RGBAColor& col_0, RGBAColor& col_1)
+    -> Image {
+    auto* pixels = new RGBAColor[size.x * size.y];
+
+    for (u32 y = 0; y < size.y; y++) {
+        for (u32 x = 0; x < size.x; x++) {
+            u32 index = y * size.x + x;
+            u32 check_x = x / check_size.x;
+            u32 check_y = y / check_size.y;
+            if ((check_x + check_y) % 2 == 0) {
+                pixels[index] = col_0;
+            } else {
+                pixels[index] = col_1;
+            }
+        }
+    }
 }
 
 /*---------------------------
@@ -313,7 +332,10 @@ auto RenderSystem::init(GRAPHICS_API api, Window* window) -> void {
         case GRAPHICS_API::VULKAN: {
             m_renderer = new Vulkan_Renderer(*this, window);
         } break;
-        default: assert(false);
+        default: {
+            Logger::err("Unsupported graphics api: {}", to_string(api));
+            assert(false);
+        }
     }
 }
 
@@ -463,8 +485,6 @@ auto to_string(SHADER_TYPE type) -> const char* {
             break;
     }
 }
-
-
 
 auto RenderSystem::list_available_graphics_apis() -> std::vector<GRAPHICS_API> {
     std::vector<GRAPHICS_API> result;

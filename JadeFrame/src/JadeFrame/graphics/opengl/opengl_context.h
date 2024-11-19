@@ -140,8 +140,8 @@ public:
     std::unordered_map<u32, opengl::Texture*> m_texture_units;
     std::vector<opengl::Texture*>             m_textures = {};
 
-    auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
-        -> opengl::Buffer*;
+    auto
+    create_buffer(opengl::Buffer::TYPE type, void* data, u32 size) -> opengl::Buffer*;
     auto bind_uniform_buffer_to_location(opengl::Buffer& buffer, u32 location) -> void;
 
     std::unordered_map<u32, opengl::Buffer*> m_bound_uniform_buffer_locations;
@@ -172,6 +172,7 @@ public:
 
     auto bind_shader(opengl::Shader& shader) -> void;
     // auto unbind_shader() -> void {}
+    // auto create_vertex_array(const VertexFormat& vertex_format);
 
     opengl::Shader* m_bound_shader = nullptr;
 };

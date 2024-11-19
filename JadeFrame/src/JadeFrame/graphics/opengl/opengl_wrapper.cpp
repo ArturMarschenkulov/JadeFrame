@@ -140,6 +140,28 @@ OGLW_Shader::OGLW_Shader(const GLenum type, const std::vector<u32>& binary)
         auto s = convert_SPIRV_to_GLSL(binary);
         this->set_source(s);
         this->compile();
+        
+        auto success = this->get_info(GL_COMPILE_STATUS);
+        switch (type) {
+            case GL_VERTEX_SHADER: {
+                success == GL_FALSE
+                    ? Logger::warn("Vertex Shader {} failed to compile", m_ID)
+                    : Logger::info("Vertex Shader {} compiled successfully", m_ID);
+            }; break;
+            case GL_FRAGMENT_SHADER: {
+                success == GL_FALSE
+                    ? Logger::warn("Fragment Shader {} failed to compile", m_ID)
+                    : Logger::info("Fragment Shader {} compiled successfully", m_ID);
+            }; break;
+            case GL_COMPUTE_SHADER: {
+                success == GL_FALSE
+                    ? Logger::warn("Compute Shader {} failed to compile", m_ID)
+                    : Logger::info("Compute Shader {} compiled successfully", m_ID);
+            }; break;
+            default: {
+                Logger::err("Invalid Shader type {}", type);
+            }
+        }
     }
 #undef JF_USE_SPIRV
 }

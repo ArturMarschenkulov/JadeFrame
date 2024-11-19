@@ -22,6 +22,10 @@ struct Image {
 
     static auto load_from_path(const std::string& path) -> Image;
 
+    static auto
+    gen_checked(v2u32 size, v2u32 check_size, RGBAColor& col_0, RGBAColor& col_1)
+        -> Image;
+
     u8* data = nullptr;
     i32 width = 0;
     i32 height = 0;
@@ -438,8 +442,8 @@ public:
     auto register_texture(Image& image) -> TextureHandle*;
     auto register_shader(const ShaderHandle::Desc& desc) -> ShaderHandle*;
     auto register_mesh(const VertexData& data) -> GPUMeshData*;
-    auto register_material(ShaderHandle* shader, TextureHandle* texture)
-        -> MaterialHandle*;
+    auto
+    register_material(ShaderHandle* shader, TextureHandle* texture) -> MaterialHandle*;
 
     auto submit(const Object& obj) -> void;
 
