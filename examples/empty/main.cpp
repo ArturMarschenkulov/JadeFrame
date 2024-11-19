@@ -1,7 +1,8 @@
 #include <JadeFrame.h>
 
-namespace JadeFrame {
-struct Example_Empty : public BaseApp {
+namespace jf = JadeFrame;
+
+struct Example_Empty : public jf::BaseApp {
     explicit Example_Empty(const Desc& desc);
     ~Example_Empty() override = default;
 
@@ -26,16 +27,16 @@ inline auto Example_Empty::on_update() -> void {}
 inline auto Example_Empty::on_draw() -> void {}
 
 using TestApp = Example_Empty;
-} // namespace JadeFrame
-int main() {
-    JadeFrame::Instance jade_frame;
 
-    using GApp = JadeFrame::TestApp;
+int main() {
+    jf::Instance jade_frame;
+
+    using GApp = TestApp;
     GApp::Desc win_desc;
     win_desc.title = "Test";
     win_desc.size.x = 800; // = 1280;
     win_desc.size.y = 800; // = 720;
-    win_desc.api = JadeFrame::GRAPHICS_API::OPENGL;
+    win_desc.api = jf::GRAPHICS_API::OPENGL;
 
     GApp* app = jade_frame.request_app<GApp>(win_desc);
     jade_frame.run();

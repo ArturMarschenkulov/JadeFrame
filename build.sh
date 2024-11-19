@@ -23,7 +23,8 @@ if cmake ../. && cmake --build . -j10; then
     compiledb -n make
     echo "Compiledb generated"
     echo "Running Application"
-    ./examples/0/Example_0
+    cd examples/0/
+    ./Example_0
 else
     echo "Build failed"
 fi
