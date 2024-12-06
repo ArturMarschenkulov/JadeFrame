@@ -30,8 +30,6 @@ public:
         const f32 z_far
     ) -> Camera;
 
-    [[nodiscard]] auto get_projection() const -> mat4x4;
-    [[nodiscard]] auto get_view() const -> mat4x4;
     [[nodiscard]] auto get_view_projection() const -> mat4x4;
 
 public:
@@ -74,7 +72,7 @@ class Camera0 {
     set_perspective(const f32 fov, const f32 aspect, const f32 t_near, const f32 t_far)
         -> void {
         m_is_perspective = true;
-        m_projection = mat4x4::perspective_rh_gl(fov, aspect, t_near, t_far);
+        m_projection = mat4x4::perspective_rh_no(fov, aspect, t_near, t_far);
         m_FOV = fov;
         m_aspect = aspect;
         m_near = t_near;
@@ -91,7 +89,7 @@ class Camera0 {
     ) -> void {
         m_is_perspective = false;
         m_projection =
-            mat4x4::orthographic_rh_gl(left, right, top, bottom, t_near, t_far);
+            mat4x4::orthographic_rh_no(left, right, top, bottom, t_near, t_far);
         m_near = t_near;
         m_far = t_far;
     }

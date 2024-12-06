@@ -59,10 +59,10 @@ public:
     constexpr auto operator=(mat4x4&& mat) noexcept -> mat4x4& = default;
 
 public:
-    constexpr auto operator[](const u32 index) noexcept
-        -> std::array<f32, 4>&; // for writing
-    constexpr auto operator[](const u32 index) const noexcept
-        -> const std::array<f32, 4>&; // for reading
+    constexpr auto     operator[](const u32 index
+    ) noexcept -> std::array<f32, 4>&; // for writing
+    constexpr auto     operator[](const u32 index
+    ) const noexcept -> const std::array<f32, 4>&; // for reading
     /*constexpr*/ auto operator*(const v4& vector) const noexcept -> v4;
     constexpr auto     operator*(const mat4x4& other) const noexcept -> mat4x4;
 
@@ -78,7 +78,18 @@ public: // static methods for matrices
         return result;
     }
 
-    constexpr static auto orthographic_rh_gl(
+    constexpr static auto
+    from_rows(const v4& row1, const v4& row2, const v4& row3, const v4& row4) noexcept
+        -> mat4x4 {
+        return mat4x4::from_cols(
+            v4::create(row1.x, row2.x, row3.x, row4.x),
+            v4::create(row1.y, row2.y, row3.y, row4.y),
+            v4::create(row1.z, row2.z, row3.z, row4.z),
+            v4::create(row1.w, row2.w, row3.w, row4.w)
+        );
+    }
+
+    constexpr static auto orthographic_rh_no(
         f32 left,
         f32 right,
         f32 bottom,
@@ -87,76 +98,208 @@ public: // static methods for matrices
         f32 z_far
     ) noexcept -> mat4x4;
 
-    constexpr static auto
-    orthographic_lh(f32 left, f32 right, f32 bottom, f32 top, f32 z_near, f32 z_far)
-        -> mat4x4 {
-        auto rcp_width = 1.0F / (right - left);
-        auto rcp_height = 1.0F / (top - bottom);
-        auto rcp_depth = 1.0F / (z_far - z_near);
+    constexpr static auto orthographic_lh_no(
+        f32 left,
+        f32 right,
+        f32 bottom,
+        f32 top,
+        f32 z_near,
+        f32 z_far
+    ) noexcept -> mat4x4 {
+        const f32 frustum_width = right - left;
+        const f32 frustum_height = top - bottom;
+        const f32 frustum_depth = z_far - z_near;
+
+        const f32 range = 2.0F;
+
+        f32 a = range / frustum_width;
+        f32 b = range / frustum_height;
+        f32 c = range / frustum_depth;
+
+        f32 tx = -(right + left) / frustum_width;
+        f32 ty = -(top + bottom) / frustum_height;
+        f32 tz = -(z_far + z_near) / frustum_depth;
 
         return mat4x4::from_cols(
-            v4::create(2.0F * rcp_width, 0.0F, 0.0F, 0.0F),
-            v4::create(0.0F, 2.0F * rcp_height, 0.0F, 0.0F),
-            v4::create(0.0F, 0.0F, rcp_depth, 0.0F),
-            v4::create(
-                -(right + left) * rcp_width,
-                -(top + bottom) * rcp_height,
-                -z_near * rcp_depth,
-                1.0F
-            )
+            v4::create(a, 0.0F, 0.0F, 0.0F),
+            v4::create(0.0F, b, 0.0F, 0.0F),
+            v4::create(0.0F, 0.0F, c, 0.0F),
+            v4::create(tx, ty, tz, 1.0F)
+        );
+    }
+
+    constexpr static auto orthographic_lh_zo(
+        f32 left,
+        f32 right,
+        f32 bottom,
+        f32 top,
+        f32 z_near,
+        f32 z_far
+    ) noexcept -> mat4x4 {
+
+        const f32 frustum_width = right - left;
+        const f32 frustum_height = top - bottom;
+        const f32 frustum_depth = z_far - z_near;
+
+        const f32 range = 2.0F;
+
+        f32 a = range / frustum_width;
+        f32 b = range / frustum_height;
+        f32 c = 1.0F / frustum_depth;
+
+        f32 tx = -(right + left) / frustum_width;
+        f32 ty = -(top + bottom) / frustum_height;
+        f32 tz = -(z_near) / frustum_depth;
+
+        return mat4x4::from_cols(
+            v4::create(a, 0.0F, 0.0F, 0.0F),
+            v4::create(0.0F, b, 0.0F, 0.0F),
+            v4::create(0.0F, 0.0F, c, 0.0F),
+            v4::create(tx, tz, ty, 1.0F)
+        );
+    }
+
+    constexpr static auto orthographic_rh_zo(
+        f32 left,
+        f32 right,
+        f32 bottom,
+        f32 top,
+        f32 z_near,
+        f32 z_far
+    ) noexcept -> mat4x4 {
+        const f32 frustum_width = right - left;
+        const f32 frustum_height = top - bottom;
+        const f32 frustum_depth = z_far - z_near;
+
+        const f32 range = 2.0F;
+
+        f32 a = range / frustum_width;
+        f32 b = range / frustum_height;
+        f32 z = -1.0F / frustum_depth;
+
+        f32 tx = -(right + left) / frustum_width;
+        f32 ty = -(top + bottom) / frustum_height;
+        f32 tz = -(z_near) / frustum_depth;
+
+        return mat4x4::from_cols(
+            v4::create(a, 0.0F, 0.0F, 0.0F),
+            v4::create(0.0F, b, 0.0F, 0.0F),
+            v4::create(0.0F, 0.0F, z, 0.0F),
+            v4::create(tx, ty, tz, 1.0F)
         );
     }
 
     constexpr static auto
-    orthographic_rh(f32 left, f32 right, f32 bottom, f32 top, f32 z_near, f32 z_far)
-        -> mat4x4 {
-        auto rcp_width = 1.0F / (right - left);
-        auto rcp_height = 1.0F / (top - bottom);
-        auto rcp_depth = 1.0F / (z_near - z_far);
+    frustum(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) -> mat4x4 {
+        const f32 frustum_width = right - left;
+        const f32 frustum_height = top - bottom;
+        const f32 frustum_depth = far - near;
+
+        const f32 range = 2.0F * near;
+
+        f32 a = (2.0F * near) / frustum_width;
+        f32 b = (2.0F * near) / frustum_height;
+
+        f32 tx = (right + left) / frustum_width;
+        f32 ty = (top + bottom) / frustum_height;
+        f32 tz = -(far + near) / frustum_depth;
+
+        f32 d = -(2.0F * far * near) / frustum_depth;
 
         return mat4x4::from_cols(
-            v4::create(2.0F * rcp_width, 0.0F, 0.0F, 0.0F),
-            v4::create(0.0F, 2.0F * rcp_height, 0.0F, 0.0F),
-            v4::create(0.0F, 0.0F, rcp_depth, 0.0F),
-            v4::create(
-                -(right + left) * rcp_width,
-                -(top + bottom) * rcp_height,
-                z_near * rcp_depth,
-                1.0F
-            )
+            v4::create(a, 0.0F, 0.0F, 0.0F),
+            v4::create(0.0F, b, 0.0F, 0.0F),
+            v4::create(tx, ty, tz, -1.0F),
+            v4::create(0.0F, 0.0F, d, 0.0F)
+        );
+    }
+
+    /*constexpr*/ static auto perspective_rh_no(
+        f32 left,
+        f32 right,
+        f32 top,
+        f32 bottom,
+        f32 near,
+        f32 far
+    ) noexcept -> mat4x4 {
+        const f32 width = right - left;
+        const f32 height = top - bottom;
+        const f32 aspect = width / height;
+        const f32 fovy = 2.0F * std::atan(top / near);
+        return mat4x4::perspective_rh_no(fovy, aspect, near, far);
+    }
+
+    /// Creates a right-handed perspective projection matrix with depth range of [-1, 1].
+    ///
+    /// Mainly used in OpenGL.
+    /*constexpr*/ static auto
+    perspective_rh_no(f32 fovy, f32 aspect, f32 near, f32 far) noexcept -> mat4x4;
+
+    /// Creates a right-handed perspective projection matrix with depth range of [0, 1].
+    ///
+    /// Mainly used in Direct3D. In case of Vulkan, one has to do proj[1][1] *= -1;, aka
+    /// flip the y-axis.
+    /*constexpr*/ static auto
+    perspective_rh_zo(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4 {
+
+        const f32 frustum_depth = z_far - z_near;
+        const f32 focal_length = 1.0F / std::tan(fovy / 2.0F);
+        // const auto focal_length = std::cos(fovy / 2.0F) / std::sin(fovy / 2.0F);
+        const f32 z_factor = -1.0F;
+
+        f32 _1 = focal_length / aspect;
+        f32 _2 = focal_length;
+        f32 _3 = z_factor * (z_far / frustum_depth);
+        f32 _4 = -(z_near * z_far) / frustum_depth;
+        f32 _5 = z_factor;
+
+        return mat4x4::from_cols(
+            v4::create(_1, 0.0F, 0.0F, 0.0F),
+            v4::create(0.0F, _2, 0.0F, 0.0F),
+            v4::create(0.0F, 0.0F, _3, _5),
+            v4::create(0.0F, 0.0F, _4, 0.0F)
         );
     }
 
     /*constexpr*/ static auto
-    perspective_rh_gl(f32 fovy, f32 aspect, f32 near, f32 far) noexcept -> mat4x4;
+    perspective_lh_no(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4 {
+        const f32 frustum_depth = z_far - z_near;
+        const f32 focal_length = 1.0F / std::tan(fovy / 2.0F);
+        // const f32 focal_length = std::cos(fovy / 2.0F) / std::sin(fovy / 2.0F);
+        const f32 z_factor = 1.0F;
 
-    /*constexpr*/ static auto
-    perspective_rh(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4 {
-        auto sin_fov = static_cast<f32>(std::sin(fovy / 2.0F));
-        auto cos_fov = static_cast<f32>(std::cos(fovy / 2.0F));
-        auto h = cos_fov / sin_fov;
-        auto w = h / aspect;
-        auto r = z_far / (z_near - z_far);
+        f32 _1 = focal_length / aspect;
+        f32 _2 = focal_length;
+        f32 _3 = z_factor * ((z_far + z_near) / frustum_depth);
+        f32 _4 = -(2.0F * z_near * z_far) / frustum_depth;
+        f32 _5 = z_factor;
+
         return mat4x4::from_cols(
-            v4::create(w, 0.0F, 0.0F, 0.0F),
-            v4::create(0.0F, h, 0.0F, 0.0F),
-            v4::create(0.0F, 0.0F, r, -1.0F),
-            v4::create(0.0F, 0.0F, r * z_near, 0.0F)
+            v4::create(_1, 0.0F, 0.0F, 0.0F),
+            v4::create(0.0F, _2, 0.0F, 0.0F),
+            v4::create(0.0F, 0.0F, _3, _5),
+            v4::create(0.0F, 0.0F, _4, 0.0F)
         );
     }
 
     /*constexpr*/ static auto
-    perspective_lh(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4 {
-        auto sin_fov = static_cast<f32>(std::sin(fovy / 2.0F));
-        auto cos_fov = static_cast<f32>(std::cos(fovy / 2.0F));
-        auto h = cos_fov / sin_fov;
-        auto w = h / aspect;
-        auto r = z_far / (z_near - z_far);
+    perspective_lh_zo(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4 {
+        const f32 frustum_depth = z_far - z_near;
+        const f32 focal_length = 1.0F / std::tan(fovy / 2.0F);
+        // const auto focal_length = std::cos(fovy / 2.0F) / std::sin(fovy / 2.0F);
+        const f32 z_factor = 1.0F;
+
+        f32 _1 = focal_length / aspect;
+        f32 _2 = focal_length;
+        f32 _3 = z_factor * (z_far / frustum_depth);
+        f32 _4 = -(z_near * z_far) / frustum_depth;
+        f32 _5 = z_factor;
+
         return mat4x4::from_cols(
-            v4::create(w, 0.0F, 0.0F, 0.0F),
-            v4::create(0.0F, h, 0.0F, 0.0F),
-            v4::create(0.0F, 0.0F, r, 1.0F),
-            v4::create(0.0F, 0.0F, -r * z_near, 0.0F)
+            v4::create(_1, 0.0F, 0.0F, 0.0F),
+            v4::create(0.0F, _2, 0.0F, 0.0F),
+            v4::create(0.0F, 0.0F, _3, _5),
+            v4::create(0.0F, 0.0F, _4, 0.0F)
         );
     }
 
@@ -222,6 +365,10 @@ public: // static methods for matrices
         );
     }
 
+    /// Creates a right-handed look-at view matrix.
+    ///
+    /// The resulting matrix transforms a point from the world space to the view space.
+    /// For coordinate system with +x=right, +y=up, +z=back.
     constexpr static auto
     look_to_rh(const v3& eye, const v3& direction, const v3& up) noexcept -> mat4x4 {
         auto forward = direction.get_normal();
@@ -236,18 +383,22 @@ public: // static methods for matrices
         );
     }
 
-    constexpr static auto look_to_lh(const v3& eye, const v3& direction, const v3& up)
-        -> mat4x4 {
+    /// Creates a left-handed look-at view matrix.
+    ///
+    /// The resulting matrix transforms a point from the world space to the view space.
+    /// For coordinate system with +x=right, +y=up, +z=back.
+    constexpr static auto
+    look_to_lh(const v3& eye, const v3& direction, const v3& up) -> mat4x4 {
         return mat4x4::look_to_rh(eye, -direction, up);
     }
 
-    constexpr static auto look_at_lh(const v3& eye, const v3& target, const v3& up)
-        -> mat4x4 {
+    constexpr static auto
+    look_at_lh(const v3& eye, const v3& target, const v3& up) -> mat4x4 {
         return mat4x4::look_to_lh(eye, target - eye, up);
     }
 
-    constexpr static auto look_at_rh(const v3& eye, const v3& target, const v3& up)
-        -> mat4x4 {
+    constexpr static auto
+    look_at_rh(const v3& eye, const v3& target, const v3& up) -> mat4x4 {
         return mat4x4::look_to_rh(eye, target - eye, up);
     }
 
@@ -279,13 +430,13 @@ inline constexpr auto mat4x4::operator=(const mat4x4& mat) noexcept -> mat4x4& {
     return (*this);
 }
 
-inline constexpr auto mat4x4::operator[](const u32 index) noexcept
-    -> std::array<f32, 4>& {
+inline constexpr auto mat4x4::operator[](const u32 index
+) noexcept -> std::array<f32, 4>& {
     return this->el[index];
 }
 
-inline constexpr auto mat4x4::operator[](const u32 index) const noexcept
-    -> const std::array<f32, 4>& {
+inline constexpr auto mat4x4::operator[](const u32 index
+) const noexcept -> const std::array<f32, 4>& {
     return this->el[index];
 }
 
@@ -312,7 +463,7 @@ inline constexpr auto mat4x4::operator*(const mat4x4& other) const noexcept -> m
     return result;
 }
 
-inline constexpr auto mat4x4::orthographic_rh_gl(
+inline constexpr auto mat4x4::orthographic_rh_no(
     f32 left,
     f32 right,
     f32 bottom,
@@ -320,13 +471,19 @@ inline constexpr auto mat4x4::orthographic_rh_gl(
     f32 z_near,
     f32 z_far
 ) noexcept -> mat4x4 {
-    const auto range = 2.0F;
-    const auto a = range / (right - left);
-    const auto b = range / (top - bottom);
-    const auto c = -range / (z_far - z_near);
-    const auto tx = -(right + left) / (right - left);
-    const auto ty = -(top + bottom) / (top - bottom);
-    const auto tz = -(z_far + z_near) / (z_far - z_near);
+    const f32 frustum_width = right - left;
+    const f32 frustum_height = top - bottom;
+    const f32 frustum_depth = z_far - z_near;
+
+    const f32 range = 2.0F;
+
+    const f32 a = range / frustum_width;
+    const f32 b = range / frustum_height;
+    const f32 c = -range / frustum_depth;
+
+    const f32 tx = -(right + left) / frustum_width;
+    const f32 ty = -(top + bottom) / frustum_height;
+    const f32 tz = -(z_far + z_near) / frustum_depth;
 
     return mat4x4::from_cols(
         v4::create(a, 0.0F, 0.0F, 0.0F),
@@ -336,37 +493,74 @@ inline constexpr auto mat4x4::orthographic_rh_gl(
     );
 }
 
-inline /*constexpr*/ auto
-mat4x4::perspective_rh_gl(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
-    -> mat4x4 {
-    auto tan_half_fovy = static_cast<f32>(std::tan(fovy / 2.0F));
-    auto zoom = 1.0F / tan_half_fovy;
+inline constexpr auto
+perspe_0(f32 left, f32 right, f32 top, f32 bottom, f32 far, f32 near) noexcept -> mat4x4 {
 
-    auto a = 1.0F / (aspect * tan_half_fovy);
-    auto b = zoom;
-    auto c = -(z_far + z_near) / (z_far - z_near);
-    auto d = -(2.0F * z_far * z_near) / (z_far - z_near);
-    return mat4x4::from_cols(
-        v4::create(a, 0.0F, 0.0F, 0.0F),
-        v4::create(0.0F, b, 0.0F, 0.0F),
-        v4::create(0.0F, 0.0F, c, -1.0F),
-        v4::create(0.0F, 0.0F, d, 0.0F)
-    );
+    enum API {
+        DEFAULT,
+        VULKAN,
+    };
 
-    {
-        auto inv_length = 1.0F / (z_near - z_far);
-        auto zoom = 1.0F / static_cast<f32>(std::tan(0.5F * fovy));
-        auto a = zoom / aspect;
-        auto b = zoom;
-        auto c = (z_near + z_far) * inv_length;
-        auto d = (2.0F * z_near * z_far) * inv_length;
-        return mat4x4::from_cols(
-            v4::create(a, 0.0F, 0.0F, 0.0F),
-            v4::create(0.0F, b, 0.0F, 0.0F),
-            v4::create(0.0F, 0.0F, c, -1.0F),
-            v4::create(0.0F, 0.0F, d, 0.0F)
-        );
+    f32  y_dir = {};
+    auto api = API::VULKAN;
+    if (api == API::DEFAULT) {
+        y_dir = 1;
+    } else if (api == API::VULKAN) {
+        y_dir = -1;
     }
+
+    auto map_to_c1 = [](f32 p, f32 q, f32 near, f32 far) -> f32 {
+        return ((p - q) * near * far) / (-near + far);
+    };
+
+    auto map_to_c2 = [](f32 p, f32 q, f32 near, f32 far) -> f32 {
+        return (p * near - q * far) / (near - far);
+    };
+    mat4x4 translate = mat4x4::identity();
+    translate[3][0] = -(right + left) / 2.0F;
+    translate[3][1] = -(top + bottom) / 2.0F;
+
+    mat4x4 scale_depth = mat4x4::identity();
+    auto   c1 = map_to_c1(-1, 1, near, far);
+    auto   c2 = map_to_c2(-1, 1, near, far);
+    scale_depth[2][2] = c1;
+    scale_depth[2][3] = -1.0F;
+    scale_depth[3][2] = c2;
+
+    mat4x4 perspective = mat4x4::identity();
+    perspective[0][0] = near;
+    perspective[1][1] = near;
+
+    mat4x4 scale = mat4x4::identity();
+    scale[0][0] = 2.0F / (right - left);
+    scale[1][1] = 2.0F / (top - bottom);
+    scale[1][1] *= y_dir;
+
+    mat4x4 res = scale * perspective * scale_depth * translate;
+    return res;
+}
+
+inline /*constexpr*/ auto
+mat4x4::perspective_rh_no(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
+    -> mat4x4 {
+
+    const f32 frustum_depth = z_far - z_near;
+    const f32 focal_length = 1.0F / std::tan(fovy / 2.0F);
+    // const auto focal_length = std::cos(fovy / 2.0F) / std::sin(fovy / 2.0F);
+    const f32 z_factor = -1.0F;
+
+    f32 _1 = focal_length / aspect;
+    f32 _2 = focal_length;
+    f32 _3 = z_factor * ((z_far + z_near) / frustum_depth);
+    f32 _4 = -(2.0F * z_far * z_near) / frustum_depth;
+    f32 _5 = z_factor;
+
+    return mat4x4::from_cols(
+        v4::create(_1, 0.0F, 0.0F, 0.0F),
+        v4::create(0.0F, _2, 0.0F, 0.0F),
+        v4::create(0.0F, 0.0F, _3, _5),
+        v4::create(0.0F, 0.0F, _4, 0.0F)
+    );
 }
 
 inline constexpr auto mat4x4::identity() noexcept -> mat4x4 {

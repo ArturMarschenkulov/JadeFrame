@@ -177,16 +177,7 @@ set(Files_Datatypes
     "src/JadeFrame/datatypes/string.h"
 )
 
-set(Files_Math
-    "src/JadeFrame/math/i128.h"
-    "src/JadeFrame/math/mat.h"
-    "src/JadeFrame/math/mat_4.h"
-    "src/JadeFrame/math/math.h"
-    "src/JadeFrame/math/vec.h"
-
-    "src/JadeFrame/math/math.cpp"
-    "src/JadeFrame/math/vec.cpp"
-)
+add_subdirectory(src/JadeFrame/math)
 
 set(Files_Utils
     "src/JadeFrame/utils/assert.h"
@@ -357,6 +348,8 @@ target_link_libraries(
         spirv-cross-hlsl
         spirv-cross-glsl
         spirv-cross-msl
+
+        JF_MODULE_math
         gfx-opengl
         gfx-vulkan
         GPUOpen::VulkanMemoryAllocator

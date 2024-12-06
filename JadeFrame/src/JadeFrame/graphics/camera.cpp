@@ -1,4 +1,4 @@
-#include "JadeFrame/graphics/graphics_shared.h"
+#include "JadeFrame/math/mat_4.h"
 #include "pch.h"
 #include "camera.h"
 
@@ -27,19 +27,19 @@ public:
                 .m_right = v3::X(),
                 .m_forward = v3::NEG_Z(),
             };
-        } else if (up == v3::Y() && handed == HANDED::RIGHT) {
-            // Bevy, Maya, Modo, Godot, Substance Painter, Houdini, Minecraft
-            return CoordinateSystem{
-                .m_up = v3::Y(),
-                .m_right = v3::X(),
-                .m_forward = v3::Z(),
-            };
         } else if (up == v3::Z() && handed == HANDED::LEFT) {
             // Unreal Engine
             return CoordinateSystem{
                 .m_up = v3::Z(),
                 .m_right = v3::X(),
                 .m_forward = v3::NEG_Y(),
+            };
+        } else if (up == v3::Y() && handed == HANDED::RIGHT) {
+            // Bevy, Maya, Modo, Godot, Substance Painter, Houdini, Minecraft
+            return CoordinateSystem{
+                .m_up = v3::Y(),
+                .m_right = v3::X(),
+                .m_forward = v3::Z(),
             };
         } else if (up == v3::Z() && handed == HANDED::RIGHT) {
             // Blender, 3DSMax, SketchUp, Source, Autodesk AutoCAD
@@ -68,7 +68,7 @@ public:
         return CoordinateSystem::create(v3::Y(), HANDED::RIGHT);
     }
 
-    // Unity, LightWave, ZBrush, Cinema4D
+    // Unity, LightWave, ZBrush, Cinema4D, OpenGL
     consteval static auto y_up_left_handed() -> CoordinateSystem {
         return CoordinateSystem::create(v3::Y(), HANDED::LEFT);
     }
@@ -90,14 +90,9 @@ struct OrthographicProjection {
     f32 m_far;
 };
 
-auto Camera::get_projection() const -> mat4x4 { return m_projection_matrix; }
-
-auto Camera::get_view() const -> mat4x4 {
-    return mat4x4::look_at_rh(m_position, m_position + m_forward, m_up);
-}
-
 auto Camera::get_view_projection() const -> mat4x4 {
-    return this->get_view() * this->get_projection();
+    return m_projection_matrix *
+           mat4x4::look_at_rh(m_position, m_position + m_forward, m_up);
 }
 
 auto Camera::perspective(
@@ -107,16 +102,16 @@ auto Camera::perspective(
     const f32 z_near,
     const f32 z_far
 ) -> Camera {
-    const auto coordinate_system = CoordinateSystem::z_up_right_handed();
+    const CoordinateSystem coordinate_system = CoordinateSystem::z_up_right_handed();
 
     Camera camera;
+    camera.m_mode = MODE::PERSPECTIVE;
     camera.m_forward = coordinate_system.m_forward;
     camera.m_world_up = coordinate_system.m_up;
 
-    camera.m_mode = MODE::PERSPECTIVE;
     camera.m_position = position;
 
-    camera.m_projection_matrix = mat4x4::perspective_rh_gl(fov, aspect, z_near, z_far);
+    camera.m_projection_matrix = mat4x4::perspective_rh_no(fov, aspect, z_near, z_far);
 
     camera.m_fov = fov;
     camera.m_aspect = aspect;
@@ -136,15 +131,17 @@ auto Camera::orthographic(
     assert(left != right);
     assert(bottom != top);
     assert(near_ != far_);
-    const auto coordinate_system = CoordinateSystem::y_up_left_handed();
+    const CoordinateSystem coordinate_system = CoordinateSystem::y_up_left_handed();
 
     Camera camera;
-    camera.m_forward = coordinate_system.m_forward;
-    camera.m_up = coordinate_system.m_up;
-
     camera.m_mode = MODE::ORTHOGRAPHIC;
+    camera.m_forward = coordinate_system.m_forward;
+    camera.m_world_up = coordinate_system.m_up;
+    camera.m_up = camera.m_world_up;
+    camera.m_right = coordinate_system.m_right;
+
     camera.m_projection_matrix =
-        mat4x4::orthographic_rh_gl(left, right, bottom, top, near_, far_);
+        mat4x4::orthographic_rh_no(left, right, bottom, top, near_, far_);
     camera.m_position = v3::zero();
 
     return camera;
