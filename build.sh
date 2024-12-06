@@ -3,10 +3,19 @@
 build_dir="build"
 
 
-# if clean is passed as an argument, remove the build directory
-if [ "$1" == "clean" ]; then
+# if `remove` is passed as an argument, remove the build directory
+if [ "$1" == "remove" ]; then
     if [ -d $build_dir ]; then
         rm -r $build_dir
+    fi
+    exit 0
+fi
+
+# if `clear` is passed as an argument, remove the cmake cache called CMakeCache.txt
+if [ "$1" == "clear" ]; then
+    cd $build_dir
+    if [ -f CMakeCache.txt ]; then
+        rm CMakeCache.txt
     fi
     exit 0
 fi
