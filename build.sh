@@ -20,8 +20,30 @@ if [ "$1" == "clear" ]; then
     exit 0
 fi
 
+if [ "$1" == "test" ]; then
+    cd $build_dir
+    ctest --verbose
+    exit 0
+fi
+
 if [ ! -d $build_dir ]; then
     mkdir $build_dir
+fi
+
+
+if [ "$1" == "build" ]; then
+    cd $build_dir
+    cmake ../. && cmake --build . -j10
+    compiledb -n make
+    echo "Build successful"
+    exit 0
+fi
+
+if [ "$1" == "build_test" ]; then
+    cd $build_dir
+    cmake ../. && cmake --build . --target test -j10 
+    echo "Tests build successful"
+    exit 0
 fi
 cd $build_dir
 
