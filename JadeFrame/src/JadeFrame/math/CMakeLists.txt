@@ -18,4 +18,4 @@ target_link_libraries(JF_MODULE_math
         JadeFrame
 )
 
-# add_subdirectory(tests)
+add_subdirectory(tests)

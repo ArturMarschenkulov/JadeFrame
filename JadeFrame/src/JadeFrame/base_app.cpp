@@ -10,16 +10,13 @@
 
 #include "JadeFrame/math/vec.h"
 
-#include "JadeFrame/utils/utils.h"
 #include "JadeFrame/math/math.h"
 #include "JadeFrame/ptr/ptr.h"
-
-#include <utility>
 
 namespace JadeFrame {
 
 auto control_camera(Camera* self, const InputState& i) -> void {
-    const f32 velocity = 0.1f;
+    const f32 velocity = 0.1F;
     if (self->m_mode == Camera::MODE::PERSPECTIVE) {
         if (i.is_key_down(KEY::E)) { self->m_position += self->m_up * velocity; }
         if (i.is_key_down(KEY::Q)) { self->m_position -= self->m_up * velocity; }
@@ -45,10 +42,10 @@ auto control_camera(Camera* self, const InputState& i) -> void {
         front.x = std::cos(to_radians(self->m_yaw)) * std::cos(to_radians(self->m_pitch));
         front.y = std::sin(to_radians(self->m_pitch));
         front.z = std::sin(to_radians(self->m_yaw)) * std::cos(to_radians(self->m_pitch));
-        self->m_forward = front.get_normal();
+        self->m_forward = front.normalize();
 
-        self->m_right = self->m_forward.cross(self->m_world_up).get_normal();
-        self->m_up = self->m_right.cross(self->m_forward).get_normal();
+        self->m_right = self->m_forward.cross(self->m_world_up).normalize();
+        self->m_up = self->m_right.cross(self->m_forward).normalize();
     } else if (self->m_mode == Camera::MODE::ORTHOGRAPHIC) {
         if (i.is_key_down(KEY::E)) { self->m_position += self->m_up * velocity; }
         if (i.is_key_down(KEY::Q)) { self->m_position -= self->m_up * velocity; }

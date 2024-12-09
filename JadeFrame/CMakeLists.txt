@@ -2,6 +2,9 @@ set(PROJECT_NAME JadeFrame)
 
 # Add Vulkan
 find_package(Vulkan REQUIRED)
+find_package(GTest REQUIRED)
+
+
 
 add_subdirectory(src/extern/VulkanMemoryAllocator/)
 
@@ -122,7 +125,7 @@ add_subdirectory(src/extern/shaderc/ EXCLUDE_FROM_ALL)
 # set(SPIRV_CROSS_CLI OFF)
 # set(SPIRV_CROSS_ENABLE_HLSL OFF)
 # set(SPIRV_CROSS_ENABLE_MSL OFF)
-# set(SPIRV_CROSS_ENABLE_TESTS OFF)
+set(SPIRV_CROSS_ENABLE_TESTS OFF)
 add_subdirectory(src/extern/SPIRV-Cross/ EXCLUDE_FROM_ALL)
 
 # endif()
@@ -348,6 +351,7 @@ target_link_libraries(
         spirv-cross-hlsl
         spirv-cross-glsl
         spirv-cross-msl
+        GTest::gtest_main
 
         JF_MODULE_math
         gfx-opengl

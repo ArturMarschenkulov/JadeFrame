@@ -3,7 +3,7 @@
 #include "JadeFrame/types.h"
 #include "vec.h"
 
-#include <array>
+#include <cassert>
 
 JF_PRAGMA_PUSH
 
@@ -59,12 +59,43 @@ public:
     constexpr auto operator=(mat4x4&& mat) noexcept -> mat4x4& = default;
 
 public:
+    using Col = std::array<f32, 4>;
+
+    constexpr auto     operator[](const u32 index) noexcept -> Col&; // for writing
     constexpr auto     operator[](const u32 index
-    ) noexcept -> std::array<f32, 4>&; // for writing
-    constexpr auto     operator[](const u32 index
-    ) const noexcept -> const std::array<f32, 4>&; // for reading
+    ) const noexcept -> const Col&; // for reading
     /*constexpr*/ auto operator*(const v4& vector) const noexcept -> v4;
     constexpr auto     operator*(const mat4x4& other) const noexcept -> mat4x4;
+
+    constexpr auto operator+(const mat4x4& other) const noexcept -> mat4x4 {
+        mat4x4 result = {};
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) { result[i][j] = (*this)[i][j] + other[i][j]; }
+        }
+        return result;
+    }
+
+    constexpr auto operator-(const mat4x4& other) const noexcept -> mat4x4 {
+        mat4x4 result = {};
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) { result[i][j] = (*this)[i][j] - other[i][j]; }
+        }
+        return result;
+    }
+
+    constexpr auto operator==(const mat4x4& b) const noexcept -> bool {
+        float tolerance = 1e-6f;
+        for (int row = 0; row < 4; ++row) {
+            for (int col = 0; col < 4; ++col) {
+                if (std::fabs((*this)[row][col] - b[row][col]) > tolerance) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    constexpr auto operator!=(const mat4x4& other) const noexcept -> bool;
 
 public: // static methods for matrices
     constexpr static auto
@@ -87,6 +118,30 @@ public: // static methods for matrices
             v4::create(row1.z, row2.z, row3.z, row4.z),
             v4::create(row1.w, row2.w, row3.w, row4.w)
         );
+    }
+
+    [[nodiscard]] constexpr auto
+    to_scale_rotation_translation() const noexcept -> std::tuple<v3, mat4x4, v3> {
+        f32 det = this->get_determinant();
+
+        v3 scale = v3::create(
+            x_axis.length() * (det < 0 ? -1 : 1), y_axis.length(), z_axis.length()
+
+        );
+
+        v3     inv_scale = scale.reciprocal();
+        mat4x4 rotation = mat4x4::from_rows(
+            x_axis * inv_scale.x, y_axis * inv_scale.y, z_axis * inv_scale.z, v4::W()
+        );
+
+        v3 translation = v3::create(w_axis.x, w_axis.y, w_axis.z);
+        return {scale, rotation, translation};
+    }
+
+    constexpr static auto
+    from_scale_rotation_translation(v3 scale, mat4x4 rotation, v3 translation) noexcept
+        -> mat4x4 {
+        return mat4x4::translation(translation) * rotation * mat4x4::scale(scale);
     }
 
     constexpr static auto orthographic_rh_no(
@@ -155,7 +210,7 @@ public: // static methods for matrices
             v4::create(a, 0.0F, 0.0F, 0.0F),
             v4::create(0.0F, b, 0.0F, 0.0F),
             v4::create(0.0F, 0.0F, c, 0.0F),
-            v4::create(tx, tz, ty, 1.0F)
+            v4::create(tx, ty, tz, 1.0F)
         );
     }
 
@@ -250,7 +305,7 @@ public: // static methods for matrices
         f32 _1 = focal_length / aspect;
         f32 _2 = focal_length;
         f32 _3 = z_factor * (z_far / frustum_depth);
-        f32 _4 = -(z_near * z_far) / frustum_depth;
+        f32 _4 = (-1.0F * z_near * z_far) / frustum_depth;
         f32 _5 = z_factor;
 
         return mat4x4::from_cols(
@@ -271,7 +326,7 @@ public: // static methods for matrices
         f32 _1 = focal_length / aspect;
         f32 _2 = focal_length;
         f32 _3 = z_factor * ((z_far + z_near) / frustum_depth);
-        f32 _4 = -(2.0F * z_near * z_far) / frustum_depth;
+        f32 _4 = (-2.0F * z_near * z_far) / frustum_depth;
         f32 _5 = z_factor;
 
         return mat4x4::from_cols(
@@ -287,13 +342,19 @@ public: // static methods for matrices
         const f32 frustum_depth = z_far - z_near;
         const f32 focal_length = 1.0F / std::tan(fovy / 2.0F);
         // const auto focal_length = std::cos(fovy / 2.0F) / std::sin(fovy / 2.0F);
+
         const f32 z_factor = 1.0F;
 
-        f32 _1 = focal_length / aspect;
-        f32 _2 = focal_length;
-        f32 _3 = z_factor * (z_far / frustum_depth);
-        f32 _4 = -(z_near * z_far) / frustum_depth;
-        f32 _5 = z_factor;
+        const f32 z_range_min = 0.0F;
+        const f32 z_range_max = 1.0F;
+        const f32 c_0 = z_range_max * z_far - z_range_min * z_near;
+        const f32 c_1 = (z_range_min - z_range_max) * z_near * z_far;
+
+        const f32 _1 = focal_length / aspect;
+        const f32 _2 = focal_length;
+        const f32 _3 = z_factor * (c_0 / frustum_depth);
+        const f32 _4 = c_1 / frustum_depth;
+        const f32 _5 = z_factor;
 
         return mat4x4::from_cols(
             v4::create(_1, 0.0F, 0.0F, 0.0F),
@@ -371,22 +432,22 @@ public: // static methods for matrices
     /// For coordinate system with +x=right, +y=up, +z=back.
     constexpr static auto
     look_to_rh(const v3& eye, const v3& direction, const v3& up) noexcept -> mat4x4 {
-        auto forward = direction.get_normal();
-        auto s = forward.cross(up).get_normal();
-        auto u = s.cross(forward);
+        v3 forward = direction.normalize();
+        v3 s = forward.cross(up).normalize();
+        v3 u = s.cross(forward);
 
         return mat4x4::from_cols(
-            v4(s.x, u.x, -forward.x, 0.0F),
-            v4(s.y, u.y, -forward.y, 0.0F),
-            v4(s.z, u.z, -forward.z, 0.0F),
-            v4(-s.dot(eye), -u.dot(eye), forward.dot(eye), 1.0F)
+            v4::create(s.x, u.x, -forward.x, 0.0F),
+            v4::create(s.y, u.y, -forward.y, 0.0F),
+            v4::create(s.z, u.z, -forward.z, 0.0F),
+            v4::create(-s.dot(eye), -u.dot(eye), forward.dot(eye), 1.0F)
         );
     }
 
     /// Creates a left-handed look-at view matrix.
     ///
     /// The resulting matrix transforms a point from the world space to the view space.
-    /// For coordinate system with +x=right, +y=up, +z=back.
+    /// For coordinate system with +x=right, +y=up, +z=forward.
     constexpr static auto
     look_to_lh(const v3& eye, const v3& direction, const v3& up) -> mat4x4 {
         return mat4x4::look_to_rh(eye, -direction, up);
@@ -403,6 +464,40 @@ public: // static methods for matrices
     }
 
 public:
+    [[nodiscard]] constexpr auto transform_vector3(const v3& vec) const noexcept -> v3 {
+        v4 res = v4::zero();
+        res = (x_axis * vec.x) + res;
+        res = (y_axis * vec.y) + res;
+        res = (z_axis * vec.z) + res;
+        return v3::create(res.x, res.y, res.z);
+    }
+
+    [[nodiscard]] constexpr auto transform_point3(const v3& point) const noexcept -> v3 {
+        if (w_axis == v4::W()) {
+            std::cout << w_axis << std::endl;
+            assert(w_axis == v4::W() && "The w component of the w_axis must be 1.0F");
+        }
+
+        v4 res = v4::zero();
+        res = (x_axis * point.x) + res;
+        res = (y_axis * point.y) + res;
+        res = (z_axis * point.z) + res;
+        res = (w_axis * 1.0F) + res;
+        return v3::create(res.x, res.y, res.z);
+    }
+
+    [[nodiscard]] constexpr auto project_point3(const v3& point) const noexcept -> v3 {
+
+        v4 res = v4::zero();
+        res = (x_axis * point.x) + res;
+        res = (y_axis * point.y) + res;
+        res = (z_axis * point.z) + res;
+        res = (w_axis * 1.0F) + res;
+        res = res * v4::create(res.w, res.w, res.w, res.w).reciprocal();
+        return v3::create(res.x, res.y, res.z);
+    }
+
+public:
     [[nodiscard]] constexpr auto get_determinant() const -> f32;
     [[nodiscard]] constexpr auto get_echelon() const -> mat4x4;
     [[nodiscard]] constexpr auto get_transpose() const -> mat4x4;
@@ -413,14 +508,34 @@ public:
 
     constexpr auto make_echelon() -> mat4x4&;
 
-private:
+public:
     union {
         std::array<std::array<f32, 4>, 4> el;
         std::array<v4, 4>                 col_vec;
+
+        struct {
+            v4 x_axis;
+            v4 y_axis;
+            v4 z_axis;
+            v4 w_axis;
+        };
     };
 };
 
 // IMPLEMENTATION
+
+template<typename T>
+auto operator<<(std::ostream& os, const mat4x4& v) -> std::ostream& {
+    os << '{';
+    os << '{' << v[0][0] << ", " << v[0][1] << ", " << v[0][2] << ", " << v[0][3] << '}';
+    os << ',';
+    os << '{' << v[1][0] << ", " << v[1][1] << ", " << v[1][2] << ", " << v[1][3] << '}';
+    os << ',';
+    os << '{' << v[2][0] << ", " << v[2][1] << ", " << v[2][2] << ", " << v[2][3] << '}';
+    os << ',';
+    os << '{' << v[3][0] << ", " << v[3][1] << ", " << v[3][2] << ", " << v[3][3] << '}';
+    return os;
+}
 
 inline constexpr auto mat4x4::operator=(const mat4x4& mat) noexcept -> mat4x4& {
     if (this == &mat) { return *this; }
@@ -456,7 +571,8 @@ inline constexpr auto mat4x4::operator*(const mat4x4& other) const noexcept -> m
         for (u32 col = 0; col < 4; ++col) {
             for (u32 k = 0; k < 4; ++k) {
                 // result.el[col][row] += el[k][row] * other.el[col][k];
-                result.el[col][row] += el[col][k] * other.el[k][row];
+                // result.el[col][row] += el[col][k] * other.el[k][row];
+                result.el[col][row] += el[k][row] * other.el[col][k];
             }
         }
     }
@@ -510,11 +626,11 @@ perspe_0(f32 left, f32 right, f32 top, f32 bottom, f32 far, f32 near) noexcept -
     }
 
     auto map_to_c1 = [](f32 p, f32 q, f32 near, f32 far) -> f32 {
-        return ((p - q) * near * far) / (-near + far);
+        return ((p - q) * near * far) / (far - near);
     };
 
     auto map_to_c2 = [](f32 p, f32 q, f32 near, f32 far) -> f32 {
-        return (p * near - q * far) / (near - far);
+        return -(p * near - q * far) / (far - near);
     };
     mat4x4 translate = mat4x4::identity();
     translate[3][0] = -(right + left) / 2.0F;
@@ -552,7 +668,7 @@ mat4x4::perspective_rh_no(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
     f32 _1 = focal_length / aspect;
     f32 _2 = focal_length;
     f32 _3 = z_factor * ((z_far + z_near) / frustum_depth);
-    f32 _4 = -(2.0F * z_far * z_near) / frustum_depth;
+    f32 _4 = (-2.0F * z_far * z_near) / frustum_depth;
     f32 _5 = z_factor;
 
     return mat4x4::from_cols(
@@ -587,22 +703,39 @@ inline constexpr auto mat4x4::diagonal(const v4& diag) noexcept -> mat4x4 {
 }
 
 inline /*constexpr*/ auto mat4x4::rotation(f32 angle, const v3& axis) noexcept -> mat4x4 {
-    const f32 c = static_cast<f32>(cos(angle));
+    const f32 c = static_cast<f32>(std::cos(angle));
+    const f32 s = static_cast<f32>(std::sin(angle));
+
     const f32 omc = 1 - c;
-    const f32 s = static_cast<f32>(sin(angle));
+
+    const v3 axis_sin = axis * s;
+    const v3 axis_sq = axis * axis;
+
+    const f32 xy_omc = axis.x * axis.y * omc;
+    const f32 xz_omc = axis.x * axis.z * omc;
+    const f32 yz_omc = axis.y * axis.z * omc;
 
     mat4x4 result = mat4x4::identity();
-    result.el[0][0] = axis.x * axis.x * omc + c;
-    result.el[0][1] = axis.y * axis.x * omc + axis.z * s;
-    result.el[0][2] = axis.z * axis.x * omc - axis.y * s;
+    result.el[0][0] = axis_sq.x * omc + c;
+    result.el[0][1] = xy_omc + axis_sin.z;
+    result.el[0][2] = xz_omc - axis_sin.y;
+    result.el[0][3] = 0.0F;
 
-    result.el[1][0] = axis.x * axis.y * omc - axis.z * s;
-    result.el[1][1] = axis.y * axis.y * omc + c;
-    result.el[1][2] = axis.z * axis.y * omc + axis.x * s;
+    result.el[1][0] = xy_omc - axis_sin.z;
+    result.el[1][1] = axis_sq.y * omc + c;
+    result.el[1][2] = yz_omc + axis_sin.x;
+    result.el[1][3] = 0.0F;
 
-    result.el[2][0] = axis.x * axis.z * omc + axis.y * s;
-    result.el[2][1] = axis.y * axis.z * omc - axis.x * s;
-    result.el[2][2] = axis.z * axis.z * omc + c;
+    result.el[2][0] = xz_omc + axis_sin.y;
+    result.el[2][1] = yz_omc - axis_sin.x;
+    result.el[2][2] = axis_sq.z * omc + c;
+    result.el[2][3] = 0.0F;
+
+    result.el[3][0] = 0.0F;
+    result.el[3][1] = 0.0F;
+    result.el[3][2] = 0.0F;
+    result.el[3][3] = 1.0F;
+
     return result;
 }
 

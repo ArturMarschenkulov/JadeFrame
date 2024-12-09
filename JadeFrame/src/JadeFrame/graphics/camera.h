@@ -37,12 +37,12 @@ public:
     mat4x4 m_projection_matrix = mat4x4::zero();
     mat4x4 m_view_matrix = mat4x4::zero();
 
-    v3 m_position = {};
-    v3 m_forward = {}; // front
-    v3 m_up = {};
-    v3 m_world_up = {
-    }; // TODO: Seems to be a global thing, maybe should to a more global scope?
-    v3 m_right = {};
+    v3 m_position;
+    v3 m_forward; // front
+    v3 m_up;
+    // TODO: Seems to be a global thing, maybe should to a more global scope?
+    v3 m_world_up;
+    v3 m_right;
 
     f32 m_fov = {};
     f32 m_aspect = {};
@@ -51,6 +51,7 @@ public:
 
     f32 m_yaw = {};
     f32 m_pitch = {};
+    f32 m_roll = {};
 };
 
 class Camera0 {

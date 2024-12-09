@@ -150,19 +150,23 @@ public:
 
 public: // operators
     constexpr auto operator+(const _v3& other) const -> _v3 {
-        return _v3(x + other.x, y + other.y, z + other.z);
+        return _v3::create(x + other.x, y + other.y, z + other.z);
     }
 
     constexpr auto operator-(const _v3& other) const -> _v3 {
-        return _v3(x - other.x, y - other.y, z - other.z);
+        return _v3::create(x - other.x, y - other.y, z - other.z);
     }
 
     constexpr auto operator*(const T& other) const -> _v3 {
-        return _v3(x * other, y * other, z * other);
+        return _v3::create(x * other, y * other, z * other);
     }
 
     constexpr auto operator/(const T& other) const -> _v3 {
-        return _v3(x / other, y / other, z / other);
+        return _v3::create(x / other, y / other, z / other);
+    }
+
+    constexpr auto operator*(const _v3& other) const -> _v3 {
+        return _v3::create(x * other.x, y * other.y, z * other.z);
     }
 
     constexpr auto operator+=(const _v3& other) -> _v3& {
@@ -185,13 +189,18 @@ public: // operators
         return *this;
     }
 
-    constexpr auto operator==(const _v3& other) -> bool {
-        return (x == other.x) && (y == other.y) && (z == other.z);
+    constexpr auto operator==(const _v3& other) const -> bool {
+        const f64 tolerance = 1e-6;
+        return (std::fabs(x - other.x) < tolerance) &&
+               (std::fabs(y - other.y) < tolerance) &&
+               (std::fabs(z - other.z) < tolerance);
     }
 
-    constexpr auto operator!=(const _v3& other) -> bool { return !(*this == other); }
+    constexpr auto operator!=(const _v3& other) const -> bool {
+        return !(*this == other);
+    }
 
-    constexpr auto operator-() const -> _v3 { return _v3(-x, -y, -z); }
+    constexpr auto operator-() const -> _v3 { return _v3::create(-x, -y, -z); }
 
     // constexpr auto operator[](const u32 index) const -> T& {
     //     if (index == 0) { return x; }
@@ -223,48 +232,57 @@ public: // named operations
     constexpr auto dot(const _v3& o) const -> T { return x * o.x + y * o.y + z * o.z; }
 
     constexpr auto cross(const _v3& o) const -> _v3 {
-        return _v3(y * o.z - z * o.y, z * o.x - x * o.z, x * o.y - y * o.x);
+        return _v3::create(y * o.z - z * o.y, z * o.x - x * o.z, x * o.y - y * o.x);
     }
 
-    constexpr auto get_length() const -> T {
+    constexpr auto length() const -> T {
         const T dot = this->dot(*this);
-        return dot * dot /*std::sqrt(dot)*/;
+        return std::sqrt(dot);
     }
 
-    constexpr auto get_normal() const -> _v3 {
-        const T length = static_cast<T>(this->get_length());
-        return _v3(x / length, y / length, z / length);
+    constexpr auto normalize() const -> _v3 {
+        const T   length = static_cast<T>(this->length());
+        const T   inv_length = 1 / length;
+        const _v3 normalized = *this * inv_length;
+        return normalized;
     }
+
+    constexpr auto reciprocal() const -> _v3 { return _v3::create(1 / x, 1 / y, 1 / z); }
 
 public:
     T x = {}; // width, r
     T y = {}; // height, g
     T z = {}; // depth, b
 
-private:
-    constexpr _v3(const T x, const T y, const T z) noexcept
-        : x(x)
-        , y(y)
-        , z(z) {}
+    // private:
+    // constexpr _v3(const T x, const T y, const T z) noexcept
+    //     : x(x)
+    //     , y(y)
+    //     , z(z) {}
+    constexpr _v3(const T x, const T y, const T z) noexcept = delete;
 
 public:
     constexpr static auto create(const T x, const T y, const T z) noexcept -> _v3 {
-        return _v3(x, y, z);
+        _v3 result;
+        result.x = x;
+        result.y = y;
+        result.z = z;
+        return result;
     }
 
     constexpr static auto splat(const T& value) -> _v3 {
         return _v3::create(value, value, value);
     }
 
-    constexpr static auto zero() -> _v3 { return _v3(0, 0, 0); }
+    constexpr static auto zero() -> _v3 { return _v3::create(0, 0, 0); }
 
-    constexpr static auto one() -> _v3 { return _v3(1, 1, 1); }
+    constexpr static auto one() -> _v3 { return _v3::create(1, 1, 1); }
 
-    constexpr static auto X() -> _v3 { return _v3(1, 0, 0); }
+    constexpr static auto X() -> _v3 { return _v3::create(1, 0, 0); }
 
-    constexpr static auto Y() -> _v3 { return _v3(0, 1, 0); }
+    constexpr static auto Y() -> _v3 { return _v3::create(0, 1, 0); }
 
-    constexpr static auto Z() -> _v3 { return _v3(0, 0, 1); }
+    constexpr static auto Z() -> _v3 { return _v3::create(0, 0, 1); }
 
     constexpr static auto NEG_X() -> _v3 { return -_v3::X(); }
 
@@ -285,6 +303,10 @@ public:
     constexpr static auto
     create(const T x, const T y, const T z, const T w) noexcept -> _v4 {
         return _v4(x, y, z, w);
+    }
+
+    constexpr static auto create(const _v3<T>& xyz, const T w) noexcept -> _v4 {
+        return _v4(xyz.x, xyz.y, xyz.z, w);
     }
 
     constexpr static auto splat(const T& value) -> _v4 {
@@ -310,7 +332,80 @@ public:
     constexpr static auto NEG_Z() -> _v4 { return -_v4::Z(); }
 
     constexpr static auto NEG_W() -> _v4 { return -_v4::W(); }
+
+    constexpr auto length() const -> T {
+        return std::sqrt(x * x + y * y + z * z + w * w);
+    }
+
+public:
+    constexpr auto operator+(const _v4& other) const -> _v4 {
+        return _v4(x + other.x, y + other.y, z + other.z, w + other.w);
+    }
+
+    constexpr auto operator-(const _v4& other) const -> _v4 {
+        return _v4(x - other.x, y - other.y, z - other.z, w - other.w);
+    }
+
+    constexpr auto operator*(const _v4& other) const -> _v4 {
+        return _v4(x * other.x, y * other.y, z * other.z, w * other.w);
+    }
+
+    constexpr auto operator/(const _v4& other) const -> _v4 {
+        return _v4(x / other.x, y / other.y, z / other.z, w / other.w);
+    }
+
+    constexpr auto operator*(const T& other) const -> _v4 {
+        return _v4(x * other, y * other, z * other, w * other);
+    }
+
+    constexpr auto operator/(const T& other) const -> _v4 {
+        return _v4(x / other, y / other, z / other, w / other);
+    }
+
+    constexpr auto operator+=(const _v4& other) -> _v4& {
+        *this = *this + other;
+        return *this;
+    }
+
+    constexpr auto operator-=(const _v4& other) -> _v4& {
+        *this = *this - other;
+        return *this;
+    }
+
+    constexpr auto operator*=(const T& other) -> _v4& {
+        *this = *this * other;
+        return *this;
+    }
+
+    constexpr auto operator/=(const T& other) -> _v4& {
+        *this = *this / other;
+        return *this;
+    }
+
+    constexpr auto operator==(const _v4& other) const -> bool {
+        const f64 tolerance = 1e-6;
+        return std::fabs(x - other.x) < tolerance && std::fabs(y - other.y) < tolerance &&
+               std::fabs(z - other.z) < tolerance && std::fabs(w - other.w) < tolerance;
+    }
+
+    constexpr auto operator!=(const _v4& other) const -> bool {
+        return !(*this == other);
+    }
+
+    constexpr auto reciprocal() const -> _v4 { return _v4(1 / x, 1 / y, 1 / z, 1 / w); }
 };
+
+template<typename T>
+auto operator<<(std::ostream& os, const _v3<T>& v) -> std::ostream& {
+    os << '{' << v.x << ", " << v.y << ", " << v.z << '}';
+    return os;
+}
+
+template<typename T>
+auto operator<<(std::ostream& os, const _v4<T>& v) -> std::ostream& {
+    os << '{' << v.x << ", " << v.y << ", " << v.z << ", " << v.w << '}';
+    return os;
+}
 
 template<size_t N, typename T>
 class vector_t {
@@ -531,7 +626,7 @@ public:
     //	const T dot = this->dot(*this);
     //	return std::sqrt(dot);
     // }
-    // constexpr auto get_normal() const -> VectorT {
+    // constexpr auto normalize() const -> VectorT {
     //	const f32& length = this->get_length();
     //	return VectorT(x / length, y / length, z / length);
     // }
@@ -647,7 +742,7 @@ public:
         return dot * dot /*std::sqrt(dot)*/;
     }
 
-    constexpr auto get_normal() const -> VectorT {
+    constexpr auto normalize() const -> VectorT {
         const T length = static_cast<T>(this->get_length());
         return VectorT(x / length, y / length, z / length);
     }
@@ -785,7 +880,7 @@ public:
     //	const T dot = this->dot(*this);
     //	return std::sqrt(dot);
     // }
-    // constexpr auto get_normal() const -> Vec3 {
+    // constexpr auto normalize() const -> Vec3 {
     //	const f32& length = this->get_length();
     //	return Vec3(x / length, y / length, z / length);
     // }

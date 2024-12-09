@@ -11,6 +11,10 @@ z-direction.
 Vulkan's
 */
 
+/// The coordinate system
+///
+/// Note:
+/// The hand analogy: thumb == x-axis, index finger == y-axis, middle finger == z-axis
 class CoordinateSystem {
 public:
     enum class HANDED {
@@ -19,7 +23,7 @@ public:
     };
 
     constexpr static auto create(v3 up, HANDED handed) -> CoordinateSystem {
-        assert(up == v3::Y() || up == v3::Z() && "up must be either Y or Z");
+        assert((up == v3::Y() || up == v3::Z()) && "up must be either Y or Z");
         if (up == v3::Y() && handed == HANDED::LEFT) {
             // Unity, LightWave, ZBrush, Cinema4D, OpenGL
             return CoordinateSystem{
@@ -31,15 +35,15 @@ public:
             // Unreal Engine
             return CoordinateSystem{
                 .m_up = v3::Z(),
-                .m_right = v3::X(),
-                .m_forward = v3::NEG_Y(),
+                .m_right = v3::Y(),
+                .m_forward = v3::X(),
             };
         } else if (up == v3::Y() && handed == HANDED::RIGHT) {
             // Bevy, Maya, Modo, Godot, Substance Painter, Houdini, Minecraft
             return CoordinateSystem{
                 .m_up = v3::Y(),
                 .m_right = v3::X(),
-                .m_forward = v3::Z(),
+                .m_forward = v3::NEG_Z(),
             };
         } else if (up == v3::Z() && handed == HANDED::RIGHT) {
             // Blender, 3DSMax, SketchUp, Source, Autodesk AutoCAD
@@ -106,10 +110,10 @@ auto Camera::perspective(
 
     Camera camera;
     camera.m_mode = MODE::PERSPECTIVE;
+    camera.m_position = position;
     camera.m_forward = coordinate_system.m_forward;
     camera.m_world_up = coordinate_system.m_up;
 
-    camera.m_position = position;
 
     camera.m_projection_matrix = mat4x4::perspective_rh_no(fov, aspect, z_near, z_far);
 
@@ -131,18 +135,20 @@ auto Camera::orthographic(
     assert(left != right);
     assert(bottom != top);
     assert(near_ != far_);
-    const CoordinateSystem coordinate_system = CoordinateSystem::y_up_left_handed();
+    const CoordinateSystem coordinate_system = CoordinateSystem::y_up_right_handed();
 
     Camera camera;
     camera.m_mode = MODE::ORTHOGRAPHIC;
-    camera.m_forward = coordinate_system.m_forward;
     camera.m_world_up = coordinate_system.m_up;
+    camera.m_position = v3::zero();
+    camera.m_forward = coordinate_system.m_forward;
     camera.m_up = camera.m_world_up;
     camera.m_right = coordinate_system.m_right;
 
+
     camera.m_projection_matrix =
         mat4x4::orthographic_rh_no(left, right, bottom, top, near_, far_);
-    camera.m_position = v3::zero();
+    
 
     return camera;
 }

@@ -4,13 +4,31 @@
 namespace JadeFrame {
 auto to_radians(f32 degrees) -> f32 {
     // return degrees * (M_PI / 180.0f);
-    return degrees * static_cast<f32>(0.01745329251994329576923690768489);
+    constexpr f32 DEG_TO_RAD = 0.01745329251994329576923690768489F;
+    return degrees * DEG_TO_RAD;
 }
 
 auto to_degrees(f32 radians) -> f32 {
     // return radians * (180.0f / M_PI);
-    return radians * static_cast<f32>(57.295779513082320876798154814105);
+    constexpr f32 RAD_TO_DEG = 57.295779513082320876798154814105F;
+    return radians * RAD_TO_DEG;
 }
+
+auto to_radians(f64 degrees) -> f64 {
+    // return degrees * (M_PI / 180.0f);
+    constexpr f32 DEG_TO_RAD = 0.01745329251994329576923690768489F;
+    return degrees * DEG_TO_RAD;
+}
+
+auto to_degrees(f64 radians) -> f64 {
+    // return radians * (180.0f / M_PI);
+    constexpr f32 RAD_TO_DEG = 57.295779513082320876798154814105F;
+    return radians * RAD_TO_DEG;
+}
+
+auto to_radians(i32 degrees) -> f32 { return to_radians((f32)degrees); }
+
+auto to_degrees(i32 radians) -> f32 { return to_degrees((f32)radians); }
 
 static auto is_prime(u32 x) -> bool {
     if (x >= 2) {
