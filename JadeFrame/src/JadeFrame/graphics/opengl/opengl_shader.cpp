@@ -144,7 +144,7 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
 
         auto* buffer = m_context->create_buffer(Buffer::TYPE::UNIFORM, nullptr, size);
         context.bind_uniform_buffer_to_location(*buffer, binding);
-        m_uniform_buffers.push_back(buffer);
+        m_uniform_buffers[binding] = buffer;
     }
 }
 
@@ -193,8 +193,18 @@ static auto gl_type_enum_to_string(GLenum type) -> std::string {
     return result;
 }
 
-auto Shader::write_ub(u32 index, const void* data, size_t size, size_t offset) -> void {
-    m_uniform_buffers[index]->write(data, size, offset);
+auto Shader::write_ub(u32 binding, const void* data, size_t size, size_t offset) -> void {
+
+    auto ub = m_uniform_buffers.find(binding);
+    if (ub == m_uniform_buffers.end()) {
+        Logger::err(
+            "OpenGL::Shader::write_ub: Uniform buffer with binding {} not found", binding
+        );
+        assert(false);
+    }
+    opengl::Buffer* buffer = ub->second;
+    m_context->bind_uniform_buffer_to_location(*buffer, binding);
+    buffer->write(data, size, offset);
 }
 } // namespace opengl
 } // namespace JadeFrame

@@ -47,7 +47,7 @@ public:
     OpenGL_Context* m_context;
 
 public:
-    std::vector<opengl::Buffer*> m_uniform_buffers;
+    std::map<u32, opengl::Buffer*> m_uniform_buffers;
 
     OGLW_VertexArray m_vertex_array;
 
