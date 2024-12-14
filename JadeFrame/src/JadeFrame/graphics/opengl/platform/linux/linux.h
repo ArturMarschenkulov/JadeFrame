@@ -1,5 +1,6 @@
 
 #include "JadeFrame/platform/linux/linux_window.h"
+#include <GL/glx.h>
 
 namespace JadeFrame {
 namespace opengl {
