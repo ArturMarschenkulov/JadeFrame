@@ -347,7 +347,11 @@ process_event(XEvent* event, X11_NativeWindow* win, WindowEventQueue* event_queu
                 (keysym >= 0x00a0 && keysym <= 0x00ff)) {
                 is_latin_1 = true;
             }
-            assert(is_latin_1 && "Only latin-1 alphabet is supported");
+
+            if (!is_latin_1) {
+                Logger::warn("Only latin-1 alphabet is supported. This is {}", keysym);
+                // assert(is_latin_1 && "Only latin-1 alphabet is supported");
+            }
 
             KEY         key = translate_key(keysym);
             INPUT_STATE keyevent_type = from_x11_key_to_input_state(event->type);

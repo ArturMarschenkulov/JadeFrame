@@ -17,7 +17,42 @@ JF_PRAGMA_NO_WARNINGS_PUSH
 #include "stb/stb_image.h"
 JF_PRAGMA_NO_WARNINGS_POP
 
+/*
+Shader conventions:
+Opengl: Program consists of shaders.
+Vulkan: Pipeline consists of shader modules.
+Metal:  Render Pipeline consists of shader functions.
+D3D11: Pipeline consists of shader stages.
+D3D12: Pipeline consists of shader stages.
+
+*/
+
 namespace JadeFrame {
+auto to_string(SHADER_TYPE type) -> const char* {
+    switch (type) {
+        case SHADER_TYPE::NONE: return "NONE";
+        case SHADER_TYPE::F32: return "F32";
+        case SHADER_TYPE::V_2_F32: return "F32_2";
+        case SHADER_TYPE::V_3_F32: return "F32_3";
+        case SHADER_TYPE::V_4_F32: return "F32_4";
+        case SHADER_TYPE::M_3_3_F32: return "M_F32_3";
+        case SHADER_TYPE::M_4_4_F32: return "M_F32_4";
+        case SHADER_TYPE::I32: return "I32";
+        case SHADER_TYPE::V_2_I32: return "I32_2";
+        case SHADER_TYPE::V_3_I32: return "I32_3";
+        case SHADER_TYPE::V_4_I32: return "I32_4";
+        case SHADER_TYPE::BOOL: return "BOOL";
+        case SHADER_TYPE::SAMPLER_1D: return "SAMPLER_1D";
+        case SHADER_TYPE::SAMPLER_2D: return "SAMPLER_2D";
+        case SHADER_TYPE::SAMPLER_3D: return "SAMPLER_3D";
+        case SHADER_TYPE::SAMPLER_CUBE: return "SAMPLER_CUBE";
+        default:
+            Logger::err("Unknown SHADER_TYPE: {}", (int)type);
+            assert(false);
+            return "";
+            break;
+    }
+}
 
 /*---------------------------
     Image
@@ -69,6 +104,11 @@ auto Image::load_from_path(const std::string& path) -> Image {
     if (stbi_failure_reason() != nullptr) { std::cout << stbi_failure_reason(); }
 
     if (data == nullptr) {
+        Logger::err("Failed to load image: {}", path);
+        return {};
+    }
+
+    if (num_components == 0) {
         Logger::err("Failed to load image: {}", path);
         return {};
     }
@@ -399,7 +439,7 @@ auto RenderSystem::register_texture(Image& image) -> TextureHandle* {
 auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHandle* {
 
     m_registered_shaders.emplace_back();
-    auto& shader = m_registered_shaders.back();
+    ShaderHandle& shader = m_registered_shaders.back();
     shader.m_code = desc.shading_code;
     shader.m_api = m_api;
 
@@ -413,15 +453,15 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
             // TODO: Move this whole remapping thing into the OpenGL Shader class. This is
             // not a thing which should be known by a shared layer.
 
-            std::string         v_source;
-            ShadingCode::Module mod_0;
-            auto&               vert_mod = shader.m_code.m_modules[0];
+            std::string          v_source;
+            ShadingCode::Module  mod_0;
+            ShadingCode::Module& vert_mod = shader.m_code.m_modules[0];
             mod_0.m_code = remap_for_opengl(vert_mod.m_code, vert_mod.m_stage, nullptr);
             mod_0.m_stage = vert_mod.m_stage;
 
-            std::string         f_source;
-            ShadingCode::Module mod_1;
-            auto&               frag_mod = shader.m_code.m_modules[1];
+            std::string          f_source;
+            ShadingCode::Module  mod_1;
+            ShadingCode::Module& frag_mod = shader.m_code.m_modules[1];
             mod_1.m_code = remap_for_opengl(frag_mod.m_code, frag_mod.m_stage, nullptr);
             mod_1.m_stage = frag_mod.m_stage;
 
@@ -458,32 +498,6 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
 auto RenderSystem::register_mesh(const VertexData& data) -> GPUMeshData* {
     m_registered_meshes.emplace_back(this, data);
     return &m_registered_meshes.back();
-}
-
-auto to_string(SHADER_TYPE type) -> const char* {
-    switch (type) {
-        case SHADER_TYPE::NONE: return "NONE";
-        case SHADER_TYPE::F32: return "F32";
-        case SHADER_TYPE::V_2_F32: return "F32_2";
-        case SHADER_TYPE::V_3_F32: return "F32_3";
-        case SHADER_TYPE::V_4_F32: return "F32_4";
-        case SHADER_TYPE::M_3_3_F32: return "M_F32_3";
-        case SHADER_TYPE::M_4_4_F32: return "M_F32_4";
-        case SHADER_TYPE::I32: return "I32";
-        case SHADER_TYPE::V_2_I32: return "I32_2";
-        case SHADER_TYPE::V_3_I32: return "I32_3";
-        case SHADER_TYPE::V_4_I32: return "I32_4";
-        case SHADER_TYPE::BOOL: return "BOOL";
-        case SHADER_TYPE::SAMPLER_1D: return "SAMPLER_1D";
-        case SHADER_TYPE::SAMPLER_2D: return "SAMPLER_2D";
-        case SHADER_TYPE::SAMPLER_3D: return "SAMPLER_3D";
-        case SHADER_TYPE::SAMPLER_CUBE: return "SAMPLER_CUBE";
-        default:
-            Logger::err("Unknown SHADER_TYPE: {}", (int)type);
-            assert(false);
-            return "";
-            break;
-    }
 }
 
 auto RenderSystem::list_available_graphics_apis() -> std::vector<GRAPHICS_API> {

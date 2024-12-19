@@ -35,7 +35,7 @@ class OpenGL_Context;
 
 class OGLW_VertexArray {
 public:
-    OGLW_VertexArray();
+    OGLW_VertexArray() = default;
     ~OGLW_VertexArray();
     OGLW_VertexArray(OGLW_VertexArray&) = delete;
     auto operator=(const OGLW_VertexArray&) -> OGLW_VertexArray& = delete;
@@ -79,20 +79,16 @@ struct OGLW_Shader {
 
     explicit OGLW_Shader(const GLenum type, const std::vector<u32>& binary);
 
-    // OGLW_Shader(const GLenum type, const std::string& source_code);
-
     auto set_source(const std::string& source_code) -> void;
     auto compile() -> void;
     auto set_binary(const std::vector<u32>& binary) -> void;
     auto compile_binary() -> void;
     auto get_info(GLenum pname) -> GLint;
     auto get_compile_status() -> GLint;
-    auto get_info_log(GLsizei max_length) -> std::string;
+    auto get_info_log() -> std::string;
 
 public:
-    GLuint m_ID = 0;
-    // SHADER_STAGE     m_stage = SHADER_STAGE::VERTEX;
-    // std::vector<u32> m_spirv;
+    GLuint          m_ID = 0;
     ReflectedModule m_reflected;
 };
 
@@ -112,16 +108,17 @@ struct OGLW_Program {
     auto bind() const -> void;
     auto unbind() const -> void;
     auto attach(const OGLW_Shader& shader) const -> void;
-    auto link() const -> bool;
     auto detach(const OGLW_Shader& shader) const -> void;
-    auto validate() const -> bool;
+
+    [[nodiscard]] auto link() const -> bool;
+    [[nodiscard]] auto validate() const -> bool;
 
     auto get_uniform_block_index(const char* name) const -> GLuint;
     auto set_uniform_block_binding(GLuint index, GLuint binding_point) const -> void;
 
-    auto get_info(GLenum pname) const -> GLint;
+    [[nodiscard]] auto get_info(GLenum pname) const -> GLint;
 
-    auto get_info_log() const -> std::string;
+    [[nodiscard]] auto get_info_log() const -> std::string;
 
 public:
     GLuint m_ID = 0;
@@ -186,8 +183,8 @@ public:
     explicit Framebuffer(OpenGL_Context& context);
 
     auto attach(ATTACHMENT attachment, u32 i, const Texture& texture) const -> void;
-    auto attach(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer) const
-        -> void;
+    auto
+    attach(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer) const -> void;
 
     [[nodiscard]] auto check_status() const -> GLenum;
 

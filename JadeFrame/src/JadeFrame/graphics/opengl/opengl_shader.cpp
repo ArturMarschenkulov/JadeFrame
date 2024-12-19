@@ -32,8 +32,8 @@ static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
 
 namespace opengl {
 
-static auto get_vertex_attributes(const ReflectedCode& reflected_code)
-    -> std::vector<Shader::VertexAttribute> {
+static auto get_vertex_attributes(const ReflectedCode& reflected_code
+) -> std::vector<Shader::VertexAttribute> {
     std::vector<Shader::VertexAttribute> result;
     for (size_t i = 0; i < reflected_code.m_modules[0].m_inputs.size(); i++) {
         const auto&             input = reflected_code.m_modules[0].m_inputs[i];
@@ -47,8 +47,8 @@ static auto get_vertex_attributes(const ReflectedCode& reflected_code)
     return result;
 }
 
-static auto get_uniforms(const ReflectedCode& reflected_code)
-    -> std::vector<Shader::Uniform> {
+static auto get_uniforms(const ReflectedCode& reflected_code
+) -> std::vector<Shader::Uniform> {
     std::vector<Shader::Uniform> result;
     for (size_t i = 0; i < reflected_code.m_modules.size(); i++) {
         const auto& module = reflected_code.m_modules[i];
@@ -75,8 +75,8 @@ static auto to_opengl_shader_stage(SHADER_STAGE type) -> GLenum {
     }
 }
 
-static auto get_reflected_modules(const std::vector<OGLW_Shader>& modules)
-    -> std::vector<ReflectedModule> {
+static auto get_reflected_modules(const std::vector<OGLW_Shader>& modules
+) -> std::vector<ReflectedModule> {
     std::vector<ReflectedModule> reflected_modules;
     reflected_modules.resize(modules.size());
     for (u32 i = 0; i < modules.size(); i++) {
@@ -96,28 +96,27 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     m_shaders.resize(2);
 
     for (u32 i = 0; i < desc.code.m_modules.size(); i++) {
-        const auto& module_ = desc.code.m_modules[i];
-        const auto& spirv = module_.m_code;
-        const auto& type = to_opengl_shader_stage(module_.m_stage);
+        const ShadingCode::Module&        module_ = desc.code.m_modules[i];
+        const ShadingCode::Module::SPIRV& spirv = module_.m_code;
+        const GLenum&                     type = to_opengl_shader_stage(module_.m_stage);
         m_shaders[i] = OGLW_Shader(type, spirv);
         m_program.attach(m_shaders[i]);
     }
-    auto reflected_modules = get_reflected_modules(m_shaders);
+    std::vector<ReflectedModule> reflected_modules = get_reflected_modules(m_shaders);
     m_reflected_interface = ReflectedModule::into_interface(reflected_modules);
-    auto vf = m_reflected_interface.get_vertex_format();
-
+    VertexFormat vf = m_reflected_interface.get_vertex_format();
     m_vertex_array = OGLW_VertexArray(&context, vf);
 
     Logger::warn("OpenGL Shader compiled");
 
     if (!m_program.link()) {
         std::string info_log = m_program.get_info_log();
-        Logger::log("{}", info_log);
+        Logger::warn("{}", info_log);
     }
 
     if (!m_program.validate()) {
         std::string info_log = m_program.get_info_log();
-        Logger::log("{}", info_log);
+        Logger::warn("{}", info_log);
     }
 
     for (u32 i = 0; i < m_shaders.size(); i++) { m_program.detach(m_shaders[i]); }
@@ -131,18 +130,18 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     // opengl has only binding points. That is while vulkan might have something like
     // this (0, 0), (1, 0) and (1, 1), this would have to be mapped to opengl's flat
     // model, something like this 0, 1, 2.
-    m_reflected_interface.m_uniform_buffers;
     for (size_t i = 0; i < m_reflected_interface.m_uniform_buffers.size(); i++) {
-        auto& uniform_buffer = m_reflected_interface.m_uniform_buffers[i];
-        auto  set = uniform_buffer.set;
-        auto  binding = uniform_buffer.binding;
-        auto  size = uniform_buffer.size;
+        const ReflectedModule::UniformBuffer& uniform_buffer =
+            m_reflected_interface.m_uniform_buffers[i];
+        u32 set = uniform_buffer.set;
+        u32 binding = uniform_buffer.binding;
+        u32 size = uniform_buffer.size;
 
         JF_ASSERT(size == sizeof(mat4x4), "Uniform buffer size is not 64 bytes");
 
         using namespace opengl;
 
-        auto* buffer = m_context->create_buffer(Buffer::TYPE::UNIFORM, nullptr, size);
+        Buffer* buffer = m_context->create_buffer(Buffer::TYPE::UNIFORM, nullptr, size);
         context.bind_uniform_buffer_to_location(*buffer, binding);
         m_uniform_buffers[binding] = buffer;
     }

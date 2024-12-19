@@ -26,34 +26,34 @@ auto Window::handle_events(bool& running) -> void {
     m_input_state.update();
 
     for (u32 i = 0; i < m_queue.m_queue.size(); i++) {
-        auto event = m_queue.pop();
+        WindowEvent event = m_queue.pop();
         switch (event.type) {
             case WindowEvent::TYPE::KEY: {
-                auto key_event = event.key_event;
-                auto key_index = static_cast<u32>(key_event.key);
+                KeyEvent key_event = event.key_event;
+                u32      key_index = static_cast<u32>(key_event.key);
                 m_input_state.m_curr_key_state[key_index] = key_event.type;
-                Logger::info(
-                    "Key {} was {}",
-                    (u32)key_event.key,
-                    key_event.type == INPUT_STATE::PRESSED ? "pressed" : "released"
-                );
+                // Logger::debug(
+                //     "Key {} was {}",
+                //     (u32)key_event.key,
+                //     key_event.type == INPUT_STATE::PRESSED ? "pressed" : "released"
+                // );
             }
             case WindowEvent::TYPE::BUTTON: {
-                auto button_event = event.button_event;
-                auto button_index = static_cast<u32>(button_event.button);
+                ButtonEvent button_event = event.button_event;
+                u32         button_index = static_cast<u32>(button_event.button);
                 m_input_state.m_curr_key_state[button_index] = button_event.type;
-                Logger::info(
-                    "Button {} was {}",
-                    (u32)button_event.button,
-                    button_event.type == INPUT_STATE::PRESSED ? "pressed" : "released"
-                );
+                // Logger::debug(
+                //     "Button {} was {}",
+                //     (u32)button_event.button,
+                //     button_event.type == INPUT_STATE::PRESSED ? "pressed" : "released"
+                // );
             } break;
             case WindowEvent::TYPE::MOUSE: {
-                auto mouse_event = event.mouse_event;
+                MouseEvent mouse_event = event.mouse_event;
                 m_input_state.m_mouse_pos = v2::create(mouse_event.m_x, mouse_event.m_y);
-                Logger::info(
-                    "Mouse moved to: x: {}, y: {}", mouse_event.m_x, mouse_event.m_y
-                );
+                // Logger::debug(
+                //     "Mouse moved to: x: {}, y: {}", mouse_event.m_x, mouse_event.m_y
+                // );
             } break;
         }
     }

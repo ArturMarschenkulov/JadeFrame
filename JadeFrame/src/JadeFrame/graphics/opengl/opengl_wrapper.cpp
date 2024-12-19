@@ -10,33 +10,6 @@
 #define GL_SHADER_BINARY_FORMAT_SPIR_V_ARB 0x9551
 
 namespace JadeFrame {
-
-OGLW_VertexArray::OGLW_VertexArray()
-    : m_ID(0) {
-    m_vertex_format = {};
-}
-
-OGLW_VertexArray::~OGLW_VertexArray() { glDeleteVertexArrays(1, &m_ID); }
-
-OGLW_VertexArray::OGLW_VertexArray(OGLW_VertexArray&& other) noexcept
-    : m_ID(std::exchange(other.m_ID, 0))
-    , m_vertex_format(std::exchange(other.m_vertex_format, {})) {}
-
-auto OGLW_VertexArray::operator=(OGLW_VertexArray&& other) noexcept -> OGLW_VertexArray& {
-    m_ID = std::exchange(other.m_ID, 0);
-    m_vertex_format = std::exchange(other.m_vertex_format, {});
-    return *this;
-}
-
-OGLW_VertexArray::OGLW_VertexArray(
-    OpenGL_Context*     context,
-    const VertexFormat& vertex_format
-) {
-    (void)context;
-    glCreateVertexArrays(1, &m_ID);
-    this->set_layout(vertex_format);
-}
-
 static auto to_gl_type(const SHADER_TYPE type) -> GLenum {
     GLenum result;
     switch (type) {
@@ -50,6 +23,47 @@ static auto to_gl_type(const SHADER_TYPE type) -> GLenum {
             break;
     }
     return result;
+}
+
+static auto to_opengl_shader_stage(SHADER_STAGE type) -> GLenum {
+    switch (type) {
+        case SHADER_STAGE::VERTEX: return GL_VERTEX_SHADER;
+        case SHADER_STAGE::FRAGMENT: return GL_FRAGMENT_SHADER;
+        case SHADER_STAGE::GEOMETRY: return GL_GEOMETRY_SHADER;
+        case SHADER_STAGE::COMPUTE: return GL_COMPUTE_SHADER;
+        default: assert(false); return 0;
+    }
+}
+
+static auto gl_type_to_jf_type(GLenum type) -> SHADER_STAGE {
+    switch (type) {
+        case GL_VERTEX_SHADER: return SHADER_STAGE::VERTEX;
+        case GL_FRAGMENT_SHADER: return SHADER_STAGE::FRAGMENT;
+        case GL_GEOMETRY_SHADER: return SHADER_STAGE::GEOMETRY;
+        case GL_COMPUTE_SHADER: return SHADER_STAGE::COMPUTE;
+        default: assert(false); return SHADER_STAGE::VERTEX;
+    }
+}
+
+OGLW_VertexArray::OGLW_VertexArray(
+    OpenGL_Context*     context,
+    const VertexFormat& vertex_format
+) {
+    (void)context;
+    glCreateVertexArrays(1, &m_ID);
+    this->set_layout(vertex_format);
+}
+
+OGLW_VertexArray::~OGLW_VertexArray() { glDeleteVertexArrays(1, &m_ID); }
+
+OGLW_VertexArray::OGLW_VertexArray(OGLW_VertexArray&& other) noexcept
+    : m_ID(std::exchange(other.m_ID, 0))
+    , m_vertex_format(std::exchange(other.m_vertex_format, {})) {}
+
+auto OGLW_VertexArray::operator=(OGLW_VertexArray&& other) noexcept -> OGLW_VertexArray& {
+    m_ID = std::exchange(other.m_ID, 0);
+    m_vertex_format = std::exchange(other.m_vertex_format, {});
+    return *this;
 }
 
 auto OGLW_VertexArray::bind_buffer(const opengl::Buffer& buffer) const -> void {
@@ -107,26 +121,6 @@ auto OGLW_VertexArray::set_attrib_format(
 auto OGLW_VertexArray::set_attrib_binding(const u32 index, const u32 binding) const
     -> void {
     glVertexArrayAttribBinding(m_ID, index, binding);
-}
-
-static auto to_opengl_shader_stage(SHADER_STAGE type) -> GLenum {
-    switch (type) {
-        case SHADER_STAGE::VERTEX: return GL_VERTEX_SHADER;
-        case SHADER_STAGE::FRAGMENT: return GL_FRAGMENT_SHADER;
-        case SHADER_STAGE::GEOMETRY: return GL_GEOMETRY_SHADER;
-        case SHADER_STAGE::COMPUTE: return GL_COMPUTE_SHADER;
-        default: assert(false); return 0;
-    }
-}
-
-static auto gl_type_to_jf_type(GLenum type) -> SHADER_STAGE {
-    switch (type) {
-        case GL_VERTEX_SHADER: return SHADER_STAGE::VERTEX;
-        case GL_FRAGMENT_SHADER: return SHADER_STAGE::FRAGMENT;
-        case GL_GEOMETRY_SHADER: return SHADER_STAGE::GEOMETRY;
-        case GL_COMPUTE_SHADER: return SHADER_STAGE::COMPUTE;
-        default: assert(false); return SHADER_STAGE::VERTEX;
-    }
 }
 
 OGLW_Shader::OGLW_Shader(const GLenum type, const std::vector<u32>& binary)
@@ -216,9 +210,15 @@ auto OGLW_Shader::get_compile_status() -> GLint {
     return is_compiled;
 }
 
-auto OGLW_Shader::get_info_log(GLsizei max_length) -> std::string {
-    GLchar info_log[512];
-    glGetShaderInfoLog(m_ID, max_length, &max_length, &info_log[0]);
+auto OGLW_Shader::get_info_log() -> std::string {
+    const u32 N = 1024;
+
+    GLchar info_log[N];
+    i32    returned_length = 0;
+    glGetShaderInfoLog(m_ID, N, &returned_length, &info_log[0]);
+    if (returned_length > N) {
+        Logger::warn("Info log for shader {} was truncated", m_ID);
+    }
     std::string result(info_log);
     return result;
 }
@@ -284,7 +284,12 @@ auto OGLW_Program::get_info_log() const -> std::string {
     const u32 N = 1024;
 
     GLchar info_log[N];
-    glGetProgramInfoLog(m_ID, N, nullptr, info_log);
+    i32    returned_length = 0;
+    glGetProgramInfoLog(m_ID, N, &returned_length, &info_log[0]);
+    if (returned_length > N) {
+        Logger::warn("Info log for program {} was truncated", m_ID);
+    }
+
     std::string result(info_log);
     return result;
 }

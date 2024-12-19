@@ -16,22 +16,24 @@
 JF_PRAGMA_NO_WARNINGS_PUSH
 #include "stb/stb_image_write.h"
 JF_PRAGMA_NO_WARNINGS_POP
-#include <thread>
 
 namespace JadeFrame {
 namespace gl {}
 
-auto OpenGL_Renderer::set_clear_color(const RGBAColor& color) -> void {
-    m_context.m_state.set_clear_color(color);
-}
-
-auto OpenGL_Renderer::clear_background() -> void {
-    GLbitfield bitfield = m_context.m_state.clear_bitfield;
-    glClear(bitfield);
-}
-
-auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void {
-    m_context.m_state.set_viewport(x, y, width, height);
+template<typename T>
+static auto to_opengl_type() -> GLenum {
+    if constexpr (std::is_same_v<T, f32>) {
+        return GL_FLOAT;
+    } else if constexpr (std::is_same_v<T, i32>) {
+        return GL_INT;
+    } else if constexpr (std::is_same_v<T, u32>) {
+        return GL_UNSIGNED_INT;
+    } else if constexpr (std::is_same_v<T, u8>) {
+        return GL_UNSIGNED_BYTE;
+    } else {
+        // static_assert(false, "Unsupported type");
+        return 0;
+    }
 }
 
 static auto framebuffer_res_to_str(GLenum e) -> const char* {
@@ -50,6 +52,19 @@ static auto framebuffer_res_to_str(GLenum e) -> const char* {
         default: return "UNKNOWN";
     }
 #undef foo
+}
+
+auto OpenGL_Renderer::set_clear_color(const RGBAColor& color) -> void {
+    m_context.m_state.set_clear_color(color);
+}
+
+auto OpenGL_Renderer::clear_background() -> void {
+    GLbitfield bitfield = m_context.m_state.clear_bitfield;
+    glClear(bitfield);
+}
+
+auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void {
+    m_context.m_state.set_viewport(x, y, width, height);
 }
 
 OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const Window* window)
@@ -74,7 +89,7 @@ auto OpenGL_Renderer::render(const mat4x4& view_projection) -> void {
     // NOTE: At the time of writing this is mainly compatible with
     // `get_shader_spirv_test_1` or rather on any renderer where the camera uniform is
     // at binding point 0 and the transform uniform is at binding point 1.
-    auto& render_commands = m_system->m_render_commands;
+    std::deque<RenderCommand>& render_commands = m_system->m_render_commands;
 
     for (size_t i = 0; i < render_commands.size(); ++i) {
         const RenderCommand&  cmd = render_commands[i];
@@ -114,22 +129,6 @@ auto OpenGL_Renderer::render(const mat4x4& view_projection) -> void {
     render_commands.clear();
 }
 
-template<typename T>
-static auto to_opengl_type() -> GLenum {
-    if constexpr (std::is_same_v<T, f32>) {
-        return GL_FLOAT;
-    } else if constexpr (std::is_same_v<T, i32>) {
-        return GL_INT;
-    } else if constexpr (std::is_same_v<T, u32>) {
-        return GL_UNSIGNED_INT;
-    } else if constexpr (std::is_same_v<T, u8>) {
-        return GL_UNSIGNED_BYTE;
-    } else {
-        // static_assert(false, "Unsupported type");
-        return 0;
-    }
-}
-
 auto OpenGL_Renderer::render_mesh(
     const VertexData*  vertex_data,
     const GPUMeshData* gpu_data,
@@ -154,7 +153,7 @@ auto OpenGL_Renderer::render_mesh(
     }
 }
 
-auto OpenGL_Renderer::take_screenshot(const char* filename) -> Image {
+auto OpenGL_Renderer::take_screenshot(const char* /*filename*/) -> Image {
     GLint vp[4];
     glGetIntegerv(GL_VIEWPORT, vp);
 
@@ -224,11 +223,17 @@ auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* 
 
     VertexData::Desc vdf_desc;
     vdf_desc.has_normals = false;
+
+    const v2 viewport_pos = v2::create(-1.0F, -1.0F);
+    const v2 viewport_size = v2::create(2.0F, 2.0F);
+
     VertexData vertex_data = VertexData::rectangle(
-        v3::create(-1.0F, -1.0F, 0.0F), v3::create(2.0F, 2.0F, 0.0F), vdf_desc
+        v3::create(viewport_pos.x, viewport_pos.y, 0.0F),
+        v3::create(viewport_size.x, viewport_size.y, 0.0F),
+        vdf_desc
     );
-    auto data = convert_into_data(vertex_data, true);
-    u32  size = static_cast<u32>(data.size() * sizeof(f32));
+    std::vector<f32> data = convert_into_data(vertex_data, true);
+    u32              size = static_cast<u32>(data.size() * sizeof(f32));
     m_vertex_buffer =
         context->create_buffer(opengl::Buffer::TYPE::VERTEX, data.data(), size);
 
@@ -237,7 +242,7 @@ auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* 
     m_shader = system->register_shader(shader_handle_desc);
 }
 
-auto OpenGL_Renderer::RenderTarget::render(RenderSystem* system) -> void {
+auto OpenGL_Renderer::RenderTarget::render(RenderSystem* /*system*/) -> void {
 
     ShaderHandle& sh_ = *m_shader;
     auto*         sh = static_cast<opengl::Shader*>(sh_.m_handle);
