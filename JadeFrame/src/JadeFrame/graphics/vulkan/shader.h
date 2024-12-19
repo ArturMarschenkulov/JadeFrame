@@ -26,6 +26,29 @@ public:
         const Desc&                  desc
     );
 
+    auto get_location(const std::string& name) -> std::tuple<u32, u32>;
+
+public:
+    const vulkan::LogicalDevice* m_device = nullptr;
+    vulkan::Pipeline             m_pipeline;
+};
+
+class Vulkan_Material {
+public:
+    Vulkan_Material() = default;
+    ~Vulkan_Material() = default;
+    Vulkan_Material(const Vulkan_Material&) = delete;
+    auto operator=(const Vulkan_Material&) -> Vulkan_Material& = delete;
+    Vulkan_Material(Vulkan_Material&&) noexcept = default;
+    auto operator=(Vulkan_Material&&) -> Vulkan_Material& = default;
+
+    Vulkan_Material(
+        vulkan::LogicalDevice&  device,
+        Vulkan_Shader&          shader,
+        vulkan::Vulkan_Texture* texture
+    );
+
+public:
     auto bind_buffer(
         u32                   set,
         u32                   binding,
@@ -34,7 +57,6 @@ public:
         VkDeviceSize          range
     ) -> void;
     auto rebind_buffer(u32 set, u32 binding, const vulkan::Buffer& buffer) -> void;
-    auto get_location(const std::string& name) -> std::tuple<u32, u32>;
 
     auto write_ub(
         vulkan::FREQUENCY frequency,
@@ -47,9 +69,9 @@ public:
     auto set_dynamic_ub_num(u32 num) -> void;
 
 public:
-    const vulkan::LogicalDevice* m_device = nullptr;
-    vulkan::Pipeline             m_pipeline;
-
+    vulkan::LogicalDevice*  m_device = nullptr;
+    Vulkan_Shader*          m_shader = nullptr;
+    vulkan::Vulkan_Texture* m_texture = nullptr;
     std::array<vulkan::DescriptorSet, static_cast<u8>(vulkan::FREQUENCY::MAX)> m_sets;
 
     template<typename K, typename V>

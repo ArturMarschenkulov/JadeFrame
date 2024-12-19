@@ -18,46 +18,6 @@ Vulkan_Shader::Vulkan_Shader(
         device, renderer.m_swapchain.m_extent, renderer.m_render_pass, desc.code
     );
     Logger::info("Created Vulkan shader");
-
-    for (size_t i = 0; i < m_pipeline.m_set_layouts.size(); i++) {
-        const auto& set_layout = m_pipeline.m_set_layouts[i];
-        m_sets[i] = device.m_set_pool.allocate_set(set_layout);
-    }
-
-    for (auto& uniform_buffer : m_pipeline.m_reflected_interface.m_uniform_buffers) {
-        auto set = uniform_buffer.set;
-        auto binding = uniform_buffer.binding;
-        auto size = uniform_buffer.size;
-
-        JF_ASSERT(size == sizeof(mat4x4), "Uniform buffer size is not 64 bytes");
-        vulkan::Buffer* buf =
-            device.create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, size);
-        this->bind_buffer(set, binding, *buf, 0, size);
-        m_uniform_buffers[set][binding] = buf;
-
-        // Logger::info("Uniform buffer: {}", uniform_buffer.name);
-        // Logger::info(
-        //     "reflected uniform buffers {}",
-        //     m_pipeline.m_reflected_interface.m_uniform_buffers.size()
-        // );
-    }
-}
-
-auto Vulkan_Shader::bind_buffer(
-    u32                   set,
-    u32                   binding,
-    const vulkan::Buffer& buffer,
-    VkDeviceSize          offset,
-    VkDeviceSize          range
-) -> void {
-    m_sets[set].bind_uniform_buffer(binding, buffer, offset, range);
-    m_sets[set].update();
-}
-
-auto Vulkan_Shader::rebind_buffer(u32 set, u32 binding, const vulkan::Buffer& buffer)
-    -> void {
-    m_sets[set].rebind_uniform_buffer(binding, buffer);
-    m_sets[set].update();
 }
 
 auto Vulkan_Shader::get_location(const std::string& name) -> std::tuple<u32, u32> {
@@ -91,7 +51,67 @@ static constexpr auto ceil_to_aligned(const u64 value, const u64 alignment) -> u
     return aligned_block_size;
 }
 
-auto Vulkan_Shader::write_ub(
+Vulkan_Material::Vulkan_Material(
+    vulkan::LogicalDevice&  device,
+    Vulkan_Shader&          shader,
+    vulkan::Vulkan_Texture* texture
+)
+    : m_device(&device)
+    , m_shader(&shader)
+    , m_texture(texture) {
+
+
+
+    const auto& pipeline = m_shader->m_pipeline;
+    for (size_t i = 0; i < pipeline.m_set_layouts.size(); i++) {
+        const auto& set_layout = pipeline.m_set_layouts[i];
+        m_sets[i] = device.m_set_pool.allocate_set(set_layout);
+    }
+
+    for (const auto& uniform_buffer : pipeline.m_reflected_interface.m_uniform_buffers) {
+        u32 set = uniform_buffer.set;
+        u32 binding = uniform_buffer.binding;
+        u32 size = uniform_buffer.size;
+
+        JF_ASSERT(size == sizeof(mat4x4), "Uniform buffer size is not 64 bytes");
+        vulkan::Buffer* buf =
+            device.create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, size);
+        this->bind_buffer(set, binding, *buf, 0, size);
+        m_uniform_buffers[set][binding] = buf;
+
+        // Logger::info("Uniform buffer: {}", uniform_buffer.name);
+        // Logger::info(
+        //     "reflected uniform buffers {}",
+        //     m_pipeline.m_reflected_interface.m_uniform_buffers.size()
+        // );
+    }
+    vulkan::DescriptorSet& set = m_sets[vulkan::FREQUENCY::PER_MATERIAL];
+    if (set.m_descriptors.empty()) {
+        Logger::err("The shader does not support textures");
+        assert(false);
+    }
+    set.bind_combined_image_sampler(0, *texture);
+    set.update();
+}
+
+auto Vulkan_Material::bind_buffer(
+    u32                   set,
+    u32                   binding,
+    const vulkan::Buffer& buffer,
+    VkDeviceSize          offset,
+    VkDeviceSize          range
+) -> void {
+    m_sets[set].bind_uniform_buffer(binding, buffer, offset, range);
+    m_sets[set].update();
+}
+
+auto Vulkan_Material::rebind_buffer(u32 set, u32 binding, const vulkan::Buffer& buffer)
+    -> void {
+    m_sets[set].rebind_uniform_buffer(binding, buffer);
+    m_sets[set].update();
+}
+
+auto Vulkan_Material::write_ub(
     vulkan::FREQUENCY frequency,
     u32               index,
     const void*       data,
@@ -101,16 +121,16 @@ auto Vulkan_Shader::write_ub(
     // TODO: Make it more solid
 
     if (frequency == vulkan::FREQUENCY::PER_OBJECT) {
-        auto* ub = m_uniform_buffers[frequency][index];
+        vulkan::Buffer* ub = m_uniform_buffers[frequency][index];
         ub->write(data, size, offset);
     } else {
         assert(offset == 0);
-        auto* ub = m_uniform_buffers[frequency][index];
+        vulkan::Buffer* ub = m_uniform_buffers[frequency][index];
         ub->write(data, size, offset);
     }
 }
 
-auto Vulkan_Shader::set_dynamic_ub_num(u32 num) -> void {
+auto Vulkan_Material::set_dynamic_ub_num(u32 num) -> void {
     const vulkan::PhysicalDevice* pd = m_device->m_physical_device;
 
     auto type_size = sizeof(mat4x4);

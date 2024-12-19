@@ -96,10 +96,8 @@ auto Vulkan_Renderer::render(const mat4x4& view_projection) -> void {
     for (u64 i = 0; i < render_commands.size(); i++) {
         const auto&           cmd = render_commands[i];
         const MaterialHandle& mh = *cmd.material;
-        const ShaderHandle&   sh = *mh.m_shader;
-        auto*                 shader = static_cast<Vulkan_Shader*>(sh.m_handle);
-
-        shader->set_dynamic_ub_num(render_commands.size());
+        auto*                 material = static_cast<Vulkan_Material*>(mh.m_handle);
+        material->set_dynamic_ub_num(render_commands.size());
     }
 
     vulkan::CommandBuffer& cb = curr_frame.m_cmd;
@@ -113,13 +111,13 @@ auto Vulkan_Renderer::render(const mat4x4& view_projection) -> void {
     cb.render_pass_begin(framebuffer, m_render_pass, m_swapchain.m_extent, clear_value);
     for (u64 i = 0; i < render_commands.size(); i++) {
         using namespace vulkan;
-        const RenderCommand&  cmd = render_commands[i];
-        const MaterialHandle& mh = *cmd.material;
+        const RenderCommand& cmd = render_commands[i];
+        MaterialHandle&      mh = *cmd.material;
+        auto*                material = static_cast<Vulkan_Material*>(mh.m_handle);
 
-        auto* shader = static_cast<Vulkan_Shader*>(mh.m_shader->m_handle);
         const VkPipelineBindPoint bp = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        auto&                     pipeline = shader->m_pipeline;
-        auto&                     sets = shader->m_sets;
+        vulkan::Pipeline&         pipeline = material->m_shader->m_pipeline;
+        auto&                     sets = material->m_sets;
         cb.bind_pipeline(bp, pipeline);
 
         // Per Frame ubo
@@ -127,12 +125,12 @@ auto Vulkan_Renderer::render(const mat4x4& view_projection) -> void {
         // Per DrawCall ubo
         // vulkan::FREQUENCY::PER_OBJECT == 3
 
-        shader->write_ub(
+        material->write_ub(
             FREQUENCY::PER_FRAME, 0, &view_projection, sizeof(view_projection), 0
         );
 
         const u32 dyn_offset = static_cast<u32>(dyn_alignment * i);
-        shader->write_ub(
+        material->write_ub(
             FREQUENCY::PER_OBJECT, 0, &cmd.transform, sizeof(cmd.transform), dyn_offset
         );
 

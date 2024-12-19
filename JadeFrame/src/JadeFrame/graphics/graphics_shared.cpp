@@ -539,21 +539,19 @@ auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* textur
         case GRAPHICS_API::OPENGL: {
             //  NOTE: AFAIK, nothing needs to be done
 
+            material.m_handle = nullptr;
+
         } break;
         case GRAPHICS_API::VULKAN: {
-            if (texture != nullptr) {
-                auto* sh = (Vulkan_Shader*)shader->m_handle;
-                auto* tex = (vulkan::Vulkan_Texture*)texture->m_handle;
+            auto* sh = (Vulkan_Shader*)shader->m_handle;
 
-                auto& set = sh->m_sets[vulkan::FREQUENCY::PER_MATERIAL];
-                if (set.m_descriptors.empty()) {
-                    Logger::err("The shader does not support textures");
-                    assert(false);
-                    return nullptr;
-                }
-                set.bind_combined_image_sampler(0, *tex);
-                set.update();
-            }
+            auto* tex =
+                texture == nullptr ? nullptr : (vulkan::Vulkan_Texture*)texture->m_handle;
+
+            material.m_handle = new Vulkan_Material(
+                *(dynamic_cast<Vulkan_Renderer*>(m_renderer))->m_logical_device, *sh, tex
+            );
+            if (texture != nullptr) {}
         } break;
         default: assert(false);
     }

@@ -271,6 +271,7 @@ public:
 struct MaterialHandle {
     ShaderHandle*  m_shader;
     TextureHandle* m_texture;
+    void*          m_handle = nullptr;
 };
 
 // This struct saves the shader code. The common language is SPIRV.
