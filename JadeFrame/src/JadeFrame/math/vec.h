@@ -338,6 +338,8 @@ public:
     }
 
 public:
+    constexpr auto operator-() const -> _v4 { return _v4(-x, -y, -z, -w); }
+
     constexpr auto operator+(const _v4& other) const -> _v4 {
         return _v4(x + other.x, y + other.y, z + other.z, w + other.w);
     }

@@ -161,7 +161,7 @@ TEST(Mat4x4_Arithmetic, Multiplication) {
     }
 
     {
-        mat4x4 m = mat4x4::rotation(to_radians(90), v3::Z());
+        mat4x4 m = mat4x4::rotation_rh(to_radians(90), v3::Z());
 
         {
             v3 result = m.transform_vector3(v3::Y());
@@ -180,7 +180,7 @@ TEST(Mat4x4_Arithmetic, Multiplication) {
     {
         mat4x4 m = mat4x4::from_scale_rotation_translation(
             v3::create(0.5F, 1.5F, 2.0F),
-            mat4x4::rotation_x(to_radians(90)),
+            mat4x4::rotation_x_rh(to_radians(90)),
             v3::create(1.0F, 2.0F, 3.0F)
         );
         {
@@ -234,7 +234,7 @@ TEST(Mat4x4_Arithmetic, Decomposition) {
     }
     // {
     //     v3     some_scale = v3::create(1, 2, 3);
-    //     mat4x4 some_rotation = mat4x4::rotation_x(to_radians(90));
+    //     mat4x4 some_rotation = mat4x4::rotation_x_rh(to_radians(90));
     //     v3     some_translation = v3::create(1, 2, 3);
     //     mat4x4 matrix = mat4x4::from_scale_rotation_translation(
     //         some_scale, some_rotation, some_translation
@@ -304,12 +304,122 @@ TEST(Mat4x4_Arithmetic, MultiplyByScalingMatrix) {
 }
 
 TEST(Mat4x4_Arithmetic, MultiplyByRotationMatrix) {
-    float  angle = M_PI / 4; // 45 degrees
-    mat4x4 rotate = mat4x4::rotation_y(angle);
-    mat4x4 identity = mat4x4::identity();
-    mat4x4 result = rotate * identity;
-    EXPECT_NEAR(result[0][0], std::cos(angle), 1e-6);
-    EXPECT_NEAR(result[0][2], -std::sin(angle), 1e-6);
+    {
+        float  angle = M_PI / 4; // 45 degrees
+        mat4x4 rotate = mat4x4::rotation_y_rh(angle);
+        mat4x4 identity = mat4x4::identity();
+        mat4x4 result = rotate * identity;
+        EXPECT_NEAR(result[0][0], std::cos(angle), 1e-6);
+        EXPECT_NEAR(result[0][2], -std::sin(angle), 1e-6);
+    }
+    // Test whether rotation around the y axis for 90 degrees, results in correct rotation
+    // of a unit vector
+    {
+        v4 unit_vector_x = v4::X();
+        {
+            std::map<f32, v4> m_x = {
+                {  90, v4::X()},
+                { -90, v4::X()},
+                { 180, v4::X()},
+                {-180, v4::X()},
+            };
+            for (auto [angle_in_degrees, expected] : m_x) {
+                mat4x4 rotate = mat4x4::rotation_x_rh(to_radians(angle_in_degrees));
+                EXPECT_EQ(rotate * unit_vector_x, expected);
+            }
+            std::map<f32, v4> m_y = {
+                {  90, v4::NEG_Z()},
+                { -90,     v4::Z()},
+                { 180, v4::NEG_X()},
+                {-180, v4::NEG_X()},
+            };
+            for (auto [angle_in_degrees, expected] : m_y) {
+                mat4x4 rotate = mat4x4::rotation_y_rh(to_radians(angle_in_degrees));
+                EXPECT_EQ(rotate * unit_vector_x, expected);
+            }
+
+            std::map<f32, v4> m_z = {
+                {  90,     v4::Y()},
+                { -90, v4::NEG_Y()},
+                { 180, v4::NEG_X()},
+                {-180, v4::NEG_X()},
+            };
+            for (auto [angle_in_degrees, expected] : m_z) {
+                mat4x4 rotate = mat4x4::rotation_z_rh(to_radians(angle_in_degrees));
+                EXPECT_EQ(rotate * unit_vector_x, expected);
+            }
+        }
+        v4 unit_vector_y = v4::Y();
+        {
+            std::map<f32, v4> m_x = {
+                {  90,     v4::Z()},
+                { -90, v4::NEG_Z()},
+                { 180, v4::NEG_Y()},
+                {-180, v4::NEG_Y()},
+            };
+            for (auto [angle_in_degrees, expected] : m_x) {
+                mat4x4 rotate = mat4x4::rotation_x_rh(to_radians(angle_in_degrees));
+                EXPECT_EQ(rotate * unit_vector_y, expected);
+            }
+
+            std::map<f32, v4> m_y = {
+                {  90, v4::Y()},
+                { -90, v4::Y()},
+                { 180, v4::Y()},
+                {-180, v4::Y()},
+            };
+            for (auto [angle_in_degrees, expected] : m_y) {
+                mat4x4 rotate = mat4x4::rotation_y_rh(to_radians(angle_in_degrees));
+                EXPECT_EQ(rotate * unit_vector_y, expected);
+            }
+
+            std::map<f32, v4> m_z = {
+                {  90, v4::NEG_X()},
+                { -90,     v4::X()},
+                { 180, v4::NEG_Y()},
+                {-180, v4::NEG_Y()},
+            };
+            for (auto [angle_in_degrees, expected] : m_z) {
+                mat4x4 rotate = mat4x4::rotation_z_rh(to_radians(angle_in_degrees));
+                EXPECT_EQ(rotate * unit_vector_y, expected);
+            }
+        }
+        v4 unit_vector_z = v4::Z();
+        {
+            std::map<f32, v4> m_x = {
+                {  90, v4::NEG_Y()},
+                { -90,     v4::Y()},
+                { 180, v4::NEG_Z()},
+                {-180, v4::NEG_Z()},
+            };
+            for (auto [angle_in_degrees, expected] : m_x) {
+                mat4x4 rotate = mat4x4::rotation_x_rh(to_radians(angle_in_degrees));
+                EXPECT_EQ(rotate * unit_vector_z, expected);
+            }
+
+            std::map<f32, v4> m_y = {
+                {  90,     v4::X()},
+                { -90, v4::NEG_X()},
+                { 180, v4::NEG_Z()},
+                {-180, v4::NEG_Z()},
+            };
+            for (auto [angle_in_degrees, expected] : m_y) {
+                mat4x4 rotate = mat4x4::rotation_y_rh(to_radians(angle_in_degrees));
+                EXPECT_EQ(rotate * unit_vector_z, expected);
+            }
+
+            std::map<f32, v4> m_z = {
+                {  90, v4::Z()},
+                { -90, v4::Z()},
+                { 180, v4::Z()},
+                {-180, v4::Z()},
+            };
+            for (auto [angle_in_degrees, expected] : m_z) {
+                mat4x4 rotate = mat4x4::rotation_z_rh(to_radians(angle_in_degrees));
+                EXPECT_EQ(rotate * unit_vector_z, expected);
+            }
+        }
+    }
 }
 
 TEST(Mat4x4_Arithmetic, MatrixVectorMultiplication) {
@@ -342,22 +452,22 @@ TEST(Mat4x4_Transformation, TranslationMatrix) {
 TEST(Mat4x4_Transformation, Rotation) {
     const f32 degrees = to_degrees((f32)100);
 
-    mat4x4 rot_x1 = mat4x4::rotation_x(degrees);
-    mat4x4 rox_x2 = mat4x4::rotation(degrees, v3::X());
+    mat4x4 rot_x1 = mat4x4::rotation_x_rh(degrees);
+    mat4x4 rox_x2 = mat4x4::rotation_rh(degrees, v3::X());
     EXPECT_EQ(rot_x1, rox_x2);
 
-    mat4x4 rot_y1 = mat4x4::rotation_y(degrees);
-    mat4x4 rox_y2 = mat4x4::rotation(degrees, v3::Y());
+    mat4x4 rot_y1 = mat4x4::rotation_y_rh(degrees);
+    mat4x4 rox_y2 = mat4x4::rotation_rh(degrees, v3::Y());
     EXPECT_EQ(rot_y1, rox_y2);
 
-    mat4x4 rot_z1 = mat4x4::rotation_z(degrees);
-    mat4x4 rox_z2 = mat4x4::rotation(degrees, v3::Z());
+    mat4x4 rot_z1 = mat4x4::rotation_z_rh(degrees);
+    mat4x4 rox_z2 = mat4x4::rotation_rh(degrees, v3::Z());
     EXPECT_EQ(rot_z1, rox_z2);
 }
 
 TEST(Mat4x4_Transformation, RotationXMatrix) {
     float  angle = M_PI / 2; // 90 degrees
-    mat4x4 matrix = mat4x4::rotation_x(angle);
+    mat4x4 matrix = mat4x4::rotation_x_rh(angle);
     EXPECT_NEAR(matrix[1][1], 0, 1e-6);
     EXPECT_NEAR(matrix[1][2], 1, 1e-6);
     EXPECT_NEAR(matrix[2][1], -1, 1e-6);
@@ -572,7 +682,7 @@ TEST(Mat4x4_PerspectiveProjection, ExtremeFieldOfView) {
     float z_far = 50.0f;
 
     mat4x4 result = mat4x4::perspective_rh_no(fovy, aspect, z_near, z_far);
-    float  expected_focal_length = 1.0f / std::tan(fovy / 2.0f);
+    float  expected_focal_length = 1.0f / math::tan(fovy / 2.0f);
 
     // Check if the focal length
     // calculation is correct

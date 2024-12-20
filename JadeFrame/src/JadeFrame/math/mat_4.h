@@ -2,6 +2,7 @@
 #include "JadeFrame/prelude.h"
 #include "JadeFrame/types.h"
 #include "vec.h"
+#include "JadeFrame/math/math.h"
 
 #include <cassert>
 
@@ -61,11 +62,11 @@ public:
 public:
     using Col = std::array<f32, 4>;
 
-    constexpr auto     operator[](const u32 index) noexcept -> Col&; // for writing
-    constexpr auto     operator[](const u32 index
+    constexpr auto operator[](const u32 index) noexcept -> Col&; // for writing
+    constexpr auto operator[](const u32 index
     ) const noexcept -> const Col&; // for reading
-    /*constexpr*/ auto operator*(const v4& vector) const noexcept -> v4;
-    constexpr auto     operator*(const mat4x4& other) const noexcept -> mat4x4;
+    constexpr auto operator*(const v4& vector) const noexcept -> v4;
+    constexpr auto operator*(const mat4x4& other) const noexcept -> mat4x4;
 
     constexpr auto operator+(const mat4x4& other) const noexcept -> mat4x4 {
         mat4x4 result = {};
@@ -269,7 +270,7 @@ public: // static methods for matrices
         );
     }
 
-    /*constexpr*/ static auto perspective_rh_no(
+    constexpr static auto perspective_rh_no(
         f32 left,
         f32 right,
         f32 top,
@@ -287,19 +288,19 @@ public: // static methods for matrices
     /// Creates a right-handed perspective projection matrix with depth range of [-1, 1].
     ///
     /// Mainly used in OpenGL.
-    /*constexpr*/ static auto
+    constexpr static auto
     perspective_rh_no(f32 fovy, f32 aspect, f32 near, f32 far) noexcept -> mat4x4;
 
     /// Creates a right-handed perspective projection matrix with depth range of [0, 1].
     ///
     /// Mainly used in Direct3D. In case of Vulkan, one has to do proj[1][1] *= -1;, aka
     /// flip the y-axis.
-    /*constexpr*/ static auto
+    constexpr static auto
     perspective_rh_zo(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4 {
 
         const f32 frustum_depth = z_far - z_near;
-        const f32 focal_length = 1.0F / std::tan(fovy / 2.0F);
-        // const auto focal_length = std::cos(fovy / 2.0F) / std::sin(fovy / 2.0F);
+        const f32 focal_length = 1.0F / math::tan(fovy / 2.0F);
+        // const auto focal_length = math::cos(fovy / 2.0F) / math::sin(fovy / 2.0F);
         const f32 z_factor = -1.0F;
 
         f32 _1 = focal_length / aspect;
@@ -316,11 +317,11 @@ public: // static methods for matrices
         );
     }
 
-    /*constexpr*/ static auto
+    constexpr static auto
     perspective_lh_no(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4 {
         const f32 frustum_depth = z_far - z_near;
-        const f32 focal_length = 1.0F / std::tan(fovy / 2.0F);
-        // const f32 focal_length = std::cos(fovy / 2.0F) / std::sin(fovy / 2.0F);
+        const f32 focal_length = 1.0F / math::tan(fovy / 2.0F);
+        // const f32 focal_length = math::cos(fovy / 2.0F) / math::sin(fovy / 2.0F);
         const f32 z_factor = 1.0F;
 
         f32 _1 = focal_length / aspect;
@@ -337,11 +338,11 @@ public: // static methods for matrices
         );
     }
 
-    /*constexpr*/ static auto
+    constexpr static auto
     perspective_lh_zo(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4 {
         const f32 frustum_depth = z_far - z_near;
-        const f32 focal_length = 1.0F / std::tan(fovy / 2.0F);
-        // const auto focal_length = std::cos(fovy / 2.0F) / std::sin(fovy / 2.0F);
+        const f32 focal_length = 1.0F / math::tan(fovy / 2.0F);
+        // const auto focal_length = math::cos(fovy / 2.0F) / math::sin(fovy / 2.0F);
 
         const f32 z_factor = 1.0F;
 
@@ -379,11 +380,12 @@ public: // static methods for matrices
         );
     }
 
-    /*constexpr*/ static auto rotation(f32 angle, const v3& axis) noexcept -> mat4x4;
-    static auto               rotation_x(f32 angle) noexcept -> mat4x4 {
-        // return mat4x4::rotation(angle, v3::X());
-        auto sina = static_cast<f32>(sin(angle));
-        auto cosa = static_cast<f32>(cos(angle));
+    constexpr static auto rotation_rh(f32 angle, const v3& axis) noexcept -> mat4x4;
+
+    static auto rotation_x_rh(f32 angle) noexcept -> mat4x4 {
+        // return mat4x4::rotation_rh(angle, v3::X());
+        auto sina = static_cast<f32>(math::sin(angle));
+        auto cosa = static_cast<f32>(math::cos(angle));
         return mat4x4::from_cols(
             v4::X(),
             v4::create(0.0F, cosa, sina, 0.0F),
@@ -392,10 +394,10 @@ public: // static methods for matrices
         );
     }
 
-    static auto rotation_y(f32 angle) noexcept -> mat4x4 {
-        // return mat4x4::rotation(angle, v3::Y());
-        auto sina = static_cast<f32>(sin(angle));
-        auto cosa = static_cast<f32>(cos(angle));
+    static auto rotation_y_rh(f32 angle) noexcept -> mat4x4 {
+        // return mat4x4::rotation_rh(angle, v3::Y());
+        auto sina = static_cast<f32>(math::sin(angle));
+        auto cosa = static_cast<f32>(math::cos(angle));
         return mat4x4::from_cols(
             v4::create(cosa, 0.0F, -sina, 0.0F),
             v4::Y(),
@@ -404,10 +406,10 @@ public: // static methods for matrices
         );
     }
 
-    static auto rotation_z(f32 angle) noexcept -> mat4x4 {
-        // return mat4x4::rotation(angle, v3::Z());
-        auto sina = static_cast<f32>(sin(angle));
-        auto cosa = static_cast<f32>(cos(angle));
+    static auto rotation_z_rh(f32 angle) noexcept -> mat4x4 {
+        // return mat4x4::rotation_rh(angle, v3::Z());
+        auto sina = static_cast<f32>(math::sin(angle));
+        auto cosa = static_cast<f32>(math::cos(angle));
         return mat4x4::from_cols(
             v4::create(cosa, sina, 0.0F, 0.0F),
             v4::create(-sina, cosa, 0.0F, 0.0F),
@@ -555,7 +557,7 @@ inline constexpr auto mat4x4::operator[](const u32 index
     return this->el[index];
 }
 
-inline /*constexpr*/ auto mat4x4::operator*(const v4& vector) const noexcept -> v4 {
+inline constexpr auto mat4x4::operator*(const v4& vector) const noexcept -> v4 {
     v4          result;
     const auto& v = vector;
     result.x = el[0][0] * v.x + el[1][0] * v.y + el[2][0] * v.z + el[3][0] * v.w;
@@ -656,13 +658,13 @@ perspe_0(f32 left, f32 right, f32 top, f32 bottom, f32 far, f32 near) noexcept -
     return res;
 }
 
-inline /*constexpr*/ auto
+inline constexpr auto
 mat4x4::perspective_rh_no(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
     -> mat4x4 {
 
     const f32 frustum_depth = z_far - z_near;
-    const f32 focal_length = 1.0F / std::tan(fovy / 2.0F);
-    // const auto focal_length = std::cos(fovy / 2.0F) / std::sin(fovy / 2.0F);
+    const f32 focal_length = 1.0F / math::tan(fovy / 2.0F);
+    // const auto focal_length = math::cos(fovy / 2.0F) / math::sin(fovy / 2.0F);
     const f32 z_factor = -1.0F;
 
     f32 _1 = focal_length / aspect;
@@ -702,9 +704,9 @@ inline constexpr auto mat4x4::diagonal(const v4& diag) noexcept -> mat4x4 {
     return m;
 }
 
-inline /*constexpr*/ auto mat4x4::rotation(f32 angle, const v3& axis) noexcept -> mat4x4 {
-    const f32 c = static_cast<f32>(std::cos(angle));
-    const f32 s = static_cast<f32>(std::sin(angle));
+inline constexpr auto mat4x4::rotation_rh(f32 angle, const v3& axis) noexcept -> mat4x4 {
+    const f32 c = static_cast<f32>(math::cos(angle));
+    const f32 s = static_cast<f32>(math::sin(angle));
 
     const f32 omc = 1 - c;
 
