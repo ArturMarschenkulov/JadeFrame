@@ -8,7 +8,16 @@
 namespace JadeFrame {
 
 class RGBAColor {
+private:
+    constexpr explicit RGBAColor(f32 red, f32 green, f32 blue, f32 alpha)
+        : r(red)
+        , g(green)
+        , b(blue)
+        , a(alpha) {}
+
 public:
+    RGBAColor() = default;
+
     constexpr static auto to_u32_vector(const RGBAColor& color) -> std::vector<u32> {
         return {
             static_cast<u32>(color.r * 255),
@@ -20,14 +29,14 @@ public:
 
     constexpr static auto
     from_rgba(f32 red, f32 green, f32 blue, f32 alpha) -> RGBAColor {
-        return RGBAColor{.r = red, .g = green, .b = blue, .a = alpha};
+        return RGBAColor{red, green, blue, alpha};
     }
 
     constexpr static auto from_rgb(f32 red, f32 green, f32 blue) -> RGBAColor {
         return RGBAColor::from_rgba(red, green, blue, 1.0F);
     }
 
-    constexpr static auto from_rbg_u32(u32 red, u32 green, u32 blue) -> RGBAColor {
+    constexpr static auto from_rgb_u32(u32 red, u32 green, u32 blue) -> RGBAColor {
         return RGBAColor::from_rgba_u32(red, green, blue, 255);
     }
 
@@ -36,10 +45,21 @@ public:
         constexpr auto COLOR_SCALE = 255.0_f32;
 
         return RGBAColor{
-            .r = (f32)red / COLOR_SCALE,
-            .g = (f32)green / COLOR_SCALE,
-            .b = (f32)blue / COLOR_SCALE,
-            .a = (f32)alpha / COLOR_SCALE
+            (f32)red / COLOR_SCALE,
+            (f32)green / COLOR_SCALE,
+            (f32)blue / COLOR_SCALE,
+            (f32)alpha / COLOR_SCALE
+        };
+    }
+
+    constexpr static auto from_rgba_u8(u8 red, u8 green, u8 blue, u8 alpha) -> RGBAColor {
+        constexpr auto COLOR_SCALE = 255.0_f32;
+
+        return RGBAColor{
+            (f32)red / COLOR_SCALE,
+            (f32)green / COLOR_SCALE,
+            (f32)blue / COLOR_SCALE,
+            (f32)alpha / COLOR_SCALE
         };
     }
 
@@ -252,7 +272,10 @@ public:
     }
 
 public:
-    f32 r, g, b, a;
+    f32 r = 0;
+    f32 g = 0;
+    f32 b = 0;
+    f32 a = 0;
 };
 
 struct Vertex {

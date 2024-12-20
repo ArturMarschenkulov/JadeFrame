@@ -209,7 +209,7 @@ auto SwapchainContext::swap_buffers() -> void {
 }
 
 auto GL_State::set_default() -> void {
-    this->set_clear_color({0.2f, 0.2f, 0.2f, 1.0f});
+    this->set_clear_color(RGBAColor::from_rgba(0.2f, 0.2f, 0.2f, 1.0f));
     this->set_depth_test(true);
     this->set_clear_bitfield(
         GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT
