@@ -38,8 +38,6 @@ public:
 
     Shader(OpenGL_Context& context, const Desc& desc);
 
-    auto write_ub(u32 index, const void* data, size_t size, size_t offset) -> void;
-
 public:
     OGLW_Program             m_program;
     std::vector<OGLW_Shader> m_shaders;
@@ -47,11 +45,29 @@ public:
     OpenGL_Context* m_context;
 
 public:
-    std::map<u32, opengl::Buffer*> m_uniform_buffers;
-
     OGLW_VertexArray m_vertex_array;
 
     ReflectedModule m_reflected_interface;
+};
+
+class Material {
+public:
+    Material() = default;
+    ~Material() = default;
+    Material(const Material&) = delete;
+    auto operator=(const Material&) -> Material& = delete;
+    Material(Material&&) noexcept = default;
+    auto operator=(Material&&) -> Material& = default;
+
+    Material(OpenGL_Context& context, Shader& shader, Texture* texture);
+
+public:
+    auto write_ub(u32 index, const void* data, size_t size, size_t offset) -> void;
+
+public:
+    OpenGL_Context* m_context = nullptr;
+
+    std::map<u32, opengl::Buffer*> m_uniform_buffers;
 };
 } // namespace opengl
 } // namespace JadeFrame

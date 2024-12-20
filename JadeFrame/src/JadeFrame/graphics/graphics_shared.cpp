@@ -538,8 +538,12 @@ auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* textur
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
             //  NOTE: AFAIK, nothing needs to be done
-
-            material.m_handle = nullptr;
+            auto* sh = (opengl::Shader*)shader->m_handle;
+            auto* tex =
+                texture == nullptr ? nullptr : (opengl::Texture*)texture->m_handle;
+            material.m_handle = new opengl::Material(
+                (dynamic_cast<OpenGL_Renderer*>(m_renderer))->m_context, *sh, tex
+            );
 
         } break;
         case GRAPHICS_API::VULKAN: {

@@ -95,6 +95,7 @@ auto OpenGL_Renderer::render(const mat4x4& view_projection) -> void {
         const RenderCommand&  cmd = render_commands[i];
         const MaterialHandle& mh = *cmd.material;
 
+        auto* material = static_cast<opengl::Material*>(mh.m_handle);
         auto* shader = static_cast<opengl::Shader*>(mh.m_shader->m_handle);
         m_context.bind_shader(*shader);
 
@@ -103,10 +104,10 @@ auto OpenGL_Renderer::render(const mat4x4& view_projection) -> void {
         // every iteration of the loop. Late on one HAS TO fix this.
 
         // ub_cam
-        shader->write_ub(0, &view_projection, sizeof(view_projection), 0);
+        material->write_ub(0, &view_projection, sizeof(view_projection), 0);
 
         // ub_tran
-        shader->write_ub(1, &cmd.transform, sizeof(cmd.transform), 0);
+        material->write_ub(1, &cmd.transform, sizeof(cmd.transform), 0);
 
         if (mh.m_texture != nullptr) {
             auto* texture = static_cast<opengl::Texture*>(mh.m_texture->m_handle);
