@@ -22,7 +22,7 @@ public:
         RIGHT,
     };
 
-    constexpr static auto create(v3 up, HANDED handed) -> CoordinateSystem {
+    constexpr static auto create(v3 up, HANDED handed) noexcept -> CoordinateSystem {
         assert((up == v3::Y() || up == v3::Z()) && "up must be either Y or Z");
         if (up == v3::Y() && handed == HANDED::LEFT) {
             // Unity, LightWave, ZBrush, Cinema4D, OpenGL
@@ -58,22 +58,22 @@ public:
     }
 
     // Blender, 3DSMax, SketchUp, Source, Autodesk AutoCAD, CryEngine
-    consteval static auto z_up_right_handed() -> CoordinateSystem {
+    consteval static auto z_up_right_handed() noexcept -> CoordinateSystem {
         return CoordinateSystem::create(v3::Z(), HANDED::RIGHT);
     }
 
     // Unreal Engine
-    consteval static auto z_up_left_handed() -> CoordinateSystem {
+    consteval static auto z_up_left_handed() noexcept -> CoordinateSystem {
         return CoordinateSystem::create(v3::Z(), HANDED::LEFT);
     }
 
     // Bevy, Maya, Modo, Godot, Substance Painter, Houdini, Minecraft
-    consteval static auto y_up_right_handed() -> CoordinateSystem {
+    consteval static auto y_up_right_handed() noexcept -> CoordinateSystem {
         return CoordinateSystem::create(v3::Y(), HANDED::RIGHT);
     }
 
     // Unity, LightWave, ZBrush, Cinema4D, OpenGL
-    consteval static auto y_up_left_handed() -> CoordinateSystem {
+    consteval static auto y_up_left_handed() noexcept -> CoordinateSystem {
         return CoordinateSystem::create(v3::Y(), HANDED::LEFT);
     }
 
@@ -95,9 +95,12 @@ struct OrthographicProjection {
 };
 
 auto Camera::get_view_projection() const -> mat4x4 {
-    return m_projection_matrix *
-           mat4x4::look_at_rh(m_position, m_position + m_forward, m_up);
+    mat4x4 look_at = mat4x4::look_at_rh(m_position, m_position + m_forward, m_up);
+    mat4x4 result = m_projection_matrix * look_at;
+    return result;
 }
+
+static const CoordinateSystem g_coordinate_system = CoordinateSystem::z_up_right_handed();
 
 auto Camera::perspective(
     const v3& position,
@@ -106,14 +109,16 @@ auto Camera::perspective(
     const f32 z_near,
     const f32 z_far
 ) -> Camera {
-    const CoordinateSystem coordinate_system = CoordinateSystem::z_up_right_handed();
 
     Camera camera;
     camera.m_mode = MODE::PERSPECTIVE;
     camera.m_position = position;
-    camera.m_forward = coordinate_system.m_forward;
-    camera.m_world_up = coordinate_system.m_up;
+    camera.m_forward = g_coordinate_system.m_forward;
+    camera.m_world_up = g_coordinate_system.m_up;
+    camera.m_up = camera.m_world_up;
 
+    camera.m_pitch = to_degrees(std::asin(camera.m_forward.y));
+    camera.m_yaw = to_degrees(std::atan2(camera.m_forward.z, camera.m_forward.x));
 
     camera.m_projection_matrix = mat4x4::perspective_rh_no(fov, aspect, z_near, z_far);
 
@@ -135,21 +140,30 @@ auto Camera::orthographic(
     assert(left != right);
     assert(bottom != top);
     assert(near_ != far_);
-    const CoordinateSystem coordinate_system = CoordinateSystem::y_up_right_handed();
+    const CoordinateSystem g_coordinate_system = CoordinateSystem::z_up_right_handed();
 
     Camera camera;
     camera.m_mode = MODE::ORTHOGRAPHIC;
-    camera.m_world_up = coordinate_system.m_up;
-    camera.m_position = v3::zero();
-    camera.m_forward = coordinate_system.m_forward;
-    camera.m_up = camera.m_world_up;
-    camera.m_right = coordinate_system.m_right;
+    camera.m_world_up = g_coordinate_system.m_up;
 
+    camera.m_position = v3::zero();
+    camera.m_forward = -g_coordinate_system.m_up;
+    camera.m_up = g_coordinate_system.m_forward;
+    camera.m_right = g_coordinate_system.m_right;
 
     camera.m_projection_matrix =
         mat4x4::orthographic_rh_no(left, right, bottom, top, near_, far_);
-    
 
     return camera;
+}
+
+auto Camera::set_pitch_yaw(const f32 pitch, const f32 yaw) -> void {
+    m_pitch = pitch;
+    m_yaw = yaw;
+    m_forward.x = std::cos(to_radians(yaw)) * std::cos(to_radians(pitch));
+    m_forward.y = std::sin(to_radians(pitch));
+    m_forward.z = std::sin(to_radians(yaw)) * std::cos(to_radians(pitch));
+    m_right = m_forward.cross(m_world_up).normalize();
+    m_up = m_right.cross(m_forward).normalize();
 }
 } // namespace JadeFrame
