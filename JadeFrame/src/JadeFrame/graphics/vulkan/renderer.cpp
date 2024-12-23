@@ -49,32 +49,6 @@ auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void {
 
 auto Vulkan_Renderer::clear_background() -> void {}
 
-/**
- * Calculates the aligned block size based on the given block size and alignment.
- *
- * @param block_size The size of the block.
- * @param alignment The desired alignment.
- * @return The aligned block size.
- *
- * @example
- * ceil_to_multiple(20, 16) == 32
- * ceil_to_multiple(32, 32) == 32
- * ceil_to_multiple(13, 16) == 16
- * ceil_to_multiple(15, 16) == 16
- * ceil_to_multiple(16, 16) == 16
- * ceil_to_multiple(17, 16) == 32
- */
-static constexpr auto ceil_to_aligned(const u64 value, const u64 alignment) -> u64 {
-#if 0 // more efficient
-        const u64 new_val = (value + alignment - 1) & ~(alignment - 1);
-        const u64 aligned_block_size = alignment > 0 ? new_val : value;
-#else // more readable
-    const u64 new_val = (value + alignment - (value % alignment));
-    const u64 aligned_block_size = (value % alignment == 0) ? value : new_val;
-#endif
-    return aligned_block_size;
-}
-
 auto Vulkan_Renderer::render(const mat4x4& view_projection) -> void {
     vulkan::LogicalDevice&        d = *m_logical_device;
     const vulkan::PhysicalDevice* pd = d.m_physical_device;
@@ -87,10 +61,11 @@ auto Vulkan_Renderer::render(const mat4x4& view_projection) -> void {
         return;
     }
 
-    const u64 dyn_alignment =
-        ceil_to_aligned(sizeof(mat4x4), pd->limits().minUniformBufferOffsetAlignment);
+    const u64 dyn_alignment = math::ceil_to_aligned(
+        sizeof(mat4x4), pd->limits().minUniformBufferOffsetAlignment
+    );
 
-    auto& render_commands = m_system->m_render_commands;
+    std::deque<RenderCommand>& render_commands = m_system->m_render_commands;
     // prepare shaders and its dynamic uniform buffers
     // TODO: Find a better way to do this, but for now it works
     for (u64 i = 0; i < render_commands.size(); i++) {

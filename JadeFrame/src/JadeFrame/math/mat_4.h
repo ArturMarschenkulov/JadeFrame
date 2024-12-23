@@ -37,16 +37,6 @@ m2	|__|__|__|
 */
 class mat4x4;
 
-class Quaternion {
-public:
-
-public:
-    f32 x;
-    f32 y;
-    f32 z;
-    f32 w;
-};
-
 class mat4x4 {
 private:
 
@@ -435,14 +425,14 @@ public: // static methods for matrices
     constexpr static auto
     look_to_rh(const v3& eye, const v3& direction, const v3& up) noexcept -> mat4x4 {
         v3 forward = direction.normalize();
-        v3 s = forward.cross(up).normalize();
-        v3 u = s.cross(forward);
+        v3 new_right = forward.cross(up).normalize();
+        v3 new_up = new_right.cross(forward);
 
         return mat4x4::from_cols(
-            v4::create(s.x, u.x, -forward.x, 0.0F),
-            v4::create(s.y, u.y, -forward.y, 0.0F),
-            v4::create(s.z, u.z, -forward.z, 0.0F),
-            v4::create(-s.dot(eye), -u.dot(eye), forward.dot(eye), 1.0F)
+            v4::create(new_right.x, new_up.x, -forward.x, 0.0F),
+            v4::create(new_right.y, new_up.y, -forward.y, 0.0F),
+            v4::create(new_right.z, new_up.z, -forward.z, 0.0F),
+            v4::create(-new_right.dot(eye), -new_up.dot(eye), forward.dot(eye), 1.0F)
         );
     }
 
@@ -467,11 +457,8 @@ public: // static methods for matrices
 
 public:
     [[nodiscard]] constexpr auto transform_vector3(const v3& vec) const noexcept -> v3 {
-        v4 res = v4::zero();
-        res = (x_axis * vec.x) + res;
-        res = (y_axis * vec.y) + res;
-        res = (z_axis * vec.z) + res;
-        return v3::create(res.x, res.y, res.z);
+        v4 result = *this * v4::from_v3(vec, 0.0F);
+        return v3::create(result.x, result.y, result.z);
     }
 
     [[nodiscard]] constexpr auto transform_point3(const v3& point) const noexcept -> v3 {
@@ -479,24 +466,14 @@ public:
             std::cout << w_axis << std::endl;
             assert(w_axis == v4::W() && "The w component of the w_axis must be 1.0F");
         }
-
-        v4 res = v4::zero();
-        res = (x_axis * point.x) + res;
-        res = (y_axis * point.y) + res;
-        res = (z_axis * point.z) + res;
-        res = (w_axis * 1.0F) + res;
-        return v3::create(res.x, res.y, res.z);
+        v4 result = *this * v4::from_v3(point, 1.0F);
+        return v3::create(result.x, result.y, result.z);
     }
 
     [[nodiscard]] constexpr auto project_point3(const v3& point) const noexcept -> v3 {
-
-        v4 res = v4::zero();
-        res = (x_axis * point.x) + res;
-        res = (y_axis * point.y) + res;
-        res = (z_axis * point.z) + res;
-        res = (w_axis * 1.0F) + res;
-        res = res * v4::create(res.w, res.w, res.w, res.w).reciprocal();
-        return v3::create(res.x, res.y, res.z);
+        v4 result = *this * v4::from_v3(point, 1.0F);
+        result = result * v4::create(result.w, result.w, result.w, result.w).reciprocal();
+        return v3::create(result.x, result.y, result.z);
     }
 
 public:

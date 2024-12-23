@@ -60,8 +60,6 @@ Vulkan_Material::Vulkan_Material(
     , m_shader(&shader)
     , m_texture(texture) {
 
-
-
     const auto& pipeline = m_shader->m_pipeline;
     for (size_t i = 0; i < pipeline.m_set_layouts.size(); i++) {
         const auto& set_layout = pipeline.m_set_layouts[i];
@@ -85,13 +83,15 @@ Vulkan_Material::Vulkan_Material(
         //     m_pipeline.m_reflected_interface.m_uniform_buffers.size()
         // );
     }
-    vulkan::DescriptorSet& set = m_sets[vulkan::FREQUENCY::PER_MATERIAL];
-    if (set.m_descriptors.empty()) {
-        Logger::err("The shader does not support textures");
-        assert(false);
+    if (m_texture != nullptr) {
+        vulkan::DescriptorSet& set = m_sets[vulkan::FREQUENCY::PER_MATERIAL];
+        if (set.m_descriptors.empty()) {
+            Logger::err("The shader does not support textures");
+            assert(false);
+        }
+        set.bind_combined_image_sampler(0, *texture);
+        set.update();
     }
-    set.bind_combined_image_sampler(0, *texture);
-    set.update();
 }
 
 auto Vulkan_Material::bind_buffer(

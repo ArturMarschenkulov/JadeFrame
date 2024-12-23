@@ -305,7 +305,7 @@ public:
         return _v4(x, y, z, w);
     }
 
-    constexpr static auto create(const _v3<T>& xyz, const T w) noexcept -> _v4 {
+    constexpr static auto from_v3(const _v3<T>& xyz, const T w) noexcept -> _v4 {
         return _v4(xyz.x, xyz.y, xyz.z, w);
     }
 

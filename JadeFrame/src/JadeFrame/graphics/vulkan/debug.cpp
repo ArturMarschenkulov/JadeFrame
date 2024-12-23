@@ -51,10 +51,10 @@ auto populate_debug_messenger_create_info(VkDebugUtilsMessengerCreateInfoEXT& in
         VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT
     };
 
-    auto type_flags = std::array<u32, 4>{
+    auto type_flags = std::array<u32, 3>{
         VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT,
         VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT,
-        VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT
+        VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
     };
     info.messageSeverity = bit::set_flags(severity_flags);
     info.messageType = bit::set_flags(type_flags);
