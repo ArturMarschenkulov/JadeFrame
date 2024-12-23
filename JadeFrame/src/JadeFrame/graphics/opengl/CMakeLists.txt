@@ -38,7 +38,6 @@ target_link_libraries(gfx-opengl
         stb
         spdlog
         glad
-        shaderc
         spirv-cross-hlsl
         spirv-cross-glsl
         spirv-cross-msl

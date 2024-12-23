@@ -70,7 +70,7 @@ if(WIN32)
 elseif(LINUX)
     set(imgui_platform_specific_sources
         ${imgui_DIR}/backends/imgui_impl_x11.h
-        ${imgui_DIR}/backends/imgui_impl_x11.h
+        ${imgui_DIR}/backends/imgui_impl_x11.cpp
     )
 endif()
 add_library(imgui
@@ -132,8 +132,7 @@ add_subdirectory(src/extern/SPIRV-Cross/ EXCLUDE_FROM_ALL)
 
 
 
-add_subdirectory(src/JadeFrame/graphics/opengl)
-add_subdirectory(src/JadeFrame/graphics/vulkan)
+add_subdirectory(src/JadeFrame/graphics)
 
 set(Files_Base
     "src/JadeFrame.h"
@@ -151,29 +150,6 @@ set(Files_Base
     "src/JadeFrame/core.cpp"
     "src/JadeFrame/gui.cpp"
 )
-set(Files_Graphics_DirectX
-    "src/JadeFrame/graphics/d3d11/d3d11_renderer.h"
-    "src/JadeFrame/graphics/d3d12/d3d12_renderer.h"
-)
-set(Files_Graphics
-    "src/JadeFrame/graphics/camera.h"
-
-    "src/JadeFrame/graphics/graphics_shared.h"
-    "src/JadeFrame/graphics/mesh.h"
-    "src/JadeFrame/graphics/camera.cpp"
-    "src/JadeFrame/graphics/graphics_shared.cpp"
-    "src/JadeFrame/graphics/mesh.cpp"
-    "src/JadeFrame/graphics/shader_loader.h"
-    "src/JadeFrame/graphics/shader_loader.cpp"
-    "src/JadeFrame/graphics/reflect.h"
-    "src/JadeFrame/graphics/reflect.cpp"
-    "src/JadeFrame/graphics/graphics_language.h"
-    "src/JadeFrame/graphics/graphics_language.cpp"
-
-
-    "src/JadeFrame/graphics/software/software_renderer.h"
-    "src/JadeFrame/graphics/software/software_renderer.cpp"
-)
 
 set(Files_Datatypes
     "src/JadeFrame/datatypes/cowdata.h"
@@ -181,41 +157,12 @@ set(Files_Datatypes
 )
 
 add_subdirectory(src/JadeFrame/math)
-
-set(Files_Utils
-    "src/JadeFrame/utils/assert.h"
-    "src/JadeFrame/utils/dynamic_array.h"
-    "src/JadeFrame/utils/logger.h"
-    "src/JadeFrame/utils/utils.h"
-
-    "src/JadeFrame/utils/logger.cpp"
-    "src/JadeFrame/utils/utils.cpp"
-
-    "src/JadeFrame/utils/asset_loader.h"
-    "src/JadeFrame/utils/asset_loader.cpp"
-)
-IF (WIN32)
-    add_subdirectory(src/JadeFrame/platform/windows/)
-ELSEIF(LINUX)
-    add_subdirectory(src/JadeFrame/platform/linux/)
-ENDIF()
-    set(Files_Platform
-        "src/JadeFrame/platform/platform_shared.h"
-        "src/JadeFrame/platform/platform_shared.cpp"
-        "src/JadeFrame/platform/window.h"
-        "src/JadeFrame/platform/window.cpp"
-        "src/JadeFrame/platform/window_event.h"
-    )
+add_subdirectory(src/JadeFrame/utils)
+add_subdirectory(src/JadeFrame/platform)
 
 set(ALL_FILES
     ${Files_Base}
-    ${Files_Graphics}
-    ${Files_Platform}
-    ${Files_Math}
-    ${Files_Utils}
     ${Files_Datatypes}
-    "src/JadeFrame/utils/option.h"
-    "src/JadeFrame/utils/result.h"
 )
 
 ################################################################################
@@ -341,22 +288,15 @@ target_link_libraries(
         spdlog
         ${ADDITIONAL_LIBRARY_DEPENDENCIES}
         ${CMAKE_DL_LIBS}
-        Vulkan::Vulkan
-        ${Vulkan_LIBRARIES}
-        glad
-        # glfw
         imgui
         stb
-        shaderc
-        spirv-cross-hlsl
-        spirv-cross-glsl
-        spirv-cross-msl
-        GTest::gtest_main
 
+        GTest::gtest_main
+        JF_MODULE_utils
         JF_MODULE_math
-        gfx-opengl
-        gfx-vulkan
-        GPUOpen::VulkanMemoryAllocator
+        JF_MODULE_platform
+        JF_MODULE_graphics
+
         assimp
         # -fsanitize=address,undefined
 )

@@ -1,0 +1,18 @@
+set(Files
+    "assert.h"
+    "dynamic_array.h"
+    "logger.h"
+    "utils.h"
+
+    "logger.cpp"
+    "utils.cpp"
+
+    "asset_loader.h"
+    "asset_loader.cpp"
+)
+
+add_library(JF_MODULE_utils STATIC ${Files})
+target_link_libraries(JF_MODULE_utils
+    PUBLIC
+        JadeFrame
+)
