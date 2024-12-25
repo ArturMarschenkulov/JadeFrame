@@ -3,7 +3,6 @@
 #include "JadeFrame/utils/assert.h"
 
 #include <utility>
-
 #include <concepts>
 #include <type_traits>
 
@@ -18,6 +17,8 @@ namespace JadeFrame {
     TODO: Consider whether the ref-qualified "const&&"" overloads are needed. Most likely
    not.
 */
+
+// https://www.foonathan.net/2018/07/optional-reference/
 namespace option {
 
 namespace details {
@@ -68,7 +69,7 @@ public:
         , m_pointer(&v) {}
 
     constexpr explicit Storage(T&& v)
-        requires(!std::is_lvalue_reference_v<T>)
+        requires(std::is_lvalue_reference_v<T>)
         : m_has_value(true)
         , m_pointer(&v) {}
 
@@ -102,7 +103,7 @@ public:
         if (o.m_has_value) {
             T rv = std::move(reinterpret_cast<T&>(o.m_storage));
             reinterpret_cast<T&>(o.m_storage).~T();
-            m_has_value = false;
+            o.m_has_value = false;
             new (&m_storage) T(rv);
         }
     }
@@ -113,7 +114,7 @@ public:
         if (o.m_has_value) {
             T rv = std::move(reinterpret_cast<T&>(o.m_storage));
             reinterpret_cast<T&>(o.m_storage).~T();
-            m_has_value = false;
+            o.m_has_value = false;
             new (&m_storage) T(rv);
         }
         return *this;
@@ -133,6 +134,16 @@ public:
         return reinterpret_cast<const T&>(m_storage);
     }
 
+    [[nodiscard]] constexpr auto get() & -> T& { return reinterpret_cast<T&>(m_storage); }
+
+    [[nodiscard]] constexpr auto get() && -> T {
+        return std::move(reinterpret_cast<T&>(m_storage));
+    }
+
+    [[nodiscard]] constexpr auto get() const&& -> const T {
+        return std::move(reinterpret_cast<const T&>(m_storage));
+    }
+
     // constexpr auto has_value() const -> bool { return m_has_value; }
 
 public:
@@ -147,9 +158,12 @@ public:
     constexpr Option()
         : m_storage() {}
 
-    // constexpr ~Option() {
-    //     if (this->is_some()) { m_storage.get().~T(); }
-    // }
+    constexpr ~Option()
+        requires(!std::is_destructible_v<T>)
+    = delete;
+
+    constexpr ~Option() = default;
+
     constexpr Option(const Option& o)
         : m_storage(o.m_storage) {}
 
@@ -161,7 +175,9 @@ public:
     }
 
     constexpr Option(Option&& o) noexcept
-        : m_storage(std::forward<Option>(o).m_storage) {}
+        : m_storage(std::forward<Option>(o).m_storage) {
+        m_storage.m_has_value = true;
+    }
 
     constexpr auto operator=(Option&& o) noexcept -> Option& {
         if (this->is_some()) { this->unwrap_unchecked().~T(); }
@@ -284,8 +300,8 @@ public:
     }
 
     template<typename F>
-    // requires std::convertible_to<Option<T>>
-        requires std::invocable<F, int>
+        requires std::invocable<F> &&
+                     std::convertible_to<std::invoke_result_t<F>, Option<T>>
     constexpr auto or_else(F&& func) const& -> Option<T> {
         if (this->is_some()) {
             return *this;
@@ -305,194 +321,7 @@ private:
     details::Storage<T> m_storage;
 };
 
-namespace tests {
-static auto test() -> void {
-
-    // Testing functions
-    {
-        Option<u32> x0 = Option<u32>(2);
-        assert(x0.is_some() == true);
-
-        Option<u32> x1 = Option<u32>();
-        assert(x1.is_some() == false);
-    }
-    {
-        Option<u32> x0 = Option<u32>(2);
-        assert(x0.is_none() == false);
-
-        Option<u32> x1 = Option<u32>();
-        assert(x1.is_none() == true);
-    }
-
-    // Testing "and"
-    // auto s = Option<i32>(2_i32);
-    // s.and_(Option<i32>(3_i32));
-    {
-        Option<i32>         x0 = Option<i32>(2_i32);
-        Option<const char*> y0 = Option<const char*>();
-        assert(x0.and_(y0) == Option<const char*>());
-
-        Option<i32>         x1 = Option<i32>();
-        Option<const char*> y1 = Option<const char*>("foo");
-        assert(x1.and_(y1) == Option<const char*>());
-
-        Option<i32>         x2 = Option<i32>(2_i32);
-        Option<const char*> y2 = Option<const char*>("foo");
-        assert(x2.and_(y2) == Option<const char*>("foo"));
-
-        Option<i32>         x3 = Option<i32>();
-        Option<const char*> y3 = Option<const char*>();
-        assert(x3.and_(x3) == Option<i32>());
-
-        assert(Option<int>{1}.and_(Option<int>{2}) == Option<int>{2});
-        assert(Option<int>{1}.and_(Option<int>{}) == Option<int>{});
-        assert(Option<int>{}.and_(Option<int>{2}) == Option<int>{});
-        assert(Option<int>{}.and_(Option<int>{}) == Option<int>{});
-    }
-
-    {
-        assert(Option<int>{1}.or_(Option<int>{2}) == Option<int>{1});
-        assert(Option<int>{1}.or_(Option<int>{}) == Option<int>{1});
-        assert(Option<int>{}.or_(Option<int>{2}) == Option<int>{2});
-        assert(Option<int>{}.or_(Option<int>{}) == Option<int>{});
-    }
-
-    {
-        assert(Option<int>{1}.xor_(Option<int>{2}) == Option<int>{});
-        assert(Option<int>{1}.xor_(Option<int>{}) == Option<int>{1});
-        assert(Option<int>{}.xor_(Option<int>{2}) == Option<int>{2});
-        assert(Option<int>{}.xor_(Option<int>{}) == Option<int>{});
-    }
-}
-
-template<typename T>
-concept option_concept_functions = requires(T v) {
-    { v.is_none() } -> std::same_as<bool>;
-    { v.is_some() } -> std::same_as<bool>;
-    { v.unwrap() } -> std::same_as<T>;
-};
-
-template<typename T>
-    requires option_concept_functions<T>
-class Test {
-    T m_value;
-};
-
-static auto test2() -> void {
-
-    // Option<int> a = Option<int>(333);
-
-    // Testing functions
-    {
-        Option<u32> x0 = Option<u32>(2);
-        assert(x0.is_some() == true);
-
-        Option<u32> x1 = Option<u32>();
-        assert(x1.is_some() == false);
-    }
-    {
-        Option<u32> x0 = Option<u32>(2);
-        assert(x0.is_none() == false);
-
-        Option<u32> x1 = Option<u32>();
-        assert(x1.is_none() == true);
-    }
-    // Testing "and"
-    // auto s = Option<i32>(2_i32);
-    // s.and_(Option<i32>(3_i32));
-
-    {
-        Option<i32>         x0 = Option<i32>(2_i32);
-        Option<const char*> y0 = Option<const char*>();
-        assert(x0.and_(y0) == Option<const char*>());
-
-        Option<i32>         x1 = Option<i32>();
-        Option<const char*> y1 = Option<const char*>("foo");
-        assert(x1.and_(y1) == Option<const char*>());
-
-        Option<i32>         x2 = Option<i32>(2_i32);
-        Option<const char*> y2 = Option<const char*>("foo");
-        assert(x2.and_(y2) == Option<const char*>("foo"));
-
-        Option<i32>         x3 = Option<i32>();
-        Option<const char*> y3 = Option<const char*>();
-        assert(x3.and_(x3) == Option<i32>());
-
-        assert(Option<int>{1}.and_(Option<int>{2}) == Option<int>{2});
-        assert(Option<int>{1}.and_(Option<int>{}) == Option<int>{});
-        assert(Option<int>{}.and_(Option<int>{2}) == Option<int>{});
-        assert(Option<int>{}.and_(Option<int>{}) == Option<int>{});
-    }
-
-    {
-        assert(Option<int>{1}.or_(Option<int>{2}) == Option<int>{1});
-        assert(Option<int>{1}.or_(Option<int>{}) == Option<int>{1});
-        assert(Option<int>{}.or_(Option<int>{2}) == Option<int>{2});
-        assert(Option<int>{}.or_(Option<int>{}) == Option<int>{});
-    }
-
-    {
-        assert(Option<int>{1}.xor_(Option<int>{2}) == Option<int>{});
-        assert(Option<int>{1}.xor_(Option<int>{}) == Option<int>{1});
-        assert(Option<int>{}.xor_(Option<int>{2}) == Option<int>{2});
-        assert(Option<int>{}.xor_(Option<int>{}) == Option<int>{});
-    }
-}
-
-static auto lvalue_ref() -> void {
-    struct Student {
-        int         age;
-        std::string name;
-
-        [[nodiscard]] auto get_name() const -> Option<const std::string&> {
-            if (age >= 18) {
-                return Option<const std::string&>(name);
-            } else {
-                return Option<const std::string&>();
-            }
-        }
-    };
-
-    Student s = {16, "John"};
-    auto    x = s.get_name();
-    assert(x.is_some() == false);
-}
-} // namespace tests
-
-static auto test() -> void {
-    tests::test();
-    tests::test2();
-    tests::lvalue_ref();
-}
 } // namespace option
 
 using option::Option;
 } // namespace JadeFrame
-
-/*
-
-
-    const T p;
-    let p: T;
-
-    T p;
-    let p: mut T;
-    let mut p: T;
-
-    T* p;
-    let p: mut*mut T;
-    let mut p: *mut T;
-
-    const T* p;
-    T const* p;
-    let p: mut *T;
-    let mut p: *T;
-
-    T* const p;
-    let p: *mut T;
-
-    const T* const p;
-    T const *const p;
-
-    let p: *T;
-*/

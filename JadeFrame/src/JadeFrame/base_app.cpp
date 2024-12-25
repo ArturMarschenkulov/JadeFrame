@@ -4,10 +4,6 @@
 
 #include "gui.h"
 
-#include "JadeFrame/utils/option.h"
-#include "JadeFrame/utils/result.h"
-#include "../extern/result.hpp"
-
 #include "JadeFrame/math/vec.h"
 
 #include "JadeFrame/math/math.h"
@@ -70,25 +66,6 @@ auto control_camera(Camera* self, const InputState& i) -> void {
 Instance* Instance::m_singleton = nullptr;
 
 auto Instance::get_singleton() -> Instance* { return m_singleton; }
-
-auto test_modules() -> void {
-    option::test();
-    result::test();
-}
-
-auto to_double(const char* str) noexcept -> Result<double, std::errc> {
-    auto* last_entry = static_cast<char*>(nullptr);
-
-    errno = 0;
-    const auto result = std::strtod(str, &last_entry);
-
-    if (errno != 0) {
-        // Returns an error value
-        return Failure(static_cast<std::errc>(errno));
-    }
-    // Returns a value
-    return result;
-}
 
 Instance::Instance() {
     Logger::init();

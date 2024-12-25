@@ -179,52 +179,14 @@ public:
     constexpr ~Result() {}
 
 public:
-    auto is_ok() const -> bool { return m_storage.m_has_value; }
+    [[nodiscard]] auto is_ok() const -> bool { return m_storage.m_has_value; }
 
-    auto is_err() const -> bool { return !this->is_ok(); }
+    [[nodiscard]] auto is_err() const -> bool { return !this->is_ok(); }
 
 private:
     details::Storage<T, E> m_storage;
 };
 
-namespace tests {
-
-struct Student {
-    std::string name;
-    int         age;
-
-    auto get_name() const -> Result<const std::string&, std::string> {
-        if (age < 18) {
-            return Failure(std::string("Too young"));
-        } else {
-            return Result<const std::string&, std::string>(name);
-        }
-    }
-};
-
-auto pp() -> void {}
-enum class Version {
-    VER1,
-    VER2
-};
-
-auto parse_version(const int& version) -> Result<Version, const char*> {
-    if (version == 1) {
-        return Result<Version, const char*>(Version::VER2);
-    } else if (version == 2) {
-        return Result<Version, const char*>(Version::VER2);
-    } else {
-        auto f = Failure("invalid version");
-        return f;
-    }
-}
-
-auto general_usage() { auto res = parse_version(1); }
-
-auto test() -> void {}
-} // namespace tests
-
-static auto test() -> void { tests::test(); }
 } // namespace result
 
 using result::Failure;
