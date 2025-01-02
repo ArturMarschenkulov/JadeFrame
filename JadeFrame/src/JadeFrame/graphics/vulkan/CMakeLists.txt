@@ -39,10 +39,8 @@ endif()
 
 add_library(gfx-vulkan ${SOURCE_FILES})
 
-target_precompile_headers(gfx-vulkan PRIVATE pch.h)
-
 target_link_libraries(gfx-vulkan
-    PUBLIC
+    PRIVATE
         Vulkan::Vulkan
         ${Vulkan_LIBRARIES}
         JadeFrame

@@ -27,7 +27,7 @@ set(Files
 
 add_library(JF_MODULE_graphics STATIC ${Files})
 target_link_libraries(JF_MODULE_graphics
-    PUBLIC
+    PRIVATE
         JadeFrame
         shaderc
         spirv-cross-hlsl

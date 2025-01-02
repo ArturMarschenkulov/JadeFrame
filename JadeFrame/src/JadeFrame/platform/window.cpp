@@ -1,4 +1,5 @@
 #include "window.h"
+#include "JadeFrame/utils/assert.h"
 #include "JadeFrame/utils/logger.h"
 #if defined(JF_PLATFORM_LINUX)
     #include "JadeFrame/platform/linux/linux_window.h"

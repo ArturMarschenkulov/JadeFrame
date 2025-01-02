@@ -2,9 +2,6 @@
 
 #include "opengl_renderer.h"
 #include "../shader_loader.h"
-// #include "JadeFrame/base_app.h"
-// #include "graphics/opengl/opengl_renderer.h"
-// #include "graphics/vulkan/vulkan_renderer.h"
 #include "JadeFrame/graphics/mesh.h"
 
 #ifdef _WIN32

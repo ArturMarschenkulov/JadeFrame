@@ -14,7 +14,7 @@ set(Files
 
 add_library(JF_MODULE_math STATIC ${Files})
 target_link_libraries(JF_MODULE_math
-    PUBLIC
+    PRIVATE
         JadeFrame
 )
 
