@@ -52,9 +52,10 @@ static auto get_uniforms(const ReflectedCode& reflected_code
 ) -> std::vector<Shader::Uniform> {
     std::vector<Shader::Uniform> result;
     for (size_t i = 0; i < reflected_code.m_modules.size(); i++) {
-        const auto& module = reflected_code.m_modules[i];
+        const ReflectedModule& module = reflected_code.m_modules[i];
         for (size_t j = 0; j < module.m_uniform_buffers.size(); j++) {
-            const auto& uniform_buffer = module.m_uniform_buffers[j];
+            const ReflectedModule::UniformBuffer& uniform_buffer =
+                module.m_uniform_buffers[j];
 
             Shader::Uniform uniform;
             uniform.name = uniform_buffer.name;
@@ -66,7 +67,7 @@ static auto get_uniforms(const ReflectedCode& reflected_code
     return result;
 }
 
-static auto to_opengl_shader_stage(SHADER_STAGE type) -> GLenum {
+static auto to_opengl(SHADER_STAGE type) -> GLenum {
     switch (type) {
         case SHADER_STAGE::VERTEX: return GL_VERTEX_SHADER;
         case SHADER_STAGE::FRAGMENT: return GL_FRAGMENT_SHADER;
@@ -144,7 +145,7 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     for (u32 i = 0; i < desc.code.m_modules.size(); i++) {
         const ShadingCode::Module&        module_ = desc.code.m_modules[i];
         const ShadingCode::Module::SPIRV& spirv = module_.m_code;
-        const GLenum&                     type = to_opengl_shader_stage(module_.m_stage);
+        const GLenum&                     type = to_opengl(module_.m_stage);
         m_shaders[i] = OGLW_Shader(type, spirv);
         m_program.attach(m_shaders[i]);
     }

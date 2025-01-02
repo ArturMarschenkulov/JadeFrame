@@ -1,9 +1,7 @@
 #pragma once
-#include "JadeFrame/prelude.h"
 #include "JadeFrame/math/mat_4.h"
 #include <cassert>
 #include <deque>
-#include <map>
 
 namespace JadeFrame {
 
@@ -417,14 +415,25 @@ public:
 struct MaterialHandle;
 struct TextureHandle;
 struct ShaderHandle;
-class VertexData;
+
+class Transform {
+public:
+    [[nodiscard]] auto calculate() const -> mat4x4 {
+        return m_translation * m_rotation * m_scale;
+    }
+
+public:
+    mat4x4 m_scale = mat4x4::identity();
+    mat4x4 m_rotation = mat4x4::identity();
+    mat4x4 m_translation = mat4x4::identity();
+};
 
 class Object {
 public:
     GPUMeshData*    m_mesh;
     VertexData*     m_vertex_data;
     MaterialHandle* m_material;
-    mat4x4          m_transform;
+    Transform       m_transform;
 };
 
 class RenderSystem {

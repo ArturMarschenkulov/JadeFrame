@@ -4,8 +4,8 @@
 #include <array>
 #include <span>
 #include "JadeFrame/math/mat_4.h"
-#include "../mesh.h"
 #include "../graphics_shared.h"
+#include "JadeFrame/utils/utils.h"
 #include "JadeFrame/utils/assert.h"
 
 // TODO: Look whether this file is needed. This is file was mainly created as a quick fix

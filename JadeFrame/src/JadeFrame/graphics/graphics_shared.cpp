@@ -144,6 +144,7 @@ auto Image::gen_checked(v2u32 size, v2u32 check_size, RGBAColor& col_0, RGBAColo
             }
         }
     }
+    assert(false && "Not implemented");
 }
 
 /*---------------------------
@@ -564,8 +565,9 @@ auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* textur
 }
 
 auto RenderSystem::submit(const Object& obj) -> void {
+    // TODO(artur): Check whether the vertex data is matches the shader's vertex format
     const RenderCommand command = {
-        .transform = obj.m_transform,
+        .transform = obj.m_transform.calculate(),
         .vertex_data = obj.m_vertex_data,
         .material = obj.m_material,
         .m_mesh = obj.m_mesh,

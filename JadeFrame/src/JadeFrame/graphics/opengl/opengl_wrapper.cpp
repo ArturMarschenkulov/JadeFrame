@@ -10,7 +10,7 @@
 #define GL_SHADER_BINARY_FORMAT_SPIR_V_ARB 0x9551
 
 namespace JadeFrame {
-static auto to_gl_type(const SHADER_TYPE type) -> GLenum {
+static auto to_opengl(const SHADER_TYPE type) -> GLenum {
     GLenum result;
     switch (type) {
         case SHADER_TYPE::F32:
@@ -25,7 +25,7 @@ static auto to_gl_type(const SHADER_TYPE type) -> GLenum {
     return result;
 }
 
-static auto to_opengl_shader_stage(SHADER_STAGE type) -> GLenum {
+static auto to_opengl(SHADER_STAGE type) -> GLenum {
     switch (type) {
         case SHADER_STAGE::VERTEX: return GL_VERTEX_SHADER;
         case SHADER_STAGE::FRAGMENT: return GL_FRAGMENT_SHADER;
@@ -111,8 +111,8 @@ auto OGLW_VertexArray::set_attrib_format(
     const bool        normalized,
     const size_t      offset
 ) const -> void {
-    const u32    count = get_component_count(type);
-    const GLenum gl_type = to_gl_type(type);
+    const u32    count = component_count(type);
+    const GLenum gl_type = to_opengl(type);
     glVertexArrayAttribFormat(
         m_ID, index, count, gl_type, normalized ? GL_TRUE : GL_FALSE, offset
     );
@@ -134,7 +134,7 @@ OGLW_Shader::OGLW_Shader(const GLenum type, const std::vector<u32>& binary)
         auto s = convert_SPIRV_to_GLSL(binary);
         this->set_source(s);
         this->compile();
-        
+
         auto success = this->get_info(GL_COMPILE_STATUS);
         switch (type) {
             case GL_VERTEX_SHADER: {
