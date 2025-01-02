@@ -570,8 +570,8 @@ public:
 
 public:
     union {
-        std::array<std::array<f32, 4>, 4> el;
-        std::array<v4, 4>                 col_vec;
+        std::array<Col, 4> el;
+        std::array<v4, 4>  col_vec;
 
         struct {
             v4 x_axis;

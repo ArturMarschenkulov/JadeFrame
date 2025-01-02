@@ -1,19 +1,18 @@
-#include "pch.h"
 #include "swapchain.h"
 
 #if _WIN32
     #include <Windows.h> // TODO: Try to remove it
 #endif
-
-#include "logical_device.h"
-#include "context.h"
-#include "sync_object.h"
-#include "JadeFrame/utils/assert.h"
 #if _WIN32
     #include "JadeFrame/platform/windows/windows_window.h"
 #elif __linux__
     #include "JadeFrame/platform/linux/linux_window.h"
 #endif
+
+#include "JadeFrame/utils/assert.h"
+#include "logical_device.h"
+#include "context.h"
+#include "sync_object.h"
 
 #undef min
 #undef max

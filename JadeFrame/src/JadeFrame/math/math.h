@@ -1,9 +1,10 @@
 #pragma once
 #include <type_traits>
+#include <concepts>
 #undef min
 #undef max
 #include "JadeFrame/prelude.h"
-#include <concepts>
+
 
 // #define M_PI 3.14159265359f // 3.14159265358979323846
 

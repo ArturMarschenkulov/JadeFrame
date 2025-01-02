@@ -1,7 +1,6 @@
 #include "JadeFrame/math/vec.h"
 #include "JadeFrame/utils/assert.h"
 #include "JadeFrame/utils/logger.h"
-#include "pch.h"
 #include "mesh.h"
 #include "graphics_shared.h"
 

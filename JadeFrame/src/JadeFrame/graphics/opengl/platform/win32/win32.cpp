@@ -1,5 +1,4 @@
 #ifdef _WIN32
-    #include "pch.h"
 
     #include "JadeFrame/prelude.h"
     #include "JadeFrame/platform/windows/windows_window.h"

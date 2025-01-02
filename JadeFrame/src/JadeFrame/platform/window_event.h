@@ -1,4 +1,5 @@
 #pragma once
+#include "JadeFrame/types.h"
 
 namespace JadeFrame {
 enum class INPUT_STATE {

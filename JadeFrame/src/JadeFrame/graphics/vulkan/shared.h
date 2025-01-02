@@ -1,12 +1,12 @@
 #pragma once
+
 #include <vulkan/vulkan.h>
-#include <vector>
-#include <array>
-#include <span>
+
 #include "JadeFrame/math/mat_4.h"
-#include "../graphics_shared.h"
 #include "JadeFrame/utils/utils.h"
 #include "JadeFrame/utils/assert.h"
+
+#include "../graphics_shared.h"
 
 // TODO: Look whether this file is needed. This is file was mainly created as a quick fix
 // for some globals

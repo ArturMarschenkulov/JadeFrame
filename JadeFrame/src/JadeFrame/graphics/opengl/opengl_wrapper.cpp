@@ -1,4 +1,4 @@
-#include "pch.h"
+
 #include "opengl_wrapper.h"
 #include "opengl_buffer.h"
 #include "../graphics_shared.h"

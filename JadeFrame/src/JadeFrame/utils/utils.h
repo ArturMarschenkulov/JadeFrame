@@ -1,7 +1,8 @@
 #pragma once
-#include "JadeFrame/prelude.h"
 #include <string>
 #include <bitset>
+
+#include "JadeFrame/types.h"
 
 namespace JadeFrame {
 auto custom_simple_hash_0(const std::string& str) -> u32;

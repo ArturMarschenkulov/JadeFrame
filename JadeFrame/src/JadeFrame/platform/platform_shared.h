@@ -1,8 +1,10 @@
 #pragma once
-#include "JadeFrame/prelude.h"
-#include "JadeFrame/math/vec.h"
+
 #include <string>
 #include <memory>
+#include "JadeFrame/prelude.h"
+#include "JadeFrame/math/vec.h"
+
 #include "window.h"
 #include "window_event.h"
 

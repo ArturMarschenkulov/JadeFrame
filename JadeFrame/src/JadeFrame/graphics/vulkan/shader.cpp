@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "shader.h"
 #include "logical_device.h"
 #include "buffer.h"

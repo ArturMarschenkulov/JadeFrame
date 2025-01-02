@@ -1,11 +1,12 @@
 #pragma once
+#include <vector>
+
 #include <vulkan/vulkan.h>
+
 #include "descriptor_set.h"
-#include "JadeFrame/prelude.h"
+#include "JadeFrame/types.h"
 // #include "../graphics_shared.h"
 #include "JadeFrame/graphics/reflect.h"
-
-#include <vector>
 #include <JadeFrame/graphics/shader_loader.h>
 
 namespace JadeFrame {
@@ -53,7 +54,7 @@ public:
         PipelineLayout(
             const LogicalDevice& device,
             const std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)>&
-                                                  set_layouts,
+                                                set_layouts,
             const std::span<PushConstantRange>& push_constant_ranges
         );
 
@@ -61,7 +62,7 @@ public:
         const LogicalDevice* m_device = nullptr;
     };
 
-    VkPipeline           m_handle = VK_NULL_HANDLE; 
+    VkPipeline           m_handle = VK_NULL_HANDLE;
     PipelineLayout       m_layout = {};
     const LogicalDevice* m_device = nullptr;
     const RenderPass*    m_render_pass = nullptr;

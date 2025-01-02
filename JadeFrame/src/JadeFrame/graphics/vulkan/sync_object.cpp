@@ -1,9 +1,9 @@
-#include "pch.h"
 #include "sync_object.h"
+
+#include "JadeFrame/utils/assert.h"
 #include "logical_device.h"
 #include "context.h"
 
-#include "JadeFrame/utils/assert.h"
 
 namespace JadeFrame {
 namespace vulkan {

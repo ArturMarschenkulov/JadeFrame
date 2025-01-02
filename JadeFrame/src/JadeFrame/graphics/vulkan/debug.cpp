@@ -1,12 +1,21 @@
-#include "pch.h"
 #include "debug.h"
-#include "JadeFrame/utils/logger.h"
-#include "JadeFrame/utils/utils.h"
+
 #include <span>
 #include <array>
 
+#include "JadeFrame/utils/logger.h"
+#include "JadeFrame/utils/utils.h"
+
+
 namespace JadeFrame {
 namespace vulkan {
+
+// make the variable below atomic
+static u32           g_error_count = 0;
+static constexpr u32 g_max_error_count = 10;
+
+// static u32 g_max_error_count = 10;
+
 VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity, VkDebugUtilsMessageTypeFlagsEXT message_type, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void*) {
     Logger::LEVEL level = Logger::LEVEL::TRACE;
@@ -22,6 +31,7 @@ debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity, VkDebugU
             break;
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
             level = Logger::LEVEL::ERR;
+            g_error_count += 1;
             break;
         default: assert(false);
     }
@@ -35,6 +45,12 @@ debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity, VkDebugU
     Logger::log(
         level, "Vulkan {}:\n{}\n-------------", msg_type, pCallbackData->pMessage
     );
+
+    if (g_error_count >= g_max_error_count) {
+        Logger::err("Too many vulkan errors, aborting...");
+        assert(false);
+        return VK_TRUE;
+    }
 
     return VK_FALSE;
 }

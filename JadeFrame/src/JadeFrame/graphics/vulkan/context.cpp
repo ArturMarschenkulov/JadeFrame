@@ -1,12 +1,11 @@
-#include "pch.h"
 
+#include <set>
 #ifdef WIN32
     #define VK_USE_PLATFORM_WIN32_KHR
 #elif __linux__
     #define VK_USE_PLATFORM_XLIB_KHR
 #endif
 #include "context.h"
-#include "shared.h"
 #include "physical_device.h"
 #include "debug.h"
 #if defined(_WIN32)
@@ -17,8 +16,6 @@
 
 #include "JadeFrame/prelude.h"
 
-#include <set>
-#include <JadeFrame/base_app.h>
 #include "JadeFrame/utils/assert.h"
 
 namespace JadeFrame {

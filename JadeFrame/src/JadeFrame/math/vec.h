@@ -1,10 +1,12 @@
 #pragma once
-#include "JadeFrame/prelude.h"
-#include "JadeFrame/types.h"
+
 // #include <concepts>
 // #include <cmath>
 #include <cstring>
 #include <type_traits>
+
+#include "JadeFrame/prelude.h"
+#include "JadeFrame/types.h"
 
 namespace JadeFrame {
 JF_PRAGMA_PUSH

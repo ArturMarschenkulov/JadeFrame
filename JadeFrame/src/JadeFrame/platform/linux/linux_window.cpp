@@ -1,14 +1,18 @@
 #include "linux_window.h"
-#include "JadeFrame/platform/linux/linux_input_manager.h"
-#include "JadeFrame/platform/window.h"
-#include "JadeFrame/platform/window_event.h"
-#include <GL/gl.h>
-#include <GL/glx.h>
 
-#include <X11/Xlib.h>
 #include <string>
 #include <iostream>
 #include <cstdlib>
+
+#include <X11/Xlib.h>
+#include <GL/gl.h>
+#include <GL/glx.h>
+
+
+
+#include "JadeFrame/platform/linux/linux_input_manager.h"
+#include "JadeFrame/platform/window.h"
+#include "JadeFrame/platform/window_event.h"
 
 namespace JadeFrame {
 

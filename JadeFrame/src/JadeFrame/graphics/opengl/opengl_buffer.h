@@ -2,11 +2,6 @@
 #include <glad/glad.h>
 
 #include "opengl_wrapper.h"
-#include "../graphics_shared.h"
-
-#include "JadeFrame/graphics/mesh.h"
-
-#include <vector>
 
 namespace JadeFrame {
 struct Vertex;

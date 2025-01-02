@@ -1,10 +1,9 @@
-#include "pch.h"
-#include "utils.h"
-
 #include <cstdlib>
 #include <ctime>
 #include <memory>
 #include <type_traits>
+
+#include "utils.h"
 
 #include "option.h"
 

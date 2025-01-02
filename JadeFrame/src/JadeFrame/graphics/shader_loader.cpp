@@ -1,5 +1,5 @@
 #include "shader_loader.h"
-#include "pch.h"
+
 #include "graphics_language.h"
 
 // #include <glad/glad.h>
@@ -142,7 +142,11 @@ layout(location = 0) in vec4 f_color;
 
 layout(location = 0) out vec4 o_color;
 
-void main() {
+void main() {    
+    if(!gl_FrontFacing) {
+        o_color = vec4(1.0, 0.412, 0.7, 1.0);
+        return;
+    }
     // float gamma = 1.0;
     // o_color = vec4(pow(f_color.xyz, vec3(gamma)), f_color.w);
     o_color = f_color;
@@ -210,30 +214,33 @@ layout(std140, set = 0, binding = 0) uniform Camera {
     mat4 view_projection;
 } u_camera;
 
-layout(std140, set = 0, binding = 1) uniform Transform {
+layout(std140, set = 3, binding = 0) uniform Transform {
 	mat4 model;
 } u_transform;
 
 void main() {
 	gl_Position = u_camera.view_projection * u_transform.model * vec4(v_position, 1.0);
 	f_color = v_color;		
-	//f_texture_coord = v_texture_coord;
+	f_texture_coord = v_texture_coord;
 }
-	)";
+)";
     const char* fragment_shader =
         R"(
 #version 450 core
-#extension GL_ARB_separate_shader_objects : enable
 
 layout (location = 0) in vec4 f_color;
-//layout (location = 1) in vec2 f_texture_coord;
+layout (location = 1) in vec2 f_texture_coord;
 
 layout (location = 0) out vec4 o_color;
 
 void main() {
+    if(!gl_FrontFacing) {
+        o_color = vec4(1.0, 0.412, 0.7, 1.0);
+        return;
+    }
 	o_color = f_color;
 }
-	)";
+)";
 
     return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
@@ -242,6 +249,8 @@ static auto get_default_shader_with_texture() -> std::tuple<std::string, std::st
     const char* vertex_shader =
         R"(
 #version 450 core
+#extension GL_ARB_separate_shader_objects : enable
+
 layout (location = 0) in vec3 v_position;
 layout (location = 1) in vec4 v_color;
 layout (location = 2) in vec2 v_texture_coord;
@@ -288,7 +297,7 @@ void main() {
 
 
 }
-	)";
+)";
 
     return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
@@ -435,11 +444,11 @@ auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
     static const std::unordered_map<std::string, ShaderGetter> shader_map = {
         {          "flat_0",          [&]() { return get_shader_spirv_test_1(); }},
         {  "with_texture_0",  [&]() { return get_default_shader_with_texture(); }},
+        {    "spirv_test_1",          [&]() { return get_shader_spirv_test_1(); }},
         { "depth_testing_0", [&]() { return get_default_shader_depth_testing(); }},
         {    "light_server",  [&]() { return get_default_shader_light_server(); }},
         {    "light_client",  [&]() { return get_default_shader_light_client(); }},
         {    "spirv_test_0",          [&]() { return get_shader_spirv_test_0(); }},
-        {    "spirv_test_1",          [&]() { return get_shader_spirv_test_1(); }},
         {"framebuffer_test",    [&]() { return get_shader_framebuffer_test_0(); }}
     };
     auto it = shader_map.find(name);

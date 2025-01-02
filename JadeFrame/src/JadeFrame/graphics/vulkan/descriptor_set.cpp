@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "descriptor_set.h"
 #include "logical_device.h"
 #include "context.h"

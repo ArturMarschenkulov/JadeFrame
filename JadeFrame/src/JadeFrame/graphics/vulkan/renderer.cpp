@@ -1,5 +1,3 @@
-#include "pch.h"
-
 #include "renderer.h"
 #if defined(_WIN32)
     #include "JadeFrame/platform/windows/windows_window.h"
@@ -7,12 +5,22 @@
     #include "JadeFrame/platform/linux/linux_window.h"
 #endif
 
+#include "JadeFrame/utils/logger.h"
+#include "../graphics_shared.h"
 #include "shader.h"
 
-#include "../graphics_shared.h"
-#include "JadeFrame/utils/logger.h"
 
 namespace JadeFrame {
+// prepare shaders and its dynamic uniform buffers
+// TODO: Find a better way to do this, but for now it works
+static auto prepare_shaders(const std::deque<RenderCommand>& commands) -> void {
+    for (u64 i = 0; i < commands.size(); i++) {
+        const auto&           cmd = commands[i];
+        const MaterialHandle& mh = *cmd.material;
+        auto*                 material = static_cast<Vulkan_Material*>(mh.m_handle);
+        material->set_dynamic_ub_num(commands.size());
+    }
+}
 
 static const i32 MAX_FRAMES_IN_FLIGHT = 1;
 

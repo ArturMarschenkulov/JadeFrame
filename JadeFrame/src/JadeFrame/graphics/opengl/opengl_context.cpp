@@ -1,13 +1,14 @@
 #include "opengl_wrapper.h"
-#include "pch.h"
-#include "opengl_context.h"
-#include "opengl_debug.h"
-#include "opengl_shader.h"
+
 #if defined(_WIN32)
     #include "platform/win32/win32.h"
 #elif defined(__linux__)
     #include "platform/linux/linux.h"
 #endif
+
+#include "opengl_context.h"
+#include "opengl_debug.h"
+#include "opengl_shader.h"
 
 namespace JadeFrame {
 auto OpenGL_Context::bind_uniform_buffer_to_location(opengl::Buffer& buffer, u32 location)

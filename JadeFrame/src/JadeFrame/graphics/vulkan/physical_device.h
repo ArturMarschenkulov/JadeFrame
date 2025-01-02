@@ -1,11 +1,10 @@
 #pragma once
+#include <vector>
 #include <vulkan/vulkan.h>
+
+#include "JadeFrame/types.h"
 #include "logical_device.h"
 #include "queue.h"
-
-#include "JadeFrame/prelude.h"
-
-#include <vector>
 
 namespace JadeFrame {
 
@@ -33,28 +32,28 @@ public:
     [[nodiscard]] auto check_extension_support(const std::vector<const char*>& extensions
     ) const -> bool;
     [[nodiscard]] static auto
-    choose_fitting_queue_families(std::vector<QueueFamily>& queue_families)
-        -> QueueFamilyPointers;
+    choose_fitting_queue_families(std::vector<QueueFamily>& queue_families
+    ) -> QueueFamilyPointers;
     [[nodiscard]] auto
     find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32;
 
-    [[nodiscard]] auto query_memory_properties() const
-        -> VkPhysicalDeviceMemoryProperties;
+    [[nodiscard]] auto
+    query_memory_properties() const -> VkPhysicalDeviceMemoryProperties;
     [[nodiscard]] auto query_properties() const -> VkPhysicalDeviceProperties;
     [[nodiscard]] auto query_features() const -> VkPhysicalDeviceFeatures;
 
-    [[nodiscard]] auto query_queue_family_properties() const
-        -> std::vector<VkQueueFamilyProperties>;
+    [[nodiscard]] auto
+    query_queue_family_properties() const -> std::vector<VkQueueFamilyProperties>;
     [[nodiscard]] auto query_queue_families() const -> std::vector<QueueFamily>;
-    [[nodiscard]] auto query_surface_capabilities(const Surface& surface) const
-        -> VkSurfaceCapabilitiesKHR;
-    [[nodiscard]] auto query_surface_formats(const Surface& surface) const
-        -> std::vector<VkSurfaceFormatKHR>;
-    [[nodiscard]] auto query_surface_present_modes(const Surface& surface) const
-        -> std::vector<VkPresentModeKHR>;
+    [[nodiscard]] auto query_surface_capabilities(const Surface& surface
+    ) const -> VkSurfaceCapabilitiesKHR;
+    [[nodiscard]] auto query_surface_formats(const Surface& surface
+    ) const -> std::vector<VkSurfaceFormatKHR>;
+    [[nodiscard]] auto query_surface_present_modes(const Surface& surface
+    ) const -> std::vector<VkPresentModeKHR>;
 
-    [[nodiscard]] auto query_extension_properties() const
-        -> std::vector<VkExtensionProperties>;
+    [[nodiscard]] auto
+    query_extension_properties() const -> std::vector<VkExtensionProperties>;
 
     [[nodiscard]] auto limits() const -> VkPhysicalDeviceLimits;
 

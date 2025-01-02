@@ -1,7 +1,9 @@
 #pragma once
-#include "../platform_shared.h"
+
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
+
+#include "../platform_shared.h"
 
 namespace JadeFrame {
 

@@ -1,5 +1,3 @@
-#include "JadeFrame/math/mat_4.h"
-#include "pch.h"
 #include "camera.h"
 
 namespace JadeFrame {

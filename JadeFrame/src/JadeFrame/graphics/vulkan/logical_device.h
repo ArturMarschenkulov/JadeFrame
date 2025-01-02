@@ -1,6 +1,9 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+
+#include "VulkanMemoryAllocator/include/vk_mem_alloc.h"
+
 #include "swapchain.h"
 #include "physical_device.h"
 #include "pipeline.h"
@@ -12,7 +15,6 @@
 #include "sync_object.h"
 #include "surface.h"
 
-#include "VulkanMemoryAllocator/include/vk_mem_alloc.h"
 
 // #include "JadeFrame/prelude.h"
 

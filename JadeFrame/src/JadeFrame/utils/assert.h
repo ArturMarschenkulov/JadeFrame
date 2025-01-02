@@ -1,5 +1,6 @@
 #pragma once
 #include <cassert>
+#include "JadeFrame/utils/logger.h"
 
 namespace JadeFrame {
 

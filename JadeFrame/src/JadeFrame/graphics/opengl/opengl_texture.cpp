@@ -1,10 +1,9 @@
-#include "pch.h"
-#include "JadeFrame/prelude.h"
 
-#include "opengl_texture.h"
+// #include "JadeFrame/prelude.h"
 
-#include "opengl_context.h"
 #include "JadeFrame/utils/logger.h"
+#include "opengl_texture.h"
+#include "opengl_context.h"
 
 namespace JadeFrame {
 
@@ -166,7 +165,9 @@ auto Texture::set_image(
 auto Texture::resize(u32 width, u32 height, u32 /*depth*/) -> void {
 
     assert(width > 0 && height > 0);
-    this->set_image(0, m_internal_format, v2u32::create(width, height), m_format, m_type, 0);
+    this->set_image(
+        0, m_internal_format, v2u32::create(width, height), m_format, m_type, 0
+    );
 
     // switch (m_target) {
     //	case GL_TEXTURE_1D:

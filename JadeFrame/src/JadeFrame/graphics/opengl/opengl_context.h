@@ -1,18 +1,17 @@
 #pragma once
-#include <glad/glad.h>
+
 #include <string>
 #include <unordered_map>
 #include <utility>
-#include "JadeFrame/graphics/mesh.h" // For Color
-#include "JadeFrame/graphics/opengl/opengl_wrapper.h"
-#include "opengl_buffer.h"
 
 #ifdef _WIN32
     #include "JadeFrame/platform/windows/windows_window.h"
 #elif __linux__
-    #include "JadeFrame/platform/linux/linux_window.h"
     #include <GL/glx.h>
 #endif
+
+#include "JadeFrame/graphics/mesh.h" // For Color
+#include "opengl_buffer.h"
 
 #ifdef _WIN32
 struct HGLRC__;

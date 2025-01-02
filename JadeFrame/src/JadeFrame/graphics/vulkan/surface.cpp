@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "surface.h"
 #include "context.h"
 #if defined(_WIN32)

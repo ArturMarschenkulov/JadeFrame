@@ -1,5 +1,4 @@
 #pragma once
-#include "JadeFrame/prelude.h"
 #include <glad/glad.h>
 #include "JadeFrame/math/vec.h"
 

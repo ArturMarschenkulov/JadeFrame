@@ -1,4 +1,4 @@
-#include "JadeFrame/prelude.h"
+#include "JadeFrame/types.h"
 
 namespace JadeFrame {
 namespace opengl {

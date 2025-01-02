@@ -1,7 +1,8 @@
 #pragma once
-#include "JadeFrame/math/mat_4.h"
 #include <cassert>
 #include <deque>
+
+#include "JadeFrame/math/mat_4.h"
 
 namespace JadeFrame {
 

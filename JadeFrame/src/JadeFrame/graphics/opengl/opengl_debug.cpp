@@ -1,8 +1,9 @@
-#include "pch.h"
 #include "opengl_debug.h"
-#include <glad/glad.h>
 #include <string>
-#include "JadeFrame/prelude.h"
+
+#include <glad/glad.h>
+
+#include "JadeFrame/utils/logger.h"
 #include "JadeFrame/utils/utils.h"
 
 namespace JadeFrame {

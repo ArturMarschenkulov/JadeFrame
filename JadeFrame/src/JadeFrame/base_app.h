@@ -1,5 +1,8 @@
 #pragma once
 
+#include <deque>
+#include <map>
+
 #if defined(_WIN32) || defined(_WIN64)
     #include "JadeFrame/platform/windows/windows_input_manager.h"
     #include "JadeFrame/platform/windows/windows_system_manager.h"
@@ -7,16 +10,10 @@
 #elif defined(__linux__)
     #include "JadeFrame/platform/linux/linux_system_manager.h"
 #endif
-#include "JadeFrame/utils/logger.h"
 #include "JadeFrame/math/vec.h"
 #include "graphics/camera.h"
 #include "graphics/graphics_shared.h"
-#include "JadeFrame/graphics/mesh.h"
 #include "gui.h"
-
-#include <deque>
-#include <map>
-#include <memory>
 
 namespace JadeFrame {
 

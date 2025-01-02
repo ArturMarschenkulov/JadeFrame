@@ -10,16 +10,17 @@
 
    https://github.com/fendevel/Guide-to-Modern-OpenGL-Functions/blob/master/README.md
 */
-#include "JadeFrame/prelude.h"
-#include "JadeFrame/math/vec.h"
-#include "JadeFrame/graphics/reflect.h"
-#include <glad/glad.h>
-#include "opengl_texture.h"
-#include "../graphics_shared.h"
 
 #include <vector>
 #include <string>
 #include <cassert>
+
+#include <glad/glad.h>
+
+#include "JadeFrame/prelude.h"
+#include "JadeFrame/graphics/reflect.h"
+#include "../graphics_shared.h"
+#include "opengl_texture.h"
 
 namespace JadeFrame {
 

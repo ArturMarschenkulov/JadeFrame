@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+
 #include <vulkan/vulkan.h>
 
 #include "shared.h"
@@ -8,7 +10,6 @@
 
 #include "JadeFrame/prelude.h"
 
-#include <vector>
 
 #define JF_USE_VMA 1
 

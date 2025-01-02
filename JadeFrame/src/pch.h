@@ -35,7 +35,7 @@
     #include <Windows.h>
 #endif
 
-#include "JadeFrame/prelude.h"
+// #include "JadeFrame/prelude.h"
 
 #if defined _WIN32
     #define VK_USE_PLATFORM_WIN32_KHR

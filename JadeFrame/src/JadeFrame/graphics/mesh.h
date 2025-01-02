@@ -3,8 +3,6 @@
 #include "JadeFrame/types.h"
 #include "JadeFrame/graphics/graphics_shared.h"
 
-#include <vector>
-
 namespace JadeFrame {
 
 class RGBAColor {

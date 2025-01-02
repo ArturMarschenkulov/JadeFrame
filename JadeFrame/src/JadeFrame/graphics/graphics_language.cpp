@@ -1,5 +1,4 @@
 #include "graphics_language.h"
-#include "JadeFrame/utils/assert.h"
 
 // JF_PRAGMA_PUSH
 // #pragma warning(disable : 4006)
@@ -13,6 +12,7 @@ JF_PRAGMA_NO_WARNINGS_PUSH
 // #include "SPIRV-Cross/spirv_msl.hpp"
 JF_PRAGMA_NO_WARNINGS_POP
 
+#include "JadeFrame/utils/assert.h"
 namespace JadeFrame {
 
 auto convert_SPIRV_to_GLSL(const std::vector<u32>& spirv) -> std::string {

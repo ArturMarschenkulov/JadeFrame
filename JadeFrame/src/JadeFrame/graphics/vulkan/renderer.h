@@ -1,10 +1,9 @@
 #pragma once
-#include "JadeFrame/prelude.h"
+#include "JadeFrame/types.h"
 #include "../mesh.h"
+#include "../graphics_shared.h"
 #include "context.h"
 #include "sync_object.h"
-
-#include "../graphics_shared.h"
 
 namespace JadeFrame {
 

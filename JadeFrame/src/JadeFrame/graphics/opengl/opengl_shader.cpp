@@ -1,15 +1,13 @@
-#include "pch.h"
-
-#include "opengl_shader.h"
-#include "opengl_context.h"
-#include "JadeFrame/utils/assert.h"
-
-#include "../graphics_shared.h"
-#include "../reflect.h"
 
 #include <array>
 #include <cassert>
 
+#include "JadeFrame/utils/assert.h"
+#include "../graphics_shared.h"
+#include "../reflect.h"
+
+#include "opengl_shader.h"
+#include "opengl_context.h"
 #include "opengl_wrapper.h"
 
 JF_PRAGMA_NO_WARNINGS_PUSH

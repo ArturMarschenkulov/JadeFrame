@@ -1,10 +1,11 @@
 #pragma once
-#include "JadeFrame/prelude.h"
-#include "JadeFrame/utils/assert.h"
 
 #include <utility>
 #include <concepts>
 #include <type_traits>
+
+#include "JadeFrame/types.h"
+#include "JadeFrame/utils/assert.h"
 
 namespace JadeFrame {
 

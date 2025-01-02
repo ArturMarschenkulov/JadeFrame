@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "pipeline.h"
 #include "context.h"
 #include "logical_device.h"

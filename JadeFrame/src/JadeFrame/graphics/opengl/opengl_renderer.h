@@ -1,22 +1,19 @@
 #pragma once
-#include "opengl_texture.h"
-#include "opengl_buffer.h"
-#include "opengl_shader.h"
-#include "opengl_context.h"
-
-#include "JadeFrame/math/mat_4.h"
-#include "JadeFrame/graphics/mesh.h"
-#include "JadeFrame/graphics/graphics_shared.h"
-#include "../graphics_shared.h"
-
-#include <vector>
-#include <map>
 
 #ifdef _WIN32
     #include "JadeFrame/platform/windows/windows_window.h"
 #elif __linux__
     #include "JadeFrame/platform/linux/linux_window.h"
 #endif
+
+#include "JadeFrame/math/mat_4.h"
+#include "JadeFrame/graphics/mesh.h"
+#include "JadeFrame/graphics/graphics_shared.h"
+
+#include "opengl_texture.h"
+#include "opengl_buffer.h"
+#include "opengl_shader.h"
+#include "opengl_context.h"
 
 namespace JadeFrame {
 

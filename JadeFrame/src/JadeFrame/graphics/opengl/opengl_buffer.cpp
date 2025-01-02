@@ -1,9 +1,8 @@
 #include "opengl_buffer.h"
-#include "pch.h"
 
-#include "JadeFrame/graphics/mesh.h"
-#include "opengl_context.h"
 #include <utility>
+
+#include "opengl_context.h"
 
 namespace JadeFrame {
 namespace opengl {

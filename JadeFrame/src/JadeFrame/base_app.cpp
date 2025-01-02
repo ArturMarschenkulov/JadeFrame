@@ -1,13 +1,9 @@
-#include "pch.h"
+
 #include "base_app.h"
 #include "graphics/graphics_shared.h"
 
+#include <imgui/imgui.h>
 #include "gui.h"
-
-#include "JadeFrame/math/vec.h"
-
-#include "JadeFrame/math/math.h"
-#include "JadeFrame/ptr/ptr.h"
 
 namespace JadeFrame {
 

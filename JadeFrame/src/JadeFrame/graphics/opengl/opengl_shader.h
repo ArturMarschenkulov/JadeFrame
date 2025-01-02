@@ -1,10 +1,10 @@
 #pragma once
+#include <vector>
+#include <string>
+
 #include <glad/glad.h>
 
 #include "opengl_wrapper.h"
-
-#include <vector>
-#include <string>
 
 namespace JadeFrame {
 class OpenGL_Context;

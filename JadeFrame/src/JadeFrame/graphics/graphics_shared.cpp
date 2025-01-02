@@ -1,6 +1,6 @@
 #include "JadeFrame/graphics/mesh.h"
 #include "JadeFrame/utils/logger.h"
-#include "pch.h"
+
 #include "graphics_shared.h"
 #include "JadeFrame/platform/platform_shared.h"
 #include "vulkan/renderer.h"

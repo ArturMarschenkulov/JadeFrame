@@ -3,9 +3,9 @@
 #include <map>
 #include <memory>
 
-#include "../platform_shared.h"
-
 #include <unistd.h>
+
+#include "../platform_shared.h"
 
 namespace JadeFrame {
 

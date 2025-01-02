@@ -1,12 +1,13 @@
 #pragma once
+
+#include <vector>
+
 #include <vulkan/vulkan.h>
 
 #include "JadeFrame/graphics/vulkan/queue.h"
 #include "JadeFrame/prelude.h"
 #include "buffer.h"
 #include "surface.h"
-
-#include <vector>
 
 namespace JadeFrame {
 

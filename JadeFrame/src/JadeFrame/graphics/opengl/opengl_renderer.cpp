@@ -1,18 +1,20 @@
-#include "pch.h"
 
-#include "opengl_renderer.h"
-#include "../shader_loader.h"
-#include "JadeFrame/graphics/mesh.h"
 
 #ifdef _WIN32
     #include "Windows.h"
 #endif
+
+#include "JadeFrame/macros.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #undef __OPTIMIZE__
 JF_PRAGMA_NO_WARNINGS_PUSH
 #include "stb/stb_image_write.h"
 JF_PRAGMA_NO_WARNINGS_POP
+
+#include "opengl_renderer.h"
+#include "../shader_loader.h"
+#include "JadeFrame/graphics/mesh.h"
 
 namespace JadeFrame {
 namespace gl {}

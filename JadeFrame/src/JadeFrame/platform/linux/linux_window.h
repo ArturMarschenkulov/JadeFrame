@@ -1,8 +1,9 @@
 #pragma once
 
-#include "../window.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+
+#include "../window.h"
 
 namespace JadeFrame {
 

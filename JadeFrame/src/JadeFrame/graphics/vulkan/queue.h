@@ -1,8 +1,10 @@
 #pragma once
-#include <vulkan/vulkan.h>
-#include "JadeFrame/prelude.h"
 
 #include <utility>
+
+#include <vulkan/vulkan.h>
+
+#include "JadeFrame/types.h"
 
 namespace JadeFrame {
 namespace vulkan {
@@ -73,8 +75,8 @@ public:
 
     [[nodiscard]] auto supports_present(const Surface& surface) const -> bool;
 
-    [[nodiscard]] auto query_queues(const LogicalDevice& device, u32 index) const
-        -> Queue;
+    [[nodiscard]] auto
+    query_queues(const LogicalDevice& device, u32 index) const -> Queue;
 };
 } // namespace vulkan
 } // namespace JadeFrame

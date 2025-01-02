@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "logical_device.h"
 #include "physical_device.h"
 #include "context.h"
