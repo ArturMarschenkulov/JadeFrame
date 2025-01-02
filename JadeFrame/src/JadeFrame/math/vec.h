@@ -337,6 +337,8 @@ public:
         return std::sqrt(x * x + y * y + z * z + w * w);
     }
 
+    constexpr auto xyz() const -> _v3<T> { return _v3<T>::create(x, y, z); }
+
 public:
     constexpr auto operator-() const -> _v4 { return _v4(-x, -y, -z, -w); }
 

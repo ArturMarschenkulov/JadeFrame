@@ -1,4 +1,5 @@
 
+#include <cstdlib>
 #include <gtest/gtest.h>
 
 #include <iostream>
@@ -6,14 +7,21 @@
 
 #include "JadeFrame/math/math.h"
 #include "JadeFrame/math/vec.h"
-#include "JadeFrame/prelude.h"
 #include "JadeFrame/types.h"
 
 #include "../mat_4.h"
 using namespace JadeFrame;
 
-auto matrices_are_equal(const mat4x4& a, const mat4x4& b, float tolerance = 1e-6f)
-    -> bool {
+static auto generate_random_mat4x4() -> mat4x4 {
+    mat4x4 matrix = {};
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) { matrix[i][j] = (f32)rand(); }
+    }
+    return matrix;
+}
+
+static auto
+matrices_are_equal(const mat4x4& a, const mat4x4& b, float tolerance = 1e-6f) -> bool {
     for (int row = 0; row < 4; ++row) {
         for (int col = 0; col < 4; ++col) {
             if (std::fabs(a[row][col] - b[row][col]) > tolerance) { return false; }
@@ -69,11 +77,11 @@ static auto to_string(const v3& v) -> std::string {
     return out.str();
 }
 
-template<typename T>
-auto operator<<(std::ostream& os, const mat4x4& m) -> std::ostream& {
-    os << to_string(m);
-    return os;
-}
+// template<typename T>
+// auto operator<<(std::ostream& os, const mat4x4& m) -> std::ostream& {
+//     os << to_string(m);
+//     return os;
+// }
 
 // TEST(Mat4x4_BasicCreate, DefaultConstructor) {
 //     mat4x4 matrix;
@@ -263,8 +271,12 @@ TEST(Mat4x4_Arithmetic, Decomposition) {
 }
 
 TEST(Mat4x4_Arithmetic, MultiplyByZeroMatrix) {
-    mat4x4 matrix =
-        mat4x4::from_rows({1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}, {13, 14, 15, 16});
+    mat4x4 matrix = mat4x4::from_rows(
+        v4::create(1, 2, 3, 4),
+        v4::create(5, 6, 7, 8),
+        v4::create(9, 10, 11, 12),
+        v4::create(13, 14, 15, 16)
+    );
     mat4x4 zero = mat4x4::zero();
     EXPECT_EQ(matrix * zero, zero);
     EXPECT_EQ(zero * matrix, zero);
@@ -422,6 +434,38 @@ TEST(Mat4x4_Arithmetic, MultiplyByRotationMatrix) {
     }
 }
 
+TEST(Mat4x4_Arithmetic, PitchYawRoll) {
+
+    std::vector<std::tuple<f32, v3>> map = {
+        {     0,  v3::create(1, 0,  0)},
+        { 90.0F,  v3::create(0, 0,  1)},
+        {180.0F, v3::create(-1, 0,  0)},
+        {270.0F,  v3::create(0, 0, -1)},
+        {360.0F,  v3::create(1, 0,  0)},
+    };
+    for (auto [yaw_, expected] : map) {
+        f32 yaw = to_radians(yaw_);
+        v3  direction;
+        direction.x = std::cos(yaw);
+        direction.y = 0;
+        direction.z = std::sin(yaw);
+        EXPECT_EQ(direction, expected);
+    }
+    {
+        for (f32 i = 0; i < 360; i += 1.0F) {
+            f32 yaw = to_radians(i);
+
+            v3 direction;
+            direction.x = std::cos(yaw);
+            direction.y = 0;
+            direction.z = std::sin(yaw);
+
+            mat4x4 yaw_matrix = mat4x4::rotation_y_rh(-yaw);
+            EXPECT_EQ(direction, yaw_matrix.x_axis.xyz());
+        }
+    }
+}
+
 TEST(Mat4x4_Arithmetic, MatrixVectorMultiplication) {
     mat4x4 matrix = mat4x4::identity();
     v4     vector{1, 2, 3, 1};
@@ -429,6 +473,57 @@ TEST(Mat4x4_Arithmetic, MatrixVectorMultiplication) {
 
     auto re = result == vector;
     EXPECT_EQ(re, true);
+}
+
+TEST(Mat4x4_Arithmetic, Determinant) {
+    {
+        EXPECT_EQ(mat4x4::identity().determinant(), 1.0F);
+        EXPECT_EQ(mat4x4::zero().determinant(), 0.0F);
+        EXPECT_EQ(mat4x4::rotation_x_rh(to_radians(90 * 1)).determinant(), 1.0F);
+        EXPECT_EQ(mat4x4::rotation_y_rh(to_radians(90 * 2)).determinant(), 1.0F);
+        EXPECT_EQ(mat4x4::rotation_z_rh(to_radians(90 * 3)).determinant(), 1.0F);
+
+        EXPECT_EQ(2.0F * 2.0F * 2.0F, mat4x4::scale(v3::create(2, 2, 2)).determinant());
+    }
+}
+
+TEST(Mat4x4_Arithmetic, Inverse) {
+    {
+        auto inv = mat4x4::identity().inverse();
+        EXPECT_EQ(inv, mat4x4::identity());
+    }
+    {
+        //
+        auto rotz = mat4x4::rotation_z_rh(to_radians(90));
+        auto inv = rotz.inverse();
+        EXPECT_EQ(rotz * inv, mat4x4::identity());
+        EXPECT_EQ(inv * rotz, mat4x4::identity());
+    }
+    {
+        auto trans = mat4x4::translation(v3::create(1, 2, 3));
+        auto inv = trans.inverse();
+
+        EXPECT_EQ(trans * inv, mat4x4::identity());
+        EXPECT_EQ(inv * trans, mat4x4::identity());
+    }
+    {
+        auto scale = mat4x4::scale(v3::create(1, 2, 3));
+        auto inv = scale.inverse();
+
+        EXPECT_EQ(scale * inv, mat4x4::identity());
+        EXPECT_EQ(inv * scale, mat4x4::identity());
+    }
+    {
+        auto trans = mat4x4::translation(v3::create(1, 2, 3));
+        auto scale = mat4x4::scale(v3::create(1, 2, 3));
+        auto rotz = mat4x4::rotation_z_rh(to_radians(90));
+        auto m = scale * rotz * trans;
+        auto inv = m.inverse();
+
+        EXPECT_EQ(m * inv, mat4x4::identity());
+        EXPECT_EQ(inv * m, mat4x4::identity());
+        EXPECT_EQ(inv, trans.inverse() * rotz.inverse() * scale.inverse());
+    }
 }
 
 TEST(Mat4x4Test, IdentityMatrix) {
@@ -493,6 +588,8 @@ TEST(Mat4x4_Transformation, ScaleMatrix) {
         );
     }
 }
+
+TEST(MISC, main_44) {}
 
 TEST(MISC, main_33) {
 
@@ -600,7 +697,416 @@ perspective_1(f32 left, f32 right, f32 top, f32 bottom, f32 far, f32 near) noexc
     );
 }
 
-TEST(Mat4x4_PerspectiveProjection, CustomCompositePerspectiveMatrix) {
+enum class HANDEDNESS {
+    LEFT,
+    RIGHT
+};
+
+struct ViewVolume {
+public:
+    [[nodiscard]] static auto zero() noexcept -> ViewVolume {
+        ViewVolume vol = {};
+        vol.left = 0.0F;
+        vol.right = 0.0F;
+        vol.top = 0.0F;
+        vol.bottom = 0.0F;
+        vol.near = 0.0F;
+        vol.far = 0.0F;
+        return vol;
+    }
+
+    [[nodiscard]] static auto usual() noexcept -> ViewVolume {
+        ViewVolume vol = {};
+        vol.left = -1.0F;
+        vol.right = 1.0F;
+        vol.top = 1.0F;
+        vol.bottom = -1.0F;
+        vol.near = 1.0F;
+        vol.far = -1.0F;
+        return vol;
+    }
+
+    [[nodiscard]] static auto usual_1() noexcept -> ViewVolume {
+        ViewVolume vol = {};
+        vol.left = -1.0F;
+        vol.right = 1.0F;
+        vol.top = 1.0F;
+        vol.bottom = -1.0F;
+        vol.near = -1.0F;
+        vol.far = 1.0F;
+        return vol;
+    }
+
+    [[nodiscard]] auto width() const noexcept -> f32 { return right - left; }
+
+    [[nodiscard]] auto height() const noexcept -> f32 { return top - bottom; }
+
+    [[nodiscard]] auto depth() const noexcept -> f32 { return far - near; }
+
+public:
+    f32 left;
+    f32 right;
+    f32 top;
+    f32 bottom;
+    f32 near;
+    f32 far;
+};
+
+struct ProjectionVolume {
+private:
+    ProjectionVolume() = default;
+
+public:
+    [[nodiscard]] static auto zero() noexcept -> ProjectionVolume {
+        ProjectionVolume vol = {};
+        vol.left = 0.0F;
+        vol.right = 0.0F;
+        vol.top = 0.0F;
+        vol.bottom = 0.0F;
+        vol.near = 0.0F;
+        vol.far = 0.0F;
+        return vol;
+    }
+
+    [[nodiscard]] static auto opengl() noexcept -> ProjectionVolume {
+        ProjectionVolume vol = {};
+        vol.left = -1.0F;
+        vol.right = 1.0F;
+        vol.top = 1.0F;
+        vol.bottom = -1.0F;
+        vol.near = -1.0F;
+        vol.far = 1.0F;
+        return vol;
+    }
+
+    [[nodiscard]] static auto directx() noexcept -> ProjectionVolume {
+        ProjectionVolume vol = {};
+        vol.left = -1.0F;
+        vol.right = 1.0F;
+        vol.top = 1.0F;
+        vol.bottom = -1.0F;
+        vol.near = 0.0F;
+        vol.far = 1.0F;
+        return vol;
+    }
+
+    [[nodiscard]] static auto vulkan() noexcept -> ProjectionVolume {
+        ProjectionVolume vol = {};
+        vol.left = -1.0F;
+        vol.right = 1.0F;
+        vol.top = -1.0F;
+        vol.bottom = 1.0F;
+        vol.near = 0.0F;
+        vol.far = 1.0F;
+        return vol;
+    }
+
+    [[nodiscard]] auto width() const noexcept -> f32 { return right - left; }
+
+    [[nodiscard]] auto height() const noexcept -> f32 { return top - bottom; }
+
+    [[nodiscard]] auto depth() const noexcept -> f32 { return far - near; }
+
+public:
+    f32 left;
+    f32 right;
+    f32 top;
+    f32 bottom;
+    f32 near;
+    f32 far;
+};
+
+static auto determine_handedness(ProjectionVolume vol) -> HANDEDNESS {
+    v3  right = v3::create(vol.right, 0.0F, 0.0F);
+    v3  up = v3::create(0.0F, vol.top, 0.0F);
+    v3  forward = v3::create(0.0F, 0.0F, vol.near);
+    v3  normal = right.cross(up);
+    f32 res = normal.dot(forward);
+    return res > 0.0F ? HANDEDNESS::RIGHT : HANDEDNESS::LEFT;
+}
+
+static auto determine_handedness(ViewVolume vol) -> HANDEDNESS {
+    v3  right = v3::create(vol.right, 0.0F, 0.0F);
+    v3  up = v3::create(0.0F, vol.top, 0.0F);
+    v3  forward = v3::create(0.0F, 0.0F, vol.near);
+    v3  normal = right.cross(up);
+    f32 res = normal.dot(forward);
+    return res > 0.0F ? HANDEDNESS::RIGHT : HANDEDNESS::LEFT;
+}
+
+static auto get_matrix_from_view_volume_to_projection_volume(
+    ViewVolume       from_vol,
+    ProjectionVolume to_vol
+) -> mat4x4 {
+
+    // scaling factors
+    f32 scale_x = to_vol.width() / from_vol.width();
+    f32 scale_y = to_vol.height() / from_vol.height();
+    f32 scale_z = to_vol.depth() / from_vol.depth();
+
+    // translation factors
+    f32 translate_x = to_vol.left - scale_x * from_vol.left;
+    f32 translate_y = to_vol.bottom - scale_y * from_vol.bottom;
+    f32 translate_z = to_vol.near - scale_z * from_vol.near;
+
+    HANDEDNESS from_headedness = determine_handedness(from_vol);
+    HANDEDNESS to_headedness = determine_handedness(to_vol);
+    f32        flip_z = from_headedness == to_headedness ? 1.0F : -1.0F;
+
+    mat4x4 scale = mat4x4::scale(v3::create(scale_x, scale_y, flip_z * scale_z));
+    mat4x4 trans = mat4x4::translation(v3::create(translate_x, translate_y, translate_z));
+    return trans * scale;
+}
+
+static auto get_matrix_from_view_volume_to_projection_volume_perspective(
+    ViewVolume       from_vol,
+    ProjectionVolume to_vol
+) {
+    auto perspective_matrix_rh = [](f32 n, f32 f) {
+        mat4x4 persp = mat4x4::zero();
+        persp[0][0] = n;
+        persp[1][1] = n;
+        persp[2][2] = f + n;
+        persp[2][3] = -1.0F;
+        persp[3][2] = f * n;
+        return persp;
+    };
+
+    auto perspective_matrix_lh = [](f32 n, f32 f) {
+        mat4x4 persp = mat4x4::zero();
+        persp[0][0] = n;
+        persp[1][1] = n;
+        persp[2][2] = f + n;
+        persp[2][3] = 1.0F;
+        persp[3][2] = -f * n;
+        return persp;
+    };
+    mat4x4 mat = get_matrix_from_view_volume_to_projection_volume(from_vol, to_vol);
+    if (determine_handedness(to_vol) == HANDEDNESS::LEFT) {
+        mat = perspective_matrix_lh(to_vol.near, to_vol.far) * mat;
+    } else {
+        mat = perspective_matrix_rh(to_vol.near, to_vol.far) * mat;
+    }
+    return mat;
+    // // move the frustum apex to the origin
+    // f32    mid_x = (from_vol.right + from_vol.left) / 2.0F;
+    // f32    mid_y = (from_vol.top + from_vol.bottom) / 2.0F;
+    // f32    mid_z = 0.0F;
+    // v3     mid = v3::create(mid_x, mid_y, mid_z);
+    // mat4x4 center_around_origin = mat4x4::translation(-mid);
+
+    // // perspective calculation
+    // f32    near = from_vol.near;
+    // mat4x4 perspective = mat4x4::identity();
+    // perspective[0][0] = near;
+    // perspective[1][1] = near;
+    // // mapping depth
+    // mat4x4 depth = mat4x4::identity();
+    // perspective[2][3] = -1.0F;
+
+    // // scale the frustum to the projection volume
+
+    // f32    scale_x = to_vol.width() / from_vol.width();
+    // f32    scale_y = to_vol.height() / from_vol.height();
+    // f32    scale_z = 1.0F;
+    // v3     scale = v3::create(scale_x, scale_y, scale_z);
+    // mat4x4 scale_matrix = mat4x4::scale(scale);
+}
+
+TEST(Mat4x4_Projection_Orthographic, TestingComposition) {
+    f32 l = 0.0F;
+    f32 r = 800.0F;
+    f32 b = 0.0F;
+    f32 t = 800.0F;
+    f32 n = 0.1F;
+    f32 f = 100.0F;
+
+    {
+
+        mat4x4 trans_0 = mat4x4::translation(v3::create(-l, -b, n));
+        mat4x4 scale =
+            mat4x4::scale(v3::create(2.0F / (r - l), 2.0F / (t - b), -2.0F / (f - n)));
+        mat4x4 trans_1 = mat4x4::translation(v3::create(-1.0F, -1.0F, -1.0F));
+        mat4x4 ortho_1 = trans_1 * scale * trans_0;
+
+        mat4x4 ortho_0 = mat4x4::orthographic_rh_no(l, r, b, t, n, f);
+
+        EXPECT_EQ(ortho_1, ortho_0);
+    }
+    {
+        ProjectionVolume vol = ProjectionVolume::opengl();
+        EXPECT_EQ(determine_handedness(vol), HANDEDNESS::LEFT);
+
+        f32 mid_x = (r + l) / vol.width();
+        f32 mid_y = (t + b) / vol.height();
+        f32 mid_z = (-n + -f * -vol.near) / vol.depth();
+        v3  mid = v3::create(mid_x, mid_y, mid_z);
+
+        f32 scale_x = vol.width() / (r - l);
+        f32 scale_y = vol.height() / (t - b);
+        f32 scale_z = vol.depth() / (f - n);
+
+        mat4x4 center_around_origin = mat4x4::translation(-mid);
+        mat4x4 scale = mat4x4::scale(v3::create(scale_x, scale_y, scale_z));
+        mat4x4 m = mat4x4::identity();
+        m[2][2] = -1.0F;
+
+        mat4x4 ortho_1 = m * scale * center_around_origin;
+        mat4x4 ortho_0 = mat4x4::orthographic_rh_no(l, r, b, t, n, f);
+        EXPECT_EQ(ortho_1, ortho_0);
+    }
+    {
+        ProjectionVolume vol = ProjectionVolume::directx();
+        EXPECT_EQ(determine_handedness(vol), HANDEDNESS::LEFT);
+
+        f32 mid_x = (l + r) / vol.width();
+        f32 mid_y = (b + t) / vol.height();
+        f32 mid_z = (-n + -f * vol.near) / vol.depth();
+        v3  mid = v3::create(mid_x, mid_y, mid_z);
+
+        f32 scale_x = vol.width() / (r - l);
+        f32 scale_y = vol.height() / (t - b);
+        f32 scale_z = vol.depth() / (f - n);
+
+        mat4x4 center_around_origin = mat4x4::translation(-mid);
+        mat4x4 scale = mat4x4::scale(v3::create(scale_x, scale_y, scale_z));
+        mat4x4 m = mat4x4::identity();
+        m[2][2] = -1.0F;
+
+        mat4x4 ortho_1 = m * scale * center_around_origin;
+        mat4x4 ortho_0 = mat4x4::orthographic_rh_zo(l, r, b, t, n, f);
+        EXPECT_EQ(ortho_1, ortho_0);
+    }
+    {
+        ViewVolume vv = ViewVolume::usual();
+        EXPECT_EQ(determine_handedness(vv), HANDEDNESS::RIGHT);
+        ViewVolume vv_1 = ViewVolume::usual_1();
+        EXPECT_EQ(determine_handedness(vv_1), HANDEDNESS::LEFT);
+
+        {
+            ProjectionVolume pv_opengl = ProjectionVolume::opengl();
+            EXPECT_EQ(determine_handedness(pv_opengl), HANDEDNESS::LEFT);
+
+            mat4x4 m = get_matrix_from_view_volume_to_projection_volume(vv, pv_opengl);
+            mat4x4 ortho = mat4x4::orthographic_rh_no(
+                vv.left, vv.right, vv.bottom, vv.top, vv.near, vv.far
+            );
+            EXPECT_EQ(m, ortho);
+        }
+        {
+            ProjectionVolume pv_directx = ProjectionVolume::directx();
+            EXPECT_EQ(determine_handedness(pv_directx), HANDEDNESS::LEFT);
+
+            mat4x4 m = get_matrix_from_view_volume_to_projection_volume(vv, pv_directx);
+            mat4x4 ortho = mat4x4::orthographic_rh_zo(
+                vv.left, vv.right, vv.bottom, vv.top, vv.near, vv.far
+            );
+            EXPECT_EQ(m, ortho);
+        }
+        {
+            ProjectionVolume pv_vulkan = ProjectionVolume::vulkan();
+            EXPECT_EQ(determine_handedness(pv_vulkan), HANDEDNESS::LEFT);
+            mat4x4 m = get_matrix_from_view_volume_to_projection_volume(vv, pv_vulkan);
+            mat4x4 ortho = mat4x4::orthographic_rh_zo(
+                vv.left, vv.right, vv.bottom, vv.top, vv.near, vv.far
+            );
+            ortho[1][1] *= -1.0F;
+            EXPECT_EQ(m, ortho);
+        }
+    }
+
+    // {
+    //     f32 r = 800.0F;
+    //     f32 l = -r;
+    //     f32 t = 800.0F;
+    //     f32 b = -t;
+    //     f32 f = 100.0F;
+    //     f32 n = -f;
+
+    //     auto [fovy, aspect] = get_fovy_aspect(l, r, t, b);
+    //     f32    fo = 1.0F / std::tan(fovy / 2.0F);
+    //     mat4x4 rr = mat4x4::zero();
+    //     rr[0][0] = fo / aspect;
+    //     rr[1][1] = fo;
+    //     rr[2][2] = f;
+    //     rr[2][3] = -1.0F;
+    //     rr[3][2] = n * f;
+    //     mat4x4 result_1 = rr * mat4x4::orthographic_rh_zo(l, r, b, t, n, f);
+
+    //     mat4x4 result_2 = mat4x4::perspective_rh_zo(fovy, aspect, n, f);
+    //     EXPECT_EQ(result_1, result_2);
+    // }
+}
+
+TEST(Mat4x4_Projection_Perspective, TestingComposition) {
+    f32 l = -800.0F;
+    f32 r = 800.0F;
+    f32 b = -800.0F;
+    f32 t = 800.0F;
+    f32 n = 1.0F;
+    f32 f = 100.0F;
+
+    auto perspective_matrix_rh = [](f32 n, f32 f) {
+        mat4x4 persp = mat4x4::zero();
+        persp[0][0] = n;
+        persp[1][1] = n;
+        persp[2][2] = f + n;
+        persp[2][3] = -1.0F;
+        persp[3][2] = f * n;
+        return persp;
+    };
+
+    auto perspective_matrix_lh = [](f32 n, f32 f) {
+        mat4x4 persp = mat4x4::zero();
+        persp[0][0] = n;
+        persp[1][1] = n;
+        persp[2][2] = f + n;
+        persp[2][3] = 1.0F;
+        persp[3][2] = -f * n;
+        return persp;
+    };
+
+    {
+        mat4x4 persp = perspective_matrix_rh(n, f);
+        mat4x4 combined_perspective =
+            mat4x4::orthographic_rh_no(l, r, b, t, n, f) * persp;
+
+        auto [fovy, aspect] = get_fovy_aspect(l, r, t, b, n);
+        mat4x4 perspective = mat4x4::perspective_rh_no(fovy, aspect, n, f);
+        EXPECT_EQ(combined_perspective, perspective);
+    }
+
+    {
+        mat4x4 persp = perspective_matrix_lh(n, f);
+        mat4x4 combined_perspective =
+            mat4x4::orthographic_lh_no(l, r, b, t, n, f) * persp;
+
+        auto [fovy, aspect] = get_fovy_aspect(l, r, t, b, n);
+        mat4x4 perspective = mat4x4::perspective_lh_no(fovy, aspect, n, f);
+        EXPECT_EQ(combined_perspective, perspective);
+    }
+    {
+        mat4x4 persp = perspective_matrix_rh(n, f);
+        mat4x4 combined_perspective =
+            mat4x4::orthographic_rh_zo(l, r, b, t, n, f) * persp;
+
+        auto [fovy, aspect] = get_fovy_aspect(l, r, t, b, n);
+        mat4x4 perspective = mat4x4::perspective_rh_zo(fovy, aspect, n, f);
+        EXPECT_EQ(combined_perspective, perspective);
+    }
+
+    {
+        mat4x4 persp = perspective_matrix_lh(n, f);
+        mat4x4 combined_perspective =
+            mat4x4::orthographic_lh_zo(l, r, b, t, n, f) * persp;
+
+        auto [fovy, aspect] = get_fovy_aspect(l, r, t, b, n);
+        mat4x4 perspective = mat4x4::perspective_lh_zo(fovy, aspect, n, f);
+        EXPECT_EQ(combined_perspective, perspective);
+    }
+}
+
+TEST(Mat4x4_Projection_Perspective, CustomCompositePerspectiveMatrix) {
     f32 left = 0.0F;
     f32 right = 800.0F;
 
@@ -626,7 +1132,7 @@ TEST(Mat4x4_PerspectiveProjection, CustomCompositePerspectiveMatrix) {
     ASSERT_TRUE(matrices_are_equal(result_0, result_1));
 }
 
-TEST(Mat4x4_PerspectiveProjection, NormalParameters_0) {
+TEST(Mat4x4_Projection_Perspective, NormalParameters_0) {
 
     f32 left = 0.0F;
     f32 right = 800.0F;
@@ -655,7 +1161,7 @@ TEST(Mat4x4_PerspectiveProjection, NormalParameters_0) {
 
 // Test edge case with near and far
 // planes very close
-TEST(Mat4x4_PerspectiveProjection, NearFarEdgeCase) {
+TEST(Mat4x4_Projection_Perspective, NearFarEdgeCase) {
     float fovy = M_PI / 4; // 45 degrees
     float aspect = 1.0f;   // square aspect
                            // ratio
@@ -675,7 +1181,7 @@ TEST(Mat4x4_PerspectiveProjection, NearFarEdgeCase) {
 }
 
 // Test extreme field of view
-TEST(Mat4x4_PerspectiveProjection, ExtremeFieldOfView) {
+TEST(Mat4x4_Projection_Perspective, ExtremeFieldOfView) {
     float fovy = M_PI / 100;     // very narrow field of view
     float aspect = 16.0f / 9.0f; // widescreen aspect ratio
     float z_near = 0.5f;
@@ -690,7 +1196,7 @@ TEST(Mat4x4_PerspectiveProjection, ExtremeFieldOfView) {
     ASSERT_NEAR(result[0][0], expected_focal_length / aspect, 1e-5);
 }
 
-TEST(Mat4x4_PerspectiveProjection, Basic) {
+TEST(Mat4x4_Projection_Perspective, Basic) {
     const f32 near = 0.1f;
     const f32 far = 100.0f;
     const f32 eps = 1e-6f;
@@ -701,10 +1207,11 @@ TEST(Mat4x4_PerspectiveProjection, Basic) {
     mat4x4 projection_rh_no = mat4x4::perspective_rh_no(fovy, aspect, near, far);
     {
         v4 n = projection_rh_no * v4::create(0.0F, 0.0F, -near, 1.0F);
-        v4 f = projection_rh_no * v4::create(0.0F, 0.0F, -far, 1.0F);
         n /= n.w;
-        f /= f.w;
         EXPECT_NEAR(n.z, -1.0F, eps);
+
+        v4 f = projection_rh_no * v4::create(0.0F, 0.0F, -far, 1.0F);
+        f /= f.w;
         EXPECT_NEAR(f.z, 1.0F, eps);
     }
 
@@ -737,67 +1244,132 @@ TEST(Mat4x4_PerspectiveProjection, Basic) {
     }
 }
 
-TEST(Mat4x4_PerspectiveProjection, Basic2) {
+TEST(Mat4x4_Projection_Perspective, Basic2) {
     mat4x4 projection = mat4x4::perspective_rh_no(to_radians(90.0F), 2.0F, 5.0F, 15.0F);
     {
         v3   original = v3::create(5.0, 5.0, -15.0);
-        v4   projected = projection * v4::create(original, 1.0F);
+        v4   projected = projection * v4::from_v3(original, 1.0F);
         bool is_same = projected == v4::create(2.5, 5.0, 15.0, 15.0);
         EXPECT_EQ(is_same, true);
     }
 
     {
         v3   original = v3::create(5.0, 5.0, -5.0);
-        v4   projected = projection * v4::create(original, 1.0F);
+        v4   projected = projection * v4::from_v3(original, 1.0F);
         bool is_same = projected == v4::create(2.5, 5.0, -5.0, 5.0);
         EXPECT_EQ(is_same, true);
     }
 }
 
-TEST(Mat4x4_OrthographicProjection, Basics) {
-    v3 camera_position = v3::create(0.0F, 0.0F, -5.0F);
-    v3 world_up = v3::Y();
+TEST(Mat4x4_Projection_Orthographic, Basics) {
 
-    v3 point = v3::create(0.0F, 0.0F, 0.0F);
+    {
 
-    mat4x4 look = mat4x4::look_at_rh(camera_position, v3::zero(), world_up);
+        const f32 left = 0.0F;
+        const f32 right = 800.0F;
+        const f32 bottom = 0.0F;
+        const f32 top = 600.0F;
+        const f32 near = 1.0F;
+        const f32 far = 100.0F;
+        v3        camera_position = v3::create(0.0F, 0.0F, 5.0F);
+        v3        camera_up = v3::Y();
+        mat4x4    look = mat4x4::look_at_rh(camera_position, v3::zero(), camera_up);
 
-    const f32 left = 0.0F;
-    const f32 right = 800.0F;
-    const f32 bottom = 0.0F;
-    const f32 top = 600.0F;
-    const f32 near = 1.0F;
-    const f32 far = 100.0F;
+        mat4x4 ortho = mat4x4::orthographic_rh_no(left, right, bottom, top, near, far);
+        v3     point = v3::create(1.0F, 1.0F, 0.0F);
+        std::cout << "p 2.1: " << (ortho * look).transform_point3(point) << std::endl;
+        std::cout << "p 2.2: "
+                  << ortho * look * v4::create(point.x, point.y, point.z, 1.0F)
+                  << std::endl;
 
-    mat4x4 ortho = mat4x4::orthographic_rh_no(left, right, bottom, top, near, far);
+        EXPECT_EQ(true, true);
+    }
+    {
+        const f32 left = 0.0F;
+        const f32 right = 800.0F;
+        const f32 top = 400.0F;
+        const f32 bottom = 0.0F;
+        const f32 near = -1.0F;
+        const f32 far = 1.0F;
 
-    std::cout << "p 0: " << to_string(point) << std::endl;
-    std::cout << "p 1: " << to_string(look.transform_point3(point)) << std::endl;
-    std::cout << "p 2: " << to_string((ortho * look).transform_point3(point))
-              << std::endl;
-
-    EXPECT_EQ(true, true);
+        mat4x4 ortho = mat4x4::orthographic_rh_no(left, right, bottom, top, near, far);
+        std::vector<std::tuple<v3, v3>> map_input_output = {
+            {v3::create(right,    top,  far),  v3::create(1.0F,  1.0F, -1.0F)},
+            { v3::create(left,    top,  far), v3::create(-1.0F,  1.0F, -1.0F)},
+            {v3::create(right, bottom,  far),  v3::create(1.0F, -1.0F, -1.0F)},
+            { v3::create(left, bottom,  far), v3::create(-1.0F, -1.0F, -1.0F)},
+            {v3::create(right,    top, near),  v3::create(1.0F,  1.0F,  1.0F)},
+            { v3::create(left,    top, near), v3::create(-1.0F,  1.0F,  1.0F)},
+            {v3::create(right, bottom, near),  v3::create(1.0F, -1.0F,  1.0F)},
+            { v3::create(left, bottom, near), v3::create(-1.0F, -1.0F,  1.0F)},
+        };
+        for (auto [input_, output_] : map_input_output) {
+            const v4 input = v4::create(input_.x, input_.y, input_.z, 1.0F);
+            const v4 output = v4::create(output_.x, output_.y, output_.z, 1.0F);
+            EXPECT_EQ(ortho * input, output);
+        }
+    }
 }
 
 TEST(Mat4x4_LookAt, Basics) {
-    v3 eye = v3::create(0.0F, 0.0F, -5.0F);
-    v3 center = v3::create(0.0F, 0.0F, 0.0F);
-    v3 up = v3::create(1.0F, 0.0F, 0.0F);
-
-    v3 point = v3::create(1.0F, 0.0F, 0.0F);
     {
-        mat4x4 lh = mat4x4::look_at_lh(eye, center, up);
-        EXPECT_EQ(lh.transform_point3(point), v3::create(0.0F, 1.0, 5.0));
+        {
 
-        mat4x4 rh = mat4x4::look_at_rh(eye, center, up);
-        EXPECT_EQ(rh.transform_point3(point), v3::create(0.0F, 1.0, -5.0));
+            // std::vector<v3> camera_positions = {
+            //     v3::create(0.0F, 0.0F, 5.0F),
+            //     v3::create(0.0F, 0.0F, -5.0F),
+            //     v3::create(5.0F, 0.0F, 0.0F),
+            //     v3::create(-5.0F, 0.0F, 0.0F),
+            //     v3::create(0.0F, 5.0F, 0.0F),
+            //     v3::create(0.0F, -5.0F, 0.0F),
+            // };
+            v3              camera_position = v3::create(0.0F, 0.0F, 5.0F);
+            v3              camera_up = v3::NEG_Y();
+            std::vector<v3> points = {
+                v3::create(1.0F, 2.0F, 0.0F),
+                v3::create(-1.0F, 2.0F, 0.0F),
+                v3::create(1.0F, -2.0F, 0.0F),
+                v3::create(-1.0F, -2.0F, 0.0F),
+            };
+
+            std::cout << "camera_position: " << camera_position << std::endl;
+            mat4x4 look = mat4x4::look_at_rh(camera_position, v3::zero(), camera_up);
+            for (v3 point : points) {
+                v3 transformed = look.transform_point3(point);
+                std::cout << "p 0: " << point << std::endl;
+                std::cout << "p 1: " << transformed << std::endl;
+            }
+        }
+        v3 eye = v3::create(0.0F, 0.0F, -5.0F);
+        v3 center = v3::create(0.0F, 0.0F, 0.0F);
+        v3 up = v3::create(1.0F, 0.0F, 0.0F);
+
+        v3 point = v3::create(1.0F, 0.0F, 0.0F);
+        {
+            mat4x4 lh = mat4x4::look_at_lh(eye, center, up);
+            EXPECT_EQ(lh.transform_point3(point), v3::create(0.0F, 1.0, 5.0));
+
+            mat4x4 rh = mat4x4::look_at_rh(eye, center, up);
+            EXPECT_EQ(rh.transform_point3(point), v3::create(0.0F, 1.0, -5.0));
+        }
+        {
+            v3 direction = center - eye;
+
+            mat4x4 lh = mat4x4::look_to_lh(eye, direction, up);
+            EXPECT_EQ(lh.transform_point3(point), v3::create(0.0F, 1.0, 5.0));
+            mat4x4 rh = mat4x4::look_to_rh(eye, direction, up);
+            EXPECT_EQ(rh.transform_point3(point), v3::create(0.0F, 1.0, -5.0));
+        }
     }
     {
-        v3 direction = center - eye;
+        v3 pos = v3::create(0.0F, 0.0F, 5.0F);
+        v3 point = v3::create(0.0F, 0.0F, 0.0F);
 
-        mat4x4 lh = mat4x4::look_to_lh(eye, direction, up);
-        EXPECT_EQ(lh.transform_point3(point), v3::create(0.0F, 1.0, 5.0));
-        mat4x4 rh = mat4x4::look_to_rh(eye, direction, up);
-        EXPECT_EQ(rh.transform_point3(point), v3::create(0.0F, 1.0, -5.0));
+        v3 up = v3::Y();
+
+        mat4x4 look_at = mat4x4::look_at_rh(pos, point, up);
+
+        v3 result = look_at.transform_point3(point);
+        EXPECT_EQ(result, v3::create(0.0F, 0.0F, -5.0F));
     }
 }

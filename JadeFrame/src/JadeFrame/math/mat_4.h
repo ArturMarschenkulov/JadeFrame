@@ -37,6 +37,20 @@ m2	|__|__|__|
 */
 class mat4x4;
 
+constexpr static auto get_fovy_aspect(f32 left, f32 right, f32 top, f32 bottom, f32 near)
+    -> std::tuple<f32, f32> {
+    assert((left != right) && "left and right cannot be the same");
+    assert((top != bottom) && "top and bottom cannot be the same");
+    assert((left < right) && "left must be less than right");
+    assert((bottom < top) && "bottom must be less than top");
+
+    const f32 width = right - left;
+    const f32 height = top - bottom;
+    const f32 aspect = width / height;
+    const f32 fovy = 2.0F * std::atan(top / near);
+    return {fovy, aspect};
+}
+
 class mat4x4 {
 private:
 
@@ -55,6 +69,15 @@ public:
     constexpr auto operator[](const u32 index) noexcept -> Col&; // for writing
     constexpr auto operator[](const u32 index
     ) const noexcept -> const Col&; // for reading
+
+    constexpr auto operator*(const f32& scalar) const noexcept -> mat4x4 {
+        mat4x4 result = {};
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) { result[i][j] = (*this)[i][j] * scalar; }
+        }
+        return result;
+    }
+
     constexpr auto operator*(const v4& vector) const noexcept -> v4;
     constexpr auto operator*(const mat4x4& other) const noexcept -> mat4x4;
 
@@ -86,7 +109,9 @@ public:
         return true;
     }
 
-    constexpr auto operator!=(const mat4x4& other) const noexcept -> bool;
+    constexpr auto operator!=(const mat4x4& other) const noexcept -> bool {
+        return !(*this == other);
+    }
 
 public: // static methods for matrices
     constexpr static auto
@@ -113,7 +138,7 @@ public: // static methods for matrices
 
     [[nodiscard]] constexpr auto
     to_scale_rotation_translation() const noexcept -> std::tuple<v3, mat4x4, v3> {
-        f32 det = this->get_determinant();
+        f32 det = this->determinant();
 
         v3 scale = v3::create(
             x_axis.length() * (det < 0 ? -1 : 1), y_axis.length(), z_axis.length()
@@ -268,10 +293,7 @@ public: // static methods for matrices
         f32 near,
         f32 far
     ) noexcept -> mat4x4 {
-        const f32 width = right - left;
-        const f32 height = top - bottom;
-        const f32 aspect = width / height;
-        const f32 fovy = 2.0F * std::atan(top / near);
+        auto [fovy, aspect] = get_fovy_aspect(left, right, top, bottom, near);
         return mat4x4::perspective_rh_no(fovy, aspect, near, far);
     }
 
@@ -477,15 +499,74 @@ public:
     }
 
 public:
-    [[nodiscard]] constexpr auto get_determinant() const -> f32;
+    [[nodiscard]] constexpr auto determinant() const -> f32;
     [[nodiscard]] constexpr auto get_echelon() const -> mat4x4;
     [[nodiscard]] constexpr auto get_transpose() const -> mat4x4;
-    [[nodiscard]] constexpr auto get_inverted() const -> mat4x4;
+
+    [[nodiscard]] constexpr auto inverse() const -> mat4x4 {
+        f32 det = this->determinant();
+        if (det == 0.0F) { return mat4x4::zero(); }
+        f32 inv_det = 1.0F / det;
+
+        f32 coeff00 = el[2][2] * el[3][3] - el[3][2] * el[2][3];
+        f32 coeff02 = el[1][2] * el[3][3] - el[3][2] * el[1][3];
+        f32 coeff03 = el[1][2] * el[2][3] - el[2][2] * el[1][3];
+
+        f32 coeff04 = el[2][1] * el[3][3] - el[3][1] * el[2][3];
+        f32 coeff06 = el[1][1] * el[3][3] - el[3][1] * el[1][3];
+        f32 coeff07 = el[1][1] * el[2][3] - el[2][1] * el[1][3];
+
+        f32 coeff08 = el[2][1] * el[3][2] - el[3][1] * el[2][2];
+        f32 coeff10 = el[1][1] * el[3][2] - el[3][1] * el[1][2];
+        f32 coeff11 = el[1][1] * el[2][2] - el[2][1] * el[1][2];
+
+        f32 coeff12 = el[2][0] * el[3][3] - el[3][0] * el[2][3];
+        f32 coeff14 = el[1][0] * el[3][3] - el[3][0] * el[1][3];
+        f32 coeff15 = el[1][0] * el[2][3] - el[2][0] * el[1][3];
+
+        f32 coeff16 = el[2][0] * el[3][2] - el[3][0] * el[2][2];
+        f32 coeff18 = el[1][0] * el[3][2] - el[3][0] * el[1][2];
+        f32 coeff19 = el[1][0] * el[2][2] - el[2][0] * el[1][2];
+
+        f32 coeff20 = el[2][0] * el[3][1] - el[3][0] * el[2][1];
+        f32 coeff22 = el[1][0] * el[3][1] - el[3][0] * el[1][1];
+        f32 coeff23 = el[1][0] * el[2][1] - el[2][0] * el[1][1];
+
+        v4 fac0 = v4::create(coeff00, coeff00, coeff02, coeff03);
+        v4 fac1 = v4::create(coeff04, coeff04, coeff06, coeff07);
+        v4 fac2 = v4::create(coeff08, coeff08, coeff10, coeff11);
+        v4 fac3 = v4::create(coeff12, coeff12, coeff14, coeff15);
+        v4 fac4 = v4::create(coeff16, coeff16, coeff18, coeff19);
+        v4 fac5 = v4::create(coeff20, coeff20, coeff22, coeff23);
+
+        v4 vec0 = v4::create(el[1][0], el[0][0], el[0][0], el[0][0]);
+        v4 vec1 = v4::create(el[1][1], el[0][1], el[0][1], el[0][1]);
+        v4 vec2 = v4::create(el[1][2], el[0][2], el[0][2], el[0][2]);
+        v4 vec3 = v4::create(el[1][3], el[0][3], el[0][3], el[0][3]);
+
+        v4 inv0 = vec1 * fac0 - vec2 * fac1 + vec3 * fac2;
+        v4 inv1 = vec0 * fac0 - vec2 * fac3 + vec3 * fac4;
+        v4 inv2 = vec0 * fac1 - vec1 * fac3 + vec3 * fac5;
+        v4 inv3 = vec0 * fac2 - vec1 * fac4 + vec2 * fac5;
+
+        v4 sign_a = v4::create(1.0F, -1.0F, 1.0F, -1.0F);
+        v4 sign_b = v4::create(-1.0F, 1.0F, -1.0F, 1.0F);
+
+        mat4x4 inverse =
+            mat4x4::from_cols(inv0 * sign_a, inv1 * sign_b, inv2 * sign_a, inv3 * sign_b);
+
+        v4  col0 = v4::create(inverse[0][0], inverse[1][0], inverse[2][0], inverse[3][0]);
+        v4  dot0 = this->x_axis * col0;
+        f32 dot1 = (dot0.x + dot0.y) + (dot0.z + dot0.w);
+
+        f32 rcp_det = 1.0F / dot1;
+        return inverse * rcp_det;
+    }
 
     [[nodiscard]] constexpr auto is_invertible() const -> bool;
     [[nodiscard]] constexpr auto get_rank() const -> i32;
 
-    constexpr auto make_echelon() -> mat4x4&;
+    [[nodiscard]] constexpr auto make_echelon() const -> mat4x4;
 
 public:
     union {
@@ -503,8 +584,7 @@ public:
 
 // IMPLEMENTATION
 
-template<typename T>
-auto operator<<(std::ostream& os, const mat4x4& v) -> std::ostream& {
+static auto operator<<(std::ostream& os, const mat4x4& v) -> std::ostream& {
     os << '{';
     os << '{' << v[0][0] << ", " << v[0][1] << ", " << v[0][2] << ", " << v[0][3] << '}';
     os << ',';
@@ -604,12 +684,23 @@ perspe_0(f32 left, f32 right, f32 top, f32 bottom, f32 far, f32 near) noexcept -
         y_dir = -1;
     }
 
-    auto map_to_c1 = [](f32 p, f32 q, f32 near, f32 far) -> f32 {
-        return ((p - q) * near * far) / (far - near);
+    auto map_to_c1 = [](f32 to_near, f32 to_far, f32 from_near, f32 from_far) -> f32 {
+        return ((to_near - to_far) * from_near * from_far) / (from_far - from_near);
     };
 
-    auto map_to_c2 = [](f32 p, f32 q, f32 near, f32 far) -> f32 {
-        return -(p * near - q * far) / (far - near);
+    auto map_to_c2 = [](f32 to_near, f32 to_far, f32 from_near, f32 from_far) -> f32 {
+        return -(to_near * from_near - to_far * from_far) / (from_far - from_near);
+    };
+
+    auto map_to_c1_ = [](f32 near_to, f32 far_to, f32 near_from, f32 far_from) -> f32 {
+        f32 depth_from = far_from - near_from;
+        f32 depth_to = far_to - near_to;
+        f32 scale = depth_to / depth_from;
+        return -near_from * far_from * scale;
+    };
+    auto map_to_c2_ = [](f32 near_to, f32 far_to, f32 near_from, f32 far_from) -> f32 {
+        f32 depth_from = far_from - near_from;
+        return -(near_to * near_from - far_to * far_from) / depth_from;
     };
     mat4x4 translate = mat4x4::identity();
     translate[3][0] = -(right + left) / 2.0F;
@@ -641,7 +732,6 @@ mat4x4::perspective_rh_no(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
 
     const f32 frustum_depth = z_far - z_near;
     const f32 focal_length = 1.0F / math::tan(fovy / 2.0F);
-    // const auto focal_length = math::cos(fovy / 2.0F) / math::sin(fovy / 2.0F);
     const f32 z_factor = -1.0F;
 
     f32 _1 = focal_length / aspect;
@@ -650,12 +740,14 @@ mat4x4::perspective_rh_no(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
     f32 _4 = (-2.0F * z_far * z_near) / frustum_depth;
     f32 _5 = z_factor;
 
-    return mat4x4::from_cols(
+    mat4x4 result = mat4x4::from_cols(
         v4::create(_1, 0.0F, 0.0F, 0.0F),
         v4::create(0.0F, _2, 0.0F, 0.0F),
         v4::create(0.0F, 0.0F, _3, _5),
         v4::create(0.0F, 0.0F, _4, 0.0F)
     );
+
+    return result;
 }
 
 inline constexpr auto mat4x4::identity() noexcept -> mat4x4 {
@@ -718,7 +810,7 @@ inline constexpr auto mat4x4::rotation_rh(f32 angle, const v3& axis) noexcept ->
     return result;
 }
 
-inline constexpr auto mat4x4::get_determinant() const -> f32 {
+inline constexpr auto mat4x4::determinant() const -> f32 {
     const mat4x4& m = *this;
 
     f32 t00 = m[0][0] * m[1][1] * m[2][2] * m[3][3];
@@ -778,7 +870,7 @@ inline constexpr auto mat4x4::get_echelon() const -> mat4x4 {
 }
 
 inline constexpr auto mat4x4::is_invertible() const -> bool {
-    return this->get_determinant() != 0;
+    return this->determinant() != 0;
 }
 
 inline constexpr auto mat4x4::get_rank() const -> i32 {
@@ -798,23 +890,317 @@ inline constexpr auto mat4x4::get_transpose() const -> mat4x4 {
     return result;
 }
 
-inline constexpr auto mat4x4::make_echelon() -> mat4x4& {
-    u32 col_count = 4;
-    u32 row_count = 4;
+inline constexpr auto mat4x4::make_echelon() const -> mat4x4 {
+
+    mat4x4 result = *this;
+    u32    col_count = 4;
+    u32    row_count = 4;
     // go through every column
     for (u32 col = 0; col < col_count; col++) {
         for (u32 row = col + 1; row < row_count; row++) {
-            if (el[col][row] != 0) {
-                f32 factor = el[col][row] / el[col][col];
+            if (result[col][row] != 0) {
+                f32 factor = result[col][row] / result[col][col];
                 for (u32 col2 = 0; col2 < col_count; col2++) {
-                    el[col2][row] -= factor * el[col2][col];
+                    result[col2][row] -= factor * result[col2][col];
                 }
             }
         }
     }
-    return *this;
+    return result;
 }
 
+class Quaternion {
+public:
+    constexpr Quaternion() noexcept = default;
+    ~Quaternion() noexcept = default;
+
+    constexpr Quaternion(const Quaternion&) noexcept = default;
+    constexpr auto operator=(const Quaternion& mat) noexcept -> Quaternion&;
+    constexpr Quaternion(Quaternion&&) noexcept = default;
+    constexpr auto operator=(Quaternion&& mat) noexcept -> Quaternion& = default;
+
+public: // Creation / named constructors
+    /// Creates a new quaternion from raw components.
+    static inline constexpr auto
+    create(f32 x, f32 y, f32 z, f32 w) noexcept -> Quaternion {
+        Quaternion quat = {};
+        quat.x = x;
+        quat.y = y;
+        quat.z = z;
+        quat.w = w;
+        return quat;
+    }
+
+    /// Returns the identity quaternion.
+    static inline constexpr auto identity() noexcept -> Quaternion {
+        return Quaternion::create(0.0F, 0.0F, 0.0F, 1.0F);
+    }
+
+    /// Creates a quaternion from an axis and angle (in radians).
+    ///
+    /// \param axis Must be normalized (or will be normalized internally).
+    /// \param angle Rotation in radians.
+    static inline constexpr auto
+    from_axis_angle(const v3& axis_in, f32 angle) noexcept -> Quaternion {
+        v3  axis = axis_in.normalize(); // or do your own normalization
+        f32 half_angle = angle * 0.5F;
+        f32 s = static_cast<f32>(math::sin(half_angle));
+        f32 c = static_cast<f32>(math::cos(half_angle));
+        return Quaternion::create(axis.x * s, axis.y * s, axis.z * s, c);
+    }
+
+    static inline constexpr auto
+    from_euler(f32 pitch, f32 yaw, f32 roll) noexcept -> Quaternion {
+        // For a standard Y-up, R_z(roll)*R_y(yaw)*R_x(pitch) approach:
+        f32 half_x = pitch * 0.5F;
+        f32 half_y = yaw * 0.5F;
+        f32 half_z = roll * 0.5F;
+
+        f32 sx = static_cast<f32>(math::sin(half_x));
+        f32 cx = static_cast<f32>(math::cos(half_x));
+        f32 sy = static_cast<f32>(math::sin(half_y));
+        f32 cy = static_cast<f32>(math::cos(half_y));
+        f32 sz = static_cast<f32>(math::sin(half_z));
+        f32 cz = static_cast<f32>(math::cos(half_z));
+
+        // This matches a common Z-Y-X convention for Euler angles
+        // (roll around Z, yaw around Y, pitch around X).
+        Quaternion q;
+        q.x = sx * cy * cz + cx * sy * sz;
+        q.y = cx * sy * cz - sx * cy * sz;
+        q.z = cx * cy * sz - sx * sy * cz;
+        q.w = cx * cy * cz + sx * sy * sz;
+        return q;
+    }
+
+    /// Converts a (normalized) quaternion to a 4x4 rotation matrix (RH).
+    static inline auto to_mat4x4(const Quaternion& q_in) noexcept -> mat4x4 {
+        Quaternion q = q_in.normalize();
+
+        const f32 xx = q.x * q.x;
+        const f32 yy = q.y * q.y;
+        const f32 zz = q.z * q.z;
+        const f32 xy = q.x * q.y;
+        const f32 xz = q.x * q.z;
+        const f32 yz = q.y * q.z;
+        const f32 wx = q.w * q.x;
+        const f32 wy = q.w * q.y;
+        const f32 wz = q.w * q.z;
+
+        mat4x4 m = mat4x4::identity();
+        // Row-major (if you store row-wise). But recall mat4x4 is column-major:
+        //   so each `m[i][0..3]` is the i-th column. Adjust carefully.
+        // We'll fill it out in a column-major way:
+
+        m[0][0] = 1.0F - 2.0F * (yy + zz);
+        m[1][0] = 2.0F * (xy + wz);
+        m[2][0] = 2.0F * (xz - wy);
+
+        m[0][1] = 2.0F * (xy - wz);
+        m[1][1] = 1.0F - 2.0F * (xx + zz);
+        m[2][1] = 2.0F * (yz + wx);
+
+        m[0][2] = 2.0F * (xz + wy);
+        m[1][2] = 2.0F * (yz - wx);
+        m[2][2] = 1.0F - 2.0F * (xx + yy);
+
+        // translation row
+        m[3][0] = 0.0F;
+        m[3][1] = 0.0F;
+        m[3][2] = 0.0F;
+        // last column
+        m[0][3] = 0.0F;
+        m[1][3] = 0.0F;
+        m[2][3] = 0.0F;
+        m[3][3] = 1.0F;
+
+        return m;
+    }
+
+public: // Basic quaternion operations
+    /// Quaternion addition.
+    inline constexpr auto operator+(const Quaternion& other
+    ) const noexcept -> Quaternion {
+        return Quaternion::create(x + other.x, y + other.y, z + other.z, w + other.w);
+    }
+
+    /// Quaternion subtraction.
+    inline constexpr auto operator-(const Quaternion& other
+    ) const noexcept -> Quaternion {
+        return Quaternion::create(x - other.x, y - other.y, z - other.z, w - other.w);
+    }
+
+    /// Negate the quaternion (unary minus).
+    inline constexpr auto operator-() const noexcept -> Quaternion {
+        return Quaternion::create(-x, -y, -z, -w);
+    }
+
+    /// Scalar multiplication.
+    inline constexpr auto operator*(f32 scalar) const noexcept -> Quaternion {
+        return Quaternion::create(x * scalar, y * scalar, z * scalar, w * scalar);
+    }
+
+    /// Quaternion multiplication (combines rotations).
+    ///
+    /// \note Order matters: q1 * q2 means "apply q2, then q1".
+    inline constexpr auto operator*(const Quaternion& other
+    ) const noexcept -> Quaternion {
+        // Hamilton product:
+        // (w1*x2 + x1*w2 + y1*z2 - z1*y2, ...)
+        // A common reference formula:
+        // q = (w1*x2 + x1*w2 + y1*z2 - z1*y2,
+        //      w1*y2 - x1*z2 + y1*w2 + z1*x2,
+        //      w1*z2 + x1*y2 - y1*x2 + z1*w2,
+        //      w1*w2 - x1*x2 - y1*y2 - z1*z2)
+        Quaternion result;
+        result.x = w * other.x + x * other.w + y * other.z - z * other.y;
+        result.y = w * other.y - x * other.z + y * other.w + z * other.x;
+        result.z = w * other.z + x * other.y - y * other.x + z * other.w;
+        result.w = w * other.w - x * other.x - y * other.y - z * other.z;
+        return result;
+    }
+
+    /// Dot product of two quaternions.
+    inline constexpr static auto
+    dot(const Quaternion& a, const Quaternion& b) noexcept -> f32 {
+        return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+    }
+
+    /// Equality operator with small tolerance for floating-point comparisons.
+    inline constexpr auto operator==(const Quaternion& rhs) const noexcept -> bool {
+        f32 tolerance = 1e-6F;
+        return (
+            std::abs(x - rhs.x) < tolerance && std::abs(y - rhs.y) < tolerance &&
+            std::abs(z - rhs.z) < tolerance && std::abs(w - rhs.w) < tolerance
+        );
+    }
+
+    inline constexpr auto operator!=(const Quaternion& rhs) const noexcept -> bool {
+        return !(*this == rhs);
+    }
+
+public: // Quaternion-specific operations
+    /// Conjugate of the quaternion: ( -x, -y, -z, w ).
+    inline constexpr auto conjugate() const noexcept -> Quaternion {
+        return Quaternion::create(-x, -y, -z, w);
+    }
+
+    /// Length (norm) of the quaternion.
+    inline constexpr auto length() const noexcept -> f32 {
+        auto d = Quaternion::dot(*this, *this);
+        return static_cast<f32>(std::sqrt(d));
+    }
+
+    /// Returns whether this quaternion is a unit quaternion (within some tolerance).
+    inline constexpr auto is_normalized(f32 eps = 1e-6F) const noexcept -> bool {
+        return std::abs(Quaternion::dot(*this, *this) - 1.0F) < eps;
+    }
+
+    /// Returns a normalized version of this quaternion (does not modify the original).
+    inline constexpr auto normalize() const noexcept -> Quaternion {
+        f32 len = this->length();
+        if (len <= 1e-8F) {
+            // Degenerate quaternion, fallback to identity or zero?
+            return Quaternion::create(0.0F, 0.0F, 0.0F, 1.0F);
+        }
+        f32 inv_len = 1.0F / len;
+        return (*this) * inv_len;
+    }
+
+    /// Normalizes this quaternion in-place.
+    inline constexpr auto normalize() noexcept -> Quaternion& {
+        f32 len = this->length();
+        if (len > 1e-8F) {
+            f32 inv_len = 1.0F / len;
+            x *= inv_len;
+            y *= inv_len;
+            z *= inv_len;
+            w *= inv_len;
+        } else {
+            // If length is extremely small, default to identity or zero?
+            x = 0.0F;
+            y = 0.0F;
+            z = 0.0F;
+            w = 1.0F;
+        }
+        return *this;
+    }
+
+    /// Inverse of the quaternion = conjugate / (length^2).
+    inline constexpr auto inverse() const noexcept -> Quaternion {
+        f32 len_sq = Quaternion::dot(*this, *this);
+        ;
+        if (len_sq <= 1e-8F) {
+            // Degenerate; can't invert. Return identity or something safe
+            return Quaternion::identity();
+        }
+        f32        inv_len_sq = 1.0F / len_sq;
+        Quaternion conj = this->conjugate();
+        return conj * inv_len_sq;
+    }
+
+public: // 3D vector transform
+    /// Rotates a 3D vector by this quaternion.
+    ///
+    /// Note: This can be done in multiple ways; this is a straightforward approach:
+    ///   v' = q * (0, x, y, z) * q^-1
+    [[nodiscard]] inline constexpr auto rotate_vector(const v3& v) const noexcept -> v3 {
+        // Convert to quaternion
+        Quaternion vec_q = Quaternion::create(v.x, v.y, v.z, 0.0F);
+        Quaternion inv_q = this->inverse();
+        // q * vec * q^-1
+        Quaternion res = (*this) * vec_q * inv_q;
+        return v3::create(res.x, res.y, res.z);
+    }
+
+public: // Spherical Linear Interpolation
+    /// Spherical linear interpolation between two quaternions (t in [0,1]).
+    ///
+    /// Both quaternions should be normalized. If not, slerp might still work, but
+    /// typically they're expected to be unit quaternions.
+    static inline auto
+    slerp(const Quaternion& a, const Quaternion& b, f32 t) noexcept -> Quaternion {
+        // Clamp t
+        if (t < 0.0F) { t = 0.0F; }
+        if (t > 1.0F) { t = 1.0F; }
+
+        // Compute the cosine of the angle between the two quaternions
+        f32 cos_theta = Quaternion::dot(a, b);
+        // If rotating in the wrong "direction", flip one quaternion
+        Quaternion b_cpy = b;
+        if (cos_theta < 0.0F) {
+            b_cpy = -b_cpy; // flip
+            cos_theta = -cos_theta;
+        }
+        // If close enough, use linear interpolation
+        const f32 eps = 1e-5F;
+        if (cos_theta > 1.0F - eps) {
+            // Lerp
+            Quaternion result = a * (1.0F - t) + b_cpy * t;
+            return result.normalize();
+        }
+
+        // Perform the actual slerp
+        f32        angle = static_cast<f32>(std::acos(cos_theta));
+        f32        inv_sin = 1.0F / math::sin(angle);
+        f32        t1 = math::sin((1.0F - t) * angle) * inv_sin;
+        f32        t2 = math::sin(t * angle) * inv_sin;
+        Quaternion result = a * t1 + b_cpy * t2;
+        return result;
+    }
+
+public:
+    f32 x;
+    f32 y;
+    f32 z;
+    f32 w;
+};
+
+/// Optional stream operator for convenient logging:
+inline auto operator<<(std::ostream& os, const Quaternion& q) -> std::ostream& {
+    os << "{ x=" << q.x << ", y=" << q.y << ", z=" << q.z << ", w=" << q.w << " }";
+    return os;
+}
 } // namespace JadeFrame
 
 JF_PRAGMA_POP

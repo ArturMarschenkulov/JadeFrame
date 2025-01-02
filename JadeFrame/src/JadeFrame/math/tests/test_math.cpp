@@ -53,43 +53,44 @@ TEST(Math_Angles, ToRadians) {
 }
 
 TEST(Math_Constexpr_Angles, General) {
+    const f32 max_degree = 360.0F;
+    const f32 degree_step = 0.01F;
     // compare math::sin and std::sin
     {
-        // for f32
-        f32 eps_f32_approx = 0.01F;
-        for (f32 i = 0; i < 360; i += eps_f32_approx) {
+        for (f32 i = 0; i < max_degree; i += degree_step) {
             f32 radian = to_radians((f32)i);
-            f32 sin = math::sin_constexpr(radian, 13);
+            f32 sin = static_cast<f32>(math::sin_constexpr(radian, 13));
             f32 sin_std = std::sin(radian);
             EXPECT_NEAR(sin, sin_std, 1e-6);
         }
-        for (f32 i = 0; i < 360; i += eps_f32_approx) {
-            f32 radian = to_radians((f32)i);
-            f32 cos = math::cos_constexpr(radian, 14);
-            f32 cos_std = std::cos(radian);
-            EXPECT_NEAR(cos, cos_std, 1e-6);
-        }
 
-        for (f32 i = 0; i < 360; i += eps_f32_approx) {
+        for (f32 i = 0; i < max_degree; i += degree_step) {
             f32 radian = to_radians((f32)i);
-            f32 sin = math::sin_constexpr(radian, 14);
+            f32 sin = static_cast<f32>(math::sin_constexpr(radian, 14));
             f32 sin_std = std::sin(radian);
             EXPECT_NEAR(sin, sin_std, 1e-7);
         }
-        for (f32 i = 0; i < 360; i += eps_f32_approx) {
+    }
+    // compare math::cos and std::cos
+    {
+        for (f32 i = 0; i < max_degree; i += degree_step) {
             f32 radian = to_radians((f32)i);
-            f32 cos = math::cos_constexpr(radian, 15);
+            f32 cos = static_cast<f32>(math::cos_constexpr(radian, 14));
+            f32 cos_std = std::cos(radian);
+            EXPECT_NEAR(cos, cos_std, 1e-6);
+        }
+        for (f32 i = 0; i < max_degree; i += degree_step) {
+            f32 radian = to_radians((f32)i);
+            f32 cos = static_cast<f32>(math::cos_constexpr(radian, 15));
             f32 cos_std = std::cos(radian);
             EXPECT_NEAR(cos, cos_std, 1e-7);
         }
     }
     // compare math::tan and std::tan
     {
-        // for f32
-        f32 eps_f32_approx = 0.01F;
-        for (f32 i = 0; i < 360; i += eps_f32_approx) {
+        for (f32 i = 0; i < max_degree; i += degree_step) {
             f32 radian = to_radians((f32)i);
-            f32 tan = math::tan_constexpr(radian, 16);
+            f32 tan = static_cast<f32>(math::tan_constexpr(radian, 16));
             f32 tan_std = std::tan(radian);
             EXPECT_NEAR(tan, tan_std, 1e-6);
         }
