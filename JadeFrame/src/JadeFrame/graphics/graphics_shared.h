@@ -314,7 +314,7 @@ public:
     TYPE          m_type = TYPE::UNINIT;
 };
 class RenderSystem;
-class VertexData;
+class Mesh;
 
 class GPUMeshData {
 public:
@@ -325,22 +325,19 @@ public:
     GPUMeshData(GPUMeshData&& other) noexcept;
     auto operator=(GPUMeshData&& other) noexcept -> GPUMeshData&;
 
-    GPUMeshData(
-        RenderSystem*     system,
-        const VertexData& vertex_data,
-        bool              interleaved = true
-    );
+    GPUMeshData(RenderSystem* system, const Mesh& vertex_data, bool interleaved = true);
 
 public:
     GPUBuffer* m_vertex_buffer;
     GPUBuffer* m_index_buffer;
 };
+class Mesh;
 
 struct RenderCommand {
-    mat4x4            transform = {};
-    const VertexData* vertex_data = nullptr;
-    MaterialHandle*   material = nullptr;
-    GPUMeshData*      m_mesh = nullptr;
+    mat4x4          transform = {};
+    Mesh*           vertex_data = nullptr;
+    MaterialHandle* material = nullptr;
+    GPUMeshData*    m_mesh = nullptr;
 };
 
 /*
@@ -430,9 +427,9 @@ public:
 
 class Object {
 public:
-    GPUMeshData*    m_mesh;
-    VertexData*     m_vertex_data;
-    MaterialHandle* m_material;
+    GPUMeshData*    m_mesh = nullptr;
+    Mesh*           m_vertex_data = nullptr;
+    MaterialHandle* m_material = nullptr;
     Transform       m_transform;
 };
 
@@ -451,7 +448,7 @@ public:
 
     auto register_texture(Image& image) -> TextureHandle*;
     auto register_shader(const ShaderHandle::Desc& desc) -> ShaderHandle*;
-    auto register_mesh(const VertexData& data) -> GPUMeshData*;
+    auto register_mesh(const Mesh& data) -> GPUMeshData*;
     auto
     register_material(ShaderHandle* shader, TextureHandle* texture) -> MaterialHandle*;
 

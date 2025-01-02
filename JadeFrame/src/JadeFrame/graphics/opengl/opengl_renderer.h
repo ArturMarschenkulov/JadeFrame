@@ -50,7 +50,7 @@ public:
 
 private:
     auto render_mesh(
-        const VertexData*  vertex_data,
+        const Mesh*        vertex_data,
         const GPUMeshData* gpu_data,
         OGLW_VertexArray*  vao
     ) -> void;

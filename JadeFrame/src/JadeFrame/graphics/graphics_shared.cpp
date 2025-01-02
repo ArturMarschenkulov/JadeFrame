@@ -202,9 +202,9 @@ GPUBuffer::GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage)
 }
 
 GPUMeshData::GPUMeshData(
-    RenderSystem*     system,
-    const VertexData& vertex_data,
-    bool              interleaved
+    RenderSystem* system,
+    const Mesh&   vertex_data,
+    bool          interleaved
 ) {
 
     const std::vector<f32> flat_data = convert_into_data(vertex_data, interleaved);
@@ -496,7 +496,7 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
  * @param data
  * @return u32
  */
-auto RenderSystem::register_mesh(const VertexData& data) -> GPUMeshData* {
+auto RenderSystem::register_mesh(const Mesh& data) -> GPUMeshData* {
     m_registered_meshes.emplace_back(this, data);
     return &m_registered_meshes.back();
 }

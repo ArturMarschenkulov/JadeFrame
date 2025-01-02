@@ -1,32 +1,109 @@
+#include "JadeFrame/math/vec.h"
+#include "JadeFrame/utils/assert.h"
+#include "JadeFrame/utils/logger.h"
 #include "pch.h"
 #include "mesh.h"
 #include "graphics_shared.h"
 
 namespace JadeFrame {
 
-class Mesh {
-public:
-    using AttributeId = u32;
-
-    struct VertexAttribute {
-        using Id = u32;
-        /// human readable name of the attribute
-        const char* m_name;
-        /// the id of the attribute
-        Id m_id;
-        /// the format of the attribute
-        SHADER_TYPE m_format;
-    };
-
-    std::map<AttributeId, VertexAttribute> m_attributes;
-    std::vector<u32>                       m_indices;
-
-    constexpr static VertexAttribute POSITION = {"POSITION", 0, SHADER_TYPE::V_3_F32};
-    constexpr static VertexAttribute NORMAL = {"NORMAL", 1, SHADER_TYPE::V_3_F32};
-    constexpr static VertexAttribute UV = {"UV", 2, SHADER_TYPE::V_2_F32};
-    constexpr static VertexAttribute TANGENT = {"TANGENT", 3, SHADER_TYPE::V_4_F32};
-    constexpr static VertexAttribute COLOR = {"COLOR", 4, SHADER_TYPE::V_4_F32};
+enum class PRIMITIVE_TOPOLOGY {
+    POINT_LIST,
+    LINE_LIST,
+    LINE_STRIP,
+    TRIANGLE_LIST,
+    TRIANGLE_STRIP,
 };
+
+static auto is_strip(PRIMITIVE_TOPOLOGY topology) -> bool {
+    return topology == PRIMITIVE_TOPOLOGY::LINE_STRIP ||
+           topology == PRIMITIVE_TOPOLOGY::TRIANGLE_STRIP;
+}
+
+static auto to_list(std::vector<v2> v2s) -> std::vector<f32> {
+    std::vector<f32> result;
+    result.reserve(v2s.size() * 2);
+    for (const v2& v : v2s) {
+        result.push_back(v.x);
+        result.push_back(v.y);
+    }
+    return result;
+}
+
+static auto to_list(std::vector<v4> v2s) -> std::vector<f32> {
+    std::vector<f32> result;
+    result.reserve(v2s.size() * 4);
+    for (const v4& v : v2s) {
+        result.push_back(v.x);
+        result.push_back(v.y);
+        result.push_back(v.z);
+        result.push_back(v.w);
+    }
+    return result;
+}
+
+static auto to_list(std::vector<v3> v3s) -> std::vector<f32> {
+    std::vector<f32> result;
+    result.reserve(v3s.size() * 3);
+    for (const v3& v : v3s) {
+        result.push_back(v.x);
+        result.push_back(v.y);
+        result.push_back(v.z);
+    }
+    return result;
+}
+
+static auto to_list(v4 v4) -> std::vector<f32> { return {v4.x, v4.y, v4.z, v4.w}; }
+
+static auto to_list(v3 v3) -> std::vector<f32> { return {v3.x, v3.y, v3.z}; }
+
+static auto to_list(v2 v2) -> std::vector<f32> { return {v2.x, v2.y}; }
+
+auto Mesh::rectangle(const v3& pos, const v3& size, const Desc desc) -> Mesh {
+    Mesh            mesh;
+    std::vector<v3> positions;
+    if (desc.has_position) {
+        positions.resize(6);
+        positions[0] = v3::create(pos.x, pos.y, pos.z);
+        positions[1] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+        positions[2] = v3::create(pos.x + size.x, pos.y, pos.z);
+        positions[3] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+        positions[4] = v3::create(pos.x, pos.y, pos.z);
+        positions[5] = v3::create(pos.x, pos.y + size.y, pos.z);
+        std::vector<f32> data = to_list(positions);
+        mesh.m_attributes[Mesh::POSITION.m_id] = AttributeData{Mesh::POSITION, data};
+    }
+    std::vector<v2> texture_coordinates;
+    if (desc.has_texture_coordinates) {
+        texture_coordinates.resize(6);
+        texture_coordinates[0] = v2::zero();
+        texture_coordinates[1] = v2::splat(1.0F);
+        texture_coordinates[2] = v2::X();
+        texture_coordinates[3] = v2::splat(1.0F);
+        texture_coordinates[4] = v2::zero();
+        texture_coordinates[5] = v2::Y();
+        std::vector<f32> data = to_list(texture_coordinates);
+        mesh.m_attributes[Mesh::UV.m_id] = AttributeData{Mesh::UV, data};
+    }
+
+    std::vector<v3> normals;
+    if (desc.has_normals) {
+        normals.resize(6);
+        normals[0] = v3::X();
+        normals[1] = v3::X();
+        normals[2] = v3::X();
+        normals[3] = v3::X();
+        normals[4] = v3::X();
+        normals[5] = v3::X();
+        std::vector<f32> data = to_list(normals);
+        mesh.m_attributes[Mesh::NORMAL.m_id] = AttributeData{Mesh::NORMAL, data};
+    }
+    if (desc.has_indices) {
+        std::vector<u32> indices = {0, 1, 3, 1, 2, 3};
+        mesh.m_indices = indices;
+    }
+    return mesh;
+}
 
 // Mesh::Mesh(const VertexData& vertex_data) {
 //	this->add_to_data(vertex_data);
@@ -60,6 +137,58 @@ public:
 //
 // }
 
+struct MeshVertex {
+
+    std::map<Mesh::VertexAttributeId, Mesh::AttributeData> m_attributes;
+};
+
+auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::vector<f32> {
+    if (interleaved) {
+        u32 combined_attribute_count = 0;
+        for (const auto& [id, data] : mesh.m_attributes) {
+            Logger::err("It has attrib {}", data.m_attribute_id.m_name);
+            u32 amount =
+                data.m_data.size() / component_count(data.m_attribute_id.m_format);
+            Logger::err("- amount: {}", amount);
+            u32 size = component_count(data.m_attribute_id.m_format);
+            Logger::err("- size: {}", size);
+            combined_attribute_count += amount * size;
+            Logger::err("- combined_attribute_count: {}", amount * size);
+        }
+        Logger::err("combined_attribute_count: {}", combined_attribute_count);
+        u32 position_count = mesh.m_attributes.at(Mesh::POSITION.m_id).m_data.size() /
+                             component_count(Mesh::POSITION.m_format);
+
+        std::vector<MeshVertex> vertices;
+        vertices.resize(position_count);
+        for (const auto& [id, data] : mesh.m_attributes) {
+            u32 amount =
+                data.m_data.size() / component_count(data.m_attribute_id.m_format);
+            u32 size = component_count(data.m_attribute_id.m_format);
+            for (u32 i = 0; i < amount; i++) {
+                auto& vertex = vertices[i];
+                vertex.m_attributes[id].m_attribute_id = data.m_attribute_id;
+
+                for (u32 j = 0; j < size; j++) {
+                    vertex.m_attributes[id].m_data.push_back(data.m_data[i * size + j]);
+                }
+            }
+        }
+        std::vector<f32> data;
+        data.reserve(combined_attribute_count);
+        auto vertex_count = vertices.size();
+        for (u32 i = 0; i < vertex_count; i++) {
+            auto& vertex = vertices[i];
+            for (const auto& [id, attribute_data] : vertex.m_attributes) {
+                for (f32 f : attribute_data.m_data) { data.push_back(f); }
+            }
+        }
+        return data;
+    } else {
+        JF_UNIMPLEMENTED("Non interleaved data is not implemented yet.");
+    }
+}
+
 auto convert_into_data(const VertexData& vertex_data, const bool interleaved)
     -> std::vector<f32> {
     // assert(mesh.m_positions.size() == mesh.m_normals.size());
@@ -70,24 +199,23 @@ auto convert_into_data(const VertexData& vertex_data, const bool interleaved)
     std::vector<f32> data;
     data.reserve(size);
     if (interleaved) {
-        for (size_t i = 0; i < vertex_data.m_positions.size(); i++) {
-            data.push_back(vertex_data.m_positions[i].x);
-            data.push_back(vertex_data.m_positions[i].y);
-            data.push_back(vertex_data.m_positions[i].z);
+        u32 vertex_count = vertex_data.m_positions.size();
+        for (size_t i = 0; i < vertex_count; i++) {
+            auto temp = to_list(vertex_data.m_positions[i]);
+            for (f32 f : temp) { data.push_back(f); }
             if (!vertex_data.m_colors.empty()) {
-                data.push_back(vertex_data.m_colors[i].r);
-                data.push_back(vertex_data.m_colors[i].g);
-                data.push_back(vertex_data.m_colors[i].b);
-                data.push_back(vertex_data.m_colors[i].a);
+                RGBAColor        color = vertex_data.m_colors[i];
+                v4               v = {color.r, color.g, color.b, color.a};
+                std::vector<f32> temp = to_list(v);
+                for (f32 f : temp) { data.push_back(f); }
             }
             if (!vertex_data.m_texture_coordinates.empty()) {
-                data.push_back(vertex_data.m_texture_coordinates[i].x);
-                data.push_back(vertex_data.m_texture_coordinates[i].y);
+                std::vector<f32> temp = to_list(vertex_data.m_texture_coordinates[i]);
+                for (f32 f : temp) { data.push_back(f); }
             }
             if (!vertex_data.m_normals.empty()) {
-                data.push_back(vertex_data.m_normals[i].x);
-                data.push_back(vertex_data.m_normals[i].y);
-                data.push_back(vertex_data.m_normals[i].z);
+                std::vector<f32> temp = to_list(vertex_data.m_normals[i]);
+                for (f32 f : temp) { data.push_back(f); }
             }
         }
     } else {

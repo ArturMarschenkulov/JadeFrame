@@ -82,6 +82,6 @@ public:
     bool                             m_framebuffer_resized = false;
 
 private:
-    auto render_mesh(const VertexData* vertex_data, const GPUMeshData* gpu_data) -> void;
+    auto render_mesh(const Mesh* vertex_data, const GPUMeshData* gpu_data) -> void;
 };
 } // namespace JadeFrame

@@ -131,7 +131,7 @@ auto OpenGL_Renderer::render(const mat4x4& view_projection) -> void {
 }
 
 auto OpenGL_Renderer::render_mesh(
-    const VertexData*  vertex_data,
+    const Mesh*        vertex_data,
     const GPUMeshData* gpu_data,
     OGLW_VertexArray*  vao
 ) -> void {
@@ -149,7 +149,9 @@ auto OpenGL_Renderer::render_mesh(
         auto gl_type = GL_UNSIGNED_INT;
         glDrawElements(prim_type, num_indices, gl_type, nullptr);
     } else {
-        auto num_vertices = static_cast<GLsizei>(vertex_data->m_positions.size());
+        auto num_vertices = static_cast<GLsizei>(
+            vertex_data->m_attributes.at(Mesh::POSITION.m_id).m_data.size()
+        );
         glDrawArrays(prim_type, 0, num_vertices);
     }
 }
@@ -222,13 +224,13 @@ auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* 
         }
     }
 
-    VertexData::Desc vdf_desc;
+    Mesh::Desc vdf_desc;
     vdf_desc.has_normals = false;
 
     const v2 viewport_pos = v2::create(-1.0F, -1.0F);
     const v2 viewport_size = v2::create(2.0F, 2.0F);
 
-    VertexData vertex_data = VertexData::rectangle(
+    Mesh vertex_data = Mesh::rectangle(
         v3::create(viewport_pos.x, viewport_pos.y, 0.0F),
         v3::create(viewport_size.x, viewport_size.y, 0.0F),
         vdf_desc

@@ -140,11 +140,11 @@ auto Vulkan_Renderer::render(const mat4x4& view_projection) -> void {
     render_commands.clear();
 }
 
-auto Vulkan_Renderer::render_mesh(
-    const VertexData*  vertex_data,
-    const GPUMeshData* gpu_data
-) -> void {
-    const auto& num_vertices = static_cast<u32>(vertex_data->m_positions.size());
+auto Vulkan_Renderer::render_mesh(const Mesh* vertex_data, const GPUMeshData* gpu_data)
+    -> void {
+    // const auto& s = vertex_data->m_attributes.at(Mesh::POSITION.m_id);
+    const auto& num_vertices =
+        static_cast<u32>(vertex_data->m_attributes.at(Mesh::POSITION.m_id).m_data.size());
     const auto& num_indices = static_cast<u32>(vertex_data->m_indices.size());
 
     const vulkan::Buffer* vertex_buffer =

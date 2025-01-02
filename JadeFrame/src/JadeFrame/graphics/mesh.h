@@ -1,7 +1,7 @@
 #pragma once
 #include "JadeFrame/math/vec.h"
-#include "JadeFrame/math/mat_4.h"
-#include "JadeFrame/utils/utils.h"
+#include "JadeFrame/types.h"
+#include "JadeFrame/graphics/graphics_shared.h"
 
 #include <vector>
 
@@ -284,7 +284,7 @@ struct Vertex {
     v2        tex_coord;
 };
 
-// struct v3f32;
+/// To be removed. Use [`Mesh`] instead.
 class VertexData {
 public:
     std::vector<v3>        m_positions;
@@ -321,7 +321,68 @@ public:
     static auto cube(const v3& pos, const v3& size) -> VertexData;
 };
 
+auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::vector<f32>;
 auto convert_into_data(const VertexData& vertex_data, const bool interleaved)
     -> std::vector<f32>;
+
+class Mesh {
+public:
+    using VertexAttributeId = u32;
+
+    struct VertexAttribute {
+        using Id = u32;
+        /// human readable name of the attribute
+        const char* m_name;
+        /// the id of the attribute
+        Id m_id;
+        /// the format of the attribute
+        SHADER_TYPE m_format;
+    };
+
+    struct AttributeData {
+        VertexAttribute m_attribute_id;
+        // TODO: m_data could also be some other type like u32 or v3
+        std::vector<f32> m_data;
+    };
+
+    std::map<VertexAttributeId, AttributeData> m_attributes;
+    std::vector<u32>                           m_indices;
+
+    constexpr static VertexAttribute POSITION = {"POSITION", 0, SHADER_TYPE::V_3_F32};
+    constexpr static VertexAttribute COLOR = {"COLOR", 1, SHADER_TYPE::V_4_F32};
+    constexpr static VertexAttribute UV = {"UV", 2, SHADER_TYPE::V_2_F32};
+    constexpr static VertexAttribute NORMAL = {"NORMAL", 3, SHADER_TYPE::V_3_F32};
+    constexpr static VertexAttribute TANGENT = {"TANGENT", 4, SHADER_TYPE::V_4_F32};
+
+    [[nodiscard]] auto has_attribute(const VertexAttribute& attribute) const -> bool {
+        return m_attributes.find(attribute.m_id) != m_attributes.end();
+    }
+
+    auto set_color(const RGBAColor& color) -> void {
+        u32              num_vertices = m_attributes.at(POSITION.m_id).m_data.size() / 3;
+        u32              reserve_size = num_vertices * 4;
+        std::vector<f32> data;
+        data.reserve(reserve_size);
+
+        std::vector<f32> color_data = {color.r, color.g, color.b, color.a};
+
+        for (u32 i = 0; i < num_vertices; i++) {
+            for (u32 j = 0; j < 4; j++) { data.push_back(color_data[j]); }
+        }
+        m_attributes[COLOR.m_id] = AttributeData{COLOR, data};
+        assert(
+            (m_attributes[COLOR.m_id].m_data.size() == num_vertices * 4) && "Invalid size"
+        );
+    }
+
+    struct Desc {
+        bool has_position = true; // NOTE: Probably unneccessary
+        bool has_texture_coordinates = true;
+        bool has_indices = false;
+        bool has_normals = true;
+    };
+
+    static auto rectangle(const v3& pos, const v3& size, const Desc desc) -> Mesh;
+};
 
 } // namespace JadeFrame
