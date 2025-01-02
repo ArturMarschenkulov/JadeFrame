@@ -32,6 +32,18 @@ auto control_camera(Camera* self, const InputState& i) -> void {
         orient.set_pitch_yaw(pitch, yaw);
     }
 
+    // ImGui::Text(
+    //     "Position: %f, %f, %f", self->m_position.x, self->m_position.y,
+    //     self->m_position.z
+    // );
+    // ImGui::Text(
+    //     "Forward: %f, %f, %f", orient.m_forward.x, orient.m_forward.y,
+    //     orient.m_forward.z
+    // );
+    // ImGui::Text(
+    //     "Right: %f, %f, %f", orient.m_right.x, orient.m_right.y, orient.m_right.z
+    // );
+    // ImGui::Text("Up: %f, %f, %f", orient.m_up.x, orient.m_up.y, orient.m_up.z);
 }
 
 //**************************************************************
@@ -107,25 +119,13 @@ BaseApp::BaseApp(const Desc& desc) {
     const std::string& title = m_current_window_p->get_title();
     std::string        new_title = title + " - " + to_string(desc.api);
     m_current_window_p->set_title(new_title);
-    // m_gui.init(m_current_window_p, api);
-}
-
-inline auto to_string(const mat4x4& m) -> std::string {
-    std::string result;
-    for (u32 col = 0; col < 4; col++) {
-        for (u32 row = col + 1; row < 4; row++) {
-            auto s = std::to_string(m[col][row]);
-            result += s;
-            result += ", ";
-        }
-    }
-    return result;
+    m_gui.init(m_current_window_p, desc.api);
 }
 
 auto BaseApp::start() -> void {
     // Before `this->on_init();` come all the default stuff
     // The client can later override those in `this->on_init();`
-    auto& curr_win = m_windows[0];
+    Window* curr_win = m_windows[0];
     m_camera =
         Camera::orthographic(0, curr_win->get_size().x, curr_win->get_size().y, 0, -1, 1);
     SystemManager& platform = Instance::get_singleton()->m_system_manager;
@@ -136,22 +136,23 @@ auto BaseApp::start() -> void {
     while (m_is_running) {
         const f64 delta_time = platform.calc_elapsed();
         this->on_update();
+
+        // if (m_current_window_p->get_window_state() != Window::WINDOW_STATE::MINIMIZED)
+        // {
+        renderer->clear_background();
+
+        if (m_gui.m_is_initialized) { m_gui.new_frame(); }
         control_camera(&m_camera, m_windows[0]->m_input_state);
 
-        if (m_current_window_p->get_window_state() != Window::WINDOW_STATE::MINIMIZED) {
-            renderer->clear_background();
-            // m_gui.new_frame();
+        this->on_draw();
+        const mat4x4& view_projection = m_camera.get_view_projection();
+        // control_camera(&m_camera);
+        renderer->render(view_projection);
+        if (m_gui.m_is_initialized) { m_gui.render(); }
 
-            this->on_draw();
-            const mat4x4& view_projection = m_camera.get_view_projection();
-            // control_camera(&m_camera);
-            renderer->render(view_projection);
-
-            // m_gui.render();
-
-            renderer->present();
-            m_tick += 1;
-        }
+        renderer->present();
+        m_tick += 1;
+        //}
         this->poll_events();
         platform.frame_control(delta_time);
     }

@@ -15,5 +15,9 @@ public:
     auto new_frame() -> void;
     auto render() -> void;
     auto destroy() -> void;
+
+public:
+    bool         m_is_initialized = false;
+    GRAPHICS_API m_graphics_api = GRAPHICS_API::OPENGL;
 };
 } // namespace JadeFrame
