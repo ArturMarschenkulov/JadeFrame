@@ -106,7 +106,7 @@ enum class SHADER_TYPE {
     SAMPLER_CUBE,
 };
 
-inline auto get_component_count(const SHADER_TYPE type) -> u32 {
+inline auto component_count(const SHADER_TYPE type) -> u32 {
     u32 result = 0;
     switch (type) {
         case SHADER_TYPE::F32:
@@ -160,7 +160,7 @@ inline auto get_underlying_type(SHADER_TYPE type) -> SHADER_TYPE {
             break;
     }
 
-    assert(get_component_count(result) == 1);
+    assert(component_count(result) == 1);
     return result;
 }
 

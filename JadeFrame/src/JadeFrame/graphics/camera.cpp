@@ -82,21 +82,11 @@ public:
     v3 m_forward;
 };
 
-struct PerspectiveProjection {
-    f32 m_fov;
-    f32 m_aspect;
-    f32 m_near;
-    f32 m_far;
-};
-
-struct OrthographicProjection {
-    f32 m_near;
-    f32 m_far;
-};
-
 auto Camera::get_view_projection() const -> mat4x4 {
-    mat4x4 look_at = mat4x4::look_at_rh(m_position, m_position + m_forward, m_up);
-    mat4x4 result = m_projection_matrix * look_at;
+    mat4x4 look_at =
+        mat4x4::look_to_rh(m_position, m_orientation.m_forward, m_orientation.m_up);
+    mat4x4 proj = m_projection_matrix;
+    mat4x4 result = proj * look_at;
     return result;
 }
 
@@ -110,23 +100,24 @@ auto Camera::perspective(
     const f32 z_far
 ) -> Camera {
 
-    Camera camera;
-    camera.m_mode = MODE::PERSPECTIVE;
-    camera.m_position = position;
-    camera.m_forward = g_coordinate_system.m_forward;
-    camera.m_world_up = g_coordinate_system.m_up;
-    camera.m_up = camera.m_world_up;
+    Camera cam;
+    cam.m_mode = MODE::PERSPECTIVE;
+    cam.m_position = position;
+    Orientation& orient = cam.m_orientation;
+    orient.m_forward = g_coordinate_system.m_forward;
+    orient.m_world_up = g_coordinate_system.m_up;
+    orient.m_up = orient.m_world_up;
 
-    camera.m_pitch = to_degrees(std::asin(camera.m_forward.y));
-    camera.m_yaw = to_degrees(std::atan2(camera.m_forward.z, camera.m_forward.x));
+    orient.m_pitch = to_degrees(std::asin(orient.m_forward.y));
+    orient.m_yaw = to_degrees(std::atan2(orient.m_forward.z, orient.m_forward.x));
+    cam.m_fov = fov;
+    cam.m_aspect = aspect;
+    cam.m_near = z_near;
+    cam.m_far = z_far;
+    cam.m_projection_matrix =
+        mat4x4::perspective_rh_no(cam.m_fov, cam.m_aspect, cam.m_near, cam.m_far);
 
-    camera.m_projection_matrix = mat4x4::perspective_rh_no(fov, aspect, z_near, z_far);
-
-    camera.m_fov = fov;
-    camera.m_aspect = aspect;
-    camera.m_near = z_near;
-    camera.m_far = z_far;
-    return camera;
+    return cam;
 }
 
 auto Camera::orthographic(
@@ -144,12 +135,13 @@ auto Camera::orthographic(
 
     Camera camera;
     camera.m_mode = MODE::ORTHOGRAPHIC;
-    camera.m_world_up = g_coordinate_system.m_up;
 
     camera.m_position = v3::zero();
-    camera.m_forward = -g_coordinate_system.m_up;
-    camera.m_up = g_coordinate_system.m_forward;
-    camera.m_right = g_coordinate_system.m_right;
+    Orientation& orient = camera.m_orientation;
+    orient.m_world_up = g_coordinate_system.m_up;
+    orient.m_forward = -g_coordinate_system.m_up;
+    orient.m_up = g_coordinate_system.m_forward;
+    orient.m_right = g_coordinate_system.m_right;
 
     camera.m_projection_matrix =
         mat4x4::orthographic_rh_no(left, right, bottom, top, near_, far_);
@@ -157,13 +149,68 @@ auto Camera::orthographic(
     return camera;
 }
 
-auto Camera::set_pitch_yaw(const f32 pitch, const f32 yaw) -> void {
+enum class RotationOrder {
+    XYZ,
+    XZY,
+    YXZ,
+    YZX,
+    ZXY,
+    ZYX,
+};
+
+// auto Camera::Orientation::set_pitch_yaw(const f32 pitch, const f32 yaw) -> void {
+//     m_pitch = pitch;
+//     m_yaw = yaw;
+
+//     m_forward.x = std::cos(to_radians(yaw)) * std::cos(to_radians(pitch));
+//     m_forward.y = std::sin(to_radians(pitch));
+//     m_forward.z = std::sin(to_radians(yaw)) * std::cos(to_radians(pitch));
+
+//     m_right = m_forward.cross(m_world_up).normalize();
+//     m_up = m_right.cross(m_forward).normalize();
+// }
+
+auto Camera::Orientation::set_pitch_yaw(const f32 pitch, const f32 yaw) -> void {
     m_pitch = pitch;
     m_yaw = yaw;
-    m_forward.x = std::cos(to_radians(yaw)) * std::cos(to_radians(pitch));
-    m_forward.y = std::sin(to_radians(pitch));
-    m_forward.z = std::sin(to_radians(yaw)) * std::cos(to_radians(pitch));
-    m_right = m_forward.cross(m_world_up).normalize();
-    m_up = m_right.cross(m_forward).normalize();
+
+    mat4x4 pitch_matrix = mat4x4::rotation_y_rh(to_radians(pitch));
+    mat4x4 yaw_matrix = mat4x4::rotation_z_rh(to_radians(yaw));
+    mat4x4 rotation_matrix = mat4x4::identity();
+    rotation_matrix = yaw_matrix * pitch_matrix;
+
+    v4 forward_ = rotation_matrix.x_axis;
+    v4 right_ = rotation_matrix.y_axis;
+    v4 up_ = rotation_matrix.z_axis;
+
+    v3 forward = v3::create(forward_.x, forward_.y, forward_.z);
+    v3 right = v3::create(right_.x, right_.y, right_.z);
+    v3 up = v3::create(up_.x, up_.y, up_.z);
+
+    m_forward = forward.normalize();
+    m_right = -right.normalize();
+    m_up = up.normalize();
+}
+
+[[nodiscard]] auto Camera::Orientation::get_pitch_yaw() const -> std::pair<f32, f32> {
+    // return {m_pitch, m_yaw};
+
+    // Ensure the forward vector is normalized
+    v3 forward_normalized = m_forward.normalize();
+
+    // Clamp the forward.z to the range [-1.0, 1.0] to avoid domain errors in asin
+    float clamped_forward_z = std::fmax(-1.0f, std::fmin(1.0f, forward_normalized.z));
+
+    // Compute pitch in radians
+    float pitch_rad = std::asin(-clamped_forward_z);
+
+    // Compute yaw in radians using atan2 to handle the correct quadrant
+    float yaw_rad = std::atan2(forward_normalized.y, forward_normalized.x);
+
+    // Convert radians to degrees
+    float pitch = to_degrees(pitch_rad);
+    float yaw = to_degrees(yaw_rad);
+
+    return {pitch, yaw};
 }
 } // namespace JadeFrame
