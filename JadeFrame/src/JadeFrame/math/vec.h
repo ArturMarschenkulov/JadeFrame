@@ -191,12 +191,13 @@ public: // operators
         return *this;
     }
 
-    constexpr auto operator==(const _v3& other) const -> bool {
-        const f64 tolerance = 1e-6;
+    constexpr auto cmp(const _v3 other, const T tolerance = 1e-6) const -> bool {
         return (std::fabs(x - other.x) < tolerance) &&
                (std::fabs(y - other.y) < tolerance) &&
                (std::fabs(z - other.z) < tolerance);
     }
+
+    constexpr auto operator==(const _v3& other) const -> bool { return this->cmp(other); }
 
     constexpr auto operator!=(const _v3& other) const -> bool {
         return !(*this == other);
@@ -388,11 +389,14 @@ public:
         return *this;
     }
 
-    constexpr auto operator==(const _v4& other) const -> bool {
-        const f64 tolerance = 1e-6;
-        return std::fabs(x - other.x) < tolerance && std::fabs(y - other.y) < tolerance &&
-               std::fabs(z - other.z) < tolerance && std::fabs(w - other.w) < tolerance;
+    constexpr auto cmp(const _v4 other, const T tolerance = 1e-6) const -> bool {
+        return (std::fabs(x - other.x) < tolerance) &&
+               (std::fabs(y - other.y) < tolerance) &&
+               (std::fabs(z - other.z) < tolerance) &&
+               (std::fabs(w - other.w) < tolerance);
     }
+
+    constexpr auto operator==(const _v4& other) const -> bool { return this->cmp(other); }
 
     constexpr auto operator!=(const _v4& other) const -> bool {
         return !(*this == other);

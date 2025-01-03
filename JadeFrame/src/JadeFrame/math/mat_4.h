@@ -44,10 +44,10 @@ constexpr static auto get_fovy_aspect(f32 left, f32 right, f32 top, f32 bottom, 
     assert((left < right) && "left must be less than right");
     assert((bottom < top) && "bottom must be less than top");
 
-    const f32 width = right - left;
-    const f32 height = top - bottom;
-    const f32 aspect = width / height;
-    const f32 fovy = 2.0F * std::atan(top / near);
+    const f64 width = right - left;
+    const f64 height = top - bottom;
+    const f64 aspect = width / height;
+    const f64 fovy = 2.0 * std::atan((f64)top / (f64)near);
     return {fovy, aspect};
 }
 
@@ -97,16 +97,18 @@ public:
         return result;
     }
 
-    constexpr auto operator==(const mat4x4& b) const noexcept -> bool {
-        float tolerance = 1e-6f;
-        for (int row = 0; row < 4; ++row) {
-            for (int col = 0; col < 4; ++col) {
-                if (std::fabs((*this)[row][col] - b[row][col]) > tolerance) {
-                    return false;
-                }
+    [[nodiscard]] constexpr auto
+    cmp(const mat4x4& other, f32 epsilon = 1e-6F) const noexcept -> bool {
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                if (std::fabs((*this)[i][j] - other[i][j]) > epsilon) { return false; }
             }
         }
         return true;
+    }
+
+    constexpr auto operator==(const mat4x4& b) const noexcept -> bool {
+        return this->cmp(b);
     }
 
     constexpr auto operator!=(const mat4x4& other) const noexcept -> bool {
