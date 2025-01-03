@@ -145,9 +145,8 @@ auto BaseApp::start() -> void {
         control_camera(&m_camera, m_windows[0]->m_input_state);
 
         this->on_draw();
-        const mat4x4& view_projection = m_camera.get_view_projection();
-        // control_camera(&m_camera);
-        renderer->render(view_projection);
+
+        renderer->render(m_camera);
         if (m_gui.m_is_initialized) { m_gui.render(); }
 
         renderer->present();

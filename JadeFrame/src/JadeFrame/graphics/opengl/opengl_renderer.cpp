@@ -77,7 +77,7 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const Window* window)
 
 auto OpenGL_Renderer::present() -> void { m_context.m_swapchain_context.swap_buffers(); }
 
-auto OpenGL_Renderer::render(const mat4x4& view_projection) -> void {
+auto OpenGL_Renderer::render(const Camera& camera) -> void {
 
 #if JF_OPENGL_FB
     m_context.bind_framebuffer(*m_render_target.m_framebuffer);
@@ -103,6 +103,7 @@ auto OpenGL_Renderer::render(const mat4x4& view_projection) -> void {
         // every iteration of the loop. Late on one HAS TO fix this.
 
         // ub_cam
+        mat4x4 view_projection = camera.get_view_projection("OpenGL");
         material->write_ub(0, &view_projection, sizeof(view_projection), 0);
 
         // ub_tran

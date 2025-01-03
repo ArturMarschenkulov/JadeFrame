@@ -9,7 +9,6 @@
 #include "../graphics_shared.h"
 #include "shader.h"
 
-
 namespace JadeFrame {
 // prepare shaders and its dynamic uniform buffers
 // TODO: Find a better way to do this, but for now it works
@@ -57,7 +56,7 @@ auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void {
 
 auto Vulkan_Renderer::clear_background() -> void {}
 
-auto Vulkan_Renderer::render(const mat4x4& view_projection) -> void {
+auto Vulkan_Renderer::render(const Camera& camera) -> void {
     vulkan::LogicalDevice&        d = *m_logical_device;
     const vulkan::PhysicalDevice* pd = d.m_physical_device;
 
@@ -107,7 +106,7 @@ auto Vulkan_Renderer::render(const mat4x4& view_projection) -> void {
         // vulkan::FREQUENCY::PER_FRAME == 0
         // Per DrawCall ubo
         // vulkan::FREQUENCY::PER_OBJECT == 3
-
+        mat4x4 view_projection = camera.get_view_projection("Vulkan");
         material->write_ub(
             FREQUENCY::PER_FRAME, 0, &view_projection, sizeof(view_projection), 0
         );

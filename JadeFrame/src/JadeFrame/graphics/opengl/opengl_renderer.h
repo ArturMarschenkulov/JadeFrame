@@ -1,5 +1,6 @@
 #pragma once
 
+#include "JadeFrame/graphics/camera.h"
 #ifdef _WIN32
     #include "JadeFrame/platform/windows/windows_window.h"
 #elif __linux__
@@ -38,7 +39,7 @@ public:
 
     auto present() -> void override;
     auto clear_background() -> void override;
-    auto render(const mat4x4& view_projection) -> void override;
+    auto render(const Camera& camera) -> void override;
 
     auto set_clear_color(const RGBAColor& color) -> void override;
     auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void override;
