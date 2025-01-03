@@ -19,46 +19,7 @@ static auto is_strip(PRIMITIVE_TOPOLOGY topology) -> bool {
            topology == PRIMITIVE_TOPOLOGY::TRIANGLE_STRIP;
 }
 
-static auto to_list(std::vector<v2> v2s) -> std::vector<f32> {
-    std::vector<f32> result;
-    result.reserve(v2s.size() * 2);
-    for (const v2& v : v2s) {
-        result.push_back(v.x);
-        result.push_back(v.y);
-    }
-    return result;
-}
-
-static auto to_list(std::vector<v4> v2s) -> std::vector<f32> {
-    std::vector<f32> result;
-    result.reserve(v2s.size() * 4);
-    for (const v4& v : v2s) {
-        result.push_back(v.x);
-        result.push_back(v.y);
-        result.push_back(v.z);
-        result.push_back(v.w);
-    }
-    return result;
-}
-
-static auto to_list(std::vector<v3> v3s) -> std::vector<f32> {
-    std::vector<f32> result;
-    result.reserve(v3s.size() * 3);
-    for (const v3& v : v3s) {
-        result.push_back(v.x);
-        result.push_back(v.y);
-        result.push_back(v.z);
-    }
-    return result;
-}
-
-static auto to_list(v4 v4) -> std::vector<f32> { return {v4.x, v4.y, v4.z, v4.w}; }
-
-static auto to_list(v3 v3) -> std::vector<f32> { return {v3.x, v3.y, v3.z}; }
-
-static auto to_list(v2 v2) -> std::vector<f32> { return {v2.x, v2.y}; }
-
-auto Mesh::rectangle(const v3& pos, const v3& size, const Desc desc) -> Mesh {
+auto Mesh::rectangle_(const v3& pos, const v3& size, const Desc desc) -> Mesh {
     Mesh            mesh;
     std::vector<v3> positions;
     if (desc.has_position) {
@@ -81,6 +42,53 @@ auto Mesh::rectangle(const v3& pos, const v3& size, const Desc desc) -> Mesh {
         texture_coordinates[3] = v2::splat(1.0F);
         texture_coordinates[4] = v2::zero();
         texture_coordinates[5] = v2::Y();
+        std::vector<f32> data = to_list(texture_coordinates);
+        mesh.m_attributes[Mesh::UV.m_id] = AttributeData{Mesh::UV, data};
+    }
+
+    std::vector<v3> normals;
+    if (desc.has_normals) {
+        normals.resize(6);
+        normals[0] = v3::X();
+        normals[1] = v3::X();
+        normals[2] = v3::X();
+        normals[3] = v3::X();
+        normals[4] = v3::X();
+        normals[5] = v3::X();
+        std::vector<f32> data = to_list(normals);
+        mesh.m_attributes[Mesh::NORMAL.m_id] = AttributeData{Mesh::NORMAL, data};
+    }
+    if (desc.has_indices) {
+        std::vector<u32> indices = {0, 1, 3, 1, 2, 3};
+        mesh.m_indices = indices;
+    }
+    return mesh;
+}
+
+auto Mesh::rectangle(const v3& pos, const v3& size, const Desc desc) -> Mesh {
+    Mesh            mesh;
+    std::vector<v3> positions;
+    if (desc.has_position) {
+        positions.resize(6);
+        positions[0] = v3::create(pos.x, pos.y, pos.z);
+        positions[1] = v3::create(pos.x + size.x, pos.y, pos.z);
+        positions[2] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+
+        positions[3] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+        positions[4] = v3::create(pos.x, pos.y + size.y, pos.z);
+        positions[5] = v3::create(pos.x, pos.y, pos.z);
+        std::vector<f32> data = to_list(positions);
+        mesh.m_attributes[Mesh::POSITION.m_id] = AttributeData{Mesh::POSITION, data};
+    }
+    std::vector<v2> texture_coordinates;
+    if (desc.has_texture_coordinates) {
+        texture_coordinates.resize(6);
+        texture_coordinates[0] = v2::zero();
+        texture_coordinates[1] = v2::X();
+        texture_coordinates[2] = v2::splat(1.0F);
+        texture_coordinates[3] = v2::splat(1.0F);
+        texture_coordinates[4] = v2::Y();
+        texture_coordinates[5] = v2::zero();
         std::vector<f32> data = to_list(texture_coordinates);
         mesh.m_attributes[Mesh::UV.m_id] = AttributeData{Mesh::UV, data};
     }

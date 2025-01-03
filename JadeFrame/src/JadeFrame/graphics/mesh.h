@@ -380,7 +380,59 @@ public:
         bool has_normals = true;
     };
 
+    static auto rectangle_(const v3& pos, const v3& size, const Desc desc) -> Mesh;
     static auto rectangle(const v3& pos, const v3& size, const Desc desc) -> Mesh;
 };
+
+static auto to_list(std::vector<v2> v2s) -> std::vector<f32> {
+    std::vector<f32> result;
+    result.reserve(v2s.size() * 2);
+    for (const v2& v : v2s) {
+        result.push_back(v.x);
+        result.push_back(v.y);
+    }
+    return result;
+}
+
+static auto to_list(std::vector<v4> v2s) -> std::vector<f32> {
+    std::vector<f32> result;
+    result.reserve(v2s.size() * 4);
+    for (const v4& v : v2s) {
+        result.push_back(v.x);
+        result.push_back(v.y);
+        result.push_back(v.z);
+        result.push_back(v.w);
+    }
+    return result;
+}
+
+static auto to_list(std::vector<v3> v3s) -> std::vector<f32> {
+    std::vector<f32> result;
+    result.reserve(v3s.size() * 3);
+    for (const v3& v : v3s) {
+        result.push_back(v.x);
+        result.push_back(v.y);
+        result.push_back(v.z);
+    }
+    return result;
+}
+
+static auto to_list(std::vector<RGBAColor> colors) -> std::vector<f32> {
+    std::vector<f32> result;
+    result.reserve(colors.size() * 4);
+    for (const RGBAColor& color : colors) {
+        result.push_back(color.r);
+        result.push_back(color.g);
+        result.push_back(color.b);
+        result.push_back(color.a);
+    }
+    return result;
+}
+
+static auto to_list(v4 v4) -> std::vector<f32> { return {v4.x, v4.y, v4.z, v4.w}; }
+
+static auto to_list(v3 v3) -> std::vector<f32> { return {v3.x, v3.y, v3.z}; }
+
+static auto to_list(v2 v2) -> std::vector<f32> { return {v2.x, v2.y}; }
 
 } // namespace JadeFrame
