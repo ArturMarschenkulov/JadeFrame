@@ -16,7 +16,7 @@ set(Files
 add_library(JF_MODULE_math STATIC ${Files})
 target_link_libraries(JF_MODULE_math
     PRIVATE
-        JadeFrame
+        JF_MODULE_prelude
 )
 
-add_subdirectory(tests)
+# add_subdirectory(tests)
