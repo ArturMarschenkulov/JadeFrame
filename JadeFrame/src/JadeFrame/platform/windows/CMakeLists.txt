@@ -9,20 +9,10 @@ add_library(platform-win32
     "windows_window.cpp"
 )
 
-# target_include_directories(platform-win32
-#     PUBLIC
-#         ${CMAKE_SOURCE_DIR}/JadeFrame/src/
-#         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/
-#         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/
-#         ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/spdlog/include/spdlog/details/
-
-# )
-
 target_link_libraries(platform-win32
     PUBLIC
         winmm
-        spdlog
-        JadeFrame
+        JF_MODULE_prelude
 )
 
 target_compile_definitions(platform-win32 PRIVATE

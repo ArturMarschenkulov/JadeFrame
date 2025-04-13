@@ -1,4 +1,5 @@
 #pragma once
+#include <deque>
 #include "JadeFrame/types.h"
 
 namespace JadeFrame {

@@ -12,7 +12,26 @@ set(Files
 )
 
 add_library(JF_MODULE_platform STATIC ${Files})
+
+IF(WIN32)
+    set(ADDITIONAL_LIBRARY_DEPENDENCIES
+        platform-win32
+        opengl32
+        ${Vulkan_LIBRARIES}
+    )
+ELSEIF(UNIX AND NOT APPLE)
+    set(ADDITIONAL_LIBRARY_DEPENDENCIES
+        platform-linux
+        pthread
+        X11
+        # GL
+        # libvulkan.so
+    )
+ENDIF()
 target_link_libraries(JF_MODULE_platform
-    PUBLIC
-        JadeFrame
+    PRIVATE
+        ${ADDITIONAL_LIBRARY_DEPENDENCIES}
+        JF_MODULE_prelude
+        imgui
 )
+

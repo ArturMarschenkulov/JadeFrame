@@ -158,7 +158,7 @@ X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
 
     GLint att[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None};
 
-    m_visual_info = glXChooseVisual(m_display, 0, att);
+    // m_visual_info = glXChooseVisual(m_display, 0, att);
     int     screen = DefaultScreen(m_display);
     Visual* visual = DefaultVisual(m_display, screen);
     int     depth = DefaultDepth(m_display, screen);

@@ -11,6 +11,5 @@ add_library(platform-linux
 
 target_link_libraries(platform-linux
     PUBLIC
-        spdlog
-        JadeFrame
+        JF_MODULE_prelude
 )
