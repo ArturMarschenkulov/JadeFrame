@@ -1,5 +1,6 @@
 
 
+#include <cassert>
 #ifdef _WIN32
     #include "Windows.h"
 #endif
@@ -9,7 +10,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #undef __OPTIMIZE__
 JF_PRAGMA_NO_WARNINGS_PUSH
-#include "stb/stb_image_write.h"
+#include <stb/stb_image_write.h>
 JF_PRAGMA_NO_WARNINGS_POP
 
 #include "opengl_renderer.h"
@@ -138,11 +139,14 @@ auto OpenGL_Renderer::render_mesh(
     // TODO: Considering we are replicating Vulkan's way of doing things, the primitive
     // type should be defined in the pipeline or shader, and here it should be simply
     // queried.
+    assert(vao != nullptr);
+    assert(gpu_data != nullptr);
+    assert(vertex_data != nullptr);
 
     m_context.bind_vertex_array(*vao);
     vao->bind_buffer(*static_cast<opengl::Buffer*>(gpu_data->m_vertex_buffer->m_handle));
 
-    auto prim_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
+    GLenum prim_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
     if (!vertex_data->m_indices.empty()) {
         auto num_indices = static_cast<GLsizei>(vertex_data->m_indices.size());
         // auto gl_type = to_opengl_type<u32>();
@@ -230,16 +234,16 @@ auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* 
     const v2 viewport_pos = v2::create(-1.0F, -1.0F);
     const v2 viewport_size = v2::create(2.0F, 2.0F);
 
-    Mesh vertex_data = Mesh::rectangle_(
+    m_mesh = Mesh::rectangle_(
         v3::create(viewport_pos.x, viewport_pos.y, 0.0F),
         v3::create(viewport_size.x, viewport_size.y, 0.0F),
         vdf_desc
     );
-    std::vector<f32> data = convert_into_data(vertex_data, true);
+    std::vector<f32> data = convert_into_data(m_mesh, true);
     u32              size = static_cast<u32>(data.size() * sizeof(f32));
     m_vertex_buffer =
         context->create_buffer(opengl::Buffer::TYPE::VERTEX, data.data(), size);
-
+    // m_index_buffer = context->create_buffer(opengl::Buffer::TYPE::INDEX, nullptr, 0);
     ShaderHandle::Desc shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
     m_shader = system->register_shader(shader_handle_desc);
@@ -251,10 +255,30 @@ auto OpenGL_Renderer::RenderTarget::render(RenderSystem* /*system*/) -> void {
     auto*         sh = static_cast<opengl::Shader*>(sh_.m_handle);
     m_context->bind_shader(*sh);
     m_context->bind_texture_to_unit(*m_texture, 0);
-    m_context->bind_vertex_array(sh->m_vertex_array);
-    sh->m_vertex_array.bind_buffer(*m_vertex_buffer);
 
-    const GLsizei num_vertices = 6;
-    glDrawArrays(GL_TRIANGLES, 0, num_vertices);
+    // this->render_mesh(m_mesh,)
+    OGLW_VertexArray* vao = &sh->m_vertex_array;
+    m_context->bind_vertex_array(*vao);
+    vao->bind_buffer(*m_vertex_buffer);
+    GLenum prim_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
+    if (!m_mesh.m_indices.empty()) {
+        auto num_indices = static_cast<GLsizei>(m_mesh.m_indices.size());
+        assert((num_indices == 6) && "The framebuffer mesh must have 6 indices");
+        auto gl_type = GL_UNSIGNED_INT;
+        glDrawElements(prim_type, num_indices, gl_type, nullptr);
+    } else {
+        u32     component_amount = component_count(Mesh::POSITION.m_format);
+        GLsizei num_vertices =
+            static_cast<GLsizei>(m_mesh.m_attributes.at(Mesh::POSITION.m_id).m_data.size()
+            ) /
+            component_amount;
+        assert((num_vertices == 6) && "The framebuffer mesh must have 6 indices");
+        glDrawArrays(prim_type, 0, num_vertices);
+    }
+    // m_context->bind_vertex_array(*vao);
+    // vao->bind_buffer(*m_vertex_buffer);
+
+    // const GLsizei num_vertices = 6;
+    // glDrawArrays(GL_TRIANGLES, 0, num_vertices);
 }
 } // namespace JadeFrame

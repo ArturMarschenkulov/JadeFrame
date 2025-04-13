@@ -1,5 +1,4 @@
 #pragma once
-#include <glad/glad.h>
 
 #include "opengl_wrapper.h"
 
@@ -28,11 +27,11 @@ public:
     };
 
     static auto
-    create(OpenGL_Context& context, TYPE type, void* data, GLuint size) -> Buffer;
+    create(OpenGL_Context& context, TYPE type, const void* data, GLuint size) -> Buffer;
 
 private:
     Buffer(OpenGL_Context& context, TYPE type, void* data, GLuint size);
-    auto alloc(void* data, GLuint size) const -> void;
+    auto alloc(const void* data, GLuint size) const -> void;
     auto reserve(GLuint size) const -> void;
 
 public:
@@ -40,7 +39,7 @@ public:
 
     template<typename T>
     auto write(const T& data, GLint offset = 0) const -> void {
-        this->write((void*)&data, sizeof(T), offset);
+        this->write(static_cast<const void*>(data), sizeof(T), offset);
     }
 
 public:

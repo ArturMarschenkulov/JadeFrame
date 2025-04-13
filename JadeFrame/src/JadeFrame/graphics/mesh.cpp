@@ -20,160 +20,204 @@ static auto is_strip(PRIMITIVE_TOPOLOGY topology) -> bool {
 }
 
 auto Mesh::rectangle_(const v3& pos, const v3& size, const Desc desc) -> Mesh {
-    Mesh            mesh;
-    std::vector<v3> positions;
-    if (desc.has_position) {
-        positions.resize(6);
-        positions[0] = v3::create(pos.x, pos.y, pos.z);
-        positions[1] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
-        positions[2] = v3::create(pos.x + size.x, pos.y, pos.z);
-        positions[3] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
-        positions[4] = v3::create(pos.x, pos.y, pos.z);
-        positions[5] = v3::create(pos.x, pos.y + size.y, pos.z);
-        std::vector<f32> data = to_list(positions);
-        mesh.m_attributes[Mesh::POSITION.m_id] = AttributeData{Mesh::POSITION, data};
-    }
-    std::vector<v2> texture_coordinates;
-    if (desc.has_texture_coordinates) {
-        texture_coordinates.resize(6);
-        texture_coordinates[0] = v2::zero();
-        texture_coordinates[1] = v2::splat(1.0F);
-        texture_coordinates[2] = v2::X();
-        texture_coordinates[3] = v2::splat(1.0F);
-        texture_coordinates[4] = v2::zero();
-        texture_coordinates[5] = v2::Y();
-        std::vector<f32> data = to_list(texture_coordinates);
-        mesh.m_attributes[Mesh::UV.m_id] = AttributeData{Mesh::UV, data};
+    Mesh mesh;
+    if (desc.has_indices) {
+        std::vector<v3> positions;
+        if (desc.has_position) {
+            positions.resize(4);
+            positions[0] = v3::create(pos.x, pos.y, pos.z);
+            positions[1] = v3::create(pos.x + size.x, pos.y, pos.z);
+            positions[2] = v3::create(pos.x, pos.y + size.y, pos.z);
+            positions[3] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+            std::vector<f32> data = to_list(positions);
+            mesh.m_attributes[Mesh::POSITION.m_id] = AttributeData{Mesh::POSITION, data};
+        }
+
+        u32 num_vertices = positions.size();
+
+        std::vector<v2> texture_coordinates;
+        if (desc.has_texture_coordinates) {
+            texture_coordinates.resize(num_vertices);
+            texture_coordinates[0] = v2::zero();
+            texture_coordinates[1] = v2::X();
+            texture_coordinates[2] = v2::Y();
+            texture_coordinates[3] = v2::splat(1.0F);
+            std::vector<f32> data = to_list(texture_coordinates);
+            mesh.m_attributes[Mesh::UV.m_id] = AttributeData{Mesh::UV, data};
+        }
+
+        std::vector<v3> normals;
+        if (desc.has_normals) {
+            v3 normal_up = v3::X();
+            normals.resize(num_vertices);
+            normals[0] = normal_up;
+            normals[1] = normal_up;
+            normals[2] = normal_up;
+            normals[3] = normal_up;
+            std::vector<f32> data = to_list(normals);
+            mesh.m_attributes[Mesh::NORMAL.m_id] = AttributeData{Mesh::NORMAL, data};
+        }
+
+        std::vector<u32> indices = {0, 3, 1, 3, 0, 2};
+        mesh.m_indices = indices;
+
+    } else {
+        std::vector<v3> positions;
+        if (desc.has_position) {
+            positions.resize(6);
+            positions[0] = v3::create(pos.x, pos.y, pos.z);
+            positions[1] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+            positions[2] = v3::create(pos.x + size.x, pos.y, pos.z);
+            positions[3] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+            positions[4] = v3::create(pos.x, pos.y, pos.z);
+            positions[5] = v3::create(pos.x, pos.y + size.y, pos.z);
+            std::vector<f32> data = to_list(positions);
+            mesh.m_attributes[Mesh::POSITION.m_id] = AttributeData{Mesh::POSITION, data};
+        }
+        std::vector<v2> texture_coordinates;
+        if (desc.has_texture_coordinates) {
+            texture_coordinates.resize(6);
+            texture_coordinates[0] = v2::zero();
+            texture_coordinates[1] = v2::splat(1.0F);
+            texture_coordinates[2] = v2::X();
+            texture_coordinates[3] = v2::splat(1.0F);
+            texture_coordinates[4] = v2::zero();
+            texture_coordinates[5] = v2::Y();
+            std::vector<f32> data = to_list(texture_coordinates);
+            mesh.m_attributes[Mesh::UV.m_id] = AttributeData{Mesh::UV, data};
+        }
+
+        std::vector<v3> normals;
+        if (desc.has_normals) {
+            v3 normal_up = v3::X();
+            normals.resize(6);
+            normals[0] = normal_up;
+            normals[1] = normal_up;
+            normals[2] = normal_up;
+            normals[3] = normal_up;
+            normals[4] = normal_up;
+            normals[5] = normal_up;
+            std::vector<f32> data = to_list(normals);
+            mesh.m_attributes[Mesh::NORMAL.m_id] = AttributeData{Mesh::NORMAL, data};
+        }
     }
 
-    std::vector<v3> normals;
-    if (desc.has_normals) {
-        normals.resize(6);
-        normals[0] = v3::X();
-        normals[1] = v3::X();
-        normals[2] = v3::X();
-        normals[3] = v3::X();
-        normals[4] = v3::X();
-        normals[5] = v3::X();
-        std::vector<f32> data = to_list(normals);
-        mesh.m_attributes[Mesh::NORMAL.m_id] = AttributeData{Mesh::NORMAL, data};
-    }
-    if (desc.has_indices) {
-        std::vector<u32> indices = {0, 1, 3, 1, 2, 3};
-        mesh.m_indices = indices;
-    }
     return mesh;
 }
 
 auto Mesh::rectangle(const v3& pos, const v3& size, const Desc desc) -> Mesh {
-    Mesh            mesh;
-    std::vector<v3> positions;
-    if (desc.has_position) {
-        positions.resize(6);
-        positions[0] = v3::create(pos.x, pos.y, pos.z);
-        positions[1] = v3::create(pos.x + size.x, pos.y, pos.z);
-        positions[2] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
-
-        positions[3] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
-        positions[4] = v3::create(pos.x, pos.y + size.y, pos.z);
-        positions[5] = v3::create(pos.x, pos.y, pos.z);
-        std::vector<f32> data = to_list(positions);
-        mesh.m_attributes[Mesh::POSITION.m_id] = AttributeData{Mesh::POSITION, data};
-    }
-    std::vector<v2> texture_coordinates;
-    if (desc.has_texture_coordinates) {
-        texture_coordinates.resize(6);
-        texture_coordinates[0] = v2::zero();
-        texture_coordinates[1] = v2::X();
-        texture_coordinates[2] = v2::splat(1.0F);
-        texture_coordinates[3] = v2::splat(1.0F);
-        texture_coordinates[4] = v2::Y();
-        texture_coordinates[5] = v2::zero();
-        std::vector<f32> data = to_list(texture_coordinates);
-        mesh.m_attributes[Mesh::UV.m_id] = AttributeData{Mesh::UV, data};
-    }
-
-    std::vector<v3> normals;
-    if (desc.has_normals) {
-        normals.resize(6);
-        normals[0] = v3::X();
-        normals[1] = v3::X();
-        normals[2] = v3::X();
-        normals[3] = v3::X();
-        normals[4] = v3::X();
-        normals[5] = v3::X();
-        std::vector<f32> data = to_list(normals);
-        mesh.m_attributes[Mesh::NORMAL.m_id] = AttributeData{Mesh::NORMAL, data};
-    }
+    Mesh mesh;
     if (desc.has_indices) {
-        std::vector<u32> indices = {0, 1, 3, 1, 2, 3};
+        std::vector<v3> positions;
+        if (desc.has_position) {
+            positions.resize(4);
+            positions[0] = v3::create(pos.x, pos.y, pos.z);
+            positions[1] = v3::create(pos.x + size.x, pos.y, pos.z);
+            positions[2] = v3::create(pos.x, pos.y + size.y, pos.z);
+            positions[3] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+            std::vector<f32> data = to_list(positions);
+            mesh.m_attributes[Mesh::POSITION.m_id] = AttributeData{Mesh::POSITION, data};
+        }
+
+        u32 num_vertices = positions.size();
+
+        if (desc.has_texture_coordinates) {
+            std::vector<v2> texture_coordinates;
+            texture_coordinates.resize(num_vertices);
+            texture_coordinates[0] = v2::zero();
+            texture_coordinates[1] = v2::X();
+            texture_coordinates[2] = v2::Y();
+            texture_coordinates[3] = v2::splat(1.0F);
+            std::vector<f32> data = to_list(texture_coordinates);
+            mesh.m_attributes[Mesh::UV.m_id] = AttributeData{Mesh::UV, data};
+        }
+
+        if (desc.has_normals) {
+            v3 normal_up = v3::X();
+
+            std::vector<v3> normals;
+            normals.resize(num_vertices);
+            normals[0] = normal_up;
+            normals[1] = normal_up;
+            normals[2] = normal_up;
+            normals[3] = normal_up;
+            std::vector<f32> data = to_list(normals);
+            mesh.m_attributes[Mesh::NORMAL.m_id] = AttributeData{Mesh::NORMAL, data};
+        }
+        // std::vector<u32> indices = {0, 3, 1, 3, 0, 2};
+        std::vector<u32> indices = {0, 1, 3, 3, 2, 0};
         mesh.m_indices = indices;
+    } else {
+        std::vector<v3> positions;
+        if (desc.has_position) {
+            positions.resize(6);
+            positions[0] = v3::create(pos.x, pos.y, pos.z);
+            positions[1] = v3::create(pos.x + size.x, pos.y, pos.z);
+            positions[2] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+
+            positions[3] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+            positions[4] = v3::create(pos.x, pos.y + size.y, pos.z);
+            positions[5] = v3::create(pos.x, pos.y, pos.z);
+            std::vector<f32> data = to_list(positions);
+            mesh.m_attributes[Mesh::POSITION.m_id] = AttributeData{Mesh::POSITION, data};
+        }
+        std::vector<v2> texture_coordinates;
+        if (desc.has_texture_coordinates) {
+            texture_coordinates.resize(6);
+            texture_coordinates[0] = v2::zero();
+            texture_coordinates[1] = v2::X();
+            texture_coordinates[2] = v2::splat(1.0F);
+            texture_coordinates[3] = v2::splat(1.0F);
+            texture_coordinates[4] = v2::Y();
+            texture_coordinates[5] = v2::zero();
+            std::vector<f32> data = to_list(texture_coordinates);
+            mesh.m_attributes[Mesh::UV.m_id] = AttributeData{Mesh::UV, data};
+        }
+
+        std::vector<v3> normals;
+        if (desc.has_normals) {
+            v3 normal_up = v3::X();
+            normals.resize(6);
+            normals[0] = normal_up;
+            normals[1] = normal_up;
+            normals[2] = normal_up;
+            normals[3] = normal_up;
+            normals[4] = normal_up;
+            normals[5] = normal_up;
+            std::vector<f32> data = to_list(normals);
+            mesh.m_attributes[Mesh::NORMAL.m_id] = AttributeData{Mesh::NORMAL, data};
+        }
     }
     return mesh;
 }
 
-// Mesh::Mesh(const VertexData& vertex_data) {
-//	this->add_to_data(vertex_data);
-// }
-
-// auto Mesh::add_to_data(const VertexData& vertex_data) -> void {
-//	m_positions.resize(vertex_data.m_positions.size());
-//	m_colors.resize(vertex_data.m_colors.size());
-//	m_tex_coords.resize(vertex_data.m_texture_coordinates.size());
-//
-//	for (size_t i = 0; i < vertex_data.m_positions.size(); i++) {
-//		m_positions[i] = vertex_data.m_positions[i];
-//		if (vertex_data.m_colors.size() > 0) {
-//			m_colors[i] = vertex_data.m_colors[i];
-//		}
-//		if (vertex_data.m_texture_coordinates.size() > 0) {
-//			m_tex_coords[i] = vertex_data.m_texture_coordinates[i];
-//		}
-//	}
-//
-//	m_normals.resize(vertex_data.m_normals.size());
-//	for (size_t i = 0; i < vertex_data.m_normals.size(); i++) {
-//		m_normals[i] = vertex_data.m_normals[i];
-//	}
-//
-//
-//	m_indices.resize(vertex_data.m_indices.size());
-//	for (size_t i = 0; i < vertex_data.m_indices.size(); i++) {
-//		m_indices[i] = vertex_data.m_indices[i];
-//	}
-//
-// }
-
 struct MeshVertex {
-
     std::map<Mesh::VertexAttributeId, Mesh::AttributeData> m_attributes;
 };
 
 auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::vector<f32> {
     if (interleaved) {
-        u32 combined_attribute_count = 0;
-        for (const auto& [id, data] : mesh.m_attributes) {
-            Logger::err("It has attrib {}", data.m_attribute_id.m_name);
-            u32 amount =
-                data.m_data.size() / component_count(data.m_attribute_id.m_format);
-            Logger::err("- amount: {}", amount);
-            u32 size = component_count(data.m_attribute_id.m_format);
-            Logger::err("- size: {}", size);
-            combined_attribute_count += amount * size;
-            Logger::err("- combined_attribute_count: {}", amount * size);
-        }
-        Logger::err("combined_attribute_count: {}", combined_attribute_count);
+        auto calc_combined_attribute_count = [&](const Mesh& mesh) -> u32 {
+            u32 combined_attribute_count = 0;
+            for (const auto& [id, data] : mesh.m_attributes) {
+                u32 size = component_count(data.m_attribute_id.m_format);
+                u32 amount = data.m_data.size() / size;
+                combined_attribute_count += amount * size;
+            }
+            return combined_attribute_count;
+        };
+        u32 combined_attribute_count = calc_combined_attribute_count(mesh);
+
         u32 position_count = mesh.m_attributes.at(Mesh::POSITION.m_id).m_data.size() /
                              component_count(Mesh::POSITION.m_format);
 
         std::vector<MeshVertex> vertices;
         vertices.resize(position_count);
         for (const auto& [id, data] : mesh.m_attributes) {
-            u32 amount =
-                data.m_data.size() / component_count(data.m_attribute_id.m_format);
             u32 size = component_count(data.m_attribute_id.m_format);
+            u32 amount = data.m_data.size() / size;
             for (u32 i = 0; i < amount; i++) {
-                auto& vertex = vertices[i];
+                MeshVertex& vertex = vertices[i];
                 vertex.m_attributes[id].m_attribute_id = data.m_attribute_id;
 
                 for (u32 j = 0; j < size; j++) {

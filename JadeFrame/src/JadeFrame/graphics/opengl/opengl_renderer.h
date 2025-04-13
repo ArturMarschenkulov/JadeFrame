@@ -63,6 +63,8 @@ public:
         opengl::Renderbuffer* m_renderbuffer;
         opengl::Framebuffer*  m_framebuffer;
         opengl::Buffer*       m_vertex_buffer;
+        opengl::Buffer*       m_index_buffer;
+        Mesh                  m_mesh;
         ShaderHandle*         m_shader;
         OpenGL_Context*       m_context;
 

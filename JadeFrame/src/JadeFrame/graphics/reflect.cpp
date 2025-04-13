@@ -1,4 +1,5 @@
 #include "reflect.h"
+#include <set>
 #include "graphics_language.h"
 
 #include "JadeFrame/utils/assert.h"

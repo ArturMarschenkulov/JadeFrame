@@ -31,15 +31,28 @@ add_library(gfx-opengl
 
     ${PLATFORM_DEPENDENT_FILES}
 )
+IF(WIN32)
+    set(PLATFORM_DEPENDENT_DEPENDENCIES
+        opengl32
+    )
+ELSEIF(UNIX AND NOT APPLE)
+    set(PLATFORM_DEPENDENT_DEPENDENCIES
+        GL
+    )
+ENDIF()
 
 target_link_libraries(gfx-opengl
     PUBLIC
-        ${stb}
-        stb
-        spdlog
         glad
+    PRIVATE
+        ${PLATFORM_DEPENDENT_DEPENDENCIES}
+        
+        stb
+        JF_MODULE_prelude
+        # JF_MODULE_math
+        
         spirv-cross-hlsl
         spirv-cross-glsl
         spirv-cross-msl
-        JadeFrame
+        
 )

@@ -41,7 +41,9 @@ add_library(gfx-vulkan ${SOURCE_FILES})
 
 target_link_libraries(gfx-vulkan
     PRIVATE
+        GPUOpen::VulkanMemoryAllocator
         Vulkan::Vulkan
         ${Vulkan_LIBRARIES}
-        JadeFrame
+        JF_MODULE_prelude
+        JF_MODULE_utils
 )

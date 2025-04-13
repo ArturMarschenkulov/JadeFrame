@@ -2,6 +2,8 @@
 
 #include <utility>
 
+#include <glad/glad.h>
+
 #include "opengl_context.h"
 
 namespace JadeFrame {
@@ -28,6 +30,7 @@ Buffer::Buffer(Buffer&& other) noexcept
     , m_id(std::exchange(other.m_id, 0)) {}
 
 auto Buffer::operator=(Buffer&& other) noexcept -> Buffer& {
+    if (this == &other) { return *this; }
     m_id = std::exchange(other.m_id, 0);
     m_type = other.m_type;
     m_context = std::exchange(other.m_context, nullptr);
@@ -35,7 +38,7 @@ auto Buffer::operator=(Buffer&& other) noexcept -> Buffer& {
     return *this;
 }
 
-auto Buffer::create(OpenGL_Context& context, TYPE type, void* data, GLuint size)
+auto Buffer::create(OpenGL_Context& context, TYPE type, const void* data, GLuint size)
     -> Buffer {
     Buffer buffer;
     buffer.m_context = &context;
@@ -70,7 +73,7 @@ auto Buffer::reserve(GLuint size) const -> void {
     if (size > m_size) { this->alloc(nullptr, size); }
 }
 
-auto Buffer::alloc(void* data, GLuint size) const -> void {
+auto Buffer::alloc(const void* data, GLuint size) const -> void {
     u32 usage = 0;
     switch (m_type) {
         case TYPE::UNIFORM: usage = GL_DYNAMIC_DRAW; break;

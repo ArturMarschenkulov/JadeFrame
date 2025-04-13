@@ -13,6 +13,7 @@ set(Files
     "camera.cpp"
     "graphics_shared.cpp"
     "mesh.cpp"
+    "color.h"
     "shader_loader.h"
     "shader_loader.cpp"
     "reflect.h"
@@ -27,14 +28,18 @@ set(Files
 
 add_library(JF_MODULE_graphics STATIC ${Files})
 target_link_libraries(JF_MODULE_graphics
+    INTERFACE
+        JF_MODULE_prelude
     PRIVATE
-        JadeFrame
+        stb
+        JF_MODULE_prelude
+        JF_MODULE_math
         shaderc
         spirv-cross-hlsl
         spirv-cross-glsl
         spirv-cross-msl
         gfx-opengl
         gfx-vulkan
-        GPUOpen::VulkanMemoryAllocator
 
 )
+# add_subdirectory(tests)
