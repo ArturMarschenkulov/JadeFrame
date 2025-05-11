@@ -11,18 +11,22 @@ Checks: "*,
         -readability-static-accessed-through-instance,
         -readability-avoid-const-params-in-decls,
         -readability-redundant-access-specifiers,
+        -misc-non-private-member-variables-in-classes,
         -readability-identifier-length,
         -cppcoreguidelines-owning-memory,
         -cppcoreguidelines-non-private-member-variables-in-classes,
         -cppcoreguidelines-pro-type-vararg,
         -cppcoreguidelines-pro-bounds-pointer-arithmetic,
         -cppcoreguidelines-pro-bounds-constant-array-index,
+        -cppcoreguidelines-pro-type-union-access,
+        -hicpp-avoid-c-arrays
         -misc-non-private-member-variables-in-classes,
         -misc-use-anonymous-namespace,
         -misc-static-assert,
         -modernize-loop-convert,
         -hicpp-static-assert,
         -cert-dcl03-c,
+        -misc-non-private-member-variables-in-classes,
         -bugprone-easily-swappable-parameters
         
 "

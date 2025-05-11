@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <bitset>
+#include <span>
+#include <memory>
 
 #include "JadeFrame/types.h"
 

@@ -1,13 +1,15 @@
-set(PROJECT_NAME JadeFrame)
+# set(PROJECT_NAME JadeFrame)
 
 # Add Vulkan
 find_package(Vulkan REQUIRED)
+message(STATUS "Found Vulkan: ${Vulkan_FOUND}. Includes: ${Vulkan_INCLUDE_DIRS}")
 find_package(GTest REQUIRED)
+message(STATUS "Found GTest: ${GTEST_FOUND}. Includes: ${GTEST_INCLUDE_DIRS}")
 
-
+# add_subdirectory(src/extern/)
 
 add_subdirectory(src/extern/VulkanMemoryAllocator/)
-
+target_include_directories(VulkanMemoryAllocator INTERFACE src/extern/)
 # Add GLFW
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -59,7 +61,6 @@ include_directories(${imgui_DIR}
     ${imgui_DIR}/backends
 )
 
-
 if(WIN32)
     set(imgui_platform_specific_sources
         ${imgui_DIR}/backends/imgui_impl_win32.h
@@ -90,6 +91,7 @@ add_library(imgui
 
         ${imgui_platform_specific_sources}
 )
+target_include_directories(imgui PUBLIC src/extern/)
 
 ################################################################################
 # Source groups
@@ -117,8 +119,6 @@ add_subdirectory(src/extern/spdlog/)
 message("Did not found prebuild shaderc and SPIRV-Cross libraries. Building them now. This will take a while.")
 set(SHADERC_SKIP_TESTS ON)
 set(SHADERC_SKIP_EXAMPLES ON)
-
-
 add_subdirectory(src/extern/shaderc/ EXCLUDE_FROM_ALL)
 
 # TODO: as of right now we do not need metal and hlsl support.
@@ -139,9 +139,9 @@ set(Files_Base
     "src/pch.h"
     "src/JadeFrame/base_app.h"
     "src/JadeFrame/core.h"
-    "src/JadeFrame/macros.h"
-    "src/JadeFrame/types.h"
-    "src/JadeFrame/prelude.h"
+    # "src/JadeFrame/macros.h"
+    # "src/JadeFrame/types.h"
+    # "src/JadeFrame/prelude.h"
     "src/JadeFrame/gui.h"
 
     "src/JadeFrame.cpp"
@@ -169,6 +169,7 @@ set(ALL_FILES
 # Target
 ################################################################################
 add_library(${PROJECT_NAME} STATIC ${ALL_FILES})
+
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
@@ -248,6 +249,26 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     ${COMPILE_OPTIONS}
 )
 
+add_library(JF_MODULE_logger
+    STATIC
+        "src/JadeFrame/utils/logger.h"
+        "src/JadeFrame/utils/logger.cpp"
+)
+target_link_libraries(JF_MODULE_logger 
+    PUBLIC 
+        spdlog::spdlog
+        spdlog
+)
+add_library(JF_MODULE_prelude INTERFACE)
+target_include_directories(JF_MODULE_prelude 
+    INTERFACE
+        "${CMAKE_CURRENT_LIST_DIR}/src/"
+)
+target_link_libraries(JF_MODULE_prelude 
+    INTERFACE 
+        JF_MODULE_logger
+)
+
 ################################################################################
 # Link options
 ################################################################################
@@ -265,39 +286,21 @@ endif()
 ################################################################################
 # Dependencies
 ################################################################################
-IF(WIN32)
-    set(ADDITIONAL_LIBRARY_DEPENDENCIES
-        platform-win32
-        opengl32
-        ${Vulkan_LIBRARIES}
-    )
-ELSEIF(UNIX AND NOT APPLE)
-    set(ADDITIONAL_LIBRARY_DEPENDENCIES
-        platform-linux
-        pthread
-        X11
-        GL
-        libvulkan.so
-    )
-ENDIF()
+
 target_link_libraries(
     ${PROJECT_NAME} 
     PUBLIC 
     
-    PUBLIC spdlog::spdlog
-        spdlog
-        ${ADDITIONAL_LIBRARY_DEPENDENCIES}
+    PUBLIC 
+
         ${CMAKE_DL_LIBS}
-        imgui
-        stb
 
         GTest::gtest_main
+        JF_MODULE_prelude
         JF_MODULE_utils
         JF_MODULE_math
         JF_MODULE_platform
         JF_MODULE_graphics
-
-        assimp
         # -fsanitize=address,undefined
 )
 
