@@ -8,7 +8,7 @@ enum class INPUT_STATE {
     PRESSED
 };
 
-enum class BUTTON {
+enum class BUTTON : u8 {
     LEFT,
     RIGHT,
     MIDDLE,
@@ -16,7 +16,7 @@ enum class BUTTON {
     X2,
     MAX
 };
-enum class KEY {
+enum class KEY : u8 {
     SPACE,
     ESCAPE,
     ENTER,
@@ -140,7 +140,7 @@ struct MouseEvent {
 };
 
 struct WindowEvent {
-    enum class TYPE {
+    enum class TYPE: u8{
         KEY,
         BUTTON,
         MOUSE,
@@ -164,11 +164,11 @@ public:
         return event;
     }
 
-    auto is_empty() -> bool { return m_queue.empty(); }
+    [[nodiscard]] auto is_empty() const -> bool { return m_queue.empty(); }
 
     auto clear() -> void { m_queue.clear(); }
 
 public:
-    std::deque<WindowEvent> m_queue = {};
+    std::deque<WindowEvent> m_queue;
 };
 } // namespace JadeFrame

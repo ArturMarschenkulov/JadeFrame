@@ -159,7 +159,7 @@ public:
     // input stuff
 
     // time stuff
-    virtual auto get_time() const -> f64 = 0;
+    [[nodiscard]] virtual auto get_time() const -> f64 = 0;
     virtual auto calc_elapsed() -> f64 = 0;
     virtual auto frame_control(f64 delta_time) -> void = 0;
     virtual auto set_FPS(f64 FPS) -> void = 0;

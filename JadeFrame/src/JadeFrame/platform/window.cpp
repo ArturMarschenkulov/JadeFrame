@@ -1,4 +1,5 @@
 #include "window.h"
+#include "JadeFrame/platform/window_event.h"
 #include "JadeFrame/utils/assert.h"
 #include "JadeFrame/utils/logger.h"
 #if defined(JF_PLATFORM_LINUX)
@@ -12,17 +13,6 @@
 #include <imgui/imgui.h>
 
 namespace JadeFrame {
-
-Window::Window(const Window::Desc& desc) {
-#if defined(JF_PLATFORM_LINUX)
-    m_native_window = std::make_unique<X11_NativeWindow>(X11_NativeWindow::create(desc));
-    m_native_window->m_platform_window = this;
-#elif defined(JF_PLATFORM_WINDOWS)
-    m_native_window = std::make_unique<win32::NativeWindow>(desc);
-#else
-    #error "Unsupported platform"
-#endif
-}
 
 static auto button_jadeframe_to_imgui(const BUTTON& button) -> ImGuiMouseButton {
     switch (button) {
@@ -122,47 +112,113 @@ constexpr static auto keys_jadeframe_to_imgui(const KEY& is) -> ImGuiKey_ {
     }
 }
 
+static auto imgui_handle_key(KeyEvent event) -> void {
+    ImGuiIO& io = ImGui::GetIO();
+    auto     imgui_key = keys_jadeframe_to_imgui(event.key);
+    io.KeysDown[imgui_key] = event.type == INPUT_STATE::PRESSED;
+}
+
+static auto imgui_handle_button(ButtonEvent event) -> void {
+    ImGuiIO& io = ImGui::GetIO();
+    auto     imgui_button = button_jadeframe_to_imgui(event.button);
+    io.MouseDown[imgui_button] = event.type == INPUT_STATE::PRESSED;
+}
+
+static auto imgui_event_callback(const WindowEvent& event) -> void {
+    ImGuiIO& io = ImGui::GetIO();
+    switch (event.type) {
+        case WindowEvent::TYPE::KEY: {
+            KeyEvent key_event = event.key_event;
+            auto     imgui_key = keys_jadeframe_to_imgui(key_event.key);
+            io.KeysDown[imgui_key] = key_event.type == INPUT_STATE::PRESSED;
+        } break;
+        case WindowEvent::TYPE::BUTTON: {
+            ButtonEvent button_event = event.button_event;
+            auto        imgui_button = button_jadeframe_to_imgui(button_event.button);
+            io.MouseDown[imgui_button] = button_event.type == INPUT_STATE::PRESSED;
+        } break;
+        default: break;
+    }
+}
+
+Window::Window(Window&& other) noexcept {
+    m_native_window = std::exchange(other.m_native_window, nullptr);
+    m_native_window->m_platform_window = this;
+}
+
+auto Window::operator=(Window&& other) noexcept -> Window& {
+    m_native_window = std::exchange(other.m_native_window, nullptr);
+    m_native_window->m_platform_window = this;
+
+    return *this;
+}
+
+static auto debug_event_callback(const WindowEvent& e) -> void {
+    switch (e.type) {
+        case WindowEvent::TYPE::KEY: {
+            KeyEvent key_event = e.key_event;
+            Logger::debug(
+                "Key {} was {}",
+                (u32)key_event.key,
+                key_event.type == INPUT_STATE::PRESSED ? "pressed" : "released"
+            );
+        } break;
+        case WindowEvent::TYPE::BUTTON: {
+            ButtonEvent button_event = e.button_event;
+            Logger::debug(
+                "Button {} was {}",
+                (u32)button_event.button,
+                button_event.type == INPUT_STATE::PRESSED ? "pressed" : "released"
+            );
+        } break;
+        case WindowEvent::TYPE::MOUSE: {
+            MouseEvent mouse_event = e.mouse_event;
+            Logger::debug(
+                "Mouse moved to: x: {}, y: {}", mouse_event.m_x, mouse_event.m_y
+            );
+        } break;
+    }
+}
+
+Window::Window(const Window::Desc& desc) {
+#if defined(JF_PLATFORM_LINUX)
+    m_native_window = std::make_unique<X11_NativeWindow>(X11_NativeWindow::create(desc));
+    m_native_window->m_platform_window = this;
+#elif defined(JF_PLATFORM_WINDOWS)
+    m_native_window = std::make_unique<win32::NativeWindow>(desc);
+    m_native_window->m_platform_window = this;
+#else
+    #error "Unsupported platform"
+#endif
+
+    this->add_event_callback(debug_event_callback);
+    // TODO(artur): For now here, but later on would be added by the caller if desired.
+    this->add_event_callback(imgui_event_callback);
+}
+
 auto Window::handle_events(bool& running) -> void {
     m_native_window->handle_events(running);
     m_input_state.update();
 
-    for (u32 i = 0; i < m_queue.m_queue.size(); i++) {
+    while (!m_queue.is_empty()) {
         WindowEvent event = m_queue.pop();
         switch (event.type) {
             case WindowEvent::TYPE::KEY: {
                 KeyEvent key_event = event.key_event;
                 u32      key_index = static_cast<u32>(key_event.key);
                 m_input_state.m_curr_key_state[key_index] = key_event.type;
-                ImGuiIO& io = ImGui::GetIO();
-                auto     imgui_key = keys_jadeframe_to_imgui(key_event.key);
-                io.KeysDown[imgui_key] = key_event.type == INPUT_STATE::PRESSED;
-                // Logger::debug(
-                //     "Key {} was {}",
-                //     (u32)key_event.key,
-                //     key_event.type == INPUT_STATE::PRESSED ? "pressed" : "released"
-                // );
             } break;
             case WindowEvent::TYPE::BUTTON: {
                 ButtonEvent button_event = event.button_event;
                 u32         button_index = static_cast<u32>(button_event.button);
-                m_input_state.m_curr_key_state[button_index] = button_event.type;
-                ImGuiIO& io = ImGui::GetIO();
-                auto     imgui_button = button_jadeframe_to_imgui(button_event.button);
-                io.MouseDown[imgui_button] = button_event.type == INPUT_STATE::PRESSED;
-                // Logger::debug(
-                //     "Button {} was {}",
-                //     (u32)button_event.button,
-                //     button_event.type == INPUT_STATE::PRESSED ? "pressed" : "released"
-                // );
+                m_input_state.m_curr_button_state[button_index] = button_event.type;
             } break;
             case WindowEvent::TYPE::MOUSE: {
                 MouseEvent mouse_event = event.mouse_event;
                 m_input_state.m_mouse_pos = v2::create(mouse_event.m_x, mouse_event.m_y);
-                // Logger::debug(
-                //     "Mouse moved to: x: {}, y: {}", mouse_event.m_x, mouse_event.m_y
-                // );
             } break;
         }
+        for (const auto& callback : m_event_callbacks) { callback(event); }
     }
 }
 
@@ -197,8 +253,8 @@ auto InputState::is_key_pressed(const KEY key) const -> bool {
     INPUT_STATE curr = m_curr_key_state[key_0];
     INPUT_STATE prev = m_prev_key_state[key_0];
 
-    bool is_changed = (m_curr_key_state[key_0] != m_prev_key_state[key_0]);
-    bool is_pressed = (m_curr_key_state[key_0] == INPUT_STATE::PRESSED);
+    bool is_changed = (curr != prev);
+    bool is_pressed = (curr == INPUT_STATE::PRESSED);
     return is_changed && is_pressed;
 }
 
@@ -215,7 +271,7 @@ auto InputState::is_key_released(const KEY key) const -> bool {
 auto InputState::is_button_down(const BUTTON button) const -> bool {
     i32 button_0 = static_cast<i32>(button);
 
-    INPUT_STATE curr = m_curr_key_state[button_0];
+    INPUT_STATE curr = m_curr_button_state[button_0];
 
     bool is_pressed = (curr == INPUT_STATE::PRESSED);
     return is_pressed;
@@ -224,7 +280,7 @@ auto InputState::is_button_down(const BUTTON button) const -> bool {
 auto InputState::is_button_up(const BUTTON button) const -> bool {
     i32 button_0 = static_cast<i32>(button);
 
-    INPUT_STATE curr = m_curr_key_state[button_0];
+    INPUT_STATE curr = m_curr_button_state[button_0];
 
     bool is_released = (curr == INPUT_STATE::RELEASED);
     return is_released;
@@ -233,8 +289,8 @@ auto InputState::is_button_up(const BUTTON button) const -> bool {
 auto InputState::is_button_pressed(const BUTTON button) const -> bool {
     i32 button_0 = static_cast<i32>(button);
 
-    INPUT_STATE curr = m_curr_key_state[button_0];
-    INPUT_STATE prev = m_prev_key_state[button_0];
+    INPUT_STATE curr = m_curr_button_state[button_0];
+    INPUT_STATE prev = m_prev_button_state[button_0];
 
     bool is_changed = (curr != prev);
     bool is_pressed = (curr == INPUT_STATE::PRESSED);
@@ -244,30 +300,19 @@ auto InputState::is_button_pressed(const BUTTON button) const -> bool {
 auto InputState::is_button_released(const BUTTON button) const -> bool {
     i32 button_0 = static_cast<i32>(button);
 
-    INPUT_STATE curr = m_curr_key_state[button_0];
-    INPUT_STATE prev = m_prev_key_state[button_0];
+    INPUT_STATE curr = m_curr_button_state[button_0];
+    INPUT_STATE prev = m_prev_button_state[button_0];
 
     bool is_changed = (curr != prev);
     bool is_released = (curr == INPUT_STATE::RELEASED);
     return is_changed && is_released;
 }
 
-auto InputState::get_mouse_position() const -> v2 { return {}; }
+auto InputState::get_mouse_position() const -> v2 { return m_mouse_pos; }
 
 auto InputState::update() -> void {
     m_prev_key_state = m_curr_key_state;
     m_prev_button_state = m_curr_button_state;
 }
 
-Window::Window(Window&& other) noexcept {
-    m_native_window = std::exchange(other.m_native_window, nullptr);
-    m_native_window->m_platform_window = this;
-}
-
-auto Window::operator=(Window&& other) noexcept -> Window& {
-    m_native_window = std::exchange(other.m_native_window, nullptr);
-    m_native_window->m_platform_window = this;
-
-    return *this;
-}
 } // namespace JadeFrame

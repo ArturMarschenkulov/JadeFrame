@@ -24,7 +24,7 @@ public:
 
     auto handle_events(bool&) -> void override;
 
-    auto set_title(const std::string&) -> void override {}
+    auto set_title(const std::string& title) -> void override {}
 
     [[nodiscard]] auto get_title() const -> std::string override { return {}; }
 
@@ -34,6 +34,6 @@ public:
     ::Display*     m_display = nullptr;
     ::XVisualInfo* m_visual_info = nullptr;
     ::Window       m_window = 0;
-    v2u32          m_size = {};
+    v2u32          m_size;
 };
 } // namespace JadeFrame

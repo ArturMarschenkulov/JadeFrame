@@ -8,11 +8,10 @@
 #include <GL/gl.h>
 #include <GL/glx.h>
 
-
-
 #include "JadeFrame/platform/linux/linux_input_manager.h"
 #include "JadeFrame/platform/window.h"
 #include "JadeFrame/platform/window_event.h"
+#include "JadeFrame/utils/logger.h"
 
 namespace JadeFrame {
 
@@ -248,6 +247,22 @@ X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
     );
 }
 
+X11_NativeWindow::X11_NativeWindow(X11_NativeWindow&& other) noexcept {
+    m_display = std::exchange(other.m_display, nullptr);
+    m_visual_info = std::exchange(other.m_visual_info, nullptr);
+    m_window = std::exchange(other.m_window, 0);
+    m_size = std::exchange(other.m_size, {});
+}
+
+auto X11_NativeWindow::operator=(X11_NativeWindow&& other) noexcept -> X11_NativeWindow& {
+    if (this == &other) { return *this; }
+    m_display = std::exchange(other.m_display, nullptr);
+    m_visual_info = std::exchange(other.m_visual_info, nullptr);
+    m_window = std::exchange(other.m_window, 0);
+    m_size = std::exchange(other.m_size, {});
+    return *this;
+}
+
 X11_NativeWindow::~X11_NativeWindow() {
     if (m_display != nullptr && m_window != 0) { XDestroyWindow(m_display, m_window); }
 }
@@ -323,13 +338,23 @@ process_event(XEvent* event, X11_NativeWindow* win, WindowEventQueue* event_queu
         } break;
         case ButtonRelease:
         case ButtonPress: {
-            unsigned int button = event->xbutton.button;
-            BUTTON       button_ = translate_button(button);
-            INPUT_STATE  button_event_type = from_x11_button_to_input_state(event->type);
+            unsigned int x11_button = event->xbutton.button;
+            if (x11_button >= 4 && x11_button <= 7) {
+                // X11 buttons 4 and 5 are scroll up and down
+                // X11 buttons 6 and 7 are scroll left and right
+                // We don't support these buttons
+                // Logger::warn(
+                //     "X11 button {} is not supported. This is a scroll button.",
+                //     x11_button
+                // );
+                break;
+            }
+            BUTTON      button = translate_button(x11_button);
+            INPUT_STATE button_event_type = from_x11_button_to_input_state(event->type);
 
             ButtonEvent button_event = {
                 .type = button_event_type,
-                .button = button_,
+                .button = button,
             };
             WindowEvent we = {
                 .type = WindowEvent::TYPE::BUTTON,
@@ -410,19 +435,4 @@ auto X11_NativeWindow::handle_events(bool&) -> void {
     }
 }
 
-X11_NativeWindow::X11_NativeWindow(X11_NativeWindow&& other) noexcept {
-    m_display = std::exchange(other.m_display, nullptr);
-    m_visual_info = std::exchange(other.m_visual_info, nullptr);
-    m_window = std::exchange(other.m_window, 0);
-    m_size = std::exchange(other.m_size, {});
-}
-
-auto X11_NativeWindow::operator=(X11_NativeWindow&& other) noexcept -> X11_NativeWindow& {
-    if (this == &other) { return *this; }
-    m_display = std::exchange(other.m_display, nullptr);
-    m_visual_info = std::exchange(other.m_visual_info, nullptr);
-    m_window = std::exchange(other.m_window, 0);
-    m_size = std::exchange(other.m_size, {});
-    return *this;
-}
 } // namespace JadeFrame

@@ -35,7 +35,7 @@ public:
 
 class Window {
 public:
-    enum class WINDOW_STATE {
+    enum class WINDOW_STATE: u8 {
         WINDOWED,
         MINIMIZED,
         MAXIMIZED,
@@ -47,7 +47,7 @@ public:
         v2u32       position; // NOTE: -1 means randomly chosen by OS
         // bool is_vsync;
         WINDOW_STATE window_state = WINDOW_STATE::WINDOWED;
-        bool         visable = true;
+        bool         visible = true;
         bool         accept_drop_files = false;
     };
 
@@ -63,6 +63,13 @@ public:
     auto               set_title(const std::string& title) -> void;
     [[nodiscard]] auto get_title() const -> std::string;
     [[nodiscard]] auto get_size() const -> const v2u32&;
+
+public:
+    using EventCallback = std::function<void(const WindowEvent&)>;
+    void                       add_event_callback(EventCallback callback) {
+        m_event_callbacks.push_back(callback);
+    }
+    std::vector<EventCallback> m_event_callbacks;
 
 public:
     std::unique_ptr<NativeWindow> m_native_window = nullptr;
