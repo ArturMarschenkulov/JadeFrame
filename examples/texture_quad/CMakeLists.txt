@@ -13,3 +13,10 @@ target_link_libraries(${PROJECT_NAME}
     PUBLIC JadeFrame
 )
 
+set(RESOURCE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/resource)
+set(RESOURCE_DEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/resource)
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${RESOURCE_SOURCE_DIR} ${RESOURCE_DEST_DIR}
+    COMMENT "Copying resources to build directory"
+)
