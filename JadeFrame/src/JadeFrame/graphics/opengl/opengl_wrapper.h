@@ -184,8 +184,8 @@ public:
     explicit Framebuffer(OpenGL_Context& context);
 
     auto attach(ATTACHMENT attachment, u32 i, const Texture& texture) const -> void;
-    auto
-    attach(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer) const -> void;
+    auto attach(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer) const
+        -> void;
 
     [[nodiscard]] auto check_status() const -> GLenum;
 

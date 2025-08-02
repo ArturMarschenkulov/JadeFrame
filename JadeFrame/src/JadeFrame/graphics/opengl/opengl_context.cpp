@@ -115,12 +115,12 @@ auto OpenGL_Context::create_renderbuffer() -> opengl::Renderbuffer* {
     return buffer;
 }
 
-OpenGL_Context::OpenGL_Context(const Window* window)
+OpenGL_Context::OpenGL_Context(Window* window)
 #ifdef WIN32
 {
-    auto* win =
-        dynamic_cast<const JadeFrame::win32::NativeWindow*>(window->m_native_window.get()
-        );
+    auto* win = dynamic_cast<const JadeFrame::win32::NativeWindow*>(
+        window->m_native_window.get()
+    );
 
     // NOTE: This function might have to be moved, as in theory one could have multiple
     // contexts. NOTE: Think about removing the parameter from this function then just
@@ -177,9 +177,11 @@ OpenGL_Context::OpenGL_Context(const Window* window)
     // gather extentions
     glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
     for (i32 i = 0; i < num_extensions; i++) {
-        extentenions.emplace_back(reinterpret_cast<char const*>(
-            glGetStringi(GL_EXTENSIONS, static_cast<u32>(i))
-        ));
+        extentenions.emplace_back(
+            reinterpret_cast<char const*>(
+                glGetStringi(GL_EXTENSIONS, static_cast<u32>(i))
+            )
+        );
     }
 
     glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &m_max_uniform_buffer_binding_points);

@@ -18,9 +18,7 @@
 
 namespace JadeFrame {
 
-#define JF_OPENGL_FB 1
-
-enum class PRIMITIVE_TYPE {
+enum class PRIMITIVE_TYPE : u8 {
     TRIANGLES = GL_TRIANGLES,
     LINES = GL_LINES,
     POINTS = GL_POINTS,
@@ -35,7 +33,7 @@ class RenderSystem;
 
 class OpenGL_Renderer : public IRenderer {
 public:
-    OpenGL_Renderer(RenderSystem& system, const Window* window);
+    OpenGL_Renderer(RenderSystem& system, Window* window);
 
     auto present() -> void override;
     auto clear_background() -> void override;

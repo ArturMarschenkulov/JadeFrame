@@ -17,6 +17,8 @@ JF_PRAGMA_NO_WARNINGS_POP
 #include "../shader_loader.h"
 #include "JadeFrame/graphics/mesh.h"
 
+#define JF_OPENGL_FB 1
+
 namespace JadeFrame {
 namespace gl {}
 
@@ -67,7 +69,7 @@ auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const ->
     m_context.m_state.set_viewport(x, y, width, height);
 }
 
-OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, const Window* window)
+OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, Window* window)
     : m_context(window)
     , m_system(&system) {
 
@@ -146,7 +148,7 @@ auto OpenGL_Renderer::render_mesh(
     m_context.bind_vertex_array(*vao);
     vao->bind_buffer(*static_cast<opengl::Buffer*>(gpu_data->m_vertex_buffer->m_handle));
 
-    GLenum prim_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
+    auto prim_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
     if (!vertex_data->m_indices.empty()) {
         auto num_indices = static_cast<GLsizei>(vertex_data->m_indices.size());
         // auto gl_type = to_opengl_type<u32>();
@@ -260,18 +262,18 @@ auto OpenGL_Renderer::RenderTarget::render(RenderSystem* /*system*/) -> void {
     OGLW_VertexArray* vao = &sh->m_vertex_array;
     m_context->bind_vertex_array(*vao);
     vao->bind_buffer(*m_vertex_buffer);
-    GLenum prim_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
+    auto prim_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
     if (!m_mesh.m_indices.empty()) {
         auto num_indices = static_cast<GLsizei>(m_mesh.m_indices.size());
         assert((num_indices == 6) && "The framebuffer mesh must have 6 indices");
         auto gl_type = GL_UNSIGNED_INT;
         glDrawElements(prim_type, num_indices, gl_type, nullptr);
     } else {
-        u32     component_amount = component_count(Mesh::POSITION.m_format);
+        u32               component_amount = component_count(Mesh::POSITION.m_format);
+        std::vector<f32>& position_data =
+            m_mesh.m_attributes.at(Mesh::POSITION.m_id).m_data;
         GLsizei num_vertices =
-            static_cast<GLsizei>(m_mesh.m_attributes.at(Mesh::POSITION.m_id).m_data.size()
-            ) /
-            component_amount;
+            static_cast<GLsizei>(position_data.size()) / component_amount;
         assert((num_vertices == 6) && "The framebuffer mesh must have 6 indices");
         glDrawArrays(prim_type, 0, num_vertices);
     }

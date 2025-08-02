@@ -107,7 +107,7 @@ public:
 class OpenGL_Context {
 public:
     OpenGL_Context() = default;
-    explicit OpenGL_Context(const Window* window);
+    explicit OpenGL_Context(Window* window);
     ~OpenGL_Context();
 
 public:
@@ -137,10 +137,10 @@ public:
     auto bind_texture_to_unit(opengl::Texture& texture, u32 unit) -> void;
     auto unbind_texture_from_unit(opengl::Texture& texture, u32 unit) -> void;
     std::unordered_map<u32, opengl::Texture*> m_texture_units;
-    std::vector<opengl::Texture*>             m_textures = {};
+    std::vector<opengl::Texture*>             m_textures;
 
-    auto
-    create_buffer(opengl::Buffer::TYPE type, void* data, u32 size) -> opengl::Buffer*;
+    auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
+        -> opengl::Buffer*;
     auto bind_uniform_buffer_to_location(opengl::Buffer& buffer, u32 location) -> void;
 
     std::unordered_map<u32, opengl::Buffer*> m_bound_uniform_buffer_locations;

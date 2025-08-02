@@ -18,7 +18,7 @@ public:
     Buffer(Buffer&& other) noexcept;
     auto operator=(Buffer&& other) noexcept -> Buffer&;
 
-    enum class TYPE {
+    enum class TYPE : u8 {
         UNINIT, // TODO: find ways to remove it
         VERTEX,
         INDEX,
@@ -26,8 +26,8 @@ public:
         STAGING
     };
 
-    static auto
-    create(OpenGL_Context& context, TYPE type, const void* data, GLuint size) -> Buffer;
+    static auto create(OpenGL_Context& context, TYPE type, const void* data, GLuint size)
+        -> Buffer;
 
 private:
     Buffer(OpenGL_Context& context, TYPE type, void* data, GLuint size);
