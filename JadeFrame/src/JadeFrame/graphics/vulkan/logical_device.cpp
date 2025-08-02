@@ -351,7 +351,7 @@ auto LogicalDevice::create_command_pool(QueueFamily& queue_family) -> CommandPoo
     return cp;
 }
 
-auto LogicalDevice::create_swapchain(const Window* window) -> Swapchain {
+auto LogicalDevice::create_swapchain(Window* window) -> Swapchain {
     Swapchain sc;
     sc.init(*this, window);
     return sc;

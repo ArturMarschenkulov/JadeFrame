@@ -11,7 +11,7 @@
 namespace JadeFrame {
 namespace vulkan {
 namespace x11 {
-auto create_surface(VkInstance instance, const Window* window_handle) -> VkSurfaceKHR {
+auto create_surface(VkInstance instance, Window* window_handle) -> VkSurfaceKHR {
 #undef linux
     const auto* win = dynamic_cast<const JadeFrame::X11_NativeWindow*>(
         window_handle->m_native_window.get()

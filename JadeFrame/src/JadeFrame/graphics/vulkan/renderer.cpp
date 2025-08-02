@@ -21,9 +21,9 @@ static auto prepare_shaders(const std::deque<RenderCommand>& commands) -> void {
     }
 }
 
-static const i32 MAX_FRAMES_IN_FLIGHT = 1;
+static const i32 MAX_FRAMES_IN_FLIGHT = 4;
 
-Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, const Window* window)
+Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, Window* window)
     : m_context(window)
     , m_logical_device(&m_context.m_instance.m_logical_device)
     , m_system(&system) {
@@ -189,8 +189,8 @@ auto Vulkan_Renderer::present() -> void {
     m_frame_index = (m_frame_index + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-auto Vulkan_Renderer::set_viewport(u32 /*x*/, u32 /*y*/, u32 /*width*/, u32 /*height*/)
-    const -> void {}
+auto Vulkan_Renderer::
+    set_viewport(u32 /*x*/, u32 /*y*/, u32 /*width*/, u32 /*height*/) const -> void {}
 
 auto Vulkan_Renderer::take_screenshot(const char* /*filename*/) -> Image {
     assert(false);

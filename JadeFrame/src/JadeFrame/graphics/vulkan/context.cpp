@@ -50,8 +50,8 @@ auto Instance::allocator() -> VkAllocationCallbacks* {
 
 auto Instance::default_allocator() -> VkAllocationCallbacks* { return nullptr; }
 
-auto Instance::check_validation_layer_support(const std::span<VkLayerProperties>& layers
-) -> bool {
+auto Instance::check_validation_layer_support(const std::span<VkLayerProperties>& layers)
+    -> bool {
 #if 1
     for (u32 i = 0; i < m_desired_layer_names.size(); i++) {
         bool found = false;
@@ -67,9 +67,7 @@ auto Instance::check_validation_layer_support(const std::span<VkLayerProperties>
 #else
     for (const auto& desired_layer_name : m_desired_layer_names) {
         bool layer_found = std::any_of(
-            layers.begin(),
-            layers.end(),
-            [&desired_layer_name](const auto& a_layer) {
+            layers.begin(), layers.end(), [&desired_layer_name](const auto& a_layer) {
                 return strcmp(desired_layer_name, a_layer.layerName) == 0;
             }
         );
@@ -86,8 +84,8 @@ static auto is_device_suitable(vulkan::PhysicalDevice& physical_device) -> bool 
            physical_device.m_extension_support;
 }
 
-static auto choose_physical_device(std::span<vulkan::PhysicalDevice> devices
-) -> vulkan::PhysicalDevice* {
+static auto choose_physical_device(std::span<vulkan::PhysicalDevice> devices)
+    -> vulkan::PhysicalDevice* {
     for (u32 i = 0; i < devices.size(); i++) {
         if (is_device_suitable(devices[i])) { return &devices[i]; }
     }
@@ -272,13 +270,13 @@ auto Instance::deinit() -> void {
     vkDestroyInstance(m_instance, nullptr);
 }
 
-auto Instance::create_surface(const Window* window_handle) -> vulkan::Surface {
+auto Instance::create_surface(Window* window_handle) -> vulkan::Surface {
     vulkan::Surface surface(m_instance, window_handle);
     return surface;
 }
 } // namespace vulkan
 
-Vulkan_Context::Vulkan_Context(const Window* window)
+Vulkan_Context::Vulkan_Context(Window* window)
     : m_window_handle(window) {
     m_instance.init();
 }

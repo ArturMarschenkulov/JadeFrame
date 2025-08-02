@@ -7,7 +7,7 @@ class Window;
 namespace vulkan {
 namespace x11 {
 
-auto create_surface(VkInstance instance, const Window* window_handle) -> VkSurfaceKHR;
+auto create_surface(VkInstance instance, Window* window_handle) -> VkSurfaceKHR;
 
 } // namespace x11
 } // namespace vulkan

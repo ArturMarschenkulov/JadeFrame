@@ -43,10 +43,12 @@ auto Example_Hello_Triangle::on_init() -> void {
         jf::RGBAColor::solid_green(),
         jf::RGBAColor::solid_blue(),
     };
-    vertex_data->m_attributes[jf::Mesh::POSITION.m_id] =
-        jf::Mesh::AttributeData{jf::Mesh::POSITION, jf::to_list(positions)};
-    vertex_data->m_attributes[jf::Mesh::COLOR.m_id] =
-        jf::Mesh::AttributeData{jf::Mesh::COLOR, jf::to_list(colors)};
+    vertex_data->m_attributes[jf::Mesh::POSITION.m_id] = jf::Mesh::AttributeData{
+        .m_attribute_id = jf::Mesh::POSITION, .m_data = jf::to_list(positions)
+    };
+    vertex_data->m_attributes[jf::Mesh::COLOR.m_id] = jf::Mesh::AttributeData{
+        .m_attribute_id = jf::Mesh::COLOR, .m_data = jf::to_list(colors)
+    };
 
     jf::GPUMeshData* mesh = m_render_system.register_mesh(*vertex_data);
 
@@ -70,7 +72,7 @@ int main() {
     win_desc.title = "Test";
     win_desc.size.x = 800; // = 1280;
     win_desc.size.y = 800; // = 720;
-    win_desc.api = jf::GRAPHICS_API::VULKAN;
+    win_desc.api = jf::GRAPHICS_API::OPENGL;
 
     GApp* app = jade_frame.request_app<GApp>(win_desc);
     jade_frame.run();

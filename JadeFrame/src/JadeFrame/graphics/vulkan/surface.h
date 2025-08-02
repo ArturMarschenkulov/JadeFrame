@@ -23,12 +23,12 @@ public:
     Surface(Surface&& other) noexcept;
     auto operator=(Surface&& other) noexcept -> Surface&;
 
-    Surface(VkInstance instance, const Window* window_handle);
+    Surface(VkInstance instance, Window* window_handle);
 
 public:
-    VkSurfaceKHR  m_handle = VK_NULL_HANDLE;
-    const Window* m_window_handle = nullptr;
-    VkInstance    m_instance = nullptr;
+    VkSurfaceKHR m_handle = VK_NULL_HANDLE;
+    Window*      m_window_handle = nullptr;
+    VkInstance   m_instance = nullptr;
 };
 
 //} // namespace win32

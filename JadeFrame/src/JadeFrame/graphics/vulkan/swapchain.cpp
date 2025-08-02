@@ -227,7 +227,7 @@ static auto get_queue_family_with_present(
     return nullptr;
 }
 
-auto Swapchain::init(LogicalDevice& device, const Window* window) -> void {
+auto Swapchain::init(LogicalDevice& device, Window* window) -> void {
     m_device = &device;
 
     const PhysicalDevice* gpu = device.m_physical_device;

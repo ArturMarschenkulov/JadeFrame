@@ -37,7 +37,7 @@ private:
         -> bool;
 
 public:
-    auto create_surface(const Window* window_handle) -> vulkan::Surface;
+    auto create_surface(Window* window_handle) -> vulkan::Surface;
 
 public:
     VkInstance m_instance = VK_NULL_HANDLE;
@@ -76,11 +76,11 @@ struct Vulkan_Context {
     Vulkan_Context(Vulkan_Context&&) = delete;
     auto operator=(Vulkan_Context&&) -> Vulkan_Context& = delete;
 
-    Vulkan_Context(const Window* window);
+    Vulkan_Context(Window* window);
 
 public:
     vulkan::Instance m_instance;
-    const Window*    m_window_handle;
+    Window*    m_window_handle;
 
 public:
 };

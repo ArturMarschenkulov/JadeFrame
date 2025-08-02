@@ -25,7 +25,7 @@ auto Surface::operator=(Surface&& other) noexcept -> Surface& {
     return *this;
 }
 
-Surface::Surface(VkInstance instance, const Window* window_handle)
+Surface::Surface(VkInstance instance, Window* window_handle)
     : m_window_handle(window_handle) {
     Logger::trace("Surface::init start");
 

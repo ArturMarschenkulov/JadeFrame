@@ -15,7 +15,6 @@
 #include "sync_object.h"
 #include "surface.h"
 
-
 // #include "JadeFrame/prelude.h"
 
 namespace JadeFrame {
@@ -71,7 +70,7 @@ public:
     DescriptorPool m_set_pool;
 
 public: // Swapchain stuff
-    auto create_swapchain(const Window* window) -> Swapchain;
+    auto create_swapchain(Window* window) -> Swapchain;
     auto create_render_pass(VkFormat image_format) -> RenderPass;
     auto create_framebuffer(
         const ImageView&  image_view,

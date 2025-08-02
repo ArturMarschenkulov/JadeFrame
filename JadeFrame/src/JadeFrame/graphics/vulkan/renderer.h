@@ -14,7 +14,7 @@ class RGBAColor;
 
 class Vulkan_Renderer : public IRenderer {
 public:
-    Vulkan_Renderer(RenderSystem& system, const Window* window);
+    Vulkan_Renderer(RenderSystem& system, Window* window);
 
     auto set_clear_color(const RGBAColor& color) -> void override;
 
@@ -35,22 +35,29 @@ private: // NOTE: probably temporary
     RGBAColor m_clear_color;
 
 public:
+    struct Sync {
+        // Is signaled when the gpu has finished executing commands.
+        vulkan::Fence     m_in_flight;
+        // Is signaled when ready to be rendered, thus was acquired by the gpu.
+        vulkan::Semaphore m_sem_available;
+        // Is signaled when ready to be presented, thus was rendered by the gpu.
+        vulkan::Semaphore m_sem_finished;
+    };
+
     struct Frame {
         vulkan::LogicalDevice* m_device;
         u32                    m_index;
 
         vulkan::CommandBuffer m_cmd;
 
-        vulkan::Fence     m_fence;
-        vulkan::Semaphore m_sem_available;
-        vulkan::Semaphore m_sem_finished;
+        Sync m_sync;
 
         auto init(vulkan::LogicalDevice* device) -> void {
             m_device = device;
             m_index = 0;
-            m_fence = device->create_fence(true);
-            m_sem_available = device->create_semaphore();
-            m_sem_finished = device->create_semaphore();
+            m_sync.m_in_flight = device->create_fence(true);
+            m_sync.m_sem_available = device->create_semaphore();
+            m_sync.m_sem_finished = device->create_semaphore();
             m_cmd = device->m_command_pool.allocate_buffer();
         }
 
@@ -58,17 +65,22 @@ public:
             // Before acquiring the image we wait for the fence to be signaled.
             // If the fence is signaled, it means that the gpu has finished rendering the
             // frame.
-            m_device->wait_for_fence(m_fence, VK_TRUE, UINT64_MAX);
-            m_index = swapchain.acquire_image_index(&m_sem_available, nullptr);
+            m_device->wait_for_fence(m_sync.m_in_flight, VK_TRUE, UINT64_MAX);
+            m_index = swapchain.acquire_image_index(&m_sync.m_sem_available, nullptr);
         }
 
         auto submit(vulkan::Queue& queue) -> void {
-            m_fence.reset();
-            queue.submit(m_cmd, &m_sem_available, &m_sem_finished, &m_fence);
+            m_sync.m_in_flight.reset();
+            queue.submit(
+                m_cmd,
+                &m_sync.m_sem_available,
+                &m_sync.m_sem_finished,
+                &m_sync.m_in_flight
+            );
         }
 
         auto present(vulkan::Queue& queue, vulkan::Swapchain& swapchain) -> VkResult {
-            return queue.present(m_index, swapchain, &m_sem_finished);
+            return queue.present(m_index, swapchain, &m_sync.m_sem_finished);
         }
     };
 

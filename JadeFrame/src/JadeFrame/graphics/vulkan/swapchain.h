@@ -75,10 +75,14 @@ public:
     auto operator=(Swapchain&& other) noexcept -> Swapchain& = default;
 
 public:
-    auto init(LogicalDevice& device, const Window* window) -> void;
+    auto init(LogicalDevice& device, Window* window) -> void;
     auto deinit() -> void;
     auto recreate() -> void;
 
+    /// Acquires the next image index from the swapchain.
+    /// If a semaphore is provided, it will be signaled when the image is ready to be
+    /// used. If a fence is provided, it will be signaled when the image is ready to be
+    /// used.
     auto
     acquire_image_index(const Semaphore* semaphore, const Fence* fence, VkResult& result)
         -> u32;

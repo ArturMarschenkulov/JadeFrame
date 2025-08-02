@@ -86,11 +86,15 @@ add_fourth_components(const u8* data, i32 width, i32 height, i32 num_components)
     u32 size_in_bytes = size * 4;
     u8* new_data = (u8*)malloc(size_in_bytes);
     for (i32 i = 0; i < size; i++) {
-        new_data[i * 4 + 0] = data[i * num_components + 0];
-        new_data[i * 4 + 1] = data[i * num_components + 1];
-        new_data[i * 4 + 2] = data[i * num_components + 2];
-        new_data[i * 4 + 3] = 255_u8;
+        i32 dst_idx = i * 4;
+        i32 src_idx = i * num_components;
+
+        new_data[dst_idx + 0] = data[src_idx + 0];
+        new_data[dst_idx + 1] = data[src_idx + 1];
+        new_data[dst_idx + 2] = data[src_idx + 2];
+        new_data[dst_idx + 3] = 255_u8;
     }
+    free((void*)data);
     return new_data;
 }
 
@@ -130,7 +134,8 @@ auto Image::load_from_path(const std::string& path) -> Image {
 
 auto Image::gen_checked(v2u32 size, v2u32 check_size, RGBAColor& col_0, RGBAColor& col_1)
     -> Image {
-    auto* pixels = new RGBAColor[size.x * size.y];
+    auto  index = static_cast<u64>(size.x * size.y);
+    auto* pixels = new RGBAColor[index];
 
     for (u32 y = 0; y < size.y; y++) {
         for (u32 x = 0; x < size.x; x++) {

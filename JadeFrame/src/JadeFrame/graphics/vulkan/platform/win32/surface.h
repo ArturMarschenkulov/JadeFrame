@@ -7,7 +7,7 @@ class Window;
 namespace vulkan {
 namespace win32 {
 
-auto create_surface(VkInstance instance, const Window* window_handle) -> VkSurfaceKHR;
+auto create_surface(VkInstance instance, Window* window_handle) -> VkSurfaceKHR;
 
 } // namespace win32
 } // namespace vulkan

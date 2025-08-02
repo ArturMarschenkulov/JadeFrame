@@ -119,6 +119,7 @@ public:
     TYPE       m_type = TYPE::ORTHOGRAPHIC;
     HANDEDNESS m_handedness = HANDEDNESS::RIGHT;
 };
+
 /*
 OpenGL's default "camera" is at (0, 0, 0) and looks forward into the negative
 z-direction.
@@ -209,7 +210,7 @@ auto Camera::get_view_projection(const char* api) const -> mat4x4 {
 }
 
 auto Camera::calc_projection(const char* api) const -> mat4x4 {
-
+    auto   ss = GRAPHICS_API::OPENGL;
     mat4x4 proj = mat4x4::identity();
 
     auto [fov, aspect] = m_volume.calc_fovy_aspect();
