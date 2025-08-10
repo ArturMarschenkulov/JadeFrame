@@ -51,10 +51,9 @@ case "$1" in
     
     build)
         mkdir -p "$build_dir"
-        cd "$build_dir"
         echo "Configuring and building project..."
-        cmake ../. -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-        cmake --build . -j10
+        cmake -S . -B "$build_dir" -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+        cmake --build "$build_dir" --parallel
         echo "Generating compilation database..."
         compiledb -n make
         echo "Build successful"
