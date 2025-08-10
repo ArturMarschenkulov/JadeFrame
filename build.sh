@@ -47,16 +47,20 @@ case "$1" in
             echo "Build directory not found. Run build first."
             exit 1
         fi
-        ;;
+        ;; 
     
     build)
         mkdir -p "$build_dir"
         echo "Configuring and building project..."
         cmake -S . -B "$build_dir" -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-        cmake --build "$build_dir" --parallel
-        echo "Generating compilation database..."
-        compiledb -n make
-        echo "Build successful"
+        if cmake --build "$build_dir" --parallel; then
+            echo "Generating compilation database..."
+            compiledb -n make
+            echo "Build successful"
+        else
+            echo "Build failed"
+            exit 1
+        fi
         ;;
     
     build_test)
@@ -69,19 +73,7 @@ case "$1" in
         ;;
     
     *)
-        echo "Running full build and application..."
-        mkdir -p "$build_dir"
-        cd "$build_dir"
-        if cmake ../. && cmake --build . -j10; then
-            echo "Build successful"
-            compiledb -n make
-            echo "Compiledb generated"
-            echo "Running Application"
-            # cd examples/rotating_primitive/
-            # ./Example_rotating_primitive
-        else
-            echo "Build failed"
-            exit 1
-        fi
+        echo "Invalid option: $1"
+        usage
         ;;
 esac
