@@ -25,13 +25,13 @@ public:
         STAGING
     };
 
-    static auto create(OpenGL_Context& context, TYPE type, const void* data, GLuint size)
+    static auto create(opengl::OpenGL_Context& context, TYPE type, const void* data, GLuint size)
         -> Buffer;
 
     auto destroy() -> void;
 
 private:
-    Buffer(OpenGL_Context& context, TYPE type, const void* data, GLuint size);
+    Buffer(opengl::OpenGL_Context& context, TYPE type, const void* data, GLuint size);
     auto alloc(const void* data, GLuint size) const -> void;
     auto reserve(GLuint size) const -> void;
 

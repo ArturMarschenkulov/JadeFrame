@@ -24,7 +24,6 @@ namespace JadeFrame {
 
 namespace opengl {
 class Shader;
-}
 
 enum BLENDING_FACTOR : i32 {
     ZERO = GL_ZERO,
@@ -132,12 +131,12 @@ public:
     GLint m_max_uniform_buffer_binding_points;
 
     // Resource creation
-    auto create_texture() -> opengl::Texture*;
-    auto create_texture(void* data, v2u32 size, u32 component_num) -> opengl::Texture*;
-    auto bind_texture_to_unit(opengl::Texture& texture, u32 unit) -> void;
-    auto unbind_texture_from_unit(opengl::Texture& texture, u32 unit) -> void;
-    std::unordered_map<u32, opengl::Texture*> m_texture_units;
-    std::vector<opengl::Texture*>             m_textures;
+    auto create_texture() -> Texture*;
+    auto create_texture(void* data, v2u32 size, u32 component_num) -> Texture*;
+    auto bind_texture_to_unit(Texture& texture, u32 unit) -> void;
+    auto unbind_texture_from_unit(Texture& texture, u32 unit) -> void;
+    std::unordered_map<u32, Texture*> m_texture_units;
+    std::vector<Texture*>             m_textures;
 
     auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
         -> opengl::Buffer*;
@@ -175,4 +174,5 @@ public:
 
     opengl::Shader* m_bound_shader = nullptr;
 };
+} // namespace opengl
 } // namespace JadeFrame

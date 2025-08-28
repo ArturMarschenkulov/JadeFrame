@@ -3,9 +3,9 @@
 #include "JadeFrame/math/vec.h"
 
 namespace JadeFrame {
-class OpenGL_Context;
-
 namespace opengl {
+
+class OpenGL_Context;
 
 class Texture {
 public:
@@ -21,8 +21,8 @@ public:
     Texture(Texture&& other) noexcept;
     auto operator=(Texture&& other) noexcept -> Texture&;
 
-    explicit Texture(OpenGL_Context& context);
-    Texture(OpenGL_Context& context, void* data, v2u32 size, u32 component_num);
+    explicit Texture(opengl::OpenGL_Context& context);
+    Texture(opengl::OpenGL_Context& context, void* data, v2u32 size, u32 component_num);
 
     auto resize(u32 width, u32 height, u32 depth) -> void;
 

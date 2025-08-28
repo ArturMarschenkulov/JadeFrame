@@ -197,8 +197,10 @@ auto OpenGL_Renderer::take_screenshot(const char* /*filename*/) -> Image {
     // t.detach();
 }
 
-auto OpenGL_Renderer::RenderTarget::init(OpenGL_Context* context, RenderSystem* system)
-    -> void {
+auto OpenGL_Renderer::RenderTarget::init(
+    opengl::OpenGL_Context* context,
+    RenderSystem*           system
+) -> void {
     m_context = context;
     {
         // TODO: the use of `GL_RGB8`, `GL_RGB` and `GL_UNSIGNED_BYTE` is hardcoded. Find

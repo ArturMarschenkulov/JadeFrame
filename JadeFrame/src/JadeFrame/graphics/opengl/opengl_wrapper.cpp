@@ -46,8 +46,8 @@ static auto gl_type_to_jf_type(GLenum type) -> SHADER_STAGE {
 }
 
 OGLW_VertexArray::OGLW_VertexArray(
-    OpenGL_Context*     context,
-    const VertexFormat& vertex_format
+    opengl::OpenGL_Context* context,
+    const VertexFormat&     vertex_format
 ) {
     (void)context;
     glCreateVertexArrays(1, &m_ID);

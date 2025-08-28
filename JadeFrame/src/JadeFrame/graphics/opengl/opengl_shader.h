@@ -37,7 +37,7 @@ public:
     Shader(Shader&&) noexcept = delete;
     auto operator=(Shader&&) -> Shader& = delete;
 
-    Shader(OpenGL_Context& context, const Desc& desc);
+    Shader(opengl::OpenGL_Context& context, const Desc& desc);
 
 public:
     OGLW_Program             m_program;
@@ -60,7 +60,7 @@ public:
     Material(Material&&) noexcept = default;
     auto operator=(Material&&) -> Material& = default;
 
-    Material(OpenGL_Context& context, Shader& shader, Texture* texture);
+    Material(opengl::OpenGL_Context& context, Shader& shader, Texture* texture);
 
 public:
     auto write_ub(u32 index, const void* data, size_t size, size_t offset) -> void;

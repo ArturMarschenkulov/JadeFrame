@@ -52,21 +52,21 @@ private:
     ) -> void;
 
 public:
-    OpenGL_Context m_context;
-    RenderSystem*  m_system = nullptr;
+    opengl::OpenGL_Context m_context;
+    RenderSystem*          m_system = nullptr;
 
     struct RenderTarget {
-        Object                m_fb;
-        opengl::Texture*      m_texture;
-        opengl::Renderbuffer* m_renderbuffer;
-        opengl::Framebuffer*  m_framebuffer;
-        opengl::Buffer*       m_vertex_buffer;
-        opengl::Buffer*       m_index_buffer;
-        Mesh                  m_mesh;
-        ShaderHandle*         m_shader;
-        OpenGL_Context*       m_context;
+        Object                  m_fb;
+        opengl::Texture*        m_texture;
+        opengl::Renderbuffer*   m_renderbuffer;
+        opengl::Framebuffer*    m_framebuffer;
+        opengl::Buffer*         m_vertex_buffer;
+        opengl::Buffer*         m_index_buffer;
+        Mesh                    m_mesh;
+        ShaderHandle*           m_shader;
+        opengl::OpenGL_Context* m_context;
 
-        auto init(OpenGL_Context* context, RenderSystem* system) -> void;
+        auto init(opengl::OpenGL_Context* context, RenderSystem* system) -> void;
         auto render(RenderSystem* system) -> void;
     } m_render_target;
 };

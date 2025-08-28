@@ -128,7 +128,7 @@ static auto gl_type_enum_to_string(GLenum type) -> std::string {
     return result;
 }
 
-Shader::Shader(OpenGL_Context& context, const Desc& desc)
+Shader::Shader(opengl::OpenGL_Context& context, const Desc& desc)
     : m_context(&context) {
 
     JF_ASSERT(
@@ -169,7 +169,7 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     // Here we create the various graphics objects
 }
 
-Material::Material(OpenGL_Context& context, Shader& shader, Texture* texture)
+Material::Material(opengl::OpenGL_Context& context, Shader& shader, Texture* texture)
     : m_context(&context) {
 
     // NOTE: The binding points will be somehow abstracted, since the high level will

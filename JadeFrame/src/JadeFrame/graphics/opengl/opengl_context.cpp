@@ -11,6 +11,7 @@
 #include "opengl_shader.h"
 
 namespace JadeFrame {
+namespace opengl {
 auto OpenGL_Context::bind_uniform_buffer_to_location(opengl::Buffer& buffer, u32 location)
     -> void {
     if (buffer.m_type != opengl::Buffer::TYPE::UNIFORM) {
@@ -66,7 +67,7 @@ auto OpenGL_Context::unbind_vertex_array() -> void {
     m_bound_vertex_array = nullptr;
 }
 
-auto OpenGL_Context::bind_texture_to_unit(opengl::Texture& texture, u32 unit) -> void {
+auto OpenGL_Context::bind_texture_to_unit(Texture& texture, u32 unit) -> void {
     // Search through `m_texture_units` and find `unit`.
     if (!m_texture_units.contains(unit)) {
         glBindTextureUnit(unit, texture.m_id);
@@ -81,20 +82,17 @@ auto OpenGL_Context::bind_texture_to_unit(opengl::Texture& texture, u32 unit) ->
     }
 }
 
-auto OpenGL_Context::unbind_texture_from_unit(opengl::Texture& texture, u32 unit)
-    -> void {
+auto OpenGL_Context::unbind_texture_from_unit(Texture& texture, u32 unit) -> void {
 
     glBindTextureUnit(unit, 0);
     m_texture_units[unit] = nullptr;
 }
 
-auto OpenGL_Context::create_texture() -> opengl::Texture* {
-    return new opengl::Texture(*this);
-}
+auto OpenGL_Context::create_texture() -> Texture* { return new Texture(*this); }
 
 auto OpenGL_Context::create_texture(void* data, v2u32 size, u32 component_num)
-    -> opengl::Texture* {
-    return new opengl::Texture(*this, data, size, component_num);
+    -> Texture* {
+    return new Texture(*this, data, size, component_num);
 }
 
 auto OpenGL_Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
@@ -296,4 +294,5 @@ auto GL_State::set_viewport(u32 x, u32 y, u32 width, u32 height) -> void {
         static_cast<GLsizei>(height)
     );
 }
+} // namespace opengl
 } // namespace JadeFrame
