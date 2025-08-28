@@ -100,9 +100,15 @@ auto OpenGL_Context::create_texture(void* data, v2u32 size, u32 component_num)
 auto OpenGL_Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
     -> opengl::Buffer* {
     static u32 id = 0;
-    m_bufferss[id] = opengl::Buffer::create(*this, type, data, size);
+    auto [it, inserted] =
+        m_bufferss.try_emplace(id, opengl::Buffer::create(*this, type, data, size));
+    if (!inserted) {
+        Logger::warn("Buffer with id {} already exists!", id);
+        assert(false);
+        return nullptr;
+    }
     id++;
-    return &m_bufferss[id - 1];
+    return &it->second;
 }
 
 auto OpenGL_Context::create_framebuffer() -> opengl::Framebuffer* {
@@ -115,9 +121,8 @@ auto OpenGL_Context::create_renderbuffer() -> opengl::Renderbuffer* {
     return buffer;
 }
 
-OpenGL_Context::OpenGL_Context(Window* window)
+OpenGL_Context::OpenGL_Context(Window* window) {
 #ifdef WIN32
-{
     auto* win = dynamic_cast<const JadeFrame::win32::NativeWindow*>(
         window->m_native_window.get()
     );
@@ -136,7 +141,6 @@ OpenGL_Context::OpenGL_Context(Window* window)
     opengl::win32::load_opengl_funcs(/*m_device_context, render_context*/);
 
 #elif __linux__
-{
 
     // NOTE: This is weird. Somehwere the macro `linux` got defined.
     #undef linux
@@ -148,7 +152,7 @@ OpenGL_Context::OpenGL_Context(Window* window)
     m_swapchain_context.m_window = win->m_window;
     #endif
 #else
-{
+    {
 #endif
 
     opengl::set_debug_mode(true);
@@ -254,11 +258,11 @@ auto GL_State::set_clear_bitfield(const GLbitfield& bitfield) -> void {
 }
 
 auto GL_State::add_clear_bitfield(const GLbitfield& bitfield) -> void {
-    clear_bitfield |= (1U << bitfield);
+    clear_bitfield |= bitfield;
 }
 
 auto GL_State::remove_clear_bitfield(const GLbitfield& bitfield) -> void {
-    clear_bitfield &= ~(1U << bitfield);
+    clear_bitfield &= ~bitfield;
 }
 
 auto GL_State::set_depth_test(bool enable) -> void {

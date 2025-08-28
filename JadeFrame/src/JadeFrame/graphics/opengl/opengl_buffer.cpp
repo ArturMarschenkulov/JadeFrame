@@ -12,16 +12,8 @@ namespace opengl {
 /*---------------------------
     Buffer
 ---------------------------*/
-Buffer::Buffer()
-    : m_context(nullptr)
-    , m_type(TYPE::UNINIT)
-    , m_size(0)
-    , m_id(0) {}
 
-Buffer::~Buffer() {
-    glDeleteBuffers(1, &m_id);
-    m_id = 0;
-}
+Buffer::~Buffer() { this->destroy(); }
 
 Buffer::Buffer(Buffer&& other) noexcept
     : m_context(std::exchange(other.m_context, nullptr))
@@ -31,6 +23,7 @@ Buffer::Buffer(Buffer&& other) noexcept
 
 auto Buffer::operator=(Buffer&& other) noexcept -> Buffer& {
     if (this == &other) { return *this; }
+    if (m_id != 0) { this->destroy(); }
     m_id = std::exchange(other.m_id, 0);
     m_type = other.m_type;
     m_context = std::exchange(other.m_context, nullptr);
@@ -38,22 +31,22 @@ auto Buffer::operator=(Buffer&& other) noexcept -> Buffer& {
     return *this;
 }
 
+auto Buffer::destroy() -> void {
+    // NOTE(artur): This is probably a pointless check, as `m_id==0` already leads to a
+    // noop, but just in case.
+    if (m_id == 0) { return; }
+    glDeleteBuffers(1, &m_id);
+    m_id = 0;
+}
+
 auto Buffer::create(OpenGL_Context& context, TYPE type, const void* data, GLuint size)
     -> Buffer {
-    Buffer buffer;
-    buffer.m_context = &context;
-    buffer.m_type = type;
-    buffer.m_size = size;
-    glCreateBuffers(1, &buffer.m_id);
-    buffer.alloc(data, size);
 
-    // TODO: Move this registering into OpenGL_Context?
-    context.m_buffers.push_back(buffer.m_id);
-    context.m_bound_buffer = buffer.m_id;
+    Buffer buffer = Buffer(context, type, data, size);
     return buffer;
 }
 
-Buffer::Buffer(OpenGL_Context& context, TYPE type, void* data, GLuint size)
+Buffer::Buffer(OpenGL_Context& context, TYPE type, const void* data, GLuint size)
     : m_context(&context)
 
     , m_type(type)
@@ -64,7 +57,7 @@ Buffer::Buffer(OpenGL_Context& context, TYPE type, void* data, GLuint size)
 
     this->alloc(data, size);
 
-    // TODO: Move this registering into OpenGL_Context?
+    // TODO(artur): Move this registering into OpenGL_Context?
     m_context->m_buffers.push_back(m_id);
     m_context->m_bound_buffer = m_id;
 }

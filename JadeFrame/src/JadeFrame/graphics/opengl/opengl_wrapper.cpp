@@ -10,7 +10,7 @@
 #define GL_SHADER_BINARY_FORMAT_SPIR_V_ARB 0x9551
 
 namespace JadeFrame {
-static auto to_opengl(const SHADER_TYPE type) -> GLenum {
+static auto to_opengl_base_type(const SHADER_TYPE type) -> GLenum {
     GLenum result;
     switch (type) {
         case SHADER_TYPE::F32:
@@ -61,6 +61,7 @@ OGLW_VertexArray::OGLW_VertexArray(OGLW_VertexArray&& other) noexcept
     , m_vertex_format(std::exchange(other.m_vertex_format, {})) {}
 
 auto OGLW_VertexArray::operator=(OGLW_VertexArray&& other) noexcept -> OGLW_VertexArray& {
+    if (this == &other) { return *this; }
     m_ID = std::exchange(other.m_ID, 0);
     m_vertex_format = std::exchange(other.m_vertex_format, {});
     return *this;
@@ -111,10 +112,24 @@ auto OGLW_VertexArray::set_attrib_format(
     const bool        normalized,
     const size_t      offset
 ) const -> void {
-    const u32    count = component_count(type);
-    const GLenum gl_type = to_opengl(type);
+    const auto   count = static_cast<GLint>(component_count(type));
+    const GLenum base_type = to_opengl_base_type(type);
+    switch (base_type) {
+        case GL_FLOAT: {
+            glVertexArrayAttribFormat(
+                m_ID, index, count, base_type, normalized ? GL_TRUE : GL_FALSE, offset
+            );
+        } break;
+        case GL_INT: {
+            glVertexArrayAttribIFormat(m_ID, index, count, base_type, offset);
+        } break;
+        case GL_DOUBLE: {
+            glVertexArrayAttribLFormat(m_ID, index, count, base_type, offset);
+        } break;
+        default: assert(false && "Unsupported type"); break;
+    }
     glVertexArrayAttribFormat(
-        m_ID, index, count, gl_type, normalized ? GL_TRUE : GL_FALSE, offset
+        m_ID, index, count, base_type, normalized ? GL_TRUE : GL_FALSE, offset
     );
 }
 
@@ -165,6 +180,7 @@ OGLW_Shader::OGLW_Shader(OGLW_Shader&& other) noexcept
     , m_reflected(std::exchange(other.m_reflected, {})) {}
 
 auto OGLW_Shader::operator=(OGLW_Shader&& other) noexcept -> OGLW_Shader& {
+    if (this == &other) { return *this; }
     m_ID = std::exchange(other.m_ID, 0);
     m_reflected = std::exchange(other.m_reflected, {});
     return *this;
@@ -184,7 +200,11 @@ auto OGLW_Shader::compile() -> void { glCompileShader(m_ID); }
 
 auto OGLW_Shader::set_binary(const std::vector<u32>& binary) -> void {
     glShaderBinary(
-        1, &m_ID, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, binary.data(), binary.size()
+        1,
+        &m_ID,
+        GL_SHADER_BINARY_FORMAT_SPIR_V_ARB,
+        binary.data(),
+        static_cast<GLsizei>(binary.size() * sizeof(u32))
     );
 }
 
@@ -211,16 +231,25 @@ auto OGLW_Shader::get_compile_status() -> GLint {
 }
 
 auto OGLW_Shader::get_info_log() -> std::string {
-    const u32 N = 1024;
+    // const u32 N = 1024;
 
-    GLchar info_log[N];
-    i32    returned_length = 0;
-    glGetShaderInfoLog(m_ID, N, &returned_length, &info_log[0]);
-    if (returned_length > N) {
-        Logger::warn("Info log for shader {} was truncated", m_ID);
-    }
-    std::string result(info_log);
-    return result;
+    // GLchar info_log[N];
+    // i32    returned_length = 0;
+    // glGetShaderInfoLog(m_ID, N, &returned_length, &info_log[0]);
+    // if (returned_length > N) {
+    //     Logger::warn("Info log for shader {} was truncated", m_ID);
+    // }
+    // std::string result(info_log);
+    // return result;
+
+    GLint len = 0;
+    glGetShaderiv(m_ID, GL_INFO_LOG_LENGTH, &len);
+    std::string log;
+    log.resize(std::max(1, len));
+    GLsizei written = 0;
+    glGetShaderInfoLog(m_ID, len, &written, log.data());
+    log.resize(written);
+    return log;
 }
 
 OGLW_Program::OGLW_Program()

@@ -3,6 +3,7 @@
 #include "JadeFrame/math/vec.h"
 #include "JadeFrame/types.h"
 #include "JadeFrame/graphics/graphics_shared.h"
+#include "JadeFrame/utils/assert.h"
 #include "color.h"
 
 namespace JadeFrame {
@@ -44,8 +45,8 @@ public:
         const Desc desc = Desc{true, true, false, true}
     ) -> VertexData;
     static auto triangle(const v3& pos1, const v3& pos2, const v3& pos3) -> VertexData;
-    static auto
-    circle(const v3& position, const f32 radius, const u32 numSegments) -> VertexData;
+    static auto circle(const v3& position, const f32 radius, const u32 numSegments)
+        -> VertexData;
 
     static auto cube(const v3& pos, const v3& size) -> VertexData;
 };
@@ -66,39 +67,48 @@ public:
         Id m_id;
         /// the format of the attribute
         SHADER_TYPE m_format;
+
+        [[nodiscard]] auto count() const -> u32 { return component_count(m_format); }
     };
 
     struct AttributeData {
         VertexAttribute m_attribute_id;
         // TODO: m_data could also be some other type like u32 or v3
         std::vector<f32> m_data;
+
+        [[nodiscard]] auto count() const -> u32 {
+            return u32(m_data.size()) / m_attribute_id.count();
+        }
     };
 
     std::map<VertexAttributeId, AttributeData> m_attributes;
     std::vector<u32>                           m_indices;
 
-    constexpr const static VertexAttribute POSITION = {"POSITION", 0, SHADER_TYPE::V_3_F32};
+    constexpr const static VertexAttribute POSITION =
+        {"POSITION", 0, SHADER_TYPE::V_3_F32};
     constexpr const static VertexAttribute COLOR = {"COLOR", 1, SHADER_TYPE::V_4_F32};
     constexpr const static VertexAttribute UV = {"UV", 2, SHADER_TYPE::V_2_F32};
     constexpr const static VertexAttribute NORMAL = {"NORMAL", 3, SHADER_TYPE::V_3_F32};
     constexpr const static VertexAttribute TANGENT = {"TANGENT", 4, SHADER_TYPE::V_4_F32};
 
     [[nodiscard]] auto has_attribute(const VertexAttribute& attribute) const -> bool {
-        return m_attributes.find(attribute.m_id) != m_attributes.end();
+        return m_attributes.contains(attribute.m_id);
     }
 
     auto set_color(const RGBAColor& color) -> void {
-        u32              num_vertices = m_attributes.at(POSITION.m_id).m_data.size() / 3;
-        u32              reserve_size = num_vertices * 4;
-        std::vector<f32> data;
-        data.reserve(reserve_size);
-
-        std::vector<f32> color_data = {color.r, color.g, color.b, color.a};
-
+        auto it = m_attributes.find(POSITION.m_id);
+        JF_ASSERT(it != m_attributes.end(), "Mesh has no positions");
+        const u32        num_vertices = it->second.count();
+        std::vector<f32> color_data;
+        color_data.resize(num_vertices * 4);
         for (u32 i = 0; i < num_vertices; i++) {
-            for (u32 j = 0; j < 4; j++) { data.push_back(color_data[j]); }
+            auto base_index = i * 4;
+            color_data[base_index + 0] = color.r;
+            color_data[base_index + 1] = color.g;
+            color_data[base_index + 2] = color.b;
+            color_data[base_index + 3] = color.a;
         }
-        m_attributes[COLOR.m_id] = AttributeData{COLOR, data};
+        m_attributes[COLOR.m_id] = AttributeData{COLOR, color_data};
         assert(
             (m_attributes[COLOR.m_id].m_data.size() == num_vertices * 4) && "Invalid size"
         );

@@ -27,7 +27,7 @@ public:
 public:
     std::array<INPUT_STATE, static_cast<u32>(BUTTON::MAX)> m_curr_button_state = {};
     std::array<INPUT_STATE, static_cast<u32>(BUTTON::MAX)> m_prev_button_state = {};
-    v2                                                     m_mouse_pos = {};
+    v2                                                     m_mouse_pos;
 
 public:
     auto update() -> void;

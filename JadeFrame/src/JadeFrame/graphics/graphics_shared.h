@@ -291,7 +291,6 @@ class RenderSystem;
 class GPUBuffer {
 public:
     enum TYPE {
-        UNINIT, // TODO: find ways to remove it
         VERTEX,
         INDEX,
         UNIFORM,
@@ -312,7 +311,7 @@ public:
     GRAPHICS_API  m_api = GRAPHICS_API::UNDEFINED;
     void*         m_handle = nullptr;
     size_t        m_size = 0;
-    TYPE          m_type = TYPE::UNINIT;
+    TYPE          m_type;
 };
 class RenderSystem;
 class Mesh;
@@ -450,8 +449,8 @@ public:
     auto register_texture(Image& image) -> TextureHandle*;
     auto register_shader(const ShaderHandle::Desc& desc) -> ShaderHandle*;
     auto register_mesh(const Mesh& data) -> GPUMeshData*;
-    auto
-    register_material(ShaderHandle* shader, TextureHandle* texture) -> MaterialHandle*;
+    auto register_material(ShaderHandle* shader, TextureHandle* texture)
+        -> MaterialHandle*;
 
     auto submit(const Object& obj) -> void;
 

@@ -61,9 +61,7 @@ public:
     GLenum m_type;
 
     v2u32 m_size;
-    // const GLuint m_width;
-    // const GLuint m_height;
-    OpenGL_Context* m_context;
+    OpenGL_Context* m_context = nullptr;
 };
 } // namespace opengl
 } // namespace JadeFrame

@@ -2,6 +2,8 @@
 #include "JadeFrame/utils/assert.h"
 #include "JadeFrame/utils/logger.h"
 #include "mesh.h"
+
+#include <numbers>
 #include "graphics_shared.h"
 
 namespace JadeFrame {
@@ -361,9 +363,11 @@ auto VertexData::triangle(const v3& pos1, const v3& pos2, const v3& pos3) -> Ver
 
 auto VertexData::circle(const v3& position, const f32 radius, const u32 numSegments)
     -> VertexData {
-    const f32 theta = 2.0F * 3.1415926F / f32(numSegments); // get the current angle
-    const f32 cos = cosf(theta);                            // calculate the x component
-    const f32 sin = sinf(theta);                            // calculate the y component
+    const f64 PI = std::numbers::pi;
+    const f32 theta = 2.0F * static_cast<f32>(PI) /
+                      static_cast<f32>(numSegments); // get the current angle
+    const f32 cos = cosf(theta);                     // calculate the x component
+    const f32 sin = sinf(theta);                     // calculate the y component
 
     VertexData vertex_data;
     vertex_data.m_positions.resize(numSegments + 1);
@@ -384,9 +388,10 @@ auto VertexData::circle(const v3& position, const f32 radius, const u32 numSegme
     vertex_data.m_indices.resize(num_index);
 
     for (u32 i = 0; i < numSegments; i++) {
-        vertex_data.m_indices[(3 * i + 0)] = 0;
-        vertex_data.m_indices[(3 * i + 1)] = 1 + i;
-        vertex_data.m_indices[(3 * i + 2)] = 2 + i;
+        auto base_index = 3 * i;
+        vertex_data.m_indices[(base_index + 0)] = 0;
+        vertex_data.m_indices[(base_index + 1)] = 1 + i;
+        vertex_data.m_indices[(base_index + 2)] = 2 + i;
     }
     vertex_data.m_indices[num_index - 1] = vertex_data.m_indices[1];
 

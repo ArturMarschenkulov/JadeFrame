@@ -43,7 +43,7 @@ public:
     OGLW_Program             m_program;
     std::vector<OGLW_Shader> m_shaders;
 
-    OpenGL_Context* m_context;
+    OpenGL_Context* m_context = nullptr;
 
 public:
     OGLW_VertexArray m_vertex_array;

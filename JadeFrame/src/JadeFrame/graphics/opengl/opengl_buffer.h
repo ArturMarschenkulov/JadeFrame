@@ -11,7 +11,7 @@ namespace opengl {
 
 class Buffer {
 public:
-    Buffer();
+    Buffer() = delete;
     ~Buffer();
     Buffer(const Buffer&) = delete;
     auto operator=(const Buffer&) -> Buffer& = delete;
@@ -19,7 +19,6 @@ public:
     auto operator=(Buffer&& other) noexcept -> Buffer&;
 
     enum class TYPE : u8 {
-        UNINIT, // TODO: find ways to remove it
         VERTEX,
         INDEX,
         UNIFORM,
@@ -29,8 +28,10 @@ public:
     static auto create(OpenGL_Context& context, TYPE type, const void* data, GLuint size)
         -> Buffer;
 
+    auto destroy() -> void;
+
 private:
-    Buffer(OpenGL_Context& context, TYPE type, void* data, GLuint size);
+    Buffer(OpenGL_Context& context, TYPE type, const void* data, GLuint size);
     auto alloc(const void* data, GLuint size) const -> void;
     auto reserve(GLuint size) const -> void;
 
@@ -39,11 +40,11 @@ public:
 
     template<typename T>
     auto write(const T& data, GLint offset = 0) const -> void {
-        this->write(static_cast<const void*>(data), sizeof(T), offset);
+        this->write(static_cast<const void*>(&data), sizeof(T), offset);
     }
 
 public:
-    OpenGL_Context* m_context;
+    OpenGL_Context* m_context = nullptr;
     TYPE            m_type;
     size_t          m_size;
     GLuint          m_id;

@@ -300,9 +300,10 @@ auto LogicalDevice::create_buffer(Buffer::TYPE buffer_type, void* data, size_t s
     -> Buffer* {
     static u32 id = 0;
 
-    m_buffers[id] = Buffer(*this, buffer_type, data, size);
+    auto [it, inserted] =
+        m_buffers.try_emplace(id, Buffer(*this, buffer_type, data, size));
     id++;
-    return &m_buffers[id - 1];
+    return &it->second;
 }
 
 auto LogicalDevice::destroy_buffer(Buffer* buffer) const -> void {

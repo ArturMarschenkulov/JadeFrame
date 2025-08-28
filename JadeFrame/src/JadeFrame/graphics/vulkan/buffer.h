@@ -10,7 +10,6 @@
 
 #include "JadeFrame/prelude.h"
 
-
 #define JF_USE_VMA 1
 
 namespace JadeFrame {
@@ -29,14 +28,13 @@ class PhysicalDevice;
 class Buffer {
 public:
     enum TYPE {
-        UNINIT, // TODO: find ways to remove it
         VERTEX,
         INDEX,
         UNIFORM,
         STAGING
     };
 
-    Buffer() = default;
+    Buffer() = delete;
     ~Buffer();
     Buffer(const Buffer&) = delete;
     auto operator=(const Buffer&) -> Buffer& = delete;
@@ -72,7 +70,7 @@ private:
     ) -> void;
 
 public:
-    /*const*/ Buffer::TYPE m_type = Buffer::TYPE::UNINIT;
+    /*const*/ Buffer::TYPE m_type;
     //	VkBufferUsageFlags m_usage = 0;
     VkDeviceSize m_size = 0;
 

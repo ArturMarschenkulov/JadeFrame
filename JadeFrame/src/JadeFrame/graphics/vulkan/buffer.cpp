@@ -7,7 +7,6 @@
 #include "physical_device.h"
 #include "context.h"
 
-
 #define VMA_IMPLEMENTATION
 #include "VulkanMemoryAllocator/include/vk_mem_alloc.h"
 
@@ -63,7 +62,6 @@ auto to_string(const Buffer::TYPE type) -> const char* {
         case Buffer::TYPE::INDEX: return "INDEX";
         case Buffer::TYPE::UNIFORM: return "UNIFORM";
         case Buffer::TYPE::STAGING: return "STAGING";
-        case Buffer::TYPE::UNINIT: return "UNINIT";
         default: JF_ASSERT(false, ""); return "";
     }
 }
@@ -75,7 +73,6 @@ static auto does_use_staging_buffer(const Buffer::TYPE type) -> bool {
         case Buffer::TYPE::INDEX: result = true; break;
         case Buffer::TYPE::UNIFORM: result = false; break;
         case Buffer::TYPE::STAGING: result = false; break;
-        case Buffer::TYPE::UNINIT: result = false; break;
         default: JF_ASSERT(false, ""); break;
     }
     return result;
@@ -88,7 +85,6 @@ static auto get_vma_usage(const Buffer::TYPE type) -> VmaMemoryUsage {
         case Buffer::TYPE::INDEX: result = VMA_MEMORY_USAGE_GPU_ONLY; break;
         case Buffer::TYPE::UNIFORM:
         case Buffer::TYPE::STAGING: result = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
-        case Buffer::TYPE::UNINIT: result = VMA_MEMORY_USAGE_UNKNOWN; break;
         default: JF_ASSERT(false, ""); break;
     }
     return result;
@@ -106,7 +102,6 @@ static auto get_usage(const Buffer::TYPE type) -> VkBufferUsageFlags {
             break;
         case Buffer::TYPE::UNIFORM: result = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; break;
         case Buffer::TYPE::STAGING: result = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; break;
-        case Buffer::TYPE::UNINIT: result = 0; break;
         default: JF_ASSERT(false, ""); break;
     }
     return result;
@@ -122,14 +117,13 @@ static auto get_properties(const Buffer::TYPE type) -> VkMemoryPropertyFlags {
             result = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
             break;
-        case Buffer::TYPE::UNINIT: result = 0; break;
         default: JF_ASSERT(false, ""); break;
     }
     return result;
 }
 
 Buffer::Buffer(Buffer&& other) noexcept
-    : m_type(std::exchange(other.m_type, TYPE::UNINIT))
+    : m_type(other.m_type)
     , m_size(std::exchange(other.m_size, 0))
     , m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
 #if JF_USE_VMA
@@ -141,7 +135,7 @@ Buffer::Buffer(Buffer&& other) noexcept
 }
 
 auto Buffer::operator=(Buffer&& other) noexcept -> Buffer& {
-    m_type = std::exchange(other.m_type, TYPE::UNINIT);
+    m_type = other.m_type;
     m_size = std::exchange(other.m_size, 0);
     m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
 #if JF_USE_VMA
@@ -472,8 +466,7 @@ ImageView::ImageView(
                          .b = VK_COMPONENT_SWIZZLE_B,
                          .a = VK_COMPONENT_SWIZZLE_A,
                          },
-        .subresourceRange =
-            {
+        .subresourceRange = {
                          .aspectMask = aspect_flags,
                          .baseMipLevel = 0,
                          .levelCount = 1,

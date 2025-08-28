@@ -1,5 +1,3 @@
-
-#include <array>
 #include <cassert>
 
 #include "JadeFrame/utils/assert.h"
@@ -31,8 +29,8 @@ static auto SHADER_TYPE_from_openGL_enum(const GLenum type) -> SHADER_TYPE {
     }
 }
 
-static auto get_vertex_attributes(const ReflectedCode& reflected_code
-) -> std::vector<Shader::VertexAttribute> {
+static auto get_vertex_attributes(const ReflectedCode& reflected_code)
+    -> std::vector<Shader::VertexAttribute> {
     std::vector<Shader::VertexAttribute> result;
     for (size_t i = 0; i < reflected_code.m_modules[0].m_inputs.size(); i++) {
         const auto&             input = reflected_code.m_modules[0].m_inputs[i];
@@ -46,8 +44,8 @@ static auto get_vertex_attributes(const ReflectedCode& reflected_code
     return result;
 }
 
-static auto get_uniforms(const ReflectedCode& reflected_code
-) -> std::vector<Shader::Uniform> {
+static auto get_uniforms(const ReflectedCode& reflected_code)
+    -> std::vector<Shader::Uniform> {
     std::vector<Shader::Uniform> result;
     for (size_t i = 0; i < reflected_code.m_modules.size(); i++) {
         const ReflectedModule& module = reflected_code.m_modules[i];
@@ -75,8 +73,8 @@ static auto to_opengl(SHADER_STAGE type) -> GLenum {
     }
 }
 
-static auto get_reflected_modules(const std::vector<OGLW_Shader>& modules
-) -> std::vector<ReflectedModule> {
+static auto get_reflected_modules(const std::vector<OGLW_Shader>& modules)
+    -> std::vector<ReflectedModule> {
     std::vector<ReflectedModule> reflected_modules;
     reflected_modules.resize(modules.size());
     for (u32 i = 0; i < modules.size(); i++) {
@@ -122,7 +120,7 @@ static auto gl_type_enum_to_string(GLenum type) -> std::string {
         case GL_SAMPLER_1D_ARRAY: result = "sampler1DArray"; break;
         case GL_SAMPLER_2D_ARRAY: result = "sampler2DArray"; break;
         case GL_SAMPLER_1D_ARRAY_SHADOW: result = "sampler1DArrayShadow"; break;
-        case GL_SAMPLER_2D_ARRAY_SHADOW: result = "sampler2DArray"; break;
+        case GL_SAMPLER_2D_ARRAY_SHADOW: result = "sampler2DArrayShadow"; break;
         case GL_SAMPLER_2D_MULTISAMPLE: result = "sampler2DMS"; break;
         case GL_SAMPLER_2D_MULTISAMPLE_ARRAY: result = "sampler2DMSArray"; break;
         default: Logger::err("Unknown type {}", type); assert(false);
@@ -165,7 +163,7 @@ Shader::Shader(OpenGL_Context& context, const Desc& desc)
     }
 
     for (u32 i = 0; i < m_shaders.size(); i++) { m_program.detach(m_shaders[i]); }
-
+    Logger::debug("OpenGL Shader successfully compiled and linked");
     // Now the shader is ready to be used
 
     // Here we create the various graphics objects

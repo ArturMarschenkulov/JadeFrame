@@ -59,7 +59,7 @@ private:
     auto set_attrib_binding(const u32 index, const u32 binding) const -> void;
 
 public:
-    GLuint m_ID;
+    GLuint m_ID = 0;
 
     VertexFormat m_vertex_format;
 };
@@ -221,21 +221,24 @@ inline auto to_GLenum(ATTACHMENT attachment) -> GLenum {
 
 inline auto
 Framebuffer::attach(ATTACHMENT attachment, u32 i, const Texture& texture) const -> void {
-
-    assert(i < GL_MAX_COLOR_ATTACHMENTS - 1);
+    GLint maxColors = 0;
+    glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxColors);
+    assert(static_cast<GLint>(i) < maxColors);
 
     GLenum attach = to_GLenum(attachment);
-    attach == GL_COLOR_ATTACHMENT0 ? attach += i : attach;
+    if (attach == GL_COLOR_ATTACHMENT0) { attach = GL_COLOR_ATTACHMENT0 + i; }
     glNamedFramebufferTexture(m_ID, attach, texture.m_id, 0);
 }
 
 inline auto
 Framebuffer::attach(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer) const
     -> void {
-    assert(i < GL_MAX_COLOR_ATTACHMENTS - 1);
+    GLint maxColors = 0;
+    glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxColors);
+    assert(static_cast<GLint>(i) < maxColors);
 
     GLenum attach = to_GLenum(attachment);
-    attach == GL_COLOR_ATTACHMENT0 ? attach += i : attach;
+    if (attach == GL_COLOR_ATTACHMENT0) { attach = GL_COLOR_ATTACHMENT0 + i; }
     glNamedFramebufferRenderbuffer(m_ID, attach, GL_RENDERBUFFER, renderbuffer.m_ID);
 }
 

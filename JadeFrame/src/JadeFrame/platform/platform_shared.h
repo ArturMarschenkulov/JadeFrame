@@ -90,7 +90,7 @@ consteval auto get_compiler_info() -> CompilerInfo {
 #endif
 
     constexpr CompilerInfo info = {
-        name, {major, minor, patch}
+        .name = name, .version = {.major = major, .minor = minor, .patch = patch}
     };
     return info;
 } // namespace JadeFrame
@@ -160,11 +160,10 @@ public:
 
     // time stuff
     [[nodiscard]] virtual auto get_time() const -> f64 = 0;
-    virtual auto calc_elapsed() -> f64 = 0;
-    virtual auto frame_control(f64 delta_time) -> void = 0;
-    virtual auto set_FPS(f64 FPS) -> void = 0;
+    virtual auto               calc_elapsed() -> f64 = 0;
+    virtual auto               frame_control(f64 delta_time) -> void = 0;
+    virtual auto               set_FPS(f64 FPS) -> void = 0;
 };
-
 
 #if defined(JF_PLATFORM_LINUX)
     #include <dlfcn.h>
