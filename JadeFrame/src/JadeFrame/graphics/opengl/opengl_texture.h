@@ -5,7 +5,7 @@
 namespace JadeFrame {
 namespace opengl {
 
-class OpenGL_Context;
+class Context;
 
 class Texture {
 public:
@@ -21,8 +21,8 @@ public:
     Texture(Texture&& other) noexcept;
     auto operator=(Texture&& other) noexcept -> Texture&;
 
-    explicit Texture(opengl::OpenGL_Context& context);
-    Texture(opengl::OpenGL_Context& context, void* data, v2u32 size, u32 component_num);
+    explicit Texture(opengl::Context& context);
+    Texture(opengl::Context& context, void* data, v2u32 size, u32 component_num);
 
     auto resize(u32 width, u32 height, u32 depth) -> void;
 
@@ -61,7 +61,7 @@ public:
     GLenum m_type;
 
     v2u32 m_size;
-    OpenGL_Context* m_context = nullptr;
+    Context* m_context = nullptr;
 };
 } // namespace opengl
 } // namespace JadeFrame

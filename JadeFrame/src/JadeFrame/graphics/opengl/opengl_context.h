@@ -103,11 +103,11 @@ public:
     auto swap_buffers() -> void;
 };
 
-class OpenGL_Context {
+class Context {
 public:
-    OpenGL_Context() = default;
-    explicit OpenGL_Context(Window* window);
-    ~OpenGL_Context();
+    Context() = default;
+    explicit Context(Window* window);
+    ~Context();
 
 public:
     SwapchainContext m_swapchain_context;

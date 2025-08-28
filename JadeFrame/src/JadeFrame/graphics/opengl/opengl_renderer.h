@@ -52,7 +52,7 @@ private:
     ) -> void;
 
 public:
-    opengl::OpenGL_Context m_context;
+    opengl::Context m_context;
     RenderSystem*          m_system = nullptr;
 
     struct RenderTarget {
@@ -64,9 +64,9 @@ public:
         opengl::Buffer*         m_index_buffer;
         Mesh                    m_mesh;
         ShaderHandle*           m_shader;
-        opengl::OpenGL_Context* m_context;
+        opengl::Context* m_context;
 
-        auto init(opengl::OpenGL_Context* context, RenderSystem* system) -> void;
+        auto init(opengl::Context* context, RenderSystem* system) -> void;
         auto render(RenderSystem* system) -> void;
     } m_render_target;
 };

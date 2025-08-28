@@ -39,14 +39,14 @@ auto Buffer::destroy() -> void {
     m_id = 0;
 }
 
-auto Buffer::create(opengl::OpenGL_Context& context, TYPE type, const void* data, GLuint size)
+auto Buffer::create(opengl::Context& context, TYPE type, const void* data, GLuint size)
     -> Buffer {
 
     Buffer buffer = Buffer(context, type, data, size);
     return buffer;
 }
 
-Buffer::Buffer(opengl::OpenGL_Context& context, TYPE type, const void* data, GLuint size)
+Buffer::Buffer(opengl::Context& context, TYPE type, const void* data, GLuint size)
     : m_context(&context)
 
     , m_type(type)

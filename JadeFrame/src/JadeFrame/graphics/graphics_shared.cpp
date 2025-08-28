@@ -191,7 +191,7 @@ GPUBuffer::GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage)
 
     switch (system->m_api) {
         case GRAPHICS_API::OPENGL: {
-            OpenGL_Context* device =
+            opengl::Context* device =
                 &(dynamic_cast<OpenGL_Renderer*>(system->m_renderer))->m_context;
 
             m_handle = device->create_buffer(to_opengl(usage), data, size);
@@ -272,7 +272,7 @@ TextureHandle::~TextureHandle() {
 auto TextureHandle::init(void* context) -> void {
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            auto* d = static_cast<OpenGL_Context*>(context);
+            auto* d = static_cast<opengl::Context*>(context);
             m_handle = d->create_texture(m_data, m_size, m_num_components);
         } break;
         case GRAPHICS_API::VULKAN: {
@@ -412,8 +412,8 @@ auto RenderSystem::register_texture(Image& image) -> TextureHandle* {
     tex.m_api = m_api;
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            auto*           renderer = dynamic_cast<OpenGL_Renderer*>(m_renderer);
-            OpenGL_Context* device = &renderer->m_context;
+            auto*                   renderer = dynamic_cast<OpenGL_Renderer*>(m_renderer);
+            opengl::Context* device = &renderer->m_context;
 
             tex.m_handle =
                 device->create_texture(tex.m_data, tex.m_size, tex.m_num_components);
@@ -451,8 +451,8 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
 
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            auto* ren = dynamic_cast<OpenGL_Renderer*>(m_renderer);
-            auto* ctx = (OpenGL_Context*)&ren->m_context;
+            auto*                   ren = dynamic_cast<OpenGL_Renderer*>(m_renderer);
+            opengl::Context* ctx = &ren->m_context;
 
             opengl::Shader::Desc shader_desc;
 

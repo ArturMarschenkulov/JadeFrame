@@ -198,7 +198,7 @@ auto OpenGL_Renderer::take_screenshot(const char* /*filename*/) -> Image {
 }
 
 auto OpenGL_Renderer::RenderTarget::init(
-    opengl::OpenGL_Context* context,
+    opengl::Context* context,
     RenderSystem*           system
 ) -> void {
     m_context = context;

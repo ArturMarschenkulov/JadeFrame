@@ -37,13 +37,13 @@ public:
     Shader(Shader&&) noexcept = delete;
     auto operator=(Shader&&) -> Shader& = delete;
 
-    Shader(opengl::OpenGL_Context& context, const Desc& desc);
+    Shader(opengl::Context& context, const Desc& desc);
 
 public:
     OGLW_Program             m_program;
     std::vector<OGLW_Shader> m_shaders;
 
-    OpenGL_Context* m_context = nullptr;
+    Context* m_context = nullptr;
 
 public:
     OGLW_VertexArray m_vertex_array;
@@ -60,13 +60,13 @@ public:
     Material(Material&&) noexcept = default;
     auto operator=(Material&&) -> Material& = default;
 
-    Material(opengl::OpenGL_Context& context, Shader& shader, Texture* texture);
+    Material(opengl::Context& context, Shader& shader, Texture* texture);
 
 public:
     auto write_ub(u32 index, const void* data, size_t size, size_t offset) -> void;
 
 public:
-    OpenGL_Context* m_context = nullptr;
+    Context* m_context = nullptr;
 
     std::map<u32, opengl::Buffer*> m_uniform_buffers;
 };

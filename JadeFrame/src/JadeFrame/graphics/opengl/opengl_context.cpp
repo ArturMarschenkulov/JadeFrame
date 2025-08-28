@@ -12,7 +12,7 @@
 
 namespace JadeFrame {
 namespace opengl {
-auto OpenGL_Context::bind_uniform_buffer_to_location(opengl::Buffer& buffer, u32 location)
+auto Context::bind_uniform_buffer_to_location(opengl::Buffer& buffer, u32 location)
     -> void {
     if (buffer.m_type != opengl::Buffer::TYPE::UNIFORM) {
         Logger::err("Buffer is not of type uniform!");
@@ -28,46 +28,46 @@ auto OpenGL_Context::bind_uniform_buffer_to_location(opengl::Buffer& buffer, u32
     m_bound_uniform_buffer_locations[location] = &buffer;
 }
 
-auto OpenGL_Context::bind_framebuffer(opengl::Framebuffer& framebuffer) -> void {
+auto Context::bind_framebuffer(opengl::Framebuffer& framebuffer) -> void {
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.m_ID);
     m_bound_framebuffer = &framebuffer;
 }
 
-auto OpenGL_Context::unbind_framebuffer() -> void {
+auto Context::unbind_framebuffer() -> void {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     m_bound_framebuffer = nullptr;
 }
 
-auto OpenGL_Context::bind_renderbuffer(opengl::Renderbuffer& renderbuffer) -> void {
+auto Context::bind_renderbuffer(opengl::Renderbuffer& renderbuffer) -> void {
     glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer.m_ID);
     m_bound_renderbuffer = &renderbuffer;
 }
 
-auto OpenGL_Context::unbind_renderbuffer() -> void {
+auto Context::unbind_renderbuffer() -> void {
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     m_bound_renderbuffer = nullptr;
 }
 
-auto OpenGL_Context::bind_shader(opengl::Shader& shader) -> void {
+auto Context::bind_shader(opengl::Shader& shader) -> void {
     assert(shader.m_program.m_ID != 0);
     if (m_bound_shader == &shader) { return; }
     glUseProgram(shader.m_program.m_ID);
     m_bound_shader = &shader;
 }
 
-auto OpenGL_Context::bind_vertex_array(OGLW_VertexArray& vao) -> void {
+auto Context::bind_vertex_array(OGLW_VertexArray& vao) -> void {
     assert(vao.m_ID != 0);
     if (m_bound_vertex_array == &vao) { return; }
     glBindVertexArray(vao.m_ID);
     m_bound_vertex_array = &vao;
 }
 
-auto OpenGL_Context::unbind_vertex_array() -> void {
+auto Context::unbind_vertex_array() -> void {
     glBindVertexArray(0);
     m_bound_vertex_array = nullptr;
 }
 
-auto OpenGL_Context::bind_texture_to_unit(Texture& texture, u32 unit) -> void {
+auto Context::bind_texture_to_unit(Texture& texture, u32 unit) -> void {
     // Search through `m_texture_units` and find `unit`.
     if (!m_texture_units.contains(unit)) {
         glBindTextureUnit(unit, texture.m_id);
@@ -82,20 +82,20 @@ auto OpenGL_Context::bind_texture_to_unit(Texture& texture, u32 unit) -> void {
     }
 }
 
-auto OpenGL_Context::unbind_texture_from_unit(Texture& texture, u32 unit) -> void {
+auto Context::unbind_texture_from_unit(Texture& texture, u32 unit) -> void {
 
     glBindTextureUnit(unit, 0);
     m_texture_units[unit] = nullptr;
 }
 
-auto OpenGL_Context::create_texture() -> Texture* { return new Texture(*this); }
+auto Context::create_texture() -> Texture* { return new Texture(*this); }
 
-auto OpenGL_Context::create_texture(void* data, v2u32 size, u32 component_num)
+auto Context::create_texture(void* data, v2u32 size, u32 component_num)
     -> Texture* {
     return new Texture(*this, data, size, component_num);
 }
 
-auto OpenGL_Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
+auto Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
     -> opengl::Buffer* {
     static u32 id = 0;
     auto [it, inserted] =
@@ -109,17 +109,17 @@ auto OpenGL_Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 si
     return &it->second;
 }
 
-auto OpenGL_Context::create_framebuffer() -> opengl::Framebuffer* {
+auto Context::create_framebuffer() -> opengl::Framebuffer* {
     auto* buffer = new opengl::Framebuffer(*this);
     return buffer;
 }
 
-auto OpenGL_Context::create_renderbuffer() -> opengl::Renderbuffer* {
+auto Context::create_renderbuffer() -> opengl::Renderbuffer* {
     auto* buffer = new opengl::Renderbuffer();
     return buffer;
 }
 
-OpenGL_Context::OpenGL_Context(Window* window) {
+Context::Context(Window* window) {
 #ifdef WIN32
     auto* win = dynamic_cast<const JadeFrame::win32::NativeWindow*>(
         window->m_native_window.get()
@@ -203,7 +203,7 @@ OpenGL_Context::OpenGL_Context(Window* window) {
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_texture_units);
 }
 
-OpenGL_Context::~OpenGL_Context() {}
+Context::~Context() {}
 
 auto SwapchainContext::swap_buffers() -> void {
 #ifdef _WIN32

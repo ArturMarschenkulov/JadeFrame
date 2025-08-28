@@ -43,7 +43,7 @@ public:
     OGLW_VertexArray(OGLW_VertexArray&& other) noexcept;
     auto operator=(OGLW_VertexArray&&) noexcept -> OGLW_VertexArray&;
 
-    OGLW_VertexArray(opengl::OpenGL_Context* context, const VertexFormat& vertex_format);
+    OGLW_VertexArray(opengl::Context* context, const VertexFormat& vertex_format);
 
     auto bind_buffer(const opengl::Buffer& buffer) const -> void;
     auto set_layout(const VertexFormat& vertex_format) -> void;
@@ -181,7 +181,7 @@ public:
 
     auto operator=(Framebuffer&&) noexcept -> Framebuffer&;
 
-    explicit Framebuffer(opengl::OpenGL_Context& context);
+    explicit Framebuffer(opengl::Context& context);
 
     auto attach(ATTACHMENT attachment, u32 i, const Texture& texture) const -> void;
     auto attach(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer) const
@@ -202,7 +202,7 @@ inline Framebuffer::Framebuffer() {
     // glCreateFramebuffers(1, &m_ID);
 }
 
-inline Framebuffer::Framebuffer(opengl::OpenGL_Context&) { glCreateFramebuffers(1, &m_ID); }
+inline Framebuffer::Framebuffer(opengl::Context&) { glCreateFramebuffers(1, &m_ID); }
 
 inline Framebuffer::~Framebuffer() {
     glDeleteFramebuffers(1, &m_ID);
