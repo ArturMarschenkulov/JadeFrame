@@ -185,9 +185,9 @@ auto Example_0::on_init() -> void {
         jf::MaterialHandle* material_color_flat =
             m_render_system.register_material(shader_color_flat, nullptr);
 
-        jf::Mesh::Desc vdf_desc;
+        jf::MeshBuilder::Desc vdf_desc;
         vdf_desc.has_normals = false;
-        jf::Mesh rectangle_vd = jf::Mesh::rectangle(
+        jf::Mesh rectangle_vd = jf::MeshBuilder::rectangle(
             jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc
         );
         rectangle_vd.set_color(jf::RGBAColor::solid_blue());

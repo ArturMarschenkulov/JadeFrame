@@ -169,26 +169,27 @@ auto Example_Texture_Quad::on_init() -> void {
     jf::MaterialHandle* material_flat =
         m_render_system.register_material(shader_flat, nullptr);
 
-    jf::Mesh::Desc vdf_desc;
+    jf::MeshBuilder::Desc vdf_desc;
     vdf_desc.has_normals = true;
-    jf::Mesh vd_rectangle =
-        jf::Mesh::rectangle(jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc);
+    jf::Mesh vd_rectangle = jf::MeshBuilder::rectangle(
+        jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc
+    );
     vd_rectangle.set_color(jf::RGBAColor::solid_blue());
     jf::GPUMeshData* mesh_rectangle = m_render_system.register_mesh(vd_rectangle);
 
-    jf::Mesh::Desc vdf_desc_;
+    jf::MeshBuilder::Desc vdf_desc_;
     vdf_desc_.has_normals = false;
     vdf_desc_.has_texture_coordinates = false;
 
     jf::Mesh vd_gizmo_x =
-        jf::Mesh::rectangle(jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_);
+        jf::MeshBuilder::rectangle(jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_);
     vd_gizmo_x.set_color(jf::RGBAColor::solid_red());
 
     jf::Mesh vd_gizmo_y =
-        jf::Mesh::rectangle(jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_);
+        jf::MeshBuilder::rectangle(jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_);
     vd_gizmo_y.set_color(jf::RGBAColor::solid_green());
     jf::Mesh vd_gizmo_z =
-        jf::Mesh::rectangle(jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_);
+        jf::MeshBuilder::rectangle(jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_);
     vd_gizmo_z.set_color(jf::RGBAColor::solid_blue());
 
     jf::GPUMeshData* mesh_gizmo_x = m_render_system.register_mesh(vd_gizmo_x);

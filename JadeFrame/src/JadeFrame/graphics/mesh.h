@@ -14,46 +14,8 @@ struct Vertex {
     v2        tex_coord;
 };
 
-/// To be removed. Use [`Mesh`] instead.
-class VertexData {
-public:
-    std::vector<v3>        m_positions;
-    std::vector<RGBAColor> m_colors;
-    std::vector<v2>        m_texture_coordinates;
-    std::vector<v3>        m_normals;
-
-    std::vector<u32> m_indices;
-
-    struct Desc {
-        bool has_position = true; // NOTE: Probably unneccessary
-        bool has_texture_coordinates = true;
-        bool has_indices = false;
-        bool has_normals = true;
-    };
-
-    auto set_color(const RGBAColor& color) -> void {
-        auto num_vertices = m_positions.size();
-        m_colors.clear();
-        m_colors.resize(num_vertices, color);
-    }
-
-    static auto line(const v3& pos1, const v3& pos2) -> VertexData;
-
-    static auto rectangle(
-        const v3&  pos,
-        const v3&  size,
-        const Desc desc = Desc{true, true, false, true}
-    ) -> VertexData;
-    static auto triangle(const v3& pos1, const v3& pos2, const v3& pos3) -> VertexData;
-    static auto circle(const v3& position, const f32 radius, const u32 numSegments)
-        -> VertexData;
-
-    static auto cube(const v3& pos, const v3& size) -> VertexData;
-};
-
 auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::vector<f32>;
-auto convert_into_data(const VertexData& vertex_data, const bool interleaved)
-    -> std::vector<f32>;
+class MeshBuilder;
 
 class Mesh {
 public:
@@ -114,6 +76,11 @@ public:
         );
     }
 
+    static auto builder() -> MeshBuilder;
+};
+
+class MeshBuilder {
+public:
     struct Desc {
         bool has_position = true; // NOTE: Probably unneccessary
         bool has_texture_coordinates = true;
@@ -123,9 +90,16 @@ public:
 
     static auto rectangle_(const v3& pos, const v3& size, const Desc desc) -> Mesh;
     static auto rectangle(const v3& pos, const v3& size, const Desc desc) -> Mesh;
+    static auto line(const v3& pos1, const v3& pos2) -> Mesh;
+    static auto triangle(const v3& pos1, const v3& pos2, const v3& pos3) -> Mesh;
+    static auto circle(const v3& position, const f32 radius, const u32 numSegments)
+        -> Mesh;
+    static auto cube(const v3& pos, const v3& size) -> Mesh;
+
+private:
 };
 
-static auto to_list(std::vector<v2> v2s) -> std::vector<f32> {
+static auto to_list(const std::vector<v2>& v2s) -> std::vector<f32> {
     std::vector<f32> result;
     result.reserve(v2s.size() * 2);
     for (const v2& v : v2s) {
@@ -135,7 +109,7 @@ static auto to_list(std::vector<v2> v2s) -> std::vector<f32> {
     return result;
 }
 
-static auto to_list(std::vector<v4> v2s) -> std::vector<f32> {
+static auto to_list(const std::vector<v4>& v2s) -> std::vector<f32> {
     std::vector<f32> result;
     result.reserve(v2s.size() * 4);
     for (const v4& v : v2s) {
@@ -147,7 +121,7 @@ static auto to_list(std::vector<v4> v2s) -> std::vector<f32> {
     return result;
 }
 
-static auto to_list(std::vector<v3> v3s) -> std::vector<f32> {
+static auto to_list(const std::vector<v3>& v3s) -> std::vector<f32> {
     std::vector<f32> result;
     result.reserve(v3s.size() * 3);
     for (const v3& v : v3s) {
@@ -158,7 +132,7 @@ static auto to_list(std::vector<v3> v3s) -> std::vector<f32> {
     return result;
 }
 
-static auto to_list(std::vector<RGBAColor> colors) -> std::vector<f32> {
+static auto to_list(const std::vector<RGBAColor>& colors) -> std::vector<f32> {
     std::vector<f32> result;
     result.reserve(colors.size() * 4);
     for (const RGBAColor& color : colors) {

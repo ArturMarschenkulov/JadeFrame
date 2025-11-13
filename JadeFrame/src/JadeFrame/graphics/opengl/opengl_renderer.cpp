@@ -197,10 +197,8 @@ auto OpenGL_Renderer::take_screenshot(const char* /*filename*/) -> Image {
     // t.detach();
 }
 
-auto OpenGL_Renderer::RenderTarget::init(
-    opengl::Context* context,
-    RenderSystem*           system
-) -> void {
+auto OpenGL_Renderer::RenderTarget::init(opengl::Context* context, RenderSystem* system)
+    -> void {
     m_context = context;
     {
         // TODO: the use of `GL_RGB8`, `GL_RGB` and `GL_UNSIGNED_BYTE` is hardcoded. Find
@@ -232,13 +230,13 @@ auto OpenGL_Renderer::RenderTarget::init(
         }
     }
 
-    Mesh::Desc vdf_desc;
+    MeshBuilder::Desc vdf_desc;
     vdf_desc.has_normals = false;
 
     const v2 viewport_pos = v2::create(-1.0F, -1.0F);
     const v2 viewport_size = v2::create(2.0F, 2.0F);
 
-    m_mesh = Mesh::rectangle_(
+    m_mesh = MeshBuilder::rectangle_(
         v3::create(viewport_pos.x, viewport_pos.y, 0.0F),
         v3::create(viewport_size.x, viewport_size.y, 0.0F),
         vdf_desc
