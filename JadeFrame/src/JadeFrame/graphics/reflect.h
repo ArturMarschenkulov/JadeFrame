@@ -55,7 +55,7 @@ struct ReflectedModule {
         -> ReflectedModule;
     static auto into_interface(const std::span<const ReflectedModule>& modules)
         -> ReflectedModule;
-    auto get_vertex_format() -> VertexFormat;
+    [[nodiscard]] auto get_vertex_format() const -> VertexFormat;
 };
 
 struct ReflectedCode {
