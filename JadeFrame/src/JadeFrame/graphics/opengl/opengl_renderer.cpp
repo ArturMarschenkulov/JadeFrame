@@ -236,7 +236,7 @@ auto OpenGL_Renderer::RenderTarget::init(opengl::Context* context, RenderSystem*
     const v2 viewport_pos = v2::create(-1.0F, -1.0F);
     const v2 viewport_size = v2::create(2.0F, 2.0F);
 
-    m_mesh = MeshBuilder::rectangle_(
+    m_mesh = MeshBuilder::rectangle_opengl(
         v3::create(viewport_pos.x, viewport_pos.y, 0.0F),
         v3::create(viewport_size.x, viewport_size.y, 0.0F),
         vdf_desc

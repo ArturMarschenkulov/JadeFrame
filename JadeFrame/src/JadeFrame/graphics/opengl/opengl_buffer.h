@@ -3,7 +3,6 @@
 #include "opengl_wrapper.h"
 
 namespace JadeFrame {
-struct Vertex;
 
 class OpenGL_Context;
 

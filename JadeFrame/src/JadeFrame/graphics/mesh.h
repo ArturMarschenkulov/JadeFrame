@@ -8,15 +8,11 @@
 
 namespace JadeFrame {
 
-struct Vertex {
-    v3        position;
-    RGBAColor color;
-    v2        tex_coord;
-};
-
-auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::vector<f32>;
 class MeshBuilder;
 
+// NOTE(artur): This type should be very ergonomic to use, as it is client facing. The
+// goal is not to be the most efficient, but the most ergonomic. As this will describe
+// other structures down the line.
 class Mesh {
 public:
     using VertexAttributeId = u32;
@@ -30,16 +26,18 @@ public:
         /// the format of the attribute
         SHADER_TYPE m_format;
 
-        [[nodiscard]] auto count() const -> u32 { return component_count(m_format); }
+        [[nodiscard]] auto count_components() const -> u32 {
+            return component_count(m_format);
+        }
     };
 
     struct AttributeData {
-        VertexAttribute m_attribute_id;
+        VertexAttribute m_attribute;
         // TODO: m_data could also be some other type like u32 or v3
         std::vector<f32> m_data;
 
         [[nodiscard]] auto count() const -> u32 {
-            return u32(m_data.size()) / m_attribute_id.count();
+            return u32(m_data.size()) / m_attribute.count_components();
         }
     };
 
@@ -88,7 +86,8 @@ public:
         bool has_normals = true;
     };
 
-    static auto rectangle_(const v3& pos, const v3& size, const Desc desc) -> Mesh;
+    // NOTE(artur): Rectangle for internal OpenGL code.
+    static auto rectangle_opengl(const v3& pos, const v3& size, const Desc desc) -> Mesh;
     static auto rectangle(const v3& pos, const v3& size, const Desc desc) -> Mesh;
     static auto line(const v3& pos1, const v3& pos2) -> Mesh;
     static auto triangle(const v3& pos1, const v3& pos2, const v3& pos3) -> Mesh;
@@ -149,5 +148,7 @@ static auto to_list(v4 v4) -> std::vector<f32> { return {v4.x, v4.y, v4.z, v4.w}
 static auto to_list(v3 v3) -> std::vector<f32> { return {v3.x, v3.y, v3.z}; }
 
 static auto to_list(v2 v2) -> std::vector<f32> { return {v2.x, v2.y}; }
+
+auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::vector<f32>;
 
 } // namespace JadeFrame

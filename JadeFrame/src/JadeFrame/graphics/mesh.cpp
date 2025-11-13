@@ -8,7 +8,7 @@
 
 namespace JadeFrame {
 
-enum class PRIMITIVE_TOPOLOGY {
+enum class PRIMITIVE_TOPOLOGY : u8 {
     POINT_LIST,
     LINE_LIST,
     LINE_STRIP,
@@ -21,7 +21,8 @@ static auto is_strip(PRIMITIVE_TOPOLOGY topology) -> bool {
            topology == PRIMITIVE_TOPOLOGY::TRIANGLE_STRIP;
 }
 
-auto MeshBuilder::rectangle_(const v3& pos, const v3& size, const Desc desc) -> Mesh {
+auto MeshBuilder::rectangle_opengl(const v3& pos, const v3& size, const Desc desc)
+    -> Mesh {
     Mesh mesh;
     if (desc.has_indices) {
         std::vector<v3> positions;
@@ -248,8 +249,8 @@ auto MeshBuilder::circle(const v3& position, const f32 radius, const u32 numSegm
     constexpr const f64 PI = std::numbers::pi;
 
     const f32 theta = 2.0F * static_cast<const f32>(PI) / static_cast<f32>(numSegments);
-    const f32 cos = cosf(theta); // calculate the x component
-    const f32 sin = sinf(theta); // calculate the y component
+    const f32 c = cosf(theta); // calculate the x component
+    const f32 s = sinf(theta); // calculate the y component
 
     Mesh mesh;
 
@@ -263,8 +264,8 @@ auto MeshBuilder::circle(const v3& position, const f32 radius, const u32 numSegm
             v3::create(x + position.x, y + position.y, position.z); // output vertex
 
         const f32 t = x;
-        x = (cos * x) - (sin * y);
-        y = (sin * t) + (cos * y);
+        x = (c * x) - (s * y);
+        y = (s * t) + (c * y);
     }
     std::vector<f32> position_data = to_list(positions);
     mesh.m_attributes[Mesh::POSITION.m_id] =
@@ -278,7 +279,7 @@ auto MeshBuilder::circle(const v3& position, const f32 radius, const u32 numSegm
         auto base_index = 3 * i;
         indices[base_index + 0] = 0;
         indices[base_index + 1] = i + 1;
-        indices[base_index + 2] = (i + 2);
+        indices[base_index + 2] = ((i + 1) % numSegments) + 1; // wrap
     }
     indices[num_index - 1] = indices[1];
 
@@ -425,7 +426,7 @@ auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::vector<
         auto calc_combined_attribute_count = [&](const Mesh& mesh) -> u32 {
             u32 combined_attribute_count = 0;
             for (const auto& [id, data] : mesh.m_attributes) {
-                u32 size = component_count(data.m_attribute_id.m_format);
+                u32 size = data.m_attribute.count_components();
                 u32 amount = data.m_data.size() / size;
                 combined_attribute_count += amount * size;
             }
@@ -434,16 +435,16 @@ auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::vector<
         u32 combined_attribute_count = calc_combined_attribute_count(mesh);
 
         u32 position_count = mesh.m_attributes.at(Mesh::POSITION.m_id).m_data.size() /
-                             component_count(Mesh::POSITION.m_format);
+                             Mesh::POSITION.count_components();
 
         std::vector<MeshVertex> vertices;
         vertices.resize(position_count);
         for (const auto& [id, data] : mesh.m_attributes) {
-            u32 size = component_count(data.m_attribute_id.m_format);
+            u32 size = data.m_attribute.count_components();
             u32 amount = data.m_data.size() / size;
             for (u32 i = 0; i < amount; i++) {
                 MeshVertex& vertex = vertices[i];
-                vertex.m_attributes[id].m_attribute_id = data.m_attribute_id;
+                vertex.m_attributes[id].m_attribute = data.m_attribute;
 
                 for (u32 j = 0; j < size; j++) {
                     vertex.m_attributes[id].m_data.push_back(data.m_data[i * size + j]);
