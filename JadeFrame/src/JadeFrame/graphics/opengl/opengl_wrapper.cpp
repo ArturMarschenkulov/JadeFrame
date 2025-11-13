@@ -10,7 +10,7 @@
 #define GL_SHADER_BINARY_FORMAT_SPIR_V_ARB 0x9551
 
 namespace JadeFrame {
-static auto to_opengl_base_type(const SHADER_TYPE type) -> GLenum {
+static constexpr auto to_opengl_base_type(const SHADER_TYPE type) noexcept -> GLenum {
     GLenum result;
     switch (type) {
         case SHADER_TYPE::F32:
@@ -25,7 +25,7 @@ static auto to_opengl_base_type(const SHADER_TYPE type) -> GLenum {
     return result;
 }
 
-static auto to_opengl(SHADER_STAGE type) -> GLenum {
+static constexpr auto to_opengl(SHADER_STAGE type) noexcept -> GLenum {
     switch (type) {
         case SHADER_STAGE::VERTEX: return GL_VERTEX_SHADER;
         case SHADER_STAGE::FRAGMENT: return GL_FRAGMENT_SHADER;
@@ -35,7 +35,7 @@ static auto to_opengl(SHADER_STAGE type) -> GLenum {
     }
 }
 
-static auto gl_type_to_jf_type(GLenum type) -> SHADER_STAGE {
+static constexpr auto gl_type_to_jf_type(GLenum type) noexcept -> SHADER_STAGE {
     switch (type) {
         case GL_VERTEX_SHADER: return SHADER_STAGE::VERTEX;
         case GL_FRAGMENT_SHADER: return SHADER_STAGE::FRAGMENT;
@@ -46,15 +46,21 @@ static auto gl_type_to_jf_type(GLenum type) -> SHADER_STAGE {
 }
 
 OGLW_VertexArray::OGLW_VertexArray(
-    opengl::Context* context,
-    const VertexFormat&     vertex_format
+    opengl::Context*    context,
+    const VertexFormat& vertex_format
 ) {
     (void)context;
     glCreateVertexArrays(1, &m_ID);
     this->set_layout(vertex_format);
 }
 
-OGLW_VertexArray::~OGLW_VertexArray() { glDeleteVertexArrays(1, &m_ID); }
+auto OGLW_VertexArray::destroy() -> void {
+    if (m_ID == 0) { return; }
+    glDeleteVertexArrays(1, &m_ID);
+    m_ID = 0;
+}
+
+OGLW_VertexArray::~OGLW_VertexArray() { this->destroy(); }
 
 OGLW_VertexArray::OGLW_VertexArray(OGLW_VertexArray&& other) noexcept
     : m_ID(std::exchange(other.m_ID, 0))
@@ -62,6 +68,7 @@ OGLW_VertexArray::OGLW_VertexArray(OGLW_VertexArray&& other) noexcept
 
 auto OGLW_VertexArray::operator=(OGLW_VertexArray&& other) noexcept -> OGLW_VertexArray& {
     if (this == &other) { return *this; }
+    this->destroy();
     m_ID = std::exchange(other.m_ID, 0);
     m_vertex_format = std::exchange(other.m_vertex_format, {});
     return *this;
@@ -128,9 +135,6 @@ auto OGLW_VertexArray::set_attrib_format(
         } break;
         default: assert(false && "Unsupported type"); break;
     }
-    glVertexArrayAttribFormat(
-        m_ID, index, count, base_type, normalized ? GL_TRUE : GL_FALSE, offset
-    );
 }
 
 auto OGLW_VertexArray::set_attrib_binding(const u32 index, const u32 binding) const
@@ -181,12 +185,16 @@ OGLW_Shader::OGLW_Shader(OGLW_Shader&& other) noexcept
 
 auto OGLW_Shader::operator=(OGLW_Shader&& other) noexcept -> OGLW_Shader& {
     if (this == &other) { return *this; }
+    this->destroy();
     m_ID = std::exchange(other.m_ID, 0);
     m_reflected = std::exchange(other.m_reflected, {});
     return *this;
 }
 
-OGLW_Shader::~OGLW_Shader() {
+OGLW_Shader::~OGLW_Shader() { this->destroy(); }
+
+auto OGLW_Shader::destroy() -> void {
+    if (m_ID == 0) { return; }
     glDeleteShader(m_ID);
     m_ID = 0;
 }
@@ -218,19 +226,19 @@ auto OGLW_Shader::compile_binary() -> void {
     glSpecializeShader(m_ID, "main", 0, nullptr, nullptr);
 }
 
-auto OGLW_Shader::get_info(GLenum pname) -> GLint {
+auto OGLW_Shader::get_info(GLenum pname) const -> GLint {
     GLint result;
     glGetShaderiv(m_ID, pname, &result);
     return result;
 }
 
-auto OGLW_Shader::get_compile_status() -> GLint {
+auto OGLW_Shader::get_compile_status() const -> GLint {
     GLint is_compiled = GL_FALSE;
     glGetShaderiv(m_ID, GL_COMPILE_STATUS, &is_compiled);
     return is_compiled;
 }
 
-auto OGLW_Shader::get_info_log() -> std::string {
+auto OGLW_Shader::get_info_log() const -> std::string {
     // const u32 N = 1024;
 
     // GLchar info_log[N];
@@ -255,10 +263,23 @@ auto OGLW_Shader::get_info_log() -> std::string {
 OGLW_Program::OGLW_Program()
     : m_ID(glCreateProgram()) {}
 
-OGLW_Program::~OGLW_Program() {
+OGLW_Program::OGLW_Program(OGLW_Program&& other) noexcept
+    : m_ID(std::exchange(other.m_ID, 0)) {}
+
+auto OGLW_Program::operator=(OGLW_Program&& other) noexcept -> OGLW_Program& {
+    if (this == &other) { return *this; }
+    this->destroy();
+    m_ID = std::exchange(other.m_ID, 0);
+    return *this;
+}
+
+auto OGLW_Program::destroy() -> void {
+    if (m_ID == 0) { return; }
     glDeleteProgram(m_ID);
     m_ID = 0;
 }
+
+OGLW_Program::~OGLW_Program() { this->destroy(); }
 
 auto OGLW_Program::bind() const -> void {
     assert(m_ID != 0);
@@ -287,7 +308,7 @@ auto OGLW_Program::validate() const -> bool {
     glValidateProgram(m_ID);
 
     GLint is_validated = GL_FALSE;
-    glGetProgramiv(m_ID, GL_VALIDATE_STATUS, (i32*)&is_validated);
+    glGetProgramiv(m_ID, GL_VALIDATE_STATUS, &is_validated);
     return is_validated == GL_TRUE;
 }
 
@@ -310,17 +331,16 @@ auto OGLW_Program::get_info(GLenum pname) const -> GLint {
 }
 
 auto OGLW_Program::get_info_log() const -> std::string {
-    const u32 N = 1024;
+    GLint len = 0;
+    glGetProgramiv(m_ID, GL_INFO_LOG_LENGTH, &len);
 
-    GLchar info_log[N];
-    i32    returned_length = 0;
-    glGetProgramInfoLog(m_ID, N, &returned_length, &info_log[0]);
-    if (returned_length > N) {
-        Logger::warn("Info log for program {} was truncated", m_ID);
-    }
+    std::string log;
+    log.resize(std::max(1, len));
+    GLsizei written = 0;
 
-    std::string result(info_log);
-    return result;
+    glGetProgramInfoLog(m_ID, len, &written, log.data());
+    log.resize(written);
+    return log;
 }
 
 } // namespace JadeFrame

@@ -45,6 +45,10 @@ public:
 
     OGLW_VertexArray(opengl::Context* context, const VertexFormat& vertex_format);
 
+private:
+    auto destroy() -> void;
+
+public:
     auto bind_buffer(const opengl::Buffer& buffer) const -> void;
     auto set_layout(const VertexFormat& vertex_format) -> void;
 
@@ -80,13 +84,17 @@ struct OGLW_Shader {
 
     explicit OGLW_Shader(const GLenum type, const std::vector<u32>& binary);
 
-    auto set_source(const std::string& source_code) -> void;
-    auto compile() -> void;
-    auto set_binary(const std::vector<u32>& binary) -> void;
-    auto compile_binary() -> void;
-    auto get_info(GLenum pname) -> GLint;
-    auto get_compile_status() -> GLint;
-    auto get_info_log() -> std::string;
+private:
+    auto destroy() -> void;
+
+public:
+    auto               set_source(const std::string& source_code) -> void;
+    auto               compile() -> void;
+    auto               set_binary(const std::vector<u32>& binary) -> void;
+    auto               compile_binary() -> void;
+    [[nodiscard]] auto get_info(GLenum pname) const -> GLint;
+    [[nodiscard]] auto get_compile_status() const -> GLint;
+    [[nodiscard]] auto get_info_log() const -> std::string;
 
 public:
     GLuint          m_ID = 0;
@@ -103,9 +111,13 @@ struct OGLW_Program {
     OGLW_Program(const OGLW_Program&) = delete;
     auto operator=(const OGLW_Program&) -> OGLW_Program& = delete;
 
-    OGLW_Program(OGLW_Program&& other) noexcept = delete;
-    auto operator=(OGLW_Program&&) -> OGLW_Program& = delete;
+    OGLW_Program(OGLW_Program&& other) noexcept;
+    auto operator=(OGLW_Program&&) noexcept -> OGLW_Program&;
 
+private:
+    auto destroy() -> void;
+
+public:
     auto bind() const -> void;
     auto unbind() const -> void;
     auto attach(const OGLW_Shader& shader) const -> void;
@@ -138,8 +150,13 @@ public:
     Renderbuffer(const Renderbuffer&) = delete;
     auto operator=(const Renderbuffer&) noexcept -> Renderbuffer& = delete;
 
-    auto operator=(Renderbuffer&&) noexcept -> Renderbuffer& = delete;
+    Renderbuffer(Renderbuffer&& other) noexcept;
+    auto operator=(Renderbuffer&&) noexcept -> Renderbuffer&;
 
+private:
+    auto destroy() -> void;
+
+public:
     auto store(GLenum internal_format, GLsizei width, GLsizei height) const -> void;
 
     GLuint m_ID = 0;
@@ -150,9 +167,22 @@ private:
 
 inline Renderbuffer::Renderbuffer() { glCreateRenderbuffers(1, &m_ID); }
 
-inline Renderbuffer::~Renderbuffer() {
+inline Renderbuffer::~Renderbuffer() { this->destroy(); }
+
+inline auto Renderbuffer::destroy() -> void {
+    if (m_ID == 0) { return; }
     glDeleteRenderbuffers(1, &m_ID);
     m_ID = 0;
+}
+
+inline Renderbuffer::Renderbuffer(Renderbuffer&& other) noexcept
+    : m_ID(std::exchange(other.m_ID, 0)) {}
+
+inline auto Renderbuffer::operator=(Renderbuffer&& other) noexcept -> Renderbuffer& {
+    if (this == &other) { return *this; }
+    this->destroy();
+    m_ID = std::exchange(other.m_ID, 0);
+    return *this;
 }
 
 inline auto
@@ -179,10 +209,19 @@ public:
     Framebuffer(const Framebuffer&) = delete;
     auto operator=(const Framebuffer&) noexcept -> Framebuffer& = delete;
 
+    Framebuffer(Framebuffer&& other) noexcept;
     auto operator=(Framebuffer&&) noexcept -> Framebuffer&;
 
     explicit Framebuffer(opengl::Context& context);
 
+private:
+    auto destroy() -> void {
+        if (m_ID == 0) { return; }
+        glDeleteFramebuffers(1, &m_ID);
+        m_ID = 0;
+    }
+
+public:
     auto attach(ATTACHMENT attachment, u32 i, const Texture& texture) const -> void;
     auto attach(ATTACHMENT attachment, u32 i, const Renderbuffer& renderbuffer) const
         -> void;
@@ -194,6 +233,8 @@ public:
 };
 
 inline auto Framebuffer::operator=(Framebuffer&& other) noexcept -> Framebuffer& {
+    if (this == &other) { return *this; }
+    this->destroy();
     m_ID = std::exchange(other.m_ID, 0);
     return *this;
 }
@@ -204,12 +245,9 @@ inline Framebuffer::Framebuffer() {
 
 inline Framebuffer::Framebuffer(opengl::Context&) { glCreateFramebuffers(1, &m_ID); }
 
-inline Framebuffer::~Framebuffer() {
-    glDeleteFramebuffers(1, &m_ID);
-    m_ID = 0;
-}
+inline Framebuffer::~Framebuffer() { this->destroy(); }
 
-inline auto to_GLenum(ATTACHMENT attachment) -> GLenum {
+[[nodiscard]] inline auto to_GLenum(ATTACHMENT attachment) -> GLenum {
     switch (attachment) {
         case ATTACHMENT::COLOR: return GL_COLOR_ATTACHMENT0;
         case ATTACHMENT::DEPTH: return GL_DEPTH_ATTACHMENT;
