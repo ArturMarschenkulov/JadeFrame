@@ -92,7 +92,7 @@ struct Limits {
 
 class SwapchainContext {
 public:
-#ifdef WIN32
+#ifdef _WIN32
     HDC   m_device_context;
     HGLRC m_render_context;
 #elif __linux__

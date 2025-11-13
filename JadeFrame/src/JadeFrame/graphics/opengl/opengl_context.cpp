@@ -120,7 +120,7 @@ auto Context::create_renderbuffer() -> opengl::Renderbuffer* {
 }
 
 Context::Context(Window* window) {
-#ifdef WIN32
+#ifdef _WIN32
     auto* win = dynamic_cast<const JadeFrame::win32::NativeWindow*>(
         window->m_native_window.get()
     );
