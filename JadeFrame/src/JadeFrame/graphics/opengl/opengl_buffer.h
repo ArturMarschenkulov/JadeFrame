@@ -44,9 +44,9 @@ public:
 
 public:
     Context* m_context = nullptr;
-    TYPE            m_type;
-    size_t          m_size;
-    GLuint          m_id;
+    TYPE     m_type;
+    size_t   m_size;
+    GLuint   m_id;
 };
 
 } // namespace opengl
