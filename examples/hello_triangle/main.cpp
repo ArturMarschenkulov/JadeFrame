@@ -44,10 +44,10 @@ auto Example_Hello_Triangle::on_init() -> void {
         jf::RGBAColor::solid_blue(),
     };
     vertex_data->m_attributes[jf::Mesh::POSITION.m_id] = jf::Mesh::AttributeData{
-        .m_attribute_id = jf::Mesh::POSITION, .m_data = jf::to_list(positions)
+        .m_attribute = jf::Mesh::POSITION, .m_data = jf::to_list(positions)
     };
     vertex_data->m_attributes[jf::Mesh::COLOR.m_id] = jf::Mesh::AttributeData{
-        .m_attribute_id = jf::Mesh::COLOR, .m_data = jf::to_list(colors)
+        .m_attribute = jf::Mesh::COLOR, .m_data = jf::to_list(colors)
     };
 
     jf::GPUMeshData* mesh = m_render_system.register_mesh(*vertex_data);
