@@ -67,7 +67,14 @@ auto Context::unbind_vertex_array() -> void {
     m_bound_vertex_array = nullptr;
 }
 
-auto Context::bind_texture_to_unit(Texture& texture, u32 unit) -> void {
+auto TextureManager::create_texture() -> Texture* { return new Texture(*m_context); }
+
+auto TextureManager::create_texture(void* data, v2u32 size, u32 component_num)
+    -> Texture* {
+    return new Texture(*m_context, data, size, component_num);
+}
+
+auto TextureManager::bind_texture_to_unit(Texture& texture, u32 unit) -> void {
     // Search through `m_texture_units` and find `unit`.
     if (!m_texture_units.contains(unit)) {
         glBindTextureUnit(unit, texture.m_id);
@@ -82,17 +89,24 @@ auto Context::bind_texture_to_unit(Texture& texture, u32 unit) -> void {
     }
 }
 
-auto Context::unbind_texture_from_unit(Texture& texture, u32 unit) -> void {
+auto TextureManager::unbind_texture_from_unit(Texture& texture, u32 unit) -> void {
 
     glBindTextureUnit(unit, 0);
     m_texture_units[unit] = nullptr;
 }
 
-auto Context::create_texture() -> Texture* { return new Texture(*this); }
+auto Context::bind_texture_to_unit(Texture& texture, u32 unit) -> void {
+    m_texture_manager.bind_texture_to_unit(texture, unit);
+}
 
-auto Context::create_texture(void* data, v2u32 size, u32 component_num)
-    -> Texture* {
-    return new Texture(*this, data, size, component_num);
+auto Context::unbind_texture_from_unit(Texture& texture, u32 unit) -> void {
+    m_texture_manager.unbind_texture_from_unit(texture, unit);
+}
+
+auto Context::create_texture() -> Texture* { return m_texture_manager.create_texture(); }
+
+auto Context::create_texture(void* data, v2u32 size, u32 component_num) -> Texture* {
+    return m_texture_manager.create_texture(data, size, component_num);
 }
 
 auto Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)

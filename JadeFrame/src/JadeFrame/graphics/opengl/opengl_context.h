@@ -103,6 +103,21 @@ public:
     auto swap_buffers() -> void;
 };
 
+class TextureManager {
+public:
+
+public:
+    auto create_texture() -> Texture*;
+    auto create_texture(void* data, v2u32 size, u32 component_num) -> Texture*;
+    auto bind_texture_to_unit(Texture& texture, u32 unit) -> void;
+    auto unbind_texture_from_unit(Texture& texture, u32 unit) -> void;
+
+public:
+    Context*                          m_context;
+    std::unordered_map<u32, Texture*> m_texture_units;
+    std::vector<Texture*>             m_textures;
+};
+
 class Context {
 public:
     Context() = default;
@@ -135,8 +150,8 @@ public:
     auto create_texture(void* data, v2u32 size, u32 component_num) -> Texture*;
     auto bind_texture_to_unit(Texture& texture, u32 unit) -> void;
     auto unbind_texture_from_unit(Texture& texture, u32 unit) -> void;
-    std::unordered_map<u32, Texture*> m_texture_units;
-    std::vector<Texture*>             m_textures;
+
+    TextureManager m_texture_manager;
 
     auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
         -> opengl::Buffer*;
