@@ -171,30 +171,17 @@ auto OpenGL_Renderer::take_screenshot(const char* /*filename*/) -> Image {
     i32 width = vp[2];
     i32 height = vp[3];
 
-    u8* data = static_cast<u8*>(malloc((size_t)(width * height * 3)));
-    if (data == nullptr) {
-        Logger::log("data failed");
-        Image image = {};
-        image.data = nullptr;
-        return image;
-    }
+    std::vector<u8> data_vec(width * height * 3);
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, data_vec.data());
 
     Image image;
-    image.data = data;
+    image.data = std::move(data_vec);
     image.width = width;
     image.height = height;
     image.num_components = 3;
     return image;
-
-    // auto c = [](const char* filename, i32 width, i32 height, u8* data) {
-    //     stbi_write_png(filename, width, height, 3, data, 0);
-    //     free(data);
-    // };
-    // std::thread t(c, filename, width, height, data);
-    // t.detach();
 }
 
 auto OpenGL_Renderer::RenderTarget::init(opengl::Context* context, RenderSystem* system)
