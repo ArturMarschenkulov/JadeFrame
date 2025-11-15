@@ -119,6 +119,8 @@ auto Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
         assert(false);
         return nullptr;
     }
+    m_buffers.push_back(it->second.m_id);
+    m_bound_buffer = it->second.m_id;
     id++;
     return &it->second;
 }

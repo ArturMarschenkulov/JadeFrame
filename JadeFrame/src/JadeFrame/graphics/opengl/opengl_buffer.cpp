@@ -48,7 +48,6 @@ auto Buffer::create(opengl::Context& context, TYPE type, const void* data, GLuin
 
 Buffer::Buffer(opengl::Context& context, TYPE type, const void* data, GLuint size)
     : m_context(&context)
-
     , m_type(type)
     , m_size(size)
     , m_id(0) {
@@ -56,23 +55,20 @@ Buffer::Buffer(opengl::Context& context, TYPE type, const void* data, GLuint siz
     glCreateBuffers(1, &m_id);
 
     this->alloc(data, size);
-
-    // TODO(artur): Move this registering into OpenGL_Context?
-    m_context->m_buffers.push_back(m_id);
-    m_context->m_bound_buffer = m_id;
 }
 
-auto Buffer::reserve(GLuint size) const -> void {
+auto Buffer::reserve(GLuint size) -> void {
     if (size > m_size) { this->alloc(nullptr, size); }
 }
 
-auto Buffer::alloc(const void* data, GLuint size) const -> void {
+auto Buffer::alloc(const void* data, GLuint size) -> void {
     u32 usage = 0;
     switch (m_type) {
         case TYPE::UNIFORM: usage = GL_DYNAMIC_DRAW; break;
         default: usage = GL_STATIC_DRAW; break;
     }
     glNamedBufferData(m_id, size, data, usage);
+    m_size = size;
 
     // GLbitfield flags;
     // switch (m_type) {

@@ -31,8 +31,8 @@ public:
 
 private:
     Buffer(opengl::Context& context, TYPE type, const void* data, GLuint size);
-    auto alloc(const void* data, GLuint size) const -> void;
-    auto reserve(GLuint size) const -> void;
+    auto alloc(const void* data, GLuint size) -> void;
+    auto reserve(GLuint size) -> void;
 
 public:
     auto write(const void* data, GLuint size, GLint offset) const -> void;
