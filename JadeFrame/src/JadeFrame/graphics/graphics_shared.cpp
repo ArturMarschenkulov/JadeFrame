@@ -54,112 +54,6 @@ auto to_string(SHADER_TYPE type) -> const char* {
     }
 }
 
-/*---------------------------
-    Image
----------------------------*/
-
-Image::~Image() {
-    if (data != nullptr) { stbi_image_free(data); }
-}
-
-Image::Image(Image&& other) noexcept
-    : data(other.data)
-    , width(other.width)
-    , height(other.height)
-    , num_components(other.num_components) {
-
-    other.data = nullptr;
-}
-
-auto Image::operator=(Image&& other) noexcept -> Image& {
-    data = other.data;
-    width = other.width;
-    height = other.height;
-    num_components = other.num_components;
-    other.data = nullptr;
-    return *this;
-}
-
-static auto
-add_fourth_components(const u8* data, i32 width, i32 height, i32 num_components) -> u8* {
-    u32 size = width * height;
-    u32 size_in_bytes = size * 4;
-    u8* new_data = (u8*)malloc(size_in_bytes);
-    for (i32 i = 0; i < size; i++) {
-        i32 dst_idx = i * 4;
-        i32 src_idx = i * num_components;
-
-        new_data[dst_idx + 0] = data[src_idx + 0];
-        new_data[dst_idx + 1] = data[src_idx + 1];
-        new_data[dst_idx + 2] = data[src_idx + 2];
-        new_data[dst_idx + 3] = 255_u8;
-    }
-    free((void*)data);
-    return new_data;
-}
-
-auto Image::load_from_path(const std::string& path) -> Image {
-    stbi_set_flip_vertically_on_load(true);
-    i32 width = 0;
-    i32 height = 0;
-    i32 num_components = 0;
-
-    u8* data = stbi_load(path.c_str(), &width, &height, &num_components, 0);
-    if (stbi_failure_reason() != nullptr) { std::cout << stbi_failure_reason(); }
-
-    if (data == nullptr) {
-        Logger::err("Failed to load image: {}", path);
-        return {};
-    }
-
-    if (num_components == 0) {
-        Logger::err("Failed to load image: {}", path);
-        return {};
-    }
-    // NOTE: we force 3 components to 4 components
-    if (num_components == 3) {
-        u8* data_ = add_fourth_components(data, width, height, num_components);
-        num_components = 4;
-        stbi_image_free(data);
-        data = data_;
-    }
-
-    Image img;
-    img.data = data;
-    img.width = width;
-    img.height = height;
-    img.num_components = num_components;
-    return img;
-}
-
-auto Image::gen_checked(v2u32 size, v2u32 check_size, RGBAColor& col_0, RGBAColor& col_1)
-    -> Image {
-    auto  index = static_cast<u64>(size.x * size.y);
-    auto* pixels = new RGBAColor[index];
-
-    for (u32 y = 0; y < size.y; y++) {
-        for (u32 x = 0; x < size.x; x++) {
-            u32 index = y * size.x + x;
-            u32 check_x = x / check_size.x;
-            u32 check_y = y / check_size.y;
-            if ((check_x + check_y) % 2 == 0) {
-                pixels[index] = col_0;
-            } else {
-                pixels[index] = col_1;
-            }
-        }
-    }
-    assert(false && "Not implemented");
-}
-
-/*---------------------------
-    GPUBuffer
-----------------------------*/
-
-GPUBuffer::GPUBuffer(GPUBuffer&& other) noexcept { (void)other; }
-
-auto GPUBuffer::operator=(GPUBuffer&& other) noexcept -> GPUBuffer& { return *this; }
-
 static auto to_opengl(GPUBuffer::TYPE type) -> opengl::Buffer::TYPE {
     opengl::Buffer::TYPE result = {};
     switch (type) {
@@ -181,6 +75,89 @@ static auto to_vulkan(GPUBuffer::TYPE type) -> vulkan::Buffer::TYPE {
         default: JF_UNREACHABLE();
     }
     return result;
+}
+
+/*---------------------------
+    Image
+---------------------------*/
+
+Image::Image(Image&& other) noexcept
+    : data(std::move(other.data))
+    , width(other.width)
+    , height(other.height)
+    , num_components(other.num_components) {}
+
+auto Image::operator=(Image&& other) noexcept -> Image& {
+    data = std::move(other.data);
+    width = other.width;
+    height = other.height;
+    num_components = other.num_components;
+    return *this;
+}
+
+auto Image::load_from_path(const std::string& path) -> Image {
+    stbi_set_flip_vertically_on_load(true);
+    i32 width = 0;
+    i32 height = 0;
+    i32 num_components = 0;
+
+    i32 desired_components = 4;
+    u8* stb_data =
+        stbi_load(path.c_str(), &width, &height, &num_components, desired_components);
+    if (stb_data == nullptr) {
+        Logger::err("Failed to load image {}: {}", path, stbi_failure_reason());
+        return {};
+    }
+
+    if (num_components == 0) {
+        Logger::err("Failed to load image: {}", path);
+        return {};
+    }
+
+    size_t num_bytes = (size_t)width * (size_t)height * (size_t)desired_components;
+    std::vector<u8> data = std::vector<u8>(num_bytes);
+    std::memcpy(data.data(), stb_data, num_bytes);
+    stbi_image_free(stb_data);
+
+    Image img;
+    img.data = data;
+    img.width = width;
+    img.height = height;
+    img.num_components = desired_components;
+    return img;
+}
+
+/*---------------------------
+    GPUBuffer
+----------------------------*/
+
+GPUBuffer::GPUBuffer(GPUBuffer&& other) noexcept
+    : m_system(other.m_system)
+    , m_api(other.m_api)
+    , m_handle(other.m_handle)
+    , m_size(other.m_size)
+    , m_type(other.m_type) {
+
+    other.m_system = nullptr;
+    other.m_handle = nullptr;
+    other.m_size = 0;
+}
+
+auto GPUBuffer::operator=(GPUBuffer&& other) noexcept -> GPUBuffer& {
+
+    if (this == &other) { return *this; }
+
+    m_system = other.m_system;
+    m_api = other.m_api;
+    m_handle = other.m_handle;
+    m_size = other.m_size;
+    m_type = other.m_type;
+
+    other.m_system = nullptr;
+    other.m_handle = nullptr;
+    other.m_size = 0;
+
+    return *this;
 }
 
 GPUBuffer::GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage)
@@ -227,62 +204,41 @@ GPUMeshData::GPUMeshData(
     }
 }
 
+GPUMeshData::~GPUMeshData() {
+    delete m_vertex_buffer;
+    delete m_index_buffer;
+}
+
 /*---------------------------
     Texture Handle
 ---------------------------*/
 
 TextureHandle::TextureHandle(const Image& img)
-    : m_data(img.data)
-    , m_size(v2u32::create((u32)img.width, (u32)img.height))
+    : m_size(v2u32::create((u32)img.width, (u32)img.height))
     , m_num_components(img.num_components) {}
 
 TextureHandle::TextureHandle(TextureHandle&& other) noexcept
-    : m_data(other.m_data)
-    , m_size(other.m_size)
+    : m_size(other.m_size)
     , m_num_components(other.m_num_components)
     , m_api(other.m_api)
     , m_handle(other.m_handle) {
-    other.m_data = nullptr;
     other.m_size = v2u32::create(0, 0);
     other.m_num_components = 0;
-    other.m_api = GRAPHICS_API::UNDEFINED;
     other.m_handle = nullptr;
     // *this = std::move(other);
 }
 
 auto TextureHandle::operator=(TextureHandle&& other) noexcept -> TextureHandle& {
-    m_data = other.m_data;
     m_size = other.m_size;
     m_num_components = other.m_num_components;
     m_api = other.m_api;
     m_handle = other.m_handle;
 
-    other.m_data = nullptr;
     other.m_size = v2u32::create(0, 0);
     other.m_num_components = 0;
     other.m_api = GRAPHICS_API::UNDEFINED;
     other.m_handle = nullptr;
     return *this;
-}
-
-TextureHandle::~TextureHandle() {
-    if (m_data != nullptr) { stbi_image_free(m_data); }
-}
-
-auto TextureHandle::init(void* context) -> void {
-    switch (m_api) {
-        case GRAPHICS_API::OPENGL: {
-            auto* d = static_cast<opengl::Context*>(context);
-            m_handle = d->create_texture(m_data, m_size, m_num_components);
-        } break;
-        case GRAPHICS_API::VULKAN: {
-            auto* d = static_cast<vulkan::LogicalDevice*>(m_handle);
-            auto* texture =
-                new vulkan::Vulkan_Texture(*d, m_data, m_size, VK_FORMAT_R8G8B8A8_SRGB);
-            m_handle = texture;
-        } break;
-        default: assert(false);
-    }
 }
 
 /*---------------------------
@@ -369,6 +325,8 @@ RenderSystem::RenderSystem(GRAPHICS_API api, Window* window)
     }
 }
 
+RenderSystem::~RenderSystem() { delete m_renderer; }
+
 auto RenderSystem::init(GRAPHICS_API api, Window* window) -> void {
     m_api = api;
     switch (api) {
@@ -404,19 +362,19 @@ auto RenderSystem::operator=(RenderSystem&& other) noexcept -> RenderSystem& {
 auto RenderSystem::register_texture(Image& image) -> TextureHandle* {
 
     m_registered_textures.emplace_back();
-    auto& tex = m_registered_textures.back();
-    tex.m_data = image.data;
+    TextureHandle& tex = m_registered_textures.back();
     tex.m_size.x = image.width;
     tex.m_size.y = image.height;
     tex.m_num_components = image.num_components;
     tex.m_api = m_api;
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            auto*                   renderer = dynamic_cast<OpenGL_Renderer*>(m_renderer);
+            auto*            renderer = dynamic_cast<OpenGL_Renderer*>(m_renderer);
             opengl::Context* device = &renderer->m_context;
 
-            tex.m_handle =
-                device->create_texture(tex.m_data, tex.m_size, tex.m_num_components);
+            tex.m_handle = device->create_texture(
+                image.data.data(), tex.m_size, tex.m_num_components
+            );
 
         } break;
         case GRAPHICS_API::VULKAN: {
@@ -433,8 +391,9 @@ auto RenderSystem::register_texture(Image& image) -> TextureHandle* {
                     );
                     assert(false);
             }
-            tex.m_handle =
-                new vulkan::Vulkan_Texture(*device, tex.m_data, tex.m_size, format);
+            tex.m_handle = new vulkan::Vulkan_Texture(
+                *device, image.data.data(), tex.m_size, format
+            );
 
         } break;
         default: assert(false);
@@ -451,7 +410,7 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
 
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            auto*                   ren = dynamic_cast<OpenGL_Renderer*>(m_renderer);
+            auto*            ren = dynamic_cast<OpenGL_Renderer*>(m_renderer);
             opengl::Context* ctx = &ren->m_context;
 
             opengl::Shader::Desc shader_desc;

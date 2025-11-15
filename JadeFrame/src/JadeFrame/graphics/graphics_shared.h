@@ -1,6 +1,7 @@
 #pragma once
 #include <cassert>
 #include <deque>
+#include <string>
 
 #include "camera.h"
 
@@ -13,7 +14,7 @@ class Window;
 
 struct Image {
     Image() = default;
-    ~Image();
+    ~Image() = default;
     Image(const Image&) = delete;
     auto operator=(const Image&) -> Image& = delete;
     Image(Image&& other) noexcept;
@@ -21,14 +22,10 @@ struct Image {
 
     static auto load_from_path(const std::string& path) -> Image;
 
-    static auto
-    gen_checked(v2u32 size, v2u32 check_size, RGBAColor& col_0, RGBAColor& col_1)
-        -> Image;
-
-    u8* data = nullptr;
-    i32 width = 0;
-    i32 height = 0;
-    i32 num_components = 0;
+    std::vector<u8> data;
+    i32             width = 0;
+    i32             height = 0;
+    i32             num_components = 0;
 };
 
 enum class GRAPHICS_API {
@@ -224,7 +221,7 @@ struct ShadingCode {
 struct TextureHandle {
 public:
     TextureHandle() = default;
-    ~TextureHandle();
+    ~TextureHandle() = default;
     TextureHandle(const TextureHandle&) = delete;
     auto operator=(const TextureHandle&) -> TextureHandle& = delete;
     TextureHandle(TextureHandle&& other) noexcept;
@@ -232,10 +229,7 @@ public:
 
     explicit TextureHandle(const Image& image);
 
-    auto init(void* context) -> void;
-
 public:
-    u8*   m_data = nullptr;
     v2u32 m_size = {};
     u32   m_num_components = 0;
 
@@ -319,7 +313,7 @@ class Mesh;
 class GPUMeshData {
 public:
     GPUMeshData() = default;
-    ~GPUMeshData() = default;
+    ~GPUMeshData();
     GPUMeshData(const GPUMeshData&) = delete;
     auto operator=(const GPUMeshData&) -> GPUMeshData& = delete;
     GPUMeshData(GPUMeshData&& other) noexcept;
@@ -436,7 +430,7 @@ public:
 class RenderSystem {
 public:
     RenderSystem() = default;
-    ~RenderSystem() = default;
+    ~RenderSystem();
     RenderSystem(const RenderSystem&) = delete;
     auto operator=(const RenderSystem&) -> RenderSystem& = delete;
     RenderSystem(RenderSystem&&) noexcept;
