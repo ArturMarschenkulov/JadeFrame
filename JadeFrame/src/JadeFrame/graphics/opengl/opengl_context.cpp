@@ -12,6 +12,46 @@
 
 namespace JadeFrame {
 namespace opengl {
+
+auto TextureManager::create_texture(void* data, v2u32 size, u32 component_num)
+    -> Texture* {
+    m_textures.emplace_back(*m_context, data, size, component_num);
+    return &m_textures.back();
+}
+
+auto TextureManager::create_sampler() -> Sampler* {
+    m_samplers.emplace_back(*m_context);
+    return &m_samplers.back();
+}
+
+auto TextureManager::bind_texture_and_sampler_to_unit(
+    Texture& texture,
+    Sampler* sampler,
+    u32      unit
+) -> void {
+    // Search through `m_texture_units` and find `unit`.
+    if (!m_texture_units.contains(unit)) {
+        glBindTextureUnit(unit, texture.m_id);
+        if (sampler != nullptr) { glBindSampler(unit, sampler->m_id); }
+        m_texture_units[unit] = std::tuple(&texture, sampler);
+    } else if (m_texture_units[unit] == std::tuple(&texture, sampler)) {
+        return;
+    } else {
+        // // If the unit is already bound to another texture, unbind it first.
+        // unbind_texture_from_unit(*m_texture_units[unit], unit);
+        glBindTextureUnit(unit, texture.m_id);
+        if (sampler != nullptr) { glBindSampler(unit, sampler->m_id); }
+        m_texture_units[unit] = std::tuple(&texture, sampler);
+    }
+}
+
+auto TextureManager::unbind_texture_from_unit(Texture& texture, u32 unit) -> void {
+
+    glBindTextureUnit(unit, 0);
+    glBindSampler(unit, 0);
+    m_texture_units[unit] = std::tuple(nullptr, nullptr);
+}
+
 auto Context::bind_uniform_buffer_to_location(opengl::Buffer& buffer, u32 location)
     -> void {
     if (buffer.m_type != opengl::Buffer::TYPE::UNIFORM) {
@@ -24,7 +64,8 @@ auto Context::bind_uniform_buffer_to_location(opengl::Buffer& buffer, u32 locati
     }
 
     glBindBufferBase(GL_UNIFORM_BUFFER, location, buffer.m_id);
-    // glBindBufferRange(GL_UNIFORM_BUFFER, binding_point, buffer.m_id, 0, buffer.m_size);
+    // glBindBufferRange(GL_UNIFORM_BUFFER, binding_point, buffer.m_id, 0,
+    // buffer.m_size);
     m_bound_uniform_buffer_locations[location] = &buffer;
 }
 
@@ -67,47 +108,19 @@ auto Context::unbind_vertex_array() -> void {
     m_bound_vertex_array = nullptr;
 }
 
-auto TextureManager::create_texture() -> Texture* { return new Texture(*m_context); }
-
-auto TextureManager::create_texture(void* data, v2u32 size, u32 component_num)
-    -> Texture* {
-    return new Texture(*m_context, data, size, component_num);
-}
-
-auto TextureManager::bind_texture_to_unit(Texture& texture, u32 unit) -> void {
-    // Search through `m_texture_units` and find `unit`.
-    if (!m_texture_units.contains(unit)) {
-        glBindTextureUnit(unit, texture.m_id);
-        m_texture_units[unit] = &texture;
-    } else if (m_texture_units[unit] == &texture) {
-        return;
-    } else {
-        // // If the unit is already bound to another texture, unbind it first.
-        // unbind_texture_from_unit(*m_texture_units[unit], unit);
-        glBindTextureUnit(unit, texture.m_id);
-        m_texture_units[unit] = &texture;
-    }
-}
-
-auto TextureManager::unbind_texture_from_unit(Texture& texture, u32 unit) -> void {
-
-    glBindTextureUnit(unit, 0);
-    m_texture_units[unit] = nullptr;
-}
-
 auto Context::bind_texture_to_unit(Texture& texture, u32 unit) -> void {
-    m_texture_manager.bind_texture_to_unit(texture, unit);
+    m_texture_manager.bind_texture_and_sampler_to_unit(texture, nullptr, unit);
 }
 
 auto Context::unbind_texture_from_unit(Texture& texture, u32 unit) -> void {
     m_texture_manager.unbind_texture_from_unit(texture, unit);
 }
 
-auto Context::create_texture() -> Texture* { return m_texture_manager.create_texture(); }
-
 auto Context::create_texture(void* data, v2u32 size, u32 component_num) -> Texture* {
     return m_texture_manager.create_texture(data, size, component_num);
 }
+
+auto Context::create_sampler() -> Sampler* { return m_texture_manager.create_sampler(); }
 
 auto Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
     -> opengl::Buffer* {
@@ -141,9 +154,10 @@ Context::Context(Window* window) {
         window->m_native_window.get()
     );
 
-    // NOTE: This function might have to be moved, as in theory one could have multiple
-    // contexts. NOTE: Think about removing the parameter from this function then just
-    // using the global instance handle. loading wgl functions for render context creation
+    // NOTE: This function might have to be moved, as in theory one could have
+    // multiple contexts. NOTE: Think about removing the parameter from this function
+    // then just using the global instance handle. loading wgl functions for render
+    // context creation
     opengl::win32::load_wgl_funcs(win->m_instance_handle);
 
     m_swapchain_context.m_device_context = ::GetDC(win->m_window_handle);
@@ -209,14 +223,23 @@ Context::Context(Window* window) {
     // glGetIntegerv(GL_MAX_CLIP_DISTANCES, &max_clip_distances);
     // glGetIntegerv(GL_MAX_CLIP_DISTANCES, &max_clip_distances);
 
-    // opengl::win32::swap_interval(0); //TODO: This is windows specific. Abstract this
-    // away
+    // opengl::win32::swap_interval(0); //TODO: This is windows specific. Abstract
+    // this away
 
     const v2u32& size = window->get_size();
     m_state.set_viewport(0, 0, size.x, size.y);
 
     GLint max_texture_units = 0;
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_texture_units);
+
+    // TODO(artur): Consider where a better place to put this would be.
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    m_default_sampler = this->create_sampler();
+    m_default_sampler->set_parameters(GL_TEXTURE_WRAP_S, GL_REPEAT);
+    m_default_sampler->set_parameters(GL_TEXTURE_WRAP_T, GL_REPEAT);
+    m_default_sampler->set_parameters(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    m_default_sampler->set_parameters(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 Context::~Context() {}

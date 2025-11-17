@@ -115,8 +115,11 @@ auto OpenGL_Renderer::render(const Camera& camera) -> void {
         if (mh.m_texture != nullptr) {
             auto* texture = static_cast<opengl::Texture*>(mh.m_texture->m_handle);
 
-            u32 texture_unit = 0;
-            m_context.bind_texture_to_unit(*texture, texture_unit);
+            u32              texture_unit = 0;
+            opengl::Sampler* sampler = m_context.m_default_sampler;
+            m_context.m_texture_manager.bind_texture_and_sampler_to_unit(
+                *texture, sampler, texture_unit
+            );
         }
 
         OpenGL_Renderer::render_mesh(
@@ -192,12 +195,12 @@ auto OpenGL_Renderer::RenderTarget::init(opengl::Context* context, RenderSystem*
         // a way to make it more flexible.
         const v2u32 size = context->m_state.viewport[1];
 
-        m_texture = context->create_texture();
-        m_texture->set_image(0, GL_RGB8, size, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-        m_texture->set_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        m_texture->set_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        m_texture->set_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        m_texture->set_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        m_texture = context->create_texture(nullptr, size, 3);
+        m_sampler = context->create_sampler();
+        m_sampler->set_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        m_sampler->set_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        m_sampler->set_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        m_sampler->set_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         m_renderbuffer = context->create_renderbuffer();
         m_renderbuffer->store(GL_DEPTH24_STENCIL8, size.x, size.y);
@@ -243,7 +246,9 @@ auto OpenGL_Renderer::RenderTarget::render(RenderSystem* /*system*/) -> void {
     ShaderHandle& sh_ = *m_shader;
     auto*         sh = static_cast<opengl::Shader*>(sh_.m_handle);
     m_context->bind_shader(*sh);
-    m_context->bind_texture_to_unit(*m_texture, 0);
+    m_context->m_texture_manager.bind_texture_and_sampler_to_unit(
+        *m_texture, m_sampler, 0
+    );
 
     // this->render_mesh(m_mesh,)
     OGLW_VertexArray* vao = &sh->m_vertex_array;

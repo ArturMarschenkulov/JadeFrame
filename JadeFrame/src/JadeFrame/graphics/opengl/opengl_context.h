@@ -107,15 +107,19 @@ class TextureManager {
 public:
 
 public:
-    auto create_texture() -> Texture*;
     auto create_texture(void* data, v2u32 size, u32 component_num) -> Texture*;
-    auto bind_texture_to_unit(Texture& texture, u32 unit) -> void;
+    auto create_sampler() -> Sampler*;
+
+    auto bind_texture_and_sampler_to_unit(Texture& texture, Sampler* sampler, u32 unit)
+        -> void;
     auto unbind_texture_from_unit(Texture& texture, u32 unit) -> void;
 
 public:
-    Context*                          m_context;
-    std::unordered_map<u32, Texture*> m_texture_units;
-    std::vector<Texture*>             m_textures;
+    Context*                                                m_context;
+    std::unordered_map<u32, std::tuple<Texture*, Sampler*>> m_texture_units;
+
+    std::deque<Texture> m_textures;
+    std::deque<Sampler> m_samplers;
 };
 
 class Context {
@@ -146,12 +150,13 @@ public:
     GLint m_max_uniform_buffer_binding_points;
 
     // Resource creation
-    auto create_texture() -> Texture*;
     auto create_texture(void* data, v2u32 size, u32 component_num) -> Texture*;
+    auto create_sampler() -> Sampler*;
     auto bind_texture_to_unit(Texture& texture, u32 unit) -> void;
     auto unbind_texture_from_unit(Texture& texture, u32 unit) -> void;
 
     TextureManager m_texture_manager;
+    Sampler*       m_default_sampler;
 
     auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
         -> opengl::Buffer*;
