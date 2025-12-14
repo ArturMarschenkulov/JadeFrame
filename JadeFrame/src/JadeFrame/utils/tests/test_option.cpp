@@ -311,3 +311,261 @@ TEST(Option, Misc_0) {
     }
     EXPECT_TRUE(was_moved);
 }
+
+// This test is about testing that non-trivial types are handled correctly.
+TEST(Option, Complex) {
+    struct ComplexType {
+        ComplexType() = default;
+
+        ComplexType(const ComplexType& other)
+            : data(other.data) {}
+
+        ComplexType(ComplexType&& other) noexcept
+            : data(std::move(other.data)) {}
+
+        ~ComplexType() = default;
+
+        std::string data = "Hello, World!";
+    };
+
+    static_assert(std::is_copy_constructible<Option<ComplexType>>());
+    static_assert(std::is_move_constructible<Option<ComplexType>>());
+
+    // Test copy construction
+    ComplexType ct;
+    ct.data = "Test Data";
+    Option<ComplexType> opt1(ct);
+    Option<ComplexType> opt2(opt1);
+    EXPECT_EQ(opt2.unwrap().data, "Test Data");
+
+    // Test move construction
+    Option<ComplexType> opt3(std::move(opt1));
+    EXPECT_EQ(opt3.unwrap().data, "Test Data");
+}
+
+// ------------------------------------------------------------
+// Compile-time checks (C++20 requires / concepts)
+// ------------------------------------------------------------
+
+// 1) unwrap() & / const& return types for Option<T&>
+static_assert(
+    std::is_same_v<decltype(std::declval<Option<int&>&>().unwrap()), int&>,
+    "Option<int&>::unwrap() & should return int&"
+);
+
+static_assert(
+    std::is_same_v<
+        decltype(std::declval<const Option<int&>&>().unwrap()),
+        int&>, // const T& with T = int& -> int&
+    "Option<int&>::unwrap() const& should return int&"
+);
+
+// 2) unwrap_unchecked() & / const& return types for Option<T&>
+static_assert(
+    std::is_same_v<decltype(std::declval<Option<int&>&>().unwrap_unchecked()), int&>,
+    "Option<int&>::unwrap_unchecked() & should return int&"
+);
+
+static_assert(
+    std::
+        is_same_v<decltype(std::declval<const Option<int&>&>().unwrap_unchecked()), int&>,
+    "Option<int&>::unwrap_unchecked() const& should return int&"
+);
+
+// 3) For value types, unwrap() && must be available
+static_assert(
+    requires(Option<int> opt) {
+        { std::move(opt).unwrap() } -> std::same_as<int>;
+    },
+    "Option<int>::unwrap() && should be available and return int"
+);
+
+// // 4) For reference types, unwrap() && should NOT be available
+// static_assert(
+//     !requires(Option<int&> opt) { std::move(opt).unwrap(); },
+//     "Option<int&>::unwrap() && should be deleted / not available"
+// );
+
+// 5) For value types, unwrap_unchecked() && must be available
+static_assert(
+    requires(Option<int> opt) {
+        { std::move(opt).unwrap_unchecked() } -> std::same_as<int>;
+    },
+    "Option<int>::unwrap_unchecked() && should be available and return int"
+);
+
+// // 6) For reference types, unwrap_unchecked() && should NOT be available
+// static_assert(
+//     !requires(Option<int&> opt) { std::move(opt).unwrap_unchecked(); },
+//     "Option<int&>::unwrap_unchecked() && should be deleted / not available"
+// );
+
+// ------------------------------------------------------------
+// Runtime tests
+// ------------------------------------------------------------
+
+TEST(OptionRef, UnwrapLvalueReturnsReferenceAndIsMutable) {
+    int          x = 42;
+    Option<int&> opt{x};
+
+    ASSERT_TRUE(opt.has_value());
+
+    int& ref1 = opt.unwrap(); // lvalue overload
+    EXPECT_EQ(&ref1, &x);
+    EXPECT_EQ(ref1, 42);
+
+    // Mutate through the reference returned by unwrap()
+    ref1 = 99;
+    EXPECT_EQ(x, 99);
+
+    // Calling unwrap() again should still be fine for lvalue reference,
+    // and should still refer to the same object.
+    int& ref2 = opt.unwrap();
+    EXPECT_EQ(&ref2, &x);
+    EXPECT_EQ(ref2, 99);
+}
+
+TEST(OptionRef, ConstUnwrapLvalueReturnsReferenceToSameObject) {
+    int                x = 10;
+    const Option<int&> opt{x};
+
+    ASSERT_TRUE(opt.has_value());
+
+    const int& cref = opt.unwrap();
+    EXPECT_EQ(&cref, &x);
+    EXPECT_EQ(cref, 10);
+}
+
+TEST(OptionRef, UnwrapUncheckedLvalueReturnsReference) {
+    int          x = 5;
+    Option<int&> opt{x};
+
+    ASSERT_TRUE(opt.has_value());
+
+    int& ref = opt.unwrap_unchecked();
+    EXPECT_EQ(&ref, &x);
+    ref = 123;
+    EXPECT_EQ(x, 123);
+}
+
+TEST(OptionValue, MoveUnwrapResetsOption) {
+    Option<int> opt{42};
+
+    ASSERT_TRUE(opt.has_value());
+
+    int value = std::move(opt).unwrap();
+    EXPECT_EQ(value, 42);
+    EXPECT_FALSE(opt.has_value()); // after move-unwrap, option should be None
+}
+
+TEST(OptionValue, MoveUnwrapUncheckedResetsOption) {
+    Option<int> opt{123};
+
+    ASSERT_TRUE(opt.has_value());
+
+    int value = std::move(opt).unwrap_unchecked();
+    EXPECT_EQ(value, 123);
+    EXPECT_FALSE(opt.has_value());
+}
+
+TEST(OptionValue, CopyAndEqualitySemantics) {
+    Option<int> a{7};
+    Option<int> b{7};
+    Option<int> c; // None
+
+    EXPECT_TRUE(a == b);
+    EXPECT_FALSE(a == c);
+    EXPECT_FALSE(c == a);
+
+    // Move-construct
+    Option<int> d{std::move(a)};
+    EXPECT_TRUE(d.has_value());
+    EXPECT_EQ(d.unwrap(), 7);
+}
+
+TEST(OptionRef, CopyAndEqualitySemantics) {
+    int x = 1;
+    int y = 1;
+    int z = 2;
+
+    Option<int&> a{x};
+    Option<int&> b{x};
+    Option<int&> c{y};
+    Option<int&> d{z};
+    Option<int&> none; // default-constructed None
+
+    EXPECT_TRUE(a == b);  // same object
+    EXPECT_TRUE(a == c);  // different object, same value
+    EXPECT_FALSE(a == d); // different value
+    EXPECT_FALSE(a == none);
+    EXPECT_FALSE(none == a);
+}
+
+TEST(MISC, MISC_0) {
+    int          global = 10;
+    Option<int&> opt(global);
+
+    // Caller code:
+    int& r = std::move(opt).unwrap();
+
+    EXPECT_EQ(r, 10);
+    EXPECT_EQ(global, 10);
+    EXPECT_EQ(opt.has_value(), true);
+}
+
+// #include <gtest/gtest.h>
+
+// #include "Option.h" // include your Option implementation
+
+// using JadeFrame::Option;
+
+TEST(OptionReferenceTest, ConstOptionDoesNotConstQualifyReferredObject)
+{
+    int value = 42;
+
+    Option<int&> opt(value);
+    const Option<int&>& const_opt = opt;
+
+    // This MUST compile and work:
+    int& ref = const_opt.unwrap();
+    ref = 100;
+
+    EXPECT_EQ(value, 100);
+}
+
+TEST(OptionReferenceTest, UnwrapReturnsExactReferenceType)
+{
+    int value = 7;
+    Option<int&> opt(value);
+
+    static_assert(std::is_same_v<decltype(opt.unwrap()), int&>,
+                  "unwrap() must return int&");
+
+    static_assert(std::is_same_v<decltype(std::as_const(opt).unwrap()), int&>,
+                  "const Option<int&>::unwrap() must still return int&");
+}
+
+TEST(OptionReferenceTest, OperatorStarBehavesLikePointer)
+{
+    int value = 5;
+    Option<int&> opt(value);
+    const Option<int&> const_opt(value);
+
+    *opt = 10;
+    EXPECT_EQ(value, 10);
+
+    *const_opt = 20;
+    EXPECT_EQ(value, 20);
+}
+
+TEST(OptionReferenceTest, NoneReferencePanicsOnUnwrap)
+{
+    Option<int&> none;
+
+    EXPECT_DEATH(
+        {
+            none.unwrap();
+        },
+        ""
+    );
+}

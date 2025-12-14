@@ -3,6 +3,7 @@
 #include <utility>
 #include <concepts>
 #include <type_traits>
+#include <new>
 
 #include "JadeFrame/types.h"
 #include "JadeFrame/utils/assert.h"
@@ -24,137 +25,182 @@ namespace option {
 
 namespace details {
 template<typename T>
-class Storage {
-public:
-    bool m_has_value;
-};
+class Storage;
 
 template<typename T>
     requires std::is_lvalue_reference_v<T>
 class Storage<T> {
 public:
     constexpr Storage() = default;
-
-    constexpr ~Storage() {
-        if (m_has_value) { m_pointer = nullptr; }
-    }
-
-    constexpr Storage(const Storage& o)
-        : m_has_value(o.m_has_value)
-        , m_pointer(o.m_pointer) {}
-
-    constexpr auto operator=(const Storage& o) -> Storage& {
-        if (this == &o) { return *this; }
-        m_has_value = o.m_has_value;
-        m_pointer = o.m_pointer;
-        return *this;
-    }
-
-    constexpr Storage(Storage&& o) noexcept
-        : m_has_value(o.m_has_value)
-        , m_pointer(o.m_pointer) {
-        o.m_has_value = false;
-        o.m_pointer = nullptr;
-    }
-
-    constexpr auto operator=(Storage&& o) noexcept -> Storage& {
-        m_has_value = o.m_has_value;
-        m_pointer = o.m_pointer;
-        o.m_has_value = false;
-        o.m_pointer = nullptr;
-        return *this;
-    }
+    constexpr ~Storage() = default;
+    constexpr Storage(const Storage&) = default;
+    constexpr auto operator=(const Storage&) -> Storage& = default;
+    constexpr Storage(Storage&&) = default;
+    constexpr auto operator=(Storage&&) -> Storage& = default;
 
     constexpr explicit Storage(const T& v)
-        : m_has_value(true)
-        , m_pointer(&v) {}
+        : m_pointer(&v) {}
 
-    constexpr explicit Storage(T&& v)
-        requires(std::is_lvalue_reference_v<T>)
-        : m_has_value(true)
-        , m_pointer(&v) {}
+    template<typename U>
+    constexpr explicit Storage(U&& v)
+        requires std::same_as<std::remove_reference_t<U>, std::remove_reference_t<T>> &&
+                 std::is_lvalue_reference_v<U&&>
+        : m_pointer(std::addressof(std::forward<U>(v))) {}
 
     [[nodiscard]] constexpr auto get() const& -> const T& { return *m_pointer; }
 
 public:
-    bool                        m_has_value = false;
+    [[nodiscard]] auto has_value() const -> bool { return m_pointer != nullptr; }
+
+    auto reset() -> void { m_pointer = nullptr; }
+
+public:
     std::remove_reference_t<T>* m_pointer = nullptr;
 };
 
 template<typename T>
     requires(!std::is_lvalue_reference_v<T>)
 class Storage<T> {
+    using U = std::remove_cv_t<T>;
+
 public:
     constexpr Storage()
-        : m_has_value(false) {}
+        requires(std::is_trivially_destructible_v<T>)
+    = default;
 
     constexpr ~Storage() {
-        if (m_has_value) { reinterpret_cast<T&>(m_storage).~T(); }
+        if (m_has_value) { this->reset(); }
     }
 
-    constexpr Storage(const Storage& o)
-        : m_has_value(o.m_has_value) {
+    constexpr Storage(const Storage&)
+        requires(std::is_trivially_copy_constructible_v<T>)
+    = default;
+    constexpr auto operator=(const Storage& o) -> Storage&
+        requires(std::is_trivially_copy_assignable_v<T>)
+    = default;
+    constexpr Storage(Storage&&)
+        requires(std::is_trivially_move_constructible_v<T>)
+    = default;
+    constexpr auto operator=(Storage&&) -> Storage&
+        requires(std::is_trivially_move_assignable_v<T>)
+    = default;
+
+    constexpr Storage(const Storage& o) noexcept(std::is_nothrow_copy_constructible_v<U>)
+        requires(!std::is_trivially_copy_constructible_v<T>)
+    {
         if (o.m_has_value) {
-            new (&m_storage) T(reinterpret_cast<const T&>(o.m_storage));
+            ::new (this->raw_ptr()) U(*o.raw_ptr());
+            m_has_value = true;
         }
     }
 
-    constexpr Storage(Storage&& o) noexcept
-        : m_has_value(o.m_has_value) {
-        if (o.m_has_value) {
-            T rv = std::move(reinterpret_cast<T&>(o.m_storage));
-            reinterpret_cast<T&>(o.m_storage).~T();
-            o.m_has_value = false;
-            new (&m_storage) T(rv);
-        }
-    }
-
-    constexpr auto operator=(Storage&& o) noexcept -> Storage& {
-        if (m_has_value) { reinterpret_cast<T&>(m_storage).~T(); }
+    constexpr auto operator=(const Storage& o) -> Storage&
+        requires(
+            !std::is_trivially_copy_assignable_v<T> ||
+            !std::is_trivially_copy_constructible_v<T>
+        )
+    {
+        if (this == &o) { return *this; }
+        if (m_has_value) { this->reset(); }
         m_has_value = o.m_has_value;
+        if (m_has_value) { new (this->raw_ptr()) U(*o.raw_ptr()); }
+        return *this;
+    }
+
+    constexpr Storage(Storage&& o) noexcept(std::is_nothrow_move_constructible_v<U>)
+        requires(!std::is_trivially_move_constructible_v<T>)
+        : m_has_value(o.m_has_value) {
         if (o.m_has_value) {
-            T rv = std::move(reinterpret_cast<T&>(o.m_storage));
-            reinterpret_cast<T&>(o.m_storage).~T();
-            o.m_has_value = false;
-            new (&m_storage) T(rv);
+            ::new (this->raw_ptr()) U(std::move(*o.raw_ptr()));
+            o.reset();
+        }
+    }
+
+    constexpr auto operator=(Storage&& o) noexcept(
+        std::is_nothrow_move_constructible_v<U> && std::is_nothrow_move_assignable_v<U>
+    ) -> Storage&
+        requires(
+            !std::is_trivially_move_assignable_v<T> ||
+            !std::is_trivially_move_constructible_v<T>
+        )
+    {
+        if (this == &o) { return *this; }
+
+        if (m_has_value && o.m_has_value) {
+            *this->raw_ptr() = std::move(*o.raw_ptr());
+            o.reset();
+        } else if (m_has_value && !o.m_has_value) {
+            this->reset();
+        } else if (!m_has_value && o.m_has_value) {
+            ::new (this->raw_ptr()) U(std::move(*o.raw_ptr()));
+            m_has_value = true;
+            o.reset();
         }
         return *this;
     }
 
     constexpr explicit Storage(const T& v)
         : m_has_value(true) {
-        new (&m_storage) T(v);
+        ::new (this->raw_ptr()) U(v);
     }
 
     constexpr explicit Storage(T&& v)
         : m_has_value(true) {
-        new (&m_storage) T(std::forward<T>(v));
+        ::new (this->raw_ptr()) U(std::move(v));
     }
 
-    [[nodiscard]] constexpr auto get() const& -> const T& {
-        return reinterpret_cast<const T&>(m_storage);
+    [[nodiscard]] constexpr auto get() & -> T& { return *this->raw_ptr(); }
+
+    [[nodiscard]] constexpr auto get() const& -> const T& { return *this->raw_ptr(); }
+
+    [[nodiscard]] constexpr auto get() && -> T { return std::move(*this->raw_ptr()); }
+
+    template<typename... Args>
+    constexpr auto emplace(Args&&... args) -> void {
+        this->reset();
+        ::new (this->raw_ptr()) U(std::forward<Args>(args)...);
+        m_has_value = true;
     }
 
-    [[nodiscard]] constexpr auto get() & -> T& { return reinterpret_cast<T&>(m_storage); }
-
-    [[nodiscard]] constexpr auto get() && -> T {
-        return std::move(reinterpret_cast<T&>(m_storage));
-    }
-
-    [[nodiscard]] constexpr auto get() const&& -> const T {
-        return std::move(reinterpret_cast<const T&>(m_storage));
+    constexpr auto reset() -> void {
+        if (m_has_value) {
+            this->raw_ptr()->~U();
+            m_has_value = false;
+        }
     }
 
     // constexpr auto has_value() const -> bool { return m_has_value; }
 
 public:
-    alignas(T) u8 m_storage[sizeof(T)]{};
-    bool m_has_value;
+    [[nodiscard]] auto has_value() const -> bool { return m_has_value; }
+
+public:
+    alignas(U) std::byte m_storage[sizeof(U)]{};
+    bool m_has_value = false;
+
+private:
+    constexpr auto ptr() -> T* { return this->raw_ptr(); }
+
+    constexpr auto ptr() const -> const T* { return this->raw_ptr(); }
+
+    constexpr auto raw_ptr() -> U* {
+        // std::launder for strict aliasing safety
+        return std::launder(reinterpret_cast<U*>(&m_storage[0]));
+    }
+
+    constexpr auto raw_ptr() const -> const U* {
+        return std::launder(reinterpret_cast<const U*>(&m_storage[0]));
+    }
 };
 } // namespace details
 
 template<typename T>
 class Option {
+    static_assert(
+        !std::is_rvalue_reference_v<T>,
+        "`Option<T&&> is not supported, use Option<T&> or Option<const T&."
+    );
+
 public:
     constexpr Option()
         : m_storage() {}
@@ -170,19 +216,16 @@ public:
 
     constexpr auto operator=(const Option& o) -> Option& {
         if (this == &o) { return *this; }
-        if (this->is_some()) { this->unwrap_unchecked().~T(); }
         m_storage = o.m_storage;
         return *this;
     }
 
     constexpr Option(Option&& o) noexcept
-        : m_storage(std::forward<Option>(o).m_storage) {
-        m_storage.m_has_value = true;
-    }
+        : m_storage(std::move(o.m_storage)) {}
 
     constexpr auto operator=(Option&& o) noexcept -> Option& {
-        if (this->is_some()) { this->unwrap_unchecked().~T(); }
-        m_storage = std::forward<details::Storage<T>>(o.m_storage);
+        if (this == &o) { return *this; }
+        m_storage = std::move(o.m_storage);
         return *this;
     }
 
@@ -191,11 +234,11 @@ public:
 
     constexpr explicit Option(T&& v)
         requires(!std::is_lvalue_reference_v<T>)
-        : m_storage(std::forward<T>(std::move(v))) {}
+        : m_storage(std::move(v)) {}
 
     constexpr auto operator==(const Option& o) const noexcept -> bool {
         if (this->is_some() && o.is_some()) {
-            return this->unwrap() == o.unwrap();
+            return this->unwrap_unchecked() == o.unwrap_unchecked();
         } else if (!this->is_some() && !o.is_some()) {
             return true;
         } else {
@@ -203,31 +246,37 @@ public:
         }
     }
 
-    constexpr auto operator==(const T& v) const noexcept -> bool {
-        if (this->is_some()) {
-            return this->unwrap() == v;
-        } else {
-            return false;
-        }
-    }
-
-    [[nodiscard]] constexpr auto is_some() const -> bool { return m_storage.m_has_value; }
+    [[nodiscard]] constexpr auto is_some() const -> bool { return m_storage.has_value(); }
 
     [[nodiscard]] constexpr auto is_none() const -> bool { return !this->is_some(); }
 
     constexpr auto unwrap() & -> T& {
-        if (this->is_some()) { return m_storage.get(); }
-        JF_PANIC("called `Option::unwrap() & -> T&` on a `None` value");
-        std::terminate();
+        if (!this->is_some()) {
+            JF_PANIC("called `Option::unwrap() & -> T&` on a `None` value");
+            std::terminate();
+        }
+        return m_storage.get();
     }
 
     [[nodiscard]] constexpr auto unwrap() const& -> const T& {
-        if (this->is_some()) { return m_storage.get(); }
-        JF_PANIC("called `Option::unwrap() const& -> const T&` on a `None` value");
-        std::terminate();
+        if (!this->is_some()) {
+            JF_PANIC("called `Option::unwrap() const& -> const T&` on a `None` value");
+            std::terminate();
+        }
+        return m_storage.get();
     }
 
-    constexpr auto unwrap() && -> T { return this->release(); }
+    constexpr auto unwrap() && -> T
+        requires(!std::is_reference_v<T>)
+    {
+        if (!this->is_some()) {
+            JF_PANIC("called `Option::unwrap() -> T` on a `None` value");
+            std::terminate();
+        }
+        T value = std::move(m_storage.get());
+        m_storage.reset();
+        return value;
+    }
 
     constexpr auto unwrap_unchecked() & -> T& { return const_cast<T&>(m_storage.get()); }
 
@@ -235,33 +284,17 @@ public:
         return m_storage.get();
     }
 
-    constexpr auto unwrap_unchecked() && -> T { return this->release_unchecked(); }
-
-    constexpr auto release_unchecked() -> T {
-        T released_value = std::move(this->unwrap_unchecked());
-        this->unwrap_unchecked().~T();
-        m_storage.m_has_value = false;
-        return released_value;
-    }
-
-    constexpr auto release() -> T {
-        if (this->is_some()) {
-            T released_value = std::move(this->unwrap());
-            this->unwrap().~T();
-            m_storage.m_has_value = false;
-            return released_value;
-        }
-        JF_PANIC("called `Option::release() -> T` on a `None` value");
-        std::terminate();
+    constexpr auto unwrap_unchecked() && -> T
+        requires(!std::is_reference_v<T>)
+    {
+        T value = std::move(m_storage.get());
+        m_storage.reset();
+        return value;
     }
 
     constexpr auto operator*() const -> const T& { return this->unwrap(); }
 
     constexpr auto operator*() -> T& { return this->unwrap(); }
-
-    // constexpr auto operator->() const -> const T* { return
-    // &std::remove_reference_t<T>(this->unwrap()); } constexpr auto operator->() -> T* {
-    // return &std::remove_reference_t<T>(this->unwrap()); }
 
     template<typename U = T>
     [[nodiscard]] constexpr auto and_(const Option<U>& o) const& -> Option<U> {
@@ -302,7 +335,7 @@ public:
 
     template<typename F>
         requires std::invocable<F> &&
-                     std::convertible_to<std::invoke_result_t<F>, Option<T>>
+                 std::convertible_to<std::invoke_result_t<F>, Option<T>>
     constexpr auto or_else(F&& func) const& -> Option<T> {
         if (this->is_some()) {
             return *this;
