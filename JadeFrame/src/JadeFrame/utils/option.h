@@ -38,9 +38,6 @@ public:
     constexpr Storage(Storage&&) = default;
     constexpr auto operator=(Storage&&) -> Storage& = default;
 
-    constexpr explicit Storage(const T& v)
-        : m_pointer(&v) {}
-
     template<typename U>
     constexpr explicit Storage(U&& v)
         requires std::same_as<std::remove_reference_t<U>, std::remove_reference_t<T>> &&
@@ -50,27 +47,31 @@ public:
     [[nodiscard]] constexpr auto get() const& -> const T& { return *m_pointer; }
 
 public:
-    [[nodiscard]] auto has_value() const -> bool { return m_pointer != nullptr; }
+    [[nodiscard]] constexpr auto has_value() const -> bool {
+        return m_pointer != nullptr;
+    }
 
-    auto reset() -> void { m_pointer = nullptr; }
+    constexpr auto reset() -> void { m_pointer = nullptr; }
 
-public:
+private:
     std::remove_reference_t<T>* m_pointer = nullptr;
 };
 
 template<typename T>
     requires(!std::is_lvalue_reference_v<T>)
 class Storage<T> {
-    using U = std::remove_cv_t<T>;
+    using InnerT = std::remove_cvref_t<T>;
+    static_assert(
+        !std::is_rvalue_reference_v<T>,
+        "`Storage<T&&> is not supported, use Storage<T&> or Storage<const T&."
+    );
 
 public:
-    constexpr Storage()
+    constexpr Storage() = default;
+
+    constexpr ~Storage()
         requires(std::is_trivially_destructible_v<T>)
     = default;
-
-    constexpr ~Storage() {
-        if (m_has_value) { this->reset(); }
-    }
 
     constexpr Storage(const Storage&)
         requires(std::is_trivially_copy_constructible_v<T>)
@@ -85,68 +86,64 @@ public:
         requires(std::is_trivially_move_assignable_v<T>)
     = default;
 
-    constexpr Storage(const Storage& o) noexcept(std::is_nothrow_copy_constructible_v<U>)
+    constexpr ~Storage()
+        requires(!std::is_trivially_destructible_v<T>)
+    {
+        this->reset();
+    }
+
+    constexpr Storage(const Storage& o) noexcept(std::is_nothrow_copy_constructible_v<T>)
         requires(!std::is_trivially_copy_constructible_v<T>)
     {
         if (o.m_has_value) {
-            ::new (this->raw_ptr()) U(*o.raw_ptr());
+            ::new (this->raw_ptr()) InnerT(*o.raw_ptr());
             m_has_value = true;
         }
     }
 
     constexpr auto operator=(const Storage& o) -> Storage&
-        requires(
-            !std::is_trivially_copy_assignable_v<T> ||
-            !std::is_trivially_copy_constructible_v<T>
-        )
+        requires(!std::is_trivially_copy_assignable_v<T>)
     {
         if (this == &o) { return *this; }
-        if (m_has_value) { this->reset(); }
-        m_has_value = o.m_has_value;
-        if (m_has_value) { new (this->raw_ptr()) U(*o.raw_ptr()); }
+        Storage temp = o;
+        std::swap(*this, temp);
         return *this;
     }
 
-    constexpr Storage(Storage&& o) noexcept(std::is_nothrow_move_constructible_v<U>)
+    constexpr Storage(Storage&& o) noexcept(std::is_nothrow_move_constructible_v<T>)
         requires(!std::is_trivially_move_constructible_v<T>)
-        : m_has_value(o.m_has_value) {
+    {
         if (o.m_has_value) {
-            ::new (this->raw_ptr()) U(std::move(*o.raw_ptr()));
-            o.reset();
+            ::new (this->raw_ptr()) InnerT(std::move(*o.raw_ptr()));
+            m_has_value = true;
         }
     }
 
-    constexpr auto operator=(Storage&& o) noexcept(
-        std::is_nothrow_move_constructible_v<U> && std::is_nothrow_move_assignable_v<U>
-    ) -> Storage&
-        requires(
-            !std::is_trivially_move_assignable_v<T> ||
-            !std::is_trivially_move_constructible_v<T>
-        )
+    constexpr auto operator=(Storage&& o) noexcept(std::is_nothrow_move_assignable_v<T>)
+        -> Storage&
+        requires(!std::is_trivially_move_assignable_v<T>)
     {
         if (this == &o) { return *this; }
 
         if (m_has_value && o.m_has_value) {
             *this->raw_ptr() = std::move(*o.raw_ptr());
-            o.reset();
         } else if (m_has_value && !o.m_has_value) {
             this->reset();
         } else if (!m_has_value && o.m_has_value) {
-            ::new (this->raw_ptr()) U(std::move(*o.raw_ptr()));
+            ::new (this->raw_ptr()) InnerT(std::move(*o.raw_ptr()));
             m_has_value = true;
-            o.reset();
         }
         return *this;
     }
 
     constexpr explicit Storage(const T& v)
         : m_has_value(true) {
-        ::new (this->raw_ptr()) U(v);
+        ::new (this->raw_ptr()) InnerT(v);
     }
 
     constexpr explicit Storage(T&& v)
         : m_has_value(true) {
-        ::new (this->raw_ptr()) U(std::move(v));
+        ::new (this->raw_ptr()) InnerT(std::move(v));
     }
 
     [[nodiscard]] constexpr auto get() & -> T& { return *this->raw_ptr(); }
@@ -158,24 +155,23 @@ public:
     template<typename... Args>
     constexpr auto emplace(Args&&... args) -> void {
         this->reset();
-        ::new (this->raw_ptr()) U(std::forward<Args>(args)...);
+        ::new (this->raw_ptr()) InnerT(std::forward<Args>(args)...);
         m_has_value = true;
     }
 
     constexpr auto reset() -> void {
         if (m_has_value) {
-            this->raw_ptr()->~U();
+            this->raw_ptr()->~InnerT();
             m_has_value = false;
         }
     }
 
-    // constexpr auto has_value() const -> bool { return m_has_value; }
-
 public:
-    [[nodiscard]] auto has_value() const -> bool { return m_has_value; }
+    [[nodiscard]] constexpr auto has_value() const -> bool { return m_has_value; }
 
-public:
-    alignas(U) std::byte m_storage[sizeof(U)]{};
+private:
+    // TODO(artur): Consider using the union idiom
+    alignas(T) std::byte m_storage[sizeof(T)]{};
     bool m_has_value = false;
 
 private:
@@ -183,13 +179,12 @@ private:
 
     constexpr auto ptr() const -> const T* { return this->raw_ptr(); }
 
-    constexpr auto raw_ptr() -> U* {
-        // std::launder for strict aliasing safety
-        return std::launder(reinterpret_cast<U*>(&m_storage[0]));
+    constexpr auto raw_ptr() -> InnerT* {
+        return std::launder(reinterpret_cast<InnerT*>(&m_storage[0]));
     }
 
-    constexpr auto raw_ptr() const -> const U* {
-        return std::launder(reinterpret_cast<const U*>(&m_storage[0]));
+    constexpr auto raw_ptr() const -> const InnerT* {
+        return std::launder(reinterpret_cast<const InnerT*>(&m_storage[0]));
     }
 };
 } // namespace details
