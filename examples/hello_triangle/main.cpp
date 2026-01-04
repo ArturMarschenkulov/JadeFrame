@@ -6,8 +6,8 @@ namespace jf = JadeFrame;
 
 struct Example_Hello_Triangle : public jf::BaseApp {
 
-    Example_Hello_Triangle(const Desc& desc);
-    virtual ~Example_Hello_Triangle() = default;
+    explicit Example_Hello_Triangle(const Desc& desc);
+    ~Example_Hello_Triangle() override = default;
 
     auto on_init() -> void override;
     auto on_update() -> void override;

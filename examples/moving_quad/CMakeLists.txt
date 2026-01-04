@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.10)
 
-project(Example_hello_triangle CXX)
+project(Example_moving_quad CXX)
 
 
 set(Source_Files
@@ -10,6 +10,5 @@ set(Source_Files
 add_executable(${PROJECT_NAME} ${Source_Files})
 
 target_link_libraries(${PROJECT_NAME} 
-    PUBLIC 
-        JadeFrame
+    PUBLIC JadeFrame
 )

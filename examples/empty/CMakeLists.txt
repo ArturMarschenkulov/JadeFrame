@@ -10,5 +10,5 @@ set(Source_Files
 add_executable(${PROJECT_NAME} ${Source_Files})
 
 target_link_libraries(${PROJECT_NAME} 
-    PUBLIC JadeFrame
+    PUBLIC JadeFrame 
 )

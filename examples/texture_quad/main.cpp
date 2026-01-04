@@ -31,6 +31,8 @@ struct State {
     jf::GPUMeshData* mesh_gizmo_x = nullptr;
     jf::GPUMeshData* mesh_gizmo_y = nullptr;
     jf::GPUMeshData* mesh_gizmo_z = nullptr;
+
+    jf::Mesh         vd_teapot;
     jf::GPUMeshData* mesh_teapot = nullptr;
 };
 
@@ -149,7 +151,6 @@ auto Example_Texture_Quad::on_init() -> void {
     fs::path path_wall = fs::path("resource") / "wall.jpg";
     fs::path path_cont = fs::path("resource") / "container.jpg";
     fs::path path_face = fs::path("resource") / "awesomeface.png";
-    fs::path path_teapot = fs::path("resource") / "default_blender_cube.obj";
 
     jf::Image img_wall = jf::Image::load_from_path(path_wall.string());
     jf::Image img_cont = jf::Image::load_from_path(path_cont.string());
@@ -181,21 +182,25 @@ auto Example_Texture_Quad::on_init() -> void {
     vdf_desc_.has_normals = false;
     vdf_desc_.has_texture_coordinates = false;
 
-    jf::Mesh vd_gizmo_x =
-        jf::MeshBuilder::rectangle(jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_);
+    jf::Mesh vd_gizmo_x = jf::MeshBuilder::rectangle(
+        jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_
+    );
     vd_gizmo_x.set_color(jf::RGBAColor::solid_red());
 
-    jf::Mesh vd_gizmo_y =
-        jf::MeshBuilder::rectangle(jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_);
+    jf::Mesh vd_gizmo_y = jf::MeshBuilder::rectangle(
+        jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_
+    );
     vd_gizmo_y.set_color(jf::RGBAColor::solid_green());
-    jf::Mesh vd_gizmo_z =
-        jf::MeshBuilder::rectangle(jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_);
+    jf::Mesh vd_gizmo_z = jf::MeshBuilder::rectangle(
+        jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_
+    );
     vd_gizmo_z.set_color(jf::RGBAColor::solid_blue());
 
     jf::GPUMeshData* mesh_gizmo_x = m_render_system.register_mesh(vd_gizmo_x);
     jf::GPUMeshData* mesh_gizmo_y = m_render_system.register_mesh(vd_gizmo_y);
     jf::GPUMeshData* mesh_gizmo_z = m_render_system.register_mesh(vd_gizmo_z);
 
+    fs::path path_teapot = fs::path("resource") / "default_blender_cube_1.obj";
     jf::Mesh teapot = jf::AssetLoader::load_obj(path_teapot.string());
     teapot.set_color(jf::RGBAColor::solid_yellow());
     jf::GPUMeshData* mesh_teapot = m_render_system.register_mesh(teapot);
@@ -215,6 +220,7 @@ auto Example_Texture_Quad::on_init() -> void {
     g_state.mesh_gizmo_y = mesh_gizmo_y;
     g_state.mesh_gizmo_z = mesh_gizmo_z;
     g_state.mesh_teapot = mesh_teapot;
+    g_state.vd_teapot = teapot;
 }
 
 auto Example_Texture_Quad::on_update() -> void {}
@@ -228,7 +234,7 @@ auto Example_Texture_Quad::on_draw() -> void {
     draw_gizmo(0, 0);
 
     jf::Object obj_teapot;
-    obj_teapot.m_vertex_data = &g_state.vd_rectangle;
+    obj_teapot.m_vertex_data = &g_state.vd_teapot;
     obj_teapot.m_mesh = g_state.mesh_teapot;
     obj_teapot.m_material = g_state.material_flat;
     obj_teapot.m_transform.m_translation =

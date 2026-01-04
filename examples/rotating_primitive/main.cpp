@@ -48,10 +48,12 @@ auto Example_Rotating_Primitive::on_init() -> void {
         jf::RGBAColor::solid_green().set_opacity(opacity),
         jf::RGBAColor::solid_blue(),
     };
-    mesh_rainbow->m_attributes[jf::Mesh::POSITION.m_id] =
-        jf::Mesh::AttributeData{jf::Mesh::POSITION, jf::to_list(positions)};
-    mesh_rainbow->m_attributes[jf::Mesh::COLOR.m_id] =
-        jf::Mesh::AttributeData{jf::Mesh::COLOR, jf::to_list(colors)};
+    mesh_rainbow->m_attributes[jf::Mesh::POSITION.m_id] = jf::Mesh::AttributeData{
+        .m_attribute = jf::Mesh::POSITION, .m_data = jf::to_list(positions)
+    };
+    mesh_rainbow->m_attributes[jf::Mesh::COLOR.m_id] = jf::Mesh::AttributeData{
+        .m_attribute = jf::Mesh::COLOR, .m_data = jf::to_list(colors)
+    };
 
     jf::GPUMeshData* mesh = m_render_system.register_mesh(*mesh_rainbow);
 
@@ -66,10 +68,12 @@ auto Example_Rotating_Primitive::on_init() -> void {
         jf::RGBAColor::solid_yellow().set_opacity(opacity),
         jf::RGBAColor::solid_black(),
     };
-    mesh_yellow->m_attributes[jf::Mesh::POSITION.m_id] =
-        jf::Mesh::AttributeData{jf::Mesh::POSITION, jf::to_list(positions_2)};
-    mesh_yellow->m_attributes[jf::Mesh::COLOR.m_id] =
-        jf::Mesh::AttributeData{jf::Mesh::COLOR, jf::to_list(colors_2)};
+    mesh_yellow->m_attributes[jf::Mesh::POSITION.m_id] = jf::Mesh::AttributeData{
+        .m_attribute = jf::Mesh::POSITION, .m_data = jf::to_list(positions_2)
+    };
+    mesh_yellow->m_attributes[jf::Mesh::COLOR.m_id] = jf::Mesh::AttributeData{
+        .m_attribute = jf::Mesh::COLOR, .m_data = jf::to_list(colors_2)
+    };
     jf::GPUMeshData* mesh_2 = m_render_system.register_mesh(*mesh_yellow);
 
     m_tri_rainbow.m_mesh = mesh;

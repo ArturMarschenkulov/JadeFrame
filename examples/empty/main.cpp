@@ -1,4 +1,6 @@
 #include <JadeFrame.h>
+#include <JadeFrame/math/math.h>
+#include <JadeFrame/graphics/mesh.h>
 
 namespace jf = JadeFrame;
 
@@ -11,20 +13,16 @@ struct Example_Empty : public jf::BaseApp {
     auto on_draw() -> void override;
 
 public:
-    // std::deque<Mesh> m_meshes;
-    // std::vector<Object> m_objs;
 };
 
 inline Example_Empty::Example_Empty(const Desc& desc)
-    : BaseApp(desc) {
-    // m_current_app_p = reinterpret_cast<Example_Empty*>(this);
-}
+    : BaseApp(desc) {}
 
-inline auto Example_Empty::on_init() -> void {}
+auto Example_Empty::on_init() -> void {}
 
-inline auto Example_Empty::on_update() -> void {}
+auto Example_Empty::on_update() -> void {}
 
-inline auto Example_Empty::on_draw() -> void {}
+auto Example_Empty::on_draw() -> void {}
 
 using TestApp = Example_Empty;
 
