@@ -24,7 +24,7 @@ public:
 
     auto handle_events(bool&) -> void override;
 
-    auto set_title(const std::string& title) -> void override {}
+    auto set_title(const std::string& title) -> void override { (void)title; }
 
     [[nodiscard]] auto get_title() const -> std::string override { return {}; }
 
