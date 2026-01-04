@@ -159,9 +159,9 @@ public:
     }
 
     static auto from_hsl(f32 h, f32 s, f32 l) -> RGBAColor {
-        f32  c = (1.0F - std::abs(2.0F * l - 1.0F)) * s;
+        f32  c = (1.0F - std::abs((2.0F * l) - 1.0F)) * s;
         f32  x = c * (1.0F - std::abs(std::fmod(h / 60.0F, 2.0F) - 1.0F));
-        auto m = l - c / 2.0F;
+        auto m = l - (c / 2.0F);
         auto r = 0.0F;
         auto g = 0.0F;
         auto b = 0.0F;
