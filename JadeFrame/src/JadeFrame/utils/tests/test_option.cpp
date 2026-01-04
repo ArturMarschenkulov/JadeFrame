@@ -302,8 +302,8 @@ TEST(Option, Misc_0) {
         bool& m_was_move_constructed;
     };
 
-    static_assert(std::is_move_constructible<Option<MoveChecker>>());
-    static_assert(!std::is_trivially_move_constructible<Option<MoveChecker>>());
+    static_assert(std::is_move_constructible_v<Option<MoveChecker>>);
+    static_assert(!std::is_trivially_move_constructible_v<Option<MoveChecker>>);
     bool was_moved = false;
     {
         Option<MoveChecker> opt = Option(MoveChecker(was_moved));
@@ -328,8 +328,8 @@ TEST(Option, Complex) {
         std::string data = "Hello, World!";
     };
 
-    static_assert(std::is_copy_constructible<Option<ComplexType>>());
-    static_assert(std::is_move_constructible<Option<ComplexType>>());
+    static_assert(std::is_copy_constructible_v<Option<ComplexType>>);
+    static_assert(std::is_move_constructible_v<Option<ComplexType>>);
 
     // Test copy construction
     ComplexType ct;
@@ -519,11 +519,10 @@ TEST(MISC, MISC_0) {
 
 // using JadeFrame::Option;
 
-TEST(OptionReferenceTest, ConstOptionDoesNotConstQualifyReferredObject)
-{
+TEST(OptionReferenceTest, ConstOptionDoesNotConstQualifyReferredObject) {
     int value = 42;
 
-    Option<int&> opt(value);
+    Option<int&>        opt(value);
     const Option<int&>& const_opt = opt;
 
     // This MUST compile and work:
@@ -533,22 +532,23 @@ TEST(OptionReferenceTest, ConstOptionDoesNotConstQualifyReferredObject)
     EXPECT_EQ(value, 100);
 }
 
-TEST(OptionReferenceTest, UnwrapReturnsExactReferenceType)
-{
-    int value = 7;
+TEST(OptionReferenceTest, UnwrapReturnsExactReferenceType) {
+    int          value = 7;
     Option<int&> opt(value);
 
-    static_assert(std::is_same_v<decltype(opt.unwrap()), int&>,
-                  "unwrap() must return int&");
+    static_assert(
+        std::is_same_v<decltype(opt.unwrap()), int&>, "unwrap() must return int&"
+    );
 
-    static_assert(std::is_same_v<decltype(std::as_const(opt).unwrap()), int&>,
-                  "const Option<int&>::unwrap() must still return int&");
+    static_assert(
+        std::is_same_v<decltype(std::as_const(opt).unwrap()), int&>,
+        "const Option<int&>::unwrap() must still return int&"
+    );
 }
 
-TEST(OptionReferenceTest, OperatorStarBehavesLikePointer)
-{
-    int value = 5;
-    Option<int&> opt(value);
+TEST(OptionReferenceTest, OperatorStarBehavesLikePointer) {
+    int                value = 5;
+    Option<int&>       opt(value);
     const Option<int&> const_opt(value);
 
     *opt = 10;
@@ -558,14 +558,8 @@ TEST(OptionReferenceTest, OperatorStarBehavesLikePointer)
     EXPECT_EQ(value, 20);
 }
 
-TEST(OptionReferenceTest, NoneReferencePanicsOnUnwrap)
-{
+TEST(OptionReferenceTest, NoneReferencePanicsOnUnwrap) {
     Option<int&> none;
 
-    EXPECT_DEATH(
-        {
-            none.unwrap();
-        },
-        ""
-    );
+    EXPECT_DEATH({ none.unwrap(); }, "");
 }
