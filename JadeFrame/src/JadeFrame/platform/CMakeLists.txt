@@ -1,6 +1,6 @@
 IF (WIN32)
     add_subdirectory(windows/)
-ELSEIF(LINUX)
+ELSEIF(UNIX AND NOT APPLE)
     add_subdirectory(linux/)
 ENDIF()
 set(Files
