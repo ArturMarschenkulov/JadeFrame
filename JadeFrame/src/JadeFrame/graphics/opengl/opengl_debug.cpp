@@ -95,24 +95,20 @@ GL_ERR: Source: {}
 auto set_debug_mode(bool enable_debug) -> void {
     int flags = 0;
     glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-    bool is_debug_enabled = bit::check_flag(flags, GL_CONTEXT_FLAG_DEBUG_BIT);
+    bool has_debug_context = bit::check_flag(flags, GL_CONTEXT_FLAG_DEBUG_BIT);
+    Logger::info("OpenGL debug context: {}", has_debug_context ? "yes" : "no");
 
-    if (is_debug_enabled) {
-        Logger::info("OpenGL debug mode enabled");
-    } else {
-        Logger::warn("OpenGL debug mode disabled");
-    }
     if (enable_debug) { // enable debug output
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(opengl_message_callback, nullptr);
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 
-        if (!is_debug_enabled) { Logger::warn("OpenGL debug mode enabled"); }
+        if (!has_debug_context) { Logger::warn("OpenGL debug mode enabled"); }
     } else {
         glDisable(GL_DEBUG_OUTPUT);
         glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        if (is_debug_enabled) { Logger::warn("OpenGL debug mode disabled"); }
+        if (has_debug_context) { Logger::warn("OpenGL debug mode disabled"); }
     }
 }
 } // namespace opengl

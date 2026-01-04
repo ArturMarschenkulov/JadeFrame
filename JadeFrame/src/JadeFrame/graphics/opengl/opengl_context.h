@@ -112,7 +112,7 @@ public:
 
     auto bind_texture_and_sampler_to_unit(Texture& texture, Sampler* sampler, u32 unit)
         -> void;
-    auto unbind_texture_from_unit(Texture& texture, u32 unit) -> void;
+    auto unbind_texture_from_unit(u32 unit) -> void;
 
 public:
     Context*                                                m_context;
@@ -153,7 +153,7 @@ public:
     auto create_texture(void* data, v2u32 size, u32 component_num) -> Texture*;
     auto create_sampler() -> Sampler*;
     auto bind_texture_to_unit(Texture& texture, u32 unit) -> void;
-    auto unbind_texture_from_unit(Texture& texture, u32 unit) -> void;
+    auto unbind_texture_from_unit(u32 unit) -> void;
 
     TextureManager m_texture_manager;
     Sampler*       m_default_sampler;

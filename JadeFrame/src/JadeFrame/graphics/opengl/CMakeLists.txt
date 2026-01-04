@@ -49,6 +49,7 @@ target_link_libraries(gfx-opengl
         
         stb
         JF_MODULE_prelude
+        JF_MODULE_graphics
         # JF_MODULE_math
         
         spirv-cross-hlsl

@@ -149,13 +149,17 @@ auto OpenGL_Renderer::render_mesh(
     assert(vertex_data != nullptr);
 
     m_context.bind_vertex_array(*vao);
-    vao->bind_buffer(*static_cast<opengl::Buffer*>(gpu_data->m_vertex_buffer->m_handle));
+    auto* vertex_buffer =
+        static_cast<opengl::Buffer*>(gpu_data->m_vertex_buffer->m_handle);
+    vao->bind_buffer(*vertex_buffer);
 
     auto prim_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
     if (!vertex_data->m_indices.empty()) {
-        auto num_indices = static_cast<GLsizei>(vertex_data->m_indices.size());
-        // auto gl_type = to_opengl_type<u32>();
-        auto gl_type = GL_UNSIGNED_INT;
+        auto  num_indices = static_cast<GLsizei>(vertex_data->m_indices.size());
+        auto  gl_type = GL_UNSIGNED_INT;
+        auto* index_buffer =
+            static_cast<opengl::Buffer*>(gpu_data->m_index_buffer->m_handle);
+        glVertexArrayElementBuffer(vao->m_ID, index_buffer->m_id);
         glDrawElements(prim_type, num_indices, gl_type, nullptr);
     } else {
         auto num_vertices = static_cast<GLsizei>(

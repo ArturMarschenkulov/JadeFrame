@@ -45,7 +45,7 @@ auto TextureManager::bind_texture_and_sampler_to_unit(
     }
 }
 
-auto TextureManager::unbind_texture_from_unit(Texture& texture, u32 unit) -> void {
+auto TextureManager::unbind_texture_from_unit(u32 unit) -> void {
 
     glBindTextureUnit(unit, 0);
     glBindSampler(unit, 0);
@@ -112,8 +112,8 @@ auto Context::bind_texture_to_unit(Texture& texture, u32 unit) -> void {
     m_texture_manager.bind_texture_and_sampler_to_unit(texture, nullptr, unit);
 }
 
-auto Context::unbind_texture_from_unit(Texture& texture, u32 unit) -> void {
-    m_texture_manager.unbind_texture_from_unit(texture, unit);
+auto Context::unbind_texture_from_unit(u32 unit) -> void {
+    m_texture_manager.unbind_texture_from_unit(unit);
 }
 
 auto Context::create_texture(void* data, v2u32 size, u32 component_num) -> Texture* {

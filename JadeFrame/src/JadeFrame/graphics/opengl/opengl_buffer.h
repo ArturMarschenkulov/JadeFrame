@@ -45,9 +45,11 @@ public:
 public:
     Context* m_context = nullptr;
     TYPE     m_type;
-    size_t   m_size;
-    GLuint   m_id;
+    // The size of the buffer in bytes
+    size_t m_size;
+    GLuint m_id;
 };
 
+static_assert(std::is_move_constructible<Buffer>());
 } // namespace opengl
 } // namespace JadeFrame
