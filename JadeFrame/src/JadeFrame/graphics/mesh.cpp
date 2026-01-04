@@ -8,18 +8,12 @@
 
 namespace JadeFrame {
 
-enum class PRIMITIVE_TOPOLOGY : u8 {
-    POINT_LIST,
-    LINE_LIST,
-    LINE_STRIP,
-    TRIANGLE_LIST,
-    TRIANGLE_STRIP,
-};
-
 static auto is_strip(PRIMITIVE_TOPOLOGY topology) -> bool {
     return topology == PRIMITIVE_TOPOLOGY::LINE_STRIP ||
            topology == PRIMITIVE_TOPOLOGY::TRIANGLE_STRIP;
 }
+
+auto Mesh::builder() -> MeshBuilder { return MeshBuilder{}; }
 
 auto MeshBuilder::rectangle_opengl(const v3& pos, const v3& size, const Desc desc)
     -> Mesh {
@@ -34,7 +28,7 @@ auto MeshBuilder::rectangle_opengl(const v3& pos, const v3& size, const Desc des
             positions[3] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
             std::vector<f32> data = to_list(positions);
             mesh.m_attributes[Mesh::POSITION.m_id] =
-                Mesh::AttributeData{Mesh::POSITION, data};
+                Mesh::AttributeData{.m_attribute = Mesh::POSITION, .m_data = data};
         }
 
         u32 num_vertices = positions.size();
@@ -60,7 +54,7 @@ auto MeshBuilder::rectangle_opengl(const v3& pos, const v3& size, const Desc des
             normals[3] = normal_up;
             std::vector<f32> data = to_list(normals);
             mesh.m_attributes[Mesh::NORMAL.m_id] =
-                Mesh::AttributeData{Mesh::NORMAL, data};
+                Mesh::AttributeData{.m_attribute = Mesh::NORMAL, .m_data = data};
         }
 
         std::vector<u32> indices = {0, 3, 1, 3, 0, 2};
@@ -78,7 +72,7 @@ auto MeshBuilder::rectangle_opengl(const v3& pos, const v3& size, const Desc des
             positions[5] = v3::create(pos.x, pos.y + size.y, pos.z);
             std::vector<f32> data = to_list(positions);
             mesh.m_attributes[Mesh::POSITION.m_id] =
-                Mesh::AttributeData{Mesh::POSITION, data};
+                Mesh::AttributeData{.m_attribute = Mesh::POSITION, .m_data = data};
         }
         std::vector<v2> texture_coordinates;
         if (desc.has_texture_coordinates) {
@@ -90,7 +84,8 @@ auto MeshBuilder::rectangle_opengl(const v3& pos, const v3& size, const Desc des
             texture_coordinates[4] = v2::zero();
             texture_coordinates[5] = v2::Y();
             std::vector<f32> data = to_list(texture_coordinates);
-            mesh.m_attributes[Mesh::UV.m_id] = Mesh::AttributeData{Mesh::UV, data};
+            mesh.m_attributes[Mesh::UV.m_id] =
+                Mesh::AttributeData{.m_attribute = Mesh::UV, .m_data = data};
         }
 
         std::vector<v3> normals;
@@ -105,7 +100,7 @@ auto MeshBuilder::rectangle_opengl(const v3& pos, const v3& size, const Desc des
             normals[5] = normal_up;
             std::vector<f32> data = to_list(normals);
             mesh.m_attributes[Mesh::NORMAL.m_id] =
-                Mesh::AttributeData{Mesh::NORMAL, data};
+                Mesh::AttributeData{.m_attribute = Mesh::NORMAL, .m_data = data};
         }
     }
 
@@ -124,7 +119,7 @@ auto MeshBuilder::rectangle(const v3& pos, const v3& size, const Desc desc) -> M
             positions[3] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
             std::vector<f32> data = to_list(positions);
             mesh.m_attributes[Mesh::POSITION.m_id] =
-                Mesh::AttributeData{Mesh::POSITION, data};
+                Mesh::AttributeData{.m_attribute = Mesh::POSITION, .m_data = data};
         }
 
         u32 num_vertices = positions.size();
@@ -137,7 +132,8 @@ auto MeshBuilder::rectangle(const v3& pos, const v3& size, const Desc desc) -> M
             texture_coordinates[2] = v2::Y();
             texture_coordinates[3] = v2::splat(1.0F);
             std::vector<f32> data = to_list(texture_coordinates);
-            mesh.m_attributes[Mesh::UV.m_id] = Mesh::AttributeData{Mesh::UV, data};
+            mesh.m_attributes[Mesh::UV.m_id] =
+                Mesh::AttributeData{.m_attribute = Mesh::UV, .m_data = data};
         }
 
         if (desc.has_normals) {
@@ -151,7 +147,7 @@ auto MeshBuilder::rectangle(const v3& pos, const v3& size, const Desc desc) -> M
             normals[3] = normal_up;
             std::vector<f32> data = to_list(normals);
             mesh.m_attributes[Mesh::NORMAL.m_id] =
-                Mesh::AttributeData{Mesh::NORMAL, data};
+                Mesh::AttributeData{.m_attribute = Mesh::NORMAL, .m_data = data};
         }
         // std::vector<u32> indices = {0, 3, 1, 3, 0, 2};
         std::vector<u32> indices = {0, 1, 3, 3, 2, 0};
@@ -169,7 +165,7 @@ auto MeshBuilder::rectangle(const v3& pos, const v3& size, const Desc desc) -> M
             positions[5] = v3::create(pos.x, pos.y, pos.z);
             std::vector<f32> data = to_list(positions);
             mesh.m_attributes[Mesh::POSITION.m_id] =
-                Mesh::AttributeData{Mesh::POSITION, data};
+                Mesh::AttributeData{.m_attribute = Mesh::POSITION, .m_data = data};
         }
         std::vector<v2> texture_coordinates;
         if (desc.has_texture_coordinates) {
@@ -181,7 +177,8 @@ auto MeshBuilder::rectangle(const v3& pos, const v3& size, const Desc desc) -> M
             texture_coordinates[4] = v2::Y();
             texture_coordinates[5] = v2::zero();
             std::vector<f32> data = to_list(texture_coordinates);
-            mesh.m_attributes[Mesh::UV.m_id] = Mesh::AttributeData{Mesh::UV, data};
+            mesh.m_attributes[Mesh::UV.m_id] =
+                Mesh::AttributeData{.m_attribute = Mesh::UV, .m_data = data};
         }
 
         std::vector<v3> normals;
@@ -196,7 +193,7 @@ auto MeshBuilder::rectangle(const v3& pos, const v3& size, const Desc desc) -> M
             normals[5] = normal_up;
             std::vector<f32> data = to_list(normals);
             mesh.m_attributes[Mesh::NORMAL.m_id] =
-                Mesh::AttributeData{Mesh::NORMAL, data};
+                Mesh::AttributeData{.m_attribute = Mesh::NORMAL, .m_data = data};
         }
     }
     return mesh;
@@ -210,14 +207,15 @@ auto MeshBuilder::line(const v3& pos1, const v3& pos2) -> Mesh {
     positions[1] = pos2;
     std::vector<f32> position_data = to_list(positions);
     mesh.m_attributes[Mesh::POSITION.m_id] =
-        Mesh::AttributeData{Mesh::POSITION, position_data};
+        Mesh::AttributeData{.m_attribute = Mesh::POSITION, .m_data = position_data};
 
     std::vector<v2> texture_coordinates;
     texture_coordinates.resize(2);
     texture_coordinates[0] = v2::zero();
     texture_coordinates[1] = v2::zero();
     std::vector<f32> uv_data = to_list(texture_coordinates);
-    mesh.m_attributes[Mesh::UV.m_id] = Mesh::AttributeData{Mesh::UV, uv_data};
+    mesh.m_attributes[Mesh::UV.m_id] =
+        Mesh::AttributeData{.m_attribute = Mesh::UV, .m_data = uv_data};
 
     std::vector<u32> indices = {0, 1};
     mesh.m_indices = indices;
@@ -235,7 +233,7 @@ auto MeshBuilder::triangle(const v3& pos1, const v3& pos2, const v3& pos3) -> Me
     positions[2] = pos3;
     std::vector<f32> position_data = to_list(positions);
     mesh.m_attributes[Mesh::POSITION.m_id] =
-        Mesh::AttributeData{Mesh::POSITION, position_data};
+        Mesh::AttributeData{.m_attribute = Mesh::POSITION, .m_data = position_data};
 
     std::vector<u32> indices = {0, 1, 2};
     mesh.m_indices = indices;
@@ -269,7 +267,7 @@ auto MeshBuilder::circle(const v3& position, const f32 radius, const u32 numSegm
     }
     std::vector<f32> position_data = to_list(positions);
     mesh.m_attributes[Mesh::POSITION.m_id] =
-        Mesh::AttributeData{Mesh::POSITION, position_data};
+        Mesh::AttributeData{.m_attribute = Mesh::POSITION, .m_data = position_data};
 
     auto             num_index = (numSegments * 3);
     std::vector<u32> indices;
@@ -293,57 +291,70 @@ auto MeshBuilder::cube(const v3& pos, const v3& size) -> Mesh {
     std::vector<v3> positions;
     positions.resize(36);
 
+    auto x_arrow = v3::create(size.x, 0.0F, 0.0F);
+    auto y_arrow = v3::create(0.0F, size.y, 0.0F);
+    auto z_arrow = v3::create(0.0F, 0.0F, size.z);
+
+    auto pos_o = v3::create(pos.x, pos.y, pos.z);
+    auto pos_x = pos_o + x_arrow;
+    auto pos_y = pos_o + y_arrow;
+    auto pos_z = pos_o + z_arrow;
+    auto pos_xy = pos_o + x_arrow + y_arrow;
+    auto pos_xz = pos_o + x_arrow + z_arrow;
+    auto pos_yz = pos_o + y_arrow + z_arrow;
+    auto pos_xyz = pos_o + x_arrow + y_arrow + z_arrow;
+
     // back face -z
-    positions[0] = v3::create(pos.x, pos.y, pos.z);
-    positions[1] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
-    positions[2] = v3::create(pos.x + size.x, pos.y, pos.z);
-    positions[3] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
-    positions[4] = v3::create(pos.x, pos.y, pos.z);
-    positions[5] = v3::create(pos.x, pos.y + size.y, pos.z);
+    positions[0] = pos_o;
+    positions[1] = pos_xy;
+    positions[2] = pos_x;
+    positions[3] = pos_xy;
+    positions[4] = pos_o;
+    positions[5] = pos_y;
 
     // front face +z
-    positions[6] = v3::create(pos.x, pos.y, pos.z + size.z);
-    positions[7] = v3::create(pos.x + size.x, pos.y, pos.z + size.z);
-    positions[8] = v3::create(pos.x + size.x, pos.y + size.y, pos.z + size.z);
-    positions[9] = v3::create(pos.x + size.x, pos.y + size.y, pos.z + size.z);
-    positions[10] = v3::create(pos.x, pos.y + size.y, pos.z + size.z);
-    positions[11] = v3::create(pos.x, pos.y, pos.z + size.z);
+    positions[6] = pos_z;
+    positions[7] = pos_xz;
+    positions[8] = pos_xyz;
+    positions[9] = pos_xyz;
+    positions[10] = pos_yz;
+    positions[11] = pos_z;
 
     // left face -x
-    positions[12] = v3::create(pos.x, pos.y + size.y, pos.z + size.z);
-    positions[13] = v3::create(pos.x, pos.y + size.y, pos.z);
-    positions[14] = v3::create(pos.x, pos.y, pos.z);
-    positions[15] = v3::create(pos.x, pos.y, pos.z);
-    positions[16] = v3::create(pos.x, pos.y, pos.z + size.z);
-    positions[17] = v3::create(pos.x, pos.y + size.y, pos.z + size.z);
+    positions[12] = pos_yz;
+    positions[13] = pos_y;
+    positions[14] = pos_o;
+    positions[15] = pos_o;
+    positions[16] = pos_z;
+    positions[17] = pos_yz;
 
     // right face +x
-    positions[18] = v3::create(pos.x + size.x, pos.y + size.y, pos.z + size.z);
-    positions[19] = v3::create(pos.x + size.x, pos.y, pos.z);
-    positions[20] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
-    positions[21] = v3::create(pos.x + size.x, pos.y, pos.z);
-    positions[22] = v3::create(pos.x + size.x, pos.y + size.y, pos.z + size.z);
-    positions[23] = v3::create(pos.x + size.x, pos.y, pos.z + size.z);
+    positions[18] = pos_xyz;
+    positions[19] = pos_x;
+    positions[20] = pos_xy;
+    positions[21] = pos_x;
+    positions[22] = pos_xyz;
+    positions[23] = pos_xz;
 
     // bottom face
-    positions[24] = v3::create(pos.x, pos.y, pos.z);
-    positions[25] = v3::create(pos.x + size.x, pos.y, pos.z);
-    positions[26] = v3::create(pos.x + size.x, pos.y, pos.z + size.z);
-    positions[27] = v3::create(pos.x + size.x, pos.y, pos.z + size.z);
-    positions[28] = v3::create(pos.x, pos.y, pos.z + size.z);
-    positions[29] = v3::create(pos.x, pos.y, pos.z);
+    positions[24] = pos_o;
+    positions[25] = pos_x;
+    positions[26] = pos_xz;
+    positions[27] = pos_xz;
+    positions[28] = pos_z;
+    positions[29] = pos_o;
 
     // top face
-    positions[30] = v3::create(pos.x, pos.y + size.y, pos.z);
-    positions[31] = v3::create(pos.x + size.x, pos.y + size.y, pos.z + size.z);
-    positions[32] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
-    positions[33] = v3::create(pos.x + size.x, pos.y + size.y, pos.z + size.z);
-    positions[34] = v3::create(pos.x, pos.y + size.y, pos.z);
-    positions[35] = v3::create(pos.x, pos.y + size.y, pos.z + size.z);
+    positions[30] = pos_y;
+    positions[31] = pos_xyz;
+    positions[32] = pos_xy;
+    positions[33] = pos_xyz;
+    positions[34] = pos_y;
+    positions[35] = pos_yz;
 
     std::vector<f32> position_data = to_list(positions);
     mesh.m_attributes[Mesh::POSITION.m_id] =
-        Mesh::AttributeData{Mesh::POSITION, position_data};
+        Mesh::AttributeData{.m_attribute = Mesh::POSITION, .m_data = position_data};
 
     std::vector<v2> texture_coordinates;
     texture_coordinates.resize(36);
@@ -396,23 +407,33 @@ auto MeshBuilder::cube(const v3& pos, const v3& size) -> Mesh {
     texture_coordinates[35] = v2::Y();
 
     std::vector<f32> uv_data = to_list(texture_coordinates);
-    mesh.m_attributes[Mesh::UV.m_id] = Mesh::AttributeData{Mesh::UV, uv_data};
+    mesh.m_attributes[Mesh::UV.m_id] =
+        Mesh::AttributeData{.m_attribute = Mesh::UV, .m_data = uv_data};
 
     std::vector<v3> normals;
     normals.resize(36);
     for (size_t i = 0; i < normals.size(); i++) {
         std::array<v3, 6> s;
-        s[0] = v3::create(+0.0f, +0.0f, -1.0f); // back
-        s[1] = v3::create(+0.0f, +0.0f, +1.0f); // front
-        s[2] = v3::create(-1.0f, +0.0f, +0.0f); // left
-        s[3] = v3::create(+1.0f, +0.0f, +0.0f); // right
-        s[4] = v3::create(+0.0f, -1.0f, +0.0f); // bottom
-        s[5] = v3::create(+0.0f, +1.0f, +0.0f); // up
+
+        auto back = v3::create(+0.0F, +0.0F, -1.0F);
+        auto front = v3::create(+0.0F, +0.0F, +1.0F);
+        auto left = v3::create(-1.0F, +0.0F, +0.0F);
+        auto right = v3::create(+1.0F, +0.0F, +0.0F);
+        auto bottom = v3::create(+0.0F, -1.0F, +0.0F);
+        auto up = v3::create(+0.0F, +1.0F, +0.0F);
+
+        s[0] = back;
+        s[1] = front;
+        s[2] = left;
+        s[3] = right;
+        s[4] = bottom;
+        s[5] = up;
 
         normals[i] = s[i / 6];
-    };
+    }
     std::vector<f32> normal_data = to_list(normals);
-    mesh.m_attributes[Mesh::NORMAL.m_id] = Mesh::AttributeData{Mesh::NORMAL, normal_data};
+    mesh.m_attributes[Mesh::NORMAL.m_id] =
+        Mesh::AttributeData{.m_attribute = Mesh::NORMAL, .m_data = normal_data};
 
     return mesh;
 }
@@ -447,7 +468,7 @@ auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::vector<
                 vertex.m_attributes[id].m_attribute = data.m_attribute;
 
                 for (u32 j = 0; j < size; j++) {
-                    vertex.m_attributes[id].m_data.push_back(data.m_data[i * size + j]);
+                    vertex.m_attributes[id].m_data.push_back(data.m_data[(i * size) + j]);
                 }
             }
         }

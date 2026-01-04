@@ -10,6 +10,14 @@ namespace JadeFrame {
 
 class MeshBuilder;
 
+enum class PRIMITIVE_TOPOLOGY : u8 {
+    POINT_LIST,
+    LINE_LIST,
+    LINE_STRIP,
+    TRIANGLE_LIST,
+    TRIANGLE_STRIP,
+};
+
 // NOTE(artur): This type should be very ergonomic to use, as it is client facing. The
 // goal is not to be the most efficient, but the most ergonomic. As this will describe
 // other structures down the line.
@@ -41,24 +49,31 @@ public:
         }
     };
 
+    PRIMITIVE_TOPOLOGY m_topology = PRIMITIVE_TOPOLOGY::TRIANGLE_LIST;
     std::map<VertexAttributeId, AttributeData> m_attributes;
     std::vector<u32>                           m_indices;
 
     constexpr const static VertexAttribute POSITION =
-        {"POSITION", 0, SHADER_TYPE::V_3_F32};
-    constexpr const static VertexAttribute COLOR = {"COLOR", 1, SHADER_TYPE::V_4_F32};
-    constexpr const static VertexAttribute UV = {"UV", 2, SHADER_TYPE::V_2_F32};
-    constexpr const static VertexAttribute NORMAL = {"NORMAL", 3, SHADER_TYPE::V_3_F32};
-    constexpr const static VertexAttribute TANGENT = {"TANGENT", 4, SHADER_TYPE::V_4_F32};
+        {.m_name = "POSITION", .m_id = 0, .m_format = SHADER_TYPE::V_3_F32};
+    constexpr const static VertexAttribute COLOR =
+        {.m_name = "COLOR", .m_id = 1, .m_format = SHADER_TYPE::V_4_F32};
+    constexpr const static VertexAttribute UV =
+        {.m_name = "UV", .m_id = 2, .m_format = SHADER_TYPE::V_2_F32};
+    constexpr const static VertexAttribute NORMAL =
+        {.m_name = "NORMAL", .m_id = 3, .m_format = SHADER_TYPE::V_3_F32};
+    constexpr const static VertexAttribute TANGENT =
+        {.m_name = "TANGENT", .m_id = 4, .m_format = SHADER_TYPE::V_4_F32};
 
     [[nodiscard]] auto has_attribute(const VertexAttribute& attribute) const -> bool {
         return m_attributes.contains(attribute.m_id);
     }
 
     auto set_color(const RGBAColor& color) -> void {
-        auto it = m_attributes.find(POSITION.m_id);
-        JF_ASSERT(it != m_attributes.end(), "Mesh has no positions");
-        const u32        num_vertices = it->second.count();
+
+        const auto* pos = this->attribute_data(POSITION.m_id);
+        JF_ASSERT(pos != nullptr, "Mesh has no positions");
+
+        const u32        num_vertices = pos->count();
         std::vector<f32> color_data;
         color_data.resize(num_vertices * 4);
         for (u32 i = 0; i < num_vertices; i++) {
@@ -68,13 +83,54 @@ public:
             color_data[base_index + 2] = color.b;
             color_data[base_index + 3] = color.a;
         }
-        m_attributes[COLOR.m_id] = AttributeData{COLOR, color_data};
-        assert(
-            (m_attributes[COLOR.m_id].m_data.size() == num_vertices * 4) && "Invalid size"
-        );
+        bool insert_success = this->insert_attribute(COLOR, std::move(color_data));
+        assert((insert_success) && "Failed to insert color attribute");
     }
 
     static auto builder() -> MeshBuilder;
+
+    // Returns false if format mismatch or other failure
+    auto insert_attribute(const VertexAttribute& attr, std::vector<f32> values) -> bool {
+        // Optional: validate that values.size() % attr.count_components() == 0
+        const u32 comps = attr.count_components();
+        if (comps == 0 || (values.size() % comps) != 0) {
+            // log or assert; return false instead of throwing
+            return false;
+        }
+
+        AttributeData data{.m_attribute = attr, .m_data = std::move(values)};
+        m_attributes[attr.m_id] = std::move(data);
+        return true;
+    }
+
+    [[nodiscard]] auto
+    with_inserted_attribute(const VertexAttribute& attr, std::vector<f32> values) const
+        -> Mesh {
+        Mesh copy = *this;
+        copy.insert_attribute(attr, std::move(values));
+        return copy;
+    }
+
+    [[nodiscard]] auto attribute_values(VertexAttributeId id) const
+        -> const std::vector<f32>* {
+        auto it = m_attributes.find(id);
+        return (it == m_attributes.end()) ? nullptr : &it->second.m_data;
+    }
+
+    [[nodiscard]] auto attribute_data(VertexAttributeId id) const
+        -> const AttributeData* {
+        auto it = m_attributes.find(id);
+        return (it == m_attributes.end()) ? nullptr : &it->second;
+    }
+
+    auto attribute_data_mut(VertexAttributeId id) -> AttributeData* {
+        auto it = m_attributes.find(id);
+        return (it == m_attributes.end()) ? nullptr : &it->second;
+    }
+
+    [[nodiscard]] auto contains_attribute(VertexAttributeId id) const -> bool {
+        return m_attributes.contains(id);
+    }
 };
 
 class MeshBuilder {
