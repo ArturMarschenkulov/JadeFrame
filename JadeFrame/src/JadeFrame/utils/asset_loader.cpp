@@ -9,10 +9,14 @@
 
 namespace JadeFrame {
 auto AssetLoader::load_obj(const std::string& path) -> Mesh {
+    Logger::info("Loading OBJ file: {}", path);
     // assert(false && "Not implemented");
     Assimp::Importer importer;
-    auto             flags = aiProcess_Triangulate | aiProcess_GenUVCoords;
-    const aiScene*   scene = importer.ReadFile(path, flags);
+    auto             flags = 0U        //
+               | aiProcess_Triangulate //
+        // | aiProcess_GenUVCoords
+        ;
+    const aiScene* scene = importer.ReadFile(path, flags);
     if ((scene == nullptr) || ((scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) != 0U) ||
         (scene->mRootNode == nullptr)) {
         Logger::err("Assimp error: {}", importer.GetErrorString());
@@ -26,6 +30,10 @@ auto AssetLoader::load_obj(const std::string& path) -> Mesh {
         Logger::warn("Found 1 mesh in file: {}", path);
     } else {
         Logger::info("Found {} meshes in file: {}", scene->mNumMeshes, path);
+        Logger::warn(
+            "Only the first mesh will be loaded. Multi-mesh support is not implemented "
+            "yet."
+        );
     }
 
     for (u32 m = 0; m < scene->mNumMeshes; m++) {
@@ -35,6 +43,12 @@ auto AssetLoader::load_obj(const std::string& path) -> Mesh {
         std::vector<f32> uvs;
         std::vector<f32> colors;
         std::vector<u32> indices;
+        Logger::info(
+            "Loading mesh {} with {} vertices and {} faces",
+            m,
+            mesh->mNumVertices,
+            mesh->mNumFaces
+        );
         for (u32 v = 0; v < mesh->mNumVertices; v++) {
             aiVector3D pos = mesh->mVertices[v];
             vertices.push_back(pos.x);
@@ -66,12 +80,18 @@ auto AssetLoader::load_obj(const std::string& path) -> Mesh {
         // Iterate over the faces of the mesh
         for (unsigned int j = 0; j < mesh->mNumFaces; ++j) {
             // Get the face
-            aiFace face = mesh->mFaces[j];
+            const aiFace& face = mesh->mFaces[j];
+            if (face.mNumIndices != 3) {
+                Logger::err("Non-triangle face {} has {} indices", j, face.mNumIndices);
+                JF_ASSERT(false, "Mesh is not fully triangulated");
+            }
             // Add the indices of the face to the vector
             for (unsigned int k = 0; k < face.mNumIndices; ++k) {
                 indices.push_back(face.mIndices[k]);
             }
         }
+        JF_ASSERT(indices.size() % 3 == 0, "Index buffer not multiple of 3");
+
         Logger::info("num pos: {}", vertices.size() / 3);
         Logger::info("num normals: {}", normals.size() / 3);
         Logger::info("num uvs: {}", uvs.size() / 2);
@@ -79,17 +99,18 @@ auto AssetLoader::load_obj(const std::string& path) -> Mesh {
 
         Mesh mesh_data;
         mesh_data.m_attributes[Mesh::POSITION.m_id] =
-            Mesh::AttributeData{Mesh::POSITION, vertices};
-        // if (!normals.empty()) {
-        //     mesh_data.m_attributes[Mesh::NORMAL.m_id] =
-        //         Mesh::AttributeData{Mesh::NORMAL, normals};
-        // }
+            Mesh::AttributeData{.m_attribute = Mesh::POSITION, .m_data = vertices};
+        if (!normals.empty()) {
+            mesh_data.m_attributes[Mesh::NORMAL.m_id] =
+                Mesh::AttributeData{.m_attribute = Mesh::NORMAL, .m_data = normals};
+        }
         if (!uvs.empty()) {
-            mesh_data.m_attributes[Mesh::UV.m_id] = Mesh::AttributeData{Mesh::UV, uvs};
+            mesh_data.m_attributes[Mesh::UV.m_id] =
+                Mesh::AttributeData{.m_attribute = Mesh::UV, .m_data = uvs};
         }
         if (!colors.empty()) {
             mesh_data.m_attributes[Mesh::COLOR.m_id] =
-                Mesh::AttributeData{Mesh::COLOR, colors};
+                Mesh::AttributeData{.m_attribute = Mesh::COLOR, .m_data = colors};
         }
         if (!indices.empty()) { mesh_data.m_indices = indices; }
 
