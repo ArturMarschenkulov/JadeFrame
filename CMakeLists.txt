@@ -24,22 +24,21 @@ cmake_policy(SET CMP0148 NEW)
 set(CMAKE_POLICY_WARNING_CMP0048 FALSE)  # Suppress warnings about project() command
 set(CMAKE_POLICY_WARNING_CMP0148 FALSE)  # Suppress warnings about Python find modules
 
-add_definitions(-Wno-dev)  # Suppress developer warnings
-
 set(JADEFRAME_USED_COMPILER
     "gcc"
 )
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if (JADEFRAME_USED_COMPILER STREQUAL "clang")
     set(CMAKE_C_COMPILER "clang")
     set(CMAKE_CXX_COMPILER "clang++")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}-stdlib=libc++")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
     set(CMAKE_EXE_LINKER_FLAGS "-lc++abi -lpthread")
 elseif (JADEFRAME_USED_COMPILER STREQUAL "gcc")
     set(CMAKE_C_COMPILER "gcc")
     set(CMAKE_CXX_COMPILER "g++")
-    set(CMAKE_EXE_LINKER_FLAGS "-lpthread")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 else()
     message(FATAL_ERROR "Compiler not supported")
 endif()
@@ -53,19 +52,18 @@ project(
     DESCRIPTION "JadeFrame: A cross platform graphics framework"
     LANGUAGES C CXX
 )
-
-include(cmake/my_utils.cmake)
-my_print_platform_data()
-
+# include(cmake/my_utils.cmake)
+# my_print_platform_data()
+# my_print_generator_data()
+# my_print_compiler_data()
+# my_print_cmake_data()
 
 set(ENABLE_DEVELOPER_MODE
     TRUE
     CACHE BOOL "Enable 'developer mode'"
 )
 
-my_print_generator_data()
-my_print_compiler_data()
-my_print_cmake_data()
+
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the build type" FORCE)
@@ -84,12 +82,15 @@ add_subdirectory(JadeFrame)
 
 option(BUILD_EXAMPLES "Build example programs" ON)
 if(BUILD_EXAMPLES)
-    # add_subdirectory(examples)
+    add_subdirectory(examples)
     # add_subdirectory(examples/texture_quad)
     # add_subdirectory(examples/moving_primitive)
     # add_subdirectory(examples/rotating_primitive)
-    add_subdirectory(examples/hello_triangle)
+    # add_subdirectory(examples/hello_triangle)
+    # add_subdirectory(examples/empty)
+    # add_subdirectory(examples/moving_quad)
 endif()
+
 #       _           _      ______                        
 #      | |         | |    |  ____|                       
 #      | | __ _  __| | ___| |__ _ __ __ _ _ __ ___   ___ 
