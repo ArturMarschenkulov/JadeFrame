@@ -1,4 +1,9 @@
 # set(PROJECT_NAME JadeFrame)
+function(disable_warnings_for_target target)
+    if (TARGET ${target})
+        set_target_properties(${target} PROPERTIES COMPILE_OPTIONS "")
+    endif()
+endfunction()
 
 # Add Vulkan
 find_package(Vulkan REQUIRED)
@@ -51,7 +56,6 @@ endif()
 
 
 
-
 # Add ImGUI
 set(imgui_DIR 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/extern/imgui/
@@ -68,7 +72,7 @@ if(WIN32)
         ${imgui_DIR}/backends/imgui_impl_win32.cpp
         ${imgui_DIR}/backends/imgui_impl_dx11.cpp
     )
-elseif(LINUX)
+elseif(UNIX AND NOT APPLE)
     set(imgui_platform_specific_sources
         ${imgui_DIR}/backends/imgui_impl_x11.h
         ${imgui_DIR}/backends/imgui_impl_x11.cpp
@@ -169,6 +173,7 @@ set(ALL_FILES
 # Target
 ################################################################################
 add_library(${PROJECT_NAME} STATIC ${ALL_FILES})
+# target_link_libraries(${PROJECT_NAME} PRIVATE pthread)
 
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC
@@ -212,7 +217,7 @@ set(COMPILE_OPTIONS
     # -O3
 )
 if(MSVC)
-    list(APPEND ${COMPILE_OPTIONS}
+    list(APPEND COMPILE_OPTIONS
         $<$<CONFIG:Release>:
             /Oi;
             /Gy
@@ -225,20 +230,20 @@ if(MSVC)
     )
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     
-    list(APPEND ${COMPILE_OPTIONS}
+    list(APPEND COMPILE_OPTIONS
         -g
         -O0
     )
-    list(APPEND ${COMPILE_OPTIONS}
+    list(APPEND COMPILE_OPTIONS
         -Wall
         -Wextra
         # -Weverything
         -Wpedantic
-        -Werror
+        # -Werror
         # -Werror
     )
 
-    # list(APPEND ${COMPILE_OPTIONS}
+    # list(APPEND COMPILE_OPTIONS
     #     -fsanitize=address,undefined
     #     -fno-omit-frame-pointer
     #     -fno-sanitize=signed-integer-overflow
@@ -259,6 +264,9 @@ target_link_libraries(JF_MODULE_logger
         spdlog::spdlog
         spdlog
 )
+# disable_warnings_for_target(spdlog)
+# target_compile_definitions(spdlog INTERFACE SPDLOG_USE_STD_FORMAT=1)
+# target_compile_definitions(spdlog INTERFACE FMT_ENFORCE_COMPILE_STRING=0)
 add_library(JF_MODULE_prelude INTERFACE)
 target_include_directories(JF_MODULE_prelude 
     INTERFACE
