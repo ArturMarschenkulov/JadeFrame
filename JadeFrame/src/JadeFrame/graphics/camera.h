@@ -3,14 +3,13 @@
 #include "JadeFrame/math/vec.h"
 
 namespace JadeFrame {
+enum class PROJECTION_TYPE : u8 {
+    ORTHOGRAPHIC,
+    PERSPECTIVE,
+};
 
 class Camera {
 public:
-    enum class MODE : u8 {
-        ORTHOGRAPHIC,
-        PERSPECTIVE,
-    };
-
     struct Volume {
         f32 m_left = {};
         f32 m_right = {};
@@ -95,10 +94,10 @@ public:
     auto calc_projection(const char* api) const -> mat4x4;
 
 public:
-    MODE        m_mode;
-    v3          m_position;
-    Orientation m_orientation;
-    Volume      m_volume;
+    PROJECTION_TYPE m_mode;
+    v3              m_position;
+    Orientation     m_orientation;
+    Volume          m_volume;
 };
 
 } // namespace JadeFrame

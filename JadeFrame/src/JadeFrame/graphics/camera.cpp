@@ -32,24 +32,23 @@ namespace JadeFrame {
 // public:
 //     f32 m_inner;
 // };
+
+enum class HANDEDNESS : u8 {
+    LEFT,
+    RIGHT,
+};
+
 class Projection {
 public:
-    enum class TYPE {
-        ORTHOGRAPHIC,
-        PERSPECTIVE,
-    };
-    enum class HANDEDNESS {
-        LEFT,
-        RIGHT,
-    };
-
-    static auto
-    from_box(const Camera::Volume& box, const TYPE type, const HANDEDNESS handedness)
-        -> Projection {
+    static auto from_box(
+        const Camera::Volume& box,
+        const PROJECTION_TYPE type,
+        const HANDEDNESS      handedness
+    ) -> Projection {
         Projection proj;
         proj.m_type = type;
         proj.m_handedness = handedness;
-        if (type == TYPE::ORTHOGRAPHIC) {
+        if (type == PROJECTION_TYPE::ORTHOGRAPHIC) {
             if (handedness == HANDEDNESS::RIGHT) {
                 proj.m_proj = mat4x4::orthographic_rh_no(
                     box.m_left,
@@ -69,7 +68,7 @@ public:
                     box.m_far
                 );
             }
-        } else if (type == TYPE::PERSPECTIVE) {
+        } else if (type == PROJECTION_TYPE::PERSPECTIVE) {
 
             if (handedness == HANDEDNESS::RIGHT) {
                 proj.m_proj = mat4x4::perspective_rh_no(
@@ -94,7 +93,7 @@ public:
     // see:
     // https://lektiondestages.art.blog/2013/11/18/decompose-the-opengl-projection-matrix/
     [[nodiscard]] auto to_frustum_box() const -> Camera::Volume {
-        if (m_type == TYPE::ORTHOGRAPHIC) {
+        if (m_type == PROJECTION_TYPE::ORTHOGRAPHIC) {
             f32 near = (1 + m_proj[3][2]) / m_proj[2][2];
             f32 far = -(1 - m_proj[3][2]) / m_proj[2][2];
             f32 bottom = (1 - m_proj[3][1]) / m_proj[1][1];
@@ -102,7 +101,7 @@ public:
             f32 left = -(1 + m_proj[3][0]) / m_proj[0][0];
             f32 right = (1 - m_proj[3][0]) / m_proj[0][0];
             return Camera::Volume{left, right, bottom, top, near, far};
-        } else if (m_type == TYPE::PERSPECTIVE) {
+        } else if (m_type == PROJECTION_TYPE::PERSPECTIVE) {
             auto near = m_proj[3][2] / (m_proj[2][2] - 1);
             auto far = m_proj[3][2] / (m_proj[2][2] + 1);
             auto bottom = near * (m_proj[2][1] - 1) / m_proj[1][1];
@@ -115,9 +114,9 @@ public:
     }
 
 public:
-    mat4x4     m_proj = mat4x4::zero();
-    TYPE       m_type = TYPE::ORTHOGRAPHIC;
-    HANDEDNESS m_handedness = HANDEDNESS::RIGHT;
+    mat4x4          m_proj = mat4x4::zero();
+    PROJECTION_TYPE m_type = PROJECTION_TYPE::ORTHOGRAPHIC;
+    HANDEDNESS      m_handedness = HANDEDNESS::RIGHT;
 };
 
 /*
@@ -133,35 +132,30 @@ Vulkan's
 /// The hand analogy: thumb == x-axis, index finger == y-axis, middle finger == z-axis
 class CoordinateSystem {
 public:
-    enum class HANDED {
-        LEFT,
-        RIGHT,
-    };
-
-    constexpr static auto create(v3 up, HANDED handed) noexcept -> CoordinateSystem {
+    constexpr static auto create(v3 up, HANDEDNESS handed) noexcept -> CoordinateSystem {
         assert((up == v3::Y() || up == v3::Z()) && "up must be either Y or Z");
-        if (up == v3::Y() && handed == HANDED::LEFT) {
+        if (up == v3::Y() && handed == HANDEDNESS::LEFT) {
             // Unity, LightWave, ZBrush, Cinema4D, OpenGL
             return CoordinateSystem{
                 .m_up = v3::Y(),
                 .m_right = v3::X(),
                 .m_forward = v3::NEG_Z(),
             };
-        } else if (up == v3::Z() && handed == HANDED::LEFT) {
+        } else if (up == v3::Z() && handed == HANDEDNESS::LEFT) {
             // Unreal Engine
             return CoordinateSystem{
                 .m_up = v3::Z(),
                 .m_right = v3::Y(),
                 .m_forward = v3::X(),
             };
-        } else if (up == v3::Y() && handed == HANDED::RIGHT) {
+        } else if (up == v3::Y() && handed == HANDEDNESS::RIGHT) {
             // Bevy, Maya, Modo, Godot, Substance Painter, Houdini, Minecraft
             return CoordinateSystem{
                 .m_up = v3::Y(),
                 .m_right = v3::X(),
                 .m_forward = v3::NEG_Z(),
             };
-        } else if (up == v3::Z() && handed == HANDED::RIGHT) {
+        } else if (up == v3::Z() && handed == HANDEDNESS::RIGHT) {
             // Blender, 3DSMax, SketchUp, Source, Autodesk AutoCAD
 
             return CoordinateSystem{
@@ -175,22 +169,22 @@ public:
 
     // Blender, 3DSMax, SketchUp, Source, Autodesk AutoCAD, CryEngine
     consteval static auto z_up_right_handed() noexcept -> CoordinateSystem {
-        return CoordinateSystem::create(v3::Z(), HANDED::RIGHT);
+        return CoordinateSystem::create(v3::Z(), HANDEDNESS::RIGHT);
     }
 
     // Unreal Engine
     consteval static auto z_up_left_handed() noexcept -> CoordinateSystem {
-        return CoordinateSystem::create(v3::Z(), HANDED::LEFT);
+        return CoordinateSystem::create(v3::Z(), HANDEDNESS::LEFT);
     }
 
     // Bevy, Maya, Modo, Godot, Substance Painter, Houdini, Minecraft
     consteval static auto y_up_right_handed() noexcept -> CoordinateSystem {
-        return CoordinateSystem::create(v3::Y(), HANDED::RIGHT);
+        return CoordinateSystem::create(v3::Y(), HANDEDNESS::RIGHT);
     }
 
     // Unity, LightWave, ZBrush, Cinema4D, OpenGL
     consteval static auto y_up_left_handed() noexcept -> CoordinateSystem {
-        return CoordinateSystem::create(v3::Y(), HANDED::LEFT);
+        return CoordinateSystem::create(v3::Y(), HANDEDNESS::LEFT);
     }
 
     v3 m_up;
@@ -214,7 +208,7 @@ auto Camera::calc_projection(const char* api) const -> mat4x4 {
     mat4x4 proj = mat4x4::identity();
 
     auto [fov, aspect] = m_volume.calc_fovy_aspect();
-    if (m_mode == MODE::PERSPECTIVE) {
+    if (m_mode == PROJECTION_TYPE::PERSPECTIVE) {
         if (api == "OpenGL") {
             proj =
                 mat4x4::perspective_rh_no(fov, aspect, m_volume.m_near, m_volume.m_far);
@@ -225,22 +219,22 @@ auto Camera::calc_projection(const char* api) const -> mat4x4 {
         } else {
             assert(false && "Invalid API");
         }
-    } else if (m_mode == MODE::ORTHOGRAPHIC) {
+    } else if (m_mode == PROJECTION_TYPE::ORTHOGRAPHIC) {
         if (api == "OpenGL") {
             proj = mat4x4::orthographic_rh_no(
-                m_volume.m_near,
-                m_volume.m_far,
-                m_volume.m_near,
-                m_volume.m_far,
+                m_volume.m_left,
+                m_volume.m_right,
+                m_volume.m_bottom,
+                m_volume.m_top,
                 m_volume.m_near,
                 m_volume.m_far
             );
         } else if (api == "Vulkan") {
             proj = mat4x4::orthographic_rh_zo(
-                m_volume.m_near,
-                m_volume.m_far,
-                m_volume.m_near,
-                m_volume.m_far,
+                m_volume.m_left,
+                m_volume.m_right,
+                m_volume.m_bottom,
+                m_volume.m_top,
                 m_volume.m_near,
                 m_volume.m_far
             );
@@ -265,7 +259,7 @@ auto Camera::perspective(
 ) -> Camera {
 
     Camera cam;
-    cam.m_mode = MODE::PERSPECTIVE;
+    cam.m_mode = PROJECTION_TYPE::PERSPECTIVE;
     cam.m_position = position;
     cam.m_orientation =
         Orientation::create(g_coordinate_system.m_forward, g_coordinate_system.m_up);
@@ -283,7 +277,7 @@ auto Camera::perspective(
 ) -> Camera {
 
     Camera cam;
-    cam.m_mode = MODE::PERSPECTIVE;
+    cam.m_mode = PROJECTION_TYPE::PERSPECTIVE;
     cam.m_position = position;
 
     cam.m_orientation =
@@ -309,7 +303,7 @@ auto Camera::orthographic(
     assert(bottom != top);
     assert(near_ != far_);
     Camera camera;
-    camera.m_mode = MODE::ORTHOGRAPHIC;
+    camera.m_mode = PROJECTION_TYPE::ORTHOGRAPHIC;
     camera.m_position = v3::zero();
     camera.m_orientation =
         Orientation::create(-g_coordinate_system.m_up, g_coordinate_system.m_forward);
