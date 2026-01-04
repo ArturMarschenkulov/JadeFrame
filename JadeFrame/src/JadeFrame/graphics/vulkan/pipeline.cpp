@@ -212,8 +212,8 @@ Pipeline::PipelineLayout::PipelineLayout(PipelineLayout&& other) noexcept
     : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
     , m_device(std::exchange(other.m_device, nullptr)) {}
 
-auto Pipeline::PipelineLayout::operator=(PipelineLayout&& other
-) noexcept -> PipelineLayout& {
+auto Pipeline::PipelineLayout::operator=(PipelineLayout&& other) noexcept
+    -> PipelineLayout& {
     if (this != &other) {
         m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
         m_device = std::exchange(other.m_device, nullptr);
@@ -318,8 +318,8 @@ viewport_state_create_info(const VkViewport& viewport, const VkRect2D& scissor)
     return info;
 }
 
-static auto get_binding_description(const VertexFormat& vertex_format
-) -> VkVertexInputBindingDescription {
+static auto get_binding_description(const VertexFormat& vertex_format)
+    -> VkVertexInputBindingDescription {
     u32 stride = 0;
     for (const VertexAttribute& attribute : vertex_format.m_attributes) {
         stride += get_size(attribute.type);
@@ -332,8 +332,8 @@ static auto get_binding_description(const VertexFormat& vertex_format
     return binding_description;
 }
 
-static auto get_attribute_descriptions(const VertexFormat& vertex_format
-) -> std::vector<VkVertexInputAttributeDescription> {
+static auto get_attribute_descriptions(const VertexFormat& vertex_format)
+    -> std::vector<VkVertexInputAttributeDescription> {
     std::vector<VkVertexInputAttributeDescription> attribs;
     attribs.resize(vertex_format.m_attributes.size());
 
@@ -367,8 +367,8 @@ static auto vertex_input_state_create_info(
     return info;
 }
 
-static auto input_assembly_state_create_info(VkPrimitiveTopology topology
-) -> VkPipelineInputAssemblyStateCreateInfo {
+static auto input_assembly_state_create_info(VkPrimitiveTopology topology)
+    -> VkPipelineInputAssemblyStateCreateInfo {
     const VkPipelineInputAssemblyStateCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .pNext = nullptr,
@@ -500,8 +500,8 @@ Pipeline::~Pipeline() {
     }
 }
 
-static auto get_reflected_modules(const std::vector<ShaderModule>& modules
-) -> std::vector<ReflectedModule> {
+static auto get_reflected_modules(const std::vector<ShaderModule>& modules)
+    -> std::vector<ReflectedModule> {
     std::vector<ReflectedModule> reflected_modules;
     reflected_modules.resize(modules.size());
     for (u32 i = 0; i < modules.size(); i++) {
