@@ -59,7 +59,7 @@ public:
     ~mat4x4() noexcept = default;
 
     constexpr mat4x4(const mat4x4&) noexcept = default;
-    constexpr auto operator=(const mat4x4& mat) noexcept -> mat4x4&;
+    constexpr auto operator=(const mat4x4& mat) noexcept -> mat4x4& = default;
     constexpr mat4x4(mat4x4&&) noexcept = default;
     constexpr auto operator=(mat4x4&& mat) noexcept -> mat4x4& = default;
 
@@ -67,8 +67,8 @@ public:
     using Col = std::array<f32, 4>;
 
     constexpr auto operator[](const u32 index) noexcept -> Col&; // for writing
-    constexpr auto operator[](const u32 index
-    ) const noexcept -> const Col&; // for reading
+    constexpr auto operator[](const u32 index) const noexcept
+        -> const Col&; // for reading
 
     constexpr auto operator*(const f32& scalar) const noexcept -> mat4x4 {
         mat4x4 result = {};
@@ -138,8 +138,8 @@ public: // static methods for matrices
         );
     }
 
-    [[nodiscard]] constexpr auto
-    to_scale_rotation_translation() const noexcept -> std::tuple<v3, mat4x4, v3> {
+    [[nodiscard]] constexpr auto to_scale_rotation_translation() const noexcept
+        -> std::tuple<v3, mat4x4, v3> {
         f32 det = this->determinant();
 
         v3 scale = v3::create(
@@ -268,8 +268,6 @@ public: // static methods for matrices
         const f32 frustum_height = top - bottom;
         const f32 frustum_depth = far - near;
 
-        const f32 range = 2.0F * near;
-
         f32 a = (2.0F * near) / frustum_width;
         f32 b = (2.0F * near) / frustum_height;
 
@@ -314,7 +312,6 @@ public: // static methods for matrices
 
         const f32 frustum_depth = z_far - z_near;
         const f32 focal_length = 1.0F / math::tan(fovy / 2.0F);
-        // const auto focal_length = math::cos(fovy / 2.0F) / math::sin(fovy / 2.0F);
         const f32 z_factor = -1.0F;
 
         f32 _1 = focal_length / aspect;
@@ -362,7 +359,7 @@ public: // static methods for matrices
 
         const f32 z_range_min = 0.0F;
         const f32 z_range_max = 1.0F;
-        const f32 c_0 = z_range_max * z_far - z_range_min * z_near;
+        const f32 c_0 = (z_range_max * z_far) - (z_range_min * z_near);
         const f32 c_1 = (z_range_min - z_range_max) * z_near * z_far;
 
         const f32 _1 = focal_length / aspect;
@@ -464,18 +461,18 @@ public: // static methods for matrices
     ///
     /// The resulting matrix transforms a point from the world space to the view space.
     /// For coordinate system with +x=right, +y=up, +z=forward.
-    constexpr static auto
-    look_to_lh(const v3& eye, const v3& direction, const v3& up) -> mat4x4 {
+    constexpr static auto look_to_lh(const v3& eye, const v3& direction, const v3& up)
+        -> mat4x4 {
         return mat4x4::look_to_rh(eye, -direction, up);
     }
 
-    constexpr static auto
-    look_at_lh(const v3& eye, const v3& target, const v3& up) -> mat4x4 {
+    constexpr static auto look_at_lh(const v3& eye, const v3& target, const v3& up)
+        -> mat4x4 {
         return mat4x4::look_to_lh(eye, target - eye, up);
     }
 
-    constexpr static auto
-    look_at_rh(const v3& eye, const v3& target, const v3& up) -> mat4x4 {
+    constexpr static auto look_at_rh(const v3& eye, const v3& target, const v3& up)
+        -> mat4x4 {
         return mat4x4::look_to_rh(eye, target - eye, up);
     }
 
@@ -486,9 +483,7 @@ public:
     }
 
     [[nodiscard]] constexpr auto transform_point3(const v3& point) const noexcept -> v3 {
-        if (w_axis == v4::W()) {
-            assert(w_axis == v4::W() && "The w component of the w_axis must be 1.0F");
-        }
+        assert(w_axis == v4::W() && "The w component of the w_axis must be 1.0F");
         v4 result = *this * v4::from_v3(point, 1.0F);
         return v3::create(result.x, result.y, result.z);
     }
@@ -501,13 +496,11 @@ public:
 
 public:
     [[nodiscard]] constexpr auto determinant() const -> f32;
-    [[nodiscard]] constexpr auto get_echelon() const -> mat4x4;
     [[nodiscard]] constexpr auto get_transpose() const -> mat4x4;
 
     [[nodiscard]] constexpr auto inverse() const -> mat4x4 {
         f32 det = this->determinant();
         if (det == 0.0F) { return mat4x4::zero(); }
-        f32 inv_det = 1.0F / det;
 
         f32 coeff00 = el[2][2] * el[3][3] - el[3][2] * el[2][3];
         f32 coeff02 = el[1][2] * el[3][3] - el[3][2] * el[1][3];
@@ -565,11 +558,22 @@ public:
     }
 
     [[nodiscard]] constexpr auto is_invertible() const -> bool;
-    [[nodiscard]] constexpr auto get_rank() const -> i32;
-
-    [[nodiscard]] constexpr auto make_echelon() const -> mat4x4;
 
 public:
+    [[nodiscard]] auto get_column(u8 col) const noexcept -> v4 {
+        assert(col < 4 && "Index out of bounds");
+        return this->col_vec[col];
+    }
+
+    [[nodiscard]] auto get_row(u8 row) const noexcept -> v4 {
+        assert(row < 4 && "Index out of bounds");
+        return v4::create(
+            this->el[0][row], this->el[1][row], this->el[2][row], this->el[3][row]
+        );
+    }
+
+public:
+    // TODO(artur): remove union usage, as it is UB in C++
     union {
         std::array<Col, 4> el;
         std::array<v4, 4>  col_vec;
@@ -585,7 +589,7 @@ public:
 
 // IMPLEMENTATION
 
-static auto operator<<(std::ostream& os, const mat4x4& v) -> std::ostream& {
+inline auto operator<<(std::ostream& os, const mat4x4& v) -> std::ostream& {
     os << '{';
     os << '{' << v[0][0] << ", " << v[0][1] << ", " << v[0][2] << ", " << v[0][3] << '}';
     os << ',';
@@ -597,21 +601,13 @@ static auto operator<<(std::ostream& os, const mat4x4& v) -> std::ostream& {
     return os;
 }
 
-inline constexpr auto mat4x4::operator=(const mat4x4& mat) noexcept -> mat4x4& {
-    if (this == &mat) { return *this; }
-    for (u32 col = 0; col < 4; col++) {
-        for (u32 row = 0; row < 4; row++) { el[col][row] = mat[col][row]; }
-    }
-    return (*this);
-}
-
-inline constexpr auto mat4x4::operator[](const u32 index
-) noexcept -> std::array<f32, 4>& {
+inline constexpr auto mat4x4::operator[](const u32 index) noexcept
+    -> std::array<f32, 4>& {
     return this->el[index];
 }
 
-inline constexpr auto mat4x4::operator[](const u32 index
-) const noexcept -> const std::array<f32, 4>& {
+inline constexpr auto mat4x4::operator[](const u32 index) const noexcept
+    -> const std::array<f32, 4>& {
     return this->el[index];
 }
 
@@ -667,64 +663,6 @@ inline constexpr auto mat4x4::orthographic_rh_no(
         v4::create(0.0F, 0.0F, c, 0.0F),
         v4::create(tx, ty, tz, 1.0F)
     );
-}
-
-inline constexpr auto
-perspe_0(f32 left, f32 right, f32 top, f32 bottom, f32 far, f32 near) noexcept -> mat4x4 {
-
-    enum API {
-        DEFAULT,
-        VULKAN,
-    };
-
-    f32  y_dir = {};
-    auto api = API::VULKAN;
-    if (api == API::DEFAULT) {
-        y_dir = 1;
-    } else if (api == API::VULKAN) {
-        y_dir = -1;
-    }
-
-    auto map_to_c1 = [](f32 to_near, f32 to_far, f32 from_near, f32 from_far) -> f32 {
-        return ((to_near - to_far) * from_near * from_far) / (from_far - from_near);
-    };
-
-    auto map_to_c2 = [](f32 to_near, f32 to_far, f32 from_near, f32 from_far) -> f32 {
-        return -(to_near * from_near - to_far * from_far) / (from_far - from_near);
-    };
-
-    auto map_to_c1_ = [](f32 near_to, f32 far_to, f32 near_from, f32 far_from) -> f32 {
-        f32 depth_from = far_from - near_from;
-        f32 depth_to = far_to - near_to;
-        f32 scale = depth_to / depth_from;
-        return -near_from * far_from * scale;
-    };
-    auto map_to_c2_ = [](f32 near_to, f32 far_to, f32 near_from, f32 far_from) -> f32 {
-        f32 depth_from = far_from - near_from;
-        return -(near_to * near_from - far_to * far_from) / depth_from;
-    };
-    mat4x4 translate = mat4x4::identity();
-    translate[3][0] = -(right + left) / 2.0F;
-    translate[3][1] = -(top + bottom) / 2.0F;
-
-    mat4x4 scale_depth = mat4x4::identity();
-    auto   c1 = map_to_c1(-1, 1, near, far);
-    auto   c2 = map_to_c2(-1, 1, near, far);
-    scale_depth[2][2] = c1;
-    scale_depth[2][3] = -1.0F;
-    scale_depth[3][2] = c2;
-
-    mat4x4 perspective = mat4x4::identity();
-    perspective[0][0] = near;
-    perspective[1][1] = near;
-
-    mat4x4 scale = mat4x4::identity();
-    scale[0][0] = 2.0F / (right - left);
-    scale[1][1] = 2.0F / (top - bottom);
-    scale[1][1] *= y_dir;
-
-    mat4x4 res = scale * perspective * scale_depth * translate;
-    return res;
 }
 
 inline constexpr auto
@@ -852,35 +790,8 @@ inline constexpr auto mat4x4::determinant() const -> f32 {
     return t;
 }
 
-inline constexpr auto mat4x4::get_echelon() const -> mat4x4 {
-    mat4x4 m = *this;
-    u32    col_count = 4;
-    u32    row_count = 4;
-    // go through every column
-    for (u32 col = 0; col < col_count; col++) {
-        for (u32 row = col + 1; row < row_count; row++) {
-            if (m[col][row] != 0) {
-                f32 factor = m[col][row] / m[col][col];
-                for (u32 col2 = 0; col2 < col_count; col2++) {
-                    m[col2][row] -= factor * m[col2][col];
-                }
-            }
-        }
-    }
-    return m;
-}
-
 inline constexpr auto mat4x4::is_invertible() const -> bool {
     return this->determinant() != 0;
-}
-
-inline constexpr auto mat4x4::get_rank() const -> i32 {
-    i32  result = 0;
-    auto e = this->get_echelon();
-    for (u32 col = 0; col < 4; col++) {
-        for (u32 row = 0; row < 4; row++) { result += (e[col][row] > 0) ? 1 : 0; }
-    }
-    return result;
 }
 
 inline constexpr auto mat4x4::get_transpose() const -> mat4x4 {
@@ -891,39 +802,20 @@ inline constexpr auto mat4x4::get_transpose() const -> mat4x4 {
     return result;
 }
 
-inline constexpr auto mat4x4::make_echelon() const -> mat4x4 {
-
-    mat4x4 result = *this;
-    u32    col_count = 4;
-    u32    row_count = 4;
-    // go through every column
-    for (u32 col = 0; col < col_count; col++) {
-        for (u32 row = col + 1; row < row_count; row++) {
-            if (result[col][row] != 0) {
-                f32 factor = result[col][row] / result[col][col];
-                for (u32 col2 = 0; col2 < col_count; col2++) {
-                    result[col2][row] -= factor * result[col2][col];
-                }
-            }
-        }
-    }
-    return result;
-}
-
 class Quaternion {
 public:
     constexpr Quaternion() noexcept = default;
     ~Quaternion() noexcept = default;
 
     constexpr Quaternion(const Quaternion&) noexcept = default;
-    constexpr auto operator=(const Quaternion& mat) noexcept -> Quaternion&;
+    constexpr auto operator=(const Quaternion& mat) noexcept -> Quaternion& = default;
     constexpr Quaternion(Quaternion&&) noexcept = default;
     constexpr auto operator=(Quaternion&& mat) noexcept -> Quaternion& = default;
 
 public: // Creation / named constructors
     /// Creates a new quaternion from raw components.
-    static inline constexpr auto
-    create(f32 x, f32 y, f32 z, f32 w) noexcept -> Quaternion {
+    static inline constexpr auto create(f32 x, f32 y, f32 z, f32 w) noexcept
+        -> Quaternion {
         Quaternion quat = {};
         quat.x = x;
         quat.y = y;
@@ -941,8 +833,8 @@ public: // Creation / named constructors
     ///
     /// \param axis Must be normalized (or will be normalized internally).
     /// \param angle Rotation in radians.
-    static inline constexpr auto
-    from_axis_angle(const v3& axis_in, f32 angle) noexcept -> Quaternion {
+    static inline constexpr auto from_axis_angle(const v3& axis_in, f32 angle) noexcept
+        -> Quaternion {
         v3  axis = axis_in.normalize(); // or do your own normalization
         f32 half_angle = angle * 0.5F;
         f32 s = static_cast<f32>(math::sin(half_angle));
@@ -950,8 +842,8 @@ public: // Creation / named constructors
         return Quaternion::create(axis.x * s, axis.y * s, axis.z * s, c);
     }
 
-    static inline constexpr auto
-    from_euler(f32 pitch, f32 yaw, f32 roll) noexcept -> Quaternion {
+    static inline constexpr auto from_euler(f32 pitch, f32 yaw, f32 roll) noexcept
+        -> Quaternion {
         // For a standard Y-up, R_z(roll)*R_y(yaw)*R_x(pitch) approach:
         f32 half_x = pitch * 0.5F;
         f32 half_y = yaw * 0.5F;
@@ -1020,14 +912,14 @@ public: // Creation / named constructors
 
 public: // Basic quaternion operations
     /// Quaternion addition.
-    inline constexpr auto operator+(const Quaternion& other
-    ) const noexcept -> Quaternion {
+    inline constexpr auto operator+(const Quaternion& other) const noexcept
+        -> Quaternion {
         return Quaternion::create(x + other.x, y + other.y, z + other.z, w + other.w);
     }
 
     /// Quaternion subtraction.
-    inline constexpr auto operator-(const Quaternion& other
-    ) const noexcept -> Quaternion {
+    inline constexpr auto operator-(const Quaternion& other) const noexcept
+        -> Quaternion {
         return Quaternion::create(x - other.x, y - other.y, z - other.z, w - other.w);
     }
 
@@ -1044,8 +936,8 @@ public: // Basic quaternion operations
     /// Quaternion multiplication (combines rotations).
     ///
     /// \note Order matters: q1 * q2 means "apply q2, then q1".
-    inline constexpr auto operator*(const Quaternion& other
-    ) const noexcept -> Quaternion {
+    inline constexpr auto operator*(const Quaternion& other) const noexcept
+        -> Quaternion {
         // Hamilton product:
         // (w1*x2 + x1*w2 + y1*z2 - z1*y2, ...)
         // A common reference formula:
@@ -1062,8 +954,8 @@ public: // Basic quaternion operations
     }
 
     /// Dot product of two quaternions.
-    inline constexpr static auto
-    dot(const Quaternion& a, const Quaternion& b) noexcept -> f32 {
+    inline constexpr static auto dot(const Quaternion& a, const Quaternion& b) noexcept
+        -> f32 {
         return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
     }
 
@@ -1159,8 +1051,8 @@ public: // Spherical Linear Interpolation
     ///
     /// Both quaternions should be normalized. If not, slerp might still work, but
     /// typically they're expected to be unit quaternions.
-    static inline auto
-    slerp(const Quaternion& a, const Quaternion& b, f32 t) noexcept -> Quaternion {
+    static inline auto slerp(const Quaternion& a, const Quaternion& b, f32 t) noexcept
+        -> Quaternion {
         // Clamp t
         if (t < 0.0F) { t = 0.0F; }
         if (t > 1.0F) { t = 1.0F; }
