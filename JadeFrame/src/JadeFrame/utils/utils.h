@@ -53,6 +53,20 @@ auto make_ref(T* obj) -> Ref<T> {
     return std::make_shared<T>(obj);
 }
 
+template<class T>
+constexpr auto take_and_destruct(T& t) noexcept -> T {
+    auto taken = T(static_cast<T&&>(t));
+    t.~T();
+    return taken;
+}
+
+template<typename T>
+constexpr auto take_copy_and_destruct(T& value) -> T {
+    T temp = value;
+    value.~T();
+    return temp;
+}
+
 namespace bit {
 
 template<typename T>
