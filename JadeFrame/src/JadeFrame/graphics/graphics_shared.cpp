@@ -371,7 +371,6 @@ auto RenderSystem::register_texture(Image& image) -> TextureHandle* {
         case GRAPHICS_API::OPENGL: {
             auto*            renderer = dynamic_cast<OpenGL_Renderer*>(m_renderer);
             opengl::Context* device = &renderer->m_context;
-
             tex.m_handle = device->create_texture(
                 image.data.data(), tex.m_size, tex.m_num_components
             );
@@ -418,13 +417,11 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
             // TODO: Move this whole remapping thing into the OpenGL Shader class. This is
             // not a thing which should be known by a shared layer.
 
-            std::string          v_source;
             ShadingCode::Module  mod_0;
             ShadingCode::Module& vert_mod = shader.m_code.m_modules[0];
             mod_0.m_code = remap_for_opengl(vert_mod.m_code, vert_mod.m_stage, nullptr);
             mod_0.m_stage = vert_mod.m_stage;
 
-            std::string          f_source;
             ShadingCode::Module  mod_1;
             ShadingCode::Module& frag_mod = shader.m_code.m_modules[1];
             mod_1.m_code = remap_for_opengl(frag_mod.m_code, frag_mod.m_stage, nullptr);

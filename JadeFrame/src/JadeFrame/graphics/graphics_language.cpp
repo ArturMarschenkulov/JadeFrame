@@ -13,6 +13,7 @@ JF_PRAGMA_NO_WARNINGS_PUSH
 JF_PRAGMA_NO_WARNINGS_POP
 
 #include "JadeFrame/utils/assert.h"
+
 namespace JadeFrame {
 
 auto convert_SPIRV_to_GLSL(const std::vector<u32>& spirv) -> std::string {
@@ -48,11 +49,10 @@ auto remap_for_opengl(
     SHADER_STAGE                      stage,
     std::string*                      out_source
 ) -> ShadingCode::Module::SPIRV {
-    // alias spirv_cross with spv_c
     namespace spv_c = spirv_cross;
 
     spv_c::CompilerGLSL compiler = spv_c::CompilerGLSL(code);
-    // sets up opengl compiler options
+
     spv_c::CompilerGLSL::Options options;
     options.version = 450;
     options.es = false;

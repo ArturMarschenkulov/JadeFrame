@@ -34,6 +34,7 @@ target_link_libraries(JF_MODULE_graphics
         stb
         JF_MODULE_prelude
         JF_MODULE_math
+        JF_MODULE_platform
         shaderc
         spirv-cross-hlsl
         spirv-cross-glsl
@@ -42,4 +43,4 @@ target_link_libraries(JF_MODULE_graphics
         gfx-vulkan
 
 )
-# add_subdirectory(tests)
+add_subdirectory(tests)
