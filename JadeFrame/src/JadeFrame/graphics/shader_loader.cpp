@@ -2,6 +2,8 @@
 
 #include "graphics_language.h"
 
+#include <tuple>
+
 // #include <glad/glad.h>
 
 namespace JadeFrame {
@@ -440,17 +442,19 @@ void main()
 // Note the resulting code is in SPIRV format.
 auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
 
-    using ShaderGetter = std::function<std::tuple<std::string, std::string>()>;
-    static const std::unordered_map<std::string, ShaderGetter> shader_map = {
-        {          "flat_0",          [&]() { return get_shader_spirv_test_1(); }},
-        {  "with_texture_0",  [&]() { return get_default_shader_with_texture(); }},
-        {    "spirv_test_1",          [&]() { return get_shader_spirv_test_1(); }},
-        { "depth_testing_0", [&]() { return get_default_shader_depth_testing(); }},
-        {    "light_server",  [&]() { return get_default_shader_light_server(); }},
-        {    "light_client",  [&]() { return get_default_shader_light_client(); }},
-        {    "spirv_test_0",          [&]() { return get_shader_spirv_test_0(); }},
-        {"framebuffer_test",    [&]() { return get_shader_framebuffer_test_0(); }}
+    // using ShaderGetter = std::function<std::tuple<std::string, std::string>()>;
+    using ShaderGetterFn = std::tuple<std::string, std::string> (*)();
+    static const std::unordered_map<std::string, ShaderGetterFn> shader_map = {
+        {          "flat_0",          &get_shader_spirv_test_1},
+        {  "with_texture_0",  &get_default_shader_with_texture},
+        {    "spirv_test_1",          &get_shader_spirv_test_1},
+        { "depth_testing_0", &get_default_shader_depth_testing},
+        {    "light_server",  &get_default_shader_light_server},
+        {    "light_client",  &get_default_shader_light_client},
+        {    "spirv_test_0",          &get_shader_spirv_test_0},
+        {"framebuffer_test",    &get_shader_framebuffer_test_0}
     };
+
     auto it = shader_map.find(name);
     if (it == shader_map.end()) {
         Logger::err("GLSLCodeLoader::get_by_name: Shader with name {} not found", name);
