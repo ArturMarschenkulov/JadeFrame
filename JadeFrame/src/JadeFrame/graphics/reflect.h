@@ -62,5 +62,4 @@ struct ReflectedCode {
     std::vector<ReflectedModule> m_modules;
 };
 
-auto reflect(const ShadingCode& code) -> ReflectedCode;
 } // namespace JadeFrame

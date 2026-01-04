@@ -125,11 +125,6 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
     return result;
 }
 
-auto temp_cmp_0(const ReflectedModule::Input& i0, const ReflectedModule::Input& i1)
-    -> bool {
-    return i0.location < i1.location;
-}
-
 auto temp_cmp_1(const ReflectedModule::Input& i0, const ReflectedModule::Input& i1)
     -> bool {
     return i0.location < i1.location;
@@ -171,7 +166,7 @@ static auto reflect_outputs(
     spirv_cross::Compiler&                                 comp,
     const spirv_cross::SmallVector<spirv_cross::Resource>& stage_outputs
 ) -> std::vector<ReflectedModule::Output> {
-    constexpr u32 BYTE_SIZE = 8;
+    constexpr u32 BITS_PER_BYTE = 8;
 
     std::vector<ReflectedModule::Output> result;
 
@@ -184,7 +179,7 @@ static auto reflect_outputs(
 
         u32 mem_count = static_cast<u32>(buf_ty.member_types.size());
         u32 location = comp.get_decoration(rc.id, spv::DecorationLocation);
-        u32 size = (buf_ty.width / BYTE_SIZE) * buf_ty.vecsize * buf_ty.columns;
+        u32 size = (buf_ty.width / BITS_PER_BYTE) * buf_ty.vecsize * buf_ty.columns;
 
         result[j].name = name;
         result[j].location = location;
