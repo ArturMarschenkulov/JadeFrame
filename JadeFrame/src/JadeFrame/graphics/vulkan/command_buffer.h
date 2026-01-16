@@ -62,33 +62,33 @@ public:
 
 public: // copy methods
     auto copy_buffer(const Buffer& src, const Buffer& dst, u64 size) const -> void;
-    auto
-    copy_buffer_to_image(const Buffer& src, const Image& dst, v2u32 size) const -> void;
+    auto copy_buffer_to_image(const Buffer& src, const Image& dst, v2u32 size) const
+        -> void;
 
 public: // bind methods
-    auto
-    bind_pipeline(const VkPipelineBindPoint bind_point, const Pipeline& pipeline) -> void;
+    auto bind_pipeline(const VkPipelineBindPoint bind_point, const Pipeline& pipeline)
+        -> void;
     auto bind_vertex_buffers(
         u32                 first_binding,
         u32                 binding_count,
         const VkBuffer*     buffers,
         const VkDeviceSize* offsets
     ) -> void;
-    auto
-    bind_vertex_buffers(const VkBuffer* buffers, const VkDeviceSize* offsets) -> void;
+    auto bind_vertex_buffers(const VkBuffer* buffers, const VkDeviceSize* offsets)
+        -> void;
 
     auto bind_vertex_buffer(u32 binding, const Buffer& buffer, const VkDeviceSize& offset)
         -> void {
         this->bind_vertex_buffers(binding, 1, &buffer.m_handle, &offset);
     }
 
-    auto bind_descriptor_sets(
+    auto bind_descriptor_set(
         const VkPipelineBindPoint bind_point,
         const Pipeline&           pipeline,
-        u32                       first_set,
+        u32                       set_index,
         const DescriptorSet&      descriptor_set,
         const u32*                offset
-    ) -> void;
+    ) const -> void;
 
     auto bind_index_buffer(const Buffer& buffer, VkDeviceSize offset) -> void;
 
@@ -147,9 +147,11 @@ public:
     auto free_buffers(const std::span<CommandBuffer>& command_buffers) const -> void;
     auto free_buffer(const CommandBuffer& command_buffer) const -> void;
 
-    auto
-    copy_buffer(const Buffer& src_buffer, const Buffer& dst_buffer, VkDeviceSize size)
-        const -> void;
+    auto copy_buffer(
+        const Buffer& src_buffer,
+        const Buffer& dst_buffer,
+        VkDeviceSize  size
+    ) const -> void;
 
     auto transition_layout(
         const Image& image,

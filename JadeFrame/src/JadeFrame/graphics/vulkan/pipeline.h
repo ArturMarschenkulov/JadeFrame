@@ -63,7 +63,7 @@ public:
     };
 
     VkPipeline           m_handle = VK_NULL_HANDLE;
-    PipelineLayout       m_layout = {};
+    PipelineLayout       m_layout;
     const LogicalDevice* m_device = nullptr;
     const RenderPass*    m_render_pass = nullptr;
 

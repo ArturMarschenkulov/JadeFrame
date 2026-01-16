@@ -28,7 +28,7 @@ struct Image {
     i32             num_components = 0;
 };
 
-enum class GRAPHICS_API {
+enum class GRAPHICS_API : u8 {
     UNDEFINED,
     OPENGL,
     VULKAN,
@@ -55,7 +55,7 @@ inline auto to_string(GRAPHICS_API api) -> const char* {
 
 // NOTE: Since GLSL and SPIRV are slightly different for both opengl and vulkan, they are
 // treated like different shading languages here.
-enum class SHADING_LANGUAGE {
+enum class SHADING_LANGUAGE : u8 {
     // High level
     GLSL_VULKAN,
     GLSL_OPENGL,
@@ -64,7 +64,7 @@ enum class SHADING_LANGUAGE {
     SPIRV_VULKAN,
     SPIRV_OPENGL,
 };
-enum class SHADER_STAGE {
+enum class SHADER_STAGE : u8 {
     VERTEX,
     FRAGMENT, // PIXEL
     GEOMETRY,
@@ -72,7 +72,7 @@ enum class SHADER_STAGE {
     COMPUTE,
 };
 
-enum class SHADER_TYPE {
+enum class SHADER_TYPE : u8 {
     NONE = 0,
     // Scalars
     I32,
@@ -230,7 +230,7 @@ public:
     explicit TextureHandle(const Image& image);
 
 public:
-    v2u32 m_size = {};
+    v2u32 m_size;
     u32   m_num_components = 0;
 
     GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
@@ -284,7 +284,7 @@ class RenderSystem;
 
 class GPUBuffer {
 public:
-    enum TYPE {
+    enum TYPE : u8 {
         VERTEX,
         INDEX,
         UNIFORM,

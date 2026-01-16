@@ -91,6 +91,9 @@ auto OpenGL_Renderer::render(const Camera& camera) -> void {
     // NOTE: At the time of writing this is mainly compatible with
     // `get_shader_spirv_test_1` or rather on any renderer where the camera uniform is
     // at binding point 0 and the transform uniform is at binding point 1.
+    const u32 CAM_BINDING = 0;
+    const u32 TRANSFORM_BINDING = 1;
+
     std::deque<RenderCommand>& render_commands = m_system->m_render_commands;
 
     for (size_t i = 0; i < render_commands.size(); ++i) {
@@ -103,14 +106,14 @@ auto OpenGL_Renderer::render(const Camera& camera) -> void {
 
         // NOTE: As of right now this is not optimal, as it only needs to be updated once
         // outside the loop. But because of how the code is arranged one has to update it
-        // every iteration of the loop. Late on one HAS TO fix this.
+        // every iteration of the loop. Later on one HAS TO fix this.
 
         // ub_cam
         mat4x4 view_projection = camera.get_view_projection("OpenGL");
-        material->write_ub(0, &view_projection, sizeof(view_projection), 0);
+        material->write_ub(CAM_BINDING, &view_projection, sizeof(view_projection), 0);
 
         // ub_tran
-        material->write_ub(1, &cmd.transform, sizeof(cmd.transform), 0);
+        material->write_ub(TRANSFORM_BINDING, &cmd.transform, sizeof(cmd.transform), 0);
 
         if (mh.m_texture != nullptr) {
             auto* texture = static_cast<opengl::Texture*>(mh.m_texture->m_handle);

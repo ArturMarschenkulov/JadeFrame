@@ -119,8 +119,11 @@ auto CommandBuffer::copy_buffer(const Buffer& src, const Buffer& dst, u64 size) 
     vkCmdCopyBuffer(m_handle, src.m_handle, dst.m_handle, 1, &region);
 }
 
-auto CommandBuffer::copy_buffer_to_image(const Buffer& src, const Image& dst, v2u32 size)
-    const -> void {
+auto CommandBuffer::copy_buffer_to_image(
+    const Buffer& src,
+    const Image&  dst,
+    v2u32         size
+) const -> void {
     assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
 
     VkExtent3D extent = {
@@ -187,23 +190,23 @@ auto CommandBuffer::bind_vertex_buffers(
     );
 }
 
-auto CommandBuffer::bind_descriptor_sets(
+auto CommandBuffer::bind_descriptor_set(
     const VkPipelineBindPoint bind_point,
     const Pipeline&           pipeline,
-    u32                       first_set,
+    u32                       set_index,
     const DescriptorSet&      descriptor_set,
     const u32*                offset
-) -> void {
+) const -> void {
 
     // JF_ASSERT(descriptor_set_count == descriptor_set.m_descriptors.size(), "");
     assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
 
     vkCmdBindDescriptorSets(
-        m_handle,                   // commandBuffer
-        bind_point,                 // pipelineBindPoint
-        pipeline.m_layout.m_handle, // layout
-        first_set,                  // firstSet
-        1, // descriptor_set.m_descriptors.size(),      // descriptorSetCount
+        m_handle,                                 // commandBuffer
+        bind_point,                               // pipelineBindPoint
+        pipeline.m_layout.m_handle,               // layout
+        set_index,                                // firstSet
+        1,                                        // descriptorSetCount
         &descriptor_set.m_handle,                 // pDescriptorSets
         descriptor_set.m_layout->m_dynamic_count, // dynamicOffsetCount
         offset                                    // pDynamicOffsets
@@ -257,8 +260,8 @@ auto CommandBuffer::draw_indexed(
     );
 }
 
-static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFlags& flag
-) -> std::string {
+static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFlags& flag)
+    -> std::string {
     std::string result = "{ ";
 
     if (bit::check_flag(flag, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT)) {
@@ -372,8 +375,8 @@ auto CommandPool::allocate_buffer() const -> CommandBuffer {
     return std::move(this->allocate_buffers(1, level)[0]);
 }
 
-auto CommandPool::free_buffers(const std::span<CommandBuffer>& command_buffers
-) const -> void {
+auto CommandPool::free_buffers(const std::span<CommandBuffer>& command_buffers) const
+    -> void {
     for (u32 i = 0; i < command_buffers.size(); i++) {
         vkFreeCommandBuffers(
             m_device->m_handle, m_handle, 1, &command_buffers[i].m_handle
@@ -437,12 +440,13 @@ auto CommandPool::transition_layout(
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .image = image.m_handle,
-            .subresourceRange =
-                {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                                   .baseMipLevel = 0,
-                                   .levelCount = 1,
-                                   .baseArrayLayer = 0,
-                                   .layerCount = 1},
+            .subresourceRange = {
+                                 .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                 .baseMipLevel = 0,
+                                 .levelCount = 1,
+                                 .baseArrayLayer = 0,
+                                 .layerCount = 1
+            },
         };
 
         VkPipelineStageFlags source_stage = {};

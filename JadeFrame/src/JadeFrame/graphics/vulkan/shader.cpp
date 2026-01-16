@@ -75,20 +75,18 @@ Vulkan_Material::Vulkan_Material(
             device.create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, size);
         this->bind_buffer(set, binding, *buf, 0, size);
         m_uniform_buffers[set][binding] = buf;
-
-        // Logger::info("Uniform buffer: {}", uniform_buffer.name);
-        // Logger::info(
-        //     "reflected uniform buffers {}",
-        //     m_pipeline.m_reflected_interface.m_uniform_buffers.size()
-        // );
     }
     if (m_texture != nullptr) {
-        vulkan::DescriptorSet& set = m_sets[vulkan::FREQUENCY::PER_MATERIAL];
+        // TODO(artur): This is right now too hardcoded and needs to be factored out.
+        const auto SET_INDEX = vulkan::FREQUENCY::PER_MATERIAL;
+        const auto BINDING_INDEX = 0;
+
+        vulkan::DescriptorSet& set = m_sets[SET_INDEX];
         if (set.m_descriptors.empty()) {
             Logger::err("The shader does not support textures");
             assert(false);
         }
-        set.bind_combined_image_sampler(0, *texture);
+        set.bind_combined_image_sampler(BINDING_INDEX, *texture);
         set.update();
     }
 }

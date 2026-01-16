@@ -16,6 +16,27 @@ JF_PRAGMA_NO_WARNINGS_POP
 
 namespace JadeFrame {
 
+enum class IMAGE_ADDRESS_MODE : u8 {
+    REPEAT,
+    MIRRORED_REPEAT,
+    CLAMP_TO_EDGE,
+    CLAMP_TO_BORDER
+};
+enum class IMAGE_FILTER_MODE : u8 {
+    NEAREST,
+    LINEAR
+};
+enum class IMAGE_COMPARE_FUNCTION : u8 {
+    LESS,
+    LEQUAL,
+    GREATER,
+    GEQUAL,
+    EQUAL,
+    NOTEQUAL,
+    ALWAYS,
+    NEVER
+};
+
 auto convert_SPIRV_to_GLSL(const std::vector<u32>& spirv) -> std::string {
     spirv_cross::CompilerGLSL::Options options;
     options.version = 450;

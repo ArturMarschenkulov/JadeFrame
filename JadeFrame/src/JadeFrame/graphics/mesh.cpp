@@ -64,12 +64,19 @@ auto MeshBuilder::rectangle_opengl(const v3& pos, const v3& size, const Desc des
         std::vector<v3> positions;
         if (desc.has_position) {
             positions.resize(6);
-            positions[0] = v3::create(pos.x, pos.y, pos.z);
-            positions[1] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
-            positions[2] = v3::create(pos.x + size.x, pos.y, pos.z);
-            positions[3] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
-            positions[4] = v3::create(pos.x, pos.y, pos.z);
-            positions[5] = v3::create(pos.x, pos.y + size.y, pos.z);
+            auto x_arrow = v3::create(size.x, 0.0F, 0.0F);
+            auto y_arrow = v3::create(0.0F, size.y, 0.0F);
+
+            auto pos_o = v3::create(pos.x, pos.y, pos.z);
+            auto pos_x = pos_o + x_arrow;
+            auto pos_y = pos_o + y_arrow;
+            auto pos_xy = pos_o + x_arrow + y_arrow;
+            positions[0] = pos_o;
+            positions[1] = pos_xy;
+            positions[2] = pos_x;
+            positions[3] = pos_xy;
+            positions[4] = pos_o;
+            positions[5] = pos_y;
             std::vector<f32> data = to_list(positions);
             mesh.m_attributes[Mesh::POSITION.m_id] =
                 Mesh::AttributeData{.m_attribute = Mesh::POSITION, .m_data = data};
@@ -155,14 +162,21 @@ auto MeshBuilder::rectangle(const v3& pos, const v3& size, const Desc desc) -> M
     } else {
         std::vector<v3> positions;
         if (desc.has_position) {
-            positions.resize(6);
-            positions[0] = v3::create(pos.x, pos.y, pos.z);
-            positions[1] = v3::create(pos.x + size.x, pos.y, pos.z);
-            positions[2] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
+            auto x_arrow = v3::create(size.x, 0.0F, 0.0F);
+            auto y_arrow = v3::create(0.0F, size.y, 0.0F);
 
-            positions[3] = v3::create(pos.x + size.x, pos.y + size.y, pos.z);
-            positions[4] = v3::create(pos.x, pos.y + size.y, pos.z);
-            positions[5] = v3::create(pos.x, pos.y, pos.z);
+            auto pos_o = v3::create(pos.x, pos.y, pos.z);
+            auto pos_x = pos_o + x_arrow;
+            auto pos_y = pos_o + y_arrow;
+            auto pos_xy = pos_o + x_arrow + y_arrow;
+            positions.resize(6);
+            positions[0] = pos_o;
+            positions[1] = pos_x;
+            positions[2] = pos_xy;
+
+            positions[3] = pos_xy;
+            positions[4] = pos_y;
+            positions[5] = pos_o;
             std::vector<f32> data = to_list(positions);
             mesh.m_attributes[Mesh::POSITION.m_id] =
                 Mesh::AttributeData{.m_attribute = Mesh::POSITION, .m_data = data};

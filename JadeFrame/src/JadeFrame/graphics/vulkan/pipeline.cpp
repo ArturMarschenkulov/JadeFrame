@@ -239,7 +239,7 @@ Pipeline::PipelineLayout::PipelineLayout(
         vk_range.size = range.size;
     }
 
-    std::array<VkDescriptorSetLayout, 4> layouts;
+    std::array<VkDescriptorSetLayout, 4> layouts = {};
     for (u32 i = 0; i < set_layouts.size(); i++) { layouts[i] = set_layouts[i].m_handle; }
 
     const VkPipelineLayoutCreateInfo info = layout_create_info(layouts, push_constants);
