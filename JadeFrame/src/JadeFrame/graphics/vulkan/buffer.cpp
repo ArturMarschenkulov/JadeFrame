@@ -26,7 +26,7 @@ struct Memory {
         vkGetBufferMemoryRequirements(m_device->m_handle, buffer, &mem_reqs);
 
         if (m_blocks.empty()) {
-            auto default_size = from_mebibyte(256);
+            const auto default_size = from_mebibyte(256);
 
             VkMemoryAllocateInfo alloc_info = {};
             alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -56,7 +56,7 @@ static Memory g_memory;
     Buffer
 ---------------------------*/
 
-auto to_string(const Buffer::TYPE type) -> const char* {
+static auto to_string(const Buffer::TYPE type) -> const char* {
     switch (type) {
         case Buffer::TYPE::VERTEX: return "VERTEX";
         case Buffer::TYPE::INDEX: return "INDEX";
@@ -69,9 +69,9 @@ auto to_string(const Buffer::TYPE type) -> const char* {
 static auto does_use_staging_buffer(const Buffer::TYPE type) -> bool {
     bool result = false;
     switch (type) {
-        case Buffer::TYPE::VERTEX: result = true; break;
+        case Buffer::TYPE::VERTEX:;
         case Buffer::TYPE::INDEX: result = true; break;
-        case Buffer::TYPE::UNIFORM: result = false; break;
+        case Buffer::TYPE::UNIFORM:;
         case Buffer::TYPE::STAGING: result = false; break;
         default: JF_ASSERT(false, ""); break;
     }
@@ -223,7 +223,7 @@ Buffer::~Buffer() {
 auto Buffer::write(const void* data, VkDeviceSize size, VkDeviceSize offset) const
     -> void {
 
-    void* mapped_data;
+    void* mapped_data = nullptr;
 #if JF_USE_VMA
     VkResult result = vmaMapMemory(m_device->m_vma_allocator, m_allocation, &mapped_data);
     JF_ASSERT(result == VK_SUCCESS, "");
@@ -504,7 +504,7 @@ auto Sampler::init(const LogicalDevice& device) -> void {
         .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
         .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
         .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-        .mipLodBias = 0.0f,
+        .mipLodBias = 0.0F,
         .anisotropyEnable =
             device.m_physical_device->m_features.samplerAnisotropy == VK_TRUE ? VK_TRUE
                                                                               : VK_FALSE,
@@ -512,8 +512,8 @@ auto Sampler::init(const LogicalDevice& device) -> void {
             device.m_physical_device->m_properties.limits.maxSamplerAnisotropy,
         .compareEnable = VK_FALSE,
         .compareOp = VK_COMPARE_OP_ALWAYS,
-        .minLod = 0.0f,
-        .maxLod = 0.0f,
+        .minLod = 0.0F,
+        .maxLod = 0.0F,
         .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
         .unnormalizedCoordinates = VK_FALSE,
     };
@@ -528,6 +528,14 @@ auto Sampler::deinit() -> void {}
         Texture
 ---------------------------*/
 
+static auto component_count(VkFormat format) -> u32 {
+    switch (format) {
+        case VK_FORMAT_R8G8B8_SRGB: return 3;
+        case VK_FORMAT_R8G8B8A8_SRGB: return 4;
+        default: assert(false); return 0;
+    }
+}
+
 Vulkan_Texture::Vulkan_Texture(
     const LogicalDevice& device,
     void*                data,
@@ -536,16 +544,8 @@ Vulkan_Texture::Vulkan_Texture(
 )
     : m_device(&device) {
 
-    u32 comp_count = 0;
-    if (format == VK_FORMAT_R8G8B8_SRGB) {
-        comp_count = 3;
-    } else if (format == VK_FORMAT_R8G8B8A8_SRGB) {
-        comp_count = 4;
-    } else {
-        assert(false);
-    }
+    u32 comp_count = component_count(format);
 
-    // Image image;
     m_image = Image(
         device, size, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
     );
@@ -555,8 +555,9 @@ Vulkan_Texture::Vulkan_Texture(
         m_image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
     );
 
-    VkDeviceSize image_size = size.x * size.y * comp_count;
-    Buffer       staging_buffer(device, Buffer::TYPE::STAGING, nullptr, image_size);
+    auto image_size = static_cast<VkDeviceSize>(size.x) *
+                      static_cast<VkDeviceSize>(size.y) * comp_count;
+    Buffer staging_buffer(device, Buffer::TYPE::STAGING, nullptr, image_size);
     staging_buffer.write(data, image_size, 0);
     m_device->m_command_pool.copy_buffer_to_image(staging_buffer, m_image, size);
 

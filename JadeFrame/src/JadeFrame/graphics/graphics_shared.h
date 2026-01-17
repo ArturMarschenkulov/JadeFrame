@@ -72,6 +72,17 @@ enum class SHADER_STAGE : u8 {
     COMPUTE,
 };
 
+inline auto to_string(SHADER_STAGE stage) -> const char* {
+    switch (stage) {
+        case SHADER_STAGE::VERTEX: return "VERTEX";
+        case SHADER_STAGE::FRAGMENT: return "FRAGMENT";
+        case SHADER_STAGE::GEOMETRY: return "GEOMETRY";
+        case SHADER_STAGE::TESSELATION: return "TESSELATION";
+        case SHADER_STAGE::COMPUTE: return "COMPUTE";
+        default: assert(false); return "UNKNOWN";
+    }
+}
+
 enum class SHADER_TYPE : u8 {
     NONE = 0,
     // Scalars
