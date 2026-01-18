@@ -362,6 +362,15 @@ auto ReflectedModule::into_interface(const std::span<const ReflectedModule>& mod
                 // mistakes.
             }
         }
+
+        for (size_t j = 0; j < mod.m_sampled_images.size(); j++) {
+            const auto& image = mod.m_sampled_images[j];
+            if (!uniform_locs.contains({image.set, image.binding})) {
+                result.m_sampled_images.push_back(image);
+                uniform_locs.insert({image.set, image.binding});
+            } else {
+            }
+        }
     }
 
     return result;

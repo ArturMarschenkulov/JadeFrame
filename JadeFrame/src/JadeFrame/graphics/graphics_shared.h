@@ -272,10 +272,52 @@ public:
     void*        m_handle = nullptr;
 };
 
+struct MaterialInfo {
+    struct BindGroup {
+        std::string m_name;
+        u32         m_set;
+        u32         m_binding;
+    };
+
+    std::string            m_name;
+    std::vector<BindGroup> m_groups;
+
+    static auto default_0() -> MaterialInfo {
+        auto camera = BindGroup{
+            .m_name = "Camera",
+            .m_set = 0,
+            .m_binding = 0,
+        };
+        auto transform = BindGroup{
+            .m_name = "Transform",
+            .m_set = 3,
+            .m_binding = 0,
+        };
+
+        std::vector<BindGroup> groups;
+        groups.push_back(camera);
+        groups.push_back(transform);
+
+        auto material_info =
+            MaterialInfo{.m_name = "Default_0", .m_groups = std::move(groups)};
+        return material_info;
+    }
+
+    [[nodiscard]] auto get_bind_group_by_name(const std::string& name) const
+        -> const BindGroup* {
+        for (const auto& group : m_groups) {
+            if (group.m_name == name) { return &group; }
+        }
+        return nullptr;
+    }
+};
+
 struct MaterialHandle {
-    ShaderHandle*  m_shader;
-    TextureHandle* m_texture;
-    void*          m_handle = nullptr;
+    ShaderHandle*  m_shader = nullptr;
+    TextureHandle* m_texture = nullptr;
+    /// Native handle
+    void*        m_handle = nullptr;
+    MaterialInfo m_info;
 };
 
 // This struct saves the shader code. The common language is SPIRV.

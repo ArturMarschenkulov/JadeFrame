@@ -98,42 +98,46 @@ auto Vulkan_Renderer::render(const Camera& camera) -> void {
         auto*                material = static_cast<Vulkan_Material*>(mh.m_handle);
 
         const VkPipelineBindPoint bp = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        vulkan::Pipeline&         pipeline = material->m_shader->m_pipeline;
+        vulkan::Pipeline&         pl = material->m_shader->m_pipeline;
         auto&                     sets = material->m_sets;
-        cb.bind_pipeline(bp, pipeline);
+        cb.bind_pipeline(bp, pl);
 
-        // Per Frame ubo
-        // vulkan::FREQUENCY::PER_FRAME == 0
-        // Per DrawCall ubo
-        // vulkan::FREQUENCY::PER_OBJECT == 3
-        mat4x4 view_projection = camera.get_view_projection("Vulkan");
-        material->write_ub(
-            FREQUENCY::PER_FRAME, 0, &view_projection, sizeof(view_projection), 0
-        );
-
-        const u32 dyn_offset = static_cast<u32>(dyn_alignment * i);
-        material->write_ub(
-            FREQUENCY::PER_OBJECT, 0, &cmd.transform, sizeof(cmd.transform), dyn_offset
-        );
-
-        cb.bind_descriptor_sets(
-            bp, pipeline, FREQUENCY::PER_FRAME, sets[FREQUENCY::PER_FRAME], nullptr
-        );
-        cb.bind_descriptor_sets(
-            bp, pipeline, FREQUENCY::PER_PASS, sets[FREQUENCY::PER_PASS], nullptr
-        );
-        if (mh.m_texture != nullptr) {
-            cb.bind_descriptor_sets(
-                bp,
-                pipeline,
-                FREQUENCY::PER_MATERIAL,
-                sets[FREQUENCY::PER_MATERIAL],
-                nullptr
+        const auto* bg_cam = mh.m_info.get_bind_group_by_name("Camera");
+        const auto* bg_tran = mh.m_info.get_bind_group_by_name("Transform");
+        if (bg_cam == nullptr || bg_tran == nullptr) {
+            Logger::err("Material is missing required bind groups.");
+            assert(false);
+        } else {
+            assert(
+                bg_cam->m_set == static_cast<u32>(vulkan::FREQUENCY::PER_FRAME) &&
+                "Camera bind group set must be PER_FRAME"
+            );
+            assert(
+                bg_tran->m_set == static_cast<u32>(vulkan::FREQUENCY::PER_OBJECT) &&
+                "Transform bind group set must be PER_OBJECT"
             );
         }
-        cb.bind_descriptor_sets(
-            bp, pipeline, FREQUENCY::PER_OBJECT, sets[FREQUENCY::PER_OBJECT], &dyn_offset
-        );
+
+        mat4x4 cam = camera.get_view_projection("Vulkan");
+        auto   cam_set = static_cast<FREQUENCY>(bg_cam->m_set);
+        auto   cam_binding = bg_tran->m_binding;
+        material->write_ub(cam_set, cam_binding, &cam, sizeof(cam), 0);
+
+        const u32   dyn_offset = static_cast<u32>(dyn_alignment * i);
+        const auto& tran = cmd.transform;
+        auto        tran_set = static_cast<FREQUENCY>(bg_tran->m_set);
+        auto        tran_binding = bg_tran->m_binding;
+        material->write_ub(tran_set, tran_binding, &tran, sizeof(tran), dyn_offset);
+        const auto PER_FRAME = vulkan::FREQUENCY::PER_FRAME;
+        const auto PER_PASS = vulkan::FREQUENCY::PER_PASS;
+        const auto PER_MATERIAL = vulkan::FREQUENCY::PER_MATERIAL;
+        const auto PER_OBJECT = vulkan::FREQUENCY::PER_OBJECT;
+        cb.bind_descriptor_set(bp, pl, PER_FRAME, sets[PER_FRAME], nullptr);
+        cb.bind_descriptor_set(bp, pl, PER_PASS, sets[PER_PASS], nullptr);
+        // if (mh.m_texture != nullptr) {
+        cb.bind_descriptor_set(bp, pl, PER_MATERIAL, sets[PER_MATERIAL], nullptr);
+        //}
+        cb.bind_descriptor_set(bp, pl, PER_OBJECT, sets[PER_OBJECT], &dyn_offset);
 
         this->render_mesh(cmd.vertex_data, cmd.m_mesh);
     }

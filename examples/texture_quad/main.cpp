@@ -106,8 +106,8 @@ static auto draw_gizmo(jf::f32 x, jf::f32 y) -> void {
 }
 
 struct Example_Texture_Quad : public jf::BaseApp {
-    Example_Texture_Quad(const Desc& desc);
-    virtual ~Example_Texture_Quad() = default;
+    explicit Example_Texture_Quad(const Desc& desc);
+    ~Example_Texture_Quad() override = default;
 
     auto on_init() -> void override;
     auto on_update() -> void override;
@@ -160,6 +160,8 @@ auto Example_Texture_Quad::on_init() -> void {
     jf::TextureHandle* texture_cont = m_render_system.register_texture(img_cont);
     jf::TextureHandle* texture_face = m_render_system.register_texture(img_face);
 
+    auto default_material_info = jf::MaterialInfo::default_0();
+
     jf::MaterialHandle* material_wall =
         m_render_system.register_material(shader_tex, texture_wall);
     jf::MaterialHandle* material_cont =
@@ -170,8 +172,13 @@ auto Example_Texture_Quad::on_init() -> void {
     jf::MaterialHandle* material_flat =
         m_render_system.register_material(shader_flat, nullptr);
 
+    material_wall->m_info = default_material_info;
+    material_cont->m_info = default_material_info;
+    material_face->m_info = default_material_info;
+    material_flat->m_info = default_material_info;
+
     jf::MeshBuilder::Desc vdf_desc;
-    vdf_desc.has_normals = true;
+    vdf_desc.has_normals = false;
     jf::Mesh vd_rectangle = jf::MeshBuilder::rectangle(
         jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc
     );
@@ -253,7 +260,7 @@ auto main() -> int {
     win_desc.title = "Test";
     win_desc.size.x = 800; // = 1280;
     win_desc.size.y = 800; // = 720;
-    win_desc.api = jf::GRAPHICS_API::OPENGL;
+    win_desc.api = jf::GRAPHICS_API::VULKAN;
 
     GApp* app = jade_frame.request_app<GApp>(win_desc);
     jade_frame.run();
