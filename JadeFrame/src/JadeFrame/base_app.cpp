@@ -28,7 +28,7 @@ auto control_camera(Camera* self, const InputState& i) -> void {
         if (i.is_key_down(KEY::UP)) { pitch -= velocity * sensitivity; }
         if (i.is_key_down(KEY::DOWN)) { pitch += velocity * sensitivity; }
 
-        pitch = std::clamp(pitch, -89.0f, 89.0f);
+        pitch = std::clamp(pitch, -89.0F, 89.0F);
         orient.set_pitch_yaw(pitch, yaw);
     }
 
