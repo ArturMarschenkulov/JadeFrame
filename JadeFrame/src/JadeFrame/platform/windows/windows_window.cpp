@@ -54,7 +54,7 @@ window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
     -> ::LRESULT {
     const EventMessage& wm = {hWnd, message, wParam, lParam};
 
-    BaseApp* app = Instance::get_singleton()->m_current_app_p;
+    Application* app = Instance::get_singleton()->m_current_app_p;
     if (app == nullptr) {
         return ::DefWindowProcW(hWnd, message, wParam, lParam);
     } else {
@@ -62,10 +62,10 @@ window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
 
     auto* nat_window = reinterpret_cast<NativeWindow*>(::GetPropW(hWnd, L"Window"));
     auto& input_manager = nat_window->m_platform_window->m_queue;
-    i32           current_window_id = -1;
+    i32   current_window_id = -1;
     for (auto const& [window_id, window] : app->m_windows) {
-        // if (window->get() == hWnd) { 
-            current_window_id = window_id; 
+        // if (window->get() == hWnd) {
+        current_window_id = window_id;
         //}
     }
     NativeWindow& current_window =
@@ -116,7 +116,6 @@ window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
         */
         case WM_CLOSE: {
             // TODO: This code needs to be moved to WM_DESTROY.
-
 
             app->m_windows.erase(current_window_id);
 
@@ -194,7 +193,7 @@ static auto register_class(HINSTANCE instance) -> ::WNDCLASSEX {
 }
 
 NativeWindow::NativeWindow(const JadeFrame::Window::Desc& desc) {
-    ::HMODULE inst = ::GetModuleHandleW(NULL);
+    ::HMODULE    inst = ::GetModuleHandleW(NULL);
     ::WNDCLASSEX wc = register_class(inst);
 
     ::DWORD window_style = get_style(desc);
@@ -222,7 +221,6 @@ NativeWindow::NativeWindow(const JadeFrame::Window::Desc& desc) {
     ::GetClientRect(window_handle, &client_rect);
     ::RECT window_rect = {};
     ::GetWindowRect(window_handle, &window_rect);
-
 
     ::SetPropW(window_handle, L"Window", reinterpret_cast<HANDLE>(this));
 
@@ -270,11 +268,14 @@ auto NativeWindow::set_position(const v2u32& position) -> void { m_position = po
 
 auto NativeWindow::get_position() const -> const v2u32& { return m_position; }
 
-auto NativeWindow::set_window_state(const JadeFrame::Window::WINDOW_STATE window_state) -> void {
+auto NativeWindow::set_window_state(const JadeFrame::Window::WINDOW_STATE window_state)
+    -> void {
     m_window_state = window_state;
 }
 
-auto NativeWindow::get_window_state() const -> JadeFrame::Window::WINDOW_STATE { return m_window_state; }
+auto NativeWindow::get_window_state() const -> JadeFrame::Window::WINDOW_STATE {
+    return m_window_state;
+}
 
 auto NativeWindow::query_client_size() const -> v2u64 {
     ::RECT rect = {};

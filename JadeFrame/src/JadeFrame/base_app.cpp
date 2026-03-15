@@ -1,5 +1,6 @@
 
 #include "base_app.h"
+#include "JadeFrame/platform/platform_shared.h"
 #include "graphics/graphics_shared.h"
 
 #include <imgui/imgui.h>
@@ -53,21 +54,17 @@ Instance* Instance::m_singleton = nullptr;
 
 auto Instance::get_singleton() -> Instance* { return m_singleton; }
 
-Instance::Instance() {
+Instance::Instance()
+    : m_compiler_info(get_compiler_info())
+    , m_platform_info(get_platform_info())
+    , m_architecture_info(get_architecture_info())
+    , m_cpp_version(get_cpp_version()) {
     Logger::init();
     Logger::info("Logger initialized");
-    Logger::info("JadeFrame is starting...");
-    if (m_singleton != nullptr) {
-        Logger::err("Instance already exists");
-        assert(false);
-        return;
-    }
-    m_singleton = this;
-
-    const CompilerInfo& ci = m_compiler_info = get_compiler_info();
-    const std::string&  pi = m_platform_info = get_plattform_info();
-    const std::string&  ai = m_architecture_info = get_architecture_info();
-    const u32&          li = m_cpp_version = get_cpp_version();
+    const CompilerInfo& ci = m_compiler_info;
+    const std::string&  pi = m_platform_info;
+    const std::string&  ai = m_architecture_info;
+    const u32&          li = m_cpp_version;
 
     Logger::info("Detected Plattform is '{}'", pi);
     Logger::info("Detected Architecture is '{}'", ai);
@@ -80,15 +77,17 @@ Instance::Instance() {
     );
     Logger::info("Detected C++ Version is '{}'", li);
 
+    Logger::info("JadeFrame is starting...");
+    if (m_singleton != nullptr) {
+        Logger::err("Instance already exists");
+        assert(false);
+        return;
+    }
+    m_singleton = this;
+
     m_system_manager.initialize();
 
     m_system_manager.log();
-}
-
-auto Instance::run() -> void {
-    Logger::info("App Running");
-    m_current_app_p = m_apps[0];
-    m_apps.back()->start();
 }
 
 //**************************************************************
@@ -96,46 +95,52 @@ auto Instance::run() -> void {
 //**************************************************************
 
 //**************************************************************
-// BaseApp
+// Application
 //**************************************************************
 
-BaseApp::BaseApp(const Desc& desc) {
+Application::Application(const Desc& desc)
+    : m_gui() {
     Logger::info("Creating Window....");
+    Instance*    i = Instance::get_singleton();
     Window::Desc win_desc = {
         .title = desc.title,
         .size = desc.size,
         .position = desc.position,
     };
-    Instance* i = Instance::get_singleton();
-    m_windows[0] = i->m_system_manager.request_window(win_desc);
-    m_current_window_p = m_windows[0];
+    Window*            requested_window = i->m_system_manager.request_window(win_desc);
+    const std::string& title = requested_window->get_title();
+    std::string        new_title = title + " - " + to_string(desc.api);
+    requested_window->set_title(new_title);
 
     std::vector<GRAPHICS_API> apis = RenderSystem::list_available_graphics_apis();
     for (GRAPHICS_API& api : apis) { Logger::info("API: '{}'", to_string(api)); }
     Logger::info("Creating Renderer with API '{}'", to_string(desc.api));
-    m_render_system.init(desc.api, m_windows[0]);
-    // m_render_system = m_system_manager.request_render_system(api, m_windows[0]);
+    m_render_system.init(desc.api, requested_window);
+    // m_render_system = m_system_manager.request_render_system(api, requested_window);
 
-    const std::string& title = m_current_window_p->get_title();
-    std::string        new_title = title + " - " + to_string(desc.api);
-    m_current_window_p->set_title(new_title);
-    m_gui.init(m_current_window_p, desc.api);
+    m_gui.init(requested_window, desc.api);
+
+    m_windows[0] = requested_window;
+    m_current_window_p = m_windows[0];
 }
 
-auto BaseApp::start() -> void {
-    // Before `this->on_init();` come all the default stuff
-    // The client can later override those in `this->on_init();`
+auto Application::start() -> void {
+    // Before `this->m_on_init_fn();` come all the default stuff
+    // The client can later override those in `this->m_on_init_fn();`
+
     Window* curr_win = m_windows[0];
-    m_camera =
-        Camera::orthographic(0, curr_win->get_size().x, curr_win->get_size().y, 0, -1, 1);
+    auto    curr_size = curr_win->get_size();
+    m_camera = Camera::orthographic(
+        0, static_cast<f32>(curr_size.x), static_cast<f32>(curr_size.y), 0, -1, 1
+    );
     SystemManager& platform = Instance::get_singleton()->m_system_manager;
     platform.set_target_FPS(60);
-    this->on_init();
+    this->m_on_init_fn();
 
     IRenderer* renderer = m_render_system.m_renderer;
     while (m_is_running) {
         const f64 delta_time = platform.calc_elapsed();
-        this->on_update();
+        this->m_on_update_fn();
 
         // if (m_current_window_p->get_window_state() != Window::WINDOW_STATE::MINIMIZED)
         // {
@@ -144,7 +149,7 @@ auto BaseApp::start() -> void {
         if (m_gui.m_is_initialized) { m_gui.new_frame(); }
         control_camera(&m_camera, m_windows[0]->m_input_state);
 
-        this->on_draw();
+        this->m_on_draw_fn();
 
         renderer->render(m_camera);
         if (m_gui.m_is_initialized) { m_gui.render(); }
@@ -157,12 +162,12 @@ auto BaseApp::start() -> void {
     }
 }
 
-auto BaseApp::poll_events() -> void {
+auto Application::poll_events() -> void {
     for (auto& [id, window] : m_windows) { window->handle_events(m_is_running); }
 }
 
 //**************************************************************
-//~BaseApp
+//~Application
 //**************************************************************
 
 } // namespace

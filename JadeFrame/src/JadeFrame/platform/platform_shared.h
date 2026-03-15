@@ -95,7 +95,7 @@ consteval auto get_compiler_info() -> CompilerInfo {
     return info;
 } // namespace JadeFrame
 
-consteval auto get_plattform_info() -> const char* {
+consteval auto get_platform_info() -> const char* {
     const char* name = "UNKNOWN";
 #if defined(_WIN32)
     name = "WIN32";

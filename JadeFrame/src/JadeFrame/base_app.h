@@ -32,10 +32,9 @@ using SystemManager = win32::SystemManager;
 using SystemManager = Linux_SystemManager;
 #endif
 
-class BaseApp;
 class IRenderer;
 
-class BaseApp {
+class Application {
 public:
     struct Desc {
         std::string  title;
@@ -44,20 +43,20 @@ public:
         GRAPHICS_API api;
     };
 
-    BaseApp() = default;
-    explicit BaseApp(const Desc& desc);
-    BaseApp(const BaseApp&) = delete;
-    auto operator=(const BaseApp&) -> BaseApp& = delete;
-    BaseApp(BaseApp&&) = delete;
-    auto operator=(BaseApp&&) -> BaseApp& = delete;
-    virtual ~BaseApp() = default;
+    Application() = default;
+    explicit Application(const Desc& desc);
+    Application(const Application&) = delete;
+    auto operator=(const Application&) -> Application& = delete;
+    Application(Application&&) = delete;
+    auto operator=(Application&&) -> Application& = delete;
+    ~Application() = default;
 
-    virtual auto on_init() -> void = 0;
-    virtual auto on_update() -> void = 0;
-    virtual auto on_draw() -> void = 0;
+public:
+    std::function<void()> m_on_init_fn;
+    std::function<void()> m_on_update_fn;
+    std::function<void()> m_on_draw_fn;
 
     auto start() -> void;
-    // protected:
     auto poll_events() -> void;
 
 public:
@@ -92,21 +91,13 @@ public:
     Instance(Instance&&) = delete;
     auto operator=(Instance&&) -> Instance& = delete;
 
-    auto        run() -> void;
     static auto get_singleton() -> Instance*;
 
-    template<typename T>
-    auto request_app(BaseApp::Desc desc) -> T* {
+    auto request_application(Application::Desc desc) -> Application* {
         // For now only one app is allowed
-        assert(m_apps.empty());
-        m_apps.emplace_back(new T(desc));
-        return (T*)m_apps.back();
-    }
-
-    auto register_app(BaseApp* app) -> void {
-        // For now only one app is allowed
-        assert(m_apps.empty());
-        m_apps.emplace_back(app);
+        assert(m_applications.empty());
+        m_applications.emplace_back(new Application(desc));
+        return m_applications.back();
     }
 
 public:
@@ -115,13 +106,12 @@ public:
     std::string  m_architecture_info;
     u32          m_cpp_version;
 
-    SystemManager m_system_manager;
+    SystemManager            m_system_manager;
+    std::deque<Application*> m_applications; // TODO: Consider whether there should be
+                                             // support for multiple apps
 
-    std::deque<BaseApp*>
-        m_apps; // TODO: Consider whether there should be support for multiple apps
-    // std::deque<BaseApp> m_apps;
-
-    BaseApp* m_current_app_p = nullptr;
+    // TODO(artur): This should be removed.
+    Application* m_current_app_p = nullptr;
 
     static Instance* m_singleton;
 };
