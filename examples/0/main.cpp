@@ -15,7 +15,7 @@ namespace jf = JadeFrame;
 
 struct State {
     jf::RenderSystem* m_render_system = nullptr;
-    jf::BaseApp*      m_app = nullptr;
+    jf::Application*  m_current_app = nullptr;
 
     // jf::ShaderHandle* shader_texture = nullptr;
 
@@ -58,8 +58,8 @@ struct Drop {
     Drop()
         : width(10.0F)
         , height(80.0F) {
-        jf::BaseApp*  app = g_state.m_app;
-        const jf::f32 window_width = app->m_current_window_p->get_size().x;
+        jf::Application* app = g_state.m_current_app;
+        const jf::f32    window_width = app->m_current_window_p->get_size().x;
 
         x = static_cast<jf::f32>(jf::get_random_number(0, window_width));
         const jf::f32 rando = static_cast<jf::f32>(jf::get_random_number(1, 30));
@@ -67,7 +67,7 @@ struct Drop {
     }
 
     auto fall() -> void {
-        const jf::BaseApp* app = g_state.m_app;
+        const jf::Application* app = g_state.m_current_app;
         y = y + y_speed;
 
         const jf::f32 window_height = app->m_current_window_p->get_size().y;
@@ -94,8 +94,8 @@ struct Checkerbox {
         , y(pos.y)
         , m_size(size) {
 
-        jf::BaseApp*  app = g_state.m_app;
-        const jf::f32 window_width = app->m_current_window_p->get_size().x;
+        jf::Application* app = g_state.m_current_app;
+        const jf::f32    window_width = app->m_current_window_p->get_size().x;
     }
 
     auto show() -> void {
@@ -120,14 +120,111 @@ struct Coordinates {
     jf::v2 pos;
 };
 
-struct Example_0 : public jf::BaseApp {
+struct Example_0 {
+    Example_0()
+        : m_coordinates(jf::v2::zero()) {}
 
-    Example_0(const Desc& desc);
-    virtual ~Example_0() = default;
+    auto on_init(jf::Application& app) -> void {
+        m_coordinates = jf::v2::create(10, 10);
+        g_state.m_render_system = &app.m_render_system;
+        g_state.m_current_app = &app;
+        app.m_render_system.m_renderer->set_clear_color(
+            jf::RGBAColor::from_rgba_u32(230, 230, 250, 253)
+        );
 
-    auto on_init() -> void override;
-    auto on_update() -> void override;
-    auto on_draw() -> void override;
+        // Set Up Camera
+        app.m_camera = jf::Camera::orthographic(
+            0, app.m_windows[0]->get_size().x, app.m_windows[0]->get_size().y, 0, -1, 1
+        );
+
+        // m_camera = jf::Camera::perspective(jf::v3::zero(), 1.0f, win_width /
+        // win_height, 0.1, 100);
+
+        // Load Resources
+        {
+            namespace fs = std::filesystem;
+            fs::path path_picture_face = fs::path("resource") / "awesomeface.png";
+            fs::path wall_picture_path = fs::path("resource") / "wall.jpg";
+
+            jf::Image image_face = jf::Image::load_from_path(path_picture_face.string());
+            jf::Image wall_image = jf::Image::load_from_path(wall_picture_path.string());
+
+            jf::TextureHandle* texture_face =
+                app.m_render_system.register_texture(image_face);
+            jf::TextureHandle* texture_wall =
+                app.m_render_system.register_texture(wall_image);
+
+            jf::Logger::warn(" ----- Texture loaded");
+
+            jf::ShaderHandle::Desc sh_0;
+            sh_0.shading_code = jf::GLSLCodeLoader::get_by_name("with_texture_0");
+            jf::ShaderHandle* shader_texture = app.m_render_system.register_shader(sh_0);
+
+            jf::ShaderHandle::Desc sh_1;
+            sh_1.shading_code = jf::GLSLCodeLoader::get_by_name("flat_0");
+            jf::ShaderHandle* shader_color_flat =
+                app.m_render_system.register_shader(sh_1);
+
+            jf::Logger::warn(" ----- Shader loaded");
+            jf::MaterialHandle* material_texture_face =
+                app.m_render_system.register_material(shader_texture, texture_face);
+            jf::MaterialHandle* material_texture_wall =
+                app.m_render_system.register_material(shader_texture, texture_wall);
+            jf::MaterialHandle* material_color_flat =
+                app.m_render_system.register_material(shader_color_flat, nullptr);
+
+            jf::MeshBuilder::Desc vdf_desc;
+            vdf_desc.has_normals = false;
+            jf::Mesh rectangle_vd = jf::MeshBuilder::rectangle(
+                jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc
+            );
+            rectangle_vd.set_color(jf::RGBAColor::solid_blue());
+            jf::GPUMeshData* rectangle_mesh =
+                app.m_render_system.register_mesh(rectangle_vd);
+
+            // g_state.shader_texture = shader_texture;
+            g_state.material_texture_face = material_texture_face;
+            g_state.material_texture_wall = material_texture_wall;
+            g_state.material_color_flat = material_color_flat;
+            g_state.rectangle_vd = rectangle_vd;
+            g_state.rectangle_mesh = rectangle_mesh;
+
+            for (jf::u32 i = 0; i < 2; i++) { drops.emplace_back(); }
+
+            {
+                const jf::i32 amount = 10;
+                const jf::i32 size = 30;
+                for (jf::u32 i = 0; i < amount; i++) {
+                    for (jf::u32 j = 0; j < amount; j++) {
+                        if ((i + j) % 2 == 0) {
+                            m_checkerbox.emplace_back(
+                                size, jf::v2::create(i * size, j * size)
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    auto on_update(jf::Application& app) -> void { // m_camera.control();
+        // camera_control(&m_camera);
+
+        for (jf::u32 i = 0; i < drops.size(); i++) { drops[i].fall(); }
+        const jf::InputState& input = app.m_windows[0]->m_input_state;
+        if (input.is_key_released(jf::KEY::P)) {
+            // std::thread t(&Renderer::take_screenshot, &m_renderer);
+            app.m_render_system.m_renderer->take_screenshot("im.png");
+        }
+    }
+
+    auto on_draw(jf::Application& app) -> void {
+        for (jf::u32 i = 0; i < drops.size(); i++) { drops[i].show(); }
+        for (jf::u32 i = 0; i < m_checkerbox.size(); i++) { m_checkerbox[i].show(); }
+        // m_render_system.submit(thingies[0].obj);
+        m_coordinates.show();
+        // draw_GUI(*this);}
+    }
 
 public:
     std::deque<Drop>       drops;
@@ -135,124 +232,19 @@ public:
     Coordinates            m_coordinates;
 };
 
-Example_0::Example_0(const Desc& desc)
-    : BaseApp(desc)
-    , m_coordinates(jf::v2::create(10, 10)) {
-    g_state.m_render_system = &m_render_system;
-    g_state.m_app = this;
-}
+auto main() -> int {
 
-auto Example_0::on_init() -> void {
-    m_render_system.m_renderer->set_clear_color(
-        jf::RGBAColor::from_rgba_u32(230, 230, 250, 253)
-    );
+    jf::Instance          jade_frame;
+    jf::Application::Desc app_desc;
+    app_desc.title = "Example 0";
+    app_desc.size = jf::v2u32::create(800, 800);
+    app_desc.api = jf::GRAPHICS_API::OPENGL;
 
-    // Set Up Camera
-    m_camera = jf::Camera::orthographic(
-        0, m_windows[0]->get_size().x, m_windows[0]->get_size().y, 0, -1, 1
-    );
-
-    // m_camera = jf::Camera::perspective(jf::v3::zero(), 1.0f, win_width / win_height,
-    // 0.1, 100);
-
-    // Load Resources
-    {
-        namespace fs = std::filesystem;
-        fs::path path_picture_face = fs::path("resource") / "awesomeface.png";
-        fs::path wall_picture_path = fs::path("resource") / "wall.jpg";
-
-        jf::Image image_face = jf::Image::load_from_path(path_picture_face.string());
-        jf::Image wall_image = jf::Image::load_from_path(wall_picture_path.string());
-
-        jf::TextureHandle* texture_face = m_render_system.register_texture(image_face);
-        jf::TextureHandle* texture_wall = m_render_system.register_texture(wall_image);
-
-        jf::Logger::warn(" ----- Texture loaded");
-
-        jf::ShaderHandle::Desc sh_0;
-        sh_0.shading_code = jf::GLSLCodeLoader::get_by_name("with_texture_0");
-        jf::ShaderHandle* shader_texture = m_render_system.register_shader(sh_0);
-
-        jf::ShaderHandle::Desc sh_1;
-        sh_1.shading_code = jf::GLSLCodeLoader::get_by_name("flat_0");
-        jf::ShaderHandle* shader_color_flat = m_render_system.register_shader(sh_1);
-
-        jf::Logger::warn(" ----- Shader loaded");
-        jf::MaterialHandle* material_texture_face =
-            m_render_system.register_material(shader_texture, texture_face);
-        jf::MaterialHandle* material_texture_wall =
-            m_render_system.register_material(shader_texture, texture_wall);
-        jf::MaterialHandle* material_color_flat =
-            m_render_system.register_material(shader_color_flat, nullptr);
-
-        jf::MeshBuilder::Desc vdf_desc;
-        vdf_desc.has_normals = false;
-        jf::Mesh rectangle_vd = jf::MeshBuilder::rectangle(
-            jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc
-        );
-        rectangle_vd.set_color(jf::RGBAColor::solid_blue());
-        jf::GPUMeshData* rectangle_mesh = m_render_system.register_mesh(rectangle_vd);
-
-        // g_state.shader_texture = shader_texture;
-        g_state.material_texture_face = material_texture_face;
-        g_state.material_texture_wall = material_texture_wall;
-        g_state.material_color_flat = material_color_flat;
-        g_state.rectangle_vd = rectangle_vd;
-        g_state.rectangle_mesh = rectangle_mesh;
-
-        for (jf::u32 i = 0; i < 2; i++) { drops.emplace_back(); }
-
-        {
-            const jf::i32 amount = 10;
-            const jf::i32 size = 30;
-            for (jf::u32 i = 0; i < amount; i++) {
-                for (jf::u32 j = 0; j < amount; j++) {
-                    if ((i + j) % 2 == 0) {
-                        m_checkerbox.emplace_back(
-                            size, jf::v2::create(i * size, j * size)
-                        );
-                    }
-                }
-            }
-        }
-    }
-}
-
-auto Example_0::on_update() -> void {
-    // m_camera.control();
-    // camera_control(&m_camera);
-
-    for (jf::u32 i = 0; i < drops.size(); i++) { drops[i].fall(); }
-    const jf::InputState& input =
-        jf::Instance::get_singleton()->m_current_app_p->m_windows[0]->m_input_state;
-    if (input.is_key_released(jf::KEY::P)) {
-        // std::thread t(&Renderer::take_screenshot, &m_renderer);
-        m_render_system.m_renderer->take_screenshot("im.png");
-    }
-}
-
-auto Example_0::on_draw() -> void {
-
-    for (jf::u32 i = 0; i < drops.size(); i++) { drops[i].show(); }
-    for (jf::u32 i = 0; i < m_checkerbox.size(); i++) { m_checkerbox[i].show(); }
-    // m_render_system.submit(thingies[0].obj);
-    m_coordinates.show();
-    // draw_GUI(*this);
-}
-
-using TestApp = Example_0;
-
-int main() {
-    jf::Instance jade_frame;
-
-    using GApp = TestApp;
-    GApp::Desc win_desc;
-    win_desc.title = "Test";
-    win_desc.size.x = 800; // = 1280;
-    win_desc.size.y = 800; // = 720;
-    win_desc.api = JadeFrame::GRAPHICS_API::VULKAN;
-
-    GApp* app = jade_frame.request_app<GApp>(win_desc);
-    jade_frame.run();
+    jf::Application* app = jade_frame.request_application(app_desc);
+    Example_0        example_app;
+    app->m_on_init_fn = [&]() -> void { example_app.on_init(*app); };
+    app->m_on_update_fn = [&]() -> void { example_app.on_update(*app); };
+    app->m_on_draw_fn = [&]() -> void { example_app.on_draw(*app); };
+    app->start();
     return 0;
 }
