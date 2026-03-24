@@ -141,8 +141,6 @@ public:
         return static_cast<const T*>(this)->get_time();
     }
 
-    auto calc_elapsed() -> f64 { return static_cast<T*>(this)->calc_elapsed(); }
-
     auto frame_control(f64 delta_time) -> void {
         return static_cast<T*>(this)->frame_control(delta_time);
     }
