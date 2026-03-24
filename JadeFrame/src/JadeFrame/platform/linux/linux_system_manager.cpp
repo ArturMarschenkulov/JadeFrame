@@ -1,23 +1,16 @@
 #include "linux_system_manager.h"
+#include "JadeFrame/utils/logger.h"
 #include "linux_window.h"
 
 namespace JadeFrame {
 
-auto Linux_SystemManager::initialize() -> void {
-
-    struct timespec timer_resolution;
-    timer_resolution.tv_sec = 0;
-    timer_resolution.tv_nsec = 1000000;
-    clock_settime(CLOCK_MONOTONIC, &timer_resolution);
-
-    struct timespec frequency;
-    clock_getres(CLOCK_MONOTONIC, &frequency);
-
-    struct timespec offset;
-    clock_gettime(CLOCK_MONOTONIC, &offset);
-
-    m_instance = getpid();
+static auto print_linux_warn(const char* message) -> void {
+    int         err = errno;
+    std::string err_string = std::string(std::strerror(err));
+    Logger::warn("{} Error code: {}, message: {}", message, err, err_string);
 }
+
+auto Linux_SystemManager::initialize() -> void { m_instance = getpid(); }
 
 auto Linux_SystemManager::log() const -> void {}
 
@@ -29,37 +22,35 @@ auto Linux_SystemManager::request_window(Window::Desc desc) -> Window* {
 
 auto Linux_SystemManager::get_time() const -> f64 {
     timespec ts = {};
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    const f64 frequency = 1e9; // 1 second
-
-    return static_cast<f64>(ts.tv_sec) + static_cast<f64>(ts.tv_nsec) / frequency;
-}
-
-auto Linux_SystemManager::calc_elapsed() -> f64 {
-    f64 current = this->get_time();
-    f64 update = current - m_time.previous;
-    m_time.previous = current;
-    return update;
-}
-
-auto Linux_SystemManager::frame_control(f64 delta_time) -> void {
-    f64 current = this->get_time();
-    f64 draw = current - m_time.previous;
-    m_time.previous = current;
-
-    f64 frame = delta_time + draw;
-
-    if (frame < m_time.target) {
-        timespec sleep_time = {};
-        sleep_time.tv_sec = 0;
-        sleep_time.tv_nsec = static_cast<long>((m_time.target - frame) * 1e9);
-        nanosleep(&sleep_time, nullptr);
-
-        f64 current_ = this->get_time();
-        f64 time_wait = current_ - m_time.previous;
-        m_time.previous = current_;
-        frame += time_wait;
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
+        print_linux_warn("Failed to get current time.");
+        return 0.0;
     }
+    const f64 nanoseconds_per_second = 1'000'000'000.0; // 1 second
+    return static_cast<f64>(ts.tv_sec) +
+           (static_cast<f64>(ts.tv_nsec) / nanoseconds_per_second);
+}
+
+namespace {
+auto to_timespec(f64 seconds) -> timespec {
+    if (seconds <= 0.0) { return timespec{}; }
+    const f64 nanoseconds_per_second = 1'000'000'000.0; // 1 second
+
+    const auto whole_seconds = static_cast<time_t>(seconds);
+    const auto fractional = seconds - static_cast<f64>(whole_seconds);
+    const auto nanoseconds = static_cast<long>(fractional * nanoseconds_per_second);
+
+    return timespec{.tv_sec = whole_seconds, .tv_nsec = nanoseconds};
+}
+} // namespace
+
+auto Linux_SystemManager::frame_control(f64 frame_time) -> void {
+    if (m_time.target <= 0.0) { return; }
+    if (frame_time >= m_time.target) { return; }
+    const auto remaining = m_time.target - frame_time;
+
+    auto sleep_time = to_timespec(remaining);
+    while (nanosleep(&sleep_time, &sleep_time) == -1 && errno == EINTR) {}
 }
 
 auto Linux_SystemManager::set_target_FPS(f64 FPS) -> void {

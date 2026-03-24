@@ -1,8 +1,10 @@
 #include "linux_window.h"
 
+#include <X11/X.h>
 #include <string>
-#include <iostream>
 #include <cstdlib>
+#include <utility>
+#include <cassert>
 
 #include <X11/Xlib.h>
 #include <GL/gl.h>
@@ -16,122 +18,6 @@
 namespace JadeFrame {
 
 auto X11_NativeWindow::create(const Window::Desc& desc) -> X11_NativeWindow {
-
-    // X11_NativeWindow win;
-
-    // // TODO: This should be done by the caller before calling this
-    // function/constructor.
-    // // There it should be decided whether to call this at all.
-    // const char* x11_display_env = std::getenv("DISPLAY");
-    // if (x11_display_env == nullptr) {
-    //     printf("The DISPLAY environment variable is not set. This is required for
-    //     X11.\n"
-    //     );
-    //     std::exit(1);
-    // }
-
-    // win.m_display = XOpenDisplay(nullptr);
-    // if (win.m_display == nullptr) {
-    //     printf("\n\tcannot connect to X server\n\n");
-    //     std::exit(0);
-    // }
-
-    // XID root = DefaultRootWindow(win.m_display);
-    // (void)root;
-
-    // GLint att[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None};
-
-    // win.m_visual_info = glXChooseVisual(win.m_display, 0, att);
-    // int     screen = DefaultScreen(win.m_display);
-    // Visual* visual = DefaultVisual(win.m_display, screen);
-    // int     depth = DefaultDepth(win.m_display, screen);
-
-    // Colormap colormap = XCreateColormap(
-    //     win.m_display, RootWindow(win.m_display, screen), visual, AllocNone
-    // );
-
-    // XSetWindowAttributes window_attributes = {};
-    // window_attributes.colormap = colormap;
-    // window_attributes.background_pixel = 0xFFFFFFFF;
-    // window_attributes.border_pixel = 0;
-    // window_attributes.event_mask =
-    //     KeyPressMask | KeyReleaseMask | StructureNotifyMask | ExposureMask;
-
-    // win.m_window = ::XCreateWindow(
-    //     win.m_display,
-    //     RootWindow(win.m_display, screen),
-    //     0,
-    //     0,
-    //     desc.size.x,
-    //     desc.size.y,
-    //     0,
-    //     depth,
-    //     InputOutput,
-    //     visual,
-    //     CWBackPixel | CWBorderPixel | CWEventMask | CWColormap,
-    //     &window_attributes
-    // );
-    // XSelectInput(win.m_display, win.m_window, ExposureMask | KeyPressMask);
-    // XMapWindow(win.m_display, win.m_window);
-    // XFlush(win.m_display);
-
-    // // Client area dimensions
-    // XWindowAttributes client_attributes;
-    // XGetWindowAttributes(win.m_display, win.m_window, &client_attributes);
-    // // int client_width = client_attributes.width;
-    // // int client_height = client_attributes.height;
-
-    // // Window dimensions
-    // ::Window     root_window;
-    // int          x;
-    // int          y;
-    // unsigned int border_width;
-    // unsigned int depth_;
-    // unsigned int window_width;
-    // unsigned int window_height;
-    // XGetGeometry(
-    //     win.m_display,
-    //     win.m_window,
-    //     &root_window,
-    //     &x,
-    //     &y,
-    //     &window_width,
-    //     &window_height,
-    //     &border_width,
-    //     &depth_
-    // );
-
-    // // m_title = desc.title;
-    // win.m_size = v2u32::create(window_width, window_height);
-    // // m_position = v2u32(window_rect.left, window_rect.top);
-
-    // ::XIM xim = XOpenIM(win.m_display, nullptr, nullptr, nullptr);
-    // if (xim == nullptr) {
-    //     // fallback to internal input method
-    //     XSetLocaleModifiers("@im=none");
-    //     xim = XOpenIM(win.m_display, nullptr, nullptr, nullptr);
-    // }
-    // ::XIC xic = ::XCreateIC(
-    //     xim,
-    //     XNInputStyle,
-    //     XIMPreeditNothing | XIMStatusNothing,
-    //     XNClientWindow,
-    //     win.m_window,
-    //     XNFocusWindow,
-    //     win.m_window,
-    //     nullptr
-    // );
-
-    // XSetICFocus(xic);
-
-    // XSelectInput(
-    //     win.m_display,
-    //     win.m_window,
-    //     KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
-    //         PointerMotionMask | StructureNotifyMask | ExposureMask
-    // );
-    // return win;
-
     return X11_NativeWindow{desc};
 }
 
@@ -141,7 +27,8 @@ X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
     // There it should be decided whether to call this at all.
     const char* x11_display_env = std::getenv("DISPLAY");
     if (x11_display_env == nullptr) {
-        printf("The DISPLAY environment variable is not set. This is required for X11.\n"
+        printf(
+            "The DISPLAY environment variable is not set. This is required for X11.\n"
         );
         std::exit(1);
     }
@@ -197,13 +84,13 @@ X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
     // int client_height = client_attributes.height;
 
     // Window dimensions
-    ::Window     root_window;
-    int          x;
-    int          y;
-    unsigned int border_width;
-    unsigned int depth_;
-    unsigned int window_width;
-    unsigned int window_height;
+    ::Window     root_window = 0;
+    int          x = 0;
+    int          y = 0;
+    unsigned int border_width = 0;
+    unsigned int depth_ = 0;
+    unsigned int window_width = 0;
+    unsigned int window_height = 0;
     XGetGeometry(
         m_display,
         m_window,
@@ -216,18 +103,19 @@ X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
         &depth_
     );
 
-    // m_title = desc.title;
+    m_title = desc.title;
+    XStoreName(m_display, m_window, m_title.c_str());
     m_size = v2u32::create(window_width, window_height);
     // m_position = v2u32(window_rect.left, window_rect.top);
 
-    ::XIM xim = XOpenIM(m_display, nullptr, nullptr, nullptr);
-    if (xim == nullptr) {
+    m_xim = XOpenIM(m_display, nullptr, nullptr, nullptr);
+    if (m_xim == nullptr) {
         // fallback to internal input method
         XSetLocaleModifiers("@im=none");
-        xim = XOpenIM(m_display, nullptr, nullptr, nullptr);
+        m_xim = XOpenIM(m_display, nullptr, nullptr, nullptr);
     }
-    ::XIC xic = ::XCreateIC(
-        xim,
+    m_xic = ::XCreateIC(
+        m_xim,
         XNInputStyle,
         XIMPreeditNothing | XIMStatusNothing,
         XNClientWindow,
@@ -237,7 +125,7 @@ X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
         nullptr
     );
 
-    XSetICFocus(xic);
+    XSetICFocus(m_xic);
 
     XSelectInput(
         m_display,
@@ -245,26 +133,56 @@ X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
         KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask |
             PointerMotionMask | StructureNotifyMask | ExposureMask
     );
+
+    m_wm_delete = XInternAtom(m_display, "WM_DELETE_WINDOW", False);
+    XSetWMProtocols(m_display, m_window, &m_wm_delete, 1);
 }
 
 X11_NativeWindow::X11_NativeWindow(X11_NativeWindow&& other) noexcept {
+    m_wm_delete = std::exchange(other.m_wm_delete, 0);
     m_display = std::exchange(other.m_display, nullptr);
     m_visual_info = std::exchange(other.m_visual_info, nullptr);
     m_window = std::exchange(other.m_window, 0);
     m_size = std::exchange(other.m_size, {});
+    m_title = std::exchange(other.m_title, {});
+    m_xic = std::exchange(other.m_xic, nullptr);
+    m_xim = std::exchange(other.m_xim, nullptr);
 }
 
 auto X11_NativeWindow::operator=(X11_NativeWindow&& other) noexcept -> X11_NativeWindow& {
     if (this == &other) { return *this; }
+    if (m_display != nullptr && m_window != 0) { XDestroyWindow(m_display, m_window); }
+    
+
     m_display = std::exchange(other.m_display, nullptr);
     m_visual_info = std::exchange(other.m_visual_info, nullptr);
     m_window = std::exchange(other.m_window, 0);
     m_size = std::exchange(other.m_size, {});
+    m_wm_delete = std::exchange(other.m_wm_delete, 0);
+    m_title = std::exchange(other.m_title, {});
+    m_xic = std::exchange(other.m_xic, nullptr);
+    m_xim = std::exchange(other.m_xim, nullptr);
     return *this;
 }
 
 X11_NativeWindow::~X11_NativeWindow() {
-    if (m_display != nullptr && m_window != 0) { XDestroyWindow(m_display, m_window); }
+    if (m_xic != nullptr) {
+        XDestroyIC(m_xic);
+        m_xic = nullptr;
+    }
+    if (m_xim != nullptr) {
+        XCloseIM(m_xim);
+        m_xim = nullptr;
+    }
+    if (m_display != nullptr && m_window != 0) {
+        XDestroyWindow(m_display, m_window);
+        m_window = 0;
+    }
+
+    if (m_display != nullptr) {
+        XCloseDisplay(m_display);
+        m_display = nullptr;
+    }
 }
 
 static auto is_key_event(XEvent* event) -> bool {
@@ -328,9 +246,12 @@ static auto x11_event_defines_to_string(const int type) -> std::string {
     }
 }
 
-static auto
-process_event(XEvent* event, X11_NativeWindow* win, WindowEventQueue* event_queue)
-    -> void {
+static auto process_event(
+    XEvent*           event,
+    X11_NativeWindow* win,
+    WindowEventQueue* event_queue,
+    bool&             should_close
+) -> void {
 
     switch (event->type) {
         case Expose: {
@@ -370,13 +291,17 @@ process_event(XEvent* event, X11_NativeWindow* win, WindowEventQueue* event_queu
             KeySym keysym = {};
             XLookupString(&event->xkey, nullptr, 0, &keysym, nullptr);
 
-            // make sure it is the latin-1 alphabet
-            bool is_latin_1 = false;
-            if ((keysym >= 0x0020 && keysym <= 0x007e) ||
-                (keysym >= 0x00a0 && keysym <= 0x00ff)) {
-                is_latin_1 = true;
-            }
+            auto is_keysym_latin = [](KeySym keysym) -> bool {
+                const u32 range_0_start = 0x0020;
+                const u32 range_0_end = 0x007e;
+                const u32 range_1_start = 0x00a0;
+                const u32 range_1_end = 0x00ff;
+                return (keysym >= range_0_start && keysym <= range_0_end) ||
+                       (keysym >= range_1_start && keysym <= range_1_end);
+            };
 
+            // make sure it is the latin-1 alphabet
+            bool is_latin_1 = is_keysym_latin(keysym);
             if (!is_latin_1) {
                 Logger::warn("Only latin-1 alphabet is supported. This is {}", keysym);
                 // assert(is_latin_1 && "Only latin-1 alphabet is supported");
@@ -399,8 +324,8 @@ process_event(XEvent* event, X11_NativeWindow* win, WindowEventQueue* event_queu
         } break;
 
         case MotionNotify: {
-            auto x = event->xbutton.x;
-            auto y = event->xbutton.y;
+            auto x = event->xmotion.x;
+            auto y = event->xmotion.y;
 
             MouseEvent mouse_event = {
                 .m_x = x,
@@ -414,13 +339,21 @@ process_event(XEvent* event, X11_NativeWindow* win, WindowEventQueue* event_queu
 
         } break;
         case ConfigureNotify: {
-
+            win->m_size = v2u32::create(
+                static_cast<uint32_t>(event->xconfigure.width),
+                static_cast<uint32_t>(event->xconfigure.height)
+            );
+        } break;
+        case ClientMessage: {
+            if (static_cast<Atom>(event->xclient.data.l[0]) == win->m_wm_delete) {
+                should_close = true;
+            }
         } break;
         default: break;
     }
 }
 
-auto X11_NativeWindow::handle_events(bool&) -> void {
+auto X11_NativeWindow::handle_events(bool& should_close) -> void {
 
     // XPending == XEventsQueued(display, QueuedAfterFlush)
     // XQLength == XEventsQueued(display, QueuedAlready)
@@ -431,7 +364,7 @@ auto X11_NativeWindow::handle_events(bool&) -> void {
     while (XQLength(m_display) != 0) {
         XEvent event;
         XNextEvent(m_display, &event);
-        process_event(&event, this, &m_platform_window->m_queue);
+        process_event(&event, this, &m_platform_window->m_queue, should_close);
     }
 }
 
