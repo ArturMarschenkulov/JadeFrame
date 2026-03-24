@@ -25,7 +25,7 @@ namespace JadeFrame {
         It also allows an abtraction, which may allow to have several
    applications at the same time in a JadeFrame context.
 */
-auto control_camera(Camera* self, const InputState& i) -> void;
+auto control_camera(Camera* self, const InputState& i, f64 delta_seconds) -> void;
 #ifdef _WIN32
 using SystemManager = win32::SystemManager;
 #elif __linux__

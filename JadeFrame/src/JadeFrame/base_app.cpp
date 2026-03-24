@@ -8,34 +8,47 @@
 
 namespace JadeFrame {
 
-auto control_camera(Camera* self, const InputState& i) -> void {
+auto control_camera(Camera& self, const InputState& i, f64 delta_seconds_) -> void {
+    f32       delta_seconds = delta_seconds_;
     const f32 velocity = 1.0F;
     const f32 sensitivity = 1;
 
-    Camera::Orientation& orient = self->m_orientation;
+    Camera::Orientation& orient = self.m_orientation;
 
-    if (i.is_key_down(KEY::E)) { self->m_position += orient.m_up * velocity; }
-    if (i.is_key_down(KEY::Q)) { self->m_position -= orient.m_up * velocity; }
+    if (i.is_key_down(KEY::E)) {
+        self.m_position += orient.m_up * velocity * delta_seconds;
+    }
+    if (i.is_key_down(KEY::Q)) {
+        self.m_position -= orient.m_up * velocity * delta_seconds;
+    }
 
-    if (i.is_key_down(KEY::A)) { self->m_position -= orient.m_right * velocity; }
-    if (i.is_key_down(KEY::D)) { self->m_position += orient.m_right * velocity; }
+    if (i.is_key_down(KEY::A)) {
+        self.m_position -= orient.m_right * velocity * delta_seconds;
+    }
+    if (i.is_key_down(KEY::D)) {
+        self.m_position += orient.m_right * velocity * delta_seconds;
+    }
 
-    if (i.is_key_down(KEY::S)) { self->m_position -= orient.m_forward * velocity; }
-    if (i.is_key_down(KEY::W)) { self->m_position += orient.m_forward * velocity; }
+    if (i.is_key_down(KEY::S)) {
+        self.m_position -= orient.m_forward * velocity * delta_seconds;
+    }
+    if (i.is_key_down(KEY::W)) {
+        self.m_position += orient.m_forward * velocity * delta_seconds;
+    }
     {
         auto [pitch, yaw] = orient.get_pitch_yaw();
-        if (i.is_key_down(KEY::LEFT)) { yaw += velocity * sensitivity; }
-        if (i.is_key_down(KEY::RIGHT)) { yaw -= velocity * sensitivity; }
-        if (i.is_key_down(KEY::UP)) { pitch -= velocity * sensitivity; }
-        if (i.is_key_down(KEY::DOWN)) { pitch += velocity * sensitivity; }
+        if (i.is_key_down(KEY::LEFT)) { yaw += velocity * sensitivity * delta_seconds; }
+        if (i.is_key_down(KEY::RIGHT)) { yaw -= velocity * sensitivity * delta_seconds; }
+        if (i.is_key_down(KEY::UP)) { pitch -= velocity * sensitivity * delta_seconds; }
+        if (i.is_key_down(KEY::DOWN)) { pitch += velocity * sensitivity * delta_seconds; }
 
         pitch = std::clamp(pitch, -89.0F, 89.0F);
         orient.set_pitch_yaw(pitch, yaw);
     }
 
     // ImGui::Text(
-    //     "Position: %f, %f, %f", self->m_position.x, self->m_position.y,
-    //     self->m_position.z
+    //     "Position: %f, %f, %f", self.m_position.x, self.m_position.y,
+    //     self.m_position.z
     // );
     // ImGui::Text(
     //     "Forward: %f, %f, %f", orient.m_forward.x, orient.m_forward.y,
@@ -138,8 +151,12 @@ auto Application::start() -> void {
     this->m_on_init_fn();
 
     IRenderer* renderer = m_render_system.m_renderer;
+    f64        previous_frame_time = platform.get_time();
     while (m_is_running) {
-        const f64 delta_time = platform.calc_elapsed();
+        auto      frame_time_start = platform.get_time();
+        const f64 delta_time = frame_time_start - previous_frame_time;
+        previous_frame_time = frame_time_start;
+
         this->m_on_update_fn();
 
         // if (m_current_window_p->get_window_state() != Window::WINDOW_STATE::MINIMIZED)
@@ -147,7 +164,7 @@ auto Application::start() -> void {
         renderer->clear_background();
 
         if (m_gui.m_is_initialized) { m_gui.new_frame(); }
-        control_camera(&m_camera, m_windows[0]->m_input_state);
+        control_camera(m_camera, m_windows[0]->m_input_state, delta_time);
 
         this->m_on_draw_fn();
 
@@ -158,7 +175,9 @@ auto Application::start() -> void {
         m_tick += 1;
         //}
         this->poll_events();
-        platform.frame_control(delta_time);
+        const f64  frame_time_end = platform.get_time();
+        const auto frame_work_time = frame_time_end - frame_time_start;
+        platform.frame_control(frame_work_time);
     }
 }
 
@@ -170,5 +189,4 @@ auto Application::poll_events() -> void {
 //~Application
 //**************************************************************
 
-} // namespace
-  // JadeFrame
+} // namespace JadeFrame
