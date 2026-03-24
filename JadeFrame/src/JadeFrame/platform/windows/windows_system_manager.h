@@ -34,7 +34,6 @@ private:
 
 public:
     auto get_time() const -> f64;
-    auto calc_elapsed() -> f64;
     auto frame_control(f64 delta_time) -> void;
     auto set_target_FPS(f64 FPS) -> void;
 

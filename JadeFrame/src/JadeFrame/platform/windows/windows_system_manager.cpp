@@ -298,29 +298,14 @@ static auto query_performance_counter() -> Option<u64> {
     }
 }
 #endif
+auto SystemManager::frame_control(f64 frame_time) -> void {
+    if (m_time.target <= 0.0) { return; }
+    if (frame_time >= m_time.target) { return; }
 
-auto SystemManager::calc_elapsed() -> f64 {
-    f64 current = this->get_time();
-    f64 update = current - m_time.previous;
-    m_time.previous = current;
-    return update;
-}
+    const auto remaining = m_time.target - frame_time;
+    const auto milliseconds = static_cast<u32>(remaining * 1000.0);
 
-auto SystemManager::frame_control(f64 delta_time) -> void {
-    // Frame time control system
-    f64 current = this->get_time();
-    f64 draw = current - m_time.previous;
-    m_time.previous = current;
-
-    f64 frame = delta_time + draw;
-
-    if (frame < m_time.target) {
-        ::Sleep(static_cast<u32>((m_time.target - frame) * 1000.0));
-        f64 current = this->get_time();
-        f64 time_wait = current - m_time.previous;
-        m_time.previous = current;
-        frame += time_wait;
-    }
+    if (milliseconds > 0) { ::Sleep(milliseconds); }
 }
 
 auto SystemManager::set_target_FPS(f64 FPS) -> void {
@@ -518,8 +503,8 @@ auto SystemManager::initialize() -> void {
         DWORD                                 processor_L3_cache_size = 0;
         DWORD                                 processor_package_count = 0;
 
-        while (byte_offset + sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= return_length
-        ) {
+        while (byte_offset + sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <=
+               return_length) {
             switch (ptr->Relationship) {
                 case RelationProcessorCore:
 
