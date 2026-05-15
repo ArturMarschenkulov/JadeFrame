@@ -140,11 +140,48 @@ struct MouseEvent {
 };
 
 struct WindowEvent {
-    enum class TYPE: u8{
+    enum class TYPE : u8 {
         KEY,
         BUTTON,
         MOUSE,
     };
+
+    static auto make_button_event(BUTTON button, INPUT_STATE state) -> WindowEvent {
+        ButtonEvent button_event = {
+            .type = state,
+            .button = button,
+        };
+        WindowEvent we = {
+            .type = WindowEvent::TYPE::BUTTON,
+            .button_event = button_event,
+        };
+        return we;
+    }
+
+    static auto make_key_event(KEY key, INPUT_STATE state) -> WindowEvent {
+        KeyEvent key_event = {
+            .type = state,
+            .key = key,
+        };
+        WindowEvent we = {
+            .type = WindowEvent::TYPE::KEY,
+            .key_event = key_event,
+        };
+        return we;
+    }
+
+    static auto make_mouse_event(i32 x, i32 y) -> WindowEvent {
+        MouseEvent mouse_event = {
+            .m_x = x,
+            .m_y = y,
+        };
+        WindowEvent we = {
+            .type = WindowEvent::TYPE::MOUSE,
+            .mouse_event = mouse_event,
+        };
+        return we;
+    }
+
     TYPE type;
 
     union {

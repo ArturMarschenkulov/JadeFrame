@@ -36,9 +36,9 @@ consteval auto get_cpp_version() -> u32 {
 
 struct CompilerInfo {
     struct Version {
-        int major;
-        int minor;
-        int patch;
+        u32 major;
+        u32 minor;
+        u32 patch;
     };
 
     const char* name;
@@ -93,7 +93,22 @@ consteval auto get_compiler_info() -> CompilerInfo {
         .name = name, .version = {.major = major, .minor = minor, .patch = patch}
     };
     return info;
-} // namespace JadeFrame
+}
+enum class Platform {
+    UNKNOWN,
+    WIN32,
+    LINUX,
+    ANDROID,
+    APPLE
+};
+
+enum class Architecture {
+    UNKNOWN,
+    X86_64,
+    I386,
+    ARM,
+    ARM64
+};
 
 consteval auto get_platform_info() -> const char* {
     const char* name = "UNKNOWN";
@@ -150,20 +165,8 @@ public:
     }
 };
 
-class IPlatform {
-public:
-    // platform stuff
-
-    // input stuff
-
-    // time stuff
-    [[nodiscard]] virtual auto get_time() const -> f64 = 0;
-    virtual auto               calc_elapsed() -> f64 = 0;
-    virtual auto               frame_control(f64 delta_time) -> void = 0;
-    virtual auto               set_FPS(f64 FPS) -> void = 0;
-};
-
 auto get_program_path() -> std::string;
 auto load_module(const char* path) -> void*;
 auto alloc_page(u64 page_amount) -> void*;
+
 } // namespace JadeFrame
