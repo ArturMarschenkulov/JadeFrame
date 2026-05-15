@@ -120,7 +120,7 @@ auto Vulkan_Renderer::render(const Camera& camera) -> void {
 
         mat4x4 cam = camera.get_view_projection("Vulkan");
         auto   cam_set = static_cast<FREQUENCY>(bg_cam->m_set);
-        auto   cam_binding = bg_tran->m_binding;
+        auto   cam_binding = bg_cam->m_binding;
         material->write_ub(cam_set, cam_binding, &cam, sizeof(cam), 0);
 
         const u32   dyn_offset = static_cast<u32>(dyn_alignment * i);
