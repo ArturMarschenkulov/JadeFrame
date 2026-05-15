@@ -5,3 +5,5 @@ CMakeFiles/
 .vs
 .cache
 logs/
+compile_commands.json
+imgui.ini
