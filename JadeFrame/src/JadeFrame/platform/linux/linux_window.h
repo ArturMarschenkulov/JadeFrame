@@ -36,6 +36,9 @@ public:
 
     [[nodiscard]] auto get_size() const -> const v2u32& override { return m_size; }
 
+private:
+    auto reset() noexcept -> void;
+
 public:
     ::Display*     m_display = nullptr;
     ::XVisualInfo* m_visual_info = nullptr;

@@ -150,40 +150,21 @@ X11_NativeWindow::X11_NativeWindow(X11_NativeWindow&& other) noexcept {
 }
 
 auto X11_NativeWindow::operator=(X11_NativeWindow&& other) noexcept -> X11_NativeWindow& {
-    if (this == &other) { return *this; }
-    if (m_display != nullptr && m_window != 0) { XDestroyWindow(m_display, m_window); }
-    
-
-    m_display = std::exchange(other.m_display, nullptr);
-    m_visual_info = std::exchange(other.m_visual_info, nullptr);
-    m_window = std::exchange(other.m_window, 0);
-    m_size = std::exchange(other.m_size, {});
-    m_wm_delete = std::exchange(other.m_wm_delete, 0);
-    m_title = std::exchange(other.m_title, {});
-    m_xic = std::exchange(other.m_xic, nullptr);
-    m_xim = std::exchange(other.m_xim, nullptr);
+    if (this != &other) {
+        this->reset();
+        m_display = std::exchange(other.m_display, nullptr);
+        m_window = std::exchange(other.m_window, 0);
+        m_xim = std::exchange(other.m_xim, nullptr);
+        m_xic = std::exchange(other.m_xic, nullptr);
+        m_visual_info = std::exchange(other.m_visual_info, nullptr);
+        m_size = std::exchange(other.m_size, {});
+        m_title = std::exchange(other.m_title, {});
+        m_wm_delete = std::exchange(other.m_wm_delete, 0);
+    }
     return *this;
 }
 
-X11_NativeWindow::~X11_NativeWindow() {
-    if (m_xic != nullptr) {
-        XDestroyIC(m_xic);
-        m_xic = nullptr;
-    }
-    if (m_xim != nullptr) {
-        XCloseIM(m_xim);
-        m_xim = nullptr;
-    }
-    if (m_display != nullptr && m_window != 0) {
-        XDestroyWindow(m_display, m_window);
-        m_window = 0;
-    }
-
-    if (m_display != nullptr) {
-        XCloseDisplay(m_display);
-        m_display = nullptr;
-    }
-}
+X11_NativeWindow::~X11_NativeWindow() { this->reset(); }
 
 static auto is_key_event(XEvent* event) -> bool {
     return event->type == KeyPress || event->type == KeyRelease;
@@ -273,14 +254,7 @@ static auto process_event(
             BUTTON      button = translate_button(x11_button);
             INPUT_STATE button_event_type = from_x11_button_to_input_state(event->type);
 
-            ButtonEvent button_event = {
-                .type = button_event_type,
-                .button = button,
-            };
-            WindowEvent we = {
-                .type = WindowEvent::TYPE::BUTTON,
-                .button_event = button_event,
-            };
+            WindowEvent we = WindowEvent::make_button_event(button, button_event_type);
             event_queue->push(we);
 
         } break;
@@ -310,14 +284,7 @@ static auto process_event(
             KEY         key = translate_key(keysym);
             INPUT_STATE keyevent_type = from_x11_key_to_input_state(event->type);
 
-            KeyEvent key_event = {
-                .type = keyevent_type,
-                .key = key,
-            };
-            WindowEvent we = {
-                .type = WindowEvent::TYPE::KEY,
-                .key_event = key_event,
-            };
+            WindowEvent we = WindowEvent::make_key_event(key, keyevent_type);
 
             event_queue->push(we);
 
@@ -327,14 +294,7 @@ static auto process_event(
             auto x = event->xmotion.x;
             auto y = event->xmotion.y;
 
-            MouseEvent mouse_event = {
-                .m_x = x,
-                .m_y = y,
-            };
-            WindowEvent we = {
-                .type = WindowEvent::TYPE::MOUSE,
-                .mouse_event = mouse_event,
-            };
+            WindowEvent we = WindowEvent::make_mouse_event(x, y);
             event_queue->push(we);
 
         } break;
@@ -354,18 +314,33 @@ static auto process_event(
 }
 
 auto X11_NativeWindow::handle_events(bool& should_close) -> void {
-
-    // XPending == XEventsQueued(display, QueuedAfterFlush)
-    // XQLength == XEventsQueued(display, QueuedAlready)
-    // ???      == XEventsQueued(display, QueuedAfterReading)
-
-    auto events_left = XPending(m_display);
-    // m_platform_window->m_queue.clear();
-    while (XQLength(m_display) != 0) {
-        XEvent event;
+    while (XPending(m_display) > 0) {
+        XEvent event{};
         XNextEvent(m_display, &event);
         process_event(&event, this, &m_platform_window->m_queue, should_close);
     }
 }
 
+auto X11_NativeWindow::reset() noexcept -> void {
+    if (m_xic != nullptr) {
+        XDestroyIC(m_xic);
+        m_xic = nullptr;
+    }
+    if (m_xim != nullptr) {
+        XCloseIM(m_xim);
+        m_xim = nullptr;
+    }
+    if (m_display != nullptr && m_window != 0) {
+        XDestroyWindow(m_display, m_window);
+        m_window = 0;
+    }
+    if (m_display != nullptr) {
+        XCloseDisplay(m_display);
+        m_display = nullptr;
+    }
+    m_wm_delete = 0;
+    m_title.clear();
+    m_size = {};
+    m_visual_info = nullptr;
+}
 } // namespace JadeFrame
