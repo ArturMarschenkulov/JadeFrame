@@ -231,7 +231,7 @@ static auto process_event(
     XEvent*           event,
     X11_NativeWindow* win,
     WindowEventQueue* event_queue,
-    bool&             should_close
+    bool&             is_running
 ) -> void {
 
     switch (event->type) {
@@ -306,18 +306,18 @@ static auto process_event(
         } break;
         case ClientMessage: {
             if (static_cast<Atom>(event->xclient.data.l[0]) == win->m_wm_delete) {
-                should_close = true;
+                is_running = false;
             }
         } break;
         default: break;
     }
 }
 
-auto X11_NativeWindow::handle_events(bool& should_close) -> void {
+auto X11_NativeWindow::handle_events(bool& is_running) -> void {
     while (XPending(m_display) > 0) {
         XEvent event{};
         XNextEvent(m_display, &event);
-        process_event(&event, this, &m_platform_window->m_queue, should_close);
+        process_event(&event, this, &m_platform_window->m_queue, is_running);
     }
 }
 

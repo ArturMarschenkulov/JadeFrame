@@ -196,8 +196,8 @@ Window::Window(const Window::Desc& desc) {
     this->add_event_callback(imgui_event_callback);
 }
 
-auto Window::handle_events(bool& running) -> void {
-    m_native_window->handle_events(running);
+auto Window::handle_events(bool& is_running) -> void {
+    m_native_window->handle_events(is_running);
     m_input_state.update();
 
     while (!m_queue.is_empty()) {

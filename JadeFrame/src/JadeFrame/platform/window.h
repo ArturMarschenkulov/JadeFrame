@@ -35,7 +35,7 @@ public:
 
 class Window {
 public:
-    enum class WINDOW_STATE: u8 {
+    enum class WINDOW_STATE : u8 {
         WINDOWED,
         MINIMIZED,
         MAXIMIZED,
@@ -66,9 +66,11 @@ public:
 
 public:
     using EventCallback = std::function<void(const WindowEvent&)>;
-    void                       add_event_callback(EventCallback callback) {
+
+    void add_event_callback(EventCallback callback) {
         m_event_callbacks.push_back(callback);
     }
+
     std::vector<EventCallback> m_event_callbacks;
 
 public:
@@ -93,7 +95,7 @@ public:
     virtual ~NativeWindow() = default;
 
 public:
-    virtual auto               handle_events(bool& running) -> void = 0;
+    virtual auto               handle_events(bool& is_running) -> void = 0;
     virtual auto               set_title(const std::string& title) -> void = 0;
     [[nodiscard]] virtual auto get_title() const -> std::string = 0;
     [[nodiscard]] virtual auto get_size() const -> const v2u32& = 0;
