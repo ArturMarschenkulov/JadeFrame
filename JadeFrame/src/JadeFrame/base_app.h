@@ -52,9 +52,9 @@ public:
     ~Application() = default;
 
 public:
-    std::function<void()> m_on_init_fn;
-    std::function<void()> m_on_update_fn;
-    std::function<void()> m_on_draw_fn;
+    std::function<void()> m_on_init_fn = []() -> void {};
+    std::function<void()> m_on_update_fn = []() -> void {};
+    std::function<void()> m_on_draw_fn = []() -> void {};
 
     auto start() -> void;
     auto poll_events() -> void;
