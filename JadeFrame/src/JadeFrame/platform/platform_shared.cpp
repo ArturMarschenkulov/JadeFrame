@@ -1,6 +1,7 @@
 #include "platform_shared.h"
 #if defined(JF_PLATFORM_LINUX)
     #include <sys/mman.h>
+    #include <unistd.h>
 #endif
 #if defined(JF_PLATFORM_LINUX)
     #include <dlfcn.h>
