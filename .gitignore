@@ -1,4 +1,5 @@
 build/
+build-*/
 build_wsl/
 CMakeFiles/
 # .vscode

@@ -14,6 +14,7 @@ set(Files
 
 
 add_library(JF_MODULE_math STATIC ${Files})
+jadeframe_enable_sanitizers(JF_MODULE_math)
 target_link_libraries(JF_MODULE_math
     PRIVATE
         JF_MODULE_prelude

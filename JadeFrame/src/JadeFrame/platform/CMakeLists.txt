@@ -12,6 +12,7 @@ set(Files
 )
 
 add_library(JF_MODULE_platform STATIC ${Files})
+jadeframe_enable_sanitizers(JF_MODULE_platform)
 
 IF(WIN32)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
@@ -34,4 +35,3 @@ target_link_libraries(JF_MODULE_platform
         JF_MODULE_prelude
         imgui
 )
-

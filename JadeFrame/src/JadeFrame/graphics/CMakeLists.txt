@@ -27,6 +27,7 @@ set(Files
 )
 
 add_library(JF_MODULE_graphics STATIC ${Files})
+jadeframe_enable_sanitizers(JF_MODULE_graphics)
 target_link_libraries(JF_MODULE_graphics
     INTERFACE
         JF_MODULE_prelude

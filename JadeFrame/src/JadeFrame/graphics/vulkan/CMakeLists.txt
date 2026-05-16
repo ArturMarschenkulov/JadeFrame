@@ -38,6 +38,7 @@ else()
 endif()
 
 add_library(gfx-vulkan ${SOURCE_FILES})
+jadeframe_enable_sanitizers(gfx-vulkan)
 
 target_link_libraries(gfx-vulkan
     PRIVATE

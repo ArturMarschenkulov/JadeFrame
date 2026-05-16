@@ -1,4 +1,9 @@
 # set(PROJECT_NAME JadeFrame)
+if(NOT COMMAND jadeframe_enable_sanitizers)
+    include("${CMAKE_CURRENT_LIST_DIR}/../cmake/JadeFrameSanitizers.cmake")
+    jadeframe_configure_sanitizers()
+endif()
+
 function(disable_warnings_for_target target)
     if (TARGET ${target})
         set_target_properties(${target} PROPERTIES COMPILE_OPTIONS "")
@@ -27,7 +32,15 @@ add_subdirectory(src/extern/glfw/)
 option(USE_PRECOMPILED_ASSIMP "Use precompiled Assimp library" ON)
 set(ASSIMP_PRECOMPILED_PATH ${CMAKE_SOURCE_DIR}/libs/assimp)
 set(ASSIMP_PRECOMPILED_LIB_PATH ${ASSIMP_PRECOMPILED_PATH}/lib)
-set(ASSIMP_BUILD_TESTS OFF)
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
+
+# These formats currently fail to build with the vendored Assimp subtree.
+set(ASSIMP_BUILD_3MF_EXPORTER OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_OPENGEX_IMPORTER OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_MS3D_IMPORTER OFF CACHE BOOL "" FORCE)
 
 if(EXISTS ${ASSIMP_PRECOMPILED_LIB_PATH}/libassimp.a OR EXISTS ${ASSIMP_PRECOMPILED_LIB_PATH}/libassimpd.a)
     set(ASSIMP_FOUND TRUE)
@@ -122,15 +135,18 @@ add_subdirectory(src/extern/spdlog/)
 #     NOT EXISTS "${CMAKE_SOURCE_DIR}/JadeFrame/src/lib/libspirv-cross-msl.a"
 # )
 message("Did not found prebuild shaderc and SPIRV-Cross libraries. Building them now. This will take a while.")
-set(SHADERC_SKIP_TESTS ON)
-set(SHADERC_SKIP_EXAMPLES ON)
+set(SHADERC_SKIP_TESTS ON CACHE BOOL "" FORCE)
+set(SHADERC_SKIP_EXAMPLES ON CACHE BOOL "" FORCE)
+set(SHADERC_ENABLE_WERROR_COMPILE OFF CACHE BOOL "" FORCE)
+set(ENABLE_CTEST OFF CACHE BOOL "" FORCE)
+set(SPIRV_SKIP_TESTS ON CACHE BOOL "" FORCE)
 add_subdirectory(src/extern/shaderc/ EXCLUDE_FROM_ALL)
 
 # TODO: as of right now we do not need metal and hlsl support.
 # set(SPIRV_CROSS_CLI OFF)
 # set(SPIRV_CROSS_ENABLE_HLSL OFF)
 # set(SPIRV_CROSS_ENABLE_MSL OFF)
-set(SPIRV_CROSS_ENABLE_TESTS OFF)
+set(SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
 add_subdirectory(src/extern/SPIRV-Cross/ EXCLUDE_FROM_ALL)
 
 # endif()
@@ -174,6 +190,7 @@ set(ALL_FILES
 # Target
 ################################################################################
 add_library(${PROJECT_NAME} STATIC ${ALL_FILES})
+jadeframe_enable_sanitizers_public(${PROJECT_NAME})
 # target_link_libraries(${PROJECT_NAME} PRIVATE pthread)
 
 
@@ -260,6 +277,7 @@ add_library(JF_MODULE_logger
         "src/JadeFrame/utils/logger.h"
         "src/JadeFrame/utils/logger.cpp"
 )
+jadeframe_enable_sanitizers(JF_MODULE_logger)
 target_link_libraries(JF_MODULE_logger 
     PUBLIC 
         spdlog::spdlog

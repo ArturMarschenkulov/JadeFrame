@@ -52,6 +52,8 @@ project(
     DESCRIPTION "JadeFrame: A cross platform graphics framework"
     LANGUAGES C CXX
 )
+include(cmake/JadeFrameSanitizers.cmake)
+jadeframe_configure_sanitizers()
 # include(cmake/my_utils.cmake)
 # my_print_platform_data()
 # my_print_generator_data()

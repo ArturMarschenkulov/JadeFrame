@@ -31,6 +31,7 @@ add_library(gfx-opengl
 
     ${PLATFORM_DEPENDENT_FILES}
 )
+jadeframe_enable_sanitizers(gfx-opengl)
 IF(WIN32)
     set(PLATFORM_DEPENDENT_DEPENDENCIES
         opengl32

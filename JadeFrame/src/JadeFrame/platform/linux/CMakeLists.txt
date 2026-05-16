@@ -8,6 +8,7 @@ add_library(platform-linux
     "linux_window.h"
     "linux_window.cpp"
 )
+jadeframe_enable_sanitizers(platform-linux)
 
 target_link_libraries(platform-linux
     PUBLIC

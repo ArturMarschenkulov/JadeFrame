@@ -16,6 +16,7 @@ set(Files
 )
 
 add_library(JF_MODULE_utils STATIC ${Files})
+jadeframe_enable_sanitizers(JF_MODULE_utils)
 target_link_libraries(JF_MODULE_utils
     PRIVATE
         JF_MODULE_prelude

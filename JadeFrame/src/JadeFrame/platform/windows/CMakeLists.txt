@@ -8,6 +8,7 @@ add_library(platform-win32
     "windows_window.h"
     "windows_window.cpp"
 )
+jadeframe_enable_sanitizers(platform-win32)
 
 target_link_libraries(platform-win32
     PUBLIC

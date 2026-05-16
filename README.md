@@ -37,6 +37,17 @@ A quick way to compile and run it if success in PowerShell is:
 cmake --build . -j8; if ($?) { .\Application\Application }
 ```
 
+To build JadeFrame-owned targets with AddressSanitizer and UndefinedBehaviorSanitizer:
+```
+cmake -S . -B build-sanitize \
+  -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DJADEFRAME_ENABLE_SANITIZERS=ON \
+  -DJADEFRAME_SANITIZERS=address,undefined
+cmake --build build-sanitize --parallel
+ctest --test-dir build-sanitize --output-on-failure
+```
+
 
 # Directory structure
 The whole project should be organized into modules (aka namespaces), which should be as modular and independent as possible. Roughly speaking, a folder should correspond to one module. Every folder should have a `README.md` file, which should contain a short description of the module.
