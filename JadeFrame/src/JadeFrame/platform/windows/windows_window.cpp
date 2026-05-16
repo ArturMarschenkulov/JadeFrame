@@ -4,8 +4,7 @@
 
 #include "windows_message_map.h"
 #include "windows_shared.h"
-
-#include "JadeFrame/base_app.h" // for the singleton
+#include "windows_input_manager.h"
 
 #include <tuple>
 #include <unordered_map>
@@ -34,9 +33,11 @@ static auto window_resize_callback(NativeWindow& window, const EventMessage& wm)
     window.set_size(v2u32(LOWORD(wm.lParam), HIWORD(wm.lParam)));
 
     const v2u32& size = window.get_size();
-    auto&        renderer =
-        Instance::get_singleton()->m_current_app_p->m_render_system.m_renderer;
-    renderer->set_viewport(0, 0, size.x, size.y);
+    if (window.m_platform_window != nullptr) {
+        window.m_platform_window->m_queue.push(
+            WindowEvent::make_resize_event(size.x, size.y)
+        );
+    }
 }
 
 static auto window_move_callback(NativeWindow& window, const EventMessage& wm) -> void {
@@ -54,22 +55,13 @@ window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
     -> ::LRESULT {
     const EventMessage& wm = {hWnd, message, wParam, lParam};
 
-    Application* app = Instance::get_singleton()->m_current_app_p;
-    if (app == nullptr) {
+    auto* nat_window = reinterpret_cast<NativeWindow*>(::GetPropW(hWnd, L"Window"));
+    if (nat_window == nullptr || nat_window->m_platform_window == nullptr) {
         return ::DefWindowProcW(hWnd, message, wParam, lParam);
-    } else {
     }
 
-    auto* nat_window = reinterpret_cast<NativeWindow*>(::GetPropW(hWnd, L"Window"));
-    auto& input_manager = nat_window->m_platform_window->m_queue;
-    i32   current_window_id = -1;
-    for (auto const& [window_id, window] : app->m_windows) {
-        // if (window->get() == hWnd) {
-        current_window_id = window_id;
-        //}
-    }
-    NativeWindow& current_window =
-        *reinterpret_cast<NativeWindow*>(app->m_windows[current_window_id]);
+    auto&         input_manager = nat_window->m_platform_window->m_queue;
+    NativeWindow& current_window = *nat_window;
 
     switch (message) {
         case WM_SETFOCUS:
@@ -115,22 +107,7 @@ window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
            WM_DESTROY.
         */
         case WM_CLOSE: {
-            // TODO: This code needs to be moved to WM_DESTROY.
-
-            app->m_windows.erase(current_window_id);
-
-            Logger::trace("\tLOG: Window Nr {} closing", app->m_windows.size());
-            if (app->m_windows.empty() == true) {
-                Logger::trace("\tLOG: All Windows were closed");
-                ::PostQuitMessage(0);
-            } else if (app->m_windows.contains(0) == false) {
-                Logger::trace("\tLOG: Main Window was closed thus every other as well");
-                ::PostQuitMessage(0);
-                app->m_is_running = false;
-            }
-
-            // TODO: Add code which deals with ImGui!
-
+            input_manager.push(WindowEvent::make_close_event());
         } break;
         case WM_DESTROY: {
             //::PostQuitMessage(0);
@@ -156,7 +133,7 @@ static auto get_style(const JadeFrame::Window::Desc& desc) -> ::DWORD {
         (0 | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX |
          WS_MAXIMIZEBOX); // WS_OVERLAPPEDWINDOW
 
-    if (desc.visable == true) { style |= WS_VISIBLE; }
+    if (desc.visible == true) { style |= WS_VISIBLE; }
 
     if (desc.accept_drop_files == true) { style |= WM_DROPFILES; }
 
@@ -229,7 +206,7 @@ NativeWindow::NativeWindow(const JadeFrame::Window::Desc& desc) {
     m_position = v2u32(window_rect.left, window_rect.top);
     m_window_handle = window_handle;
     m_window_state = JadeFrame::Window::WINDOW_STATE::WINDOWED;
-    if (desc.visable == true) {
+    if (desc.visible == true) {
         ::ShowWindow(window_handle, SW_SHOW);
         m_window_state = JadeFrame::Window::WINDOW_STATE::WINDOWED;
     } else {

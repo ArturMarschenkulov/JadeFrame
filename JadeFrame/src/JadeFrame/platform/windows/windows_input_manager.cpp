@@ -1,7 +1,5 @@
 #include "windows_input_manager.h"
 
-#include "JadeFrame/base_app.h" // For `Instance::get_singleton()`
-// #include "JadeFrame/gui.h"
 #include <Windows.h>
 #include <windowsx.h>
 #include "windows_message_map.h" // for WindowMessage struct
@@ -221,21 +219,6 @@ auto key_callback(const EventMessage& wm,  WindowEventQueue* event_queue) -> voi
 
     // m_curr_key_state[static_cast<u32>(jf_keycode)] =
     //     static_cast<INPUT_STATE>(!is_released);
-    // ImGuiIO& io = ImGui::GetIO();
-    // io.KeysDown[key_code] = b_is_pressed;
-
-    // // TODO: Try to extract that to somewhere else. So th
-    // if (m_curr_key_state[static_cast<u32>(KEY::ESCAPE)] == INPUT_STATE::PRESSED) {
-    //     if (::MessageBoxW(
-    //             wm.hWnd, L"Quit through ESC?", L"My application", MB_OKCANCEL
-    //         ) == IDOK) {
-    //         Instance::get_singleton()->m_current_app_p->m_is_running = false;
-    //         ::PostQuitMessage(0);
-    //         // DestroyWindow(hwnd);
-    //     }
-    //     // JadeFrame::get_singleton()->m_current_app->m_is_running = false;
-    //     //::PostQuitMessage(0);
-    // }
 }
 
 auto char_callback(const EventMessage& wm) -> void {
@@ -247,41 +230,12 @@ auto char_callback(const EventMessage& wm) -> void {
     // int64_t bit_29 = (lParam >> 29) & 1; // 1 == system key
     // int64_t bit_30 = (lParam >> 30) & 1; // 1 == repeatedly pressed
     // int64_t bit_31 = (lParam >> 31) & 1; // 0 == pressed, 1 == released
-    // ImGuiIO& io = ImGui::GetIO();
-    if (wParam > 0 && wParam < 0x10000) {
-        // io.AddInputCharacter((u16)wParam);
-    }
+    (void)wParam;
 }
 
 /*
         MOUSE INPUT
 */
-
-
-static auto convert_buttons_from_JF_to_imgui(BUTTON button) -> i32 {
-    i32 result;
-    switch (button) {
-        case BUTTON::LEFT: result = 0; break;
-        case BUTTON::RIGHT: result = 1; break;
-        case BUTTON::MIDDLE: result = 4; break;
-        default:
-            result = -1;
-            assert(false);
-            break;
-    }
-    return result;
-}
-
-// static auto convert_keys_from_JF_to_imgui(KEY button) -> i32 {
-//	i32 result;
-//	switch (button) {
-//		//case BUTTON::LEFT: result = 0; break;
-//		//case BUTTON::RIGHT: result = 1; break;
-//		//case BUTTON::MIDDLE: result = 4; break;
-//		default: result = -1; assert(false); break;
-//	}
-//	return result;
-// }
 
 // auto InputManager::mouse_button_callback(i64 lParam, i64 wParam, i32 message) -> void {
 auto mouse_button_callback(const EventMessage& wm, WindowEventQueue* event_queue) -> void {
@@ -290,10 +244,7 @@ auto mouse_button_callback(const EventMessage& wm, WindowEventQueue* event_queue
     // auto wParam = window_message.wParam;
     auto lParam = wm.lParam;
 
-    // ImGuiIO& io = ImGui::GetIO();
-
     BUTTON button = BUTTON::MAX;
-    INPUT_STATE button_event_type = {};
     switch (message) {
         case WM_LBUTTONDOWN:
         case WM_LBUTTONDBLCLK:
@@ -321,9 +272,6 @@ auto mouse_button_callback(const EventMessage& wm, WindowEventQueue* event_queue
             };
             event_queue->push(we);
 
-            // m_current_mouse_button_state[static_cast<u32>(button)] = INPUT_STATE::PRESSED;
-            // io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = true;
-
         } break;
         case WM_LBUTTONUP:
         case WM_RBUTTONUP:
@@ -342,9 +290,6 @@ auto mouse_button_callback(const EventMessage& wm, WindowEventQueue* event_queue
                 .button_event = button_event,
             };
             event_queue->push(we);
-            // m_current_mouse_button_state[static_cast<i32>(button)] =
-            //     INPUT_STATE::RELEASED;
-            // io.MouseDown[convert_buttons_from_JF_to_imgui(button)] = false;
         } break;
         case WM_MOUSEMOVE: {
             i32 mposx = GET_X_LPARAM(lParam);
@@ -364,9 +309,6 @@ auto mouse_button_callback(const EventMessage& wm, WindowEventQueue* event_queue
             event_queue->push(we);
         } break;
     }
-
-
-    // io.DeltaTime = 1.0f / 60.0f;
 }
 
 } // namespace win32
