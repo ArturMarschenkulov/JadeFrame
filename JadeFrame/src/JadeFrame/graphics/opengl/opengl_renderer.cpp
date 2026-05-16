@@ -100,8 +100,8 @@ auto OpenGL_Renderer::render(const Camera& camera) -> void {
         const RenderCommand&  cmd = render_commands[i];
         const MaterialHandle& mh = *cmd.material;
 
-        auto* material = static_cast<opengl::Material*>(mh.m_handle);
-        auto* shader = static_cast<opengl::Shader*>(mh.m_shader->m_handle);
+        auto* material = static_cast<opengl::Material*>(mh.m_handle.get());
+        auto* shader = static_cast<opengl::Shader*>(mh.m_shader->m_handle.get());
         m_context.bind_shader(*shader);
 
         // NOTE: As of right now this is not optimal, as it only needs to be updated once
@@ -116,7 +116,7 @@ auto OpenGL_Renderer::render(const Camera& camera) -> void {
         material->write_ub(TRANSFORM_BINDING, &cmd.transform, sizeof(cmd.transform), 0);
 
         if (mh.m_texture != nullptr) {
-            auto* texture = static_cast<opengl::Texture*>(mh.m_texture->m_handle);
+            auto* texture = static_cast<opengl::Texture*>(mh.m_texture->m_handle.get());
 
             u32              texture_unit = 0;
             opengl::Sampler* sampler = m_context.m_default_sampler;
@@ -165,8 +165,10 @@ auto OpenGL_Renderer::render_mesh(
         glVertexArrayElementBuffer(vao->m_ID, index_buffer->m_id);
         glDrawElements(prim_type, num_indices, gl_type, nullptr);
     } else {
+        const auto& position_attribute =
+            vertex_data->m_attributes.at(Mesh::POSITION.m_id);
         auto num_vertices = static_cast<GLsizei>(
-            vertex_data->m_attributes.at(Mesh::POSITION.m_id).m_data.size()
+            position_attribute.m_data.size() / component_count(Mesh::POSITION.m_format)
         );
         glDrawArrays(prim_type, 0, num_vertices);
     }
@@ -251,7 +253,7 @@ auto OpenGL_Renderer::RenderTarget::init(opengl::Context* context, RenderSystem*
 auto OpenGL_Renderer::RenderTarget::render(RenderSystem* /*system*/) -> void {
 
     ShaderHandle& sh_ = *m_shader;
-    auto*         sh = static_cast<opengl::Shader*>(sh_.m_handle);
+    auto*         sh = static_cast<opengl::Shader*>(sh_.m_handle.get());
     m_context->bind_shader(*sh);
     m_context->m_texture_manager.bind_texture_and_sampler_to_unit(
         *m_texture, m_sampler, 0

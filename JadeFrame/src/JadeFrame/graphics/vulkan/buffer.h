@@ -57,6 +57,7 @@ public:
     auto resize(size_t size) -> void;
 
 private:
+    auto destroy() -> void;
     auto create_buffer(
         VkDeviceSize       size,
         VkBufferUsageFlags usage,
@@ -110,8 +111,11 @@ public:
     VkImage              m_handle = VK_NULL_HANDLE;
     const LogicalDevice* m_device = nullptr;
     VkDeviceMemory       m_memory = VK_NULL_HANDLE;
-    SOURCE               m_source;
+    SOURCE               m_source = SOURCE::REGULAR;
     v2u32                m_size = {};
+
+private:
+    auto destroy() -> void;
 };
 
 class ImageView {
@@ -135,12 +139,15 @@ public:
     VkImageView          m_handle = VK_NULL_HANDLE;
     const LogicalDevice* m_device = nullptr;
     const Image*         m_image = nullptr;
+
+private:
+    auto destroy() -> void;
 };
 
 class Sampler {
 public:
     Sampler() = default;
-    ~Sampler() = default;
+    ~Sampler();
     Sampler(const Sampler&) = delete;
     auto operator=(const Sampler&) -> Sampler& = delete;
     Sampler(Sampler&&) = delete;
@@ -157,7 +164,7 @@ public:
 class Vulkan_Texture {
 public:
     Vulkan_Texture() = default;
-    ~Vulkan_Texture() = default;
+    ~Vulkan_Texture();
     Vulkan_Texture(const Vulkan_Texture&) = delete;
     auto operator=(const Vulkan_Texture&) -> Vulkan_Texture& = delete;
     Vulkan_Texture(Vulkan_Texture&&) = delete;

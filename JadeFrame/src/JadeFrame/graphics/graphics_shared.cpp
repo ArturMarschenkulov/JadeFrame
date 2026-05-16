@@ -77,6 +77,26 @@ static auto to_vulkan(GPUBuffer::TYPE type) -> vulkan::Buffer::TYPE {
     return result;
 }
 
+static auto delete_vulkan_texture(void* handle) noexcept -> void {
+    delete static_cast<vulkan::Vulkan_Texture*>(handle);
+}
+
+static auto delete_opengl_shader(void* handle) noexcept -> void {
+    delete static_cast<opengl::Shader*>(handle);
+}
+
+static auto delete_vulkan_shader(void* handle) noexcept -> void {
+    delete static_cast<Vulkan_Shader*>(handle);
+}
+
+static auto delete_opengl_material(void* handle) noexcept -> void {
+    delete static_cast<opengl::Material*>(handle);
+}
+
+static auto delete_vulkan_material(void* handle) noexcept -> void {
+    delete static_cast<Vulkan_Material*>(handle);
+}
+
 /*---------------------------
     Image
 ---------------------------*/
@@ -147,6 +167,8 @@ auto GPUBuffer::operator=(GPUBuffer&& other) noexcept -> GPUBuffer& {
 
     if (this == &other) { return *this; }
 
+    this->release();
+
     m_system = other.m_system;
     m_api = other.m_api;
     m_handle = other.m_handle;
@@ -160,6 +182,32 @@ auto GPUBuffer::operator=(GPUBuffer&& other) noexcept -> GPUBuffer& {
     return *this;
 }
 
+GPUBuffer::~GPUBuffer() { this->release(); }
+
+auto GPUBuffer::release() -> void {
+    if (m_handle == nullptr) { return; }
+
+    switch (m_api) {
+        case GRAPHICS_API::VULKAN: {
+            if (m_system == nullptr || m_system->m_renderer == nullptr) { break; }
+            auto* renderer = dynamic_cast<Vulkan_Renderer*>(m_system->m_renderer.get());
+            if (renderer == nullptr || renderer->m_logical_device == nullptr) { break; }
+            auto* buffer = static_cast<vulkan::Buffer*>(m_handle);
+            renderer->m_logical_device->destroy_buffer(buffer);
+        } break;
+        case GRAPHICS_API::OPENGL:
+            // OpenGL buffers are owned by opengl::Context and released with the context.
+            break;
+        case GRAPHICS_API::UNDEFINED: break;
+        default: assert(false); break;
+    }
+
+    m_handle = nullptr;
+    m_system = nullptr;
+    m_api = GRAPHICS_API::UNDEFINED;
+    m_size = 0;
+}
+
 GPUBuffer::GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage)
     : m_system(system)
     , m_api(system->m_api)
@@ -169,13 +217,14 @@ GPUBuffer::GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage)
     switch (system->m_api) {
         case GRAPHICS_API::OPENGL: {
             opengl::Context* device =
-                &(dynamic_cast<OpenGL_Renderer*>(system->m_renderer))->m_context;
+                &(dynamic_cast<OpenGL_Renderer*>(system->m_renderer.get()))->m_context;
 
             m_handle = device->create_buffer(to_opengl(usage), data, size);
         } break;
         case GRAPHICS_API::VULKAN: {
             vulkan::LogicalDevice* device =
-                (dynamic_cast<Vulkan_Renderer*>(system->m_renderer))->m_logical_device;
+                (dynamic_cast<Vulkan_Renderer*>(system->m_renderer.get()))
+                    ->m_logical_device;
 
             m_handle = device->create_buffer(to_vulkan(usage), data, size);
         } break;
@@ -193,21 +242,22 @@ GPUMeshData::GPUMeshData(
 
     void*  data = (void*)flat_data.data();
     size_t size = sizeof(flat_data[0]) * flat_data.size();
-    m_vertex_buffer = new GPUBuffer(system, data, size, GPUBuffer::TYPE::VERTEX);
+    m_vertex_buffer =
+        std::make_unique<GPUBuffer>(system, data, size, GPUBuffer::TYPE::VERTEX);
 
     if (!vertex_data.m_indices.empty()) {
         const auto& indices = vertex_data.m_indices;
         void*       indices_data = (void*)indices.data();
         size_t      indices_size = sizeof(indices[0]) * indices.size();
-        m_index_buffer =
-            new GPUBuffer(system, indices_data, indices_size, GPUBuffer::TYPE::INDEX);
+        m_index_buffer = std::make_unique<GPUBuffer>(
+            system, indices_data, indices_size, GPUBuffer::TYPE::INDEX
+        );
     }
 }
 
-GPUMeshData::~GPUMeshData() {
-    delete m_vertex_buffer;
-    delete m_index_buffer;
-}
+GPUMeshData::~GPUMeshData() = default;
+GPUMeshData::GPUMeshData(GPUMeshData&& other) noexcept = default;
+auto GPUMeshData::operator=(GPUMeshData&& other) noexcept -> GPUMeshData& = default;
 
 /*---------------------------
     Texture Handle
@@ -221,24 +271,40 @@ TextureHandle::TextureHandle(TextureHandle&& other) noexcept
     : m_size(other.m_size)
     , m_num_components(other.m_num_components)
     , m_api(other.m_api)
-    , m_handle(other.m_handle) {
+    , m_handle(std::move(other.m_handle)) {
     other.m_size = v2u32::create(0, 0);
     other.m_num_components = 0;
+    other.m_api = GRAPHICS_API::UNDEFINED;
     other.m_handle = nullptr;
     // *this = std::move(other);
 }
 
 auto TextureHandle::operator=(TextureHandle&& other) noexcept -> TextureHandle& {
+    if (this == &other) { return *this; }
+
+    this->release();
+
     m_size = other.m_size;
     m_num_components = other.m_num_components;
     m_api = other.m_api;
-    m_handle = other.m_handle;
+    m_handle = std::move(other.m_handle);
 
     other.m_size = v2u32::create(0, 0);
     other.m_num_components = 0;
     other.m_api = GRAPHICS_API::UNDEFINED;
     other.m_handle = nullptr;
     return *this;
+}
+
+TextureHandle::~TextureHandle() { release(); }
+
+auto TextureHandle::release() -> void {
+    if (m_handle == nullptr) { return; }
+
+    m_handle.reset();
+    m_api = GRAPHICS_API::UNDEFINED;
+    m_size = v2u32::create(0, 0);
+    m_num_components = 0;
 }
 
 /*---------------------------
@@ -251,24 +317,33 @@ ShaderHandle::ShaderHandle(const Desc& desc)
 ShaderHandle::ShaderHandle(ShaderHandle&& other) noexcept
     : m_code(std::move(other.m_code))
     , m_api(other.m_api)
-    , m_handle(other.m_handle) {
+    , m_handle(std::move(other.m_handle)) {
 
-    // other.m_code = nullptr;
-    // other.m_vertex_format = nullptr;
-    // other.m_api = GRAPHICS_API::UNDEFINED;
-    // other.m_handle = nullptr;
+    other.m_api = GRAPHICS_API::UNDEFINED;
+    other.m_handle = nullptr;
 }
 
 auto ShaderHandle::operator=(ShaderHandle&& other) noexcept -> ShaderHandle& {
-    m_code = other.m_code;
-    m_api = other.m_api;
-    m_handle = other.m_handle;
+    if (this == &other) { return *this; }
 
-    // other.m_code = nullptr;
-    // other.m_vertex_format = nullptr;
-    // other.m_api = GRAPHICS_API::UNDEFINED;
-    // other.m_handle = nullptr;
+    this->release();
+
+    m_code = std::move(other.m_code);
+    m_api = other.m_api;
+    m_handle = std::move(other.m_handle);
+
+    other.m_api = GRAPHICS_API::UNDEFINED;
+    other.m_handle = nullptr;
     return *this;
+}
+
+ShaderHandle::~ShaderHandle() { this->release(); }
+
+auto ShaderHandle::release() -> void {
+    if (m_handle == nullptr) { return; }
+
+    m_handle.reset();
+    m_api = GRAPHICS_API::UNDEFINED;
 }
 
 auto ShaderHandle::set_uniform(const std::string& name, const void* data, size_t size)
@@ -277,11 +352,11 @@ auto ShaderHandle::set_uniform(const std::string& name, const void* data, size_t
     (void)size;
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            auto* shader = (opengl::Shader*)m_handle;
+            auto* shader = static_cast<opengl::Shader*>(m_handle.get());
             // shader->set_uniform(name, data, size);
         } break;
         case GRAPHICS_API::VULKAN: {
-            auto* shader = (Vulkan_Shader*)m_handle;
+            auto* shader = static_cast<Vulkan_Shader*>(m_handle.get());
             auto [set, binding] = shader->get_location(name);
             // shader->bind_buffer(set, binding, data, size);
             // shader->m_sets[set].bind_uniform_buffer(binding, data, size);
@@ -290,6 +365,41 @@ auto ShaderHandle::set_uniform(const std::string& name, const void* data, size_t
         } break;
         default: assert(false);
     }
+}
+
+/*---------------------------
+    MaterialHandle
+---------------------------*/
+
+MaterialHandle::MaterialHandle(MaterialHandle&& other) noexcept
+    : m_shader(std::exchange(other.m_shader, nullptr))
+    , m_texture(std::exchange(other.m_texture, nullptr))
+    , m_handle(std::move(other.m_handle))
+    , m_info(std::move(other.m_info))
+    , m_api(std::exchange(other.m_api, GRAPHICS_API::UNDEFINED)) {}
+
+auto MaterialHandle::operator=(MaterialHandle&& other) noexcept -> MaterialHandle& {
+    if (this == &other) { return *this; }
+
+    this->release();
+
+    m_shader = std::exchange(other.m_shader, nullptr);
+    m_texture = std::exchange(other.m_texture, nullptr);
+    m_handle = std::move(other.m_handle);
+    m_info = std::move(other.m_info);
+    m_api = std::exchange(other.m_api, GRAPHICS_API::UNDEFINED);
+    return *this;
+}
+
+MaterialHandle::~MaterialHandle() { this->release(); }
+
+auto MaterialHandle::release() -> void {
+    if (m_handle == nullptr) { return; }
+
+    m_handle.reset();
+    m_shader = nullptr;
+    m_texture = nullptr;
+    m_api = GRAPHICS_API::UNDEFINED;
 }
 
 /*---------------------------
@@ -315,48 +425,39 @@ RenderSystem::RenderSystem(GRAPHICS_API api, Window* window)
 
     switch (api) {
         case GRAPHICS_API::OPENGL: {
-            m_renderer = new OpenGL_Renderer(*this, window);
+            m_renderer = std::make_unique<OpenGL_Renderer>(*this, window);
 
         } break;
         case GRAPHICS_API::VULKAN: {
-            m_renderer = new Vulkan_Renderer(*this, window);
+            m_renderer = std::make_unique<Vulkan_Renderer>(*this, window);
         } break;
         default: assert(false);
     }
 }
 
-RenderSystem::~RenderSystem() { delete m_renderer; }
+RenderSystem::~RenderSystem() = default;
 
 auto RenderSystem::init(GRAPHICS_API api, Window* window) -> void {
+    m_registered_meshes.clear();
+    m_registered_materials.clear();
+    m_registered_shaders.clear();
+    m_registered_textures.clear();
+    m_render_commands.clear();
+    m_renderer.reset();
+
     m_api = api;
     switch (api) {
         case GRAPHICS_API::OPENGL: {
-            m_renderer = new OpenGL_Renderer(*this, window);
+            m_renderer = std::make_unique<OpenGL_Renderer>(*this, window);
         } break;
         case GRAPHICS_API::VULKAN: {
-            m_renderer = new Vulkan_Renderer(*this, window);
+            m_renderer = std::make_unique<Vulkan_Renderer>(*this, window);
         } break;
         default: {
             Logger::err("Unsupported graphics api: {}", to_string(api));
             assert(false);
         }
     }
-}
-
-RenderSystem::RenderSystem(RenderSystem&& other) noexcept
-    : m_api(other.m_api)
-    , m_renderer(other.m_renderer) {
-
-    other.m_api = GRAPHICS_API::UNDEFINED;
-    other.m_renderer = nullptr;
-}
-
-auto RenderSystem::operator=(RenderSystem&& other) noexcept -> RenderSystem& {
-    m_api = other.m_api;
-    m_renderer = other.m_renderer;
-    other.m_api = GRAPHICS_API::UNDEFINED;
-    other.m_renderer = nullptr;
-    return *this;
 }
 
 auto RenderSystem::register_texture(Image& image) -> TextureHandle* {
@@ -369,15 +470,18 @@ auto RenderSystem::register_texture(Image& image) -> TextureHandle* {
     tex.m_api = m_api;
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            auto*            renderer = dynamic_cast<OpenGL_Renderer*>(m_renderer);
+            auto*            renderer = dynamic_cast<OpenGL_Renderer*>(m_renderer.get());
             opengl::Context* device = &renderer->m_context;
-            tex.m_handle = device->create_texture(
-                image.data.data(), tex.m_size, tex.m_num_components
+            tex.m_handle = NativeHandle(
+                device->create_texture(
+                    image.data.data(), tex.m_size, tex.m_num_components
+                ),
+                noop_native_handle_deleter
             );
 
         } break;
         case GRAPHICS_API::VULKAN: {
-            auto*                  renderer = dynamic_cast<Vulkan_Renderer*>(m_renderer);
+            auto* renderer = dynamic_cast<Vulkan_Renderer*>(m_renderer.get());
             vulkan::LogicalDevice* device = renderer->m_logical_device;
 
             VkFormat format = {};
@@ -390,8 +494,11 @@ auto RenderSystem::register_texture(Image& image) -> TextureHandle* {
                     );
                     assert(false);
             }
-            tex.m_handle = new vulkan::Vulkan_Texture(
-                *device, image.data.data(), tex.m_size, format
+            tex.m_handle = NativeHandle(
+                new vulkan::Vulkan_Texture(
+                    *device, image.data.data(), tex.m_size, format
+                ),
+                delete_vulkan_texture
             );
 
         } break;
@@ -409,7 +516,7 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
 
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
-            auto*            ren = dynamic_cast<OpenGL_Renderer*>(m_renderer);
+            auto*            ren = dynamic_cast<OpenGL_Renderer*>(m_renderer.get());
             opengl::Context* ctx = &ren->m_context;
 
             opengl::Shader::Desc shader_desc;
@@ -431,19 +538,22 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
             shader_desc.code.m_modules[0] = std::move(mod_0);
             shader_desc.code.m_modules[1] = std::move(mod_1);
 
-            shader.m_handle = new opengl::Shader(*ctx, shader_desc);
+            shader.m_handle =
+                NativeHandle(new opengl::Shader(*ctx, shader_desc), delete_opengl_shader);
 
             // Logger::warn("Vertex source:\n {}", v_source);
             // Logger::warn("Fragment source:\n {}", f_source);
         } break;
         case GRAPHICS_API::VULKAN: {
-            auto*                  ren = dynamic_cast<Vulkan_Renderer*>(m_renderer);
+            auto*                  ren = dynamic_cast<Vulkan_Renderer*>(m_renderer.get());
             vulkan::LogicalDevice* ctx = ren->m_logical_device;
 
             Vulkan_Shader::Desc shader_desc;
             shader_desc.code = shader.m_code;
 
-            shader.m_handle = new Vulkan_Shader(*ctx, *ren, shader_desc);
+            shader.m_handle = NativeHandle(
+                new Vulkan_Shader(*ctx, *ren, shader_desc), delete_vulkan_shader
+            );
         } break;
         default: assert(false);
     }
@@ -496,26 +606,41 @@ auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* textur
 
     material.m_shader = shader;
     material.m_texture = texture;
+    material.m_api = m_api;
 
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {
             //  NOTE: AFAIK, nothing needs to be done
-            auto* sh = (opengl::Shader*)shader->m_handle;
-            auto* tex =
-                texture == nullptr ? nullptr : (opengl::Texture*)texture->m_handle;
-            material.m_handle = new opengl::Material(
-                (dynamic_cast<OpenGL_Renderer*>(m_renderer))->m_context, *sh, tex
+            auto* sh = static_cast<opengl::Shader*>(shader->m_handle.get());
+            auto* tex = texture == nullptr
+                            ? nullptr
+                            : static_cast<opengl::Texture*>(texture->m_handle.get());
+            material.m_handle = NativeHandle(
+                new opengl::Material(
+                    (dynamic_cast<OpenGL_Renderer*>(m_renderer.get()))->m_context,
+                    *sh,
+                    tex
+                ),
+                delete_opengl_material
             );
 
         } break;
         case GRAPHICS_API::VULKAN: {
-            auto* sh = (Vulkan_Shader*)shader->m_handle;
+            auto* sh = static_cast<Vulkan_Shader*>(shader->m_handle.get());
 
-            auto* tex =
-                texture == nullptr ? nullptr : (vulkan::Vulkan_Texture*)texture->m_handle;
+            auto* tex = texture == nullptr
+                            ? nullptr
+                            : static_cast<vulkan::Vulkan_Texture*>(
+                                  texture->m_handle.get()
+                              );
 
-            material.m_handle = new Vulkan_Material(
-                *(dynamic_cast<Vulkan_Renderer*>(m_renderer))->m_logical_device, *sh, tex
+            material.m_handle = NativeHandle(
+                new Vulkan_Material(
+                    *(dynamic_cast<Vulkan_Renderer*>(m_renderer.get()))->m_logical_device,
+                    *sh,
+                    tex
+                ),
+                delete_vulkan_material
             );
             if (texture != nullptr) {}
         } break;

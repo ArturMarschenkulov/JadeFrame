@@ -37,7 +37,7 @@ public:
 class Vulkan_Material {
 public:
     Vulkan_Material() = default;
-    ~Vulkan_Material() = default;
+    ~Vulkan_Material();
     Vulkan_Material(const Vulkan_Material&) = delete;
     auto operator=(const Vulkan_Material&) -> Vulkan_Material& = delete;
     Vulkan_Material(Vulkan_Material&&) noexcept = default;

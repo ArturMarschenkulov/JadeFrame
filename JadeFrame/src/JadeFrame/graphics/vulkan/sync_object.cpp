@@ -14,6 +14,9 @@ Fence::Fence(Fence&& other) noexcept
 
 auto Fence::operator=(Fence&& other) noexcept -> Fence& {
     if (this != &other) {
+        if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
+            vkDestroyFence(m_device->m_handle, m_handle, Instance::allocator());
+        }
         m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
         m_device = std::exchange(other.m_device, nullptr);
     }
@@ -35,8 +38,10 @@ Fence::Fence(LogicalDevice& device, bool signaled)
 }
 
 Fence::~Fence() {
-    if (m_handle != VK_NULL_HANDLE) {
+    if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
         vkDestroyFence(m_device->m_handle, m_handle, nullptr);
+        m_handle = VK_NULL_HANDLE;
+        m_device = nullptr;
     }
 }
 
@@ -66,6 +71,9 @@ Semaphore::Semaphore(Semaphore&& other) noexcept
 
 auto Semaphore::operator=(Semaphore&& other) noexcept -> Semaphore& {
     if (this != &other) {
+        if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
+            vkDestroySemaphore(m_device->m_handle, m_handle, Instance::allocator());
+        }
         m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
         m_device = std::exchange(other.m_device, nullptr);
     }
@@ -73,8 +81,10 @@ auto Semaphore::operator=(Semaphore&& other) noexcept -> Semaphore& {
 }
 
 Semaphore::~Semaphore() {
-    if (m_handle != VK_NULL_HANDLE) {
+    if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
         vkDestroySemaphore(m_device->m_handle, m_handle, nullptr);
+        m_handle = VK_NULL_HANDLE;
+        m_device = nullptr;
     }
 }
 

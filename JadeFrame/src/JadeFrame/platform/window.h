@@ -2,6 +2,7 @@
 #include "JadeFrame/platform/window_event.h"
 #include "JadeFrame/prelude.h"
 #include "JadeFrame/math/vec.h"
+#include <memory>
 
 namespace JadeFrame {
 class NativeWindow;
@@ -27,7 +28,7 @@ public:
 public:
     std::array<INPUT_STATE, static_cast<u32>(BUTTON::MAX)> m_curr_button_state = {};
     std::array<INPUT_STATE, static_cast<u32>(BUTTON::MAX)> m_prev_button_state = {};
-    v2                                                     m_mouse_pos;
+    v2                                                     m_mouse_pos = {};
 
 public:
     auto update() -> void;
@@ -76,7 +77,7 @@ public:
 
 public:
     std::unique_ptr<NativeWindow> m_native_window = nullptr;
-    WINDOW_STATE                  m_window_state;
+    WINDOW_STATE                  m_window_state = WINDOW_STATE::WINDOWED;
     WindowEventQueue              m_queue;
     InputState                    m_input_state;
 };

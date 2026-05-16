@@ -118,8 +118,8 @@ public:
         PRIMARY,
         SECONDARY
     };
-    VkCommandBuffer             m_handle;
-    VkCommandBufferAllocateInfo m_alloc_info;
+    VkCommandBuffer             m_handle = VK_NULL_HANDLE;
+    VkCommandBufferAllocateInfo m_alloc_info = {};
     const LogicalDevice*        m_device = nullptr;
     const CommandPool*          m_command_pool = nullptr;
     mutable STAGE               m_stage = STAGE::INVALID;

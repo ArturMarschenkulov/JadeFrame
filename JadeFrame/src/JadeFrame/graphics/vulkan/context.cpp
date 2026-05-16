@@ -44,6 +44,8 @@ static auto vulkan_get_api_version(u32 version) -> VulkanVersion {
 }
 
 namespace vulkan {
+Instance::~Instance() { this->deinit(); }
+
 auto Instance::allocator() -> VkAllocationCallbacks* {
     return Instance::default_allocator();
 }
@@ -262,12 +264,19 @@ auto Instance::init() -> void {
 }
 
 auto Instance::deinit() -> void {
-    if (m_enable_validation_layers) {
+    if (m_instance == VK_NULL_HANDLE) { return; }
+
+    m_logical_device.deinit();
+
+    if (m_enable_validation_layers && m_debug_messenger != VK_NULL_HANDLE) {
         vkDestroyDebugUtilsMessengerEXT_(
             m_instance, m_debug_messenger, Instance::allocator()
         );
+        m_debug_messenger = VK_NULL_HANDLE;
     }
-    vkDestroyInstance(m_instance, nullptr);
+    vkDestroyInstance(m_instance, Instance::allocator());
+    m_instance = VK_NULL_HANDLE;
+    m_physical_device = nullptr;
 }
 
 auto Instance::create_surface(Window* window_handle) -> vulkan::Surface {
@@ -281,9 +290,6 @@ Vulkan_Context::Vulkan_Context(Window* window)
     m_instance.init();
 }
 
-Vulkan_Context::~Vulkan_Context() {
-    m_instance.m_logical_device.deinit();
-    m_instance.deinit();
-}
+Vulkan_Context::~Vulkan_Context() = default;
 
 } // namespace JadeFrame

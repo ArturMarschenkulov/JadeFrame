@@ -1,5 +1,6 @@
 #pragma once
 
+#include <deque>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -70,13 +71,16 @@ public:
         -> void; // mode = GL_FRONT, GL_BACK, and GL_FRONT_AND_BACK
 
 public:
-    bool                                  depth_test;
-    RGBAColor                             clear_color;
-    GLbitfield                            clear_bitfield;
-    bool                                  blending;
-    bool                                  is_face_culling;
-    GLenum                                face_culling_mode;
-    std::pair<POLYGON_FACE, POLYGON_MODE> polygon_mode;
+    bool                                  depth_test = false;
+    RGBAColor                             clear_color = {};
+    GLbitfield                            clear_bitfield = 0;
+    bool                                  blending = false;
+    bool                                  is_face_culling = false;
+    GLenum                                face_culling_mode = GL_BACK;
+    std::pair<POLYGON_FACE, POLYGON_MODE> polygon_mode = {
+        POLYGON_FACE::FRONT_AND_BACK,
+        POLYGON_MODE::FILL
+    };
 
 public:
     auto  set_viewport(u32 x, u32 y, u32 width, u32 height) -> void;
@@ -93,12 +97,12 @@ struct Limits {
 class SwapchainContext {
 public:
 #ifdef _WIN32
-    HDC   m_device_context;
-    HGLRC m_render_context;
+    HDC   m_device_context = nullptr;
+    HGLRC m_render_context = nullptr;
 #elif __linux__
-    ::Display*    m_display = nullptr;
-    ::GLXContext* m_render_context = nullptr;
-    ::Window      m_window = 0;
+    ::Display*   m_display = nullptr;
+    ::GLXContext m_render_context = nullptr;
+    ::Window     m_window = 0;
 #endif
     auto swap_buffers() -> void;
 };
@@ -115,7 +119,7 @@ public:
     auto unbind_texture_from_unit(u32 unit) -> void;
 
 public:
-    Context*                                                m_context;
+    Context*                                                m_context = nullptr;
     std::unordered_map<u32, std::tuple<Texture*, Sampler*>> m_texture_units;
 
     std::deque<Texture> m_textures;
@@ -142,12 +146,12 @@ public:
     std::string              version;
     std::string              shading_language_version;
     std::vector<std::string> extentenions;
-    i32                      major_version;
-    i32                      minor_version;
-    i32                      num_extensions;
+    i32                      major_version = 0;
+    i32                      minor_version = 0;
+    i32                      num_extensions = 0;
 
     // limits
-    GLint m_max_uniform_buffer_binding_points;
+    GLint m_max_uniform_buffer_binding_points = 0;
 
     // Resource creation
     auto create_texture(void* data, v2u32 size, u32 component_num) -> Texture*;
@@ -156,7 +160,7 @@ public:
     auto unbind_texture_from_unit(u32 unit) -> void;
 
     TextureManager m_texture_manager;
-    Sampler*       m_default_sampler;
+    Sampler*       m_default_sampler = nullptr;
 
     auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
         -> opengl::Buffer*;
@@ -167,20 +171,22 @@ public:
     // std::vector<opengl::Buffer> m_uniform_buffers;
 
     std::vector<GLuint>          m_buffers;
-    GLuint                       m_bound_buffer;
+    GLuint                       m_bound_buffer = 0;
     HashMap<u32, opengl::Buffer> m_bufferss;
 
     auto create_framebuffer() -> opengl::Framebuffer*;
     auto bind_framebuffer(opengl::Framebuffer& framebuffer) -> void;
     auto unbind_framebuffer() -> void;
 
-    opengl::Framebuffer* m_bound_framebuffer;
+    opengl::Framebuffer*             m_bound_framebuffer = nullptr;
+    std::deque<opengl::Framebuffer>  m_framebuffers;
 
     auto create_renderbuffer() -> opengl::Renderbuffer*;
     auto bind_renderbuffer(opengl::Renderbuffer& renderbuffer) -> void;
     auto unbind_renderbuffer() -> void;
 
-    opengl::Renderbuffer* m_bound_renderbuffer;
+    opengl::Renderbuffer*            m_bound_renderbuffer = nullptr;
+    std::deque<opengl::Renderbuffer> m_renderbuffers;
 
     auto bind_vertex_array(OGLW_VertexArray& vao) -> void;
     auto unbind_vertex_array() -> void;

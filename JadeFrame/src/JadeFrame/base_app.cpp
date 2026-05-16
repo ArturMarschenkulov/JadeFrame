@@ -158,7 +158,7 @@ auto Application::start() -> void {
     platform.set_target_FPS(60);
     this->m_on_init_fn();
 
-    IRenderer* renderer = m_render_system.m_renderer;
+    IRenderer* renderer = m_render_system.m_renderer.get();
     f64        previous_frame_time = platform.get_time();
     while (m_is_running) {
         auto      frame_time_start = platform.get_time();

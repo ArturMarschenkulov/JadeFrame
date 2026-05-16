@@ -16,7 +16,7 @@ static auto prepare_shaders(const std::deque<RenderCommand>& commands) -> void {
     for (u64 i = 0; i < commands.size(); i++) {
         const auto&           cmd = commands[i];
         const MaterialHandle& mh = *cmd.material;
-        auto*                 material = static_cast<Vulkan_Material*>(mh.m_handle);
+        auto*                 material = static_cast<Vulkan_Material*>(mh.m_handle.get());
         material->set_dynamic_ub_num(commands.size());
     }
 }
@@ -50,6 +50,25 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, Window* window)
     }
 }
 
+auto Vulkan_Renderer::recreate_swapchain() -> void {
+    m_logical_device->wait_until_idle();
+
+    m_framebuffers.clear();
+    m_swapchain.recreate();
+    m_render_pass = m_logical_device->create_render_pass(m_swapchain.m_image_format);
+
+    const u32 swapchain_image_amount = static_cast<u32>(m_swapchain.m_images.size());
+    m_framebuffers.resize(swapchain_image_amount);
+    for (size_t i = 0; i < swapchain_image_amount; i++) {
+        m_framebuffers[i] = m_logical_device->create_framebuffer(
+            m_swapchain.m_image_views[i],
+            m_swapchain.m_depth_image_view,
+            m_render_pass,
+            m_swapchain.m_extent
+        );
+    }
+}
+
 auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void {
     m_clear_color = color;
 }
@@ -65,6 +84,8 @@ auto Vulkan_Renderer::render(const Camera& camera) -> void {
 
     if (m_swapchain.m_is_recreated) {
         m_swapchain.m_is_recreated = false;
+        this->recreate_swapchain();
+        m_skip_present = true;
         return;
     }
 
@@ -78,7 +99,7 @@ auto Vulkan_Renderer::render(const Camera& camera) -> void {
     for (u64 i = 0; i < render_commands.size(); i++) {
         const auto&           cmd = render_commands[i];
         const MaterialHandle& mh = *cmd.material;
-        auto*                 material = static_cast<Vulkan_Material*>(mh.m_handle);
+        auto*                 material = static_cast<Vulkan_Material*>(mh.m_handle.get());
         material->set_dynamic_ub_num(render_commands.size());
     }
 
@@ -95,7 +116,7 @@ auto Vulkan_Renderer::render(const Camera& camera) -> void {
         using namespace vulkan;
         const RenderCommand& cmd = render_commands[i];
         MaterialHandle&      mh = *cmd.material;
-        auto*                material = static_cast<Vulkan_Material*>(mh.m_handle);
+        auto*                material = static_cast<Vulkan_Material*>(mh.m_handle.get());
 
         const VkPipelineBindPoint bp = VK_PIPELINE_BIND_POINT_GRAPHICS;
         vulkan::Pipeline&         pl = material->m_shader->m_pipeline;
@@ -154,8 +175,10 @@ auto Vulkan_Renderer::render(const Camera& camera) -> void {
 auto Vulkan_Renderer::render_mesh(const Mesh* vertex_data, const GPUMeshData* gpu_data)
     -> void {
     // const auto& s = vertex_data->m_attributes.at(Mesh::POSITION.m_id);
-    const auto& num_vertices =
-        static_cast<u32>(vertex_data->m_attributes.at(Mesh::POSITION.m_id).m_data.size());
+    const auto& position_attribute = vertex_data->m_attributes.at(Mesh::POSITION.m_id);
+    const u32   num_vertices = static_cast<u32>(
+        position_attribute.m_data.size() / component_count(Mesh::POSITION.m_format)
+    );
     const auto& num_indices = static_cast<u32>(vertex_data->m_indices.size());
 
     const vulkan::Buffer* vertex_buffer =
@@ -175,7 +198,13 @@ auto Vulkan_Renderer::render_mesh(const Mesh* vertex_data, const GPUMeshData* gp
 }
 
 auto Vulkan_Renderer::present() -> void {
+    if (m_skip_present) {
+        m_skip_present = false;
+        return;
+    }
+
     vulkan::LogicalDevice& d = *m_logical_device;
+    (void)d;
 
     VkResult result =
         m_frames[m_frame_index].present(m_swapchain.m_present_queue, m_swapchain);
@@ -183,7 +212,7 @@ auto Vulkan_Renderer::present() -> void {
         m_framebuffer_resized) {
         m_framebuffer_resized = false;
         Logger::debug("recreate because of vkQueuePresentKHR");
-        m_swapchain.recreate();
+        this->recreate_swapchain();
     } else if (result != VK_SUCCESS) {
         Logger::err("failed to present swap chain image!");
         assert(false);

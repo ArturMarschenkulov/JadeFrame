@@ -91,8 +91,10 @@ public:
     vulkan::RenderPass               m_render_pass;
     std::vector<vulkan::Framebuffer> m_framebuffers;
     bool                             m_framebuffer_resized = false;
+    bool                             m_skip_present = false;
 
 private:
+    auto recreate_swapchain() -> void;
     auto render_mesh(const Mesh* vertex_data, const GPUMeshData* gpu_data) -> void;
 };
 } // namespace JadeFrame

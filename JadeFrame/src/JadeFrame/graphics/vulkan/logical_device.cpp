@@ -49,13 +49,24 @@ LogicalDevice::LogicalDevice(LogicalDevice&& other) noexcept {
     m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
     m_instance = std::exchange(other.m_instance, nullptr);
     m_physical_device = std::exchange(other.m_physical_device, nullptr);
+    m_graphics_queue = std::move(other.m_graphics_queue);
+    m_command_pool = std::move(other.m_command_pool);
+    m_set_pool = std::move(other.m_set_pool);
+    m_buffers = std::move(other.m_buffers);
+    m_vma_allocator = std::exchange(other.m_vma_allocator, VK_NULL_HANDLE);
 }
 
 auto LogicalDevice::operator=(LogicalDevice&& other) noexcept -> LogicalDevice& {
     if (this != &other) {
+        deinit();
         m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
         m_instance = std::exchange(other.m_instance, nullptr);
         m_physical_device = std::exchange(other.m_physical_device, nullptr);
+        m_graphics_queue = std::move(other.m_graphics_queue);
+        m_command_pool = std::move(other.m_command_pool);
+        m_set_pool = std::move(other.m_set_pool);
+        m_buffers = std::move(other.m_buffers);
+        m_vma_allocator = std::exchange(other.m_vma_allocator, VK_NULL_HANDLE);
     }
     return *this;
 }
@@ -159,19 +170,36 @@ auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physica
         {         VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, descriptor_count},
         {         VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, descriptor_count},
     };
-    m_set_pool = this->create_descriptor_pool(4, pool_sizes);
+    m_set_pool = this->create_descriptor_pool(descriptor_count, pool_sizes);
 }
 
 auto LogicalDevice::wait_until_idle() const -> void {
+    if (m_handle == VK_NULL_HANDLE) { return; }
+
     VkResult result = VK_SUCCESS;
     result = vkDeviceWaitIdle(m_handle);
     if (result != VK_SUCCESS) { assert(false); }
 }
 
 auto LogicalDevice::deinit() -> void {
+    if (m_handle == VK_NULL_HANDLE) { return; }
+
     this->wait_until_idle();
-    vmaDestroyAllocator(m_vma_allocator);
-    vkDestroyDevice(m_handle, nullptr);
+
+    m_set_pool = DescriptorPool();
+    m_command_pool = CommandPool();
+    m_buffers.clear();
+
+    if (m_vma_allocator != VK_NULL_HANDLE) {
+        vmaDestroyAllocator(m_vma_allocator);
+        m_vma_allocator = VK_NULL_HANDLE;
+    }
+
+    vkDestroyDevice(m_handle, Instance::allocator());
+    m_handle = VK_NULL_HANDLE;
+    m_instance = nullptr;
+    m_physical_device = nullptr;
+    m_graphics_queue = Queue();
 }
 
 auto LogicalDevice::wait_for_fence(const Fence& fences, bool wait_all, u64 timeout) const

@@ -106,8 +106,10 @@ public:
 };
 
 ShaderModule::~ShaderModule() {
-    if (m_handle != VK_NULL_HANDLE) {
+    if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
         vkDestroyShaderModule(m_device->m_handle, m_handle, Instance::allocator());
+        m_handle = VK_NULL_HANDLE;
+        m_device = nullptr;
     }
 }
 
@@ -119,6 +121,9 @@ ShaderModule::ShaderModule(ShaderModule&& other) noexcept
 
 auto ShaderModule::operator=(ShaderModule&& other) noexcept -> ShaderModule& {
     if (this != &other) {
+        if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
+            vkDestroyShaderModule(m_device->m_handle, m_handle, Instance::allocator());
+        }
         m_device = std::exchange(other.m_device, nullptr);
         m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
 
@@ -203,8 +208,10 @@ static auto layout_create_info(
 }
 
 Pipeline::PipelineLayout::~PipelineLayout() {
-    if (m_handle != VK_NULL_HANDLE) {
+    if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
         vkDestroyPipelineLayout(m_device->m_handle, m_handle, Instance::allocator());
+        m_handle = VK_NULL_HANDLE;
+        m_device = nullptr;
     }
 }
 
@@ -215,6 +222,9 @@ Pipeline::PipelineLayout::PipelineLayout(PipelineLayout&& other) noexcept
 auto Pipeline::PipelineLayout::operator=(PipelineLayout&& other) noexcept
     -> PipelineLayout& {
     if (this != &other) {
+        if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
+            vkDestroyPipelineLayout(m_device->m_handle, m_handle, Instance::allocator());
+        }
         m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
         m_device = std::exchange(other.m_device, nullptr);
     }
@@ -480,6 +490,9 @@ Pipeline::Pipeline(Pipeline&& other) noexcept
 
 auto Pipeline::operator=(Pipeline&& other) noexcept -> Pipeline& {
     if (this != &other) {
+        if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
+            vkDestroyPipeline(m_device->m_handle, m_handle, Instance::allocator());
+        }
         m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
         m_layout = std::exchange(other.m_layout, {});
         m_device = std::exchange(other.m_device, nullptr);
@@ -495,8 +508,10 @@ auto Pipeline::operator=(Pipeline&& other) noexcept -> Pipeline& {
 }
 
 Pipeline::~Pipeline() {
-    if (m_handle != VK_NULL_HANDLE) {
+    if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
         vkDestroyPipeline(m_device->m_handle, m_handle, Instance::allocator());
+        m_handle = VK_NULL_HANDLE;
+        m_device = nullptr;
     }
 }
 

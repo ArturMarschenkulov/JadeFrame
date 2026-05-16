@@ -1,6 +1,7 @@
 #pragma once
 #include <cassert>
 #include <deque>
+#include <memory>
 #include <string>
 
 #include "camera.h"
@@ -196,6 +197,9 @@ inline auto is_vector(SHADER_TYPE type) -> bool {
 
 auto to_string(SHADER_TYPE type) -> const char*;
 
+inline auto noop_native_handle_deleter(void*) noexcept -> void {}
+using NativeHandle = std::unique_ptr<void, decltype(&noop_native_handle_deleter)>;
+
 struct VertexAttribute {
     SHADER_TYPE type = SHADER_TYPE::NONE;
 };
@@ -232,7 +236,7 @@ struct ShadingCode {
 struct TextureHandle {
 public:
     TextureHandle() = default;
-    ~TextureHandle() = default;
+    ~TextureHandle();
     TextureHandle(const TextureHandle&) = delete;
     auto operator=(const TextureHandle&) -> TextureHandle& = delete;
     TextureHandle(TextureHandle&& other) noexcept;
@@ -245,13 +249,16 @@ public:
     u32   m_num_components = 0;
 
     GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
-    void*        m_handle = nullptr;
+    NativeHandle m_handle = {nullptr, noop_native_handle_deleter};
+
+private:
+    auto release() -> void;
 };
 
 struct ShaderHandle {
 public:
     ShaderHandle() = default;
-    ~ShaderHandle() = default;
+    ~ShaderHandle();
     ShaderHandle(const ShaderHandle&) = delete;
     auto operator=(const ShaderHandle&) -> ShaderHandle& = delete;
     ShaderHandle(ShaderHandle&& other) noexcept;
@@ -269,7 +276,10 @@ public:
     ShadingCode m_code;
 
     GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
-    void*        m_handle = nullptr;
+    NativeHandle m_handle = {nullptr, noop_native_handle_deleter};
+
+private:
+    auto release() -> void;
 };
 
 struct MaterialInfo {
@@ -313,11 +323,22 @@ struct MaterialInfo {
 };
 
 struct MaterialHandle {
+    MaterialHandle() = default;
+    ~MaterialHandle();
+    MaterialHandle(const MaterialHandle&) = delete;
+    auto operator=(const MaterialHandle&) -> MaterialHandle& = delete;
+    MaterialHandle(MaterialHandle&& other) noexcept;
+    auto operator=(MaterialHandle&& other) noexcept -> MaterialHandle&;
+
     ShaderHandle*  m_shader = nullptr;
     TextureHandle* m_texture = nullptr;
     /// Native handle
-    void*        m_handle = nullptr;
+    NativeHandle m_handle = {nullptr, noop_native_handle_deleter};
     MaterialInfo m_info;
+    GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
+
+private:
+    auto release() -> void;
 };
 
 // This struct saves the shader code. The common language is SPIRV.
@@ -345,7 +366,7 @@ public:
     };
 
     GPUBuffer() = default;
-    ~GPUBuffer() = default;
+    ~GPUBuffer();
     GPUBuffer(const GPUBuffer&) = delete;
     auto operator=(const GPUBuffer&) -> GPUBuffer& = delete;
     GPUBuffer(GPUBuffer&& other) noexcept;
@@ -358,7 +379,10 @@ public:
     GRAPHICS_API  m_api = GRAPHICS_API::UNDEFINED;
     void*         m_handle = nullptr;
     size_t        m_size = 0;
-    TYPE          m_type;
+    TYPE          m_type = TYPE::VERTEX;
+
+private:
+    auto release() -> void;
 };
 class RenderSystem;
 class Mesh;
@@ -375,8 +399,8 @@ public:
     GPUMeshData(RenderSystem* system, const Mesh& vertex_data, bool interleaved = true);
 
 public:
-    GPUBuffer* m_vertex_buffer;
-    GPUBuffer* m_index_buffer;
+    std::unique_ptr<GPUBuffer> m_vertex_buffer;
+    std::unique_ptr<GPUBuffer> m_index_buffer;
 };
 class Mesh;
 
@@ -486,8 +510,8 @@ public:
     ~RenderSystem();
     RenderSystem(const RenderSystem&) = delete;
     auto operator=(const RenderSystem&) -> RenderSystem& = delete;
-    RenderSystem(RenderSystem&&) noexcept;
-    auto operator=(RenderSystem&&) noexcept -> RenderSystem&;
+    RenderSystem(RenderSystem&&) = delete;
+    auto operator=(RenderSystem&&) -> RenderSystem& = delete;
 
     RenderSystem(GRAPHICS_API api, Window* window);
 
@@ -506,7 +530,7 @@ public:
 
 public:
     GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
-    IRenderer*   m_renderer = nullptr;
+    std::unique_ptr<IRenderer> m_renderer;
 
     mutable std::deque<RenderCommand> m_render_commands;
 

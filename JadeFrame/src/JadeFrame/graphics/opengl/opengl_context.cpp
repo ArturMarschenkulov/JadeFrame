@@ -139,13 +139,13 @@ auto Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
 }
 
 auto Context::create_framebuffer() -> opengl::Framebuffer* {
-    auto* buffer = new opengl::Framebuffer(*this);
-    return buffer;
+    m_framebuffers.emplace_back(*this);
+    return &m_framebuffers.back();
 }
 
 auto Context::create_renderbuffer() -> opengl::Renderbuffer* {
-    auto* buffer = new opengl::Renderbuffer();
-    return buffer;
+    m_renderbuffers.emplace_back();
+    return &m_renderbuffers.back();
 }
 
 Context::Context(Window* window) {
@@ -174,7 +174,7 @@ Context::Context(Window* window) {
     #undef linux
     #if !defined(linux)
     auto* win = dynamic_cast<JadeFrame::X11_NativeWindow*>(window->m_native_window.get());
-    opengl::linux::load_glx_funcs(win);
+    m_swapchain_context.m_render_context = opengl::linux::load_glx_funcs(win);
     opengl::linux::load_opengl_funcs();
     m_swapchain_context.m_display = win->m_display;
     m_swapchain_context.m_window = win->m_window;
@@ -199,6 +199,7 @@ Context::Context(Window* window) {
     }
 
     // At this point OpenGL is initialized
+    m_texture_manager.m_context = this;
 
     Logger::info("OpenGL Vendor: {}", vendor);
     Logger::info("OpenGL Renderer: {}", renderer);
@@ -242,7 +243,38 @@ Context::Context(Window* window) {
     m_default_sampler->set_parameters(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
-Context::~Context() {}
+Context::~Context() {
+    m_bound_shader = nullptr;
+    m_bound_vertex_array = nullptr;
+    m_bound_renderbuffer = nullptr;
+    m_bound_framebuffer = nullptr;
+    m_bound_uniform_buffer_locations.clear();
+    m_texture_manager.m_texture_units.clear();
+
+    m_framebuffers.clear();
+    m_renderbuffers.clear();
+    m_vertex_arrays.clear();
+    m_bufferss.clear();
+    m_texture_manager.m_samplers.clear();
+    m_texture_manager.m_textures.clear();
+
+#ifdef _WIN32
+    if (m_swapchain_context.m_render_context != nullptr) {
+        ::wglMakeCurrent(nullptr, nullptr);
+        ::wglDeleteContext(m_swapchain_context.m_render_context);
+        m_swapchain_context.m_render_context = nullptr;
+    }
+#elif __linux__
+    if (m_swapchain_context.m_display != nullptr &&
+        m_swapchain_context.m_render_context != nullptr) {
+        glXMakeCurrent(m_swapchain_context.m_display, None, nullptr);
+        glXDestroyContext(
+            m_swapchain_context.m_display, m_swapchain_context.m_render_context
+        );
+        m_swapchain_context.m_render_context = nullptr;
+    }
+#endif
+}
 
 auto SwapchainContext::swap_buffers() -> void {
 #ifdef _WIN32

@@ -205,7 +205,7 @@ static auto map_to_array(const std::map<int, int>& map) -> std::vector<int> {
     return array;
 }
 
-auto load_glx_funcs(const X11_NativeWindow* window) -> void {
+auto load_glx_funcs(const X11_NativeWindow* window) -> GLXContext {
 
     int glx_major = 0;
     int glx_minor = 0;
@@ -299,6 +299,7 @@ auto load_glx_funcs(const X11_NativeWindow* window) -> void {
 
     GLXContext ctx = create_context(display, best_fbc);
     glXMakeCurrent(display, window->m_window, ctx);
+    return ctx;
 
     // if (win != 0) { XDestroyWindow(display, win); }
 }

@@ -36,15 +36,16 @@ struct Descriptor {
         VkDeviceSize                 range,
         VkDescriptorSetLayoutBinding binding
     );
+    explicit Descriptor(VkDescriptorSetLayoutBinding binding);
 
     union {
         VkDescriptorBufferInfo buffer_info;
         VkDescriptorImageInfo  image_info;
     };
 
-    VkDescriptorType   type;
-    VkShaderStageFlags stage_flags;
-    u32                binding;
+    VkDescriptorType   type = VK_DESCRIPTOR_TYPE_MAX_ENUM;
+    VkShaderStageFlags stage_flags = 0;
+    u32                binding = 0;
 };
 
 class DescriptorSet {
@@ -73,7 +74,7 @@ public:
     auto rebind_uniform_buffer(u32 binding, const Buffer& buffer) -> void;
 
 public:
-    VkDescriptorSet            m_handle;
+    VkDescriptorSet            m_handle = VK_NULL_HANDLE;
     const LogicalDevice*       m_device = nullptr;
     const DescriptorSetLayout* m_layout = nullptr;
 

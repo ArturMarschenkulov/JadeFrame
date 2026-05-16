@@ -284,13 +284,18 @@ static auto to_string_from_command_pool_create_flags(const VkCommandPoolCreateFl
 CommandPool::CommandPool(CommandPool&& other) noexcept
     : m_device(std::exchange(other.m_device, nullptr))
     , m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
-    , m_create_info(other.m_create_info) {}
+    , m_create_info(other.m_create_info)
+    , m_queue_family(std::exchange(other.m_queue_family, nullptr)) {}
 
 auto CommandPool::operator=(CommandPool&& other) noexcept -> CommandPool& {
     if (this != &other) {
+        if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
+            vkDestroyCommandPool(m_device->m_handle, m_handle, Instance::allocator());
+        }
         m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
         m_create_info = std::exchange(other.m_create_info, {});
         m_device = std::exchange(other.m_device, nullptr);
+        m_queue_family = std::exchange(other.m_queue_family, nullptr);
     }
     return *this;
 }
@@ -321,8 +326,11 @@ CommandPool::CommandPool(const LogicalDevice& device, QueueFamily& queue_family)
 }
 
 CommandPool::~CommandPool() {
-    if (m_handle != VK_NULL_HANDLE) {
+    if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
         vkDestroyCommandPool(m_device->m_handle, m_handle, Instance::allocator());
+        m_handle = VK_NULL_HANDLE;
+        m_device = nullptr;
+        m_queue_family = nullptr;
     }
 }
 

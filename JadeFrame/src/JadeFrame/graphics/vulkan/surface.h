@@ -28,7 +28,7 @@ public:
 public:
     VkSurfaceKHR m_handle = VK_NULL_HANDLE;
     Window*      m_window_handle = nullptr;
-    VkInstance   m_instance = nullptr;
+    VkInstance   m_instance = VK_NULL_HANDLE;
 };
 
 //} // namespace win32

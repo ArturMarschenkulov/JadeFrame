@@ -91,6 +91,19 @@ Vulkan_Material::Vulkan_Material(
     }
 }
 
+Vulkan_Material::~Vulkan_Material() {
+    if (m_device == nullptr) { return; }
+
+    for (auto& [set, buffers] : m_uniform_buffers) {
+        (void)set;
+        for (auto& [binding, buffer] : buffers) {
+            (void)binding;
+            if (buffer != nullptr) { m_device->destroy_buffer(buffer); }
+        }
+    }
+    m_uniform_buffers.clear();
+}
+
 auto Vulkan_Material::bind_buffer(
     u32                   set,
     u32                   binding,

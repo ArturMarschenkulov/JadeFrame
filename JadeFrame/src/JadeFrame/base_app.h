@@ -2,6 +2,7 @@
 
 #include <deque>
 #include <map>
+#include <memory>
 
 #if defined(_WIN32) || defined(_WIN64)
     #include "JadeFrame/platform/windows/windows_input_manager.h"
@@ -25,7 +26,7 @@ namespace JadeFrame {
         It also allows an abtraction, which may allow to have several
    applications at the same time in a JadeFrame context.
 */
-auto control_camera(Camera* self, const InputState& i, f64 delta_seconds) -> void;
+auto control_camera(Camera& self, const InputState& i, f64 delta_seconds) -> void;
 #ifdef _WIN32
 using SystemManager = win32::SystemManager;
 #elif __linux__
@@ -96,8 +97,9 @@ public:
     auto request_application(Application::Desc desc) -> Application* {
         // For now only one app is allowed
         assert(m_applications.empty());
-        m_applications.emplace_back(new Application(desc));
-        return m_applications.back();
+        m_applications.emplace_back(std::make_unique<Application>(desc));
+        m_current_app_p = m_applications.back().get();
+        return m_current_app_p;
     }
 
 public:
@@ -106,9 +108,10 @@ public:
     std::string  m_architecture_info;
     u32          m_cpp_version;
 
-    SystemManager            m_system_manager;
-    std::deque<Application*> m_applications; // TODO: Consider whether there should be
-                                             // support for multiple apps
+    SystemManager                             m_system_manager;
+    std::deque<std::unique_ptr<Application>> m_applications; // TODO: Consider whether
+                                                             // there should be support
+                                                             // for multiple apps
 
     // TODO(artur): This should be removed.
     Application* m_current_app_p = nullptr;

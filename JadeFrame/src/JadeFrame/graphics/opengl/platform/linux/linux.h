@@ -9,7 +9,7 @@ namespace opengl {
 #if !defined(linux)
 namespace linux {
 
-auto load_glx_funcs(const X11_NativeWindow* win) -> void;
+auto load_glx_funcs(const X11_NativeWindow* win) -> GLXContext;
 auto load_opengl_funcs() -> bool;
 
 } // namespace linux

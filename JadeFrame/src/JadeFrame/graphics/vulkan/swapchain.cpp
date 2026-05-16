@@ -110,14 +110,20 @@ RenderPass::RenderPass(RenderPass&& other) noexcept
     , m_device(std::exchange(other.m_device, nullptr)) {}
 
 auto RenderPass::operator=(RenderPass&& other) noexcept -> RenderPass& {
+    if (this == &other) { return *this; }
+    if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
+        vkDestroyRenderPass(m_device->m_handle, m_handle, nullptr);
+    }
     m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
     m_device = std::exchange(other.m_device, nullptr);
     return *this;
 }
 
 RenderPass::~RenderPass() {
-    if (m_handle != VK_NULL_HANDLE) {
+    if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
         vkDestroyRenderPass(m_device->m_handle, m_handle, nullptr);
+        m_handle = VK_NULL_HANDLE;
+        m_device = nullptr;
     }
 }
 
@@ -209,6 +215,40 @@ RenderPass::RenderPass(const LogicalDevice& device, VkFormat image_format)
 /*---------------------------
         Swapchain
 ---------------------------*/
+Swapchain::Swapchain(Swapchain&& other) noexcept
+    : m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
+    , m_device(std::exchange(other.m_device, nullptr))
+    , m_window(std::exchange(other.m_window, nullptr))
+    , m_surface(std::move(other.m_surface))
+    , m_images(std::move(other.m_images))
+    , m_image_views(std::move(other.m_image_views))
+    , m_image_format(std::exchange(other.m_image_format, {}))
+    , m_extent(std::exchange(other.m_extent, {}))
+    , m_is_recreated(std::exchange(other.m_is_recreated, false))
+    , m_depth_image(std::move(other.m_depth_image))
+    , m_depth_image_view(std::move(other.m_depth_image_view))
+    , m_present_queue(std::move(other.m_present_queue)) {}
+
+auto Swapchain::operator=(Swapchain&& other) noexcept -> Swapchain& {
+    if (this == &other) { return *this; }
+
+    this->deinit();
+
+    m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
+    m_device = std::exchange(other.m_device, nullptr);
+    m_window = std::exchange(other.m_window, nullptr);
+    m_surface = std::move(other.m_surface);
+    m_images = std::move(other.m_images);
+    m_image_views = std::move(other.m_image_views);
+    m_image_format = std::exchange(other.m_image_format, {});
+    m_extent = std::exchange(other.m_extent, {});
+    m_is_recreated = std::exchange(other.m_is_recreated, false);
+    m_depth_image = std::move(other.m_depth_image);
+    m_depth_image_view = std::move(other.m_depth_image_view);
+    m_present_queue = std::move(other.m_present_queue);
+    return *this;
+}
+
 static auto get_queue_family_with_present(
     std::span<QueueFamily> queue_families,
     const Surface&         surface
@@ -228,7 +268,10 @@ static auto get_queue_family_with_present(
 }
 
 auto Swapchain::init(LogicalDevice& device, Window* window) -> void {
+    this->deinit();
+
     m_device = &device;
+    m_window = window;
 
     const PhysicalDevice* gpu = device.m_physical_device;
 
@@ -332,16 +375,36 @@ auto Swapchain::query_images() const -> std::vector<Image> {
     return result;
 }
 
+Swapchain::~Swapchain() { this->deinit(); }
+
 auto Swapchain::deinit() -> void {
-    vkDestroySwapchainKHR(m_device->m_handle, m_handle, nullptr);
+    m_image_views.clear();
+    m_depth_image_view = ImageView();
+    m_depth_image = Image();
+    m_images.clear();
+
+    if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
+        vkDestroySwapchainKHR(m_device->m_handle, m_handle, Instance::allocator());
+        m_handle = VK_NULL_HANDLE;
+    }
+
+    m_surface = Surface();
+    m_present_queue = Queue();
+    m_image_format = {};
+    m_extent = {};
+    m_is_recreated = false;
+    m_device = nullptr;
+    m_window = nullptr;
 }
 
 auto Swapchain::recreate() -> void {
-    m_device->wait_until_idle();
-    assert("not implemented yet");
-    // this->deinit();
+    if (m_device == nullptr || m_window == nullptr) { return; }
 
-    // this->init(*m_device, m_surface);
+    LogicalDevice* device = m_device;
+    Window*        window = m_window;
+    device->wait_until_idle();
+    this->deinit();
+    this->init(*device, window);
 }
 
 auto Swapchain::acquire_image_index(
@@ -381,7 +444,6 @@ auto Swapchain::acquire_image_index(const Semaphore* semaphore, const Fence* fen
     if (result != VK_SUCCESS) {
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
             Logger::debug("recreate because of vkAcquireNextImageKHR");
-            this->recreate();
             m_is_recreated = true;
         } else if (result == VK_SUBOPTIMAL_KHR) {
             Logger::debug("suboptimal");
@@ -405,6 +467,9 @@ Framebuffer::Framebuffer(Framebuffer&& other) noexcept
 
 auto Framebuffer::operator=(Framebuffer&& other) noexcept -> Framebuffer& {
     if (&other == this) { return *this; }
+    if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
+        vkDestroyFramebuffer(m_device->m_handle, m_handle, nullptr);
+    }
     m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
     m_device = std::exchange(other.m_device, nullptr);
     m_image_view = std::exchange(other.m_image_view, nullptr);
@@ -413,8 +478,12 @@ auto Framebuffer::operator=(Framebuffer&& other) noexcept -> Framebuffer& {
 }
 
 Framebuffer::~Framebuffer() {
-    if (m_handle != VK_NULL_HANDLE) {
+    if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
         vkDestroyFramebuffer(m_device->m_handle, m_handle, nullptr);
+        m_handle = VK_NULL_HANDLE;
+        m_device = nullptr;
+        m_image_view = nullptr;
+        m_render_pass = nullptr;
     }
 }
 

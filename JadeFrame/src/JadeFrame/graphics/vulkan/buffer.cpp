@@ -135,6 +135,10 @@ Buffer::Buffer(Buffer&& other) noexcept
 }
 
 auto Buffer::operator=(Buffer&& other) noexcept -> Buffer& {
+    if (this == &other) { return *this; }
+
+    this->destroy();
+
     m_type = other.m_type;
     m_size = std::exchange(other.m_size, 0);
     m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
@@ -148,7 +152,7 @@ auto Buffer::operator=(Buffer&& other) noexcept -> Buffer& {
     return *this;
 }
 
-#define JF_USE_MANAGED_STAGING_BUFFER 1
+#define JF_USE_MANAGED_STAGING_BUFFER 0
 #if JF_USE_MANAGED_STAGING_BUFFER
 static Buffer* g_staging_buffer = nullptr;
 #endif
@@ -204,20 +208,28 @@ Buffer::Buffer(
     }
 }
 
-Buffer::~Buffer() {
-    if (m_handle != VK_NULL_HANDLE) {
+Buffer::~Buffer() { this->destroy(); }
+
+auto Buffer::destroy() -> void {
+    if (m_handle == VK_NULL_HANDLE) { return; }
+    if (m_device == nullptr) { return; }
 
 #if JF_USE_VMA
+    if (m_allocation != VK_NULL_HANDLE) {
         vmaDestroyBuffer(m_device->m_vma_allocator, m_handle, m_allocation);
-        m_allocation = VK_NULL_HANDLE;
-#else
-        vkDestroyBuffer(m_device->m_handle, m_handle, Instance::allocator());
-        vkFreeMemory(m_device->m_handle, m_memory, Instance::allocator());
-        m_memory = VK_NULL_HANDLE;
-#endif
-        m_handle = VK_NULL_HANDLE;
-        Logger::trace("Destroyed Buffer {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
     }
+    m_allocation = VK_NULL_HANDLE;
+#else
+    vkDestroyBuffer(m_device->m_handle, m_handle, Instance::allocator());
+    if (m_memory != VK_NULL_HANDLE) {
+        vkFreeMemory(m_device->m_handle, m_memory, Instance::allocator());
+    }
+    m_memory = VK_NULL_HANDLE;
+#endif
+    m_handle = VK_NULL_HANDLE;
+    m_device = nullptr;
+    m_size = 0;
+    Logger::trace("Destroyed Buffer {}", fmt::ptr(this));
 }
 
 auto Buffer::write(const void* data, VkDeviceSize size, VkDeviceSize offset) const
@@ -243,8 +255,9 @@ auto Buffer::resize(size_t size) -> void {
     assert(m_type == TYPE::UNIFORM || m_type == TYPE::STAGING);
     if (size == m_size) { return; }
 
-    this->~Buffer();
-    *this = Buffer(*m_device, m_type, nullptr, size);
+    const LogicalDevice* device = m_device;
+    const TYPE           type = m_type;
+    *this = Buffer(*device, type, nullptr, size);
 }
 
 auto Buffer::create_buffer(
@@ -323,6 +336,7 @@ Image::Image(Image&& other) noexcept
 
 auto Image::operator=(Image&& other) noexcept -> Image& {
     if (this != &other) {
+        this->destroy();
         m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
         m_device = std::exchange(other.m_device, nullptr);
         m_memory = std::exchange(other.m_memory, VK_NULL_HANDLE);
@@ -332,17 +346,30 @@ auto Image::operator=(Image&& other) noexcept -> Image& {
     return *this;
 }
 
-Image::~Image() {
+Image::~Image() { this->destroy(); }
+
+auto Image::destroy() -> void {
     if (m_handle == VK_NULL_HANDLE) { return; }
+    if (m_device == nullptr) { return; }
+
     switch (m_source) {
         case SOURCE::REGULAR: {
-            JF_ASSERT(false, "");
+            vkDestroyImage(m_device->m_handle, m_handle, Instance::allocator());
+            if (m_memory != VK_NULL_HANDLE) {
+                vkFreeMemory(m_device->m_handle, m_memory, Instance::allocator());
+            }
         } break;
         case SOURCE::SWAPCHAIN: {
-
+            // Swapchain images are owned by VkSwapchainKHR.
         } break;
         default: JF_ASSERT(false, "");
     }
+
+    m_handle = VK_NULL_HANDLE;
+    m_memory = VK_NULL_HANDLE;
+    m_device = nullptr;
+    m_size = v2u32::create(0, 0);
+    m_source = SOURCE::REGULAR;
 }
 
 Image::Image(
@@ -436,6 +463,7 @@ ImageView::ImageView(ImageView&& other) noexcept
 
 auto ImageView::operator=(ImageView&& other) noexcept -> ImageView& {
     if (this != &other) {
+        this->destroy();
         m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
         m_device = std::exchange(other.m_device, nullptr);
         m_image = std::exchange(other.m_image, nullptr);
@@ -481,10 +509,16 @@ ImageView::ImageView(
     if (result != VK_SUCCESS) { assert(false); }
 }
 
-ImageView::~ImageView() {
-    if (m_handle != VK_NULL_HANDLE) {
-        vkDestroyImageView(m_device->m_handle, m_handle, Instance::allocator());
-    }
+ImageView::~ImageView() { this->destroy(); }
+
+auto ImageView::destroy() -> void {
+    if (m_handle == VK_NULL_HANDLE) { return; }
+    if (m_device == nullptr) { return; }
+
+    vkDestroyImageView(m_device->m_handle, m_handle, Instance::allocator());
+    m_handle = VK_NULL_HANDLE;
+    m_device = nullptr;
+    m_image = nullptr;
 }
 
 /*---------------------------
@@ -492,6 +526,7 @@ ImageView::~ImageView() {
 ---------------------------*/
 
 auto Sampler::init(const LogicalDevice& device) -> void {
+    this->deinit();
     m_device = &device;
 
     const VkSamplerCreateInfo samplerInfo = {
@@ -522,7 +557,16 @@ auto Sampler::init(const LogicalDevice& device) -> void {
     if (result != VK_SUCCESS) { assert(false); }
 }
 
-auto Sampler::deinit() -> void {}
+Sampler::~Sampler() { this->deinit(); }
+
+auto Sampler::deinit() -> void {
+    if (m_handle == VK_NULL_HANDLE) { return; }
+    if (m_device == nullptr) { return; }
+
+    vkDestroySampler(m_device->m_handle, m_handle, Instance::allocator());
+    m_handle = VK_NULL_HANDLE;
+    m_device = nullptr;
+}
 
 /*---------------------------
         Texture
@@ -555,8 +599,8 @@ Vulkan_Texture::Vulkan_Texture(
         m_image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
     );
 
-    auto image_size = static_cast<VkDeviceSize>(size.x) *
-                      static_cast<VkDeviceSize>(size.y) * comp_count;
+    auto   image_size = static_cast<VkDeviceSize>(size.x) *
+                        static_cast<VkDeviceSize>(size.y) * comp_count;
     Buffer staging_buffer(device, Buffer::TYPE::STAGING, nullptr, image_size);
     staging_buffer.write(data, image_size, 0);
     m_device->m_command_pool.copy_buffer_to_image(staging_buffer, m_image, size);
@@ -571,7 +615,14 @@ Vulkan_Texture::Vulkan_Texture(
     m_sampler.init(device);
 }
 
-auto Vulkan_Texture::deinit() -> void {}
+Vulkan_Texture::~Vulkan_Texture() { this->deinit(); }
+
+auto Vulkan_Texture::deinit() -> void {
+    m_sampler.deinit();
+    m_image_view = ImageView();
+    m_image = Image();
+    m_device = nullptr;
+}
 
 } // namespace vulkan
 } // namespace JadeFrame

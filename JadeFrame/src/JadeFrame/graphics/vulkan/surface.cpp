@@ -18,6 +18,9 @@ Surface::Surface(Surface&& other) noexcept
 
 auto Surface::operator=(Surface&& other) noexcept -> Surface& {
     if (this != &other) {
+        if (m_handle != VK_NULL_HANDLE && m_instance != VK_NULL_HANDLE) {
+            vkDestroySurfaceKHR(m_instance, m_handle, Instance::allocator());
+        }
         m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
         m_window_handle = std::exchange(other.m_window_handle, nullptr);
         m_instance = std::exchange(other.m_instance, nullptr);
@@ -26,7 +29,8 @@ auto Surface::operator=(Surface&& other) noexcept -> Surface& {
 }
 
 Surface::Surface(VkInstance instance, Window* window_handle)
-    : m_window_handle(window_handle) {
+    : m_window_handle(window_handle)
+    , m_instance(instance) {
     Logger::trace("Surface::init start");
 
 #if _WIN32
@@ -40,8 +44,11 @@ Surface::Surface(VkInstance instance, Window* window_handle)
 }
 
 Surface::~Surface() {
-    if (m_handle != VK_NULL_HANDLE) {
+    if (m_handle != VK_NULL_HANDLE && m_instance != VK_NULL_HANDLE) {
         vkDestroySurfaceKHR(m_instance, m_handle, Instance::allocator());
+        m_handle = VK_NULL_HANDLE;
+        m_instance = VK_NULL_HANDLE;
+        m_window_handle = nullptr;
     }
 }
 

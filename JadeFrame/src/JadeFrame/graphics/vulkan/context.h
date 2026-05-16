@@ -18,7 +18,7 @@ class Instance {
 
 public:
     Instance() = default;
-    ~Instance() = default;
+    ~Instance();
     Instance(const Instance&) = delete;
     auto operator=(const Instance&) -> Instance& = delete;
     Instance(Instance&& other) = delete;
@@ -57,7 +57,7 @@ public:
 #endif
 
     std::vector<PhysicalDevice> m_physical_devices;
-    vulkan::PhysicalDevice*     m_physical_device;
+    vulkan::PhysicalDevice*     m_physical_device = nullptr;
     vulkan::LogicalDevice       m_logical_device;
 
 public:
@@ -80,7 +80,7 @@ struct Vulkan_Context {
 
 public:
     vulkan::Instance m_instance;
-    Window*    m_window_handle;
+    Window* m_window_handle = nullptr;
 
 public:
 };

@@ -68,11 +68,11 @@ public:
 class Swapchain {
 public:
     Swapchain() = default;
-    ~Swapchain() = default;
+    ~Swapchain();
     Swapchain(const Swapchain&) = delete;
     auto operator=(const Swapchain&) -> Swapchain& = delete;
-    Swapchain(Swapchain&& other) noexcept = default;
-    auto operator=(Swapchain&& other) noexcept -> Swapchain& = default;
+    Swapchain(Swapchain&& other) noexcept;
+    auto operator=(Swapchain&& other) noexcept -> Swapchain&;
 
 public:
     auto init(LogicalDevice& device, Window* window) -> void;
@@ -93,6 +93,7 @@ public:
 public:
     VkSwapchainKHR m_handle = VK_NULL_HANDLE;
     LogicalDevice* m_device = nullptr;
+    Window*        m_window = nullptr;
     Surface        m_surface;
 
     std::vector<Image>     m_images;

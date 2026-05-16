@@ -57,15 +57,15 @@ public:
 
     struct RenderTarget {
         Object                m_fb;
-        opengl::Texture*      m_texture;
-        opengl::Sampler*      m_sampler;
-        opengl::Renderbuffer* m_renderbuffer;
-        opengl::Framebuffer*  m_framebuffer;
-        opengl::Buffer*       m_vertex_buffer;
-        opengl::Buffer*       m_index_buffer;
+        opengl::Texture*      m_texture = nullptr;
+        opengl::Sampler*      m_sampler = nullptr;
+        opengl::Renderbuffer* m_renderbuffer = nullptr;
+        opengl::Framebuffer*  m_framebuffer = nullptr;
+        opengl::Buffer*       m_vertex_buffer = nullptr;
+        opengl::Buffer*       m_index_buffer = nullptr;
         Mesh                  m_mesh;
-        ShaderHandle*         m_shader;
-        opengl::Context*      m_context;
+        ShaderHandle*         m_shader = nullptr;
+        opengl::Context*      m_context = nullptr;
 
         auto init(opengl::Context* context, RenderSystem* system) -> void;
         auto render(RenderSystem* system) -> void;

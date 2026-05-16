@@ -50,6 +50,13 @@ Descriptor::Descriptor(
     buffer_info.range = range;
 }
 
+Descriptor::Descriptor(VkDescriptorSetLayoutBinding t_binding)
+    : type(t_binding.descriptorType)
+    , stage_flags(t_binding.stageFlags)
+    , binding(t_binding.binding) {
+    buffer_info = {};
+}
+
 /*---------------------------
         Descriptor Set
 ---------------------------*/
@@ -84,7 +91,10 @@ DescriptorSet::DescriptorSet(
     , m_device(&device)
     , m_layout(&layout) {
 
-    m_descriptors.resize(layout.m_bindings.size());
+    m_descriptors.reserve(layout.m_bindings.size());
+    for (const auto& binding : layout.m_bindings) {
+        m_descriptors.emplace_back(binding);
+    }
 }
 
 static auto is_image(VkDescriptorType type) -> bool {
@@ -176,7 +186,7 @@ auto DescriptorSet::rebind_uniform_buffer(u32 binding, const Buffer& buffer) -> 
 
     for (u32 i = 0; i < m_descriptors.size(); i++) {
         if (m_descriptors[i].binding == binding) {
-            m_descriptors[binding].buffer_info.buffer = buffer.m_handle;
+            m_descriptors[i].buffer_info.buffer = buffer.m_handle;
             return;
         }
     }
@@ -190,45 +200,42 @@ auto DescriptorSet::bind_combined_image_sampler(
 ) -> void {
 
     // Find according to binding.
-    bool found = false;
     for (u32 i = 0; i < m_descriptors.size(); i++) {
         if (m_descriptors[i].binding == binding) {
             auto& d = m_descriptors[i];
+            JF_ASSERT(
+                d.type == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                "type mismatch"
+            );
             d.image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             d.image_info.imageView = texture.m_image_view.m_handle;
             d.image_info.sampler = texture.m_sampler.m_handle;
-            d.binding = binding;
-            d.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             // m_descriptors[i] = std::move(d);
             // m_descriptors[i].image_info = d.image_info;
             return;
         }
     }
-    JF_ASSERT(found == true, "");
-}
-
-auto get_infos(const std::vector<Descriptor>& descriptors
-) -> std::pair<std::vector<VkDescriptorBufferInfo>, std::vector<VkDescriptorImageInfo>> {
-    std::vector<VkDescriptorBufferInfo> buffer_infos;
-    std::vector<VkDescriptorImageInfo>  image_infos;
-    for (u32 i = 0; i < descriptors.size(); i++) {
-        const auto& d = descriptors[i];
-        if (is_image(d.type)) {
-            image_infos.push_back(d.image_info);
-        } else {
-            buffer_infos.push_back(d.buffer_info);
-        }
-    }
-    return {buffer_infos, image_infos};
+    JF_ASSERT(false, "");
 }
 
 auto DescriptorSet::update() -> void {
-    auto [buffer_infos, image_infos] = get_infos(m_descriptors);
+    std::vector<VkDescriptorBufferInfo> buffer_infos(m_descriptors.size());
+    std::vector<VkDescriptorImageInfo>  image_infos(m_descriptors.size());
 
     std::vector<VkWriteDescriptorSet> sets;
     sets.reserve(m_descriptors.size());
     for (u32 i = 0; i < m_descriptors.size(); i++) {
         auto& d = m_descriptors[i];
+        if (d.type == VK_DESCRIPTOR_TYPE_MAX_ENUM) { continue; }
+        if (is_image(d.type)) {
+            if (d.image_info.imageView == VK_NULL_HANDLE) { continue; }
+            image_infos[i] = d.image_info;
+        } else if (is_buffer(d.type)) {
+            if (d.buffer_info.buffer == VK_NULL_HANDLE) { continue; }
+            buffer_infos[i] = d.buffer_info;
+        } else {
+            JF_ASSERT(false, "Unsupported descriptor type");
+        }
 
         const VkWriteDescriptorSet set = {
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -238,8 +245,8 @@ auto DescriptorSet::update() -> void {
             .dstArrayElement = 0,
             .descriptorCount = 1,
             .descriptorType = d.type,
-            .pImageInfo = image_infos.data(),
-            .pBufferInfo = buffer_infos.data(),
+            .pImageInfo = is_image(d.type) ? &image_infos[i] : nullptr,
+            .pBufferInfo = is_buffer(d.type) ? &buffer_infos[i] : nullptr,
             .pTexelBufferView = nullptr,
         };
         sets.push_back(set);
@@ -267,6 +274,11 @@ DescriptorSetLayout::DescriptorSetLayout(DescriptorSetLayout&& other) noexcept
 auto DescriptorSetLayout::operator=(DescriptorSetLayout&& other) noexcept
     -> DescriptorSetLayout& {
     if (this != &other) {
+        if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
+            vkDestroyDescriptorSetLayout(
+                m_device->m_handle, m_handle, Instance::allocator()
+            );
+        }
         m_device = std::exchange(other.m_device, nullptr);
         m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
         this->m_bindings = std::exchange(other.m_bindings, {});
@@ -276,7 +288,7 @@ auto DescriptorSetLayout::operator=(DescriptorSetLayout&& other) noexcept
 }
 
 DescriptorSetLayout::~DescriptorSetLayout() {
-    if (m_handle != VK_NULL_HANDLE) {
+    if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
         vkDestroyDescriptorSetLayout(m_device->m_handle, m_handle, Instance::allocator());
         {
             Logger::trace(
@@ -285,6 +297,8 @@ DescriptorSetLayout::~DescriptorSetLayout() {
                 fmt::ptr(m_handle)
             );
         }
+        m_handle = VK_NULL_HANDLE;
+        m_device = nullptr;
     }
 }
 
@@ -373,6 +387,9 @@ DescriptorPool::DescriptorPool(DescriptorPool&& other) noexcept
 
 auto DescriptorPool::operator=(DescriptorPool&& other) noexcept -> DescriptorPool& {
     if (this != &other) {
+        if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
+            vkDestroyDescriptorPool(m_device->m_handle, m_handle, Instance::allocator());
+        }
         m_device = std::exchange(other.m_device, nullptr);
         m_handle = std::exchange(other.m_handle, VK_NULL_HANDLE);
         this->m_pool_sizes = std::move(other.m_pool_sizes);
@@ -435,13 +452,15 @@ DescriptorPool::DescriptorPool(
 }
 
 DescriptorPool::~DescriptorPool() {
-    if (m_handle != VK_NULL_HANDLE) {
+    if (m_handle != VK_NULL_HANDLE && m_device != nullptr) {
         vkDestroyDescriptorPool(m_device->m_handle, m_handle, Instance::allocator());
         {
             Logger::trace(
                 "Destroyed descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)
             );
         }
+        m_handle = VK_NULL_HANDLE;
+        m_device = nullptr;
     }
 }
 
@@ -520,6 +539,8 @@ auto DescriptorPool::free_sets(const std::span<DescriptorSet>& /*descriptor_sets
     // result = vkResetDescriptorPool(m_device->m_handle, m_handle, 0);
     // if (result != VK_SUCCESS) assert(false);
     vkDestroyDescriptorPool(m_device->m_handle, m_handle, Instance::allocator());
+    m_handle = VK_NULL_HANDLE;
+    m_device = nullptr;
     {
         Logger::trace(
             "Destroyed descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)
