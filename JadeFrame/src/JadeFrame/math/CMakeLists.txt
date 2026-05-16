@@ -20,4 +20,6 @@ target_link_libraries(JF_MODULE_math
         JF_MODULE_prelude
 )
 
+# Math tests are wired through jadeframe_add_project_test(), but they are not
+# part of the default test suite yet.
 # add_subdirectory(tests)

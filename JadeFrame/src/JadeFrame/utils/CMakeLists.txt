@@ -23,4 +23,7 @@ target_link_libraries(JF_MODULE_utils
         JF_MODULE_graphics
         assimp
 )
-add_subdirectory(tests)
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

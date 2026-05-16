@@ -75,7 +75,7 @@ endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON) # Use solution folders feature
 
-enable_testing()
+include(CTest)
 ################################################################################
 # Sub-projects
 ################################################################################
