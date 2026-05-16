@@ -54,8 +54,7 @@ case "$1" in
         echo "Configuring and building project..."
         cmake -S . -B "$build_dir" -DCMAKE_POLICY_VERSION_MINIMUM=3.5
         if cmake --build "$build_dir" --parallel; then
-            echo "Generating compilation database..."
-            compiledb -n make
+            cd "$build_dir"
             echo "Build successful"
         else
             echo "Build failed"
