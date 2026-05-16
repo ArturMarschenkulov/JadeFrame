@@ -7,10 +7,26 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug",
-            "program": "${workspaceFolder}/build/Application/Application",
+            "name": "Debug 0",
+            "program": "${workspaceFolder}/build/examples/0/Example_0",
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/build/examples/0"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug Texture Quad",
+            "program": "${workspaceFolder}/build/examples/texture_quad/Example_texture_quad",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/examples/texture_quad"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug Rotating Primitive",
+            "program": "${workspaceFolder}/build/examples/rotating_primitive/Example_rotating_primitive",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/examples/rotating_primitive"
         }
     ]
 }
