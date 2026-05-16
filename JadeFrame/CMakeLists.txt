@@ -52,6 +52,7 @@ else()
         LIBRARY_OUTPUT_DIRECTORY "${ASSIMP_PRECOMPILED_LIB_PATH}"
         RUNTIME_OUTPUT_DIRECTORY "${ASSIMP_PRECOMPILED_LIB_PATH}"
     )
+    target_compile_definitions(assimp PRIVATE ASSIMP_USE_HUNTER)
 endif()
 
 
