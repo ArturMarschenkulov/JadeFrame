@@ -226,11 +226,14 @@ public:
     }
 
     constexpr Option(Option&& o) noexcept
-        : m_storage(std::move(o.m_storage)) {}
+        : m_storage(std::move(o.m_storage)) {
+        o.m_storage.reset();
+    }
 
     constexpr auto operator=(Option&& o) noexcept -> Option& {
         if (this == &o) { return *this; }
         m_storage = std::move(o.m_storage);
+        o.m_storage.reset();
         return *this;
     }
 
