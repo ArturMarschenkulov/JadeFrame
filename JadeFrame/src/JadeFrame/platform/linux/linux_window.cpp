@@ -233,6 +233,7 @@ static auto process_event(
     WindowEventQueue* event_queue,
     bool&             is_running
 ) -> void {
+    (void)is_running;
 
     switch (event->type) {
         case Expose: {
@@ -303,10 +304,14 @@ static auto process_event(
                 static_cast<uint32_t>(event->xconfigure.width),
                 static_cast<uint32_t>(event->xconfigure.height)
             );
+            event_queue->push(WindowEvent::make_resize_event(
+                static_cast<u32>(event->xconfigure.width),
+                static_cast<u32>(event->xconfigure.height)
+            ));
         } break;
         case ClientMessage: {
             if (static_cast<Atom>(event->xclient.data.l[0]) == win->m_wm_delete) {
-                is_running = false;
+                event_queue->push(WindowEvent::make_close_event());
             }
         } break;
         default: break;

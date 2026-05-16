@@ -66,12 +66,13 @@ public:
 
 public:
     using EventCallback = std::function<void(const WindowEvent&)>;
+    using EventCallbackID = u64;
 
-    void add_event_callback(EventCallback callback) {
-        m_event_callbacks.push_back(callback);
-    }
+    auto add_event_callback(EventCallback callback) -> EventCallbackID;
+    auto remove_event_callback(EventCallbackID callback_id) -> void;
 
-    std::vector<EventCallback> m_event_callbacks;
+    std::vector<std::pair<EventCallbackID, EventCallback>> m_event_callbacks;
+    EventCallbackID                                        m_next_event_callback_id = 1;
 
 public:
     std::unique_ptr<NativeWindow> m_native_window = nullptr;

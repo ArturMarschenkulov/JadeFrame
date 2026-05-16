@@ -139,11 +139,18 @@ struct MouseEvent {
     i32 m_y;
 };
 
+struct WindowResizeEvent {
+    u32 width;
+    u32 height;
+};
+
 struct WindowEvent {
     enum class TYPE : u8 {
         KEY,
         BUTTON,
         MOUSE,
+        RESIZE,
+        CLOSE,
     };
 
     static auto make_button_event(BUTTON button, INPUT_STATE state) -> WindowEvent {
@@ -182,12 +189,33 @@ struct WindowEvent {
         return we;
     }
 
+    static auto make_resize_event(u32 width, u32 height) -> WindowEvent {
+        WindowResizeEvent resize_event = {
+            .width = width,
+            .height = height,
+        };
+        WindowEvent we = {
+            .type = WindowEvent::TYPE::RESIZE,
+            .resize_event = resize_event,
+        };
+        return we;
+    }
+
+    static auto make_close_event() -> WindowEvent {
+        WindowEvent we = {
+            .type = WindowEvent::TYPE::CLOSE,
+            .key_event = {},
+        };
+        return we;
+    }
+
     TYPE type;
 
     union {
-        KeyEvent    key_event;
-        ButtonEvent button_event;
-        MouseEvent  mouse_event;
+        KeyEvent          key_event;
+        ButtonEvent       button_event;
+        MouseEvent        mouse_event;
+        WindowResizeEvent resize_event;
     };
 };
 

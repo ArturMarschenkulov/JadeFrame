@@ -3,7 +3,6 @@
 #include "JadeFrame/platform/platform_shared.h"
 #include "graphics/graphics_shared.h"
 
-#include <imgui/imgui.h>
 #include "gui.h"
 
 namespace JadeFrame {
@@ -130,6 +129,15 @@ Application::Application(const Desc& desc)
     Logger::info("Creating Renderer with API '{}'", to_string(desc.api));
     m_render_system.init(desc.api, requested_window);
     // m_render_system = m_system_manager.request_render_system(api, requested_window);
+    requested_window->add_event_callback([this](const WindowEvent& event) -> void {
+        if (event.type != WindowEvent::TYPE::RESIZE) { return; }
+        if (m_render_system.m_renderer == nullptr) { return; }
+
+        const WindowResizeEvent resize_event = event.resize_event;
+        m_render_system.m_renderer->set_viewport(
+            0, 0, resize_event.width, resize_event.height
+        );
+    });
 
     m_gui.init(requested_window, desc.api);
 

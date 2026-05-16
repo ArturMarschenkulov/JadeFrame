@@ -33,5 +33,4 @@ target_link_libraries(JF_MODULE_platform
     PRIVATE
         ${ADDITIONAL_LIBRARY_DEPENDENCIES}
         JF_MODULE_prelude
-        imgui
 )
