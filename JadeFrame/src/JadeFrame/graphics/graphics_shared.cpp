@@ -607,6 +607,7 @@ auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* textur
     material.m_shader = shader;
     material.m_texture = texture;
     material.m_api = m_api;
+    material.m_info = MaterialInfo::default_0();
 
     switch (m_api) {
         case GRAPHICS_API::OPENGL: {

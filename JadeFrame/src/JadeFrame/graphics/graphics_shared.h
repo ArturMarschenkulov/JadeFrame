@@ -529,7 +529,7 @@ public:
     [[nodiscard]] static auto list_available_graphics_apis() -> std::vector<GRAPHICS_API>;
 
 public:
-    GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
+    GRAPHICS_API               m_api = GRAPHICS_API::UNDEFINED;
     std::unique_ptr<IRenderer> m_renderer;
 
     mutable std::deque<RenderCommand> m_render_commands;
