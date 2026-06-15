@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# #!/bin/sh
+# exec python3 "$(dirname "$0")/build.py" "$@"
+
 set -e  # Exit on error
 
 build_dir="build"
