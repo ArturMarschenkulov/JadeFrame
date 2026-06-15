@@ -172,22 +172,33 @@ add_subdirectory(src/extern/spdlog/)
 #     NOT EXISTS "${CMAKE_SOURCE_DIR}/JadeFrame/src/lib/libspirv-cross-hlsl.a" AND
 #     NOT EXISTS "${CMAKE_SOURCE_DIR}/JadeFrame/src/lib/libspirv-cross-msl.a"
 # )
-message("Did not found prebuild shaderc and SPIRV-Cross libraries. Building them now. This will take a while.")
-set(SHADERC_SKIP_TESTS ON CACHE BOOL "" FORCE)
-set(SHADERC_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
-set(SHADERC_SKIP_EXAMPLES ON CACHE BOOL "" FORCE)
-set(SHADERC_ENABLE_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(SHADERC_SKIP_COPYRIGHT_CHECK ON CACHE BOOL "" FORCE)
-set(SHADERC_ENABLE_COPYRIGHT_CHECK OFF CACHE BOOL "" FORCE)
-set(SHADERC_ENABLE_WERROR_COMPILE OFF CACHE BOOL "" FORCE)
-set(ENABLE_CTEST OFF CACHE BOOL "" FORCE)
-set(SPIRV_SKIP_EXECUTABLES ON CACHE BOOL "" FORCE)
-set(SPIRV_SKIP_TESTS ON CACHE BOOL "" FORCE)
-add_subdirectory(src/extern/shaderc/ EXCLUDE_FROM_ALL)
-jadeframe_collect_tests_under(
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/extern/shaderc"
-    JADEFRAME_EXTERNAL_TESTS
-)
+option(USE_SYSTEM_SHADERC "Use the system shaderc library instead of the vendored source tree" ON)
+
+if(USE_SYSTEM_SHADERC)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SYSTEM_SHADERC REQUIRED IMPORTED_TARGET shaderc)
+
+    add_library(shaderc INTERFACE IMPORTED)
+    target_link_libraries(shaderc INTERFACE PkgConfig::SYSTEM_SHADERC)
+    message(STATUS "Using system shaderc ${SYSTEM_SHADERC_VERSION}")
+else()
+    message("Did not find prebuilt shaderc. Building shaderc from source. This will take a while.")
+    set(SHADERC_SKIP_TESTS ON CACHE BOOL "" FORCE)
+    set(SHADERC_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+    set(SHADERC_SKIP_EXAMPLES ON CACHE BOOL "" FORCE)
+    set(SHADERC_ENABLE_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(SHADERC_SKIP_COPYRIGHT_CHECK ON CACHE BOOL "" FORCE)
+    set(SHADERC_ENABLE_COPYRIGHT_CHECK OFF CACHE BOOL "" FORCE)
+    set(SHADERC_ENABLE_WERROR_COMPILE OFF CACHE BOOL "" FORCE)
+    set(ENABLE_CTEST OFF CACHE BOOL "" FORCE)
+    set(SPIRV_SKIP_EXECUTABLES ON CACHE BOOL "" FORCE)
+    set(SPIRV_SKIP_TESTS ON CACHE BOOL "" FORCE)
+    add_subdirectory(src/extern/shaderc/ EXCLUDE_FROM_ALL)
+    jadeframe_collect_tests_under(
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/extern/shaderc"
+        JADEFRAME_EXTERNAL_TESTS
+    )
+endif()
 
 # TODO: as of right now we do not need metal and hlsl support.
 # set(SPIRV_CROSS_CLI OFF)
