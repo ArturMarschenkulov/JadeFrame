@@ -435,9 +435,13 @@ RenderSystem::RenderSystem(GRAPHICS_API api, Window* window)
     }
 }
 
-RenderSystem::~RenderSystem() = default;
+RenderSystem::~RenderSystem() {
+    if (m_renderer != nullptr) { m_renderer->wait_until_idle(); }
+}
 
 auto RenderSystem::init(GRAPHICS_API api, Window* window) -> void {
+    if (m_renderer != nullptr) { m_renderer->wait_until_idle(); }
+
     m_registered_meshes.clear();
     m_registered_materials.clear();
     m_registered_shaders.clear();

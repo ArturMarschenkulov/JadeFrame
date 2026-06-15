@@ -36,6 +36,7 @@ public:
     OpenGL_Renderer(RenderSystem& system, Window* window);
 
     auto present() -> void override;
+    auto wait_until_idle() -> void override;
     auto clear_background() -> void override;
     auto render(const Camera& camera) -> void override;
 

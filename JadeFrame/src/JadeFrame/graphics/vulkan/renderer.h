@@ -15,11 +15,13 @@ class RGBAColor;
 class Vulkan_Renderer : public IRenderer {
 public:
     Vulkan_Renderer(RenderSystem& system, Window* window);
+    ~Vulkan_Renderer() override;
 
     auto set_clear_color(const RGBAColor& color) -> void override;
 
     auto render(const Camera& camera) -> void override;
     auto present() -> void override;
+    auto wait_until_idle() -> void override;
     auto clear_background() -> void override;
     auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void override;
     auto take_screenshot(const char* filename) -> Image override;

@@ -80,6 +80,8 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, Window* window)
 
 auto OpenGL_Renderer::present() -> void { m_context.m_swapchain_context.swap_buffers(); }
 
+auto OpenGL_Renderer::wait_until_idle() -> void { glFinish(); }
+
 auto OpenGL_Renderer::render(const Camera& camera) -> void {
 
 #if JF_OPENGL_FB

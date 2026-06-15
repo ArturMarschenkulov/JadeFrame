@@ -426,6 +426,7 @@ concept is_renderer = requires(T& t) {
     { t.set_clear_color(std::declval<RGBAColor>()) } -> std::same_as<void>;
     { t.set_viewport(u32{}, u32{}, u32{}, u32{}) } -> std::same_as<void>;
     { t.take_screenshot(std::declval<char*>()) } -> std::same_as<Image>;
+    { t.wait_until_idle() } -> std::same_as<void>;
 };
 
 class IRenderer {
@@ -447,6 +448,7 @@ public: // more internal stuff
     virtual auto clear_background() -> void = 0;
     virtual auto render(const Camera& cam) -> void = 0;
     virtual auto present() -> void = 0;
+    virtual auto wait_until_idle() -> void = 0;
 };
 
 inline auto get_size(const SHADER_TYPE type) -> u32 {

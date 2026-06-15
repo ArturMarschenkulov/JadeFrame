@@ -50,6 +50,13 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, Window* window)
     }
 }
 
+Vulkan_Renderer::~Vulkan_Renderer() { this->wait_until_idle(); }
+
+auto Vulkan_Renderer::wait_until_idle() -> void {
+    if (m_logical_device == nullptr) { return; }
+    m_logical_device->wait_until_idle();
+}
+
 auto Vulkan_Renderer::recreate_swapchain() -> void {
     m_logical_device->wait_until_idle();
 
