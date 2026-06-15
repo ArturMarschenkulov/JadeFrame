@@ -14,31 +14,33 @@ Other goals include:
 - Writing as much from scratch as possible to better understand the internals
 
 # Building and running it
-The most generic way to build the project is:
-```
-mkdir build
-cd build
-cmake ../.
-cmake --build . -j10
-./Application/Application
+Use the repository build script from the project root:
+
+```sh
+./build.sh build
 ```
 
-If you have `ninja` you can also build it like this on Windows or Linux:
-```
-mkdir build
-cd build
-cmake -GNinja -DCMAKE_BUILD_TYPE={Debug|Release|RelWithDebInfo} $SOURCE_DIR
-ninja
-./Application/Application
+This configures CMake into `build/` and builds the default targets. Examples are built by default and can be run from their generated directories, for example:
+
+```sh
+./build/examples/hello_triangle/Example_hello_triangle
 ```
 
-A quick way to compile and run it if success in PowerShell is:
+The build script supports these commands:
+
+```sh
+./build.sh build       # Configure and build into build/
+./build.sh test        # Run ctest --verbose from build/
+./build.sh build_test  # Configure build/ and invoke CMake's test target
+./build.sh clear       # Remove build/CMakeCache.txt
+./build.sh remove      # Remove the build/ directory
 ```
-cmake --build . -j8; if ($?) { .\Application\Application }
-```
+
+Run `./build.sh build` before `./build.sh test`.
 
 To build JadeFrame-owned targets with AddressSanitizer and UndefinedBehaviorSanitizer:
-```
+
+```sh
 cmake -S . -B build-sanitize \
   -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
   -DCMAKE_BUILD_TYPE=Debug \
@@ -54,6 +56,7 @@ The whole project should be organized into modules (aka namespaces), which shoul
 
 
 - `JadeFrame`: The main module. This is where the main code is.
-- `doc`: Contains meta information about this project.
-- `Application`: The main application. This is where the entry point is. (should be replaced by `examples`)
-- `examples`: Contains example code. (will replace `Application`)
+- `docs`: Contains meta information about this project.
+- `examples`: Contains example programs.
+- `cmake`: Contains shared CMake helper modules.
+- `scripts`: Contains project helper scripts.
