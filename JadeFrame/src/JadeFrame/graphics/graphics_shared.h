@@ -197,7 +197,8 @@ inline auto is_vector(SHADER_TYPE type) -> bool {
 
 auto to_string(SHADER_TYPE type) -> const char*;
 
-inline auto noop_native_handle_deleter(void*) noexcept -> void {}
+inline auto noop_native_handle_deleter(void* /*unused*/) noexcept -> void {}
+
 using NativeHandle = std::unique_ptr<void, decltype(&noop_native_handle_deleter)>;
 
 struct VertexAttribute {
