@@ -259,60 +259,96 @@ void main() {
 static auto get_default_shader_light_client() -> std::tuple<std::string, std::string> {
     const char* vertex_shader =
         R"(
-#version 450 core
-layout (location = 0) in vec3 v_position;
-layout (location = 1) in vec4 v_color;
-layout (location = 2) in vec2 v_texture_coord;
-layout (location = 3) in vec3 v_normal;
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
 
-out vec3 f_fragment_position;
-out vec3 f_normal;
+layout(location = 0) in vec3 v_position;
+layout(location = 1) in vec4 v_color;
+layout(location = 2) in vec2 v_texture_coord;
+layout(location = 3) in vec3 v_normal;
 
-uniform mat4 u_view_projection;
-uniform mat4 u_model;
+layout(location = 0) out vec3 f_fragment_position;
+layout(location = 1) out vec3 f_normal;
+
+layout(std140, set = 0, binding = 0) uniform Camera {
+    mat4 view_projection;
+} u_camera;
+
+layout(std140, set = 3, binding = 0) uniform Transform {
+    mat4 model;
+} u_transform;
 
 void main() {
-	f_fragment_position = vec3(u_model * vec4(v_position, 1.0));
-	f_normal = mat3(transpose(inverse(u_model))) * v_normal; //v_normal;
-	gl_Position = u_view_projection * u_model * vec4(f_fragment_position, 1.0);
+    vec4 world_position = u_transform.model * vec4(v_position, 1.0);
 
+    f_fragment_position = world_position.xyz;
+    f_normal = mat3(transpose(inverse(u_transform.model))) * v_normal;
+
+    gl_Position = u_camera.view_projection * world_position;
 }
-	)";
+)";
+
     const char* fragment_shader =
         R"(
-#version 450 core
-out vec4 o_color;
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
 
-in vec3 f_normal;
-in vec3 f_fragment_position;
+layout(location = 0) in vec3 f_fragment_position;
+layout(location = 1) in vec3 f_normal;
 
-uniform vec3 u_light_position;
-uniform vec3 u_light_color;
-uniform vec4 u_object_color;
-uniform vec3 u_view_position;
+layout(location = 0) out vec4 o_color;
 
-uniform float u_specular_strength;
+layout(std140, set = 0, binding = 1) uniform CameraPosition {
+    vec4 view_position;
+} u_camera_position;
 
-void main(){
-	// ambient
-	float ambient_strength = 0.1;
-	vec3 ambient = ambient_strength * u_light_color;
+layout(std140, set = 1, binding = 0) uniform Light {
+    vec4 position;
+    vec4 color;
+} u_light;
 
-	// diffuse
-	vec3 norm = normalize(f_normal);
-	vec3 light_direction = normalize(light_position - f_fragment_position);
-	float difference = max(dot(norm, u_light_direction), 0.0);
-	vec3 diffuse = difference * u_light_color;
+layout(std140, set = 2, binding = 1) uniform Material {
+    vec4 object_color;
 
-	// specular
-	//float specular_strength = 0.5;
-	vec3 view_direction = normalize(u_view_position - f_fragment_position);
-	vec3 reflect_direction = reflect(-u_light_direction, norm);
-	float spec = pow(max(dot(u_view_direction, reflect_direction), 0.0), 256);
-	vec3 specular = u_specular_strength * spec * u_light_color;
+    // x = ambient strength
+    // y = specular strength
+    // z = shininess
+    // w = unused
+    vec4 params;
+} u_material;
 
-	vec4 result = vec4((ambient + diffuse + specular), 1.0) * object_color;
-    o_color = result;
+void main() {
+    if (!gl_FrontFacing) {
+        o_color = vec4(1.0, 0.412, 0.7, 1.0);
+        return;
+    }
+
+    vec3 light_color = u_light.color.xyz;
+    vec3 object_color = u_material.object_color.xyz;
+
+    float ambient_strength = u_material.params.x;
+    float specular_strength = u_material.params.y;
+    float shininess = u_material.params.z;
+
+    vec3 normal = normalize(f_normal);
+    vec3 light_direction = normalize(u_light.position.xyz - f_fragment_position);
+    vec3 view_direction = normalize(u_camera_position.view_position.xyz - f_fragment_position);
+
+    // Ambient
+    vec3 ambient = ambient_strength * light_color;
+
+    // Diffuse
+    float diffuse_factor = max(dot(normal, light_direction), 0.0);
+    vec3 diffuse = diffuse_factor * light_color;
+
+    // Specular
+    vec3 reflect_direction = reflect(-light_direction, normal);
+    float specular_factor = pow(max(dot(view_direction, reflect_direction), 0.0), shininess);
+    vec3 specular = specular_strength * specular_factor * light_color;
+
+    vec3 final_color = (ambient + diffuse + specular) * object_color;
+
+    o_color = vec4(final_color, u_material.object_color.a);
 }
 )";
 
@@ -322,29 +358,39 @@ void main(){
 static auto get_default_shader_light_server() -> std::tuple<std::string, std::string> {
     const char* vertex_shader =
         R"(
-#version 450 core
-layout (location = 0) in vec3 v_position;
-layout (location = 1) in vec4 v_color;
-layout (location = 2) in vec2 v_texture_coord;
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
 
-uniform mat4 u_view_projection;
-uniform mat4 u_model;
+layout(location = 0) in vec3 v_position;
+
+layout(std140, set = 0, binding = 0) uniform Camera {
+    mat4 view_projection;
+} u_camera;
+
+layout(std140, set = 3, binding = 0) uniform Transform {
+    mat4 model;
+} u_transform;
 
 void main() {
-	gl_Position = u_view_projection * u_model * vec4(v_position, 1.0);
+    gl_Position = u_camera.view_projection * u_transform.model * vec4(v_position, 1.0);
 }
-	)";
+)";
+
     const char* fragment_shader =
         R"(
-#version 450 core
-out vec4 o_color;
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
 
-uniform vec3 u_light_color;
-void main()
-{             
-    o_color = vec4(u_light_color, 1.0); // vec4(1.0);
+layout(location = 0) out vec4 o_color;
+
+layout(std140, set = 2, binding = 0) uniform LightMaterial {
+    vec4 light_color;
+} u_light_material;
+
+void main() {
+    o_color = u_light_material.light_color;
 }
-	)";
+)";
 
     return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
