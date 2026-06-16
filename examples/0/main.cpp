@@ -161,7 +161,7 @@ struct Example_0 {
             jf::ShaderHandle* shader_texture = app.m_render_system.register_shader(sh_0);
 
             jf::ShaderHandle::Desc sh_1;
-            sh_1.shading_code = jf::GLSLCodeLoader::get_by_name("flat_0");
+            sh_1.shading_code = jf::GLSLCodeLoader::get_by_name("spirv_test_1");
             jf::ShaderHandle* shader_color_flat =
                 app.m_render_system.register_shader(sh_1);
 
