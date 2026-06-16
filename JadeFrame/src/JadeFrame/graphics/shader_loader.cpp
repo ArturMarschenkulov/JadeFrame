@@ -158,49 +158,6 @@ void main() {
     return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
 }
 
-static auto get_shader_spirv_test_0() -> std::tuple<std::string, std::string> {
-    static const char* vertex_shader =
-        R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout(location = 0) in vec3 v_position;
-layout(location = 1) in vec4 v_color;
-
-layout(location = 0) out vec4 f_color;
-
-layout(std140, set = 0, binding = 0) uniform Camera {
-    mat4 view_projection;
-} u_camera;
-
-layout(std140, set = 0, binding = 1) uniform Transform {
-	mat4 model;
-} u_transform;
-
-void main() {
-	gl_Position = u_camera.view_projection * u_transform.model * vec4(v_position, 1.0);
-
-	f_color = v_color;
-}
-)";
-
-    static const char* fragment_shader =
-        R"(
-#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout(location = 0) in vec4 f_color;
-
-layout(location = 0) out vec4 o_color;
-
-void main() {
-    o_color = f_color;
-}
-)";
-
-    return std::make_tuple(std::string(vertex_shader), std::string(fragment_shader));
-}
-
 static auto get_default_shader_with_texture() -> std::tuple<std::string, std::string> {
     const char* vertex_shader =
         R"(
@@ -404,7 +361,6 @@ auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
         { "depth_testing_0", &get_default_shader_depth_testing},
         {    "light_server",  &get_default_shader_light_server},
         {    "light_client",  &get_default_shader_light_client},
-        {    "spirv_test_0",          &get_shader_spirv_test_0},
         {"framebuffer_test",    &get_shader_framebuffer_test_0}
     };
 
