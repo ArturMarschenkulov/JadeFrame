@@ -218,38 +218,49 @@ void main() {
 static auto get_default_shader_depth_testing() -> std::tuple<std::string, std::string> {
     const char* vertex_shader =
         R"(
-#version 450 core
-layout (location = 0) in vec3 v_position;
-layout (location = 1) in vec4 v_color;
-layout (location = 2) in vec2 v_texture_coord;
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
 
-out vec4 f_color;
-out vec2 f_texture_coord;
+layout(location = 0) in vec3 v_position;
+layout(location = 1) in vec4 v_color;
+layout(location = 2) in vec2 v_texture_coord;
 
-uniform mat4 u_view_projection;
-uniform mat4 u_model;
+layout(std140, set = 0, binding = 0) uniform Camera {
+    mat4 view_projection;
+} u_camera;
+
+layout(std140, set = 3, binding = 0) uniform Transform {
+    mat4 model;
+} u_transform;
 
 void main() {
-	gl_Position = u_view_projection * u_model * vec4(v_position, 1.0);
-	f_color = v_color;
-	f_texture_coord = v_texture_coord;
+    gl_Position = u_camera.view_projection * u_transform.model * vec4(v_position, 1.0);
 }
 	)";
+
     const char* fragment_shader =
         R"(
-#version 450 core
-out vec4 o_color;
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
 
-const float far = 100.0; 
+layout(location = 0) out vec4 o_color;
+
+const float near_plane = 0.1;
+const float far_plane  = 100.0;
+
 float linearize_depth(float depth) {
-	float near = 0.1;
-    float z = depth * 2.0 - 1.0;
-    return (2.0 * near * far) / (far + near - z * (far - near));	
+    // Vulkan depth is normally in [0, 1], not OpenGL-style [-1, 1].
+    return (near_plane * far_plane) / 
+           (far_plane - depth * (far_plane - near_plane));
 }
 
-void main() {             
-    float depth = linearize_depth(gl_FragCoord.z) / far; // divide by far to get depth in range [0,1] for visualization purposes
-    o_color = vec4(vec3(0.4 - depth), 1.0);
+void main() {
+    float linear_depth = linearize_depth(gl_FragCoord.z) / far_plane;
+
+    // White = near, black = far.
+    float depth_visualization = 1.0 - linear_depth;
+
+    o_color = vec4(vec3(depth_visualization), 1.0);
 }
 	)";
 
