@@ -7,11 +7,34 @@
 
 #include "JadeFrame/utils/logger.h"
 #include "../graphics_shared.h"
+#include "buffer.h"
 #include "shader.h"
 
 #include <limits>
 
 namespace JadeFrame {
+
+static auto to_vulkan(GPUBuffer::TYPE type) -> vulkan::Buffer::TYPE {
+    switch (type) {
+        case GPUBuffer::TYPE::VERTEX: return vulkan::Buffer::TYPE::VERTEX;
+        case GPUBuffer::TYPE::INDEX: return vulkan::Buffer::TYPE::INDEX;
+        case GPUBuffer::TYPE::UNIFORM: return vulkan::Buffer::TYPE::UNIFORM;
+        case GPUBuffer::TYPE::STAGING: return vulkan::Buffer::TYPE::STAGING;
+        default: assert(false); return vulkan::Buffer::TYPE::VERTEX;
+    }
+}
+
+static auto delete_vulkan_texture(void* handle) noexcept -> void {
+    delete static_cast<vulkan::Vulkan_Texture*>(handle);
+}
+
+static auto delete_vulkan_shader(void* handle) noexcept -> void {
+    delete static_cast<Vulkan_Shader*>(handle);
+}
+
+static auto delete_vulkan_material(void* handle) noexcept -> void {
+    delete static_cast<Vulkan_Material*>(handle);
+}
 // prepare shaders and its dynamic uniform buffers
 // TODO: Find a better way to do this, but for now it works
 static auto prepare_shaders(const std::deque<RenderCommand>& commands) -> void {
@@ -50,6 +73,100 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, Window* window)
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         m_frames[i].init(m_logical_device);
     }
+}
+
+auto Vulkan_Renderer::initialize() -> void {}
+
+auto Vulkan_Renderer::create_buffer(
+    GPUBuffer::TYPE type,
+    const void*     data,
+    size_t          size
+) -> void* {
+    if (m_logical_device == nullptr) { return nullptr; }
+    return m_logical_device->create_buffer(
+        to_vulkan(type), const_cast<void*>(data), size
+    );
+}
+
+auto Vulkan_Renderer::destroy_buffer(void* handle) -> void {
+    if (handle == nullptr || m_logical_device == nullptr) { return; }
+    m_logical_device->destroy_buffer(static_cast<vulkan::Buffer*>(handle));
+}
+
+auto Vulkan_Renderer::create_texture(const Image& image) -> NativeHandle {
+    if (m_logical_device == nullptr) {
+        return NativeHandle(nullptr, noop_native_handle_deleter);
+    }
+
+    VkFormat format = VK_FORMAT_UNDEFINED;
+    switch (image.num_components) {
+        case 3: format = VK_FORMAT_R8G8B8_SRGB; break;
+        case 4: format = VK_FORMAT_R8G8B8A8_SRGB; break;
+        default:
+            Logger::err("Unsupported number of texture components: {}", image.num_components);
+            return NativeHandle(nullptr, noop_native_handle_deleter);
+    }
+
+    const auto size = v2u32::create(
+        static_cast<u32>(image.width), static_cast<u32>(image.height)
+    );
+    return NativeHandle(
+        new vulkan::Vulkan_Texture(
+            *m_logical_device,
+            const_cast<u8*>(image.data.data()),
+            size,
+            format
+        ),
+        delete_vulkan_texture
+    );
+}
+
+auto Vulkan_Renderer::create_shader(const ShadingCode& code) -> NativeHandle {
+    if (m_logical_device == nullptr) {
+        return NativeHandle(nullptr, noop_native_handle_deleter);
+    }
+
+    Vulkan_Shader::Desc shader_desc;
+    shader_desc.code = code;
+    return NativeHandle(
+        new Vulkan_Shader(*m_logical_device, *this, shader_desc),
+        delete_vulkan_shader
+    );
+}
+
+auto Vulkan_Renderer::create_material(
+    const ShaderHandle&  shader,
+    const TextureHandle* texture
+) -> NativeHandle {
+    if (m_logical_device == nullptr) {
+        return NativeHandle(nullptr, noop_native_handle_deleter);
+    }
+
+    auto* native_shader = static_cast<Vulkan_Shader*>(shader.m_handle.get());
+    auto* native_texture = texture == nullptr
+                               ? nullptr
+                               : static_cast<vulkan::Vulkan_Texture*>(
+                                     texture->m_handle.get()
+                                 );
+    if (native_shader == nullptr || (texture != nullptr && native_texture == nullptr)) {
+        Logger::err("Cannot create a Vulkan material from invalid resources");
+        return NativeHandle(nullptr, noop_native_handle_deleter);
+    }
+
+    return NativeHandle(
+        new Vulkan_Material(*m_logical_device, *native_shader, native_texture),
+        delete_vulkan_material
+    );
+}
+
+auto Vulkan_Renderer::set_shader_uniform(
+    void*              /*shader*/,
+    const std::string& /*name*/,
+    const void*        /*data*/,
+    size_t             /*size*/
+) -> void {
+    // Vulkan uniforms are updated through material descriptor sets. Keep this method
+    // behind the common interface until the public uniform API is mapped to that model.
 }
 
 Vulkan_Renderer::~Vulkan_Renderer() { this->wait_until_idle(); }

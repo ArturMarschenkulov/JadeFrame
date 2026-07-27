@@ -44,6 +44,7 @@ endif()
 # link back to this target.
 add_library(jadeframe_graphics STATIC
     "graphics_shared.cpp"
+    "renderer_factory.cpp"
 )
 jadeframe_enable_sanitizers(jadeframe_graphics)
 target_link_libraries(jadeframe_graphics

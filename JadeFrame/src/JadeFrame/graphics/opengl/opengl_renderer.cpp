@@ -15,8 +15,11 @@ JF_PRAGMA_NO_WARNINGS_POP
 
 #include "opengl_renderer.h"
 #include "JadeFrame/utils/logger.h"
+#include "../graphics_language.h"
 #include "../shader_loader.h"
 #include "JadeFrame/graphics/mesh.h"
+
+#include <limits>
 
 #define JF_OPENGL_FB 1
 
@@ -57,6 +60,24 @@ static auto framebuffer_res_to_str(GLenum e) -> const char* {
 #undef foo
 }
 
+static auto to_opengl(GPUBuffer::TYPE type) -> opengl::Buffer::TYPE {
+    switch (type) {
+        case GPUBuffer::TYPE::VERTEX: return opengl::Buffer::TYPE::VERTEX;
+        case GPUBuffer::TYPE::INDEX: return opengl::Buffer::TYPE::INDEX;
+        case GPUBuffer::TYPE::UNIFORM: return opengl::Buffer::TYPE::UNIFORM;
+        case GPUBuffer::TYPE::STAGING: return opengl::Buffer::TYPE::STAGING;
+        default: assert(false); return opengl::Buffer::TYPE::VERTEX;
+    }
+}
+
+static auto delete_opengl_shader(void* handle) noexcept -> void {
+    delete static_cast<opengl::Shader*>(handle);
+}
+
+static auto delete_opengl_material(void* handle) noexcept -> void {
+    delete static_cast<opengl::Material*>(handle);
+}
+
 auto OpenGL_Renderer::set_clear_color(const RGBAColor& color) -> void {
     m_context.m_state.set_clear_color(color);
 }
@@ -75,14 +96,93 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, Window* window)
     , m_system(&system) {
 }
 
-auto OpenGL_Renderer::initialize_render_target(
-    const std::function<ShaderHandle*(const ShaderHandle::Desc&)>& register_shader
-) -> void {
+auto OpenGL_Renderer::initialize() -> void {
 #if JF_OPENGL_FB
-    m_render_target.init(&m_context, register_shader);
-#else
-    (void)register_shader;
+    m_render_target.init(
+        &m_context,
+        [this](const ShaderHandle::Desc& desc) { return m_system->register_shader(desc); }
+    );
 #endif
+}
+
+auto OpenGL_Renderer::create_buffer(
+    GPUBuffer::TYPE type,
+    const void*     data,
+    size_t          size
+) -> void* {
+    if (size > std::numeric_limits<u32>::max()) {
+        Logger::err("OpenGL buffer is too large: {} bytes", size);
+        return nullptr;
+    }
+    return m_context.create_buffer(
+        to_opengl(type), const_cast<void*>(data), static_cast<u32>(size)
+    );
+}
+
+auto OpenGL_Renderer::destroy_buffer(void* /*handle*/) -> void {
+    // Context owns OpenGL buffers and destroys them with the GL context.
+}
+
+auto OpenGL_Renderer::create_texture(const Image& image) -> NativeHandle {
+    const auto size = v2u32::create(
+        static_cast<u32>(image.width), static_cast<u32>(image.height)
+    );
+    auto* texture = m_context.create_texture(
+        const_cast<u8*>(image.data.data()), size, static_cast<u32>(image.num_components)
+    );
+    return NativeHandle(texture, noop_native_handle_deleter);
+}
+
+auto OpenGL_Renderer::create_shader(const ShadingCode& code) -> NativeHandle {
+    if (code.m_modules.size() < 2) {
+        Logger::err("OpenGL shaders require vertex and fragment modules");
+        return NativeHandle(nullptr, noop_native_handle_deleter);
+    }
+
+    opengl::Shader::Desc shader_desc;
+    shader_desc.shading_language = code.m_shading_language;
+    shader_desc.code.m_shading_language = code.m_shading_language;
+    shader_desc.code.m_modules.resize(2);
+
+    for (size_t i = 0; i < 2; ++i) {
+        const auto& module = code.m_modules[i];
+        shader_desc.code.m_modules[i].m_code =
+            remap_for_opengl(module.m_code, module.m_stage, nullptr);
+        shader_desc.code.m_modules[i].m_stage = module.m_stage;
+    }
+
+    return NativeHandle(
+        new opengl::Shader(m_context, shader_desc), delete_opengl_shader
+    );
+}
+
+auto OpenGL_Renderer::create_material(
+    const ShaderHandle&  shader,
+    const TextureHandle* texture
+) -> NativeHandle {
+    auto* native_shader = static_cast<opengl::Shader*>(shader.m_handle.get());
+    auto* native_texture = texture == nullptr
+                               ? nullptr
+                               : static_cast<opengl::Texture*>(texture->m_handle.get());
+    if (native_shader == nullptr || (texture != nullptr && native_texture == nullptr)) {
+        Logger::err("Cannot create an OpenGL material from invalid resources");
+        return NativeHandle(nullptr, noop_native_handle_deleter);
+    }
+
+    return NativeHandle(
+        new opengl::Material(m_context, *native_shader, native_texture),
+        delete_opengl_material
+    );
+}
+
+auto OpenGL_Renderer::set_shader_uniform(
+    void*              /*shader*/,
+    const std::string& /*name*/,
+    const void*        /*data*/,
+    size_t             /*size*/
+) -> void {
+    // Uniform uploads are still backend-specific work in progress. The operation is
+    // intentionally kept behind the renderer boundary so the façade remains backend-free.
 }
 
 auto OpenGL_Renderer::present() -> void { m_context.m_swapchain_context.swap_buffers(); }

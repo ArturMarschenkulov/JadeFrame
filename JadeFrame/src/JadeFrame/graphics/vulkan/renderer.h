@@ -17,6 +17,21 @@ public:
     Vulkan_Renderer(RenderSystem& system, Window* window);
     ~Vulkan_Renderer() override;
 
+    auto initialize() -> void override;
+    auto create_buffer(GPUBuffer::TYPE type, const void* data, size_t size)
+        -> void* override;
+    auto destroy_buffer(void* handle) -> void override;
+    auto create_texture(const Image& image) -> NativeHandle override;
+    auto create_shader(const ShadingCode& code) -> NativeHandle override;
+    auto create_material(const ShaderHandle& shader, const TextureHandle* texture)
+        -> NativeHandle override;
+    auto set_shader_uniform(
+        void*             shader,
+        const std::string& name,
+        const void*        data,
+        size_t             size
+    ) -> void override;
+
     auto set_clear_color(const RGBAColor& color) -> void override;
 
     auto render(const Camera& camera) -> void override;

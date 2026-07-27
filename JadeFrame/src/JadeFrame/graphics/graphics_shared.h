@@ -12,6 +12,7 @@ class Windows_Window;
 class Object;
 class RGBAColor;
 class Window;
+class IRenderer;
 
 struct Image {
     Image() = default;
@@ -279,6 +280,7 @@ public:
 
     GRAPHICS_API m_api = GRAPHICS_API::UNDEFINED;
     NativeHandle m_handle = {nullptr, noop_native_handle_deleter};
+    IRenderer*   m_renderer = nullptr;
 
 private:
     auto release() -> void;
@@ -377,7 +379,7 @@ public:
     GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage);
 
 public:
-    RenderSystem* m_system = nullptr;
+    IRenderer*    m_renderer = nullptr;
     GRAPHICS_API  m_api = GRAPHICS_API::UNDEFINED;
     void*         m_handle = nullptr;
     size_t        m_size = 0;
@@ -438,6 +440,28 @@ public:
     IRenderer(IRenderer&&) = default;
     auto operator=(IRenderer&&) -> IRenderer& = delete;
     virtual ~IRenderer() = default;
+
+    // Resource operations are deliberately expressed in terms of façade types. The
+    // concrete backend owns the native casts and lifetime rules behind this interface.
+    virtual auto initialize() -> void = 0;
+    virtual auto create_buffer(
+        GPUBuffer::TYPE type,
+        const void*     data,
+        size_t          size
+    ) -> void* = 0;
+    virtual auto destroy_buffer(void* handle) -> void = 0;
+    virtual auto create_texture(const Image& image) -> NativeHandle = 0;
+    virtual auto create_shader(const ShadingCode& code) -> NativeHandle = 0;
+    virtual auto create_material(
+        const ShaderHandle&  shader,
+        const TextureHandle* texture
+    ) -> NativeHandle = 0;
+    virtual auto set_shader_uniform(
+        void*             shader,
+        const std::string& name,
+        const void*        data,
+        size_t             size
+    ) -> void = 0;
 
     // client stuff
     virtual auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void = 0;

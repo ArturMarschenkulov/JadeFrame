@@ -37,6 +37,21 @@ class OpenGL_Renderer : public IRenderer {
 public:
     OpenGL_Renderer(RenderSystem& system, Window* window);
 
+    auto initialize() -> void override;
+    auto create_buffer(GPUBuffer::TYPE type, const void* data, size_t size)
+        -> void* override;
+    auto destroy_buffer(void* handle) -> void override;
+    auto create_texture(const Image& image) -> NativeHandle override;
+    auto create_shader(const ShadingCode& code) -> NativeHandle override;
+    auto create_material(const ShaderHandle& shader, const TextureHandle* texture)
+        -> NativeHandle override;
+    auto set_shader_uniform(
+        void*             shader,
+        const std::string& name,
+        const void*        data,
+        size_t             size
+    ) -> void override;
+
     auto present() -> void override;
     auto wait_until_idle() -> void override;
     auto clear_background() -> void override;
@@ -49,13 +64,6 @@ public:
 
 private:
     friend class RenderSystem;
-
-    // Must be called after this renderer has been assigned to RenderSystem::m_renderer.
-    // Shader registration is supplied by the façade so this backend does not link back to
-    // RenderSystem's implementation target.
-    auto initialize_render_target(
-        const std::function<ShaderHandle*(const ShaderHandle::Desc&)>& register_shader
-    ) -> void;
 
     auto render_mesh(
         const Mesh*        vertex_data,
