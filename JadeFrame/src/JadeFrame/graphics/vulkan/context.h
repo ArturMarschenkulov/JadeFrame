@@ -24,7 +24,7 @@ public:
     Instance(Instance&& other) = delete;
     auto operator=(Instance&& other) -> Instance& = delete;
 
-    auto init() -> void;
+    auto init(Window* window_handle) -> void;
     auto deinit() -> void;
 
 private:

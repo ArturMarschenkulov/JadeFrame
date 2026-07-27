@@ -148,8 +148,12 @@ auto Instance::setup_debug() -> void {
     if (result != VK_SUCCESS) { assert(false); }
 }
 
-auto Instance::init() -> void {
+auto Instance::init(Window* window_handle) -> void {
     Logger::trace("Instance::init start");
+
+    if (window_handle == nullptr) {
+        throw std::runtime_error("cannot initialize Vulkan without a window");
+    }
 
     VkResult result;
 
@@ -249,11 +253,16 @@ auto Instance::init() -> void {
         if (result != VK_SUCCESS) { assert(false); }
     }
 
+    // Present support is a property of a queue family and a surface. Create the
+    // surface before selecting a physical device so the selected present family
+    // can be included in vkCreateDevice's queue-create-info list.
+    vulkan::Surface selection_surface = this->create_surface(window_handle);
+
     Logger::debug("Querying Physical Devices");
     Logger::debug("There are {} physical devices", m_physical_devices.size());
     m_physical_devices = this->query_physical_devices();
     for (u32 i = 0; i < m_physical_devices.size(); i++) {
-        m_physical_devices[i].init(*this);
+        m_physical_devices[i].init(*this, selection_surface);
     }
 
     m_physical_device = choose_physical_device(m_physical_devices);
@@ -287,7 +296,7 @@ auto Instance::create_surface(Window* window_handle) -> vulkan::Surface {
 
 Vulkan_Context::Vulkan_Context(Window* window)
     : m_window_handle(window) {
-    m_instance.init();
+    m_instance.init(window);
 }
 
 Vulkan_Context::~Vulkan_Context() = default;

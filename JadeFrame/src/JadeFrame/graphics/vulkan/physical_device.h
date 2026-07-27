@@ -16,11 +16,13 @@ class PhysicalDevice;
 class QueueFamilyPointers {
 public:
     QueueFamily* m_graphics_family = nullptr;
+    QueueFamily* m_present_family = nullptr;
     QueueFamily* m_compute_family = nullptr;
     QueueFamily* m_transfer_family = nullptr;
 
     [[nodiscard]] auto is_complete() const -> bool {
-        return m_graphics_family != nullptr && m_transfer_family != nullptr;
+        return m_graphics_family != nullptr && m_present_family != nullptr &&
+               m_transfer_family != nullptr;
     }
 };
 
@@ -28,11 +30,13 @@ class PhysicalDevice {
 private:
 
 public:
-    auto               init(Instance& instance) -> void;
+    auto               init(Instance& instance, const Surface& surface) -> void;
     [[nodiscard]] auto check_extension_support(const std::vector<const char*>& extensions
     ) const -> bool;
     [[nodiscard]] static auto
-    choose_fitting_queue_families(std::vector<QueueFamily>& queue_families
+    choose_fitting_queue_families(
+        std::vector<QueueFamily>& queue_families,
+        const Surface&            surface
     ) -> QueueFamilyPointers;
     [[nodiscard]] auto
     find_memory_type(u32 type_filter, VkMemoryPropertyFlags properties) const -> u32;

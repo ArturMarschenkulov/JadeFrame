@@ -263,7 +263,7 @@ static auto log_physical_device(PhysicalDevice& pd) -> void {
     }
 }
 
-auto PhysicalDevice::init(Instance& instance) -> void {
+auto PhysicalDevice::init(Instance& instance, const Surface& surface) -> void {
     m_instance_p = &instance;
     m_properties = this->query_properties();
     m_features = this->query_features();
@@ -286,7 +286,7 @@ auto PhysicalDevice::init(Instance& instance) -> void {
     m_extension_support = this->check_extension_support(m_device_extensions);
 
     m_chosen_queue_family_pointers =
-        PhysicalDevice::choose_fitting_queue_families(m_queue_families);
+        PhysicalDevice::choose_fitting_queue_families(m_queue_families, surface);
 
     { log_physical_device(*this); }
 }
@@ -300,33 +300,44 @@ auto PhysicalDevice::check_extension_support(const std::vector<const char*>& ext
     return required_extensions.empty();
 }
 
-// /// Returns a pair of queue family indices, one that supports graphics and one that
-// /// supports presenting.
+// Select the queue families required by the renderer and the presentation surface.
 auto PhysicalDevice::choose_fitting_queue_families(
-    std::vector<QueueFamily>& queue_families
+    std::vector<QueueFamily>& queue_families,
+    const Surface&            surface
 ) -> QueueFamilyPointers {
     // TODO: Make it more efficient. As of right now we simply find the first queue
     // family which does the job.
 
     QueueFamilyPointers fam_pointers;
-    for (u32 i = 0; i < queue_families.size(); i++) {
-        auto& family = queue_families[i];
+    QueueFamily*         transfer_fallback = nullptr;
 
-        const bool is_graphics = family.supports_graphics();
-        if (is_graphics) { fam_pointers.m_graphics_family = &family; }
+    for (auto& family : queue_families) {
+        if (fam_pointers.m_graphics_family == nullptr && family.supports_graphics()) {
+            fam_pointers.m_graphics_family = &family;
+        }
+
+        if (fam_pointers.m_present_family == nullptr && family.supports_present(surface)) {
+            fam_pointers.m_present_family = &family;
+        }
+
+        if (fam_pointers.m_compute_family == nullptr && family.supports_compute()) {
+            fam_pointers.m_compute_family = &family;
+        }
+
+        if (family.supports_transfer()) {
+            if (transfer_fallback == nullptr) { transfer_fallback = &family; }
+
+            // Prefer a dedicated transfer queue when one is available. A queue
+            // family with graphics or compute support remains a valid fallback.
+            if (fam_pointers.m_transfer_family == nullptr &&
+                !family.supports_graphics() && !family.supports_compute()) {
+                fam_pointers.m_transfer_family = &family;
+            }
+        }
     }
-    for (u32 i = 0; i < queue_families.size(); i++) {
-        auto& family = queue_families[i];
 
-        const bool is_compute = family.supports_compute();
-        if (is_compute) { fam_pointers.m_compute_family = &family; }
-    }
-
-    for (u32 i = 0; i < queue_families.size(); i++) {
-        auto& family = queue_families[i];
-
-        const bool is_transfer = family.supports_compute();
-        if (is_transfer) { fam_pointers.m_transfer_family = &family; }
+    if (fam_pointers.m_transfer_family == nullptr) {
+        fam_pointers.m_transfer_family = transfer_fallback;
     }
 
     return fam_pointers;

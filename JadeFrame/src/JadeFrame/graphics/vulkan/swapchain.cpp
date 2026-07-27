@@ -249,24 +249,6 @@ auto Swapchain::operator=(Swapchain&& other) noexcept -> Swapchain& {
     return *this;
 }
 
-static auto get_queue_family_with_present(
-    std::span<QueueFamily> queue_families,
-    const Surface&         surface
-) -> QueueFamily* {
-    for (auto& family : queue_families) {
-        VkBool32 is_present = VK_FALSE;
-
-        vkGetPhysicalDeviceSurfaceSupportKHR(
-            family.m_physical_device->m_handle,
-            family.m_index,
-            surface.m_handle,
-            &is_present
-        );
-        if (is_present == VK_TRUE) { return &family; }
-    }
-    return nullptr;
-}
-
 auto Swapchain::init(LogicalDevice& device, Window* window) -> void {
     this->deinit();
 
@@ -294,20 +276,17 @@ auto Swapchain::init(LogicalDevice& device, Window* window) -> void {
 
     const QueueFamilyPointers& pointers = gpu->m_chosen_queue_family_pointers;
     assert(pointers.m_graphics_family != nullptr && "graphics family is nullptr");
-    assert(pointers.m_transfer_family != nullptr && "present family is nullptr");
-
-    auto  queue_families = gpu->query_queue_families();
-    auto* present_family = get_queue_family_with_present(queue_families, m_surface);
-    if (present_family == nullptr) {
-        throw std::runtime_error("no queue family supports present");
+    assert(pointers.m_present_family != nullptr && "present family is nullptr");
+    if (!pointers.m_present_family->supports_present(m_surface)) {
+        throw std::runtime_error("selected queue family does not support present");
     }
-    m_present_queue = present_family->query_queues(device, 0);
+    m_present_queue = pointers.m_present_family->query_queues(device, 0);
 
     const std::array<u32, 2> queue_family_indices = {
-        pointers.m_graphics_family->m_index, present_family->m_index
+        pointers.m_graphics_family->m_index, pointers.m_present_family->m_index
     };
     const bool is_same_queue_family =
-        pointers.m_graphics_family->m_index == present_family->m_index;
+        pointers.m_graphics_family->m_index == pointers.m_present_family->m_index;
 
     VkSwapchainCreateInfoKHR info = {};
     info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;

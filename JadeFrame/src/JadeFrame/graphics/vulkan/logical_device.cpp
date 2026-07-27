@@ -103,9 +103,19 @@ auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physica
     VkResult result = VK_SUCCESS;
 
     const QueueFamilyPointers& pointers = physical_device.m_chosen_queue_family_pointers;
-    const std::set<QueueFamily*> unique_queue_families = {
-        pointers.m_graphics_family, pointers.m_transfer_family
-    };
+    if (!pointers.is_complete()) {
+        throw std::runtime_error(
+            "physical device does not provide graphics, present, and transfer queues"
+        );
+    }
+
+    std::set<QueueFamily*> unique_queue_families;
+    for (QueueFamily* family : {pointers.m_graphics_family,
+                                pointers.m_present_family,
+                                pointers.m_transfer_family,
+                                pointers.m_compute_family}) {
+        if (family != nullptr) { unique_queue_families.insert(family); }
+    }
 
     constexpr f32                        queue_priority = 1.0_f32;
     std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
