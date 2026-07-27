@@ -425,7 +425,10 @@ RenderSystem::RenderSystem(GRAPHICS_API api, Window* window)
 
     switch (api) {
         case GRAPHICS_API::OPENGL: {
-            m_renderer = std::make_unique<OpenGL_Renderer>(*this, window);
+            auto renderer = std::make_unique<OpenGL_Renderer>(*this, window);
+            auto* renderer_ptr = renderer.get();
+            m_renderer = std::move(renderer);
+            renderer_ptr->initialize_render_target();
 
         } break;
         case GRAPHICS_API::VULKAN: {
@@ -452,7 +455,10 @@ auto RenderSystem::init(GRAPHICS_API api, Window* window) -> void {
     m_api = api;
     switch (api) {
         case GRAPHICS_API::OPENGL: {
-            m_renderer = std::make_unique<OpenGL_Renderer>(*this, window);
+            auto renderer = std::make_unique<OpenGL_Renderer>(*this, window);
+            auto* renderer_ptr = renderer.get();
+            m_renderer = std::move(renderer);
+            renderer_ptr->initialize_render_target();
         } break;
         case GRAPHICS_API::VULKAN: {
             m_renderer = std::make_unique<Vulkan_Renderer>(*this, window);

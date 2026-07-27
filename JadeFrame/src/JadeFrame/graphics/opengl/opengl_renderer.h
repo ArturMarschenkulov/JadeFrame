@@ -46,6 +46,12 @@ public:
     auto take_screenshot(const char* filename) -> Image override;
 
 private:
+    friend class RenderSystem;
+
+    // Must be called after this renderer has been assigned to RenderSystem::m_renderer.
+    // RenderTarget::init registers a shader through the owning RenderSystem.
+    auto initialize_render_target() -> void;
+
     auto render_mesh(
         const Mesh*        vertex_data,
         const GPUMeshData* gpu_data,

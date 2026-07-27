@@ -72,7 +72,9 @@ auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const ->
 OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, Window* window)
     : m_context(window)
     , m_system(&system) {
+}
 
+auto OpenGL_Renderer::initialize_render_target() -> void {
 #if JF_OPENGL_FB
     m_render_target.init(&m_context, m_system);
 #endif
