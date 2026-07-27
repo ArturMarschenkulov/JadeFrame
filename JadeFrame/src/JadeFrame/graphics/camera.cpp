@@ -2,6 +2,7 @@
 #include "JadeFrame/graphics/graphics_shared.h"
 #include "JadeFrame/math/mat_4.h"
 #include "JadeFrame/math/math.h"
+#include "JadeFrame/utils/logger.h"
 
 namespace JadeFrame {
 // class Radian;
@@ -217,6 +218,7 @@ auto Camera::calc_projection(const char* api) const -> mat4x4 {
                 mat4x4::perspective_rh_zo(fov, aspect, m_volume.m_near, m_volume.m_far);
             // proj[1][1] *= -1;
         } else {
+            Logger::err("Invalid API: {}", api);
             assert(false && "Invalid API");
         }
     } else if (m_mode == PROJECTION_TYPE::ORTHOGRAPHIC) {

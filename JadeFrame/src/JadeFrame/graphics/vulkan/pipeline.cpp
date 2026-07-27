@@ -1,4 +1,5 @@
 #include "pipeline.h"
+#include "JadeFrame/utils/logger.h"
 #include "context.h"
 #include "logical_device.h"
 #include "physical_device.h"

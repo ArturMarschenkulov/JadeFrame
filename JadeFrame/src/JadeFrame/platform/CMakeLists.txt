@@ -34,4 +34,5 @@ target_link_libraries(jadeframe_platform
     PRIVATE
         ${ADDITIONAL_LIBRARY_DEPENDENCIES}
         jadeframe_utils
+        jadeframe_logger
 )

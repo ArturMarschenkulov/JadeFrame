@@ -1,5 +1,6 @@
 
 #include "opengl_wrapper.h"
+#include "JadeFrame/utils/logger.h"
 #include "opengl_buffer.h"
 #include "../graphics_shared.h"
 #include "../graphics_language.h"

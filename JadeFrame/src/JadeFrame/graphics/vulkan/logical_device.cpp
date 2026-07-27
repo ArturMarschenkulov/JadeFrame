@@ -1,4 +1,5 @@
 #include "logical_device.h"
+#include "JadeFrame/utils/logger.h"
 #include "physical_device.h"
 #include "context.h"
 #include "buffer.h"

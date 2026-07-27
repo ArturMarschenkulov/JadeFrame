@@ -6,6 +6,7 @@
     #define VK_USE_PLATFORM_XLIB_KHR
 #endif
 #include "context.h"
+#include "JadeFrame/utils/logger.h"
 #include "physical_device.h"
 #include "debug.h"
 #if defined(_WIN32)

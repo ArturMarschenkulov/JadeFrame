@@ -1,4 +1,5 @@
 #include "windows_input_manager.h"
+#include "JadeFrame/utils/logger.h"
 
 #include <Windows.h>
 #include <windowsx.h>

@@ -50,6 +50,7 @@ target_link_libraries(jadeframe_backend_opengl
         ${PLATFORM_DEPENDENT_DEPENDENCIES}
         stb
         jadeframe_platform
+        jadeframe_logger
         spirv-cross-hlsl
         spirv-cross-glsl
         spirv-cross-msl

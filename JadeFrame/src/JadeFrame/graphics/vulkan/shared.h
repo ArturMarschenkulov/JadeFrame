@@ -5,6 +5,7 @@
 #include "JadeFrame/math/mat_4.h"
 #include "JadeFrame/utils/utils.h"
 #include "JadeFrame/utils/assert.h"
+#include "JadeFrame/utils/logger.h"
 
 #include "../graphics_shared.h"
 
@@ -76,7 +77,7 @@ inline auto to_string(const VkDescriptorType& type) -> const char* {
         foo(VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT);
         foo(VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR);
         default:
-            Logger::err("Unknown VkDescriptorType: {}", type);
+            Logger::err("Unknown VkDescriptorType: {}", to_string(type));
             assert(false);
             str = "";
             break;
@@ -115,7 +116,7 @@ inline auto to_string(const VkResult& result) -> const char* {
         foo(VK_ERROR_OUT_OF_POOL_MEMORY);
         // foo(VK_ERROR_OUT_OF_POOL_MEMORY_KHR);
         default:
-            Logger::err("Unknown VkResult: {}", result);
+            Logger::err("Unknown VkResult: {}", to_string(result));
             assert(false);
             str = "";
             break;

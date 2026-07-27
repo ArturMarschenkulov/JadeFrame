@@ -1,6 +1,9 @@
 #include <cstdlib>
 #include <ctime>
+#include <bit>
 #include <memory>
+#include <optional>
+#include <vector>
 #include <type_traits>
 #include <set>
 #include <list>

@@ -13,4 +13,6 @@ jadeframe_enable_sanitizers(platform-linux)
 target_link_libraries(platform-linux
     PUBLIC
         jadeframe_prelude
+    PRIVATE
+        jadeframe_logger
 )

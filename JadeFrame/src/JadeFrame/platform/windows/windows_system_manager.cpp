@@ -3,6 +3,7 @@
 #include "windows_window.h"
 
 #include "JadeFrame/utils/option.h"
+#include "JadeFrame/utils/logger.h"
 
 #include <Windows.h>
 #include <winreg.h>

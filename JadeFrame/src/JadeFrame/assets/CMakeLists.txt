@@ -12,5 +12,6 @@ target_link_libraries(jadeframe_assets
         jadeframe_core
     PRIVATE
         jadeframe_utils
+        jadeframe_logger
         assimp
 )

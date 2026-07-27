@@ -1,10 +1,39 @@
 #include "logger.h"
 
+#include <cstdio>
+
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/basic_file_sink.h"
 
 namespace JadeFrame {
 std::shared_ptr<spdlog::logger> Logger::s_core;
+
+auto report_assert_failure(
+    const char* expression,
+    const char* message,
+    const char* file,
+    int         line
+) noexcept -> void {
+    if (Logger::s_core) {
+        Logger::err(
+            "Assertion failed: {} ({}) at {}:{}",
+            expression,
+            message,
+            file,
+            line
+        );
+        return;
+    }
+
+    std::fprintf(
+        stderr,
+        "Assertion failed: %s (%s) at %s:%d\n",
+        expression,
+        message,
+        file,
+        line
+    );
+}
 
 auto Logger::init() -> void {
     std::vector<spdlog::sink_ptr> jf_sinks = {

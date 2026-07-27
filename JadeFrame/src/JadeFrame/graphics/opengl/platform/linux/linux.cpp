@@ -2,6 +2,7 @@
 // #include <GL/glx.h>
 
 #include "JadeFrame/prelude.h"
+#include "JadeFrame/utils/logger.h"
 #include "linux.h"
 #include <iostream>
 #include <vector>

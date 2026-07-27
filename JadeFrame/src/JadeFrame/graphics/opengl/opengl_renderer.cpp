@@ -14,6 +14,7 @@ JF_PRAGMA_NO_WARNINGS_PUSH
 JF_PRAGMA_NO_WARNINGS_POP
 
 #include "opengl_renderer.h"
+#include "JadeFrame/utils/logger.h"
 #include "../shader_loader.h"
 #include "JadeFrame/graphics/mesh.h"
 

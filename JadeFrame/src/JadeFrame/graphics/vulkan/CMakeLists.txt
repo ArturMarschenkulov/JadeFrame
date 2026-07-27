@@ -47,4 +47,5 @@ target_link_libraries(jadeframe_backend_vulkan
         GPUOpen::VulkanMemoryAllocator
     PRIVATE
         jadeframe_platform
+        jadeframe_logger
 )

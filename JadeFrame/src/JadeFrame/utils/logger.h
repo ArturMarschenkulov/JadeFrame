@@ -3,6 +3,8 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"

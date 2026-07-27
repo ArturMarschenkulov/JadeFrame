@@ -1,4 +1,5 @@
 #include "surface.h"
+#include "JadeFrame/utils/logger.h"
 #include "context.h"
 #if defined(_WIN32)
     #include "JadeFrame/platform/windows/windows_window.h"

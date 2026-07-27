@@ -10,9 +10,13 @@ function(disable_warnings_for_target target)
     endif()
 endfunction()
 
-# Add Vulkan
-find_package(Vulkan REQUIRED)
-message(STATUS "Found Vulkan: ${Vulkan_FOUND}. Includes: ${Vulkan_INCLUDE_DIRS}")
+option(JADEFRAME_ENABLE_OPENGL "Build the OpenGL renderer backend" ON)
+option(JADEFRAME_ENABLE_VULKAN "Build the Vulkan renderer backend" ON)
+
+if(JADEFRAME_ENABLE_VULKAN)
+    find_package(Vulkan REQUIRED)
+    message(STATUS "Found Vulkan: ${Vulkan_FOUND}. Includes: ${Vulkan_INCLUDE_DIRS}")
+endif()
 
 if(BUILD_TESTING)
     find_package(GTest REQUIRED)
@@ -27,7 +31,6 @@ if(BUILD_TESTING)
         add_executable(${target} ${JF_TEST_SOURCES})
         target_link_libraries(${target}
             PRIVATE
-                JadeFrame
                 ${JF_TEST_LIBRARIES}
                 GTest::gtest_main
         )
@@ -54,8 +57,10 @@ set(BUILD_TESTING OFF)
 
 # add_subdirectory(src/extern/)
 
-add_subdirectory(src/extern/VulkanMemoryAllocator/)
-target_include_directories(VulkanMemoryAllocator INTERFACE src/extern/)
+if(JADEFRAME_ENABLE_VULKAN)
+    add_subdirectory(src/extern/VulkanMemoryAllocator/)
+    target_include_directories(VulkanMemoryAllocator INTERFACE src/extern/)
+endif()
 # Add GLFW
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -229,8 +234,26 @@ file(GENERATE
 set(BUILD_TESTING ${JADEFRAME_BUILD_TESTING})
 
 
+add_library(jadeframe_logger
+    STATIC
+        "src/JadeFrame/utils/logger.h"
+        "src/JadeFrame/utils/logger.cpp"
+)
+jadeframe_enable_sanitizers(jadeframe_logger)
+target_link_libraries(jadeframe_logger
+    # jadeframe_logger is a static implementation library. Its fmt/spdlog
+    # objects must remain on the final link line, but the public JadeFrame
+    # target links the logger only through PRIVATE implementation targets.
+    PUBLIC
+        spdlog::spdlog
+        spdlog
+)
 
-add_subdirectory(src/JadeFrame/graphics)
+add_library(jadeframe_prelude INTERFACE)
+target_include_directories(jadeframe_prelude
+    INTERFACE
+        "${CMAKE_CURRENT_LIST_DIR}/src/"
+)
 
 set(Files_Base
     "src/JadeFrame.h"
@@ -257,6 +280,8 @@ set(Files_Datatypes
 add_subdirectory(src/JadeFrame/math)
 add_subdirectory(src/JadeFrame/utils)
 add_subdirectory(src/JadeFrame/platform)
+add_subdirectory(src/JadeFrame/graphics)
+add_subdirectory(src/JadeFrame/assets)
 
 set(ALL_FILES
     ${Files_Base}
@@ -267,22 +292,30 @@ set(ALL_FILES
 # Target
 ################################################################################
 add_library(${PROJECT_NAME} STATIC ${ALL_FILES})
-jadeframe_enable_sanitizers_public(${PROJECT_NAME})
+jadeframe_enable_sanitizers(${PROJECT_NAME})
 # target_link_libraries(${PROJECT_NAME} PRIVATE pthread)
 
 
-target_precompile_headers(${PROJECT_NAME} PUBLIC
+# The precompiled header is an implementation detail.  Propagating it to
+# consumers forces every source file that links JadeFrame to include the
+# framework's private include set and makes the consumer build depend on the
+# exact PCH contents.
+target_precompile_headers(${PROJECT_NAME} PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h>
 )
 
 #########################################################################
 # Include directories
 ################################################################################
-target_include_directories(${PROJECT_NAME} PUBLIC
-    ${CMAKE_SOURCE_DIR}/JadeFrame/src
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+        $<INSTALL_INTERFACE:include>
 )
+# The current public headers live below src/. Keep the vendor and Vulkan
+# include roots private so they do not become consumer requirements.
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/extern
     ${Vulkan_INCLUDE_DIRS}
 )
 ################################################################################
@@ -348,30 +381,6 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     ${COMPILE_OPTIONS}
 )
 
-add_library(JF_MODULE_logger
-    STATIC
-        "src/JadeFrame/utils/logger.h"
-        "src/JadeFrame/utils/logger.cpp"
-)
-jadeframe_enable_sanitizers(JF_MODULE_logger)
-target_link_libraries(JF_MODULE_logger 
-    PUBLIC 
-        spdlog::spdlog
-        spdlog
-)
-# disable_warnings_for_target(spdlog)
-# target_compile_definitions(spdlog INTERFACE SPDLOG_USE_STD_FORMAT=1)
-# target_compile_definitions(spdlog INTERFACE FMT_ENFORCE_COMPILE_STRING=0)
-add_library(JF_MODULE_prelude INTERFACE)
-target_include_directories(JF_MODULE_prelude 
-    INTERFACE
-        "${CMAKE_CURRENT_LIST_DIR}/src/"
-)
-target_link_libraries(JF_MODULE_prelude 
-    INTERFACE 
-        JF_MODULE_logger
-)
-
 ################################################################################
 # Link options
 ################################################################################
@@ -395,13 +404,10 @@ target_link_libraries(
     PRIVATE
         ${CMAKE_DL_LIBS}
         imgui
-    PUBLIC
-        JF_MODULE_prelude
-        JF_MODULE_utils
-        JF_MODULE_math
-        JF_MODULE_platform
-        JF_MODULE_graphics
-        # -fsanitize=address,undefined
+        jadeframe_assets
+        jadeframe_graphics
+        jadeframe_platform
+        jadeframe_logger
 )
 
 target_link_directories(${PROJECT_NAME} PRIVATE

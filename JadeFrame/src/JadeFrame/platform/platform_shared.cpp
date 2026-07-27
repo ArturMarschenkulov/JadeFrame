@@ -1,4 +1,5 @@
 #include "platform_shared.h"
+#include "JadeFrame/utils/logger.h"
 #if defined(JF_PLATFORM_LINUX)
     #include <sys/mman.h>
     #include <unistd.h>

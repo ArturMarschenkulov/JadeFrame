@@ -1,4 +1,5 @@
 #include "command_buffer.h"
+#include "JadeFrame/utils/logger.h"
 
 #include "JadeFrame/utils/assert.h"
 #include "JadeFrame/utils/utils.h"

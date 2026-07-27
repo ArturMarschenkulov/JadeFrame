@@ -28,6 +28,7 @@ target_link_libraries(jadeframe_core
         spirv-cross-hlsl
         spirv-cross-glsl
         spirv-cross-msl
+        jadeframe_logger
 )
 
 if(JADEFRAME_ENABLE_OPENGL)
@@ -51,6 +52,7 @@ target_link_libraries(jadeframe_graphics
     PRIVATE
         jadeframe_platform
         stb
+        jadeframe_logger
 )
 
 if(JADEFRAME_ENABLE_OPENGL)

@@ -1,18 +1,24 @@
 #pragma once
 #include <cassert>
-#include "JadeFrame/utils/logger.h"
 
 namespace JadeFrame {
 
+// Keep assertion handling independent from the logging implementation. This
+// header is included by public value types, so pulling spdlog into it would
+// make the logger a transitive dependency of every JadeFrame consumer.
+auto report_assert_failure(
+    const char* expression,
+    const char* message,
+    const char* file,
+    int         line
+) noexcept -> void;
+
 #define JF_ASSERT(expr, msg)                                                             \
     do {                                                                                 \
-        if (expr) {                                                                      \
-        } else {                                                                         \
-            /*std::string t = fmt::v8::format("{}: {}: {}", __FILE__,                    \
-             * __LINE__, std::string(text));*/                                           \
-                                                                                         \
-            Logger::err("{}", msg);                                                      \
-            assert(false);                                                               \
+        const bool jf_assert_result = static_cast<bool>(expr);                           \
+        if (!jf_assert_result) {                                                         \
+            ::JadeFrame::report_assert_failure(#expr, (msg), __FILE__, __LINE__);        \
+            assert(jf_assert_result);                                                    \
         }                                                                                \
     } while (0)
 

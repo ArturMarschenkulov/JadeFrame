@@ -14,6 +14,8 @@ target_link_libraries(platform-win32
     PUBLIC
         winmm
         jadeframe_prelude
+    PRIVATE
+        jadeframe_logger
 )
 
 target_compile_definitions(platform-win32 PRIVATE

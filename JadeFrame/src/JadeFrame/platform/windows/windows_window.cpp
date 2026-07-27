@@ -1,4 +1,5 @@
 #include "windows_window.h"
+#include "JadeFrame/utils/logger.h"
 
 #include <Windows.h>
 

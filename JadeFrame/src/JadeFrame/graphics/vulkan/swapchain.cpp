@@ -1,4 +1,5 @@
 #include "swapchain.h"
+#include "JadeFrame/utils/logger.h"
 
 #if _WIN32
     #include <Windows.h> // TODO: Try to remove it

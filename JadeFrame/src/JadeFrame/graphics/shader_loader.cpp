@@ -1,4 +1,5 @@
 #include "shader_loader.h"
+#include "JadeFrame/utils/logger.h"
 
 #include "graphics_language.h"
 

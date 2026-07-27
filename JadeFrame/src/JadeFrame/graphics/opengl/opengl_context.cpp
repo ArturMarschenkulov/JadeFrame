@@ -7,6 +7,7 @@
 #endif
 
 #include "opengl_context.h"
+#include "JadeFrame/utils/logger.h"
 #include "opengl_debug.h"
 #include "opengl_shader.h"
 

@@ -5,6 +5,7 @@
 #include "graphics_language.h"
 
 #include "JadeFrame/utils/assert.h"
+#include "JadeFrame/utils/logger.h"
 
 JF_PRAGMA_NO_WARNINGS_PUSH
 #include "SPIRV-Cross/spirv_glsl.hpp"
@@ -219,8 +220,8 @@ static auto reflect_uniforms(
             "the uniform buffer {} has {} members. base id {}, id {}",
             name,
             buf_ty.member_types.size(),
-            rc.base_type_id,
-            rc.type_id
+            static_cast<u32>(rc.base_type_id),
+            static_cast<u32>(rc.type_id)
         );
 
         u32 binding = comp.get_decoration(rc.id, spv::DecorationBinding);

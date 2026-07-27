@@ -1,6 +1,7 @@
 #include <cassert>
 
 #include "JadeFrame/utils/assert.h"
+#include "JadeFrame/utils/logger.h"
 #include "../graphics_shared.h"
 #include "../reflect.h"
 
