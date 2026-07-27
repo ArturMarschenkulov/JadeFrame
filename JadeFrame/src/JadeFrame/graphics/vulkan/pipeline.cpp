@@ -6,7 +6,9 @@
 #include "descriptor_set.h"
 #include "shared.h"
 
+#include <algorithm>
 #include <array>
+#include <map>
 #include <span>
 #include <utility>
 
@@ -22,58 +24,124 @@ static auto to_ShaderStageFlagsBits(SHADER_STAGE stage) -> VkShaderStageFlagBits
         case SHADER_STAGE::FRAGMENT: {
             result = VK_SHADER_STAGE_FRAGMENT_BIT;
         } break;
+        case SHADER_STAGE::GEOMETRY: {
+            result = VK_SHADER_STAGE_GEOMETRY_BIT;
+        } break;
         default: assert(false);
     }
     return result;
 }
 
-static auto check_compatiblity(
+static auto to_vk_vertex_format(SHADER_TYPE type) -> VkFormat {
+    switch (type) {
+        case SHADER_TYPE::V_2_F32: return VK_FORMAT_R32G32_SFLOAT;
+        case SHADER_TYPE::V_3_F32: return VK_FORMAT_R32G32B32_SFLOAT;
+        case SHADER_TYPE::V_4_F32: return VK_FORMAT_R32G32B32A32_SFLOAT;
+        default:
+            Logger::err("Unsupported vertex shader input type {}", to_string(type));
+            return VK_FORMAT_UNDEFINED;
+    }
+}
+
+static auto check_compatibility(
     const std::vector<ReflectedModule>&                   modules,
-    const VkVertexInputBindingDescription&                input_bindings,
+    const VkVertexInputBindingDescription&                input_binding,
     const std::vector<VkVertexInputAttributeDescription>& input_attributes
 ) -> bool {
     bool compatible = true;
 
     const ReflectedModule* vertex_module = nullptr;
-    for (u32 i = 0; i < modules.size(); i++) {
-        if (modules[i].m_stage == SHADER_STAGE::VERTEX) {
-            vertex_module = &modules[i];
-            break;
+    const ReflectedModule* fragment_module = nullptr;
+    for (const auto& module : modules) {
+        if (module.m_stage == SHADER_STAGE::VERTEX) { vertex_module = &module; }
+        if (module.m_stage == SHADER_STAGE::FRAGMENT) { fragment_module = &module; }
+    }
+
+    if (vertex_module == nullptr) {
+        Logger::err("Graphics pipeline has no vertex shader module");
+        return false;
+    }
+    if (fragment_module == nullptr) {
+        Logger::err("Graphics pipeline has no fragment shader module");
+        return false;
+    }
+
+    u32 reflected_stride = 0;
+    for (const auto& input : vertex_module->m_inputs) {
+        reflected_stride += input.size;
+    }
+    if (input_binding.stride != reflected_stride) {
+        Logger::err(
+            "Vertex stride mismatch: pipeline {}, shader {}",
+            input_binding.stride,
+            reflected_stride
+        );
+        compatible = false;
+    }
+
+    if (input_attributes.size() != vertex_module->m_inputs.size()) {
+        Logger::err(
+            "Vertex attribute count mismatch: pipeline {}, shader {}",
+            input_attributes.size(),
+            vertex_module->m_inputs.size()
+        );
+        compatible = false;
+    }
+
+    for (const auto& input : vertex_module->m_inputs) {
+        const auto attribute = std::find_if(
+            input_attributes.begin(),
+            input_attributes.end(),
+            [&](const VkVertexInputAttributeDescription& value) {
+                return value.location == input.location;
+            }
+        );
+        if (attribute == input_attributes.end()) {
+            Logger::err("Vertex input location {} is missing from the vertex buffer", input.location);
+            compatible = false;
+            continue;
+        }
+        const VkFormat expected_format = to_vk_vertex_format(input.type);
+        if (attribute->format != expected_format) {
+            Logger::err("Vertex input location {} has an incompatible format", input.location);
+            compatible = false;
+        }
+        if (input.size != get_size(input.type)) {
+            Logger::err(
+                "Vertex input location {} has an unsupported reflected size {}",
+                input.location,
+                input.size
+            );
+            compatible = false;
         }
     }
 
-    if (vertex_module != nullptr) {
-        u32 stride = 0;
-        for (u32 i = 0; i < vertex_module->m_inputs.size(); i++) {
-            stride += vertex_module->m_inputs[i].size;
-        }
-        if (input_bindings.stride != stride) { compatible = false; }
-
-        if (input_attributes.size() == vertex_module->m_inputs.size()) {
-            for (u32 i = 0; i < input_attributes.size(); i++) {
-                if (input_attributes[i].format !=
-                    to_VkFormat(vertex_module->m_inputs[i].type)) {
-                    compatible = false;
-                }
-                if (input_attributes[i].location != vertex_module->m_inputs[i].location) {
-                    compatible = false;
-                }
+    // Validate the shader-to-shader interface as well. Vertex outputs which
+    // are not consumed are legal, but every fragment input must be provided
+    // by the vertex stage with the same location and type.
+    for (const auto& input : fragment_module->m_inputs) {
+        const auto output = std::find_if(
+            vertex_module->m_outputs.begin(),
+            vertex_module->m_outputs.end(),
+            [&](const ReflectedModule::Output& value) {
+                return value.location == input.location;
             }
-        } else {
-            auto s0 = input_attributes.size();
-            auto s1 = vertex_module->m_inputs.size();
+        );
+        if (output == vertex_module->m_outputs.end()) {
             Logger::err(
-                "Vertex input attributes count mismatch. `input_attributes.size()`: {} "
-                "vs "
-                "`vertex_module->m_inputs.size()`: {}",
-                s0,
-                s1
+                "Fragment input location {} is not written by the vertex shader",
+                input.location
             );
-            assert(false);
+            compatible = false;
+            continue;
         }
-
-    } else {
-        compatible = false;
+        if (output->type != input.type || output->size != input.size) {
+            Logger::err(
+                "Vertex output and fragment input at location {} are incompatible",
+                input.location
+            );
+            compatible = false;
+        }
     }
 
     return compatible;
@@ -117,7 +185,8 @@ ShaderModule::ShaderModule(ShaderModule&& other) noexcept
     : m_device(std::exchange(other.m_device, nullptr))
     , m_handle(std::exchange(other.m_handle, VK_NULL_HANDLE))
     , m_stage(other.m_stage)
-    , m_spirv(std::move(other.m_spirv)) {}
+    , m_spirv(std::move(other.m_spirv))
+    , m_reflected(std::move(other.m_reflected)) {}
 
 auto ShaderModule::operator=(ShaderModule&& other) noexcept -> ShaderModule& {
     if (this != &other) {
@@ -155,35 +224,23 @@ ShaderModule::ShaderModule(
     VkResult result =
         vkCreateShaderModule(m_device->m_handle, &info, Instance::allocator(), &m_handle);
     if (result != VK_SUCCESS) {
-        Logger::err("Failed to create shader module.");
-        assert(false);
+        Logger::err("Failed to create Vulkan shader module: {}", to_string(result));
+        m_handle = VK_NULL_HANDLE;
     }
 }
 
-// Here it is deccided which `FREQUNCY` create a dynamic uniform buffer.
-static auto get_uniform_buffer_type(FREQUENCY freq) -> VkDescriptorType {
-    VkDescriptorType result = {};
-    switch (freq) {
-        case FREQUENCY::PER_OBJECT: {
-            result = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-        } break;
-        default: result = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+// Per-object uniform buffers are updated with a dynamic offset. Other sets
+// use a regular uniform-buffer descriptor. Set numbers above the engine's
+// frequency enum remain valid regular descriptor sets.
+static auto get_uniform_buffer_type(u32 set) -> VkDescriptorType {
+    if (set == static_cast<u32>(FREQUENCY::PER_OBJECT)) {
+        return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
     }
-    return result;
+    return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 }
 
-static auto get_sampled_image_type(FREQUENCY freq) -> VkDescriptorType {
-    VkDescriptorType result = {};
-    switch (freq) {
-        case FREQUENCY::PER_OBJECT: {
-            result = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        } break;
-        case FREQUENCY::PER_FRAME: {
-            result = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        } break;
-        default: result = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    }
-    return result;
+static auto get_sampled_image_type(u32 /*set*/) -> VkDescriptorType {
+    return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 }
 
 /*--------------------
@@ -192,7 +249,7 @@ static auto get_sampled_image_type(FREQUENCY freq) -> VkDescriptorType {
 
 static auto layout_create_info(
     const std::span<const VkDescriptorSetLayout>& layouts,
-    const std::span<VkPushConstantRange>&         push_constants
+    const std::span<const VkPushConstantRange>&   push_constants
 ) -> VkPipelineLayoutCreateInfo {
 
     const VkPipelineLayoutCreateInfo info = {
@@ -232,9 +289,9 @@ auto Pipeline::PipelineLayout::operator=(PipelineLayout&& other) noexcept
 }
 
 Pipeline::PipelineLayout::PipelineLayout(
-    const LogicalDevice&                                                    device,
-    const std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)>& set_layouts,
-    const std::span<Pipeline::PushConstantRange>& push_constant_ranges
+    const LogicalDevice&                               device,
+    const std::span<const DescriptorSetLayout>&        set_layouts,
+    const std::span<const Pipeline::PushConstantRange>& push_constant_ranges
 )
     : m_device(&device) {
 
@@ -249,13 +306,19 @@ Pipeline::PipelineLayout::PipelineLayout(
         vk_range.size = range.size;
     }
 
-    std::array<VkDescriptorSetLayout, 4> layouts = {};
-    for (u32 i = 0; i < set_layouts.size(); i++) { layouts[i] = set_layouts[i].m_handle; }
+    std::vector<VkDescriptorSetLayout> layouts(set_layouts.size(), VK_NULL_HANDLE);
+    for (u32 i = 0; i < set_layouts.size(); i++) {
+        layouts[i] = set_layouts[i].m_handle;
+    }
 
     const VkPipelineLayoutCreateInfo info = layout_create_info(layouts, push_constants);
     VkResult                         result =
         vkCreatePipelineLayout(device.m_handle, &info, Instance::allocator(), &m_handle);
-    if (result != VK_SUCCESS) { assert(false); }
+    if (result != VK_SUCCESS) {
+        Logger::err("Failed to create Vulkan pipeline layout: {}", to_string(result));
+        m_handle = VK_NULL_HANDLE;
+        return;
+    }
 
 #if 0
     // Logging the pipeline layout
@@ -353,8 +416,8 @@ static auto get_attribute_descriptions(const VertexFormat& vertex_format)
         auto type_size = get_size(vertex_format.m_attributes[i].type);
         offset += type_size;
         attribs[i].binding = 0;
-        attribs[i].location = i;
-        attribs[i].format = to_VkFormat(vertex_format.m_attributes[i].type);
+        attribs[i].location = vertex_format.m_attributes[i].location;
+        attribs[i].format = to_vk_vertex_format(vertex_format.m_attributes[i].type);
     }
 
     return attribs;
@@ -525,36 +588,181 @@ static auto get_reflected_modules(const std::vector<ShaderModule>& modules)
     return reflected_modules;
 }
 
+struct NormalizedDescriptorBinding {
+    u32                                               set = 0;
+    u32                                               binding = 0;
+    VkDescriptorType                                  descriptor_type = VK_DESCRIPTOR_TYPE_MAX_ENUM;
+    u32                                               descriptor_count = 0;
+    VkShaderStageFlags                                stage_flags = 0;
+    const ReflectedModule::UniformBuffer*             uniform_buffer = nullptr;
+};
+
+static auto uniform_layouts_match(
+    const ReflectedModule::UniformBuffer& lhs,
+    const ReflectedModule::UniformBuffer& rhs
+) -> bool {
+    if (lhs.size != rhs.size || lhs.descriptor_count != rhs.descriptor_count ||
+        lhs.members.size() != rhs.members.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < lhs.members.size(); ++i) {
+        const auto& lhs_member = lhs.members[i];
+        const auto& rhs_member = rhs.members[i];
+        if (lhs_member.offset != rhs_member.offset || lhs_member.size != rhs_member.size ||
+            lhs_member.type != rhs_member.type) {
+            return false;
+        }
+    }
+    return true;
+}
+
 static auto extract_descriptor_set_layouts(
-    const std::span<ReflectedModule>& modules,
-    const LogicalDevice&              device
-) -> std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)> {
+    const std::span<const ReflectedModule> modules,
+    const LogicalDevice&                   device,
+    std::vector<DescriptorSetLayout>&      set_layouts
+) -> bool {
+    using BindingKey = std::pair<u32, u32>;
 
-    // TODO: Needs more checking.
-    constexpr u8 max_sets = static_cast<u8>(FREQUENCY::MAX);
+    // The map is the normalized reflection representation used to create the
+    // Vulkan layouts. A key can occur in multiple shader stages, but only one
+    // Vulkan binding is emitted for it.
+    std::map<BindingKey, NormalizedDescriptorBinding> normalized;
+    u32 max_set = 0;
+    bool has_bindings = false;
 
-    std::array<DescriptorSetLayout, max_sets>                       set_layouts;
-    std::array<std::vector<DescriptorSetLayout::Binding>, max_sets> bindings_set;
+    auto add_binding = [&](u32 set,
+                           u32 binding,
+                           VkDescriptorType descriptor_type,
+                           u32 descriptor_count,
+                           VkShaderStageFlags stage_flags,
+                           const ReflectedModule::UniformBuffer* uniform_buffer) -> bool {
+        if (descriptor_count == 0) {
+            Logger::err(
+                "Descriptor set {} binding {} has an unresolved or runtime array size",
+                set,
+                binding
+            );
+            return false;
+        }
+        // DescriptorSet currently exposes scalar bind operations. Rejecting
+        // arrays here prevents a valid Vulkan layout from being paired with
+        // an incapable material implementation.
+        if (descriptor_count != 1) {
+            Logger::err(
+                "Descriptor set {} binding {} uses {} descriptors; descriptor arrays are "
+                "not supported by Vulkan_Material",
+                set,
+                binding,
+                descriptor_count
+            );
+            return false;
+        }
+
+        const BindingKey key = {set, binding};
+        const auto [it, inserted] = normalized.emplace(
+            key,
+            NormalizedDescriptorBinding{
+                .set = set,
+                .binding = binding,
+                .descriptor_type = descriptor_type,
+                .descriptor_count = descriptor_count,
+                .stage_flags = stage_flags,
+                .uniform_buffer = uniform_buffer,
+            }
+        );
+        if (inserted) {
+            max_set = std::max(max_set, set);
+            has_bindings = true;
+            return true;
+        }
+
+        auto& existing = it->second;
+        if (existing.descriptor_type != descriptor_type) {
+            Logger::err(
+                "Descriptor set {} binding {} has incompatible descriptor types ({}, {})",
+                set,
+                binding,
+                to_string(existing.descriptor_type),
+                to_string(descriptor_type)
+            );
+            return false;
+        }
+        if (existing.descriptor_count != descriptor_count) {
+            Logger::err(
+                "Descriptor set {} binding {} has incompatible array counts ({}, {})",
+                set,
+                binding,
+                existing.descriptor_count,
+                descriptor_count
+            );
+            return false;
+        }
+        if (existing.uniform_buffer != nullptr && uniform_buffer != nullptr &&
+            !uniform_layouts_match(*existing.uniform_buffer, *uniform_buffer)) {
+            Logger::err(
+                "Uniform buffer set {} binding {} has incompatible layouts between shader "
+                "stages",
+                set,
+                binding
+            );
+            return false;
+        }
+        existing.stage_flags |= stage_flags;
+        return true;
+    };
 
     for (const auto& module : modules) {
-        const auto stage = to_ShaderStageFlagsBits(module.m_stage);
-
+        const VkShaderStageFlags stage = to_ShaderStageFlagsBits(module.m_stage);
         for (const auto& buffer : module.m_uniform_buffers) {
-            auto             freq = static_cast<FREQUENCY>(buffer.set);
-            VkDescriptorType type = get_uniform_buffer_type(freq);
-            bindings_set[buffer.set].emplace_back(buffer.binding, type, 1, stage);
+            if (!add_binding(
+                    buffer.set,
+                    buffer.binding,
+                    get_uniform_buffer_type(buffer.set),
+                    buffer.descriptor_count,
+                    stage,
+                    &buffer
+                )) {
+                return false;
+            }
         }
         for (const auto& image : module.m_sampled_images) {
-            auto             freq = static_cast<FREQUENCY>(image.set);
-            VkDescriptorType type = get_sampled_image_type(freq);
-            bindings_set[image.set].emplace_back(image.binding, type, 1, stage);
+            if (!add_binding(
+                    image.set,
+                    image.binding,
+                    get_sampled_image_type(image.set),
+                    image.descriptor_count,
+                    stage,
+                    nullptr
+                )) {
+                return false;
+            }
         }
     }
-    const auto& dev = device;
-    for (u32 i = 0; i < set_layouts.size(); i++) {
-        set_layouts[i] = dev.create_descriptor_set_layout(bindings_set[i]);
+
+    set_layouts.clear();
+    if (!has_bindings) { return true; }
+
+    // Vulkan requires layouts for every set below the highest referenced set,
+    // including empty layouts for gaps. The number is determined by reflection
+    // rather than by FREQUENCY::MAX.
+    std::vector<std::vector<DescriptorSetLayout::Binding>> bindings(max_set + 1);
+    for (const auto& [key, descriptor] : normalized) {
+        (void)key;
+        bindings[descriptor.set].push_back(
+            DescriptorSetLayout::Binding{
+                .binding = descriptor.binding,
+                .type = descriptor.descriptor_type,
+                .count = descriptor.descriptor_count,
+                .stage_flags = descriptor.stage_flags,
+            }
+        );
     }
-    return set_layouts;
+
+    set_layouts.resize(max_set + 1);
+    for (u32 set = 0; set <= max_set; ++set) {
+        set_layouts[set] = device.create_descriptor_set_layout(bindings[set]);
+    }
+    return true;
 }
 
 Pipeline::Pipeline(
@@ -566,7 +774,7 @@ Pipeline::Pipeline(
     : m_device(&device)
     , m_render_pass(&render_pass) {
 
-    m_code.m_modules.resize(code.m_modules.size());
+    m_code = code;
     std::vector<ShaderModule> modules;
     modules.resize(code.m_modules.size());
     for (u32 i = 0; i < modules.size(); i++) {
@@ -574,32 +782,44 @@ Pipeline::Pipeline(
         const auto& code_ = module_.m_code;
         const auto& stage_ = module_.m_stage;
         modules[i] = ShaderModule(device, code_, stage_);
+        if (modules[i].m_handle == VK_NULL_HANDLE) {
+            Logger::err("Failed to create a Vulkan shader module for the graphics pipeline");
+            return;
+        }
     }
 
     auto reflected_modules = get_reflected_modules(modules);
+    m_reflected_code.m_modules = reflected_modules;
     m_reflected_interface = ReflectedModule::into_interface(reflected_modules);
     VertexFormat vertex_format = m_reflected_interface.get_vertex_format();
 
-    /*
-        There are always 4 descriptor set layouts. They are grouped by binding
-       frequency. 0 - Used for engine global resources. Bound once per frame.
-        1 - Used for per-pass resources. Bound once per pass.
-        2 - Used for per-material resources. Bound once per material.
-        3 - Used for per-object resources. Bound once per object.
-
-        set 0: projection and view matrix. point lights.
-        set 1:
-        set 2: materials. textures. samplers.
-        set 3: model matrix.
-    */
-
-    m_set_layouts = extract_descriptor_set_layouts(reflected_modules, device);
-
-    // bool compatible = check_compatiblity(reflected_code.m_modules, binding_description,
-    // attribute_descriptions); JF_ASSERT(compatible == true, "The vertex format is not
-    // compatible with the vertex shader");
-
-    m_layout = PipelineLayout(device, m_set_layouts, m_push_constant_ranges);
+    bool has_vertex = false;
+    bool has_fragment = false;
+    for (const auto& module : reflected_modules) {
+        if (module.m_stage == SHADER_STAGE::VERTEX) {
+            if (has_vertex) {
+                Logger::err("A graphics pipeline contains multiple vertex shader modules");
+                return;
+            }
+            has_vertex = true;
+        } else if (module.m_stage == SHADER_STAGE::FRAGMENT) {
+            if (has_fragment) {
+                Logger::err("A graphics pipeline contains multiple fragment shader modules");
+                return;
+            }
+            has_fragment = true;
+        } else {
+            Logger::err(
+                "Shader stage {} is not supported by the Vulkan graphics pipeline",
+                to_string(module.m_stage)
+            );
+            return;
+        }
+    }
+    if (!has_vertex || !has_fragment) {
+        Logger::err("A Vulkan graphics pipeline requires vertex and fragment shader modules");
+        return;
+    }
 
     std::vector<VkPipelineShaderStageCreateInfo> stages;
     stages.resize(m_code.m_modules.size());
@@ -643,6 +863,22 @@ Pipeline::Pipeline(
         get_binding_description(vertex_format);
     std::vector<VkVertexInputAttributeDescription> attribute_descriptions =
         get_attribute_descriptions(vertex_format);
+    if (!check_compatibility(reflected_modules, binding_description, attribute_descriptions)) {
+        Logger::err("Shader reflection is incompatible with the Vulkan vertex input layout");
+        return;
+    }
+
+    if (!extract_descriptor_set_layouts(reflected_modules, device, m_set_layouts)) {
+        Logger::err("Shader reflection is incompatible with the Vulkan descriptor layout");
+        return;
+    }
+
+    m_layout = PipelineLayout(device, m_set_layouts, m_push_constant_ranges);
+    if (m_layout.m_handle == VK_NULL_HANDLE) {
+        Logger::err("Failed to create the Vulkan pipeline layout from shader reflection");
+        return;
+    }
+
     const VkPipelineVertexInputStateCreateInfo vertex_input_info =
         vertex_input_state_create_info(binding_description, attribute_descriptions);
 
@@ -691,7 +927,11 @@ Pipeline::Pipeline(
         Instance::allocator(),
         &m_handle
     );
-    if (result != VK_SUCCESS) { assert(false); }
+    if (result != VK_SUCCESS) {
+        Logger::err("Failed to create Vulkan graphics pipeline: {}", to_string(result));
+        m_handle = VK_NULL_HANDLE;
+        return;
+    }
     // Logger part
     {
         Logger::trace(
@@ -703,7 +943,7 @@ Pipeline::Pipeline(
         // }
     }
 
-    m_device = &device;
+    m_is_compiled = true;
 }
 
 } // namespace vulkan

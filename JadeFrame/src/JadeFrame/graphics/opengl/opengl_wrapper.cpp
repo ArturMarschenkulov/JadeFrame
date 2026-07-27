@@ -100,12 +100,13 @@ auto OGLW_VertexArray::set_layout(const VertexFormat& vertex_format) -> void {
                 assert(false && "Unsupported type");
             }
         }
-        this->enable_attrib(i);
+        const u32 location = attribute.location;
+        this->enable_attrib(location);
         // always unnormalized
         const bool normalized = false;
-        this->set_attrib_format(i, attribute.type, normalized, offset);
+        this->set_attrib_format(location, attribute.type, normalized, offset);
         offset += get_size(attribute.type);
-        this->set_attrib_binding(i, 0);
+        this->set_attrib_binding(location, 0);
     }
 }
 

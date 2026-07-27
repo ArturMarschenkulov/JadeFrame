@@ -1,4 +1,5 @@
 #pragma once
+#include <span>
 #include <vector>
 
 #include <vulkan/vulkan.h>
@@ -53,9 +54,8 @@ public:
 
         PipelineLayout(
             const LogicalDevice& device,
-            const std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)>&
-                                                set_layouts,
-            const std::span<PushConstantRange>& push_constant_ranges
+            const std::span<const DescriptorSetLayout>& set_layouts,
+            const std::span<const PushConstantRange>&   push_constant_ranges
         );
 
         VkPipelineLayout     m_handle = VK_NULL_HANDLE;
@@ -67,15 +67,15 @@ public:
     const LogicalDevice* m_device = nullptr;
     const RenderPass*    m_render_pass = nullptr;
 
-    std::array<DescriptorSetLayout, static_cast<u8>(FREQUENCY::MAX)> m_set_layouts;
-    ShadingCode                                                      m_code;
+    std::vector<DescriptorSetLayout> m_set_layouts;
+    ShadingCode                      m_code;
 
     bool m_is_compiled = false;
 
     // Reflect
 
     std::vector<PushConstantRange> m_push_constant_ranges;
-    ReflectedCode                  m_reflected_code; // NOTE: unused as of right now
+    ReflectedCode                  m_reflected_code;
     ReflectedModule                m_reflected_interface;
 };
 

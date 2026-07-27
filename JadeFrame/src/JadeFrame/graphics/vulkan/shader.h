@@ -1,6 +1,7 @@
 #pragma once
 #include <tuple>
 #include <unordered_map>
+#include <vector>
 #include "../graphics_shared.h"
 #include "pipeline.h"
 
@@ -68,12 +69,20 @@ public:
     ) -> void;
 
     auto set_dynamic_ub_num(u32 num) -> void;
+    [[nodiscard]] auto get_dynamic_uniform_stride(u32 set, u32 binding) const
+        -> VkDeviceSize;
 
 public:
     vulkan::LogicalDevice*  m_device = nullptr;
     Vulkan_Shader*          m_shader = nullptr;
     vulkan::Vulkan_Texture* m_texture = nullptr;
-    std::array<vulkan::DescriptorSet, static_cast<u8>(vulkan::FREQUENCY::MAX)> m_sets;
+    std::vector<vulkan::DescriptorSet> m_sets;
+
+    struct UniformBufferAllocation {
+        vulkan::Buffer* m_buffer = nullptr;
+        VkDeviceSize    m_size = 0;
+        VkDeviceSize    m_dynamic_stride = 0;
+    };
 
     template<typename K, typename V>
     using HashMap = std::unordered_map<K, V>;
@@ -81,6 +90,6 @@ public:
     template<typename K0, typename V>
     using Hashmap2 = std::unordered_map<K0, HashMap<K0, V>>;
 
-    Hashmap2<u32, vulkan::Buffer*> m_uniform_buffers;
+    Hashmap2<u32, UniformBufferAllocation> m_uniform_buffers;
 };
 } // namespace JadeFrame

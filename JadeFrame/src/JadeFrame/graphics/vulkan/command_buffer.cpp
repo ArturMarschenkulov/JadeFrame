@@ -195,7 +195,7 @@ auto CommandBuffer::bind_descriptor_set(
     const Pipeline&           pipeline,
     u32                       set_index,
     const DescriptorSet&      descriptor_set,
-    const u32*                offset
+    const std::span<const u32> dynamic_offsets
 ) const -> void {
 
     // JF_ASSERT(descriptor_set_count == descriptor_set.m_descriptors.size(), "");
@@ -208,8 +208,8 @@ auto CommandBuffer::bind_descriptor_set(
         set_index,                                // firstSet
         1,                                        // descriptorSetCount
         &descriptor_set.m_handle,                 // pDescriptorSets
-        descriptor_set.m_layout->m_dynamic_count, // dynamicOffsetCount
-        offset                                    // pDynamicOffsets
+        static_cast<u32>(dynamic_offsets.size()), // dynamicOffsetCount
+        dynamic_offsets.data()                    // pDynamicOffsets
     );
 }
 

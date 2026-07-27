@@ -1,5 +1,7 @@
 #include "reflect.h"
-#include <set>
+#include <algorithm>
+#include <map>
+#include <limits>
 #include "graphics_language.h"
 
 #include "JadeFrame/utils/assert.h"
@@ -125,6 +127,22 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
     return result;
 }
 
+// Returns the number of descriptors represented by a reflected resource. A
+// zero result means that the resource is an unsized or specialization-sized
+// array and cannot be described by the current runtime descriptor model.
+static auto descriptor_count(const spirv_cross::SPIRType& type) -> u32 {
+    if (type.array.empty()) { return 1; }
+    if (type.array.size() != type.array_size_literal.size()) { return 0; }
+
+    u64 result = 1;
+    for (u32 i = 0; i < type.array.size(); ++i) {
+        if (!type.array_size_literal[i] || type.array[i] == 0) { return 0; }
+        if (result > std::numeric_limits<u32>::max() / type.array[i]) { return 0; }
+        result *= type.array[i];
+    }
+    return static_cast<u32>(result);
+}
+
 auto temp_cmp_1(const ReflectedModule::Input& i0, const ReflectedModule::Input& i1)
     -> bool {
     return i0.location < i1.location;
@@ -147,10 +165,7 @@ static auto reflect_inputs(
     for (u32 j = 0; j < stage_inputs.size(); j++) {
         const spirv_cross::Resource& rc = stage_inputs[j];
         const std::string&           name = rc.name;
-        const spirv_cross::SPIRType& base_ty = comp.get_type(rc.base_type_id);
         const spirv_cross::SPIRType& buf_ty = comp.get_type(rc.type_id);
-
-        u32 member_count = static_cast<u32>(buf_ty.member_types.size());
         u32 location = comp.get_decoration(rc.id, spv::DecorationLocation);
         u32 size = (buf_ty.width / BYTE_SIZE) * buf_ty.vecsize * buf_ty.columns;
 
@@ -174,10 +189,7 @@ static auto reflect_outputs(
     for (u32 j = 0; j < stage_outputs.size(); j++) {
         const spirv_cross::Resource& rc = stage_outputs[j];
         const std::string&           name = rc.name;
-        const spirv_cross::SPIRType& base_ty = comp.get_type(rc.base_type_id);
         const spirv_cross::SPIRType& buf_ty = comp.get_type(rc.type_id);
-
-        u32 mem_count = static_cast<u32>(buf_ty.member_types.size());
         u32 location = comp.get_decoration(rc.id, spv::DecorationLocation);
         u32 size = (buf_ty.width / BITS_PER_BYTE) * buf_ty.vecsize * buf_ty.columns;
 
@@ -219,10 +231,12 @@ static auto reflect_uniforms(
         result[j].set = set;
         result[j].name = name;
         result[j].size = size;
+        result[j].descriptor_count = descriptor_count(buf_ty);
 
-        JF_ASSERT(
-            !base_ty.member_types.empty(), "this uniform buffer doesn't have any members"
-        );
+        if (base_ty.member_types.empty()) {
+            Logger::err("Uniform buffer {} does not contain any members", name);
+            continue;
+        }
         for (u32 jj = 0; jj < base_ty.member_types.size(); jj++) {
             const spirv_cross::SPIRType& mem_ty = comp.get_type(base_ty.member_types[jj]);
             const std::string& mem_name = comp.get_member_name(rc.base_type_id, jj);
@@ -262,24 +276,15 @@ static auto reflect_sampled_images(
         const spirv_cross::Resource& rc = sampled_images[j];
 
         const std::string&           name = rc.name;
-        const spirv_cross::SPIRType& base_ty = comp.get_type(rc.base_type_id);
         const spirv_cross::SPIRType& buf_ty = comp.get_type(rc.type_id);
-        u32 member_count = static_cast<u32>(buf_ty.member_types.size());
         u32 binding = comp.get_decoration(rc.id, spv::DecorationBinding);
         u32 set = comp.get_decoration(rc.id, spv::DecorationDescriptorSet);
-        u32 descriptor_set = comp.get_decoration(rc.id, spv::DecorationDescriptorSet);
 
-        u32 dimension = base_ty.image.dim;
-        u32 array_size = buf_ty.array[0];
-
-        if (array_size == 0) {
-            array_size = 1;
-        } else {
-            assert(false);
-        }
         result[j].binding = binding;
         result[j].set = set;
         result[j].name = name;
+        result[j].size = 0;
+        result[j].descriptor_count = descriptor_count(buf_ty);
     }
     return result;
 }
@@ -302,7 +307,7 @@ auto ReflectedModule::reflect(const ShadingCode::Module::SPIRV& code, SHADER_STA
     result.m_sampled_images = reflect_sampled_images(compiler, resources.sampled_images);
 
     std::sort(result.m_inputs.begin(), result.m_inputs.end(), temp_cmp_1);
-    // std::sort(result.m_outputs.begin(), result.m_outputs.end(), temp_cmp);
+    std::sort(result.m_outputs.begin(), result.m_outputs.end(), temp_cmp);
 
     // result.m_push_constant_ranges.resize(resources.push_constant_buffers.size());
     // for (u32 j = 0; j < resources.push_constant_buffers.size(); j++) {
@@ -326,53 +331,124 @@ auto ReflectedModule::reflect(const ShadingCode::Module::SPIRV& code, SHADER_STA
 // pipeline, that is only the actually interactible points are exposed.
 auto ReflectedModule::into_interface(const std::span<const ReflectedModule>& modules)
     -> ReflectedModule {
-    ReflectedModule                result = {};
-    std::set<u32>                  input_locs;
-    std::set<u32>                  output_locs;
-    std::set<std::tuple<u32, u32>> uniform_locs;
+    ReflectedModule result = {};
 
-    for (size_t i = 0; i < modules.size(); i++) {
-        const auto& mod = modules[i];
+    // Only vertex-stage inputs describe the vertex buffer. Fragment inputs
+    // are shader-to-shader interfaces and must not become vertex attributes.
+    const ReflectedModule* vertex_module = nullptr;
+    for (const auto& module : modules) {
+        if (module.m_stage != SHADER_STAGE::VERTEX) { continue; }
+        if (vertex_module != nullptr) {
+            Logger::err("A pipeline contains more than one vertex shader module");
+            continue;
+        }
+        vertex_module = &module;
+    }
+    if (vertex_module != nullptr) { result.m_inputs = vertex_module->m_inputs; }
 
-        for (size_t j = 0; j < mod.m_inputs.size(); j++) {
-            const auto& input = mod.m_inputs[j];
-            if (!input_locs.contains(input.location)) {
-                result.m_inputs.push_back(input);
-                input_locs.insert(input.location);
+    std::map<u32, Output> outputs;
+    for (const auto& module : modules) {
+        for (const auto& output : module.m_outputs) {
+            const auto [it, inserted] = outputs.emplace(output.location, output);
+            if (!inserted &&
+                (it->second.type != output.type || it->second.size != output.size)) {
+                Logger::err(
+                    "Shader output location {} has incompatible types across modules",
+                    output.location
+                );
             }
         }
+    }
+    for (const auto& [location, output] : outputs) {
+        (void)location;
+        result.m_outputs.push_back(output);
+    }
 
-        for (int j = (int)mod.m_outputs.size() - 1; j >= 0; j--) {
-            const auto& output = mod.m_outputs[j];
-            if (!output_locs.contains(output.location)) {
-                result.m_outputs.push_back(output);
-                output_locs.insert(output.location);
+    using BindingKey = std::pair<u32, u32>;
+    std::map<BindingKey, bool> binding_kinds;
+
+    for (const auto& module : modules) {
+        for (const auto& uniform : module.m_uniform_buffers) {
+            const BindingKey key = {uniform.set, uniform.binding};
+            const auto [kind_it, inserted] = binding_kinds.emplace(key, true);
+            if (!inserted && !kind_it->second) {
+                Logger::err(
+                    "Descriptor set {} binding {} is both a uniform buffer and sampled image",
+                    uniform.set,
+                    uniform.binding
+                );
+                continue;
             }
-        }
 
-        for (size_t j = 0; j < mod.m_uniform_buffers.size(); j++) {
-            const auto& uniform = mod.m_uniform_buffers[j];
-            if (!uniform_locs.contains({uniform.set, uniform.binding})) {
+            auto existing = std::find_if(
+                result.m_uniform_buffers.begin(),
+                result.m_uniform_buffers.end(),
+                [&](const UniformBuffer& value) {
+                    return value.set == uniform.set && value.binding == uniform.binding;
+                }
+            );
+            if (existing == result.m_uniform_buffers.end()) {
                 result.m_uniform_buffers.push_back(uniform);
-                uniform_locs.insert({uniform.set, uniform.binding});
-            } else {
-                // This means that the same set and binding is used in another module.
-                // TODO: As of right now we won't do anything about it, however in the
-                // future we will create extra requirements so that one can't make dumb
-                // mistakes.
+                continue;
+            }
+
+            if (existing->descriptor_count != uniform.descriptor_count ||
+                existing->size != uniform.size ||
+                existing->members.size() != uniform.members.size()) {
+                Logger::err(
+                    "Uniform buffer set {} binding {} has incompatible layouts across modules",
+                    uniform.set,
+                    uniform.binding
+                );
+                continue;
+            }
+            for (size_t i = 0; i < existing->members.size(); ++i) {
+                const auto& lhs = existing->members[i];
+                const auto& rhs = uniform.members[i];
+                if (lhs.offset != rhs.offset || lhs.size != rhs.size ||
+                    lhs.type != rhs.type) {
+                    Logger::err(
+                        "Uniform buffer set {} binding {} has incompatible member layouts",
+                        uniform.set,
+                        uniform.binding
+                    );
+                    break;
+                }
             }
         }
 
-        for (size_t j = 0; j < mod.m_sampled_images.size(); j++) {
-            const auto& image = mod.m_sampled_images[j];
-            if (!uniform_locs.contains({image.set, image.binding})) {
+        for (const auto& image : module.m_sampled_images) {
+            const BindingKey key = {image.set, image.binding};
+            const auto [kind_it, inserted] = binding_kinds.emplace(key, false);
+            if (!inserted && kind_it->second) {
+                Logger::err(
+                    "Descriptor set {} binding {} is both a uniform buffer and sampled image",
+                    image.set,
+                    image.binding
+                );
+                continue;
+            }
+
+            auto existing = std::find_if(
+                result.m_sampled_images.begin(),
+                result.m_sampled_images.end(),
+                [&](const SampledImage& value) {
+                    return value.set == image.set && value.binding == image.binding;
+                }
+            );
+            if (existing == result.m_sampled_images.end()) {
                 result.m_sampled_images.push_back(image);
-                uniform_locs.insert({image.set, image.binding});
-            } else {
+            } else if (existing->descriptor_count != image.descriptor_count) {
+                Logger::err(
+                    "Sampled image set {} binding {} has incompatible array counts",
+                    image.set,
+                    image.binding
+                );
             }
         }
     }
 
+    std::sort(result.m_inputs.begin(), result.m_inputs.end(), temp_cmp_1);
     return result;
 }
 
@@ -380,7 +456,7 @@ auto ReflectedModule::get_vertex_format() const -> VertexFormat {
     std::vector<VertexAttribute> list;
     for (u32 i = 0; i < m_inputs.size(); i++) {
         const Input& input = m_inputs[i];
-        list.emplace_back(input.type);
+        list.push_back(VertexAttribute{.type = input.type, .location = input.location});
     }
     return VertexFormat{list};
 }

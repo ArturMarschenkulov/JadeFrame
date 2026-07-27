@@ -203,6 +203,7 @@ using NativeHandle = std::unique_ptr<void, decltype(&noop_native_handle_deleter)
 
 struct VertexAttribute {
     SHADER_TYPE type = SHADER_TYPE::NONE;
+    u32         location = 0;
 };
 
 class VertexFormat {

@@ -1,4 +1,5 @@
 #pragma once
+#include <span>
 #include <vector>
 
 #include <vulkan/vulkan.h>
@@ -87,7 +88,7 @@ public: // bind methods
         const Pipeline&           pipeline,
         u32                       set_index,
         const DescriptorSet&      descriptor_set,
-        const u32*                offset
+        const std::span<const u32> dynamic_offsets
     ) const -> void;
 
     auto bind_index_buffer(const Buffer& buffer, VkDeviceSize offset) -> void;

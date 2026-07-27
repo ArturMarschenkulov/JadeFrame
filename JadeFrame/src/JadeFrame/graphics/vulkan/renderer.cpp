@@ -9,6 +9,8 @@
 #include "../graphics_shared.h"
 #include "shader.h"
 
+#include <limits>
+
 namespace JadeFrame {
 // prepare shaders and its dynamic uniform buffers
 // TODO: Find a better way to do this, but for now it works
@@ -84,7 +86,6 @@ auto Vulkan_Renderer::clear_background() -> void {}
 
 auto Vulkan_Renderer::render(const Camera& camera) -> void {
     vulkan::LogicalDevice&        d = *m_logical_device;
-    const vulkan::PhysicalDevice* pd = d.m_physical_device;
 
     auto& curr_frame = m_frames[m_frame_index];
     curr_frame.acquire_image(m_swapchain);
@@ -95,10 +96,6 @@ auto Vulkan_Renderer::render(const Camera& camera) -> void {
         m_skip_present = true;
         return;
     }
-
-    const u64 dyn_alignment = math::ceil_to_aligned(
-        sizeof(mat4x4), pd->limits().minUniformBufferOffsetAlignment
-    );
 
     std::deque<RenderCommand>& render_commands = m_system->m_render_commands;
     // prepare shaders and its dynamic uniform buffers
@@ -128,22 +125,22 @@ auto Vulkan_Renderer::render(const Camera& camera) -> void {
         const VkPipelineBindPoint bp = VK_PIPELINE_BIND_POINT_GRAPHICS;
         vulkan::Pipeline&         pl = material->m_shader->m_pipeline;
         auto&                     sets = material->m_sets;
+        if (!pl.m_is_compiled) {
+            Logger::err("Skipping a render command with an uncompiled Vulkan pipeline");
+            continue;
+        }
         cb.bind_pipeline(bp, pl);
 
         const auto* bg_cam = mh.m_info.get_bind_group_by_name("Camera");
         const auto* bg_tran = mh.m_info.get_bind_group_by_name("Transform");
         if (bg_cam == nullptr || bg_tran == nullptr) {
             Logger::err("Material is missing required bind groups.");
-            assert(false);
-        } else {
-            assert(
-                bg_cam->m_set == static_cast<u32>(vulkan::FREQUENCY::PER_FRAME) &&
-                "Camera bind group set must be PER_FRAME"
-            );
-            assert(
-                bg_tran->m_set == static_cast<u32>(vulkan::FREQUENCY::PER_OBJECT) &&
-                "Transform bind group set must be PER_OBJECT"
-            );
+            continue;
+        }
+        if (bg_cam->m_set != static_cast<u32>(vulkan::FREQUENCY::PER_FRAME) ||
+            bg_tran->m_set != static_cast<u32>(vulkan::FREQUENCY::PER_OBJECT)) {
+            Logger::err("Camera and Transform bind groups use incompatible descriptor sets");
+            continue;
         }
 
         mat4x4 cam = camera.get_view_projection("Vulkan");
@@ -151,21 +148,52 @@ auto Vulkan_Renderer::render(const Camera& camera) -> void {
         auto   cam_binding = bg_cam->m_binding;
         material->write_ub(cam_set, cam_binding, &cam, sizeof(cam), 0);
 
-        const u32   dyn_offset = static_cast<u32>(dyn_alignment * i);
         const auto& tran = cmd.transform;
         auto        tran_set = static_cast<FREQUENCY>(bg_tran->m_set);
         auto        tran_binding = bg_tran->m_binding;
+        const VkDeviceSize transform_stride =
+            material->get_dynamic_uniform_stride(bg_tran->m_set, bg_tran->m_binding);
+        const u64 transform_offset = transform_stride * i;
+        if (transform_stride == 0 || transform_offset > std::numeric_limits<u32>::max()) {
+            Logger::err("Transform binding is not a valid dynamic uniform buffer");
+            continue;
+        }
+        const u32 dyn_offset = static_cast<u32>(transform_offset);
         material->write_ub(tran_set, tran_binding, &tran, sizeof(tran), dyn_offset);
-        const auto PER_FRAME = vulkan::FREQUENCY::PER_FRAME;
-        const auto PER_PASS = vulkan::FREQUENCY::PER_PASS;
-        const auto PER_MATERIAL = vulkan::FREQUENCY::PER_MATERIAL;
-        const auto PER_OBJECT = vulkan::FREQUENCY::PER_OBJECT;
-        cb.bind_descriptor_set(bp, pl, PER_FRAME, sets[PER_FRAME], nullptr);
-        cb.bind_descriptor_set(bp, pl, PER_PASS, sets[PER_PASS], nullptr);
-        // if (mh.m_texture != nullptr) {
-        cb.bind_descriptor_set(bp, pl, PER_MATERIAL, sets[PER_MATERIAL], nullptr);
-        //}
-        cb.bind_descriptor_set(bp, pl, PER_OBJECT, sets[PER_OBJECT], &dyn_offset);
+
+        for (u32 set_index = 0; set_index < pl.m_set_layouts.size(); ++set_index) {
+            if (set_index >= sets.size()) {
+                Logger::err("Material is missing descriptor set {}", set_index);
+                continue;
+            }
+
+            std::vector<u32> dynamic_offsets;
+            const auto&      set_layout = pl.m_set_layouts[set_index];
+            dynamic_offsets.reserve(set_layout.m_dynamic_count);
+            bool valid_dynamic_bindings = true;
+            for (const auto& binding : set_layout.m_bindings) {
+                if (binding.descriptorType != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC &&
+                    binding.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC) {
+                    continue;
+                }
+
+                const VkDeviceSize stride =
+                    material->get_dynamic_uniform_stride(set_index, binding.binding);
+                const u64 offset = stride * i;
+                if (stride == 0 || offset > std::numeric_limits<u32>::max()) {
+                    Logger::err(
+                        "Missing or invalid dynamic uniform binding {} in descriptor set {}",
+                        binding.binding,
+                        set_index
+                    );
+                    valid_dynamic_bindings = false;
+                    break;
+                }
+                dynamic_offsets.push_back(static_cast<u32>(offset));
+            }
+            if (!valid_dynamic_bindings) { continue; }
+            cb.bind_descriptor_set(bp, pl, set_index, sets[set_index], dynamic_offsets);
+        }
 
         this->render_mesh(cmd.vertex_data, cmd.m_mesh);
     }

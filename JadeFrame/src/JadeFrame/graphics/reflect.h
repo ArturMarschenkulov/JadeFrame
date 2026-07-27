@@ -26,6 +26,9 @@ struct ReflectedModule {
         u32         binding;
         u32         set;
         u32         size;
+        // A descriptor array has one descriptor per element. A value of zero
+        // means that the array size could not be resolved during reflection.
+        u32         descriptor_count = 1;
     };
 
     struct UniformBuffer {
@@ -33,6 +36,9 @@ struct ReflectedModule {
         u32         size;
         u32         binding;
         u32         set;
+        // A descriptor array has one descriptor per element. A value of zero
+        // means that the array size could not be resolved during reflection.
+        u32         descriptor_count = 1;
 
         struct Member {
             std::string name;
