@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include "JadeFrame/graphics/camera.h"
 #ifdef _WIN32
     #include "JadeFrame/platform/windows/windows_window.h"
@@ -49,8 +51,11 @@ private:
     friend class RenderSystem;
 
     // Must be called after this renderer has been assigned to RenderSystem::m_renderer.
-    // RenderTarget::init registers a shader through the owning RenderSystem.
-    auto initialize_render_target() -> void;
+    // Shader registration is supplied by the façade so this backend does not link back to
+    // RenderSystem's implementation target.
+    auto initialize_render_target(
+        const std::function<ShaderHandle*(const ShaderHandle::Desc&)>& register_shader
+    ) -> void;
 
     auto render_mesh(
         const Mesh*        vertex_data,
@@ -74,7 +79,10 @@ public:
         ShaderHandle*         m_shader = nullptr;
         opengl::Context*      m_context = nullptr;
 
-        auto init(opengl::Context* context, RenderSystem* system) -> void;
+        auto init(
+            opengl::Context* context,
+            const std::function<ShaderHandle*(const ShaderHandle::Desc&)>& register_shader
+        ) -> void;
         auto render(RenderSystem* system) -> void;
     } m_render_target;
 };

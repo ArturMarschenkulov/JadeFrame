@@ -13,7 +13,7 @@ jadeframe_enable_sanitizers(platform-win32)
 target_link_libraries(platform-win32
     PUBLIC
         winmm
-        JF_MODULE_prelude
+        jadeframe_prelude
 )
 
 target_compile_definitions(platform-win32 PRIVATE

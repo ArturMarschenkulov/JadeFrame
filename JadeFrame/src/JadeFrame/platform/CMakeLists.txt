@@ -11,14 +11,13 @@ set(Files
     "window_event.h"
 )
 
-add_library(JF_MODULE_platform STATIC ${Files})
-jadeframe_enable_sanitizers(JF_MODULE_platform)
+add_library(jadeframe_platform STATIC ${Files})
+jadeframe_enable_sanitizers(jadeframe_platform)
 
 IF(WIN32)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
         platform-win32
         opengl32
-        ${Vulkan_LIBRARIES}
     )
 ELSEIF(UNIX AND NOT APPLE)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES
@@ -29,8 +28,10 @@ ELSEIF(UNIX AND NOT APPLE)
         # libvulkan.so
     )
 ENDIF()
-target_link_libraries(JF_MODULE_platform
+target_link_libraries(jadeframe_platform
+    PUBLIC
+        jadeframe_math
     PRIVATE
         ${ADDITIONAL_LIBRARY_DEPENDENCIES}
-        JF_MODULE_prelude
+        jadeframe_utils
 )

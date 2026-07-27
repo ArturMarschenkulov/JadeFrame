@@ -37,14 +37,14 @@ else()
     message(ERROR "Unsupported platform")
 endif()
 
-add_library(gfx-vulkan ${SOURCE_FILES})
-jadeframe_enable_sanitizers(gfx-vulkan)
+add_library(jadeframe_backend_vulkan ${SOURCE_FILES})
+jadeframe_enable_sanitizers(jadeframe_backend_vulkan)
 
-target_link_libraries(gfx-vulkan
-    PRIVATE
-        GPUOpen::VulkanMemoryAllocator
+target_link_libraries(jadeframe_backend_vulkan
+    PUBLIC
+        jadeframe_core
         Vulkan::Vulkan
-        ${Vulkan_LIBRARIES}
-        JF_MODULE_prelude
-        JF_MODULE_utils
+        GPUOpen::VulkanMemoryAllocator
+    PRIVATE
+        jadeframe_platform
 )

@@ -12,7 +12,7 @@ elseif(LINUX)
 endif()
 
 
-add_library(gfx-opengl
+add_library(jadeframe_backend_opengl
     "opengl_buffer.h"
     "opengl_context.h"
     "opengl_debug.h"
@@ -31,7 +31,7 @@ add_library(gfx-opengl
 
     ${PLATFORM_DEPENDENT_FILES}
 )
-jadeframe_enable_sanitizers(gfx-opengl)
+jadeframe_enable_sanitizers(jadeframe_backend_opengl)
 IF(WIN32)
     set(PLATFORM_DEPENDENT_DEPENDENCIES
         opengl32
@@ -42,19 +42,15 @@ ELSEIF(UNIX AND NOT APPLE)
     )
 ENDIF()
 
-target_link_libraries(gfx-opengl
+target_link_libraries(jadeframe_backend_opengl
     PUBLIC
+        jadeframe_core
         glad
     PRIVATE
         ${PLATFORM_DEPENDENT_DEPENDENCIES}
-        
         stb
-        JF_MODULE_prelude
-        JF_MODULE_graphics
-        # JF_MODULE_math
-        
+        jadeframe_platform
         spirv-cross-hlsl
         spirv-cross-glsl
         spirv-cross-msl
-        
 )

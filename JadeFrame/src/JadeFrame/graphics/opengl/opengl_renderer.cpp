@@ -74,9 +74,13 @@ OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, Window* window)
     , m_system(&system) {
 }
 
-auto OpenGL_Renderer::initialize_render_target() -> void {
+auto OpenGL_Renderer::initialize_render_target(
+    const std::function<ShaderHandle*(const ShaderHandle::Desc&)>& register_shader
+) -> void {
 #if JF_OPENGL_FB
-    m_render_target.init(&m_context, m_system);
+    m_render_target.init(&m_context, register_shader);
+#else
+    (void)register_shader;
 #endif
 }
 
@@ -200,8 +204,10 @@ auto OpenGL_Renderer::take_screenshot(const char* /*filename*/) -> Image {
     return image;
 }
 
-auto OpenGL_Renderer::RenderTarget::init(opengl::Context* context, RenderSystem* system)
-    -> void {
+auto OpenGL_Renderer::RenderTarget::init(
+    opengl::Context* context,
+    const std::function<ShaderHandle*(const ShaderHandle::Desc&)>& register_shader
+) -> void {
     m_context = context;
     {
         // TODO: the use of `GL_RGB8`, `GL_RGB` and `GL_UNSIGNED_BYTE` is hardcoded. Find
@@ -251,7 +257,7 @@ auto OpenGL_Renderer::RenderTarget::init(opengl::Context* context, RenderSystem*
     // m_index_buffer = context->create_buffer(opengl::Buffer::TYPE::INDEX, nullptr, 0);
     ShaderHandle::Desc shader_handle_desc;
     shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
-    m_shader = system->register_shader(shader_handle_desc);
+    m_shader = register_shader(shader_handle_desc);
 }
 
 auto OpenGL_Renderer::RenderTarget::render(RenderSystem* /*system*/) -> void {

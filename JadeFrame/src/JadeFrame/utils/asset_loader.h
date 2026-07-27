@@ -1,9 +1,5 @@
 #pragma once
-#include "JadeFrame/graphics/mesh.h"
 
-namespace JadeFrame {
-class AssetLoader {
-public:
-    static auto load_obj(const std::string& path) -> Mesh;
-};
-} // namespace JadeFrame
+// Compatibility include. Asset loading belongs to the assets module, but the
+// old include path is retained for existing examples and clients.
+#include "JadeFrame/assets/asset_loader.h"

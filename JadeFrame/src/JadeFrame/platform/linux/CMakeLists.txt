@@ -12,5 +12,5 @@ jadeframe_enable_sanitizers(platform-linux)
 
 target_link_libraries(platform-linux
     PUBLIC
-        JF_MODULE_prelude
+        jadeframe_prelude
 )

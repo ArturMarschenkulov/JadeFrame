@@ -13,11 +13,11 @@ set(Files
 )
 
 
-add_library(JF_MODULE_math STATIC ${Files})
-jadeframe_enable_sanitizers(JF_MODULE_math)
-target_link_libraries(JF_MODULE_math
-    PRIVATE
-        JF_MODULE_prelude
+add_library(jadeframe_math STATIC ${Files})
+jadeframe_enable_sanitizers(jadeframe_math)
+target_link_libraries(jadeframe_math
+    PUBLIC
+        jadeframe_utils
 )
 
 # Math tests are wired through jadeframe_add_project_test(), but they are not

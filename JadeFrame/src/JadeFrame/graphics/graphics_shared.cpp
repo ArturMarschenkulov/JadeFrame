@@ -3,9 +3,13 @@
 
 #include "graphics_shared.h"
 #include "JadeFrame/platform/platform_shared.h"
+#if JADEFRAME_ENABLE_VULKAN
 #include "vulkan/renderer.h"
 #include "vulkan/shader.h"
+#endif
+#if JADEFRAME_ENABLE_OPENGL
 #include "opengl/opengl_renderer.h"
+#endif
 #include "graphics_language.h"
 
 #include "JadeFrame/utils/assert.h"
@@ -28,32 +32,8 @@ D3D12: Pipeline consists of shader stages.
 */
 
 namespace JadeFrame {
-auto to_string(SHADER_TYPE type) -> const char* {
-    switch (type) {
-        case SHADER_TYPE::NONE: return "NONE";
-        case SHADER_TYPE::F32: return "F32";
-        case SHADER_TYPE::V_2_F32: return "F32_2";
-        case SHADER_TYPE::V_3_F32: return "F32_3";
-        case SHADER_TYPE::V_4_F32: return "F32_4";
-        case SHADER_TYPE::M_3_3_F32: return "M_F32_3";
-        case SHADER_TYPE::M_4_4_F32: return "M_F32_4";
-        case SHADER_TYPE::I32: return "I32";
-        case SHADER_TYPE::V_2_I32: return "I32_2";
-        case SHADER_TYPE::V_3_I32: return "I32_3";
-        case SHADER_TYPE::V_4_I32: return "I32_4";
-        case SHADER_TYPE::BOOL: return "BOOL";
-        case SHADER_TYPE::SAMPLER_1D: return "SAMPLER_1D";
-        case SHADER_TYPE::SAMPLER_2D: return "SAMPLER_2D";
-        case SHADER_TYPE::SAMPLER_3D: return "SAMPLER_3D";
-        case SHADER_TYPE::SAMPLER_CUBE: return "SAMPLER_CUBE";
-        default:
-            Logger::err("Unknown SHADER_TYPE: {}", (int)type);
-            assert(false);
-            return "";
-            break;
-    }
-}
 
+#if JADEFRAME_ENABLE_OPENGL
 static auto to_opengl(GPUBuffer::TYPE type) -> opengl::Buffer::TYPE {
     opengl::Buffer::TYPE result = {};
     switch (type) {
@@ -64,7 +44,9 @@ static auto to_opengl(GPUBuffer::TYPE type) -> opengl::Buffer::TYPE {
     }
     return result;
 }
+#endif
 
+#if JADEFRAME_ENABLE_VULKAN
 static auto to_vulkan(GPUBuffer::TYPE type) -> vulkan::Buffer::TYPE {
     vulkan::Buffer::TYPE result = {};
     switch (type) {
@@ -80,22 +62,31 @@ static auto to_vulkan(GPUBuffer::TYPE type) -> vulkan::Buffer::TYPE {
 static auto delete_vulkan_texture(void* handle) noexcept -> void {
     delete static_cast<vulkan::Vulkan_Texture*>(handle);
 }
+#endif
 
+#if JADEFRAME_ENABLE_OPENGL
 static auto delete_opengl_shader(void* handle) noexcept -> void {
     delete static_cast<opengl::Shader*>(handle);
 }
+#endif
 
+#if JADEFRAME_ENABLE_VULKAN
 static auto delete_vulkan_shader(void* handle) noexcept -> void {
     delete static_cast<Vulkan_Shader*>(handle);
 }
+#endif
 
+#if JADEFRAME_ENABLE_OPENGL
 static auto delete_opengl_material(void* handle) noexcept -> void {
     delete static_cast<opengl::Material*>(handle);
 }
+#endif
 
+#if JADEFRAME_ENABLE_VULKAN
 static auto delete_vulkan_material(void* handle) noexcept -> void {
     delete static_cast<Vulkan_Material*>(handle);
 }
+#endif
 
 /*---------------------------
     Image
@@ -188,6 +179,7 @@ auto GPUBuffer::release() -> void {
     if (m_handle == nullptr) { return; }
 
     switch (m_api) {
+#if JADEFRAME_ENABLE_VULKAN
         case GRAPHICS_API::VULKAN: {
             if (m_system == nullptr || m_system->m_renderer == nullptr) { break; }
             auto* renderer = dynamic_cast<Vulkan_Renderer*>(m_system->m_renderer.get());
@@ -195,9 +187,12 @@ auto GPUBuffer::release() -> void {
             auto* buffer = static_cast<vulkan::Buffer*>(m_handle);
             renderer->m_logical_device->destroy_buffer(buffer);
         } break;
+#endif
+#if JADEFRAME_ENABLE_OPENGL
         case GRAPHICS_API::OPENGL:
             // OpenGL buffers are owned by opengl::Context and released with the context.
             break;
+#endif
         case GRAPHICS_API::UNDEFINED: break;
         default: assert(false); break;
     }
@@ -215,12 +210,15 @@ GPUBuffer::GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage)
     , m_type(usage) {
 
     switch (system->m_api) {
+#if JADEFRAME_ENABLE_OPENGL
         case GRAPHICS_API::OPENGL: {
             opengl::Context* device =
                 &(dynamic_cast<OpenGL_Renderer*>(system->m_renderer.get()))->m_context;
 
             m_handle = device->create_buffer(to_opengl(usage), data, size);
         } break;
+#endif
+#if JADEFRAME_ENABLE_VULKAN
         case GRAPHICS_API::VULKAN: {
             vulkan::LogicalDevice* device =
                 (dynamic_cast<Vulkan_Renderer*>(system->m_renderer.get()))
@@ -228,6 +226,7 @@ GPUBuffer::GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage)
 
             m_handle = device->create_buffer(to_vulkan(usage), data, size);
         } break;
+#endif
         default: assert(false);
     }
 }
@@ -351,10 +350,13 @@ auto ShaderHandle::set_uniform(const std::string& name, const void* data, size_t
     (void)data;
     (void)size;
     switch (m_api) {
+#if JADEFRAME_ENABLE_OPENGL
         case GRAPHICS_API::OPENGL: {
             auto* shader = static_cast<opengl::Shader*>(m_handle.get());
             // shader->set_uniform(name, data, size);
         } break;
+#endif
+#if JADEFRAME_ENABLE_VULKAN
         case GRAPHICS_API::VULKAN: {
             auto* shader = static_cast<Vulkan_Shader*>(m_handle.get());
             auto [set, binding] = shader->get_location(name);
@@ -363,6 +365,7 @@ auto ShaderHandle::set_uniform(const std::string& name, const void* data, size_t
             // shader->set_uniform(name, data, size);
 
         } break;
+#endif
         default: assert(false);
     }
 }
@@ -403,20 +406,6 @@ auto MaterialHandle::release() -> void {
 }
 
 /*---------------------------
-    VertexAttribute
----------------------------*/
-
-/*---------------------------
-    VertexFormat
----------------------------*/
-VertexFormat::VertexFormat(const std::vector<VertexAttribute>& attributes)
-    : m_attributes(attributes) {
-    for (const VertexAttribute& attribute : attributes) {
-        m_stride += get_size(attribute.type);
-    }
-}
-
-/*---------------------------
     RenderSystem
 ---------------------------*/
 
@@ -424,16 +413,22 @@ RenderSystem::RenderSystem(GRAPHICS_API api, Window* window)
     : m_api(api) {
 
     switch (api) {
+#if JADEFRAME_ENABLE_OPENGL
         case GRAPHICS_API::OPENGL: {
             auto renderer = std::make_unique<OpenGL_Renderer>(*this, window);
             auto* renderer_ptr = renderer.get();
             m_renderer = std::move(renderer);
-            renderer_ptr->initialize_render_target();
+            renderer_ptr->initialize_render_target(
+                [this](const ShaderHandle::Desc& desc) { return register_shader(desc); }
+            );
 
         } break;
+#endif
+#if JADEFRAME_ENABLE_VULKAN
         case GRAPHICS_API::VULKAN: {
             m_renderer = std::make_unique<Vulkan_Renderer>(*this, window);
         } break;
+#endif
         default: assert(false);
     }
 }
@@ -454,15 +449,21 @@ auto RenderSystem::init(GRAPHICS_API api, Window* window) -> void {
 
     m_api = api;
     switch (api) {
+#if JADEFRAME_ENABLE_OPENGL
         case GRAPHICS_API::OPENGL: {
             auto renderer = std::make_unique<OpenGL_Renderer>(*this, window);
             auto* renderer_ptr = renderer.get();
             m_renderer = std::move(renderer);
-            renderer_ptr->initialize_render_target();
+            renderer_ptr->initialize_render_target(
+                [this](const ShaderHandle::Desc& desc) { return register_shader(desc); }
+            );
         } break;
+#endif
+#if JADEFRAME_ENABLE_VULKAN
         case GRAPHICS_API::VULKAN: {
             m_renderer = std::make_unique<Vulkan_Renderer>(*this, window);
         } break;
+#endif
         default: {
             Logger::err("Unsupported graphics api: {}", to_string(api));
             assert(false);
@@ -479,6 +480,7 @@ auto RenderSystem::register_texture(Image& image) -> TextureHandle* {
     tex.m_num_components = image.num_components;
     tex.m_api = m_api;
     switch (m_api) {
+#if JADEFRAME_ENABLE_OPENGL
         case GRAPHICS_API::OPENGL: {
             auto*            renderer = dynamic_cast<OpenGL_Renderer*>(m_renderer.get());
             opengl::Context* device = &renderer->m_context;
@@ -490,6 +492,8 @@ auto RenderSystem::register_texture(Image& image) -> TextureHandle* {
             );
 
         } break;
+#endif
+#if JADEFRAME_ENABLE_VULKAN
         case GRAPHICS_API::VULKAN: {
             auto* renderer = dynamic_cast<Vulkan_Renderer*>(m_renderer.get());
             vulkan::LogicalDevice* device = renderer->m_logical_device;
@@ -512,6 +516,7 @@ auto RenderSystem::register_texture(Image& image) -> TextureHandle* {
             );
 
         } break;
+#endif
         default: assert(false);
     }
     return &tex;
@@ -525,6 +530,7 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
     shader.m_api = m_api;
 
     switch (m_api) {
+#if JADEFRAME_ENABLE_OPENGL
         case GRAPHICS_API::OPENGL: {
             auto*            ren = dynamic_cast<OpenGL_Renderer*>(m_renderer.get());
             opengl::Context* ctx = &ren->m_context;
@@ -554,6 +560,8 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
             // Logger::warn("Vertex source:\n {}", v_source);
             // Logger::warn("Fragment source:\n {}", f_source);
         } break;
+#endif
+#if JADEFRAME_ENABLE_VULKAN
         case GRAPHICS_API::VULKAN: {
             auto*                  ren = dynamic_cast<Vulkan_Renderer*>(m_renderer.get());
             vulkan::LogicalDevice* ctx = ren->m_logical_device;
@@ -565,6 +573,7 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
                 new Vulkan_Shader(*ctx, *ren, shader_desc), delete_vulkan_shader
             );
         } break;
+#endif
         default: assert(false);
     }
     return &shader;
@@ -585,6 +594,7 @@ auto RenderSystem::register_mesh(const Mesh& data) -> GPUMeshData* {
 auto RenderSystem::list_available_graphics_apis() -> std::vector<GRAPHICS_API> {
     std::vector<GRAPHICS_API> result;
 
+#if JADEFRAME_ENABLE_OPENGL
     void* opengl = nullptr;
 #if defined(JF_PLATFORM_LINUX)
     opengl = load_module("libGL.so.1");
@@ -594,7 +604,9 @@ auto RenderSystem::list_available_graphics_apis() -> std::vector<GRAPHICS_API> {
     JF_UNIMPLEMENTED("");
 #endif
     if (opengl != nullptr) { result.push_back(GRAPHICS_API::OPENGL); }
+#endif
 
+#if JADEFRAME_ENABLE_VULKAN
     void* vulkan = nullptr;
 #if defined(JF_PLATFORM_LINUX)
     vulkan = load_module("libvulkan.so.1");
@@ -605,6 +617,7 @@ auto RenderSystem::list_available_graphics_apis() -> std::vector<GRAPHICS_API> {
     JF_UNIMPLEMENTED("");
 #endif
     if (vulkan != nullptr) { result.push_back(GRAPHICS_API::VULKAN); }
+#endif
 
     return result;
 }
@@ -620,6 +633,7 @@ auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* textur
     material.m_info = MaterialInfo::default_0();
 
     switch (m_api) {
+#if JADEFRAME_ENABLE_OPENGL
         case GRAPHICS_API::OPENGL: {
             //  NOTE: AFAIK, nothing needs to be done
             auto* sh = static_cast<opengl::Shader*>(shader->m_handle.get());
@@ -636,6 +650,8 @@ auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* textur
             );
 
         } break;
+#endif
+#if JADEFRAME_ENABLE_VULKAN
         case GRAPHICS_API::VULKAN: {
             auto* sh = static_cast<Vulkan_Shader*>(shader->m_handle.get());
 
@@ -655,6 +671,7 @@ auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* textur
             );
             if (texture != nullptr) {}
         } break;
+#endif
         default: assert(false);
     }
 

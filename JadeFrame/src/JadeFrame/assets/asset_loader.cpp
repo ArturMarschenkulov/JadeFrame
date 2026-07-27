@@ -1,16 +1,17 @@
 #include "asset_loader.h"
+
 #include "JadeFrame/types.h"
 #include "JadeFrame/utils/assert.h"
 #include "JadeFrame/utils/logger.h"
 
 #include <assimp/Importer.hpp>
-#include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/scene.h>
 
 namespace JadeFrame {
+
 auto AssetLoader::load_obj(const std::string& path) -> Mesh {
     Logger::info("Loading OBJ file: {}", path);
-    // assert(false && "Not implemented");
     Assimp::Importer importer;
     auto             flags = 0U        //
                | aiProcess_Triangulate //
@@ -77,15 +78,12 @@ auto AssetLoader::load_obj(const std::string& path) -> Mesh {
             }
         }
 
-        // Iterate over the faces of the mesh
         for (unsigned int j = 0; j < mesh->mNumFaces; ++j) {
-            // Get the face
             const aiFace& face = mesh->mFaces[j];
             if (face.mNumIndices != 3) {
                 Logger::err("Non-triangle face {} has {} indices", j, face.mNumIndices);
                 JF_ASSERT(false, "Mesh is not fully triangulated");
             }
-            // Add the indices of the face to the vector
             for (unsigned int k = 0; k < face.mNumIndices; ++k) {
                 indices.push_back(face.mIndices[k]);
             }
@@ -115,9 +113,9 @@ auto AssetLoader::load_obj(const std::string& path) -> Mesh {
         if (!indices.empty()) { mesh_data.m_indices = indices; }
 
         return mesh_data;
-
-        break;
     }
+
     return {};
 }
+
 } // namespace JadeFrame
