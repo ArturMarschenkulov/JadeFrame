@@ -70,12 +70,14 @@ add_subdirectory(src/extern/glfw/)
 
 
 # Assimp
-option(USE_PRECOMPILED_ASSIMP "Use precompiled Assimp library" ON)
-set(ASSIMP_PRECOMPILED_PATH ${CMAKE_SOURCE_DIR}/libs/assimp)
-set(ASSIMP_PRECOMPILED_LIB_PATH ${ASSIMP_PRECOMPILED_PATH}/lib)
+# Prefer a package supplied by the toolchain. If it is not installed, use the
+# repository submodule. Both paths expose the same modern CMake target.
+find_package(assimp CONFIG QUIET)
+
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
 set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
 
 # These formats currently fail to build with the vendored Assimp subtree.
@@ -83,30 +85,20 @@ set(ASSIMP_BUILD_3MF_EXPORTER OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_OPENGEX_IMPORTER OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_MS3D_IMPORTER OFF CACHE BOOL "" FORCE)
 
-if(EXISTS ${ASSIMP_PRECOMPILED_LIB_PATH}/libassimp.a OR EXISTS ${ASSIMP_PRECOMPILED_LIB_PATH}/libassimpd.a)
-    set(ASSIMP_FOUND TRUE)
-else()
-    set(ASSIMP_FOUND FALSE)
+if(NOT TARGET assimp::assimp)
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/extern/assimp/CMakeLists.txt")
+        message(FATAL_ERROR
+            "Assimp was not found. Install Assimp with a CMake package or "
+            "initialize the assimp submodule."
+        )
+    endif()
+
+    message(STATUS "Assimp package not found; using the vendored source.")
+    add_subdirectory(src/extern/assimp/ EXCLUDE_FROM_ALL)
 endif()
-# For now no static import, it is always compiled by source
-set(ASSIMP_FOUND FALSE)
-if (ASSIMP_FOUND)
-    message("Precompiled Assimp library found. Using precompiled Assimp library")
-    message("ASSIMP_PRECOMPILED_LIB_PATH: ${ASSIMP_PRECOMPILED_LIB_PATH}")
-    add_library(assimp STATIC IMPORTED)
-    set_property(TARGET assimp PROPERTY IMPORTED_LOCATION ${ASSIMP_PRECOMPILED_LIB_PATH}/libassimp.lib)
-    set_property(TARGET assimp PROPERTY IMPORTED_LOCATION_DEBUG ${ASSIMP_PRECOMPILED_LIB_PATH}/libassimpd.lib)
-    target_link_libraries(assimp INTERFACE ${ASSIMP_PRECOMPILED_LIB_PATH}/libassimp.a)
-    target_include_directories(assimp INTERFACE ${CMAKE_SOURCE_DIR}/JadeFrame/src/extern/assimp/include/)
-else()
-    message("Precompiled Assimp library not found. Building Assimp from source.")
-    add_subdirectory(src/extern/assimp/)
-    set_target_properties(assimp PROPERTIES
-        ARCHIVE_OUTPUT_DIRECTORY "${ASSIMP_PRECOMPILED_LIB_PATH}"
-        LIBRARY_OUTPUT_DIRECTORY "${ASSIMP_PRECOMPILED_LIB_PATH}"
-        RUNTIME_OUTPUT_DIRECTORY "${ASSIMP_PRECOMPILED_LIB_PATH}"
-    )
-    target_compile_definitions(assimp PRIVATE ASSIMP_USE_HUNTER)
+
+if(NOT TARGET assimp::assimp)
+    message(FATAL_ERROR "Assimp does not provide the assimp::assimp target")
 endif()
 
 
