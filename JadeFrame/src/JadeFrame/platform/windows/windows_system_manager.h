@@ -1,14 +1,13 @@
 #pragma once
 #include "JadeFrame/prelude.h"
 #include "../platform_shared.h"
+#include <Windows.h>
 #include <string>
 
 namespace JadeFrame {
 
 namespace win32 {
 
-auto to_wide_char(const char* char_array) -> wchar_t*;
-auto to_multi_byte(const wchar_t* wide_char_array) -> char*;
 auto from_wstring_to_string(const std::wstring& wstr) -> std::string;
 auto from_string_to_wstring(const std::string& str) -> std::wstring;
 

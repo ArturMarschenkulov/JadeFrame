@@ -14,6 +14,7 @@ jadeframe_enable_warnings(platform-win32)
 target_link_libraries(platform-win32
     PUBLIC
         winmm
+        shell32
         jadeframe_prelude
     PRIVATE
         jadeframe_logger

@@ -2,18 +2,33 @@
 #include "JadeFrame/utils/logger.h"
 
 #include <Windows.h>
+#include <shellapi.h>
 
-#include "windows_message_map.h"
 #include "windows_shared.h"
 #include "windows_input_manager.h"
+#include "windows_system_manager.h"
 
-#include <tuple>
-#include <unordered_map>
-#include <cassert>
+#include <cstddef>
+#include <stdexcept>
 
 namespace JadeFrame {
 
 namespace win32 {
+
+namespace {
+
+constexpr wchar_t k_window_class_name[] = L"JadeFrame";
+
+struct WindowClassState {
+    HINSTANCE instance = nullptr;
+    std::size_t users = 0;
+    bool registered = false;
+    bool owned = false;
+};
+
+WindowClassState g_window_class;
+
+} // namespace
 
 static auto window_resize_callback(NativeWindow& window, const EventMessage& wm) -> void {
 
@@ -54,6 +69,13 @@ static auto window_focus_callback(NativeWindow& window, bool should_focus) {
 static auto CALLBACK
 window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
     -> ::LRESULT {
+    if (message == WM_DROPFILES) {
+        // JadeFrame does not expose a file-drop event yet, but the HDROP handle
+        // still belongs to the application and must be released.
+        ::DragFinish(reinterpret_cast<::HDROP>(wParam));
+        return 0;
+    }
+
     const EventMessage& wm = {hWnd, message, wParam, lParam};
 
     auto* nat_window = reinterpret_cast<NativeWindow*>(::GetPropW(hWnd, L"Window"));
@@ -111,16 +133,15 @@ window_procedure(::HWND hWnd, ::UINT message, ::WPARAM wParam, ::LPARAM lParam)
             input_manager.push(WindowEvent::make_close_event());
         } break;
         case WM_DESTROY: {
-            //::PostQuitMessage(0);
-            return DefWindowProc(hWnd, message, wParam, lParam);
-        } break;
-        case WM_QUIT: {
-            return DefWindowProc(hWnd, message, wParam, lParam);
-            //::PostQuitMessage(0);
-        } break;
+            return ::DefWindowProcW(hWnd, message, wParam, lParam);
+        }
+        case WM_NCDESTROY: {
+            ::RemovePropW(hWnd, L"Window");
+            return ::DefWindowProcW(hWnd, message, wParam, lParam);
+        }
 
         default: {
-            return DefWindowProc(hWnd, message, wParam, lParam);
+            return ::DefWindowProcW(hWnd, message, wParam, lParam);
         }
     }
 
@@ -136,20 +157,24 @@ static auto get_style(const JadeFrame::Window::Desc& desc) -> ::DWORD {
 
     if (desc.visible == true) { style |= WS_VISIBLE; }
 
-    if (desc.accept_drop_files == true) { style |= WM_DROPFILES; }
-
     return style;
 }
 
-static auto register_class(HINSTANCE instance) -> ::WNDCLASSEX {
-    static bool is_window_class_registered = false;
-    if (is_window_class_registered == true) {
-        Logger::err("window is already registered. This should not be possible!!");
-        assert(!"should not be here");
+static auto get_extended_style(const JadeFrame::Window::Desc& desc) -> ::DWORD {
+    return desc.accept_drop_files ? WS_EX_ACCEPTFILES : 0;
+}
+
+static auto register_class(HINSTANCE instance) -> bool {
+    if (g_window_class.registered) {
+        if (g_window_class.instance != instance) {
+            Logger::err("The JadeFrame window class was requested from another module.");
+            return false;
+        }
+        ++g_window_class.users;
+        return true;
     }
 
-    ::WNDCLASSEX window_class;
-    ZeroMemory(&window_class, sizeof(window_class));
+    ::WNDCLASSEXW window_class = {};
     window_class.cbSize = sizeof(window_class);
     window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
     window_class.lpfnWndProc = window_procedure;
@@ -161,62 +186,153 @@ static auto register_class(HINSTANCE instance) -> ::WNDCLASSEX {
     window_class.hbrBackground =
         reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH)); // nullptr;
     window_class.lpszMenuName = nullptr;
-    window_class.lpszClassName = L"JadeFrame"; //"L"JadeFrame Window";
+    window_class.lpszClassName = k_window_class_name;
 
-    ::ATOM res = ::RegisterClassEx(&window_class);
-    if (!res) { Logger::err("Window Registration Failed! {}", ::GetLastError()); }
+    const ::ATOM result = ::RegisterClassExW(&window_class);
+    if (result == 0) {
+        const DWORD error = ::GetLastError();
+        if (error != ERROR_CLASS_ALREADY_EXISTS) {
+            Logger::err("Window registration failed: {}", error);
+            return false;
+        }
 
-    is_window_class_registered = true;
-    return window_class;
+        // A previous library instance or an embedding application may already
+        // own this class. Reuse it only when it is the compatible JadeFrame
+        // class; never claim ownership of an unrelated class with the same name.
+        ::WNDCLASSEXW existing = {};
+        existing.cbSize = sizeof(existing);
+        if (!::GetClassInfoExW(instance, k_window_class_name, &existing) ||
+            existing.lpfnWndProc != window_procedure || existing.hInstance != instance) {
+            Logger::err("An incompatible JadeFrame window class is already registered.");
+            return false;
+        }
+        g_window_class.owned = false;
+    } else {
+        g_window_class.owned = true;
+    }
+
+    g_window_class.instance = instance;
+    g_window_class.users = 1;
+    g_window_class.registered = true;
+    return true;
+}
+
+static auto release_class(HINSTANCE instance) -> void {
+    if (!g_window_class.registered || g_window_class.instance != instance ||
+        g_window_class.users == 0) {
+        return;
+    }
+
+    --g_window_class.users;
+    if (g_window_class.users != 0) { return; }
+
+    if (!g_window_class.owned) {
+        g_window_class = {};
+        return;
+    }
+
+    if (!::UnregisterClassW(k_window_class_name, instance)) {
+        Logger::warn(
+            "Failed to unregister the JadeFrame window class: {}", ::GetLastError()
+        );
+        // Keep the state so a later window can reuse the class and retry the
+        // unregister operation after any remaining native windows disappear.
+        return;
+    }
+
+    g_window_class = {};
 }
 
 NativeWindow::NativeWindow(const JadeFrame::Window::Desc& desc) {
-    ::HMODULE    inst = ::GetModuleHandleW(NULL);
-    ::WNDCLASSEX wc = register_class(inst);
+    const HINSTANCE instance = ::GetModuleHandleW(nullptr);
+    const std::wstring window_title = from_string_to_wstring(desc.title);
 
-    ::DWORD window_style = get_style(desc);
+    try {
+        m_instance_handle = instance;
+        if (!register_class(instance)) {
+            throw std::runtime_error("Failed to register the JadeFrame window class");
+        }
+        m_class_reference = true;
 
-    ::HWND window_handle = ::CreateWindowExW(
-        0,                                                          // window_ex_style,
-        L"JadeFrame",                                               // app_window_class,
-        to_wide_char(static_cast<const char*>(desc.title.c_str())), // app_window_title,
-        window_style,
-        (desc.position.x == -1) ? CW_USEDEFAULT : desc.position.x, // window_x,
-        (desc.position.y == -1) ? CW_USEDEFAULT : desc.position.y, // window_y,
-        static_cast<int32_t>(desc.size.x), // window_width, //CW_USEDEFAULT;
-        static_cast<int32_t>(desc.size.y), // window_height, //CW_USEDEFAULT;
-        NULL,                              // parent_window
-        NULL,                              // menu
-        inst,
-        NULL // lpParam
-    );
-    if (window_handle == NULL) {
-        Logger::err("win32_create_window error: {}", ::GetLastError());
-        assert(false);
-    }
+        ::DWORD window_style = get_style(desc);
+        m_window_handle = ::CreateWindowExW(
+            get_extended_style(desc),                                  // window_ex_style,
+            k_window_class_name,                                       // app_window_class,
+            window_title.c_str(),                                      // app_window_title,
+            window_style,
+            (desc.position.x == -1) ? CW_USEDEFAULT : desc.position.x, // window_x,
+            (desc.position.y == -1) ? CW_USEDEFAULT : desc.position.y, // window_y,
+            static_cast<int32_t>(desc.size.x), // window_width, //CW_USEDEFAULT;
+            static_cast<int32_t>(desc.size.y), // window_height, //CW_USEDEFAULT;
+            NULL,                              // parent_window
+            NULL,                              // menu
+            instance,
+            NULL // lpParam
+        );
+        if (m_window_handle == nullptr) {
+            const DWORD error = ::GetLastError();
+            throw std::runtime_error(
+                "Failed to create the JadeFrame window (error " +
+                std::to_string(error) + ")"
+            );
+        }
 
-    ::RECT client_rect = {};
-    ::GetClientRect(window_handle, &client_rect);
-    ::RECT window_rect = {};
-    ::GetWindowRect(window_handle, &window_rect);
+        ::RECT client_rect = {};
+        if (!::GetClientRect(m_window_handle, &client_rect)) {
+            const DWORD error = ::GetLastError();
+            throw std::runtime_error(
+                "Failed to query the JadeFrame client area (error " +
+                std::to_string(error) + ")"
+            );
+        }
+        ::RECT window_rect = {};
+        if (!::GetWindowRect(m_window_handle, &window_rect)) {
+            const DWORD error = ::GetLastError();
+            throw std::runtime_error(
+                "Failed to query the JadeFrame window bounds (error " +
+                std::to_string(error) + ")"
+            );
+        }
 
-    ::SetPropW(window_handle, L"Window", reinterpret_cast<HANDLE>(this));
+        if (!::SetPropW(m_window_handle, L"Window", reinterpret_cast<HANDLE>(this))) {
+            const DWORD error = ::GetLastError();
+            throw std::runtime_error(
+                "Failed to associate the JadeFrame window state (error " +
+                std::to_string(error) + ")"
+            );
+        }
 
-    m_title = desc.title;
-    m_size = v2u32(client_rect.right, client_rect.bottom);
-    m_position = v2u32(window_rect.left, window_rect.top);
-    m_window_handle = window_handle;
-    m_window_state = JadeFrame::Window::WINDOW_STATE::WINDOWED;
-    if (desc.visible == true) {
-        ::ShowWindow(window_handle, SW_SHOW);
+        m_title = desc.title;
+        m_size = v2u32(client_rect.right, client_rect.bottom);
+        m_position = v2u32(window_rect.left, window_rect.top);
         m_window_state = JadeFrame::Window::WINDOW_STATE::WINDOWED;
-    } else {
-        //::ShowWindow(window_handle, SW_SHOW);
-        // m_window_state = WINDOW_STATE::MINIMIZED;
+        if (desc.visible == true) {
+            ::ShowWindow(m_window_handle, SW_SHOW);
+            m_window_state = JadeFrame::Window::WINDOW_STATE::WINDOWED;
+        }
+    } catch (...) {
+        reset();
+        throw;
     }
 }
 
-NativeWindow::~NativeWindow() { ::DestroyWindow(m_window_handle); }
+auto NativeWindow::reset() noexcept -> void {
+    if (m_window_handle != nullptr) {
+        if (!::DestroyWindow(m_window_handle)) {
+            Logger::warn("Failed to destroy the JadeFrame window: {}", ::GetLastError());
+        }
+        ::RemovePropW(m_window_handle, L"Window");
+        m_window_handle = nullptr;
+    }
+
+    if (m_class_reference) {
+        release_class(static_cast<HINSTANCE>(m_instance_handle));
+        m_class_reference = false;
+    }
+    m_instance_handle = nullptr;
+}
+
+NativeWindow::~NativeWindow() { reset(); }
 
 auto NativeWindow::handle_events(bool& is_running) -> void {
     // TODO: Abstract the Windows code away

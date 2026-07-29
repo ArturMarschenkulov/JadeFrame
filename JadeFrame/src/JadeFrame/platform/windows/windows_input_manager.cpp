@@ -3,7 +3,7 @@
 
 #include <Windows.h>
 #include <windowsx.h>
-#include "windows_message_map.h" // for WindowMessage struct
+#include "windows_shared.h"
 
 namespace JadeFrame {
 namespace win32 {

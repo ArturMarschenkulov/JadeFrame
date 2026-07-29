@@ -18,33 +18,6 @@ namespace JadeFrame {
 // namespace platform {
 namespace win32 {
 
-auto to_wide_char(const char* char_array) -> wchar_t* {
-    wchar_t* wString = new wchar_t[4096];
-    // wchar_t wString[4096];
-    ::MultiByteToWideChar(CP_ACP, 0, char_array, -1, wString, 4096);
-    return wString;
-}
-
-auto to_multi_byte(const wchar_t* wide_char_array) -> char* {
-    char* cString = new char[4096];
-    // char cString[4096];
-    ::WideCharToMultiByte(CP_ACP, 0, wide_char_array, -1, cString, 4096, NULL, NULL);
-    return cString;
-}
-
-// auto to_wide_char(const std::string& string) -> std::wstring {
-//     std::wstring wString;
-//     wString.resize(string.size());
-//     ::MultiByteToWideChar(CP_ACP, 0, string.c_str(), -1, &wString[0], string.size());
-//     return wString;
-// }
-// auto to_multi_byte(const std::wstring& wstring) -> std::string {
-//     std::string cString;
-//     cString.resize(wstring.size());
-//     ::WideCharToMultiByte(CP_ACP, 0, wstring.c_str(), -1, &cString[0], wstring.size(),
-//     NULL, NULL); return cString;
-// }
-
 auto from_wstring_to_string(const std::wstring& wstr) -> std::string {
     if (wstr.empty()) { return std::string(); }
     i32 size_needed =

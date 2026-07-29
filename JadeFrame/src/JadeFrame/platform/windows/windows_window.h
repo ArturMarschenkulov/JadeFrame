@@ -3,10 +3,8 @@
 #include "../platform_shared.h"
 #include "JadeFrame/math/vec.h"
 
+#include <Windows.h>
 #include <string>
-
-struct HWND__;
-typedef HWND__* HWND;
 
 namespace JadeFrame {
 
@@ -38,9 +36,13 @@ public:
 
     auto query_client_size() const -> v2u64;
 
+private:
+    auto reset() noexcept -> void;
+
 public:
     HWND    m_window_handle = nullptr;
     HMODULE m_instance_handle = nullptr;
+    bool    m_class_reference = false;
 
 public:
     std::string m_title;
