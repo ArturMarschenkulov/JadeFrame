@@ -1,4 +1,5 @@
 #pragma once
+#include <bit>
 #include <type_traits>
 #include <concepts>
 #undef min
@@ -56,9 +57,9 @@ constexpr auto to_degrees(i32 radians) -> f32 { return to_degrees((f32)radians);
 // }
 
 // floating point bit hackery stuff
-inline auto as_u32(f32 value) -> u32 { return *(u32*)&value; }
+inline auto as_u32(f32 value) -> u32 { return std::bit_cast<u32>(value); }
 
-inline auto as_f32(u32 value) -> f32 { return *(f32*)&value; }
+inline auto as_f32(u32 value) -> f32 { return std::bit_cast<f32>(value); }
 
 inline auto negate_f32(f32 value) -> f32 { return as_f32(as_u32(value) ^ 0x80000000); }
 

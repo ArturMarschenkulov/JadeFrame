@@ -2,21 +2,6 @@
 
 namespace JadeFrame {
 
-static auto is_prime(u32 x) -> bool {
-    if (x >= 2) {
-        for (u32 i = 0; i <= x; i++) {
-            if (x % i == 1 || x % i == x) { return true; }
-        }
-    }
-    return false;
-
-    if (x < 2) { return false; }
-    for (u32 i = 2; i * i <= x; i++) {
-        if (x % i == 0) { return false; }
-    }
-    return true;
-}
-
 //
 // #include <cmath>
 // struct Rational {
