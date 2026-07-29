@@ -50,6 +50,32 @@ cmake --build build-sanitize --parallel
 ctest --test-dir build-sanitize --output-on-failure
 ```
 
+Backends can be selected independently. For example, an OpenGL-only build is:
+
+```sh
+cmake -S . -B build-opengl \
+  -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+  -DBUILD_EXAMPLES=OFF \
+  -DJADEFRAME_ENABLE_VULKAN=OFF
+cmake --build build-opengl --parallel
+```
+
+The internal CMake targets are layered as `jadeframe_utils`, `jadeframe_math`,
+`jadeframe_platform`, `jadeframe_core`, `jadeframe_assets`,
+`jadeframe_backend_opengl`, `jadeframe_backend_vulkan`, and finally the
+`jadeframe_graphics` façade. Asset loading is available from
+`JadeFrame/assets/asset_loader.h`; the former `JadeFrame/utils/asset_loader.h`
+include remains as a compatibility wrapper.
+
+Assimp is discovered with `find_package(assimp CONFIG)`. If no installed
+package is found, the vendored submodule is used. To use a custom Assimp
+installation, add its prefix to `CMAKE_PREFIX_PATH`:
+
+```sh
+cmake -S . -B build \
+  -DCMAKE_PREFIX_PATH=/path/to/assimp
+```
+
 
 # Directory structure
 The whole project should be organized into modules (aka namespaces), which should be as modular and independent as possible. Roughly speaking, a folder should correspond to one module. Every folder should have a `README.md` file, which should contain a short description of the module.

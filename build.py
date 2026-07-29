@@ -9,7 +9,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 ROOT_DIR = Path(__file__).resolve().parent
 BUILD_DIR = ROOT_DIR / "build"
 EXAMPLES_DIR = ROOT_DIR / "examples"
@@ -152,10 +151,9 @@ def command_run(args: argparse.Namespace) -> None:
 
 
 def command_build_test(_args: argparse.Namespace) -> None:
-    BUILD_DIR.mkdir(parents=True, exist_ok=True)
     print("Configuring and building test target...")
-    run_command(["cmake", "../."], cwd=BUILD_DIR)
-    run_command(["cmake", "--build", ".", "--target", "test", "-j10"], cwd=BUILD_DIR)
+    configure_project()
+    run_command(["cmake", "--build", str(BUILD_DIR), "--target", "test", "--parallel"])
     print("Tests build successful")
 
 
