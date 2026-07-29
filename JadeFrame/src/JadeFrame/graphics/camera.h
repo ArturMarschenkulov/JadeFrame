@@ -3,6 +3,8 @@
 #include "JadeFrame/math/vec.h"
 
 namespace JadeFrame {
+enum class GRAPHICS_API : u8;
+
 enum class PROJECTION_TYPE : u8 {
     ORTHOGRAPHIC,
     PERSPECTIVE,
@@ -89,9 +91,9 @@ public:
         const f32 z_far
     ) -> Camera;
 
-    [[nodiscard]] auto get_view_projection(const char* api) const -> mat4x4;
+    [[nodiscard]] auto get_view_projection(GRAPHICS_API api) const -> mat4x4;
 
-    auto calc_projection(const char* api) const -> mat4x4;
+    auto calc_projection(GRAPHICS_API api) const -> mat4x4;
 
 public:
     PROJECTION_TYPE m_mode;

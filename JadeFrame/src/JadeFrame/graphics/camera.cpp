@@ -193,7 +193,7 @@ public:
     v3 m_forward;
 };
 
-auto Camera::get_view_projection(const char* api) const -> mat4x4 {
+auto Camera::get_view_projection(GRAPHICS_API api) const -> mat4x4 {
     mat4x4 look_at =
         mat4x4::look_to_rh(m_position, m_orientation.m_forward, m_orientation.m_up);
 
@@ -204,25 +204,24 @@ auto Camera::get_view_projection(const char* api) const -> mat4x4 {
     return result;
 }
 
-auto Camera::calc_projection(const char* api) const -> mat4x4 {
-    auto   ss = GRAPHICS_API::OPENGL;
+auto Camera::calc_projection(GRAPHICS_API api) const -> mat4x4 {
     mat4x4 proj = mat4x4::identity();
 
     auto [fov, aspect] = m_volume.calc_fovy_aspect();
     if (m_mode == PROJECTION_TYPE::PERSPECTIVE) {
-        if (api == "OpenGL") {
+        if (api == GRAPHICS_API::OPENGL) {
             proj =
                 mat4x4::perspective_rh_no(fov, aspect, m_volume.m_near, m_volume.m_far);
-        } else if (api == "Vulkan") {
+        } else if (api == GRAPHICS_API::VULKAN) {
             proj =
                 mat4x4::perspective_rh_zo(fov, aspect, m_volume.m_near, m_volume.m_far);
             // proj[1][1] *= -1;
         } else {
-            Logger::err("Invalid API: {}", api);
+            Logger::err("Invalid graphics API: {}", to_string(api));
             assert(false && "Invalid API");
         }
     } else if (m_mode == PROJECTION_TYPE::ORTHOGRAPHIC) {
-        if (api == "OpenGL") {
+        if (api == GRAPHICS_API::OPENGL) {
             proj = mat4x4::orthographic_rh_no(
                 m_volume.m_left,
                 m_volume.m_right,
@@ -231,7 +230,7 @@ auto Camera::calc_projection(const char* api) const -> mat4x4 {
                 m_volume.m_near,
                 m_volume.m_far
             );
-        } else if (api == "Vulkan") {
+        } else if (api == GRAPHICS_API::VULKAN) {
             proj = mat4x4::orthographic_rh_zo(
                 m_volume.m_left,
                 m_volume.m_right,
@@ -286,9 +285,8 @@ auto Camera::perspective(
         Orientation::create(g_coordinate_system.m_forward, g_coordinate_system.m_up);
 
     cam.m_volume = Volume::from_fovy_aspect(fov, aspect, z_near, z_far);
-    Volume& vol = cam.m_volume;
 
-    assert(vol.is_symmetric() && "The volume must be symmetric");
+    assert(cam.m_volume.is_symmetric() && "The volume must be symmetric");
 
     return cam;
 }
