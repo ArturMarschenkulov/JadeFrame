@@ -45,6 +45,7 @@ message(STATUS "JadeFrame C++ compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COM
 
 include(cmake/JadeFrameSanitizers.cmake)
 jadeframe_configure_sanitizers()
+include(cmake/JadeFrameWarnings.cmake)
 # include(cmake/my_utils.cmake)
 # my_print_platform_data()
 # my_print_generator_data()

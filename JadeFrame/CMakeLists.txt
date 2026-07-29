@@ -3,12 +3,9 @@ if(NOT COMMAND jadeframe_enable_sanitizers)
     include("${CMAKE_CURRENT_LIST_DIR}/../cmake/JadeFrameSanitizers.cmake")
     jadeframe_configure_sanitizers()
 endif()
-
-function(disable_warnings_for_target target)
-    if (TARGET ${target})
-        set_target_properties(${target} PROPERTIES COMPILE_OPTIONS "")
-    endif()
-endfunction()
+if(NOT COMMAND jadeframe_enable_warnings)
+    include("${CMAKE_CURRENT_LIST_DIR}/../cmake/JadeFrameWarnings.cmake")
+endif()
 
 option(JADEFRAME_ENABLE_OPENGL "Build the OpenGL renderer backend" ON)
 option(JADEFRAME_ENABLE_VULKAN "Build the Vulkan renderer backend" ON)
@@ -21,6 +18,8 @@ endif()
 if(BUILD_TESTING)
     find_package(GTest REQUIRED)
     message(STATUS "Found GTest: ${GTEST_FOUND}. Includes: ${GTEST_INCLUDE_DIRS}")
+    jadeframe_mark_vendor_target_as_system(GTest::gtest)
+    jadeframe_mark_vendor_target_as_system(GTest::gtest_main)
 
     function(jadeframe_add_project_test target)
         cmake_parse_arguments(JF_TEST "" "" "SOURCES;LIBRARIES" ${ARGN})
@@ -29,6 +28,7 @@ if(BUILD_TESTING)
         endif()
 
         add_executable(${target} ${JF_TEST_SOURCES})
+        jadeframe_enable_warnings(${target})
         target_link_libraries(${target}
             PRIVATE
                 ${JF_TEST_LIBRARIES}
@@ -59,7 +59,10 @@ set(BUILD_TESTING OFF)
 
 if(JADEFRAME_ENABLE_VULKAN)
     add_subdirectory(src/extern/VulkanMemoryAllocator/)
-    target_include_directories(VulkanMemoryAllocator INTERFACE src/extern/)
+    target_include_directories(VulkanMemoryAllocator SYSTEM INTERFACE src/extern/)
+    jadeframe_mark_vendor_target_as_system(VulkanMemoryAllocator)
+    jadeframe_mark_vendor_target_as_system(GPUOpen::VulkanMemoryAllocator)
+    jadeframe_mark_vendor_target_as_system(Vulkan::Vulkan)
 endif()
 # Add GLFW
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -67,6 +70,7 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 add_subdirectory(src/extern/glfw/)
+jadeframe_mark_vendor_target_as_system(glfw)
 
 
 # Assimp
@@ -120,6 +124,7 @@ endif()
 if(NOT TARGET assimp::assimp)
     message(FATAL_ERROR "Assimp does not provide the assimp::assimp target")
 endif()
+jadeframe_mark_vendor_target_as_system(assimp::assimp)
 
 
 
@@ -159,7 +164,7 @@ add_library(imgui
         ${imgui_platform_specific_sources}
 )
 target_include_directories(imgui
-    PUBLIC
+    SYSTEM PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/src/extern"
         "${imgui_DIR}"
         "${imgui_DIR}/backends"
@@ -176,8 +181,14 @@ target_link_libraries(imgui PRIVATE glfw)
 # endif()
 add_subdirectory(src/extern/stb/)
 add_subdirectory(src/extern/glad/)
+jadeframe_mark_vendor_target_as_system(stb)
+jadeframe_mark_vendor_target_as_system(glad)
 
 add_subdirectory(src/extern/spdlog/)
+jadeframe_mark_vendor_target_as_system(spdlog)
+jadeframe_mark_vendor_target_as_system(spdlog::spdlog)
+jadeframe_mark_vendor_target_as_system(spdlog_header_only)
+jadeframe_mark_vendor_target_as_system(spdlog::spdlog_header_only)
 
 # TODO: shaderc and SPIRV-Cross take a long time to compile. Find ways to cache their compilation.
 
@@ -197,6 +208,7 @@ if(USE_SYSTEM_SHADERC)
 
     add_library(shaderc INTERFACE IMPORTED)
     target_link_libraries(shaderc INTERFACE PkgConfig::SYSTEM_SHADERC)
+    jadeframe_mark_vendor_target_as_system(PkgConfig::SYSTEM_SHADERC)
     message(STATUS "Using system shaderc ${SYSTEM_SHADERC_VERSION}")
 else()
     message("Did not find prebuilt shaderc. Building shaderc from source. This will take a while.")
@@ -216,6 +228,7 @@ else()
         JADEFRAME_EXTERNAL_TESTS
     )
 endif()
+jadeframe_mark_vendor_target_as_system(shaderc)
 
 # TODO: as of right now we do not need metal and hlsl support.
 # set(SPIRV_CROSS_CLI OFF)
@@ -224,6 +237,10 @@ endif()
 set(SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
 set(SPIRV_CROSS_CLI OFF CACHE BOOL "" FORCE)
 add_subdirectory(src/extern/SPIRV-Cross/ EXCLUDE_FROM_ALL)
+jadeframe_mark_vendor_target_as_system(spirv-cross-core)
+jadeframe_mark_vendor_target_as_system(spirv-cross-glsl)
+jadeframe_mark_vendor_target_as_system(spirv-cross-hlsl)
+jadeframe_mark_vendor_target_as_system(spirv-cross-msl)
 jadeframe_collect_tests_under(
     "${CMAKE_CURRENT_SOURCE_DIR}/src/extern/SPIRV-Cross"
     JADEFRAME_EXTERNAL_TESTS
@@ -252,6 +269,7 @@ add_library(jadeframe_logger
         "src/JadeFrame/utils/logger.cpp"
 )
 jadeframe_enable_sanitizers(jadeframe_logger)
+jadeframe_enable_warnings(jadeframe_logger)
 target_link_libraries(jadeframe_logger
     # jadeframe_logger is a static implementation library. Its fmt/spdlog
     # objects must remain on the final link line, but the public JadeFrame
@@ -305,6 +323,7 @@ set(ALL_FILES
 ################################################################################
 add_library(${PROJECT_NAME} STATIC ${ALL_FILES})
 jadeframe_enable_sanitizers(${PROJECT_NAME})
+jadeframe_enable_warnings(${PROJECT_NAME})
 # target_link_libraries(${PROJECT_NAME} PRIVATE pthread)
 
 
@@ -348,48 +367,6 @@ if(WIN32)
         _UNICODE
     )
 endif()
-
-################################################################################
-# Compile options
-################################################################################
-set(COMPILE_OPTIONS 
-    # -O3
-)
-if(MSVC)
-    list(APPEND COMPILE_OPTIONS
-        $<$<CONFIG:Release>:
-            /Oi;
-            /Gy
-        >
-        # /permissive-;
-        /sdl;
-        /W4;
-    )
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    
-    list(APPEND COMPILE_OPTIONS
-        -g
-        -O0
-    )
-    list(APPEND COMPILE_OPTIONS
-        -Wall
-        -Wextra
-        # -Weverything
-        -Wpedantic
-        # -Werror
-        # -Werror
-    )
-
-    # list(APPEND COMPILE_OPTIONS
-    #     -fsanitize=address,undefined
-    #     -fno-omit-frame-pointer
-    #     -fno-sanitize=signed-integer-overflow
-    #     -fno-sanitize-recover=all
-    # )
-endif()
-target_compile_options(${PROJECT_NAME} PRIVATE
-    ${COMPILE_OPTIONS}
-)
 
 ################################################################################
 # Link options
