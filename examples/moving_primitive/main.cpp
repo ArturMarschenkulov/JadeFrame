@@ -37,15 +37,15 @@ struct Example_Moving_Primitive_2 {
         // x^(2.2)
         // x^(1/2.2)
         const jf::f32 factor = 0.1F;
-        for (int i = 0; i < col[0].size(); i++) {
+        for (std::size_t i = 0; i < col[0].size(); i++) {
             auto p = factor * static_cast<jf::f32>(i);
             col[0][i] = jf::RGBAColor::from_rgb(p, p, p);
         }
-        for (int i = 0; i < col[1].size(); i++) {
+        for (std::size_t i = 0; i < col[1].size(); i++) {
             auto p = factor * static_cast<jf::f32>(i);
             col[1][i] = jf::RGBAColor::from_rgb(p, p, p).gamma_decode();
         }
-        for (int i = 0; i < col[2].size(); i++) {
+        for (std::size_t i = 0; i < col[2].size(); i++) {
             auto p = factor * static_cast<jf::f32>(i);
             col[2][i] = jf::RGBAColor::from_rgb(p, p, p).gamma_encode();
         }
@@ -90,7 +90,7 @@ struct Example_Moving_Primitive_2 {
     }
 
     auto on_update(jf::Application& app) -> void {
-        jf::Instance* s = jf::Instance::get_singleton();
+        (void)app;
     }
 
     auto on_draw(jf::Application& app) -> void {

@@ -48,7 +48,7 @@ struct Example_Moving_Quad {
     }
 
     auto on_update(jf::Application& app) -> void {
-        auto input_state = app.m_windows[0]->m_input_state;
+        (void)app;
     }
 
     auto on_draw(jf::Application& app) -> void { app.m_render_system.submit(m_quad); }

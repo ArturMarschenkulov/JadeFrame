@@ -77,6 +77,7 @@ struct Example_Rotating_Primitive {
     }
 
     auto on_update(jf::Application& app) -> void {
+        (void)app;
 
         using namespace std::chrono;
         static auto start_time = high_resolution_clock::now();

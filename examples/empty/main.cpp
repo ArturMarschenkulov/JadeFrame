@@ -6,11 +6,11 @@
 namespace jf = JadeFrame;
 
 struct Example_Empty {
-    static auto on_init(jf::Application& app) -> void {}
+    static auto on_init(jf::Application& app) -> void { (void)app; }
 
-    static auto on_update(jf::Application& app) -> void {}
+    static auto on_update(jf::Application& app) -> void { (void)app; }
 
-    static auto on_draw(jf::Application& app) -> void {}
+    static auto on_draw(jf::Application& app) -> void { (void)app; }
 };
 
 auto main() -> int {

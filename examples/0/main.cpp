@@ -94,8 +94,6 @@ struct Checkerbox {
         , y(pos.y)
         , m_size(size) {
 
-        jf::Application* app = g_state.m_current_app;
-        const jf::f32    window_width = app->m_current_window_p->get_size().x;
     }
 
     auto show() -> void {
@@ -219,6 +217,7 @@ struct Example_0 {
     }
 
     auto on_draw(jf::Application& app) -> void {
+        (void)app;
         for (jf::u32 i = 0; i < drops.size(); i++) { drops[i].show(); }
         for (jf::u32 i = 0; i < m_checkerbox.size(); i++) { m_checkerbox[i].show(); }
         // m_render_system.submit(thingies[0].obj);

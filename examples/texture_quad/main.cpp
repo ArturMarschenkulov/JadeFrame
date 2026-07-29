@@ -52,7 +52,6 @@ static auto draw_rectangle(
     obj.m_transform.m_scale = scale;
     obj.m_transform.m_rotation = jf::mat4x4::identity();
 
-    jf::Mesh& m = state.vd_rectangle;
     obj.m_mesh = state.mesh_rectangle;
 
     obj.m_vertex_data = &state.vd_rectangle;
@@ -217,7 +216,10 @@ struct Example_Texture_Quad {
         state.vd_teapot = teapot;
     }
 
-    static auto on_update(jf::Application& app, State& state) -> void {}
+    static auto on_update(jf::Application& app, State& state) -> void {
+        (void)app;
+        (void)state;
+    }
 
     static auto on_draw(jf::Application& app, State& state) -> void {
         draw_rectangle(state, 0, 0, 100, 100, state.material_face);
