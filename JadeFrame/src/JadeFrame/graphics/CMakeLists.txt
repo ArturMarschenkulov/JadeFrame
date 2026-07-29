@@ -18,6 +18,7 @@ set(Core_Files
 
 add_library(jadeframe_core STATIC ${Core_Files})
 jadeframe_enable_sanitizers(jadeframe_core)
+jadeframe_enable_warnings(jadeframe_core)
 target_link_libraries(jadeframe_core
     PUBLIC
         jadeframe_math
@@ -47,6 +48,7 @@ add_library(jadeframe_graphics STATIC
     "renderer_factory.cpp"
 )
 jadeframe_enable_sanitizers(jadeframe_graphics)
+jadeframe_enable_warnings(jadeframe_graphics)
 target_link_libraries(jadeframe_graphics
     PUBLIC
         jadeframe_core

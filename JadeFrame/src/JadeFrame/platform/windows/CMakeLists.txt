@@ -9,6 +9,7 @@ add_library(platform-win32
     "windows_window.cpp"
 )
 jadeframe_enable_sanitizers(platform-win32)
+jadeframe_enable_warnings(platform-win32)
 
 target_link_libraries(platform-win32
     PUBLIC
@@ -27,17 +28,3 @@ target_compile_definitions(platform-win32 PRIVATE
     UNICODE
     _UNICODE
 )
-# if(MSVC)
-#     target_compile_options(platform-win32 PRIVATE
-#         /EHsc
-#     )
-# elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-#     target_compile_options(platform-win32 PRIVATE
-#         -Wall 
-#         -Wextra 
-#         -Wpedantic 
-#         # -Werror
-#     )
-# elseif(CMKAKE_CXX_COMPILER_ID STREQUAL "GNU")
-#     message(ERROR "GCC is not supported yet")
-# endif()

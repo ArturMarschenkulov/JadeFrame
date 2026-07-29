@@ -15,6 +15,7 @@ set(Files
 
 add_library(jadeframe_math STATIC ${Files})
 jadeframe_enable_sanitizers(jadeframe_math)
+jadeframe_enable_warnings(jadeframe_math)
 target_link_libraries(jadeframe_math
     PUBLIC
         jadeframe_utils

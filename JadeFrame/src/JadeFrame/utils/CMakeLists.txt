@@ -13,6 +13,7 @@ set(Files
 
 add_library(jadeframe_utils STATIC ${Files})
 jadeframe_enable_sanitizers(jadeframe_utils)
+jadeframe_enable_warnings(jadeframe_utils)
 target_link_libraries(jadeframe_utils
     PUBLIC
         jadeframe_prelude

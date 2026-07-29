@@ -6,6 +6,7 @@ add_library(jadeframe_assets STATIC
     "asset_loader.cpp"
 )
 jadeframe_enable_sanitizers(jadeframe_assets)
+jadeframe_enable_warnings(jadeframe_assets)
 
 target_link_libraries(jadeframe_assets
     PUBLIC

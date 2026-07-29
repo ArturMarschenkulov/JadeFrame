@@ -13,6 +13,7 @@ set(Files
 
 add_library(jadeframe_platform STATIC ${Files})
 jadeframe_enable_sanitizers(jadeframe_platform)
+jadeframe_enable_warnings(jadeframe_platform)
 
 IF(WIN32)
     set(ADDITIONAL_LIBRARY_DEPENDENCIES

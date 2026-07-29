@@ -39,6 +39,7 @@ endif()
 
 add_library(jadeframe_backend_vulkan ${SOURCE_FILES})
 jadeframe_enable_sanitizers(jadeframe_backend_vulkan)
+jadeframe_enable_warnings(jadeframe_backend_vulkan)
 
 target_link_libraries(jadeframe_backend_vulkan
     PUBLIC

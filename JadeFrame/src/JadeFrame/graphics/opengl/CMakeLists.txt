@@ -32,6 +32,7 @@ add_library(jadeframe_backend_opengl
     ${PLATFORM_DEPENDENT_FILES}
 )
 jadeframe_enable_sanitizers(jadeframe_backend_opengl)
+jadeframe_enable_warnings(jadeframe_backend_opengl)
 IF(WIN32)
     set(PLATFORM_DEPENDENT_DEPENDENCIES
         opengl32
