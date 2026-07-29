@@ -67,7 +67,7 @@ struct Example_Moving_Primitive_2 {
                         .m_data = jf::to_list(positions)
                     };
 
-                vertex_data->set_color(col[i][j]);
+                (void)vertex_data->set_color(col[i][j]);
                 jf::Transform transform = {};
                 transform.m_translation = jf::mat4x4::translation(
                     jf::v3::create(

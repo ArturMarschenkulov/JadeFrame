@@ -315,11 +315,28 @@ auto Vulkan_Renderer::render(const Camera& camera) -> void {
 
 auto Vulkan_Renderer::render_mesh(const Mesh* vertex_data, const GPUMeshData* gpu_data)
     -> void {
-    // const auto& s = vertex_data->m_attributes.at(Mesh::POSITION.m_id);
-    const auto& position_attribute = vertex_data->m_attributes.at(Mesh::POSITION.m_id);
-    const u32   num_vertices = static_cast<u32>(
-        position_attribute.m_data.size() / component_count(Mesh::POSITION.m_format)
-    );
+    if (vertex_data == nullptr || gpu_data == nullptr) {
+        Logger::err("Cannot render a mesh with incomplete render data");
+        return;
+    }
+    auto validation = vertex_data->validate();
+    if (validation.is_err()) {
+        Logger::err("Cannot render an invalid mesh: {}", validation.error().m_message);
+        return;
+    }
+    if (gpu_data->m_vertex_buffer == nullptr ||
+        gpu_data->m_vertex_buffer->m_handle == nullptr) {
+        Logger::err("Cannot render a mesh without a valid vertex buffer");
+        return;
+    }
+
+    const auto* position_attribute = vertex_data->attribute_data(Mesh::POSITION.m_id);
+    if (position_attribute == nullptr ||
+        position_attribute->count() > std::numeric_limits<u32>::max()) {
+        Logger::err("Mesh contains an invalid vertex count for Vulkan");
+        return;
+    }
+    const u32 num_vertices = static_cast<u32>(position_attribute->count());
     const auto& num_indices = static_cast<u32>(vertex_data->m_indices.size());
 
     const vulkan::Buffer* vertex_buffer =
@@ -329,6 +346,11 @@ auto Vulkan_Renderer::render_mesh(const Mesh* vertex_data, const GPUMeshData* gp
     cb.bind_vertex_buffer(0, *vertex_buffer, 0);
 
     if (!vertex_data->m_indices.empty()) {
+        if (gpu_data->m_index_buffer == nullptr ||
+            gpu_data->m_index_buffer->m_handle == nullptr) {
+            Logger::err("Cannot render indexed mesh without an index buffer");
+            return;
+        }
         const vulkan::Buffer* index_buffer =
             static_cast<vulkan::Buffer*>(gpu_data->m_index_buffer->m_handle);
         cb.bind_index_buffer(*index_buffer, 0);

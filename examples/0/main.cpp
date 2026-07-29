@@ -45,7 +45,7 @@ static auto draw_rectangle(
     obj.m_transform.m_scale = scale;
 
     jf::Mesh& m = g_state.rectangle_vd;
-    m.set_color(jf::RGBAColor::from_rgba_u32(138, 43, 226, 255));
+    (void)m.set_color(jf::RGBAColor::from_rgba_u32(138, 43, 226, 255));
     obj.m_mesh = g_state.rectangle_mesh;
 
     obj.m_vertex_data = &g_state.rectangle_vd;
@@ -173,10 +173,18 @@ struct Example_0 {
 
             jf::MeshBuilder::Desc vdf_desc;
             vdf_desc.has_normals = false;
-            jf::Mesh rectangle_vd = jf::MeshBuilder::rectangle(
+            auto rectangle_result = jf::MeshBuilder::rectangle(
                 jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc
             );
-            rectangle_vd.set_color(jf::RGBAColor::solid_blue());
+            if (rectangle_result.is_err()) {
+                jf::Logger::err(
+                    "Failed to build rectangle: {}",
+                    rectangle_result.error().m_message
+                );
+                return;
+            }
+            jf::Mesh rectangle_vd = std::move(rectangle_result).value();
+            (void)rectangle_vd.set_color(jf::RGBAColor::solid_blue());
             jf::GPUMeshData* rectangle_mesh =
                 app.m_render_system.register_mesh(rectangle_vd);
 

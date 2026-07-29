@@ -142,10 +142,18 @@ GPUMeshData::GPUMeshData(
     bool          interleaved
 ) {
 
-    const std::vector<f32> flat_data = convert_into_data(vertex_data, interleaved);
+    auto flat_data_result = convert_into_data(vertex_data, interleaved);
+    if (flat_data_result.is_err()) {
+        Logger::err(
+            "Cannot create GPU mesh from invalid mesh: {}",
+            flat_data_result.error().m_message
+        );
+        return;
+    }
+    std::vector<f32> flat_data = std::move(flat_data_result).value();
 
-    void*  data = (void*)flat_data.data();
-    size_t size = sizeof(flat_data[0]) * flat_data.size();
+    void*  data = flat_data.empty() ? nullptr : static_cast<void*>(flat_data.data());
+    size_t size = sizeof(f32) * flat_data.size();
     m_vertex_buffer =
         std::make_unique<GPUBuffer>(system, data, size, GPUBuffer::TYPE::VERTEX);
 
@@ -363,6 +371,14 @@ auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHand
  * @return u32
  */
 auto RenderSystem::register_mesh(const Mesh& data) -> GPUMeshData* {
+    auto validation = data.validate();
+    if (validation.is_err()) {
+        Logger::err(
+            "Cannot register invalid mesh: {}",
+            validation.error().m_message
+        );
+        return nullptr;
+    }
     m_registered_meshes.emplace_back(this, data);
     return &m_registered_meshes.back();
 }
@@ -433,7 +449,25 @@ auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* textur
 }
 
 auto RenderSystem::submit(const Object& obj) -> void {
-    // TODO(artur): Check whether the vertex data is matches the shader's vertex format
+    if (obj.m_vertex_data == nullptr || obj.m_mesh == nullptr || obj.m_material == nullptr) {
+        Logger::err("Cannot submit an object with an incomplete render resource set");
+        return;
+    }
+
+    auto validation = obj.m_vertex_data->validate();
+    if (validation.is_err()) {
+        Logger::err(
+            "Cannot submit an invalid mesh: {}",
+            validation.error().m_message
+        );
+        return;
+    }
+    if (obj.m_mesh->m_vertex_buffer == nullptr ||
+        obj.m_mesh->m_vertex_buffer->m_handle == nullptr) {
+        Logger::err("Cannot submit an object without a valid vertex buffer");
+        return;
+    }
+
     const RenderCommand command = {
         .transform = obj.m_transform.calculate(),
         .vertex_data = obj.m_vertex_data,

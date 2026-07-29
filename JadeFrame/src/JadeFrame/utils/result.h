@@ -6,129 +6,25 @@
 
 #include <concepts>
 #include <type_traits>
+#include <variant>
 
 namespace JadeFrame {
 namespace result {
 
 namespace details {
-struct ResultTag {
-    explicit ResultTag() = default;
-};
-
-struct ErrorTag {
-    explicit ErrorTag() = default;
-};
-
-template<typename T, typename E>
-class Storage {
-public:
-    bool m_has_value;
-};
-
-template<typename T, typename E>
-    requires std::is_lvalue_reference_v<T>
-class Storage<T, E> {
-public:
-    constexpr Storage(const Storage& o)
-        : m_value(o.m_value)
-        , m_has_value(o.m_has_value) {}
-
-    constexpr Storage(Storage&& o)
-        : m_value(o.m_value)
-        , m_has_value(o.m_has_value) {
-        o.m_has_value = false;
-        o.m_value = nullptr;
-    }
-
-    constexpr Storage(const T& v)
-        : m_error(v)
-        , m_has_value(false) {}
-
-    constexpr Storage(T&& v)
-        requires(!std::is_lvalue_reference_v<T>)
-        : m_error(v)
-        , m_has_value(false) {}
-
-    constexpr Storage(details::ErrorTag, E& v)
-        : m_error(v)
-        , m_has_value(false) {}
-
-    constexpr Storage(details::ErrorTag, E&& v)
-        requires(!std::is_lvalue_reference_v<E>)
-        : m_error(v)
-        , m_has_value(false) {}
-
-    constexpr ~Storage() {
-        if (m_has_value) {
-            m_value = nullptr;
-        } else {
-            m_error.~E();
-        }
-    }
-
-private:
-    union {
-        std::remove_reference_t<T>* m_value;
-        E                           m_error;
-    };
-
-    bool m_has_value;
-};
-
-template<typename T, typename E>
-    requires(!std::is_lvalue_reference_v<T>)
-class Storage<T, E> {
-public:
-    constexpr Storage(const T& v)
-        : m_has_value(true) {
-        new (&m_value) T(v);
-    }
-
-    constexpr Storage(T&& v)
-        requires(!std::is_lvalue_reference_v<T>)
-        : m_has_value(true) {
-        new (&m_value) T(std::forward<T>(v));
-    }
-
-    constexpr Storage(details::ErrorTag, E& v)
-        : m_has_value(false) {
-        new (&m_error) E(v);
-    }
-
-    constexpr Storage(details::ErrorTag, E&& v)
-        requires(!std::is_lvalue_reference_v<T>)
-        : m_has_value(false) {
-        new (&m_error) E(std::forward<E>(v));
-    }
-
-    ~Storage() {
-        if (m_has_value) {
-            m_value.~T();
-        } else {
-            m_error.~E();
-        }
-    }
-
-private:
-    union {
-        T m_value;
-        E m_error;
-    };
-
-    bool m_has_value;
-};
+template<typename T>
+using StoredValue = std::conditional_t<
+    std::is_lvalue_reference_v<T>,
+    std::reference_wrapper<std::remove_reference_t<T>>,
+    T
+>;
 } // namespace details
-
-enum ResultType {
-    OK,
-    ERR
-};
 
 template<typename E>
 class Failure {
 public:
     Failure(E error)
-        : m_error(error) {}
+        : m_error(std::move(error)) {}
 
     E m_error;
 };
@@ -154,37 +50,82 @@ class Result {
 public:
     constexpr Result()
         requires(std::is_default_constructible_v<T>)
-        : m_storage() {}
+        : m_storage(std::in_place_index<0>) {}
 
-    constexpr Result(const Result& o)
-        : m_storage(o.m_storage) {}
+    constexpr Result(const Result&) = default;
+    constexpr Result(Result&&) = default;
+    constexpr auto operator=(const Result&) -> Result& = default;
+    constexpr auto operator=(Result&&) -> Result& = default;
 
-    constexpr Result(Result&& o)
-        requires(!std::is_lvalue_reference_v<T>)
-        : m_storage(std::forward<Result>(o.m_storage)) {}
+    template<typename U>
+        requires(
+            !std::is_lvalue_reference_v<T> &&
+            !std::same_as<std::remove_cvref_t<U>, Failure<E>> &&
+            std::constructible_from<T, U&&>
+        )
+    constexpr Result(U&& v)
+        : m_storage(std::in_place_index<0>, std::forward<U>(v)) {}
 
-    constexpr Result(const T& v)
-        : m_storage(v) {}
+    constexpr Result(T v)
+        requires(std::is_lvalue_reference_v<T>)
+        : m_storage(std::in_place_index<0>, std::ref(v)) {}
 
     constexpr Result(const Failure<E>& f)
-        : m_storage(details::ErrorTag{}, f.m_error) {}
+        : m_storage(std::in_place_index<1>, f.m_error) {}
 
     constexpr Result(Failure<E>&& f)
-        : m_storage(details::ErrorTag{}, std::forward<E>(f.m_error)) {}
+        : m_storage(std::in_place_index<1>, std::move(f.m_error)) {}
 
-    constexpr Result(T&& v)
-        requires(!std::is_lvalue_reference_v<T>)
-        : m_storage(std::forward<T>(std::move(v))) {}
-
-    constexpr ~Result() {}
+    constexpr ~Result() = default;
 
 public:
-    [[nodiscard]] auto is_ok() const -> bool { return m_storage.m_has_value; }
+    [[nodiscard]] auto is_ok() const -> bool {
+        return m_storage.index() == 0;
+    }
 
     [[nodiscard]] auto is_err() const -> bool { return !this->is_ok(); }
 
+    [[nodiscard]] auto value() & -> decltype(auto) {
+        return this->value_storage();
+    }
+
+    [[nodiscard]] auto value() const& -> decltype(auto) {
+        return this->value_storage();
+    }
+
+    [[nodiscard]] auto value() && -> T {
+        if constexpr (std::is_lvalue_reference_v<T>) {
+            return std::get<0>(m_storage).get();
+        } else {
+            return std::move(std::get<0>(m_storage));
+        }
+    }
+
+    [[nodiscard]] auto error() & -> E& { return std::get<1>(m_storage); }
+
+    [[nodiscard]] auto error() const& -> const E& { return std::get<1>(m_storage); }
+
+    [[nodiscard]] auto error() && -> E { return std::move(std::get<1>(m_storage)); }
+
 private:
-    details::Storage<T, E> m_storage;
+    using StoredT = details::StoredValue<T>;
+    std::variant<StoredT, E> m_storage;
+
+    auto value_storage() -> decltype(auto) {
+        if constexpr (std::is_lvalue_reference_v<T>) {
+            return std::get<0>(m_storage).get();
+        } else {
+            return (std::get<0>(m_storage));
+        }
+    }
+
+    auto value_storage() const -> decltype(auto) {
+        if constexpr (std::is_lvalue_reference_v<T>) {
+            return std::get<0>(m_storage).get();
+        } else {
+            return (std::get<0>(m_storage));
+        }
+    }
 };
 
 } // namespace result

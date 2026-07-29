@@ -1,5 +1,6 @@
 #include "JadeFrame/base_app.h"
 #include "JadeFrame/math/vec.h"
+#include "JadeFrame/utils/logger.h"
 #include <JadeFrame.h>
 #include <JadeFrame/math/math.h>
 #include <JadeFrame/graphics/mesh.h>
@@ -33,12 +34,17 @@ struct Example_Moving_Quad {
         vdf_desc.has_normals = true;
 
         auto mesh_builder = jf::Mesh::builder();
-        m_quad_mesh = mesh_builder.rectangle(
+        auto mesh_result = mesh_builder.rectangle(
             jf::v3::create(320.0F, 320.0F, 0.0F),
             jf::v3::create(160.0F, 160.0F, 0.0F),
             vdf_desc
         );
-        m_quad_mesh.set_color(jf::RGBAColor::solid_red());
+        if (mesh_result.is_err()) {
+            jf::Logger::err("Failed to build moving quad: {}", mesh_result.error().m_message);
+            return;
+        }
+        m_quad_mesh = std::move(mesh_result).value();
+        (void)m_quad_mesh.set_color(jf::RGBAColor::solid_red());
 
         jf::GPUMeshData* mesh_data = app.m_render_system.register_mesh(m_quad_mesh);
         m_quad.m_mesh = mesh_data;

@@ -3,6 +3,7 @@
 #include "JadeFrame/graphics/camera.h"
 #include "JadeFrame/graphics/graphics_shared.h"
 #include "JadeFrame/graphics/mesh.h"
+#include "JadeFrame/utils/logger.h"
 #include "JadeFrame/math/math.h"
 #include "JadeFrame/types.h"
 #include "JadeFrame/assets/asset_loader.h"
@@ -166,29 +167,52 @@ struct Example_Texture_Quad {
 
         jf::MeshBuilder::Desc vdf_desc;
         vdf_desc.has_normals = false;
-        jf::Mesh vd_rectangle = jf::MeshBuilder::rectangle(
+        auto rectangle_result = jf::MeshBuilder::rectangle(
             jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc
         );
-        vd_rectangle.set_color(jf::RGBAColor::solid_blue());
+        if (rectangle_result.is_err()) {
+            jf::Logger::err(
+                "Failed to build textured rectangle: {}",
+                rectangle_result.error().m_message
+            );
+            return;
+        }
+        jf::Mesh vd_rectangle = std::move(rectangle_result).value();
+        (void)vd_rectangle.set_color(jf::RGBAColor::solid_blue());
         jf::GPUMeshData* mesh_rectangle = app.m_render_system.register_mesh(vd_rectangle);
 
         jf::MeshBuilder::Desc vdf_desc_;
         vdf_desc_.has_normals = false;
         vdf_desc_.has_texture_coordinates = false;
 
-        jf::Mesh vd_gizmo_x = jf::MeshBuilder::rectangle(
+        auto gizmo_x_result = jf::MeshBuilder::rectangle(
             jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_
         );
-        vd_gizmo_x.set_color(jf::RGBAColor::solid_red());
+        if (gizmo_x_result.is_err()) {
+            jf::Logger::err("Failed to build X gizmo: {}", gizmo_x_result.error().m_message);
+            return;
+        }
+        jf::Mesh vd_gizmo_x = std::move(gizmo_x_result).value();
+        (void)vd_gizmo_x.set_color(jf::RGBAColor::solid_red());
 
-        jf::Mesh vd_gizmo_y = jf::MeshBuilder::rectangle(
+        auto gizmo_y_result = jf::MeshBuilder::rectangle(
             jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_
         );
-        vd_gizmo_y.set_color(jf::RGBAColor::solid_green());
-        jf::Mesh vd_gizmo_z = jf::MeshBuilder::rectangle(
+        if (gizmo_y_result.is_err()) {
+            jf::Logger::err("Failed to build Y gizmo: {}", gizmo_y_result.error().m_message);
+            return;
+        }
+        jf::Mesh vd_gizmo_y = std::move(gizmo_y_result).value();
+        (void)vd_gizmo_y.set_color(jf::RGBAColor::solid_green());
+        auto gizmo_z_result = jf::MeshBuilder::rectangle(
             jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_
         );
-        vd_gizmo_z.set_color(jf::RGBAColor::solid_blue());
+        if (gizmo_z_result.is_err()) {
+            jf::Logger::err("Failed to build Z gizmo: {}", gizmo_z_result.error().m_message);
+            return;
+        }
+        jf::Mesh vd_gizmo_z = std::move(gizmo_z_result).value();
+        (void)vd_gizmo_z.set_color(jf::RGBAColor::solid_blue());
 
         jf::GPUMeshData* mesh_gizmo_x = app.m_render_system.register_mesh(vd_gizmo_x);
         jf::GPUMeshData* mesh_gizmo_y = app.m_render_system.register_mesh(vd_gizmo_y);
@@ -196,7 +220,7 @@ struct Example_Texture_Quad {
 
         fs::path path_teapot = fs::path("resource") / "default_blender_cube_1.obj";
         jf::Mesh teapot = jf::AssetLoader::load_obj(path_teapot.string());
-        teapot.set_color(jf::RGBAColor::solid_yellow());
+        (void)teapot.set_color(jf::RGBAColor::solid_yellow());
         jf::GPUMeshData* mesh_teapot = app.m_render_system.register_mesh(teapot);
 
         state.material_wall = material_wall;

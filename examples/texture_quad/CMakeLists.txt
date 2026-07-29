@@ -12,6 +12,7 @@ jadeframe_enable_warnings(${PROJECT_NAME})
 
 target_link_libraries(${PROJECT_NAME} 
     PUBLIC JadeFrame
+    PRIVATE jadeframe_logger
 )
 
 set(RESOURCE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/resource)

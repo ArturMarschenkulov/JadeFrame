@@ -12,4 +12,5 @@ jadeframe_enable_warnings(${PROJECT_NAME})
 
 target_link_libraries(${PROJECT_NAME} 
     PUBLIC JadeFrame
+    PRIVATE jadeframe_logger
 )

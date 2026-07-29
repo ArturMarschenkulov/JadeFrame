@@ -256,9 +256,20 @@ auto OpenGL_Renderer::render_mesh(
     // TODO: Considering we are replicating Vulkan's way of doing things, the primitive
     // type should be defined in the pipeline or shader, and here it should be simply
     // queried.
-    assert(vao != nullptr);
-    assert(gpu_data != nullptr);
-    assert(vertex_data != nullptr);
+    if (vao == nullptr || gpu_data == nullptr || vertex_data == nullptr) {
+        Logger::err("Cannot render a mesh with incomplete render data");
+        return;
+    }
+    auto validation = vertex_data->validate();
+    if (validation.is_err()) {
+        Logger::err("Cannot render an invalid mesh: {}", validation.error().m_message);
+        return;
+    }
+    if (gpu_data->m_vertex_buffer == nullptr ||
+        gpu_data->m_vertex_buffer->m_handle == nullptr) {
+        Logger::err("Cannot render a mesh without a valid vertex buffer");
+        return;
+    }
 
     m_context.bind_vertex_array(*vao);
     auto* vertex_buffer =
@@ -267,6 +278,16 @@ auto OpenGL_Renderer::render_mesh(
 
     auto prim_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
     if (!vertex_data->m_indices.empty()) {
+        if (gpu_data->m_index_buffer == nullptr ||
+            gpu_data->m_index_buffer->m_handle == nullptr) {
+            Logger::err("Cannot render indexed mesh without an index buffer");
+            return;
+        }
+        if (vertex_data->m_indices.size() >
+            static_cast<size_t>(std::numeric_limits<GLsizei>::max())) {
+            Logger::err("Mesh contains too many indices for OpenGL");
+            return;
+        }
         auto  num_indices = static_cast<GLsizei>(vertex_data->m_indices.size());
         auto  gl_type = GL_UNSIGNED_INT;
         auto* index_buffer =
@@ -274,11 +295,14 @@ auto OpenGL_Renderer::render_mesh(
         glVertexArrayElementBuffer(vao->m_ID, index_buffer->m_id);
         glDrawElements(prim_type, num_indices, gl_type, nullptr);
     } else {
-        const auto& position_attribute =
-            vertex_data->m_attributes.at(Mesh::POSITION.m_id);
-        auto num_vertices = static_cast<GLsizei>(
-            position_attribute.m_data.size() / component_count(Mesh::POSITION.m_format)
-        );
+        const auto* position_attribute = vertex_data->attribute_data(Mesh::POSITION.m_id);
+        if (position_attribute == nullptr ||
+            position_attribute->count() >
+                static_cast<size_t>(std::numeric_limits<GLsizei>::max())) {
+            Logger::err("Mesh contains an invalid vertex count for OpenGL");
+            return;
+        }
+        auto num_vertices = static_cast<GLsizei>(position_attribute->count());
         glDrawArrays(prim_type, 0, num_vertices);
     }
 }
@@ -346,12 +370,29 @@ auto OpenGL_Renderer::RenderTarget::init(
     const v2 viewport_pos = v2::create(-1.0F, -1.0F);
     const v2 viewport_size = v2::create(2.0F, 2.0F);
 
-    m_mesh = MeshBuilder::rectangle_opengl(
+    auto mesh_result = MeshBuilder::rectangle_opengl(
         v3::create(viewport_pos.x, viewport_pos.y, 0.0F),
         v3::create(viewport_size.x, viewport_size.y, 0.0F),
         vdf_desc
     );
-    std::vector<f32> data = convert_into_data(m_mesh, true);
+    if (mesh_result.is_err()) {
+        Logger::err(
+            "Failed to create the OpenGL render-target mesh: {}",
+            mesh_result.error().m_message
+        );
+        return;
+    }
+    m_mesh = std::move(mesh_result).value();
+
+    auto data_result = convert_into_data(m_mesh, true);
+    if (data_result.is_err()) {
+        Logger::err(
+            "Failed to convert the OpenGL render-target mesh: {}",
+            data_result.error().m_message
+        );
+        return;
+    }
+    std::vector<f32> data = std::move(data_result).value();
     u32              size = static_cast<u32>(data.size() * sizeof(f32));
     m_vertex_buffer =
         context->create_buffer(opengl::Buffer::TYPE::VERTEX, data.data(), size);
@@ -362,6 +403,15 @@ auto OpenGL_Renderer::RenderTarget::init(
 }
 
 auto OpenGL_Renderer::RenderTarget::render(RenderSystem* /*system*/) -> void {
+
+    auto validation = m_mesh.validate();
+    if (validation.is_err()) {
+        Logger::err(
+            "Cannot render the OpenGL render target mesh: {}",
+            validation.error().m_message
+        );
+        return;
+    }
 
     ShaderHandle& sh_ = *m_shader;
     auto*         sh = static_cast<opengl::Shader*>(sh_.m_handle.get());
@@ -376,17 +426,20 @@ auto OpenGL_Renderer::RenderTarget::render(RenderSystem* /*system*/) -> void {
     vao->bind_buffer(*m_vertex_buffer);
     auto prim_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
     if (!m_mesh.m_indices.empty()) {
+        if (m_mesh.m_indices.size() != 6) {
+            Logger::err("The framebuffer mesh must have 6 indices");
+            return;
+        }
         auto num_indices = static_cast<GLsizei>(m_mesh.m_indices.size());
-        assert((num_indices == 6) && "The framebuffer mesh must have 6 indices");
         auto gl_type = GL_UNSIGNED_INT;
         glDrawElements(prim_type, num_indices, gl_type, nullptr);
     } else {
-        u32               component_amount = component_count(Mesh::POSITION.m_format);
-        std::vector<f32>& position_data =
-            m_mesh.m_attributes.at(Mesh::POSITION.m_id).m_data;
-        GLsizei num_vertices =
-            static_cast<GLsizei>(position_data.size()) / component_amount;
-        assert((num_vertices == 6) && "The framebuffer mesh must have 6 indices");
+        const auto* position_data = m_mesh.attribute_data(Mesh::POSITION.m_id);
+        if (position_data == nullptr || position_data->count() != 6) {
+            Logger::err("The framebuffer mesh must have 6 vertices");
+            return;
+        }
+        GLsizei num_vertices = static_cast<GLsizei>(position_data->count());
         glDrawArrays(prim_type, 0, num_vertices);
     }
     // m_context->bind_vertex_array(*vao);

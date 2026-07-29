@@ -3,7 +3,7 @@
 #include "JadeFrame/math/vec.h"
 #include "JadeFrame/types.h"
 #include "JadeFrame/graphics/graphics_shared.h"
-#include "JadeFrame/utils/assert.h"
+#include "JadeFrame/utils/result.h"
 #include "color.h"
 
 namespace JadeFrame {
@@ -17,6 +17,30 @@ enum class PRIMITIVE_TOPOLOGY : u8 {
     TRIANGLE_LIST,
     TRIANGLE_STRIP,
 };
+
+enum class MeshErrorCode : u8 {
+    MissingPosition,
+    InvalidAttributeId,
+    UnsupportedAttributeFormat,
+    AttributeDataMisaligned,
+    AttributeVertexCountMismatch,
+    EmptyMesh,
+    InvalidTopology,
+    InvalidIndexCount,
+    InvalidIndex,
+    InvalidDescriptor,
+    InvalidSegmentCount,
+    InvalidParameter,
+};
+
+struct MeshError {
+    MeshErrorCode m_code;
+    std::string   m_message;
+};
+
+using MeshValidationResult = Result<bool, MeshError>;
+
+[[nodiscard]] auto to_string(MeshErrorCode code) -> const char*;
 
 // NOTE(artur): This type should be very ergonomic to use, as it is client facing. The
 // goal is not to be the most efficient, but the most ergonomic. As this will describe
@@ -41,11 +65,13 @@ public:
 
     struct AttributeData {
         VertexAttribute m_attribute;
-        // TODO: m_data could also be some other type like u32 or v3
+        // Mesh conversion currently uses canonical f32 storage. Unsupported shader
+        // formats are rejected by validate() instead of being reinterpreted.
         std::vector<f32> m_data;
 
-        [[nodiscard]] auto count() const -> u32 {
-            return u32(m_data.size()) / m_attribute.count_components();
+        [[nodiscard]] auto count() const -> size_t {
+            const u32 components = m_attribute.count_components();
+            return components == 0 ? 0 : m_data.size() / components;
         }
     };
 
@@ -68,46 +94,25 @@ public:
         return m_attributes.contains(attribute.m_id);
     }
 
-    auto set_color(const RGBAColor& color) -> void {
+    [[nodiscard]] auto set_color(const RGBAColor& color) -> MeshValidationResult;
 
-        const auto* pos = this->attribute_data(POSITION.m_id);
-        JF_ASSERT(pos != nullptr, "Mesh has no positions");
-
-        const u32        num_vertices = pos->count();
-        std::vector<f32> color_data;
-        color_data.resize(num_vertices * 4);
-        for (u32 i = 0; i < num_vertices; i++) {
-            auto base_index = i * 4;
-            color_data[base_index + 0] = color.r;
-            color_data[base_index + 1] = color.g;
-            color_data[base_index + 2] = color.b;
-            color_data[base_index + 3] = color.a;
-        }
-        const bool insert_success = this->insert_attribute(COLOR, std::move(color_data));
-        JF_ASSERT(insert_success, "Failed to insert color attribute");
-    }
+    [[nodiscard]] auto validate() const -> MeshValidationResult;
 
     static auto builder() -> MeshBuilder;
 
-    // Returns false if format mismatch or other failure
-    auto insert_attribute(const VertexAttribute& attr, std::vector<f32> values) -> bool {
-        // Optional: validate that values.size() % attr.count_components() == 0
-        const u32 comps = attr.count_components();
-        if (comps == 0 || (values.size() % comps) != 0) {
-            // log or assert; return false instead of throwing
-            return false;
-        }
-
-        AttributeData data{.m_attribute = attr, .m_data = std::move(values)};
-        m_attributes[attr.m_id] = std::move(data);
-        return true;
-    }
+    // Returns an error if the values do not describe a complete, valid attribute for
+    // this mesh. The mesh is left unchanged on failure.
+    [[nodiscard]] auto insert_attribute(
+        const VertexAttribute& attr,
+        std::vector<f32>       values
+    ) -> MeshValidationResult;
 
     [[nodiscard]] auto
     with_inserted_attribute(const VertexAttribute& attr, std::vector<f32> values) const
-        -> Mesh {
+        -> Result<Mesh, MeshError> {
         Mesh copy = *this;
-        copy.insert_attribute(attr, std::move(values));
+        auto insertion = copy.insert_attribute(attr, std::move(values));
+        if (insertion.is_err()) { return Failure(insertion.error()); }
         return copy;
     }
 
@@ -136,20 +141,34 @@ public:
 class MeshBuilder {
 public:
     struct Desc {
-        bool has_position = true; // NOTE: Probably unneccessary
+        bool has_position = true;
         bool has_texture_coordinates = true;
         bool has_indices = false;
         bool has_normals = true;
     };
 
     // NOTE(artur): Rectangle for internal OpenGL code.
-    static auto rectangle_opengl(const v3& pos, const v3& size, const Desc desc) -> Mesh;
-    static auto rectangle(const v3& pos, const v3& size, const Desc desc) -> Mesh;
-    static auto line(const v3& pos1, const v3& pos2) -> Mesh;
-    static auto triangle(const v3& pos1, const v3& pos2, const v3& pos3) -> Mesh;
-    static auto circle(const v3& position, const f32 radius, const u32 numSegments)
-        -> Mesh;
-    static auto cube(const v3& pos, const v3& size) -> Mesh;
+    [[nodiscard]] static auto rectangle_opengl(
+        const v3& pos,
+        const v3& size,
+        const Desc desc
+    ) -> Result<Mesh, MeshError>;
+    [[nodiscard]] static auto rectangle(
+        const v3& pos,
+        const v3& size,
+        const Desc desc
+    ) -> Result<Mesh, MeshError>;
+    [[nodiscard]] static auto line(const v3& pos1, const v3& pos2)
+        -> Result<Mesh, MeshError>;
+    [[nodiscard]] static auto triangle(const v3& pos1, const v3& pos2, const v3& pos3)
+        -> Result<Mesh, MeshError>;
+    [[nodiscard]] static auto circle(
+        const v3& position,
+        const f32 radius,
+        const u32 numSegments
+    ) -> Result<Mesh, MeshError>;
+    [[nodiscard]] static auto cube(const v3& pos, const v3& size)
+        -> Result<Mesh, MeshError>;
 
 private:
 };
@@ -209,6 +228,7 @@ inline auto to_list(v3 value) -> std::vector<f32> {
 
 inline auto to_list(v2 value) -> std::vector<f32> { return {value.x, value.y}; }
 
-auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::vector<f32>;
+[[nodiscard]] auto convert_into_data(const Mesh& mesh, const bool interleaved)
+    -> Result<std::vector<f32>, MeshError>;
 
 } // namespace JadeFrame

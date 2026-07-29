@@ -127,15 +127,16 @@ inline auto component_count(const SHADER_TYPE type) -> u32 {
         case SHADER_TYPE::V_2_I32: result = 2; break;
 
         case SHADER_TYPE::V_3_F32:
-        case SHADER_TYPE::M_3_3_F32: // 3* float3
         case SHADER_TYPE::V_3_I32: result = 3; break;
 
         case SHADER_TYPE::V_4_F32:
-        case SHADER_TYPE::M_4_4_F32: // 4* float4
         case SHADER_TYPE::V_4_I32: result = 4; break;
 
+        case SHADER_TYPE::M_2_2_F32: result = 4; break;
+        case SHADER_TYPE::M_3_3_F32: result = 9; break;
+        case SHADER_TYPE::M_4_4_F32: result = 16; break;
+
         default:
-            assert(false);
             result = 0;
             break;
     }
