@@ -20,7 +20,3 @@ target_link_libraries(jadeframe_utils
     PRIVATE
         jadeframe_logger
 )
-
-if(BUILD_TESTING)
-    add_subdirectory(tests)
-endif()

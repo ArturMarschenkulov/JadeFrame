@@ -67,8 +67,3 @@ if(JADEFRAME_ENABLE_VULKAN)
     target_link_libraries(jadeframe_graphics PRIVATE jadeframe_backend_vulkan)
     target_compile_definitions(jadeframe_graphics PRIVATE JADEFRAME_ENABLE_VULKAN=1)
 endif()
-
-
-if(BUILD_TESTING)
-    add_subdirectory(tests)
-endif()

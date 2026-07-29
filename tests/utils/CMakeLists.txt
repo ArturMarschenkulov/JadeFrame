@@ -11,3 +11,10 @@ jadeframe_add_project_test(test_result
     LIBRARIES
         jadeframe_utils
 )
+
+jadeframe_add_project_test(test_box
+    SOURCES
+        test_box.cpp
+    LIBRARIES
+        jadeframe_utils
+)

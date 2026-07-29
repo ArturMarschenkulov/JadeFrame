@@ -20,7 +20,3 @@ target_link_libraries(jadeframe_math
     PUBLIC
         jadeframe_utils
 )
-
-# Math tests are wired through jadeframe_add_project_test(), but they are not
-# part of the default test suite yet.
-# add_subdirectory(tests)

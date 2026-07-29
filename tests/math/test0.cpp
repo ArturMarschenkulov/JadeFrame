@@ -9,10 +9,10 @@
 #include "JadeFrame/math/vec.h"
 #include "JadeFrame/types.h"
 
-#include "../mat_4.h"
+#include "JadeFrame/math/mat_4.h"
 using namespace JadeFrame;
 
-static auto generate_random_mat4x4() -> mat4x4 {
+[[maybe_unused]] static auto generate_random_mat4x4() -> mat4x4 {
     mat4x4 matrix = {};
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) { matrix[i][j] = (f32)rand(); }
@@ -20,7 +20,7 @@ static auto generate_random_mat4x4() -> mat4x4 {
     return matrix;
 }
 
-static auto to_string(const mat4x4& mat) -> std::string {
+[[maybe_unused]] static auto to_string(const mat4x4& mat) -> std::string {
     std::ostringstream out;
     out << "--" << std::endl;
     for (auto i = 0; i < 4; i++) {
@@ -36,7 +36,7 @@ static auto to_string(const mat4x4& mat) -> std::string {
     return out.str();
 }
 
-static auto to_string(const v4& v) -> std::string {
+[[maybe_unused]] static auto to_string(const v4& v) -> std::string {
     std::ostringstream out;
     out << "--" << std::endl;
     out << "| " << v.x << " |" << std::endl;
@@ -47,7 +47,7 @@ static auto to_string(const v4& v) -> std::string {
     return out.str();
 }
 
-static auto to_string(const v3& v) -> std::string {
+[[maybe_unused]] static auto to_string(const v3& v) -> std::string {
     std::ostringstream out;
     out << "--" << std::endl;
     out << "| " << v.x << " |" << std::endl;
@@ -569,7 +569,7 @@ TEST(MISC, main_33) {
     mat4x4 ortho_lh_zo =
         mat4x4::orthographic_lh_zo(0.0F, 800.0F, 0.0F, 800.0F, -1.0F, 1.0F);
 
-    v4 pos = v4::create(800.0F, 800.0F, 1.00F, 1.0F);
+    [[maybe_unused]] v4 pos = v4::create(800.0F, 800.0F, 1.00F, 1.0F);
 
     // std::cout << "rh_no[-1,1]" << std::endl << to_string(ortho_rh_no * pos) <<
     // std::endl; std::cout << "rh_zo[0,1]" << std::endl << to_string(ortho_rh_zo * pos)
@@ -825,7 +825,7 @@ static auto get_matrix_from_view_volume_to_projection_volume(
     return trans * scale;
 }
 
-static auto get_matrix_from_view_volume_to_projection_volume_perspective(
+[[maybe_unused]] static auto get_matrix_from_view_volume_to_projection_volume_perspective(
     ViewVolume       from_vol,
     ProjectionVolume to_vol
 ) {
@@ -1042,7 +1042,7 @@ TEST(Mat4x4_Projection_Perspective, TestingComposition) {
     f32 f = 100.0F;
 
     auto [fovy, aspect] = get_fovy_aspect(l, r, t, b, n);
-    Volume vol = Camera_Volume_from_fovy_aspect(fovy, aspect, n, f);
+    [[maybe_unused]] Volume vol = Camera_Volume_from_fovy_aspect(fovy, aspect, n, f);
 
     // EXPECT_EQ(vol.m_left, l);
     // EXPECT_EQ(vol.m_right, r);
@@ -1123,8 +1123,8 @@ TEST(Mat4x4_Projection_Perspective, CustomCompositePerspectiveMatrix) {
 
     const f32 width = right - left;
     const f32 height = top - bottom;
-    const f32 aspect = width / height;
-    const f32 fovy = 2.0F * std::atan(top / z_near);
+    [[maybe_unused]] const f32 aspect = width / height;
+    [[maybe_unused]] const f32 fovy = 2.0F * std::atan(top / z_near);
 
     mat4x4 result_0 = perspective_0(left, right, top, bottom, z_far, z_near);
     mat4x4 result_1 = perspective_1(left, right, top, bottom, z_far, z_near);

@@ -68,11 +68,22 @@ endif()
 set_property(GLOBAL PROPERTY USE_FOLDERS ON) # Use solution folders feature
 
 include(CTest)
+
+if(BUILD_TESTING)
+    # Find GTest in the top-level directory so its imported targets are
+    # visible to the sibling tests/ subdirectory and all of its test targets.
+    find_package(GTest REQUIRED)
+endif()
+
 ################################################################################
 # Sub-projects
 ################################################################################
 # set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_subdirectory(JadeFrame)
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
 
 option(BUILD_EXAMPLES "Build example programs" ON)
 if(BUILD_EXAMPLES)

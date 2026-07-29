@@ -483,7 +483,7 @@ public:
     }
 
     [[nodiscard]] constexpr auto transform_point3(const v3& point) const noexcept -> v3 {
-        assert(w_axis == v4::W() && "The w component of the w_axis must be 1.0F");
+        assert(w_axis.w == 1.0F && "The w component of the w_axis must be 1.0F");
         v4 result = *this * v4::from_v3(point, 1.0F);
         return v3::create(result.x, result.y, result.z);
     }

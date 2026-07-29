@@ -11,3 +11,10 @@ jadeframe_add_project_test(test_reflection
     LIBRARIES
         jadeframe_core
 )
+
+jadeframe_add_project_test(test_mesh
+    SOURCES
+        test_mesh.cpp
+    LIBRARIES
+        jadeframe_core
+)
