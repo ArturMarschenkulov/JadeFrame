@@ -167,6 +167,7 @@ public:
 
 auto get_program_path() -> std::string;
 auto load_module(const char* path) -> void*;
+auto unload_module(void* module) -> bool;
 auto alloc_page(u64 page_amount) -> void*;
 
 } // namespace JadeFrame
