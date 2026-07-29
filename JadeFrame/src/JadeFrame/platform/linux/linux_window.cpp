@@ -42,9 +42,7 @@ X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
     XID root = DefaultRootWindow(m_display);
     (void)root;
 
-    GLint att[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None};
-
-    // m_visual_info = glXChooseVisual(m_display, 0, att);
+    // m_visual_info = glXChooseVisual(m_display, 0, nullptr);
     int     screen = DefaultScreen(m_display);
     Visual* visual = DefaultVisual(m_display, screen);
     int     depth = DefaultDepth(m_display, screen);
@@ -166,15 +164,13 @@ auto X11_NativeWindow::operator=(X11_NativeWindow&& other) noexcept -> X11_Nativ
 
 X11_NativeWindow::~X11_NativeWindow() { this->reset(); }
 
-static auto is_key_event(XEvent* event) -> bool {
-    return event->type == KeyPress || event->type == KeyRelease;
-}
-
 static auto from_x11_key_to_input_state(const int type) -> INPUT_STATE {
     switch (type) {
         case KeyPress: return INPUT_STATE::PRESSED;
         case KeyRelease: return INPUT_STATE::RELEASED;
-        default: assert(false && "Invalid key event type");
+        default:
+            assert(false && "Invalid key event type");
+            return INPUT_STATE::RELEASED;
     }
 }
 
@@ -182,48 +178,9 @@ static auto from_x11_button_to_input_state(const int type) -> INPUT_STATE {
     switch (type) {
         case ButtonPress: return INPUT_STATE::PRESSED;
         case ButtonRelease: return INPUT_STATE::RELEASED;
-        default: assert(false && "Invalid button event type");
-    }
-}
-
-static auto x11_event_defines_to_string(const int type) -> std::string {
-    switch (type) {
-        case KeyPress: return "KeyPress";
-        case KeyRelease: return "KeyRelease";
-        case ButtonPress: return "ButtonPress";
-        case ButtonRelease: return "ButtonRelease";
-        case MotionNotify: return "MotionNotify";
-        case EnterNotify: return "EnterNotify";
-        case LeaveNotify: return "LeaveNotify";
-        case FocusIn: return "FocusIn";
-        case FocusOut: return "FocusOut";
-        case KeymapNotify: return "KeymapNotify";
-        case Expose: return "Expose";
-        case GraphicsExpose: return "GraphicsExpose";
-        case NoExpose: return "NoExpose";
-        case VisibilityNotify: return "VisibilityNotify";
-        case CreateNotify: return "CreateNotify";
-        case DestroyNotify: return "DestroyNotify";
-        case UnmapNotify: return "UnmapNotify";
-        case MapNotify: return "MapNotify";
-        case MapRequest: return "MapRequest";
-        case ReparentNotify: return "ReparentNotify";
-        case ConfigureNotify: return "ConfigureNotify";
-        case ConfigureRequest: return "ConfigureRequest";
-        case GravityNotify: return "GravityNotify";
-        case ResizeRequest: return "ResizeRequest";
-        case CirculateNotify: return "CirculateNotify";
-        case CirculateRequest: return "CirculateRequest";
-        case PropertyNotify: return "PropertyNotify";
-        case SelectionClear: return "SelectionClear";
-        case SelectionRequest: return "SelectionRequest";
-        case SelectionNotify: return "SelectionNotify";
-        case ColormapNotify: return "ColormapNotify";
-        case ClientMessage: return "ClientMessage";
-        case MappingNotify: return "MappingNotify";
-        case GenericEvent: return "GenericEvent";
-        case LASTEvent: return "LASTEvent";
-        default: return "Unknown";
+        default:
+            assert(false && "Invalid button event type");
+            return INPUT_STATE::RELEASED;
     }
 }
 
@@ -261,8 +218,6 @@ static auto process_event(
         } break;
         case KeyPress:
         case KeyRelease: {
-            unsigned int keycode = event->xkey.keycode;
-
             KeySym keysym = {};
             XLookupString(&event->xkey, nullptr, 0, &keysym, nullptr);
 
