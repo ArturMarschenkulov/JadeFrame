@@ -28,22 +28,6 @@ namespace JadeFrame {
 //     return *extensions;
 // }
 
-struct VulkanVersion {
-    u32 variant;
-    u32 major;
-    u32 minor;
-    u32 patch;
-};
-
-static auto vulkan_get_api_version(u32 version) -> VulkanVersion {
-    VulkanVersion result;
-    result.variant = VK_API_VERSION_VARIANT(version);
-    result.major = VK_API_VERSION_MAJOR(version);
-    result.minor = VK_API_VERSION_MINOR(version);
-    result.patch = VK_API_VERSION_PATCH(version);
-    return result;
-}
-
 namespace vulkan {
 Instance::~Instance() { this->deinit(); }
 
@@ -92,7 +76,8 @@ static auto choose_physical_device(std::span<vulkan::PhysicalDevice> devices)
     for (u32 i = 0; i < devices.size(); i++) {
         if (is_device_suitable(devices[i])) { return &devices[i]; }
     }
-    assert(false);
+    assert(false && "No suitable Vulkan physical device");
+    return nullptr;
 }
 
 auto Instance::query_layers() -> std::vector<VkLayerProperties> {
@@ -157,24 +142,6 @@ auto Instance::init(Window* window_handle) -> void {
     }
 
     VkResult result;
-
-    constexpr bool                            enable_validation_layers = true;
-    std::vector<VkValidationFeatureEnableEXT> vals;
-    if (enable_validation_layers) {
-        vals.push_back(VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT);
-        // vals.push_back(VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT);
-        // vals.push_back(VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_RESERVE_BINDING_SLOT_EXT
-        // );
-        // vals.push_back(VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT);
-        // vals.push_back(VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT);
-    }
-    VkValidationFeaturesEXT features = {};
-    features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
-    features.pNext = VK_NULL_HANDLE;
-    features.enabledValidationFeatureCount = vals.size();
-    features.pEnabledValidationFeatures = vals.data();
-    features.disabledValidationFeatureCount = 0;
-    features.pDisabledValidationFeatures = VK_NULL_HANDLE;
 
     const VkApplicationInfo app_info = {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,

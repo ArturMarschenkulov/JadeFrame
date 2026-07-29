@@ -3,7 +3,7 @@
 
 namespace JadeFrame {
 namespace vulkan {
-static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
+VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT /*messageSeverity*/,
     VkDebugUtilsMessageTypeFlagsEXT /*messageType*/,
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,

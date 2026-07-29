@@ -29,7 +29,8 @@ Fence::Fence(LogicalDevice& device, bool signaled)
     const VkFenceCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
         .pNext = nullptr,
-        .flags = signaled ? VK_FENCE_CREATE_SIGNALED_BIT : (VkFenceCreateFlags)0,
+        .flags = signaled ? static_cast<VkFenceCreateFlags>(VK_FENCE_CREATE_SIGNALED_BIT)
+                          : static_cast<VkFenceCreateFlags>(0),
     };
 
     VkResult result =

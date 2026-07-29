@@ -114,15 +114,6 @@ static auto is_image(VkDescriptorType type) -> bool {
     return result;
 }
 
-static auto is_sampler(VkDescriptorType type) -> bool {
-    bool result = false;
-    switch (type) {
-        case VK_DESCRIPTOR_TYPE_SAMPLER: result = true; break;
-        default: result = false;
-    }
-    return result;
-}
-
 static auto is_uniform(VkDescriptorType type) -> bool {
     bool result = false;
     switch (type) {

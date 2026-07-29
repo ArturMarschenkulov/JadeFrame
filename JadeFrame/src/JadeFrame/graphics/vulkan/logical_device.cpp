@@ -13,29 +13,6 @@
 
 namespace JadeFrame {
 
-static auto VkResult_to_string(VkResult x) {
-    std::string str;
-#define JF_SET_ENUM_STRING(str, name)                                                    \
-    case name: str = #name; break
-
-    switch (x) {
-        JF_SET_ENUM_STRING(str, VK_SUCCESS);
-        JF_SET_ENUM_STRING(str, VK_NOT_READY);
-        JF_SET_ENUM_STRING(str, VK_TIMEOUT);
-        JF_SET_ENUM_STRING(str, VK_EVENT_SET);
-        JF_SET_ENUM_STRING(str, VK_EVENT_RESET);
-        JF_SET_ENUM_STRING(str, VK_INCOMPLETE);
-        JF_SET_ENUM_STRING(str, VK_SUBOPTIMAL_KHR);
-        JF_SET_ENUM_STRING(str, VK_ERROR_OUT_OF_DATE_KHR);
-        default:
-            JF_ASSERT(false, "Unknown VkResult");
-            str = "";
-            break;
-    }
-    return str;
-#undef JF_SET_ENUM_STRING
-}
-
 namespace vulkan {
 
 /*---------------------------

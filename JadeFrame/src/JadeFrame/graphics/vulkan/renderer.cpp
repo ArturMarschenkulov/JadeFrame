@@ -35,17 +35,6 @@ static auto delete_vulkan_shader(void* handle) noexcept -> void {
 static auto delete_vulkan_material(void* handle) noexcept -> void {
     delete static_cast<Vulkan_Material*>(handle);
 }
-// prepare shaders and its dynamic uniform buffers
-// TODO: Find a better way to do this, but for now it works
-static auto prepare_shaders(const std::deque<RenderCommand>& commands) -> void {
-    for (u64 i = 0; i < commands.size(); i++) {
-        const auto&           cmd = commands[i];
-        const MaterialHandle& mh = *cmd.material;
-        auto*                 material = static_cast<Vulkan_Material*>(mh.m_handle.get());
-        material->set_dynamic_ub_num(commands.size());
-    }
-}
-
 static const i32 MAX_FRAMES_IN_FLIGHT = 4;
 
 Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, Window* window)
@@ -260,7 +249,7 @@ auto Vulkan_Renderer::render(const Camera& camera) -> void {
             continue;
         }
 
-        mat4x4 cam = camera.get_view_projection("Vulkan");
+        mat4x4 cam = camera.get_view_projection(GRAPHICS_API::VULKAN);
         auto   cam_set = static_cast<FREQUENCY>(bg_cam->m_set);
         auto   cam_binding = bg_cam->m_binding;
         material->write_ub(cam_set, cam_binding, &cam, sizeof(cam), 0);

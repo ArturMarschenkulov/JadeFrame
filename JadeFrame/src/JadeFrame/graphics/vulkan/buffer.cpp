@@ -57,16 +57,6 @@ static Memory g_memory;
     Buffer
 ---------------------------*/
 
-static auto to_string(const Buffer::TYPE type) -> const char* {
-    switch (type) {
-        case Buffer::TYPE::VERTEX: return "VERTEX";
-        case Buffer::TYPE::INDEX: return "INDEX";
-        case Buffer::TYPE::UNIFORM: return "UNIFORM";
-        case Buffer::TYPE::STAGING: return "STAGING";
-        default: JF_ASSERT(false, ""); return "";
-    }
-}
-
 static auto does_use_staging_buffer(const Buffer::TYPE type) -> bool {
     bool result = false;
     switch (type) {
@@ -103,21 +93,6 @@ static auto get_usage(const Buffer::TYPE type) -> VkBufferUsageFlags {
             break;
         case Buffer::TYPE::UNIFORM: result = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; break;
         case Buffer::TYPE::STAGING: result = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; break;
-        default: JF_ASSERT(false, ""); break;
-    }
-    return result;
-}
-
-static auto get_properties(const Buffer::TYPE type) -> VkMemoryPropertyFlags {
-    VkMemoryPropertyFlags result = {};
-    switch (type) {
-        case Buffer::TYPE::VERTEX:
-        case Buffer::TYPE::INDEX: result = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT; break;
-        case Buffer::TYPE::UNIFORM:
-        case Buffer::TYPE::STAGING:
-            result = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-            break;
         default: JF_ASSERT(false, ""); break;
     }
     return result;
