@@ -11,6 +11,7 @@ add_executable(${PROJECT_NAME} ${Source_Files})
 
 target_link_libraries(${PROJECT_NAME} 
     PUBLIC JadeFrame
+    PRIVATE jadeframe_logger
 )
 
 set(RESOURCE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/resource)

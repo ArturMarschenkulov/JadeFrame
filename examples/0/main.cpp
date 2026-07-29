@@ -238,7 +238,7 @@ auto main() -> int {
     jf::Application::Desc app_desc;
     app_desc.title = "Example 0";
     app_desc.size = jf::v2u32::create(800, 800);
-    app_desc.api = jf::GRAPHICS_API::OPENGL;
+    app_desc.api = jf::GRAPHICS_API::VULKAN;
 
     jf::Application* app = jade_frame.request_application(app_desc);
     Example_0        example_app;

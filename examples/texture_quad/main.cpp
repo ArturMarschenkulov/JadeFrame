@@ -5,7 +5,7 @@
 #include "JadeFrame/graphics/mesh.h"
 #include "JadeFrame/math/math.h"
 #include "JadeFrame/types.h"
-#include "JadeFrame/utils/asset_loader.h"
+#include "JadeFrame/assets/asset_loader.h"
 #include <JadeFrame.h>
 
 #include <filesystem>
@@ -242,7 +242,7 @@ auto main() -> int {
     jf::Application::Desc app_desc;
     app_desc.title = "Texture Quad Example";
     app_desc.size = jf::v2u32::create(800, 800);
-    app_desc.api = jf::GRAPHICS_API::OPENGL;
+    app_desc.api = jf::GRAPHICS_API::VULKAN;
 
     jf::Application* app = jade_frame.request_application(app_desc);
     State            state;

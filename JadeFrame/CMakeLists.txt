@@ -74,17 +74,6 @@ add_subdirectory(src/extern/glfw/)
 # repository submodule. Both paths expose the same modern CMake target.
 find_package(assimp CONFIG QUIET)
 
-set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
-set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
-set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
-
-# These formats currently fail to build with the vendored Assimp subtree.
-set(ASSIMP_BUILD_3MF_EXPORTER OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_OPENGEX_IMPORTER OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_MS3D_IMPORTER OFF CACHE BOOL "" FORCE)
-
 if(NOT TARGET assimp::assimp)
     if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/extern/assimp/CMakeLists.txt")
         message(FATAL_ERROR
@@ -94,6 +83,37 @@ if(NOT TARGET assimp::assimp)
     endif()
 
     message(STATUS "Assimp package not found; using the vendored source.")
+
+    # Configure only the vendored copy. Installed packages own their
+    # dependency and build options.
+    set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+    # Keep the vendored build self-contained. Assimp's pkg-config probe for
+    # minizip can report success even when the distribution installs
+    # unzip.h below an extra include directory (for example
+    # /usr/include/minizip). Assimp then includes <unzip.h> and the build
+    # fails. Its bundled zlib/minizip sources provide the include layout that
+    # this vendored Assimp revision expects.
+    set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_MINIZIP ON CACHE BOOL "" FORCE)
+    set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
+
+    # Do not let a previous configure run leave Assimp believing that an
+    # external minizip installation is usable. These are cache variables in
+    # Assimp's pkg-config helper, so simply changing ASSIMP_BUILD_ZLIB is not
+    # enough when reusing an existing build directory.
+    set(UNZIP_FOUND FALSE CACHE INTERNAL "Use Assimp's bundled minizip" FORCE)
+    unset(UNZIP_INCLUDE_DIRS CACHE)
+    unset(UNZIP_LIBRARIES CACHE)
+    unset(UNZIP_LINK_LIBRARIES CACHE)
+
+    # These formats currently fail to build with the vendored Assimp subtree.
+    set(ASSIMP_BUILD_3MF_EXPORTER OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_OPENGEX_IMPORTER OFF CACHE BOOL "" FORCE)
+    set(ASSIMP_BUILD_MS3D_IMPORTER OFF CACHE BOOL "" FORCE)
+
     add_subdirectory(src/extern/assimp/ EXCLUDE_FROM_ALL)
 endif()
 

@@ -1,4 +1,5 @@
 #include "JadeFrame/base_app.h"
+#include "JadeFrame/utils/logger.h"
 #include "JadeFrame/graphics/graphics_shared.h"
 #include "JadeFrame/types.h"
 #include <JadeFrame.h>

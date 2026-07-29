@@ -31,20 +31,30 @@ struct Example_Moving_Quad {
 
         jf::MeshBuilder::Desc vdf_desc;
         vdf_desc.has_normals = true;
-        auto mesh_builder = jf::Mesh::builder();
-        auto rectangle = mesh_builder.rectangle(
-            jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc
-        );
-        rectangle.set_color(jf::RGBAColor::solid_red());
 
-        jf::GPUMeshData* mesh_data = app.m_render_system.register_mesh(rectangle);
+        auto mesh_builder = jf::Mesh::builder();
+        m_quad_mesh = mesh_builder.rectangle(
+            jf::v3::create(320.0F, 320.0F, 0.0F),
+            jf::v3::create(160.0F, 160.0F, 0.0F),
+            vdf_desc
+        );
+        m_quad_mesh.set_color(jf::RGBAColor::solid_red());
+
+        jf::GPUMeshData* mesh_data = app.m_render_system.register_mesh(m_quad_mesh);
+        m_quad.m_mesh = mesh_data;
+        m_quad.m_vertex_data = &m_quad_mesh;
+        m_quad.m_material = material;
+        m_quad.m_transform = {};
     }
 
     auto on_update(jf::Application& app) -> void {
         auto input_state = app.m_windows[0]->m_input_state;
     }
 
-    auto on_draw(jf::Application& app) -> void {}
+    auto on_draw(jf::Application& app) -> void { app.m_render_system.submit(m_quad); }
+
+    jf::Mesh   m_quad_mesh;
+    jf::Object m_quad;
 };
 
 auto main() -> int {
@@ -52,7 +62,7 @@ auto main() -> int {
     jf::Application::Desc app_desc;
     app_desc.title = "Moving Quad Example";
     app_desc.size = jf::v2u32::create(800, 800);
-    app_desc.api = jf::GRAPHICS_API::OPENGL;
+    app_desc.api = jf::GRAPHICS_API::VULKAN;
 
     jf::Application*    app = jade_frame.request_application(app_desc);
     Example_Moving_Quad example_app;
