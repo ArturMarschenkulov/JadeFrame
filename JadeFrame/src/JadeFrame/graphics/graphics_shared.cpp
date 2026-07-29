@@ -379,7 +379,12 @@ auto RenderSystem::list_available_graphics_apis() -> std::vector<GRAPHICS_API> {
 #else
     JF_UNIMPLEMENTED("");
 #endif
-    if (opengl != nullptr) { result.push_back(GRAPHICS_API::OPENGL); }
+    if (opengl != nullptr) {
+        result.push_back(GRAPHICS_API::OPENGL);
+        if (!unload_module(opengl)) {
+            Logger::warn("Failed to unload the OpenGL module after probing it.");
+        }
+    }
 #endif
 
 #if JADEFRAME_ENABLE_VULKAN
@@ -387,12 +392,16 @@ auto RenderSystem::list_available_graphics_apis() -> std::vector<GRAPHICS_API> {
 #if defined(JF_PLATFORM_LINUX)
     vulkan = load_module("libvulkan.so.1");
 #elif defined(JF_PLATFORM_WINDOWS)
-    // vulkan = load_module("vulkan-1.dll");
-    vulkan = (void*)1;
+    vulkan = load_module("vulkan-1.dll");
 #else
     JF_UNIMPLEMENTED("");
 #endif
-    if (vulkan != nullptr) { result.push_back(GRAPHICS_API::VULKAN); }
+    if (vulkan != nullptr) {
+        result.push_back(GRAPHICS_API::VULKAN);
+        if (!unload_module(vulkan)) {
+            Logger::warn("Failed to unload the Vulkan module after probing it.");
+        }
+    }
 #endif
 
     return result;
