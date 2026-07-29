@@ -15,34 +15,15 @@ endif()
 #set(CMAKE_SYSTEM_VERSION 10.0 CACHE STRING "" FORCE)
 
 
-# NOTE(artur): 
-# For it to compile you need at least clang++-13 or gcc-10
-# std::format is as of right now only by msvc library supported
+# The compiler is intentionally not selected here.  CMake should obtain it
+# from the environment, a toolchain file, a preset, or the command line so
+# that IDEs, CI, cross-compilation, and package-manager toolchains can choose
+# the appropriate compiler.
 
 cmake_policy(SET CMP0048 NEW)
 cmake_policy(SET CMP0148 NEW)
 set(CMAKE_POLICY_WARNING_CMP0048 FALSE)  # Suppress warnings about project() command
 set(CMAKE_POLICY_WARNING_CMP0148 FALSE)  # Suppress warnings about Python find modules
-
-set(JADEFRAME_USED_COMPILER
-    "gcc"
-)
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-if (JADEFRAME_USED_COMPILER STREQUAL "clang")
-    set(CMAKE_C_COMPILER "clang")
-    set(CMAKE_CXX_COMPILER "clang++")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-    set(CMAKE_EXE_LINKER_FLAGS "-lc++abi -lpthread")
-elseif (JADEFRAME_USED_COMPILER STREQUAL "gcc")
-    set(CMAKE_C_COMPILER "gcc")
-    set(CMAKE_CXX_COMPILER "g++")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
-else()
-    message(FATAL_ERROR "Compiler not supported")
-endif()
-
 
 # set(BUILD_SHARED_LIBS OFF)
 
@@ -52,6 +33,16 @@ project(
     DESCRIPTION "JadeFrame: A cross platform graphics framework"
     LANGUAGES C CXX
 )
+
+# Configure the language requirements after project() has detected the
+# compiler supplied by the caller.  Do not overwrite CMAKE_C_COMPILER or
+# CMAKE_CXX_COMPILER here; those values are toolchain configuration.
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+message(STATUS "JadeFrame C compiler: ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION} (${CMAKE_C_COMPILER})")
+message(STATUS "JadeFrame C++ compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} (${CMAKE_CXX_COMPILER})")
+
 include(cmake/JadeFrameSanitizers.cmake)
 jadeframe_configure_sanitizers()
 # include(cmake/my_utils.cmake)

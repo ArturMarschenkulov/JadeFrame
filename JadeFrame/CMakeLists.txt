@@ -362,10 +362,8 @@ if(MSVC)
             /Gy
         >
         # /permissive-;
-        /std:c++latest;
         /sdl;
-        /W3;
-        -W4;
+        /W4;
     )
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     
