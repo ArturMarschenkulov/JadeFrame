@@ -8,11 +8,6 @@
 
 namespace JadeFrame {
 
-static auto is_strip(PRIMITIVE_TOPOLOGY topology) -> bool {
-    return topology == PRIMITIVE_TOPOLOGY::LINE_STRIP ||
-           topology == PRIMITIVE_TOPOLOGY::TRIANGLE_STRIP;
-}
-
 auto Mesh::builder() -> MeshBuilder { return MeshBuilder{}; }
 
 auto MeshBuilder::rectangle_opengl(const v3& pos, const v3& size, const Desc desc)
@@ -260,7 +255,7 @@ auto MeshBuilder::circle(const v3& position, const f32 radius, const u32 numSegm
 
     constexpr const f64 PI = std::numbers::pi;
 
-    const f32 theta = 2.0F * static_cast<const f32>(PI) / static_cast<f32>(numSegments);
+    const f32 theta = 2.0F * static_cast<f32>(PI) / static_cast<f32>(numSegments);
     const f32 c = cosf(theta); // calculate the x component
     const f32 s = sinf(theta); // calculate the y component
 
@@ -498,6 +493,7 @@ auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::vector<
         return data;
     } else {
         JF_UNIMPLEMENTED("Non interleaved data is not implemented yet.");
+        return {};
     }
 }
 

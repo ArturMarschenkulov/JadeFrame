@@ -83,8 +83,8 @@ public:
             color_data[base_index + 2] = color.b;
             color_data[base_index + 3] = color.a;
         }
-        bool insert_success = this->insert_attribute(COLOR, std::move(color_data));
-        assert((insert_success) && "Failed to insert color attribute");
+        const bool insert_success = this->insert_attribute(COLOR, std::move(color_data));
+        JF_ASSERT(insert_success, "Failed to insert color attribute");
     }
 
     static auto builder() -> MeshBuilder;
@@ -154,7 +154,7 @@ public:
 private:
 };
 
-static auto to_list(const std::vector<v2>& v2s) -> std::vector<f32> {
+inline auto to_list(const std::vector<v2>& v2s) -> std::vector<f32> {
     std::vector<f32> result;
     result.reserve(v2s.size() * 2);
     for (const v2& v : v2s) {
@@ -164,7 +164,7 @@ static auto to_list(const std::vector<v2>& v2s) -> std::vector<f32> {
     return result;
 }
 
-static auto to_list(const std::vector<v4>& v2s) -> std::vector<f32> {
+inline auto to_list(const std::vector<v4>& v2s) -> std::vector<f32> {
     std::vector<f32> result;
     result.reserve(v2s.size() * 4);
     for (const v4& v : v2s) {
@@ -176,7 +176,7 @@ static auto to_list(const std::vector<v4>& v2s) -> std::vector<f32> {
     return result;
 }
 
-static auto to_list(const std::vector<v3>& v3s) -> std::vector<f32> {
+inline auto to_list(const std::vector<v3>& v3s) -> std::vector<f32> {
     std::vector<f32> result;
     result.reserve(v3s.size() * 3);
     for (const v3& v : v3s) {
@@ -187,7 +187,7 @@ static auto to_list(const std::vector<v3>& v3s) -> std::vector<f32> {
     return result;
 }
 
-static auto to_list(const std::vector<RGBAColor>& colors) -> std::vector<f32> {
+inline auto to_list(const std::vector<RGBAColor>& colors) -> std::vector<f32> {
     std::vector<f32> result;
     result.reserve(colors.size() * 4);
     for (const RGBAColor& color : colors) {
@@ -199,11 +199,15 @@ static auto to_list(const std::vector<RGBAColor>& colors) -> std::vector<f32> {
     return result;
 }
 
-static auto to_list(v4 v4) -> std::vector<f32> { return {v4.x, v4.y, v4.z, v4.w}; }
+inline auto to_list(v4 value) -> std::vector<f32> {
+    return {value.x, value.y, value.z, value.w};
+}
 
-static auto to_list(v3 v3) -> std::vector<f32> { return {v3.x, v3.y, v3.z}; }
+inline auto to_list(v3 value) -> std::vector<f32> {
+    return {value.x, value.y, value.z};
+}
 
-static auto to_list(v2 v2) -> std::vector<f32> { return {v2.x, v2.y}; }
+inline auto to_list(v2 value) -> std::vector<f32> { return {value.x, value.y}; }
 
 auto convert_into_data(const Mesh& mesh, const bool interleaved) -> std::vector<f32>;
 
