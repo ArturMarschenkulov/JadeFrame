@@ -95,9 +95,11 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
                 };
                 result = arr[index];
             } break;
+            default:
                 JF_UNIMPLEMENTED(
                     "only float basetype is supported in to_SHADER_TYPE for now"
                 );
+                return SHADER_TYPE::NONE;
         }
     } else {
         switch (type.basetype) {
@@ -120,9 +122,11 @@ static auto to_SHADER_TYPE(const spirv_cross::SPIRType& type, u32 rows, u32 colu
 
                 result = arr[rows - 2];
             } break;
+            default:
                 JF_UNIMPLEMENTED(
                     "only float basetype is supported in to_SHADER_TYPE for now"
                 );
+                return SHADER_TYPE::NONE;
         }
     }
     return result;
@@ -206,7 +210,6 @@ static auto reflect_uniforms(
     spirv_cross::Compiler&                                 comp,
     const spirv_cross::SmallVector<spirv_cross::Resource>& uniform_buffers
 ) -> std::vector<ReflectedModule::UniformBuffer> {
-    constexpr u32                               BYTE_SIZE = 8;
     std::vector<ReflectedModule::UniformBuffer> result;
     result.resize(uniform_buffers.size());
     for (u32 j = 0; j < uniform_buffers.size(); j++) {
@@ -294,8 +297,6 @@ auto ReflectedModule::reflect(const ShadingCode::Module::SPIRV& code, SHADER_STA
     -> ReflectedModule {
     ReflectedModule result = {};
     result.m_stage = stage;
-
-    constexpr u32 BYTE_SIZE = 8;
 
     spirv_cross::Compiler        compiler(code);
     spirv_cross::ShaderResources resources = compiler.get_shader_resources();

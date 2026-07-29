@@ -87,7 +87,6 @@ auto remap_for_opengl(
         spv_c::Resource& ub = resources.uniform_buffers[j];
 
         u32 set = compiler.get_decoration(ub.id, spv::DecorationDescriptorSet);
-        u32 binding = compiler.get_decoration(ub.id, spv::DecorationBinding);
         JF_ASSERT(set <= 3, "Only 4 descriptor sets are supported. (0, 1, 2, 3)");
 
         sets[set].push_back(&ub);
@@ -97,7 +96,6 @@ auto remap_for_opengl(
         spv_c::Resource& si = resources.sampled_images[j];
 
         u32 set = compiler.get_decoration(si.id, spv::DecorationDescriptorSet);
-        u32 binding = compiler.get_decoration(si.id, spv::DecorationBinding);
         JF_ASSERT(set <= 3, "Only 4 descriptor sets are supported. (0, 1, 2, 3)");
 
         sets[set].push_back(&si);
