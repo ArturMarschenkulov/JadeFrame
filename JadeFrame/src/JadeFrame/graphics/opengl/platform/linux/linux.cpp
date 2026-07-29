@@ -28,61 +28,6 @@ static auto get_proc(const char* name) -> void* {
     return proc;
 }
 
-static auto create_render_context(Display* display) -> GLXContext {
-    constexpr bool extended_context = true;
-    GLXFBConfig*   framebuffer_config = nullptr;
-    if (extended_context) {
-        const int major_min = 4;
-        const int minor_min = 6;
-
-        std::vector<int> context_attributes;
-        context_attributes.push_back(GLX_CONTEXT_MAJOR_VERSION_ARB); // major version
-        context_attributes.push_back(major_min);
-        context_attributes.push_back(GLX_CONTEXT_MINOR_VERSION_ARB); // minor version
-        context_attributes.push_back(minor_min);
-        context_attributes.push_back(GLX_CONTEXT_FLAGS_ARB); // context flags
-        context_attributes.push_back(
-            GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | GLX_CONTEXT_DEBUG_BIT_ARB
-        );
-        context_attributes.push_back(GLX_CONTEXT_PROFILE_MASK_ARB); // profile type
-        context_attributes.push_back(GLX_CONTEXT_CORE_PROFILE_BIT_ARB);
-        context_attributes.push_back(0); // End
-
-        int          fb_count = 0;
-        GLXFBConfig* fb_config =
-            glXChooseFBConfig(display, DefaultScreen(display), nullptr, &fb_count);
-        if (fb_config == nullptr) {
-            std::cout << "glXChooseFBConfig() failed." << std::endl;
-            return nullptr;
-        }
-        GLXContext render_context = gl.glXCreateContextAttribsARB(
-            display, *fb_config, nullptr, True, context_attributes.data()
-        );
-        if (render_context == nullptr) {
-            std::cout << "glXCreateContextAttribsARB() failed." << std::endl;
-            return nullptr;
-        }
-        return render_context;
-    } else {
-        // int          fb_count = 0;
-        // GLXFBConfig* fb_config =
-        //     glXChooseFBConfig(display, DefaultScreen(display), nullptr, &fb_count);
-        // GLXContext render_context = glXCreateContext(
-        //     display, glXGetVisualFromFBConfig(display, fb_config), NULL, GL_TRUE
-        // );
-        // if (render_context == nullptr) {
-        //     std::cerr << "glXCreateContext() failed." << std::endl;
-        //     return nullptr;
-        // }
-        GLXContext render_context;
-        return render_context;
-    }
-}
-
-static auto init_render_context(Display* display) -> GLXContext {
-    return create_render_context(display);
-}
-
 static auto get_proc_address_glx_funcs() -> void {
     gl.glXCreateContextAttribsARB =
         (PFN_glXCreateContextAttribsARBProc)get_proc("glXCreateContextAttribsARB");
@@ -162,7 +107,7 @@ static auto get_best_fb_config(Display* display, const std::vector<int>& visual_
                 samples
             );
 
-            if (best_index < 0 || (samp_buf != 0) && samples > best_num_samp) {
+            if (best_index < 0 || ((samp_buf != 0) && samples > best_num_samp)) {
                 best_index = i;
                 best_num_samp = samples;
             }
@@ -192,6 +137,8 @@ static auto ctx_error_handler(Display* dpy, XErrorEvent* ev) -> int {
     // Logger::err("Request code: {}, Resource ID: {}, Serial Number: {}",
     // ev->request_code, ev->resourceid, ev->serial);
 
+    (void)dpy;
+    (void)ev;
     g_ctx_error_occurred = true;
     return 0;
 }
@@ -276,7 +223,7 @@ auto load_glx_funcs(const X11_NativeWindow* window) -> GLXContext {
     }
     get_proc_address_glx_funcs();
     g_ctx_error_occurred = false;
-    int (*old_handler)(Display*, XErrorEvent*) = XSetErrorHandler(&ctx_error_handler);
+    (void)XSetErrorHandler(&ctx_error_handler);
 
     auto create_context = [](Display* display, GLXFBConfig best_fbc) -> GLXContext {
         const int          major_min = 4;

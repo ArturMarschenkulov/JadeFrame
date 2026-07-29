@@ -8,16 +8,6 @@
 
 namespace JadeFrame {
 
-static auto calc_mip_levels(u32 w, u32 h) -> u32 {
-    u32 max_dim = (w > h) ? w : h;
-    u32 levels = 1;
-    while (max_dim > 1) {
-        max_dim >>= 1U;
-        ++levels;
-    }
-    return levels;
-}
-
 namespace opengl {
 
 Sampler::Sampler(opengl::Context& context)

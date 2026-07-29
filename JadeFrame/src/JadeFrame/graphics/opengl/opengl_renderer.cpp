@@ -218,7 +218,7 @@ auto OpenGL_Renderer::render(const Camera& camera) -> void {
         // every iteration of the loop. Later on one HAS TO fix this.
 
         // ub_cam
-        mat4x4 view_projection = camera.get_view_projection("OpenGL");
+        mat4x4 view_projection = camera.get_view_projection(GRAPHICS_API::OPENGL);
         material->write_ub(CAM_BINDING, &view_projection, sizeof(view_projection), 0);
 
         // ub_tran
