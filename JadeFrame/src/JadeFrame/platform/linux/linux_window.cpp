@@ -10,6 +10,8 @@
 #include <GL/gl.h>
 #include <GL/glx.h>
 
+#include <stdexcept>
+
 #include "JadeFrame/platform/linux/linux_input_manager.h"
 #include "JadeFrame/platform/window.h"
 #include "JadeFrame/platform/window_event.h"
@@ -22,36 +24,31 @@ auto X11_NativeWindow::create(const Window::Desc& desc) -> X11_NativeWindow {
 }
 
 X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
-
-    // TODO: This should be done by the caller before calling this function/constructor.
-    // There it should be decided whether to call this at all.
     const char* x11_display_env = std::getenv("DISPLAY");
     if (x11_display_env == nullptr) {
-        printf(
-            "The DISPLAY environment variable is not set. This is required for X11.\n"
-        );
-        std::exit(1);
+        Logger::err("The DISPLAY environment variable is not set. X11 is unavailable.");
+        throw std::runtime_error("DISPLAY is not set");
     }
 
     m_display = XOpenDisplay(nullptr);
     if (m_display == nullptr) {
-        printf("\n\tcannot connect to X server\n\n");
-        std::exit(0);
+        Logger::err("Cannot connect to the X server.");
+        throw std::runtime_error("Cannot connect to the X server");
     }
 
-    XID root = DefaultRootWindow(m_display);
-    (void)root;
-
-    // m_visual_info = glXChooseVisual(m_display, 0, nullptr);
     int     screen = DefaultScreen(m_display);
     Visual* visual = DefaultVisual(m_display, screen);
     int     depth = DefaultDepth(m_display, screen);
 
-    Colormap colormap =
+    m_colormap =
         XCreateColormap(m_display, RootWindow(m_display, screen), visual, AllocNone);
+    if (m_colormap == 0) {
+        reset();
+        throw std::runtime_error("Failed to create the X11 colormap");
+    }
 
     XSetWindowAttributes window_attributes = {};
-    window_attributes.colormap = colormap;
+    window_attributes.colormap = m_colormap;
     window_attributes.background_pixel = 0xFFFFFFFF;
     window_attributes.border_pixel = 0;
     window_attributes.event_mask =
@@ -71,15 +68,14 @@ X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
         CWBackPixel | CWBorderPixel | CWEventMask | CWColormap,
         &window_attributes
     );
+    if (m_window == 0) {
+        reset();
+        throw std::runtime_error("Failed to create the X11 window");
+    }
+
     XSelectInput(m_display, m_window, ExposureMask | KeyPressMask);
     XMapWindow(m_display, m_window);
     XFlush(m_display);
-
-    // Client area dimensions
-    XWindowAttributes client_attributes;
-    XGetWindowAttributes(m_display, m_window, &client_attributes);
-    // int client_width = client_attributes.width;
-    // int client_height = client_attributes.height;
 
     // Window dimensions
     ::Window     root_window = 0;
@@ -89,7 +85,7 @@ X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
     unsigned int depth_ = 0;
     unsigned int window_width = 0;
     unsigned int window_height = 0;
-    XGetGeometry(
+    if (XGetGeometry(
         m_display,
         m_window,
         &root_window,
@@ -99,7 +95,10 @@ X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
         &window_height,
         &border_width,
         &depth_
-    );
+    ) == 0) {
+        reset();
+        throw std::runtime_error("Failed to query the X11 window geometry");
+    }
 
     m_title = desc.title;
     XStoreName(m_display, m_window, m_title.c_str());
@@ -112,18 +111,25 @@ X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
         XSetLocaleModifiers("@im=none");
         m_xim = XOpenIM(m_display, nullptr, nullptr, nullptr);
     }
-    m_xic = ::XCreateIC(
-        m_xim,
-        XNInputStyle,
-        XIMPreeditNothing | XIMStatusNothing,
-        XNClientWindow,
-        m_window,
-        XNFocusWindow,
-        m_window,
-        nullptr
-    );
-
-    XSetICFocus(m_xic);
+    if (m_xim != nullptr) {
+        m_xic = ::XCreateIC(
+            m_xim,
+            XNInputStyle,
+            XIMPreeditNothing | XIMStatusNothing,
+            XNClientWindow,
+            m_window,
+            XNFocusWindow,
+            m_window,
+            nullptr
+        );
+        if (m_xic != nullptr) {
+            XSetICFocus(m_xic);
+        } else {
+            Logger::warn("Failed to create the X11 input context.");
+        }
+    } else {
+        Logger::warn("Failed to open an X11 input method; text input is limited.");
+    }
 
     XSelectInput(
         m_display,
@@ -141,6 +147,7 @@ X11_NativeWindow::X11_NativeWindow(X11_NativeWindow&& other) noexcept {
     m_display = std::exchange(other.m_display, nullptr);
     m_visual_info = std::exchange(other.m_visual_info, nullptr);
     m_window = std::exchange(other.m_window, 0);
+    m_colormap = std::exchange(other.m_colormap, 0);
     m_size = std::exchange(other.m_size, {});
     m_title = std::exchange(other.m_title, {});
     m_xic = std::exchange(other.m_xic, nullptr);
@@ -152,6 +159,7 @@ auto X11_NativeWindow::operator=(X11_NativeWindow&& other) noexcept -> X11_Nativ
         this->reset();
         m_display = std::exchange(other.m_display, nullptr);
         m_window = std::exchange(other.m_window, 0);
+        m_colormap = std::exchange(other.m_colormap, 0);
         m_xim = std::exchange(other.m_xim, nullptr);
         m_xic = std::exchange(other.m_xic, nullptr);
         m_visual_info = std::exchange(other.m_visual_info, nullptr);
@@ -274,6 +282,10 @@ static auto process_event(
 }
 
 auto X11_NativeWindow::handle_events(bool& is_running) -> void {
+    if (m_display == nullptr || m_window == 0 || m_platform_window == nullptr) {
+        return;
+    }
+
     while (XPending(m_display) > 0) {
         XEvent event{};
         XNextEvent(m_display, &event);
@@ -294,6 +306,14 @@ auto X11_NativeWindow::reset() noexcept -> void {
         XDestroyWindow(m_display, m_window);
         m_window = 0;
     }
+    if (m_display != nullptr && m_colormap != 0) {
+        XFreeColormap(m_display, m_colormap);
+        m_colormap = 0;
+    }
+    if (m_visual_info != nullptr) {
+        XFree(m_visual_info);
+        m_visual_info = nullptr;
+    }
     if (m_display != nullptr) {
         XCloseDisplay(m_display);
         m_display = nullptr;
@@ -301,6 +321,6 @@ auto X11_NativeWindow::reset() noexcept -> void {
     m_wm_delete = 0;
     m_title.clear();
     m_size = {};
-    m_visual_info = nullptr;
+    m_colormap = 0;
 }
 } // namespace JadeFrame

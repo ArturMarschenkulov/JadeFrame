@@ -43,9 +43,10 @@ public:
     ::Display*     m_display = nullptr;
     ::XVisualInfo* m_visual_info = nullptr;
     ::Window       m_window = 0;
+    ::Colormap     m_colormap = 0;
     v2u32          m_size;
     std::string    m_title;
-    Atom           m_wm_delete;
+    Atom           m_wm_delete = 0;
     ::XIM          m_xim = nullptr;
     ::XIC          m_xic = nullptr;
 };
