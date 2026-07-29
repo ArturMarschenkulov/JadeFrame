@@ -18,17 +18,31 @@ def run_command(args: list[str], *, cwd: Path = ROOT_DIR) -> None:
     subprocess.run(args, cwd=cwd, check=True)
 
 
-def configure_project() -> None:
+def configure_project(*, enable_testing: bool | None = None) -> None:
     BUILD_DIR.mkdir(parents=True, exist_ok=True)
+    configure_args = [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        str(BUILD_DIR),
+        "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+        "-DBUILD_EXAMPLES=ON",
+    ]
+    if enable_testing is not None:
+        configure_args.append(f"-DBUILD_TESTING={'ON' if enable_testing else 'OFF'}")
+    run_command(configure_args)
+
+
+def build_project_tests() -> None:
     run_command(
         [
             "cmake",
-            "-S",
-            ".",
-            "-B",
+            "--build",
             str(BUILD_DIR),
-            "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
-            "-DBUILD_EXAMPLES=ON",
+            "--target",
+            "jadeframe_project_tests",
+            "--parallel",
         ]
     )
 
@@ -101,10 +115,10 @@ def command_clear(_args: argparse.Namespace) -> None:
 
 
 def command_test(_args: argparse.Namespace) -> None:
-    if not BUILD_DIR.is_dir():
-        print("Build directory not found. Run build first.", file=sys.stderr)
-        raise SystemExit(1)
-
+    print("Configuring and building tests...")
+    configure_project(enable_testing=True)
+    build_project_tests()
+    print("Running tests...")
     run_command(["ctest", "--verbose"], cwd=BUILD_DIR)
 
 
@@ -152,9 +166,10 @@ def command_run(args: argparse.Namespace) -> None:
 
 def command_build_test(_args: argparse.Namespace) -> None:
     print("Configuring and building test target...")
-    configure_project()
-    run_command(["cmake", "--build", str(BUILD_DIR), "--target", "test", "--parallel"])
-    print("Tests build successful")
+    configure_project(enable_testing=True)
+    build_project_tests()
+    run_command(["ctest", "--verbose"], cwd=BUILD_DIR)
+    print("Tests build and run successful")
 
 
 def build_parser() -> argparse.ArgumentParser:

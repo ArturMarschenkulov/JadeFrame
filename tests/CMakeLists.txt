@@ -4,3 +4,9 @@
 add_subdirectory(math)
 add_subdirectory(utils)
 add_subdirectory(graphics)
+
+get_property(JADEFRAME_PROJECT_TEST_TARGETS GLOBAL PROPERTY JADEFRAME_PROJECT_TEST_TARGETS)
+if(JADEFRAME_PROJECT_TEST_TARGETS)
+    add_custom_target(jadeframe_project_tests)
+    add_dependencies(jadeframe_project_tests ${JADEFRAME_PROJECT_TEST_TARGETS})
+endif()

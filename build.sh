@@ -21,7 +21,7 @@ usage() {
 
 configure_project() {
     mkdir -p "$build_dir"
-    cmake -S . -B "$build_dir" -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DBUILD_EXAMPLES=ON
+    cmake -S . -B "$build_dir" -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DBUILD_EXAMPLES=ON "$@"
 }
 
 list_examples() {
@@ -91,13 +91,11 @@ case "$1" in
         ;;
     
     test)
-        if [ -d "$build_dir" ]; then
-            cd "$build_dir"
-            ctest --verbose
-        else
-            echo "Build directory not found. Run build first."
-            exit 1
-        fi
+        echo "Configuring and building tests..."
+        configure_project -DBUILD_TESTING=ON
+        cmake --build "$build_dir" --target jadeframe_project_tests --parallel
+        cd "$build_dir"
+        ctest --verbose
         ;; 
 
     list_examples)
@@ -154,12 +152,12 @@ case "$1" in
         ;;
     
     build_test)
-        mkdir -p "$build_dir"
-        cd "$build_dir"
         echo "Configuring and building test target..."
-        cmake ../.
-        cmake --build . --target test -j10
-        echo "Tests build successful"
+        configure_project -DBUILD_TESTING=ON
+        cmake --build "$build_dir" --target jadeframe_project_tests --parallel
+        cd "$build_dir"
+        ctest --verbose
+        echo "Tests build and run successful"
         ;;
     
     *)

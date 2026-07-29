@@ -30,13 +30,16 @@ The build script supports these commands:
 
 ```sh
 ./build.sh build       # Configure and build into build/
-./build.sh test        # Run ctest --verbose from build/
-./build.sh build_test  # Configure build/ and invoke CMake's test target
+./build.sh test        # Configure/build project tests and run ctest --verbose
+./build.sh build_test  # Configure/build project tests and run them
 ./build.sh clear       # Remove build/CMakeCache.txt
 ./build.sh remove      # Remove the build/ directory
 ```
 
-Run `./build.sh build` before `./build.sh test`.
+The test commands configure the project and build the dedicated project-test
+target before running CTest, so they also refresh stale build directories after
+source or test layout changes. The Python entry point supports the same
+commands, for example `./build.py test`.
 
 To build JadeFrame-owned targets with AddressSanitizer and UndefinedBehaviorSanitizer:
 
@@ -49,6 +52,22 @@ cmake -S . -B build-sanitize \
 cmake --build build-sanitize --parallel
 ctest --test-dir build-sanitize --output-on-failure
 ```
+
+Warnings are enabled per JadeFrame-owned target. To run the same strict warning
+policy used by CI locally:
+
+```sh
+cmake -S . -B build-warnings \
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DJADEFRAME_WARNINGS_AS_ERRORS=ON
+cmake --build build-warnings --parallel
+ctest --test-dir build-warnings --output-on-failure
+```
+
+Third-party targets are not given JadeFrame's warning policy, and their public
+include directories are treated as system includes for JadeFrame consumers.
+Build type flags remain controlled by CMake (`Debug`, `Release`,
+`RelWithDebInfo`, or `MinSizeRel`).
 
 Backends can be selected independently. For example, an OpenGL-only build is:
 
@@ -84,5 +103,6 @@ The whole project should be organized into modules (aka namespaces), which shoul
 - `JadeFrame`: The main module. This is where the main code is.
 - `docs`: Contains meta information about this project.
 - `examples`: Contains example programs.
+- `tests`: Contains first-party unit and component tests.
 - `cmake`: Contains shared CMake helper modules.
 - `scripts`: Contains project helper scripts.

@@ -29,6 +29,7 @@ if(BUILD_TESTING)
 
         add_executable(${target} ${JF_TEST_SOURCES})
         jadeframe_enable_warnings(${target})
+        set_property(GLOBAL APPEND PROPERTY JADEFRAME_PROJECT_TEST_TARGETS ${target})
         target_link_libraries(${target}
             PRIVATE
                 ${JF_TEST_LIBRARIES}
