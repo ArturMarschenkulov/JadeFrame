@@ -9,17 +9,17 @@ TEST(Option, Basics) {
     // Testing functions
     {
         Option<u32> x0 = Option<u32>(2);
-        EXPECT_EQ(x0.is_some(), true);
+        EXPECT_EQ(x0.has_value(), true);
 
         Option<u32> x1 = Option<u32>();
-        EXPECT_EQ(x1.is_some(), false);
+        EXPECT_EQ(x1.has_value(), false);
     }
     {
         Option<u32> x0 = Option<u32>(2);
-        EXPECT_EQ(x0.is_none(), false);
+        EXPECT_EQ(!x0.has_value(), false);
 
         Option<u32> x1 = Option<u32>();
-        EXPECT_EQ(x1.is_none(), true);
+        EXPECT_EQ(x1.has_value(), false);
     }
 
     // Testing "and"
@@ -69,17 +69,17 @@ TEST(Option, Basics2) {
     // Testing functions
     {
         Option<u32> x0 = Option<u32>(2);
-        EXPECT_EQ(x0.is_some(), true);
+        EXPECT_EQ(x0.has_value(), true);
 
         Option<u32> x1 = Option<u32>();
-        EXPECT_EQ(x1.is_some(), false);
+        EXPECT_EQ(x1.has_value(), false);
     }
     {
         Option<u32> x0 = Option<u32>(2);
-        EXPECT_EQ(x0.is_none(), false);
+        EXPECT_EQ(!x0.has_value(), false);
 
         Option<u32> x1 = Option<u32>();
-        EXPECT_EQ(x1.is_none(), true);
+        EXPECT_EQ(x1.has_value(), false);
     }
     // Testing "and"
     // auto s = Option<i32>(2_i32);
@@ -139,7 +139,7 @@ TEST(Option, Basics3) {
 
     Student s = {16, "John"};
     auto    x = s.get_name();
-    EXPECT_EQ(x.is_some(), false);
+    EXPECT_EQ(x.has_value(), false);
 }
 
 TEST(OptionTest, DefaultConstruction) {
