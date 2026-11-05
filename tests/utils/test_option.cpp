@@ -1,565 +1,346 @@
-#include <gtest/gtest.h>
-#include <type_traits>
 #include "JadeFrame/utils/option.h"
+#include <gtest/gtest.h>
+#include <initializer_list>
+#include <memory>
+#include <string>
+#include <type_traits>
+#include <vector>
 
 using namespace JadeFrame;
 
-TEST(Option, Basics) {
+namespace {
+struct Immobile {
+    explicit constexpr Immobile(int v)
+        : value(v) {}
 
-    // Testing functions
-    {
-        Option<u32> x0 = Option<u32>(2);
-        EXPECT_EQ(x0.has_value(), true);
+    Immobile(const Immobile&) = delete;
+    Immobile(Immobile&&) = delete;
+    Immobile& operator=(const Immobile&) = delete;
+    Immobile& operator=(Immobile&&) = delete;
+    int       value;
+};
 
-        Option<u32> x1 = Option<u32>();
-        EXPECT_EQ(x1.has_value(), false);
-    }
-    {
-        Option<u32> x0 = Option<u32>(2);
-        EXPECT_EQ(!x0.has_value(), false);
+struct NonAssignable {
+    explicit NonAssignable(int) {}
 
-        Option<u32> x1 = Option<u32>();
-        EXPECT_EQ(x1.has_value(), false);
-    }
+    NonAssignable(const NonAssignable&) = default;
+    NonAssignable(NonAssignable&&) = default;
+    NonAssignable& operator=(const NonAssignable&) = delete;
+    NonAssignable& operator=(NonAssignable&&) = delete;
+};
 
-    // Testing "and"
-    // auto s = Option<i32>(2_i32);
-    // s.and_(Option<i32>(3_i32));
-    {
-        Option<i32>         x0 = Option<i32>(2_i32);
-        Option<const char*> y0 = Option<const char*>();
-        EXPECT_EQ(x0.and_(y0), Option<const char*>());
+struct CopyOnly {
+    CopyOnly() = default;
+    CopyOnly(const CopyOnly&) = default;
+    CopyOnly(CopyOnly&&) = delete;
+    CopyOnly& operator=(const CopyOnly&) = default;
+    CopyOnly& operator=(CopyOnly&&) = delete;
+};
 
-        Option<i32>         x1 = Option<i32>();
-        Option<const char*> y1 = Option<const char*>("foo");
-        EXPECT_EQ(x1.and_(y1), Option<const char*>());
+struct Nontrivial {
+    Nontrivial() {}
 
-        Option<i32>         x2 = Option<i32>(2_i32);
-        Option<const char*> y2 = Option<const char*>("foo");
-        EXPECT_EQ(x2.and_(y2), Option<const char*>("foo"));
+    Nontrivial(const Nontrivial&) {}
 
-        Option<i32>         x3 = Option<i32>();
-        Option<const char*> y3 = Option<const char*>();
-        EXPECT_EQ(x3.and_(x3), Option<i32>());
+    Nontrivial(Nontrivial&&) {}
 
-        EXPECT_EQ(Option<int>{1}.and_(Option<int>{2}), Option<int>{2});
-        EXPECT_EQ(Option<int>{1}.and_(Option<int>{}), Option<int>{});
-        EXPECT_EQ(Option<int>{}.and_(Option<int>{2}), Option<int>{});
-        EXPECT_EQ(Option<int>{}.and_(Option<int>{}), Option<int>{});
-    }
+    Nontrivial& operator=(const Nontrivial&) { return *this; }
 
-    {
-        EXPECT_EQ(Option<int>{1}.or_(Option<int>{2}), Option<int>{1});
-        EXPECT_EQ(Option<int>{1}.or_(Option<int>{}), Option<int>{1});
-        EXPECT_EQ(Option<int>{}.or_(Option<int>{2}), Option<int>{2});
-        EXPECT_EQ(Option<int>{}.or_(Option<int>{}), Option<int>{});
-    }
+    Nontrivial& operator=(Nontrivial&&) { return *this; }
 
-    {
-        EXPECT_EQ(Option<int>{1}.xor_(Option<int>{2}), Option<int>{});
-        EXPECT_EQ(Option<int>{1}.xor_(Option<int>{}), Option<int>{1});
-        EXPECT_EQ(Option<int>{}.xor_(Option<int>{2}), Option<int>{2});
-        EXPECT_EQ(Option<int>{}.xor_(Option<int>{}), Option<int>{});
-    }
-}
+    ~Nontrivial() {}
+};
 
-TEST(Option, Basics2) {
-    // Option<int> a = Option<int>(333);
+struct ThrowingDestructor {
+    ~ThrowingDestructor() noexcept(false) {}
+};
 
-    // Testing functions
-    {
-        Option<u32> x0 = Option<u32>(2);
-        EXPECT_EQ(x0.has_value(), true);
+struct Derived : Nontrivial {};
 
-        Option<u32> x1 = Option<u32>();
-        EXPECT_EQ(x1.has_value(), false);
-    }
-    {
-        Option<u32> x0 = Option<u32>(2);
-        EXPECT_EQ(!x0.has_value(), false);
+struct ReferenceConversion {
+    operator const std::string&() const;
+};
 
-        Option<u32> x1 = Option<u32>();
-        EXPECT_EQ(x1.has_value(), false);
-    }
-    // Testing "and"
-    // auto s = Option<i32>(2_i32);
-    // s.and_(Option<i32>(3_i32));
+template<class T>
+concept ContextualBool = requires(T x) { x ? 1 : 0; };
+template<class T>
+concept Dereferenceable = requires(T x) { *x; };
+template<class T>
+concept Arrow = requires(T x) { x.operator->(); };
+template<class T>
+concept Takeable = requires(T& x) { x.take(); };
+template<class T>
+concept RvalueTakeable = requires(T x) { std::move(x).take(); };
+template<class T, class U>
+concept Rebindable = requires(T x, U&& v) { x.rebind(std::forward<U>(v)); };
+template<class T, class... Args>
+concept Someable = requires(Args&&... args) { some<T>(std::forward<Args>(args)...); };
 
-    {
-        Option<i32>         x0 = Option<i32>(2_i32);
-        Option<const char*> y0 = Option<const char*>();
-        EXPECT_EQ(x0.and_(y0), Option<const char*>());
+static_assert(std::is_default_constructible_v<Option<int>>);
+static_assert(std::is_default_constructible_v<Option<Immobile>>);
+static_assert(std::is_constructible_v<Option<int>, int>);
+static_assert(!std::is_convertible_v<int, Option<int>>);
+static_assert(!std::is_convertible_v<NoneTag, Option<int>>);
+static_assert(!std::is_convertible_v<NoneTag, Option<int&>>);
+static_assert(!std::is_convertible_v<NoneTag, Option<void>>);
+static_assert(!std::is_convertible_v<InPlaceTag, Option<void>>);
+static_assert(!std::is_assignable_v<Option<int>&, int>);
+static_assert(!std::is_assignable_v<Option<int&>&, int&>);
+static_assert(
+    !ContextualBool<Option<int>> && !ContextualBool<Option<int&>> &&
+    !ContextualBool<Option<void>>
+);
+static_assert(!Dereferenceable<Option<void>> && !Arrow<Option<void>>);
+static_assert(
+    !RvalueTakeable<Option<int>> && !RvalueTakeable<Option<int&>> &&
+    !RvalueTakeable<Option<void>>
+);
+static_assert(std::is_same_v<decltype(some<int>(42)), Option<int>>);
+static_assert(std::is_same_v<decltype(none<int>()), Option<int>>);
+static_assert(std::is_same_v<decltype(some<void>()), Option<void>>);
+static_assert(!Someable<void, int>);
+static_assert(!Someable<Immobile, std::string>);
+static_assert(std::is_trivially_destructible_v<Option<int>>);
+static_assert(std::is_trivially_copy_constructible_v<Option<int>>);
+static_assert(std::is_trivially_move_constructible_v<Option<int>>);
+static_assert(std::is_trivially_copy_assignable_v<Option<int>>);
+static_assert(std::is_trivially_move_assignable_v<Option<int>>);
+static_assert(std::is_trivially_copyable_v<Option<int>>);
+static_assert(std::is_trivially_copyable_v<Option<int&>>);
+static_assert(std::is_trivially_copyable_v<Option<void>>);
+static_assert(!std::is_trivially_destructible_v<Option<Nontrivial>>);
+static_assert(!std::is_trivially_copy_constructible_v<Option<Nontrivial>>);
+static_assert(!std::is_trivially_move_constructible_v<Option<Nontrivial>>);
+static_assert(!std::is_trivially_copy_assignable_v<Option<Nontrivial>>);
+static_assert(!std::is_trivially_move_assignable_v<Option<Nontrivial>>);
+static_assert(!std::is_copy_constructible_v<Option<Immobile>>);
+static_assert(!std::is_move_constructible_v<Option<Immobile>>);
+static_assert(!std::is_copy_assignable_v<Option<Immobile>>);
+static_assert(!std::is_move_assignable_v<Option<Immobile>>);
+static_assert(!Takeable<Option<Immobile>>);
+static_assert(std::is_copy_constructible_v<Option<NonAssignable>>);
+static_assert(std::is_move_constructible_v<Option<NonAssignable>>);
+static_assert(!std::is_copy_assignable_v<Option<NonAssignable>>);
+static_assert(!std::is_move_assignable_v<Option<NonAssignable>>);
+static_assert(std::is_copy_constructible_v<Option<CopyOnly>>);
+static_assert(!std::is_move_constructible_v<Option<CopyOnly>>);
+static_assert(!std::is_move_assignable_v<Option<CopyOnly>>);
+static_assert(!std::is_copy_constructible_v<Option<std::unique_ptr<int>>>);
+static_assert(!std::is_copy_assignable_v<Option<std::unique_ptr<int>>>);
+static_assert(std::is_nothrow_move_constructible_v<Option<std::unique_ptr<int>>>);
+static_assert(std::is_nothrow_move_assignable_v<Option<std::unique_ptr<int>>>);
+static_assert(!noexcept(std::declval<Option<ThrowingDestructor>&>().reset()));
+static_assert(!noexcept(std::declval<Option<ThrowingDestructor>&>() = None));
+static_assert(!noexcept(std::declval<Option<ThrowingDestructor>&>().emplace()));
+static_assert(!std::is_nothrow_destructible_v<Option<ThrowingDestructor>>);
+static_assert(std::is_constructible_v<Option<const int&>, int&>);
+static_assert(std::is_constructible_v<Option<const int&>, const int&>);
+static_assert(!std::is_constructible_v<Option<int&>, const int&>);
+static_assert(!std::is_constructible_v<Option<const int&>, int>);
+static_assert(!std::is_constructible_v<Option<const std::string&>, std::string>);
+static_assert(!std::is_constructible_v<Option<const std::string&>, const char (&)[4]>);
+static_assert(!std::is_constructible_v<Option<const std::string&>, ReferenceConversion&>);
+static_assert(!Someable<const std::string&, std::string>);
+static_assert(!Rebindable<Option<const std::string&>, std::string>);
+static_assert(!Rebindable<Option<const std::string&>, const char (&)[4]>);
+static_assert(std::is_constructible_v<Option<Nontrivial&>, Derived&>);
+static_assert(std::is_same_v<decltype(std::declval<Option<int>&>().value()), int&>);
+static_assert(
+    std::is_same_v<decltype(std::declval<const Option<int>&>().value()), const int&>
+);
+static_assert(std::is_same_v<decltype(std::declval<Option<int>&&>().value()), int&&>);
+static_assert(
+    std::is_same_v<decltype(std::declval<const Option<int>&&>().value()), const int&&>
+);
+static_assert(std::is_same_v<decltype(*std::declval<Option<int>&&>()), int&&>);
+static_assert(
+    std::is_same_v<decltype(*std::declval<const Option<int>&&>()), const int&&>
+);
+static_assert(
+    std::is_same_v<decltype(std::declval<const Option<int&>&>().value()), int&>
+);
+static_assert(std::is_same_v<decltype(std::declval<Option<void>>().value()), void>);
+static_assert(!std::is_assignable_v<Option<const int>&, Option<const int>>);
+static_assert(!std::is_constructible_v<Option<long>, Option<int>>);
 
-        Option<i32>         x1 = Option<i32>();
-        Option<const char*> y1 = Option<const char*>("foo");
-        EXPECT_EQ(x1.and_(y1), Option<const char*>());
+constexpr auto answer = some<int>(42);
+static_assert(answer.has_value() && answer.value() == 42);
+static_assert(!none<int>().has_value());
+static_assert(some<const int>(7).value() == 7);
 
-        Option<i32>         x2 = Option<i32>(2_i32);
-        Option<const char*> y2 = Option<const char*>("foo");
-        EXPECT_EQ(x2.and_(y2), Option<const char*>("foo"));
+constexpr Option<Immobile> make_immobile() { return some<Immobile>(9); }
 
-        Option<i32>         x3 = Option<i32>();
-        Option<const char*> y3 = Option<const char*>();
-        EXPECT_EQ(x3.and_(x3), Option<i32>());
+static_assert(make_immobile()->value == 9);
+static_assert([] {
+    Option<int> x;
+    x.emplace(5);
+    auto old = x.take();
+    x = old;
+    x = None;
+    x.emplace(8);
+    Option<int> y(x);
+    y = std::move(x);
+    return x.has_value() && y.value() == 8 && old.value() == 5;
+}());
+static_assert([] {
+    int                n = 1;
+    auto               ref = some<int&>(n);
+    const Option<int&> copy = ref;
+    copy.value() = 3;
+    auto old = ref.take();
+    auto marker = some<void>();
+    marker.value();
+    auto previous = marker.take();
+    marker = None;
+    marker.emplace();
+    return n == 3 && old.has_value() && !ref.has_value() && marker.has_value() &&
+           previous.has_value();
+}());
+} // namespace
 
-        EXPECT_EQ(Option<int>{1}.and_(Option<int>{2}), Option<int>{2});
-        EXPECT_EQ(Option<int>{1}.and_(Option<int>{}), Option<int>{});
-        EXPECT_EQ(Option<int>{}.and_(Option<int>{2}), Option<int>{});
-        EXPECT_EQ(Option<int>{}.and_(Option<int>{}), Option<int>{});
-    }
-
-    {
-        EXPECT_EQ(Option<int>{1}.or_(Option<int>{2}), Option<int>{1});
-        EXPECT_EQ(Option<int>{1}.or_(Option<int>{}), Option<int>{1});
-        EXPECT_EQ(Option<int>{}.or_(Option<int>{2}), Option<int>{2});
-        EXPECT_EQ(Option<int>{}.or_(Option<int>{}), Option<int>{});
-    }
-
-    {
-        EXPECT_EQ(Option<int>{1}.xor_(Option<int>{2}), Option<int>{});
-        EXPECT_EQ(Option<int>{1}.xor_(Option<int>{}), Option<int>{1});
-        EXPECT_EQ(Option<int>{}.xor_(Option<int>{2}), Option<int>{2});
-        EXPECT_EQ(Option<int>{}.xor_(Option<int>{}), Option<int>{});
-    }
-}
-
-TEST(Option, Basics3) {
-    struct Student {
-        int         age;
-        std::string name;
-
-        [[nodiscard]] auto get_name() const -> Option<const std::string&> {
-            if (age >= 18) {
-                return Option<const std::string&>(name);
-            } else {
-                return Option<const std::string&>();
-            }
-        }
+TEST(Option, ExplicitConstructionAndFactories) {
+    Option<int> empty{None};
+    EXPECT_FALSE(empty.has_value());
+    auto value = some<int>(42);
+    EXPECT_EQ(value.value(), 42);
+    EXPECT_EQ(*value, 42);
+    auto resource = make_immobile();
+    EXPECT_EQ(resource->value, 9);
+    resource.emplace(11);
+    EXPECT_EQ(resource->value, 11);
+    resource = None;
+    EXPECT_FALSE(resource.has_value());
+    Option<std::vector<int>> list{
+        InPlace, std::initializer_list<int>{1, 2, 3}
     };
-
-    Student s = {16, "John"};
-    auto    x = s.get_name();
-    EXPECT_EQ(x.has_value(), false);
+    EXPECT_EQ(list->size(), 3u);
+    Option<const int> constant{InPlace, 4};
+    constant.emplace(7);
+    EXPECT_EQ(*constant, 7);
 }
 
-TEST(OptionTest, DefaultConstruction) {
-    Option<int> opt;
-    EXPECT_FALSE(opt.has_value());
+TEST(Option, CopyAndMoveAssignmentsCoverAllStates) {
+    Option<std::string> source;
+    Option<std::string> destination;
+    destination = source;
+    EXPECT_FALSE(destination.has_value());
+    source.emplace("first");
+    destination = source;
+    EXPECT_EQ(destination.value(), "first");
+    source.emplace("second");
+    destination = source;
+    EXPECT_EQ(destination.value(), "second");
+    Option<std::string> copy(source);
+    EXPECT_EQ(*copy, "second");
+    source.reset();
+    destination = source;
+    EXPECT_FALSE(destination.has_value());
 
-    opt = Option(10);
-    ASSERT_TRUE(opt.has_value());
+    destination = std::move(source);
+    EXPECT_FALSE(destination.has_value());
+    source.emplace("third");
+    destination = std::move(source);
+    EXPECT_TRUE(source.has_value());
+    EXPECT_EQ(*destination, "third");
+    source.emplace("fourth");
+    destination = std::move(source);
+    EXPECT_TRUE(source.has_value());
+    EXPECT_EQ(*destination, "fourth");
+    source.reset();
+    destination = std::move(source);
+    EXPECT_FALSE(destination.has_value());
+    source.emplace("self");
+    auto& alias = source;
+    source = alias;
+    source = std::move(alias);
+    EXPECT_TRUE(source.has_value());
+    EXPECT_EQ(*source, "self");
+    Option<std::string> empty_copy(destination);
+    Option<std::string> empty_move(std::move(destination));
+    EXPECT_FALSE(empty_copy.has_value());
+    EXPECT_FALSE(empty_move.has_value());
 }
 
-TEST(OptionTest, ValueConstruction) {
-    Option<int> opt(10);
-    ASSERT_TRUE(opt.has_value());
-    EXPECT_EQ(opt.value(), 10);
-}
-
-TEST(OptionTest, CopyConstruction) {
-    Option<int> original(10);
-    Option<int> copy(original);
-    ASSERT_TRUE(copy.has_value());
-    EXPECT_EQ(copy.value(), 10);
-}
-
-TEST(OptionTest, MoveConstruction) {
-    Option<int> original(10);
-    Option<int> moved(std::move(original));
+TEST(Option, MovePreservesEngagementAndTakeClearsIt) {
+    auto source = some<std::unique_ptr<int>>(std::make_unique<int>(7));
+    Option<std::unique_ptr<int>> moved(std::move(source));
+    EXPECT_TRUE(source.has_value());
+    EXPECT_EQ(source.value(), nullptr);
+    EXPECT_EQ(**moved, 7);
+    source = std::move(moved);
     EXPECT_TRUE(moved.has_value());
-    EXPECT_EQ(moved.value(), 10);
-    EXPECT_FALSE(original.has_value());
+    EXPECT_EQ(moved.value(), nullptr);
+    auto old = source.take();
+    EXPECT_FALSE(source.has_value());
+    EXPECT_EQ(**old, 7);
+    EXPECT_FALSE(source.take().has_value());
+    auto moved_from = moved.take();
+    EXPECT_TRUE(moved_from.has_value());
+    EXPECT_EQ(*moved_from, nullptr);
+    EXPECT_FALSE(moved.has_value());
 }
 
-// TEST(OptionTest, CopyAssignment) {
-//     Option<int> opt1(10);
-//     Option<int> opt2;
-//     opt2 = opt1;
-//     ASSERT_TRUE(opt2.has_value());
-//     EXPECT_EQ(opt2.value(), 10);
-// }
-
-TEST(OptionTest, MoveAssignment) {
-    Option<int> opt1(10);
-    Option<int> opt2;
-    opt2 = std::move(opt1);
-    EXPECT_TRUE(opt2.has_value());
-    EXPECT_EQ(opt2.value(), 10);
-    EXPECT_FALSE(opt1.has_value());
+TEST(Option, ReferencesCopyBindingsAndNeverTouchReferents) {
+    int                first = 1, second = 2;
+    auto               ref = some<int&>(first);
+    const Option<int&> copy(ref);
+    *copy = 10;
+    EXPECT_EQ(first, 10);
+    ref.rebind(second);
+    *ref = 20;
+    EXPECT_EQ(second, 20);
+    EXPECT_EQ(*copy, 10);
+    ref = copy;
+    EXPECT_EQ(ref.operator->(), &first);
+    Option<int&> moved(std::move(ref));
+    EXPECT_TRUE(ref.has_value());
+    EXPECT_EQ(moved.operator->(), &first);
+    moved = std::move(ref);
+    EXPECT_TRUE(ref.has_value());
+    auto previous = ref.take();
+    EXPECT_FALSE(ref.has_value());
+    EXPECT_EQ(previous.operator->(), &first);
+    EXPECT_FALSE(ref.take().has_value());
+    moved = None;
+    EXPECT_FALSE(moved.has_value());
+    const int          constant = 4;
+    Option<const int&> const_ref(constant);
+    EXPECT_EQ(const_ref.operator->(), &constant);
+    auto              immobile = make_immobile();
+    Option<Immobile&> a(*immobile);
+    auto              b = std::move(a);
+    a = b;
+    b.reset();
+    EXPECT_EQ(a->value, 9);
 }
 
-// TEST(OptionTest, SelfAssignment) {
-//     Option<int> opt(10);
-//     opt = opt;
-//     ASSERT_TRUE(opt.has_value());
-//     EXPECT_EQ(opt.value(), 10);
-// }
-
-TEST(OptionTest, Comparison) {
-    Option<int> opt1(10);
-    Option<int> opt2(10);
-    Option<int> opt3(20);
-    Option<int> none;
-
-    EXPECT_TRUE(opt1 == opt2);
-    EXPECT_FALSE(opt1 == opt3);
-    EXPECT_FALSE(opt1 == none);
+TEST(Option, VoidPresence) {
+    auto empty = none<void>();
+    EXPECT_FALSE(empty.has_value());
+    EXPECT_FALSE(empty.take().has_value());
+    empty.emplace();
+    empty.value();
+    auto moved = std::move(empty);
+    EXPECT_TRUE(empty.has_value());
+    EXPECT_TRUE(moved.has_value());
+    Option<void> copied(moved);
+    moved = None;
+    moved = copied;
+    EXPECT_TRUE(moved.has_value());
+    moved = std::move(copied);
+    EXPECT_TRUE(copied.has_value());
+    auto previous = moved.take();
+    EXPECT_FALSE(moved.has_value());
+    EXPECT_TRUE(previous.has_value());
+    previous.reset();
+    EXPECT_FALSE(previous.has_value());
 }
 
-TEST(OptionTest, Unwrap) {
-    Option<const int> opt(10);
-    EXPECT_EQ(opt.unwrap(), 10);
-}
-
-TEST(OptionTest, UnwrapOr) {
-    Option<int> opt(10);
-    EXPECT_EQ(opt.or_(Option<int>(20)).unwrap(), 10);
-
-    Option<int> none;
-    EXPECT_EQ(none.or_(Option<int>(20)).unwrap(), 20);
-}
-
-TEST(OptionTest, UnwrapOrElse) {
-    Option<int> opt(10);
-    auto        or_else = []() { return Option<int>(20); };
-    EXPECT_EQ(opt.or_else(or_else).unwrap(), 10);
-
-    Option<int> none;
-    EXPECT_EQ(none.or_else(or_else).unwrap(), 20);
-}
-
-TEST(OptionTest, AndThen) {
-    Option<int> opt(10);
-    auto        multiply_by_two = [](int value) { return Option<int>(value * 2); };
-    EXPECT_EQ(opt.and_then(multiply_by_two).unwrap(), 20);
-
-    Option<int> none;
-    EXPECT_FALSE(none.and_then(multiply_by_two).has_value());
-}
-
-TEST(OptionTest, Xor) {
-    Option<int> opt1(10);
-    Option<int> opt2;
-    EXPECT_TRUE(opt1.xor_(opt2).has_value());
-    EXPECT_EQ(opt1.xor_(opt2).unwrap(), 10);
-
-    Option<int> opt3(10);
-    EXPECT_FALSE(opt1.xor_(opt3).has_value());
-}
-
-TEST(Option, Misc_0) {
-    // static_assert(std::is_trivially_destructible<Option<u8>>());
-
-    struct DestructionChecker {
-        explicit DestructionChecker(bool& was_destroyed)
-            : m_was_destroyed(was_destroyed) {}
-
-        ~DestructionChecker() { m_was_destroyed = true; }
-
-        bool& m_was_destroyed;
-    };
-
-    static_assert(!std::is_trivially_destructible<Option<DestructionChecker>>());
-    bool was_destroyed = false;
-    { Option<DestructionChecker> opt = Option(DestructionChecker(was_destroyed)); }
-    EXPECT_TRUE(was_destroyed);
-
-    struct CopyChecker {
-        explicit CopyChecker(bool& was_copy_constructed)
-            : m_was_copy_constructed(was_copy_constructed) {}
-
-        CopyChecker(CopyChecker const& other)
-            : m_was_copy_constructed(other.m_was_copy_constructed) {
-            m_was_copy_constructed = true;
-        }
-
-        bool& m_was_copy_constructed;
-    };
-
-    static_assert(std::is_copy_constructible<Option<CopyChecker>>());
-    static_assert(!std::is_trivially_copy_constructible<Option<CopyChecker>>());
-    bool was_copy_constructed = false;
-    {
-        Option<CopyChecker> opt = Option(CopyChecker(was_copy_constructed));
-        Option<CopyChecker> opt2 = opt;
-    }
-    EXPECT_TRUE(was_copy_constructed);
-
-    struct MoveChecker {
-        explicit MoveChecker(bool& was_move_constructed)
-            : m_was_move_constructed(was_move_constructed) {}
-
-        MoveChecker(MoveChecker const& other)
-            : m_was_move_constructed(other.m_was_move_constructed) {
-            EXPECT_TRUE(false);
-        }
-
-        MoveChecker(MoveChecker&& other)
-            : m_was_move_constructed(other.m_was_move_constructed) {
-            m_was_move_constructed = true;
-        }
-
-        bool& m_was_move_constructed;
-    };
-
-    static_assert(std::is_move_constructible_v<Option<MoveChecker>>);
-    static_assert(!std::is_trivially_move_constructible_v<Option<MoveChecker>>);
-    bool was_moved = false;
-    {
-        Option<MoveChecker> opt = Option(MoveChecker(was_moved));
-        Option<MoveChecker> opt2 = std::move(opt);
-    }
-    EXPECT_TRUE(was_moved);
-}
-
-// This test is about testing that non-trivial types are handled correctly.
-TEST(Option, Complex) {
-    struct ComplexType {
-        ComplexType() = default;
-
-        ComplexType(const ComplexType& other)
-            : data(other.data) {}
-
-        ComplexType(ComplexType&& other) noexcept
-            : data(std::move(other.data)) {}
-
-        ~ComplexType() = default;
-
-        std::string data = "Hello, World!";
-    };
-
-    static_assert(std::is_copy_constructible_v<Option<ComplexType>>);
-    static_assert(std::is_move_constructible_v<Option<ComplexType>>);
-
-    // Test copy construction
-    ComplexType ct;
-    ct.data = "Test Data";
-    Option<ComplexType> opt1(ct);
-    Option<ComplexType> opt2(opt1);
-    EXPECT_EQ(opt2.unwrap().data, "Test Data");
-
-    // Test move construction
-    Option<ComplexType> opt3(std::move(opt1));
-    EXPECT_EQ(opt3.unwrap().data, "Test Data");
-}
-
-// ------------------------------------------------------------
-// Compile-time checks (C++20 requires / concepts)
-// ------------------------------------------------------------
-
-// 1) unwrap() & / const& return types for Option<T&>
-static_assert(
-    std::is_same_v<decltype(std::declval<Option<int&>&>().unwrap()), int&>,
-    "Option<int&>::unwrap() & should return int&"
-);
-
-static_assert(
-    std::is_same_v<
-        decltype(std::declval<const Option<int&>&>().unwrap()),
-        int&>, // const T& with T = int& -> int&
-    "Option<int&>::unwrap() const& should return int&"
-);
-
-// 2) unwrap_unchecked() & / const& return types for Option<T&>
-static_assert(
-    std::is_same_v<decltype(std::declval<Option<int&>&>().unwrap_unchecked()), int&>,
-    "Option<int&>::unwrap_unchecked() & should return int&"
-);
-
-static_assert(
-    std::
-        is_same_v<decltype(std::declval<const Option<int&>&>().unwrap_unchecked()), int&>,
-    "Option<int&>::unwrap_unchecked() const& should return int&"
-);
-
-// 3) For value types, unwrap() && must be available
-static_assert(
-    requires(Option<int> opt) {
-        { std::move(opt).unwrap() } -> std::same_as<int>;
-    },
-    "Option<int>::unwrap() && should be available and return int"
-);
-
-// // 4) For reference types, unwrap() && should NOT be available
-// static_assert(
-//     !requires(Option<int&> opt) { std::move(opt).unwrap(); },
-//     "Option<int&>::unwrap() && should be deleted / not available"
-// );
-
-// 5) For value types, unwrap_unchecked() && must be available
-static_assert(
-    requires(Option<int> opt) {
-        { std::move(opt).unwrap_unchecked() } -> std::same_as<int>;
-    },
-    "Option<int>::unwrap_unchecked() && should be available and return int"
-);
-
-// // 6) For reference types, unwrap_unchecked() && should NOT be available
-// static_assert(
-//     !requires(Option<int&> opt) { std::move(opt).unwrap_unchecked(); },
-//     "Option<int&>::unwrap_unchecked() && should be deleted / not available"
-// );
-
-// ------------------------------------------------------------
-// Runtime tests
-// ------------------------------------------------------------
-
-TEST(OptionRef, UnwrapLvalueReturnsReferenceAndIsMutable) {
-    int          x = 42;
-    Option<int&> opt{x};
-
-    ASSERT_TRUE(opt.has_value());
-
-    int& ref1 = opt.unwrap(); // lvalue overload
-    EXPECT_EQ(&ref1, &x);
-    EXPECT_EQ(ref1, 42);
-
-    // Mutate through the reference returned by unwrap()
-    ref1 = 99;
-    EXPECT_EQ(x, 99);
-
-    // Calling unwrap() again should still be fine for lvalue reference,
-    // and should still refer to the same object.
-    int& ref2 = opt.unwrap();
-    EXPECT_EQ(&ref2, &x);
-    EXPECT_EQ(ref2, 99);
-}
-
-TEST(OptionRef, ConstUnwrapLvalueReturnsReferenceToSameObject) {
-    int                x = 10;
-    const Option<int&> opt{x};
-
-    ASSERT_TRUE(opt.has_value());
-
-    const int& cref = opt.unwrap();
-    EXPECT_EQ(&cref, &x);
-    EXPECT_EQ(cref, 10);
-}
-
-TEST(OptionRef, UnwrapUncheckedLvalueReturnsReference) {
-    int          x = 5;
-    Option<int&> opt{x};
-
-    ASSERT_TRUE(opt.has_value());
-
-    int& ref = opt.unwrap_unchecked();
-    EXPECT_EQ(&ref, &x);
-    ref = 123;
-    EXPECT_EQ(x, 123);
-}
-
-TEST(OptionValue, MoveUnwrapResetsOption) {
-    Option<int> opt{42};
-
-    ASSERT_TRUE(opt.has_value());
-
-    int value = std::move(opt).unwrap();
-    EXPECT_EQ(value, 42);
-    EXPECT_FALSE(opt.has_value()); // after move-unwrap, option should be None
-}
-
-TEST(OptionValue, MoveUnwrapUncheckedResetsOption) {
-    Option<int> opt{123};
-
-    ASSERT_TRUE(opt.has_value());
-
-    int value = std::move(opt).unwrap_unchecked();
-    EXPECT_EQ(value, 123);
-    EXPECT_FALSE(opt.has_value());
-}
-
-TEST(OptionValue, CopyAndEqualitySemantics) {
-    Option<int> a{7};
-    Option<int> b{7};
-    Option<int> c; // None
-
-    EXPECT_TRUE(a == b);
-    EXPECT_FALSE(a == c);
-    EXPECT_FALSE(c == a);
-
-    // Move-construct
-    Option<int> d{std::move(a)};
-    EXPECT_TRUE(d.has_value());
-    EXPECT_EQ(d.unwrap(), 7);
-}
-
-TEST(OptionRef, CopyAndEqualitySemantics) {
-    int x = 1;
-    int y = 1;
-    int z = 2;
-
-    Option<int&> a{x};
-    Option<int&> b{x};
-    Option<int&> c{y};
-    Option<int&> d{z};
-    Option<int&> none; // default-constructed None
-
-    EXPECT_TRUE(a == b);  // same object
-    EXPECT_TRUE(a == c);  // different object, same value
-    EXPECT_FALSE(a == d); // different value
-    EXPECT_FALSE(a == none);
-    EXPECT_FALSE(none == a);
-}
-
-TEST(MISC, MISC_0) {
-    int          global = 10;
-    Option<int&> opt(global);
-
-    // Caller code:
-    int& r = std::move(opt).unwrap();
-
-    EXPECT_EQ(r, 10);
-    EXPECT_EQ(global, 10);
-    EXPECT_EQ(opt.has_value(), true);
-}
-
-// #include <gtest/gtest.h>
-
-// #include "Option.h" // include your Option implementation
-
-// using JadeFrame::Option;
-
-TEST(OptionReferenceTest, ConstOptionDoesNotConstQualifyReferredObject) {
-    int value = 42;
-
-    Option<int&>        opt(value);
-    const Option<int&>& const_opt = opt;
-
-    // This MUST compile and work:
-    int& ref = const_opt.unwrap();
-    ref = 100;
-
-    EXPECT_EQ(value, 100);
-}
-
-TEST(OptionReferenceTest, UnwrapReturnsExactReferenceType) {
-    int          value = 7;
-    Option<int&> opt(value);
-
-    static_assert(
-        std::is_same_v<decltype(opt.unwrap()), int&>, "unwrap() must return int&"
-    );
-
-    static_assert(
-        std::is_same_v<decltype(std::as_const(opt).unwrap()), int&>,
-        "const Option<int&>::unwrap() must still return int&"
-    );
-}
-
-TEST(OptionReferenceTest, OperatorStarBehavesLikePointer) {
-    int                value = 5;
-    Option<int&>       opt(value);
-    const Option<int&> const_opt(value);
-
-    *opt = 10;
-    EXPECT_EQ(value, 10);
-
-    *const_opt = 20;
-    EXPECT_EQ(value, 20);
-}
-
-TEST(OptionReferenceTest, NoneReferencePanicsOnUnwrap) {
-    Option<int&> none;
-
-    EXPECT_DEATH({ none.unwrap(); }, "");
+TEST(Option, CheckedEmptyAccessIsAlwaysFatal) {
+    EXPECT_DEATH((Option<int>{}.value()), "");
+    EXPECT_DEATH((Option<int&>{}.value()), "");
+    EXPECT_DEATH((Option<void>{}.value()), "");
+    const Option<int> empty;
+    EXPECT_DEATH(empty.value(), "");
+    EXPECT_DEATH(std::move(empty).value(), "");
 }

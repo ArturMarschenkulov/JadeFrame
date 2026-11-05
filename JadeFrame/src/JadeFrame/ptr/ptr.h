@@ -98,7 +98,7 @@ template<typename T, typename... Args>
 constexpr auto make_scope_noexcept(Args&&... args) noexcept -> Option<Scope<T>> {
     T* t = new (std::nothrow) T(std::forward<Args>(args)...);
     if (t != nullptr) {
-        return Scope<T>(t);
+        return some<Scope<T>>(t);
     } else {
         return Option<Scope<T>>();
     }

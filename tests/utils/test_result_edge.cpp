@@ -164,10 +164,10 @@ TEST(ResultEdge, OptionConversionsAndEquality) {
     auto empty_err = ok.err();
     auto err_option = err.err();
 
-    EXPECT_EQ(ok_option.unwrap(), 8);
+    EXPECT_EQ(ok_option.value(), 8);
     EXPECT_TRUE(!empty_ok.has_value());
     EXPECT_TRUE(!empty_err.has_value());
-    EXPECT_EQ(err_option.unwrap(), "bad");
+    EXPECT_EQ(err_option.value(), "bad");
 
     EXPECT_TRUE((ok == Result<int, std::string>(8)));
     EXPECT_TRUE((err == Result<int, std::string>(Failure(std::string("bad")))));

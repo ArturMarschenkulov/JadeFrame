@@ -289,7 +289,7 @@ auto SystemManager::set_target_FPS(f64 FPS) -> void {
 
 auto SystemManager::get_time() const -> f64 {
 #if USE_OPTION_TYPE
-    const u64 counter = query_performance_counter().unwrap_unchecked() - m_offset;
+    const u64 counter = query_performance_counter().value() - m_offset;
     const u64 frequency = m_frequency;
     return static_cast<f64>(counter) / frequency;
 #else
@@ -308,14 +308,14 @@ auto SystemManager::initialize() -> void {
 
 #if USE_OPTION_TYPE
     Option<u64> frequency = query_performance_frequency();
-    if (frequency.is_some()) {
+    if (frequency.has_value()) {
         m_has_performance_counter = true;
-        m_frequency = frequency.unwrap_unchecked();
+        m_frequency = frequency.value();
     } else {
         m_has_performance_counter = false;
         m_frequency = 1000;
     }
-    m_offset = query_performance_counter().unwrap_unchecked();
+    m_offset = query_performance_counter().value();
 #else
     u64 frequency;
     if (::QueryPerformanceFrequency((LARGE_INTEGER*)&frequency)) {
