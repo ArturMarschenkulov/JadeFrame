@@ -1,6 +1,7 @@
 build/
 build-*/
 build_wsl/
+libs/assimp/
 CMakeFiles/
 # .vscode
 .vs
