@@ -23,7 +23,7 @@ namespace option {
 namespace details {
 
 // Independent of assertions and exceptions: checked access is fatal in every build.
-[[noreturn]] inline void fatal_bad_option_access() noexcept { std::abort(); }
+[[noreturn]] inline auto fatal_bad_option_access() noexcept -> void { std::abort(); }
 
 template<class T>
 union Storage {
@@ -43,8 +43,8 @@ union Storage {
 
     Storage(const Storage&) = default;
     Storage(Storage&&) = default;
-    Storage& operator=(const Storage&) = default;
-    Storage& operator=(Storage&&) = default;
+    auto operator=(const Storage&) -> Storage& = default;
+    auto operator=(Storage&&) -> Storage& = default;
 };
 
 // Pointer convertibility excludes user conversions that might bind a temporary.
@@ -87,8 +87,9 @@ class Option {
         std::is_trivially_move_assignable_v<T> && std::is_trivially_destructible_v<T>;
 
     template<class... Args>
-    constexpr void
-    construct(Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Args&&...>) {
+    constexpr auto
+    construct(Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Args&&...>)
+        -> void {
         std::construct_at(std::addressof(storage_.value), std::forward<Args>(args)...);
         engaged_ = true;
     }
@@ -116,13 +117,13 @@ public:
     ) noexcept(std::is_nothrow_copy_constructible_v<T>)
         requires std::is_copy_constructible_v<T>
     {
-        construct(value);
+        this->construct(value);
     }
 
     explicit constexpr Option(T&& value) noexcept(std::is_nothrow_move_constructible_v<T>)
         requires std::is_move_constructible_v<T>
     {
-        construct(std::move(value));
+        this->construct(std::move(value));
     }
 
     template<class... Args>
@@ -130,7 +131,7 @@ public:
     explicit constexpr Option(InPlaceTag, Args&&... args) noexcept(
         std::is_nothrow_constructible_v<T, Args&&...>
     ) {
-        construct(std::forward<Args>(args)...);
+        this->construct(std::forward<Args>(args)...);
     }
 
     constexpr Option(const Option&)
@@ -144,7 +145,7 @@ public:
             std::is_copy_constructible_v<T> && !std::is_trivially_copy_constructible_v<T>
         )
     {
-        if (other.engaged_) { construct(other.storage_.value); }
+        if (other.engaged_) { this->construct(other.storage_.value); }
     }
 
     Option(const Option&)
@@ -160,7 +161,7 @@ public:
             std::is_move_constructible_v<T> && !std::is_trivially_move_constructible_v<T>
         )
     {
-        if (other.engaged_) { construct(std::move(other).value()); }
+        if (other.engaged_) { this->construct(std::move(other).value()); }
     }
 
     Option(Option&&)
@@ -174,17 +175,17 @@ public:
     constexpr ~Option() noexcept(std::is_nothrow_destructible_v<T>)
         requires(!std::is_trivially_destructible_v<T>)
     {
-        reset();
+        this->reset();
     }
 
-    constexpr Option& operator=(const Option&)
+    constexpr auto operator=(const Option&) -> Option&
         requires trivial_copy_assignment
     = default;
 
-    constexpr Option& operator=(const Option& other) noexcept(
+    constexpr auto operator=(const Option& other) noexcept(
         std::is_nothrow_copy_constructible_v<T> && std::is_nothrow_copy_assignable_v<T> &&
         std::is_nothrow_destructible_v<T>
-    )
+    ) -> Option&
         requires(
             std::is_copy_constructible_v<T> && std::is_copy_assignable_v<T> &&
             !trivial_copy_assignment
@@ -192,27 +193,27 @@ public:
     {
         if (this == std::addressof(other)) { return *this; }
         if (!other.engaged_) {
-            reset();
+            this->reset();
         } else if (engaged_) {
             storage_.value = other.storage_.value;
         } else {
-            construct(other.storage_.value);
+            this->construct(other.storage_.value);
         }
         return *this;
     }
 
-    Option& operator=(const Option&)
+    auto operator=(const Option&) -> Option&
         requires(!std::is_copy_constructible_v<T> || !std::is_copy_assignable_v<T>)
     = delete;
 
-    constexpr Option& operator=(Option&&)
+    constexpr auto operator=(Option&&) -> Option&
         requires trivial_move_assignment
     = default;
 
-    constexpr Option& operator=(Option&& other) noexcept(
+    constexpr auto operator=(Option&& other) noexcept(
         std::is_nothrow_move_constructible_v<T> && std::is_nothrow_move_assignable_v<T> &&
         std::is_nothrow_destructible_v<T>
-    )
+    ) -> Option&
         requires(
             std::is_move_constructible_v<T> && std::is_move_assignable_v<T> &&
             !trivial_move_assignment
@@ -220,25 +221,26 @@ public:
     {
         if (this == std::addressof(other)) { return *this; }
         if (!other.engaged_) {
-            reset();
+            this->reset();
         } else if (engaged_) {
             storage_.value = std::move(other.storage_.value);
         } else {
-            construct(std::move(other).value());
+            this->construct(std::move(other).value());
         }
         return *this;
     }
 
-    Option& operator=(Option&&)
+    auto operator=(Option&&) -> Option&
         requires(!std::is_move_constructible_v<T> || !std::is_move_assignable_v<T>)
     = delete;
 
-    constexpr Option& operator=(NoneTag) noexcept(std::is_nothrow_destructible_v<T>) {
-        reset();
+    constexpr auto operator=(NoneTag) noexcept(std::is_nothrow_destructible_v<T>)
+        -> Option& {
+        this->reset();
         return *this;
     }
 
-    constexpr void reset() noexcept(std::is_nothrow_destructible_v<T>) {
+    constexpr auto reset() noexcept(std::is_nothrow_destructible_v<T>) -> void {
         if (engaged_) {
             // Clear first: even a throwing destructor ends the payload lifetime.
             engaged_ = false;
@@ -248,71 +250,71 @@ public:
 
     template<class... Args>
         requires std::is_constructible_v<T, Args&&...>
-    constexpr T& emplace(Args&&... args) noexcept(
+    constexpr auto emplace(Args&&... args) noexcept(
         std::is_nothrow_destructible_v<T> && std::is_nothrow_constructible_v<T, Args&&...>
-    ) {
-        reset();
-        construct(std::forward<Args>(args)...);
+    ) -> T& {
+        this->reset();
+        this->construct(std::forward<Args>(args)...);
         return storage_.value;
     }
 
-    [[nodiscard]] constexpr Option take() & noexcept(
+    [[nodiscard]] constexpr auto take() & noexcept(
         std::is_nothrow_move_constructible_v<T> && std::is_nothrow_destructible_v<T>
-    )
+    ) -> Option
         requires std::is_move_constructible_v<T>
     {
         if (!engaged_) { return Option{}; }
         return Option(TakeTag{}, *this);
     }
 
-    [[nodiscard]] constexpr bool has_value() const noexcept { return engaged_; }
+    [[nodiscard]] constexpr auto has_value() const noexcept -> bool { return engaged_; }
 
-    constexpr T& value() & noexcept {
+    constexpr auto value() & noexcept -> T& {
         if (!engaged_) { details::fatal_bad_option_access(); }
         return storage_.value;
     }
 
-    constexpr const T& value() const& noexcept {
+    constexpr auto value() const& noexcept -> const T& {
         if (!engaged_) { details::fatal_bad_option_access(); }
         return storage_.value;
     }
 
-    constexpr T&& value() && noexcept {
+    constexpr auto value() && noexcept -> T&& {
         if (!engaged_) { details::fatal_bad_option_access(); }
         return std::move(storage_.value);
     }
 
-    constexpr const T&& value() const&& noexcept {
+    constexpr auto value() const&& noexcept -> const T&& {
         if (!engaged_) { details::fatal_bad_option_access(); }
         return std::move(storage_.value);
     }
 
-    constexpr T& operator*() & noexcept {
+    constexpr auto operator*() & noexcept -> T& {
         assert(engaged_);
         return storage_.value;
     }
 
-    constexpr const T& operator*() const& noexcept {
+    constexpr auto operator*() const& noexcept -> const T& {
         assert(engaged_);
         return storage_.value;
     }
 
-    constexpr T&& operator*() && noexcept {
+    constexpr auto operator*() && noexcept -> T&& {
         assert(engaged_);
         return std::move(storage_.value);
     }
 
-    constexpr const T&& operator*() const&& noexcept {
+    constexpr auto operator*() const&& noexcept -> const T&& {
         assert(engaged_);
         return std::move(storage_.value);
     }
 
-    constexpr T* operator->() noexcept {
+    constexpr auto operator->() noexcept -> T* {
         assert(engaged_);
         return std::addressof(storage_.value);
     }
 
-    constexpr const T* operator->() const noexcept {
+    constexpr auto operator->() const noexcept -> const T* {
         assert(engaged_);
         return std::addressof(storage_.value);
     }
@@ -339,41 +341,41 @@ public:
     explicit constexpr Option(InPlaceTag, U&& value) noexcept
         : pointer_(std::addressof(value)) {}
 
-    constexpr Option& operator=(NoneTag) noexcept {
-        reset();
+    constexpr auto operator=(NoneTag) noexcept -> Option& {
+        this->reset();
         return *this;
     }
 
     template<class U>
         requires details::safe_reference_binding<T, U>
-    constexpr void rebind(U&& value) noexcept {
+    constexpr auto rebind(U&& value) noexcept -> void {
         pointer_ = std::addressof(value);
     }
 
-    constexpr void reset() noexcept { pointer_ = nullptr; }
+    constexpr auto reset() noexcept -> void { pointer_ = nullptr; }
 
-    [[nodiscard]] constexpr bool has_value() const noexcept {
+    [[nodiscard]] constexpr auto has_value() const noexcept -> bool {
         return pointer_ != nullptr;
     }
 
-    constexpr T& value() const noexcept {
+    constexpr auto value() const noexcept -> T& {
         if (!pointer_) { details::fatal_bad_option_access(); }
         return *pointer_;
     }
 
-    constexpr T& operator*() const noexcept {
+    constexpr auto operator*() const noexcept -> T& {
         assert(pointer_);
         return *pointer_;
     }
 
-    constexpr T* operator->() const noexcept {
+    constexpr auto operator->() const noexcept -> T* {
         assert(pointer_);
         return pointer_;
     }
 
-    [[nodiscard]] constexpr Option take() & noexcept {
+    [[nodiscard]] constexpr auto take() & noexcept -> Option {
         Option previous(*this);
-        reset();
+        this->reset();
         return previous;
     }
 };
@@ -391,24 +393,24 @@ public:
     explicit constexpr Option(InPlaceTag) noexcept
         : engaged_(true) {}
 
-    constexpr Option& operator=(NoneTag) noexcept {
-        reset();
+    constexpr auto operator=(NoneTag) noexcept -> Option& {
+        this->reset();
         return *this;
     }
 
-    constexpr void reset() noexcept { engaged_ = false; }
+    constexpr auto reset() noexcept -> void { engaged_ = false; }
 
-    constexpr void emplace() noexcept { engaged_ = true; }
+    constexpr auto emplace() noexcept -> void { engaged_ = true; }
 
-    [[nodiscard]] constexpr bool has_value() const noexcept { return engaged_; }
+    [[nodiscard]] constexpr auto has_value() const noexcept -> bool { return engaged_; }
 
-    constexpr void value() const noexcept {
+    constexpr auto value() const noexcept -> void {
         if (!engaged_) { details::fatal_bad_option_access(); }
     }
 
-    [[nodiscard]] constexpr Option take() & noexcept {
+    [[nodiscard]] constexpr auto take() & noexcept -> Option {
         Option previous(*this);
-        reset();
+        this->reset();
         return previous;
     }
 };
@@ -419,13 +421,14 @@ using option::Option;
 
 template<class T, class... Args>
     requires requires(Args&&... args) { Option<T>{InPlace, std::forward<Args>(args)...}; }
-[[nodiscard]] constexpr Option<T>
-some(Args&&... args) noexcept(noexcept(Option<T>{InPlace, std::forward<Args>(args)...})) {
+[[nodiscard]] constexpr auto
+some(Args&&... args) noexcept(noexcept(Option<T>{InPlace, std::forward<Args>(args)...}))
+    -> Option<T> {
     return Option<T>{InPlace, std::forward<Args>(args)...};
 }
 
 template<class T>
-[[nodiscard]] constexpr Option<T> none() noexcept {
+[[nodiscard]] constexpr auto none() noexcept -> Option<T> {
     return Option<T>{};
 }
 

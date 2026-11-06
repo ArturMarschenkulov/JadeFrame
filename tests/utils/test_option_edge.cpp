@@ -13,7 +13,7 @@ struct Tracked {
                        fail_destroy = false;
     int                value;
 
-    static void fail(bool enabled) {
+    static auto fail(bool enabled) -> void {
 #if defined(__cpp_exceptions)
         if (enabled) { throw std::runtime_error("payload failure"); }
 #else
@@ -21,56 +21,57 @@ struct Tracked {
 #endif
     }
 
-    static void clear() {
-        live = constructed = destroyed = copies = moves = copy_assignments =
-            move_assignments = 0;
-        fail_construct = fail_copy = fail_move = fail_copy_assign = fail_move_assign =
-            fail_destroy = false;
+    static auto clear() -> void {
+        Tracked::live = Tracked::constructed = Tracked::destroyed = Tracked::copies =
+            Tracked::moves = Tracked::copy_assignments = Tracked::move_assignments = 0;
+        Tracked::fail_construct = Tracked::fail_copy = Tracked::fail_move =
+            Tracked::fail_copy_assign = Tracked::fail_move_assign =
+                Tracked::fail_destroy = false;
     }
 
     explicit Tracked(int n)
         : value(n) {
-        fail(fail_construct);
-        ++live;
-        ++constructed;
+        Tracked::fail(Tracked::fail_construct);
+        ++Tracked::live;
+        ++Tracked::constructed;
     }
 
     Tracked(const Tracked& other)
         : value(other.value) {
-        fail(fail_copy);
-        ++copies;
-        ++live;
-        ++constructed;
+        Tracked::fail(Tracked::fail_copy);
+        ++Tracked::copies;
+        ++Tracked::live;
+        ++Tracked::constructed;
     }
 
     Tracked(Tracked&& other)
         : value(other.value) {
         other.value = -1;
-        fail(fail_move);
-        ++moves;
-        ++live;
-        ++constructed;
+        Tracked::fail(Tracked::fail_move);
+        ++Tracked::moves;
+        ++Tracked::live;
+        ++Tracked::constructed;
     }
 
-    Tracked& operator=(const Tracked& other) {
+    auto operator=(const Tracked& other) -> Tracked& {
         value = other.value;
-        fail(fail_copy_assign);
-        ++copy_assignments;
+        Tracked::fail(Tracked::fail_copy_assign);
+        ++Tracked::copy_assignments;
         return *this;
     }
 
-    Tracked& operator=(Tracked&& other) {
+    auto operator=(Tracked&& other) -> Tracked& {
         value = other.value;
         other.value = -1;
-        fail(fail_move_assign);
-        ++move_assignments;
+        Tracked::fail(Tracked::fail_move_assign);
+        ++Tracked::move_assignments;
         return *this;
     }
 
     ~Tracked() noexcept(false) {
-        --live;
-        ++destroyed;
-        fail(fail_destroy);
+        --Tracked::live;
+        ++Tracked::destroyed;
+        Tracked::fail(Tracked::fail_destroy);
     }
 };
 

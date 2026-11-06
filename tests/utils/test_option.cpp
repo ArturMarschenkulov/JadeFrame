@@ -15,9 +15,9 @@ struct Immobile {
 
     Immobile(const Immobile&) = delete;
     Immobile(Immobile&&) = delete;
-    Immobile& operator=(const Immobile&) = delete;
-    Immobile& operator=(Immobile&&) = delete;
-    int       value;
+    auto operator=(const Immobile&) -> Immobile& = delete;
+    auto operator=(Immobile&&) -> Immobile& = delete;
+    int  value;
 };
 
 struct NonAssignable {
@@ -25,16 +25,16 @@ struct NonAssignable {
 
     NonAssignable(const NonAssignable&) = default;
     NonAssignable(NonAssignable&&) = default;
-    NonAssignable& operator=(const NonAssignable&) = delete;
-    NonAssignable& operator=(NonAssignable&&) = delete;
+    auto operator=(const NonAssignable&) -> NonAssignable& = delete;
+    auto operator=(NonAssignable&&) -> NonAssignable& = delete;
 };
 
 struct CopyOnly {
     CopyOnly() = default;
     CopyOnly(const CopyOnly&) = default;
     CopyOnly(CopyOnly&&) = delete;
-    CopyOnly& operator=(const CopyOnly&) = default;
-    CopyOnly& operator=(CopyOnly&&) = delete;
+    auto operator=(const CopyOnly&) -> CopyOnly& = default;
+    auto operator=(CopyOnly&&) -> CopyOnly& = delete;
 };
 
 struct Nontrivial {
@@ -44,9 +44,9 @@ struct Nontrivial {
 
     Nontrivial(Nontrivial&&) {}
 
-    Nontrivial& operator=(const Nontrivial&) { return *this; }
+    auto operator=(const Nontrivial&) -> Nontrivial& { return *this; }
 
-    Nontrivial& operator=(Nontrivial&&) { return *this; }
+    auto operator=(Nontrivial&&) -> Nontrivial& { return *this; }
 
     ~Nontrivial() {}
 };
@@ -168,7 +168,7 @@ static_assert(answer.has_value() && answer.value() == 42);
 static_assert(!none<int>().has_value());
 static_assert(some<const int>(7).value() == 7);
 
-constexpr Option<Immobile> make_immobile() { return some<Immobile>(9); }
+constexpr auto make_immobile() -> Option<Immobile> { return some<Immobile>(9); }
 
 static_assert(make_immobile()->value == 9);
 static_assert([] {

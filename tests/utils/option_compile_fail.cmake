@@ -20,7 +20,7 @@ set(cases
     "Option<int&> x$<SEMICOLON> int n = 0$<SEMICOLON> x = n$<SEMICOLON>"
     "auto a = some<std::unique_ptr<int>>()$<SEMICOLON> auto b = a$<SEMICOLON>"
     "struct X { X() = default$<SEMICOLON> X(X&&) = delete$<SEMICOLON> }$<SEMICOLON> Option<X> a$<SEMICOLON> auto b = std::move(a)$<SEMICOLON>"
-    "struct X { X() = default$<SEMICOLON> X(const X&) = default$<SEMICOLON> X& operator=(const X&) = delete$<SEMICOLON> }$<SEMICOLON> Option<X> a, b$<SEMICOLON> a = b$<SEMICOLON>"
+    "struct X { X() = default$<SEMICOLON> X(const X&) = default$<SEMICOLON> auto operator=(const X&) -> X& = delete$<SEMICOLON> }$<SEMICOLON> Option<X> a, b$<SEMICOLON> a = b$<SEMICOLON>"
     "Option<void> x$<SEMICOLON> *x$<SEMICOLON>"
     "constexpr int n = none<int>().value()$<SEMICOLON>"
 )
@@ -30,7 +30,7 @@ list(PREPEND cases "auto x = some<int>(42)$<SEMICOLON> return x.value() == 42 ? 
 foreach(body IN LISTS cases)
     string(REPLACE "$<SEMICOLON>" ";" body "${body}")
     set(source "${OPTION_TEST_DIR}/case_${index}.cpp")
-    file(WRITE "${source}" "#include <JadeFrame/utils/option.h>\n#include <string>\n#include <memory>\nusing namespace JadeFrame;\nint main() { ${body} }\n")
+    file(WRITE "${source}" "#include <JadeFrame/utils/option.h>\n#include <string>\n#include <memory>\nusing namespace JadeFrame;\nauto main() -> int { ${body} }\n")
     if(OPTION_CXX_ID STREQUAL "MSVC")
         execute_process(COMMAND "${OPTION_CXX}" /nologo /std:c++20 "/I${OPTION_INCLUDE_DIR}" /c "${source}" "/Fo${OPTION_TEST_DIR}/case.obj"
             RESULT_VARIABLE result OUTPUT_VARIABLE output ERROR_VARIABLE errors)
