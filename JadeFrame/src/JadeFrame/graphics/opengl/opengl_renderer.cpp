@@ -141,8 +141,16 @@ auto OpenGL_Renderer::create_shader(const ShadingCode& code) -> NativeHandle {
 
     for (size_t i = 0; i < 2; ++i) {
         const auto& module = code.m_modules[i];
-        shader_desc.code.m_modules[i].m_code =
-            remap_for_opengl(module.m_code, module.m_stage, nullptr);
+        auto remapped = remap_for_opengl(module.m_code, module.m_stage, nullptr);
+        if (remapped.is_err()) {
+            Logger::err(
+                "Cannot create the OpenGL shader ({}): {}",
+                to_string(remapped.error().m_code),
+                remapped.error().m_message
+            );
+            return NativeHandle(nullptr, noop_native_handle_deleter);
+        }
+        shader_desc.code.m_modules[i].m_code = std::move(remapped).value();
         shader_desc.code.m_modules[i].m_stage = module.m_stage;
     }
 
@@ -487,7 +495,16 @@ auto OpenGL_Renderer::RenderTarget::init(
         context->create_buffer(opengl::Buffer::TYPE::VERTEX, data.data(), size);
     // m_index_buffer = context->create_buffer(opengl::Buffer::TYPE::INDEX, nullptr, 0);
     ShaderHandle::Desc shader_handle_desc;
-    shader_handle_desc.shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
+    auto shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
+    if (shading_code.is_err()) {
+        Logger::err(
+            "Cannot load the OpenGL render target shader ({}): {}",
+            to_string(shading_code.error().m_code),
+            shading_code.error().m_message
+        );
+        return;
+    }
+    shader_handle_desc.shading_code = std::move(shading_code).value();
     m_shader = register_shader(shader_handle_desc);
 }
 

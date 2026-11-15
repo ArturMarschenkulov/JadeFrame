@@ -11,6 +11,6 @@ add_executable(${PROJECT_NAME} ${Source_Files})
 jadeframe_enable_warnings(${PROJECT_NAME})
 
 target_link_libraries(${PROJECT_NAME} 
-    PUBLIC 
-        JadeFrame
+    PUBLIC JadeFrame
+    PRIVATE jadeframe_logger
 )

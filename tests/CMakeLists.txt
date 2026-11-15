@@ -4,6 +4,7 @@
 add_subdirectory(math)
 add_subdirectory(utils)
 add_subdirectory(graphics)
+add_subdirectory(assets)
 
 get_property(JADEFRAME_PROJECT_TEST_TARGETS GLOBAL PROPERTY JADEFRAME_PROJECT_TEST_TARGETS)
 if(JADEFRAME_PROJECT_TEST_TARGETS)

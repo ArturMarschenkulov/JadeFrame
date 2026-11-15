@@ -12,6 +12,14 @@ jadeframe_add_project_test(test_reflection
         jadeframe_core
 )
 
+# Shader lookup and compilation failures. Needs no window or graphics API.
+jadeframe_add_project_test(test_shader_errors
+    SOURCES
+        test_shader_errors.cpp
+    LIBRARIES
+        jadeframe_core
+)
+
 jadeframe_add_project_test(test_mesh
     SOURCES
         test_mesh.cpp

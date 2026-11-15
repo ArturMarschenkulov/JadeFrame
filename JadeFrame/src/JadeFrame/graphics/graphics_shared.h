@@ -263,6 +263,36 @@ public:
 };
 
 // This struct saves the shader code. The common language is SPIRV.
+enum class ShaderErrorCode : u8 {
+    /// No built-in shader is registered under the requested name.
+    UNKNOWN_SHADER_NAME,
+    /// The shader stage cannot be compiled by this build.
+    UNSUPPORTED_STAGE,
+    /// There is no compilation target for the requested graphics API.
+    UNSUPPORTED_API,
+    /// The GLSL source was rejected by the compiler.
+    COMPILATION_FAILED,
+    /// The SPIR-V module is malformed or uses something the engine does not support.
+    INVALID_SPIRV,
+};
+
+struct ShaderError {
+    ShaderErrorCode m_code;
+    /// Human readable description, including the compiler's diagnostics if any.
+    std::string m_message;
+};
+
+inline auto to_string(ShaderErrorCode code) -> const char* {
+    switch (code) {
+        case ShaderErrorCode::UNKNOWN_SHADER_NAME: return "UNKNOWN_SHADER_NAME";
+        case ShaderErrorCode::UNSUPPORTED_STAGE: return "UNSUPPORTED_STAGE";
+        case ShaderErrorCode::UNSUPPORTED_API: return "UNSUPPORTED_API";
+        case ShaderErrorCode::COMPILATION_FAILED: return "COMPILATION_FAILED";
+        case ShaderErrorCode::INVALID_SPIRV: return "INVALID_SPIRV";
+    }
+    return "UNKNOWN";
+}
+
 struct ShadingCode {
     struct Module {
         using SPIRV = std::vector<u32>;

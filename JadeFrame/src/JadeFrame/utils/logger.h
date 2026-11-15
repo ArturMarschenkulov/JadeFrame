@@ -84,6 +84,9 @@ auto Logger::log(fmt::format_string<Types...> text, Types&&... args) -> void {
 template<class... Types>
 auto Logger::log(LEVEL level, fmt::format_string<Types...> text, Types&&... args)
     -> void {
+    // Library code may run before Logger::init(), for example a loader used from a
+    // tool or a test. Logging is then a no-op instead of a null dereference.
+    if (s_core == nullptr) { return; }
     spdlog::level::level_enum lvl = Logger::to_spd(level);
     // if (sizeof...(args) > 1) {
     //     s_core->log(lvl, text, std::forward<Types>(args)...);

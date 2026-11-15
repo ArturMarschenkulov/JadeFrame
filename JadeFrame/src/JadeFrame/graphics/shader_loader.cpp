@@ -3,7 +3,10 @@
 
 #include "graphics_language.h"
 
+#include <array>
+#include <format>
 #include <tuple>
+#include <utility>
 
 // #include <glad/glad.h>
 
@@ -409,7 +412,8 @@ void main() {
 
 // Retrieves a `ShadingCode` object by name.
 // Note the resulting code is in SPIRV format.
-auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
+auto GLSLCodeLoader::get_by_name(const std::string& name)
+    -> Result<ShadingCode, ShaderError> {
 
     // using ShaderGetter = std::function<std::tuple<std::string, std::string>()>;
     using ShaderGetterFn = std::tuple<std::string, std::string> (*)();
@@ -424,8 +428,10 @@ auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
 
     auto it = shader_map.find(name);
     if (it == shader_map.end()) {
-        Logger::err("GLSLCodeLoader::get_by_name: Shader with name {} not found", name);
-        assert(false);
+        return err<ShadingCode, ShaderError>(ShaderError{
+            ShaderErrorCode::UNKNOWN_SHADER_NAME,
+            std::format("There is no built-in shader named '{}'", name),
+        });
     }
     auto shader_tuple = it->second();
 
@@ -434,11 +440,22 @@ auto GLSLCodeLoader::get_by_name(const std::string& name) -> ShadingCode {
     ShadingCode code;
     auto        api = GRAPHICS_API::VULKAN;
     code.m_shading_language = SHADING_LANGUAGE::GLSL_VULKAN;
-    code.m_modules.resize(2);
-    code.m_modules[0].m_stage = SHADER_STAGE::VERTEX;
-    code.m_modules[0].m_code = GLSL_to_SPIRV(vs, SHADER_STAGE::VERTEX, api);
-    code.m_modules[1].m_stage = SHADER_STAGE::FRAGMENT;
-    code.m_modules[1].m_code = GLSL_to_SPIRV(fs, SHADER_STAGE::FRAGMENT, api);
-    return code;
+
+    const std::array<std::pair<SHADER_STAGE, const std::string*>, 2> stages = {
+        {{SHADER_STAGE::VERTEX, &vs}, {SHADER_STAGE::FRAGMENT, &fs}}
+    };
+    for (const auto& [stage, source] : stages) {
+        auto spirv = GLSL_to_SPIRV(*source, stage, api);
+        if (spirv.is_err()) {
+            ShaderError error = std::move(spirv).error();
+            error.m_message =
+                std::format("Built-in shader '{}': {}", name, error.m_message);
+            return err<ShadingCode, ShaderError>(std::move(error));
+        }
+        code.m_modules.push_back(
+            ShadingCode::Module{.m_code = std::move(spirv).value(), .m_stage = stage}
+        );
+    }
+    return ok<ShadingCode, ShaderError>(std::move(code));
 }
 } // namespace JadeFrame

@@ -17,7 +17,12 @@ struct Example_Rotating_Primitive {
         app.m_camera = jf::Camera::orthographic(-1.0F, 1.0F, -1.0F, 1.0F, -1.0F, 1.0F);
 
         jf::ShaderHandle::Desc shader_desc;
-        shader_desc.shading_code = jf::GLSLCodeLoader::get_by_name("spirv_test_1");
+        auto code_spirv_test_1 = jf::GLSLCodeLoader::get_by_name("spirv_test_1");
+        if (code_spirv_test_1.is_err()) {
+            jf::Logger::err("Failed to load shader: {}", code_spirv_test_1.error().m_message);
+            return;
+        }
+        shader_desc.shading_code = std::move(code_spirv_test_1).value();
         jf::ShaderHandle*   shader = app.m_render_system.register_shader(shader_desc);
         jf::MaterialHandle* material =
             app.m_render_system.register_material(shader, nullptr);

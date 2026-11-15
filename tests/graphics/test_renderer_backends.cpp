@@ -96,7 +96,9 @@ protected:
         m_renderer->set_clear_color(RGBAColor::from_rgba(0.0F, 0.0F, 1.0F, 1.0F));
 
         ShaderHandle::Desc shader_desc;
-        shader_desc.shading_code = GLSLCodeLoader::get_by_name("spirv_test_1");
+        auto shading_code = GLSLCodeLoader::get_by_name("spirv_test_1");
+        ASSERT_TRUE(shading_code.is_ok()) << shading_code.error().m_message;
+        shader_desc.shading_code = std::move(shading_code).value();
         m_shader = m_system->register_shader(shader_desc);
         ASSERT_NE(m_shader, nullptr);
         ASSERT_NE(m_shader->m_handle, nullptr);

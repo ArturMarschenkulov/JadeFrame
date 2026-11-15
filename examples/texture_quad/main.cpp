@@ -125,12 +125,21 @@ struct Example_Texture_Quad {
         app.m_camera.m_orientation.set_pitch_yaw(45.0F, 150.0F);
 
         jf::ShaderHandle::Desc shader_handle_desc;
-        shader_handle_desc.shading_code =
-            jf::GLSLCodeLoader::get_by_name("with_texture_0");
+        auto code_with_texture_0 = jf::GLSLCodeLoader::get_by_name("with_texture_0");
+        if (code_with_texture_0.is_err()) {
+            jf::Logger::err("Failed to load shader: {}", code_with_texture_0.error().m_message);
+            return;
+        }
+        shader_handle_desc.shading_code = std::move(code_with_texture_0).value();
         jf::ShaderHandle* shader_tex =
             app.m_render_system.register_shader(shader_handle_desc);
 
-        shader_handle_desc.shading_code = jf::GLSLCodeLoader::get_by_name("spirv_test_1");
+        auto code_spirv_test_1 = jf::GLSLCodeLoader::get_by_name("spirv_test_1");
+        if (code_spirv_test_1.is_err()) {
+            jf::Logger::err("Failed to load shader: {}", code_spirv_test_1.error().m_message);
+            return;
+        }
+        shader_handle_desc.shading_code = std::move(code_spirv_test_1).value();
         jf::ShaderHandle* shader_flat =
             app.m_render_system.register_shader(shader_handle_desc);
 
@@ -219,7 +228,16 @@ struct Example_Texture_Quad {
         jf::GPUMeshData* mesh_gizmo_z = app.m_render_system.register_mesh(vd_gizmo_z);
 
         fs::path path_teapot = fs::path("resource") / "default_blender_cube_1.obj";
-        jf::Mesh teapot = jf::AssetLoader::load_obj(path_teapot.string());
+        auto teapot_result = jf::AssetLoader::load_obj(path_teapot.string());
+        if (teapot_result.is_err()) {
+            jf::Logger::err(
+                "Failed to load mesh ({}): {}",
+                jf::to_string(teapot_result.error().m_code),
+                teapot_result.error().m_message
+            );
+            return;
+        }
+        jf::Mesh teapot = std::move(teapot_result).value();
         (void)teapot.set_color(jf::RGBAColor::solid_yellow());
         jf::GPUMeshData* mesh_teapot = app.m_render_system.register_mesh(teapot);
 

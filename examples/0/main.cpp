@@ -155,11 +155,21 @@ struct Example_0 {
             jf::Logger::warn(" ----- Texture loaded");
 
             jf::ShaderHandle::Desc sh_0;
-            sh_0.shading_code = jf::GLSLCodeLoader::get_by_name("with_texture_0");
+            auto code_with_texture_0 = jf::GLSLCodeLoader::get_by_name("with_texture_0");
+            if (code_with_texture_0.is_err()) {
+                jf::Logger::err("Failed to load shader: {}", code_with_texture_0.error().m_message);
+                return;
+            }
+            sh_0.shading_code = std::move(code_with_texture_0).value();
             jf::ShaderHandle* shader_texture = app.m_render_system.register_shader(sh_0);
 
             jf::ShaderHandle::Desc sh_1;
-            sh_1.shading_code = jf::GLSLCodeLoader::get_by_name("spirv_test_1");
+            auto code_spirv_test_1 = jf::GLSLCodeLoader::get_by_name("spirv_test_1");
+            if (code_spirv_test_1.is_err()) {
+                jf::Logger::err("Failed to load shader: {}", code_spirv_test_1.error().m_message);
+                return;
+            }
+            sh_1.shading_code = std::move(code_spirv_test_1).value();
             jf::ShaderHandle* shader_color_flat =
                 app.m_render_system.register_shader(sh_1);
 
