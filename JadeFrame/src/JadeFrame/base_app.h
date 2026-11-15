@@ -56,6 +56,10 @@ public:
     std::function<void()> m_on_init_fn = []() -> void {};
     std::function<void()> m_on_update_fn = []() -> void {};
     std::function<void()> m_on_draw_fn = []() -> void {};
+    /// Called once per frame after the frame (including the GUI) was rendered and
+    /// before it is presented. This is the point at which
+    /// `IRenderer::take_screenshot` can be used.
+    std::function<void()> m_on_frame_rendered_fn = []() -> void {};
 
     auto start() -> void;
     auto poll_events() -> void;

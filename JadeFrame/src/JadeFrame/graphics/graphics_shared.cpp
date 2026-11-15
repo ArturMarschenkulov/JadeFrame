@@ -264,9 +264,14 @@ auto ShaderHandle::release() -> void {
 }
 
 auto ShaderHandle::set_uniform(const std::string& name, const void* data, size_t size)
-    -> void {
-    if (m_renderer == nullptr || m_handle == nullptr) { return; }
-    m_renderer->set_shader_uniform(m_handle.get(), name, data, size);
+    -> Result<void, RendererError> {
+    if (m_renderer == nullptr || m_handle == nullptr) {
+        return err<void, RendererError>(RendererError{
+            RendererErrorCode::INVALID_STATE,
+            "The shader is not registered with a renderer",
+        });
+    }
+    return m_renderer->set_shader_uniform(m_handle.get(), name, data, size);
 }
 
 /*---------------------------

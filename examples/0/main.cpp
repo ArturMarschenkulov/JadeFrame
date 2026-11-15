@@ -216,11 +216,20 @@ struct Example_0 {
     auto on_update(jf::Application& app) -> void { // m_camera.control();
         // camera_control(&m_camera);
 
+        (void)app;
         for (jf::u32 i = 0; i < drops.size(); i++) { drops[i].fall(); }
+    }
+
+    // A screenshot can only be taken of a rendered frame that was not presented yet.
+    auto on_frame_rendered(jf::Application& app) -> void {
         const jf::InputState& input = app.m_windows[0]->m_input_state;
-        if (input.is_key_released(jf::KEY::P)) {
-            // std::thread t(&Renderer::take_screenshot, &m_renderer);
-            app.m_render_system.m_renderer->take_screenshot("im.png");
+        if (!input.is_key_released(jf::KEY::P)) { return; }
+
+        auto screenshot = app.m_render_system.m_renderer->take_screenshot("im.png");
+        if (screenshot.is_err()) {
+            jf::Logger::err("Screenshot failed: {}", screenshot.error().m_message);
+        } else {
+            jf::Logger::info("Saved screenshot to im.png");
         }
     }
 
@@ -252,6 +261,7 @@ auto main() -> int {
     app->m_on_init_fn = [&]() -> void { example_app.on_init(*app); };
     app->m_on_update_fn = [&]() -> void { example_app.on_update(*app); };
     app->m_on_draw_fn = [&]() -> void { example_app.on_draw(*app); };
+    app->m_on_frame_rendered_fn = [&]() -> void { example_app.on_frame_rendered(*app); };
     app->start();
     return 0;
 }

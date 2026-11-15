@@ -161,6 +161,82 @@ auto CommandBuffer::copy_buffer_to_image(
     );
 }
 
+auto CommandBuffer::copy_image_to_buffer(
+    const Image&    src,
+    const Buffer&   dst,
+    const VkRect2D& region
+) const -> void {
+    assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
+
+    const VkBufferImageCopy copy = {
+        .bufferOffset = 0,
+        // Zero means "as wide/high as the copied region", i.e. tightly packed rows.
+        .bufferRowLength = 0,
+        .bufferImageHeight = 0,
+        .imageSubresource =
+            {
+                               .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                               .mipLevel = 0,
+                               .baseArrayLayer = 0,
+                               .layerCount = 1,
+                               },
+        .imageOffset = {region.offset.x, region.offset.y, 0},
+        .imageExtent = {region.extent.width, region.extent.height, 1},
+    };
+    vkCmdCopyImageToBuffer(
+        m_handle,
+        src.m_handle,
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        dst.m_handle,
+        1,
+        &copy
+    );
+}
+
+auto CommandBuffer::transition_layout(
+    const Image&         image,
+    VkImageLayout        old_layout,
+    VkImageLayout        new_layout,
+    VkAccessFlags        src_access,
+    VkAccessFlags        dst_access,
+    VkPipelineStageFlags src_stage,
+    VkPipelineStageFlags dst_stage
+) const -> void {
+    assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
+
+    const VkImageMemoryBarrier barrier = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .pNext = nullptr,
+        .srcAccessMask = src_access,
+        .dstAccessMask = dst_access,
+        .oldLayout = old_layout,
+        .newLayout = new_layout,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .image = image.m_handle,
+        .subresourceRange = {
+                             .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                             .baseMipLevel = 0,
+                             .levelCount = 1,
+                             .baseArrayLayer = 0,
+                             .layerCount = 1,
+                             },
+    };
+    vkCmdPipelineBarrier(
+        m_handle, src_stage, dst_stage, 0, 0, nullptr, 0, nullptr, 1, &barrier
+    );
+}
+
+auto CommandBuffer::set_viewport(const VkViewport& viewport) -> void {
+    assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
+    vkCmdSetViewport(m_handle, 0, 1, &viewport);
+}
+
+auto CommandBuffer::set_scissor(const VkRect2D& scissor) -> void {
+    assert(m_stage == STAGE::RECORDING && "Command buffer must be in recording stage");
+    vkCmdSetScissor(m_handle, 0, 1, &scissor);
+}
+
 auto CommandBuffer::bind_pipeline(
     const VkPipelineBindPoint bind_point,
     const Pipeline&           pipeline

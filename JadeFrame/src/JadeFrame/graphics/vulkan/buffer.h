@@ -31,7 +31,9 @@ public:
         VERTEX,
         INDEX,
         UNIFORM,
-        STAGING
+        STAGING,
+        // Host readable destination of GPU -> CPU transfers.
+        READBACK
     };
 
     Buffer() = delete;
@@ -54,6 +56,9 @@ public:
     }
 
     auto write(const void* data, VkDeviceSize size, VkDeviceSize offset) const -> void;
+    /// Copies `size` bytes starting at `offset` into `data`. The buffer must be host
+    /// visible and the GPU work writing to it must have finished.
+    auto read(void* data, VkDeviceSize size, VkDeviceSize offset) const -> void;
     auto resize(size_t size) -> void;
 
 private:

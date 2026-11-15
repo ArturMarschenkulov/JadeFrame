@@ -10,9 +10,106 @@
 #include "buffer.h"
 #include "shader.h"
 
+#include <algorithm>
+#include <bit>
 #include <limits>
+#include <memory>
 
 namespace JadeFrame {
+
+namespace vulkan {
+
+auto to_viewport_state(
+    const ViewportRect& rect,
+    VkExtent2D          framebuffer,
+    VkExtent2D          max_dimensions
+) -> ViewportState {
+    // Scissor: the rectangle clipped to the framebuffer, converted to Vulkan's
+    // top-left origin.
+    const u64 x0 = std::min<u64>(rect.x, framebuffer.width);
+    const u64 y0 = std::min<u64>(rect.y, framebuffer.height);
+    const u64 x1 = std::min<u64>(u64{rect.x} + rect.width, framebuffer.width);
+    const u64 y1 = std::min<u64>(u64{rect.y} + rect.height, framebuffer.height);
+
+    const VkRect2D scissor = {
+        .offset = {static_cast<i32>(x0), static_cast<i32>(framebuffer.height - y1)},
+        .extent = {static_cast<u32>(x1 - x0), static_cast<u32>(y1 - y0)},
+    };
+
+    // Viewport: not clipped, since clipping it would change the mapping of normalized
+    // device coordinates. Only brought into the range Vulkan accepts. Keeping the
+    // origin below the maximum dimension keeps every edge inside viewportBoundsRange,
+    // which is at least [-2 * max, 2 * max - 1].
+    const u32 max_width = std::max(max_dimensions.width, 1U);
+    const u32 max_height = std::max(max_dimensions.height, 1U);
+    const u32 width = std::clamp(rect.width, 1U, max_width);
+    const u32 height = std::clamp(rect.height, 1U, max_height);
+    const u32 x = std::min(rect.x, max_width - 1);
+    const u32 y = std::min(rect.y, max_height - 1);
+
+    const VkViewport viewport = {
+        .x = static_cast<f32>(x),
+        // The lower edge of the rectangle, seen from the top of the framebuffer. From
+        // there the negative height extends the viewport upwards.
+        .y = static_cast<f32>(framebuffer.height) - static_cast<f32>(y),
+        .width = static_cast<f32>(width),
+        .height = -static_cast<f32>(height),
+        .minDepth = 0.0F,
+        .maxDepth = 1.0F,
+    };
+    return ViewportState{.viewport = viewport, .scissor = scissor};
+}
+
+auto readback_to_rgb(
+    std::span<const u8> texels,
+    u32                 width,
+    u32                 height,
+    VkFormat            format,
+    std::vector<u8>&    rgb
+) -> bool {
+    // Byte offsets of red, green and blue inside a texel.
+    size_t red = 0;
+    size_t blue = 0;
+    switch (format) {
+        case VK_FORMAT_B8G8R8A8_SRGB:
+        case VK_FORMAT_B8G8R8A8_UNORM:
+            red = 2;
+            blue = 0;
+            break;
+        case VK_FORMAT_R8G8B8A8_SRGB:
+        case VK_FORMAT_R8G8B8A8_UNORM:
+            red = 0;
+            blue = 2;
+            break;
+        case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
+        case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+            // Packed formats are defined in terms of a host-endian u32.
+            if (std::endian::native != std::endian::little) { return false; }
+            red = 0;
+            blue = 2;
+            break;
+        default: return false;
+    }
+
+    const size_t texel_size = 4;
+    const size_t row_texels = width;
+    const size_t rows = height;
+    if (texels.size() / texel_size < row_texels * rows) { return false; }
+
+    rgb.resize(row_texels * rows * 3);
+    for (size_t row = 0; row < rows; ++row) {
+        const u8* src = texels.data() + row * row_texels * texel_size;
+        u8*       dst = rgb.data() + (rows - 1 - row) * row_texels * 3;
+        for (size_t i = 0; i < row_texels; ++i) {
+            dst[i * 3 + 0] = src[i * texel_size + red];
+            dst[i * 3 + 1] = src[i * texel_size + 1];
+            dst[i * 3 + 2] = src[i * texel_size + blue];
+        }
+    }
+    return true;
+}
+
+} // namespace vulkan
 
 static auto to_vulkan(GPUBuffer::TYPE type) -> vulkan::Buffer::TYPE {
     switch (type) {
@@ -62,6 +159,14 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, Window* window)
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         m_frames[i].init(m_logical_device);
     }
+    this->create_present_semaphores();
+
+    m_viewport = vulkan::ViewportRect{
+        .x = 0,
+        .y = 0,
+        .width = m_swapchain.m_extent.width,
+        .height = m_swapchain.m_extent.height,
+    };
 }
 
 auto Vulkan_Renderer::initialize() -> void {}
@@ -117,10 +222,13 @@ auto Vulkan_Renderer::create_shader(const ShadingCode& code) -> NativeHandle {
 
     Vulkan_Shader::Desc shader_desc;
     shader_desc.code = code;
-    return NativeHandle(
-        new Vulkan_Shader(*m_logical_device, *this, shader_desc),
-        delete_vulkan_shader
-    );
+    auto shader = std::make_unique<Vulkan_Shader>(*m_logical_device, *this, shader_desc);
+    if (!shader->m_pipeline.m_is_compiled) {
+        // The pipeline constructor already logged the reason.
+        Logger::err("Cannot create a Vulkan shader, its graphics pipeline is unusable");
+        return NativeHandle(nullptr, noop_native_handle_deleter);
+    }
+    return NativeHandle(shader.release(), delete_vulkan_shader);
 }
 
 auto Vulkan_Renderer::create_material(
@@ -153,9 +261,15 @@ auto Vulkan_Renderer::set_shader_uniform(
     const std::string& /*name*/,
     const void*        /*data*/,
     size_t             /*size*/
-) -> void {
-    // Vulkan uniforms are updated through material descriptor sets. Keep this method
-    // behind the common interface until the public uniform API is mapped to that model.
+) -> Result<void, RendererError> {
+    // Vulkan has no per-shader uniform storage. Uniform data lives in uniform buffers
+    // that are bound through the descriptor sets of a `Vulkan_Material` and written by
+    // `render()`. A pipeline alone has nothing a named value could be written to.
+    return err<void, RendererError>(RendererError{
+        RendererErrorCode::UNSUPPORTED,
+        "Vulkan: named shader uniforms are not supported, uniform data is provided "
+        "through the uniform buffers of a material",
+    });
 }
 
 Vulkan_Renderer::~Vulkan_Renderer() { this->wait_until_idle(); }
@@ -165,12 +279,23 @@ auto Vulkan_Renderer::wait_until_idle() -> void {
     m_logical_device->wait_until_idle();
 }
 
+auto Vulkan_Renderer::create_present_semaphores() -> void {
+    // Replacing them also discards semaphores that were signaled for a present which
+    // then failed. The device has to be idle when this is called on recreation.
+    m_present_semaphores.clear();
+    m_present_semaphores.reserve(m_swapchain.m_images.size());
+    for (size_t i = 0; i < m_swapchain.m_images.size(); i++) {
+        m_present_semaphores.push_back(m_logical_device->create_semaphore());
+    }
+}
+
 auto Vulkan_Renderer::recreate_swapchain() -> void {
     m_logical_device->wait_until_idle();
 
     m_framebuffers.clear();
     m_swapchain.recreate();
     m_render_pass = m_logical_device->create_render_pass(m_swapchain.m_image_format);
+    this->create_present_semaphores();
 
     const u32 swapchain_image_amount = static_cast<u32>(m_swapchain.m_images.size());
     m_framebuffers.resize(swapchain_image_amount);
@@ -222,6 +347,18 @@ auto Vulkan_Renderer::render(const Camera& camera) -> void {
 
     // cb.render_pass(framebuffer, m_render_pass, m_swapchain.m_extent, clear_value, [&] {
     cb.render_pass_begin(framebuffer, m_render_pass, m_swapchain.m_extent, clear_value);
+
+    // Every pipeline leaves viewport and scissor dynamic, so setting them once is valid
+    // for all draws of this command buffer. Deriving them from the current extent keeps
+    // them correct across swapchain recreation.
+    const auto& limits = d.m_physical_device->limits();
+    const vulkan::ViewportState viewport_state = vulkan::to_viewport_state(
+        m_viewport,
+        m_swapchain.m_extent,
+        VkExtent2D{limits.maxViewportDimensions[0], limits.maxViewportDimensions[1]}
+    );
+    cb.set_viewport(viewport_state.viewport);
+    cb.set_scissor(viewport_state.scissor);
     for (u64 i = 0; i < render_commands.size(); i++) {
         using namespace vulkan;
         const RenderCommand& cmd = render_commands[i];
@@ -308,9 +445,10 @@ auto Vulkan_Renderer::render(const Camera& camera) -> void {
     //});
     cb.record_end();
 
-    curr_frame.submit(d.m_graphics_queue);
+    curr_frame.submit(d.m_graphics_queue, m_present_semaphores[curr_frame.m_index]);
 
     render_commands.clear();
+    m_frame_rendered = true;
 }
 
 auto Vulkan_Renderer::render_mesh(const Mesh* vertex_data, const GPUMeshData* gpu_data)
@@ -361,6 +499,9 @@ auto Vulkan_Renderer::render_mesh(const Mesh* vertex_data, const GPUMeshData* gp
 }
 
 auto Vulkan_Renderer::present() -> void {
+    // Presenting hands the image back to the swapchain, it cannot be read afterwards.
+    m_frame_rendered = false;
+
     if (m_skip_present) {
         m_skip_present = false;
         return;
@@ -369,8 +510,10 @@ auto Vulkan_Renderer::present() -> void {
     vulkan::LogicalDevice& d = *m_logical_device;
     (void)d;
 
-    VkResult result =
-        m_frames[m_frame_index].present(m_swapchain.m_present_queue, m_swapchain);
+    Frame&   frame = m_frames[m_frame_index];
+    VkResult result = frame.present(
+        m_swapchain.m_present_queue, m_swapchain, m_present_semaphores[frame.m_index]
+    );
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
         m_framebuffer_resized) {
         m_framebuffer_resized = false;
@@ -385,11 +528,130 @@ auto Vulkan_Renderer::present() -> void {
     m_frame_index = (m_frame_index + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-auto Vulkan_Renderer::
-    set_viewport(u32 /*x*/, u32 /*y*/, u32 /*width*/, u32 /*height*/) const -> void {}
+auto Vulkan_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) -> void {
+    // Takes effect with the next `render()`, which translates it for the then current
+    // swapchain extent.
+    m_viewport = vulkan::ViewportRect{.x = x, .y = y, .width = width, .height = height};
+}
 
-auto Vulkan_Renderer::take_screenshot(const char* /*filename*/) -> Image {
-    assert(false);
-    return Image();
+auto Vulkan_Renderer::take_screenshot(const char* filename)
+    -> Result<Image, RendererError> {
+    const auto fail = [](RendererErrorCode code, std::string message) {
+        return err<Image, RendererError>(RendererError{code, std::move(message)});
+    };
+
+    if (!m_frame_rendered) {
+        // Outside of this window the application does not own a swapchain image with
+        // defined content.
+        return fail(
+            RendererErrorCode::FRAME_NOT_AVAILABLE,
+            "Vulkan: a screenshot can only be taken between render() and present()"
+        );
+    }
+    if (!m_swapchain.m_supports_readback) {
+        return fail(
+            RendererErrorCode::UNSUPPORTED,
+            "Vulkan: the surface does not allow its swapchain images to be copied from"
+        );
+    }
+
+    vulkan::LogicalDevice& d = *m_logical_device;
+    Frame&                 frame = m_frames[m_frame_index];
+    const vulkan::Image&   image = m_swapchain.m_images[frame.m_index];
+
+    // The capture region is the area `render()` was allowed to draw to.
+    const auto&    limits = d.m_physical_device->limits();
+    const VkRect2D region = vulkan::to_viewport_state(
+                                m_viewport,
+                                m_swapchain.m_extent,
+                                VkExtent2D{
+                                    limits.maxViewportDimensions[0],
+                                    limits.maxViewportDimensions[1]
+                                }
+    ).scissor;
+    if (region.extent.width == 0 || region.extent.height == 0) {
+        return fail(
+            RendererErrorCode::INVALID_STATE,
+            "Vulkan: the viewport does not cover any part of the framebuffer"
+        );
+    }
+
+    // Validate the format before any GPU work is issued.
+    std::vector<u8> rgb;
+    if (!vulkan::readback_to_rgb({}, 0, 0, m_swapchain.m_image_format, rgb)) {
+        return fail(
+            RendererErrorCode::UNSUPPORTED,
+            std::string("Vulkan: screenshots of swapchain format ") +
+                std::to_string(static_cast<i32>(m_swapchain.m_image_format)) +
+                " are not supported"
+        );
+    }
+
+    // All supported formats use 4 bytes per texel and the copy is tightly packed.
+    const VkDeviceSize byte_count =
+        VkDeviceSize{region.extent.width} * region.extent.height * 4;
+    const vulkan::Buffer readback(d, vulkan::Buffer::TYPE::READBACK, nullptr, byte_count);
+
+    // `render()` left the image in PRESENT_SRC layout, and it has to be in that layout
+    // again for `present()`.
+    vulkan::CommandBuffer cmd = d.m_command_pool.allocate_buffer();
+    cmd.record([&] {
+        cmd.transition_layout(
+            image,
+            VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            VK_ACCESS_TRANSFER_READ_BIT,
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            VK_PIPELINE_STAGE_TRANSFER_BIT
+        );
+        cmd.copy_image_to_buffer(image, readback, region);
+        cmd.transition_layout(
+            image,
+            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            VK_ACCESS_TRANSFER_READ_BIT,
+            0,
+            VK_PIPELINE_STAGE_TRANSFER_BIT,
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
+        );
+    });
+
+    // The copy is submitted to the queue the frame was submitted to, so it executes
+    // after the frame's draw commands. Waiting for its own fence is all the
+    // synchronization the readback needs; other frames in flight are not stalled on.
+    vulkan::Fence copy_done = d.create_fence(false);
+    d.m_graphics_queue.submit(cmd, nullptr, nullptr, &copy_done);
+    d.wait_for_fence(copy_done, true, UINT64_MAX);
+    d.m_command_pool.free_buffer(cmd);
+
+    std::vector<u8> texels(static_cast<size_t>(byte_count));
+    readback.read(texels.data(), byte_count, 0);
+    if (!vulkan::readback_to_rgb(
+            texels,
+            region.extent.width,
+            region.extent.height,
+            m_swapchain.m_image_format,
+            rgb
+        )) {
+        return fail(
+            RendererErrorCode::BACKEND_FAILURE,
+            "Vulkan: failed to convert the frame that was read back"
+        );
+    }
+
+    Image result;
+    result.data = std::move(rgb);
+    result.width = static_cast<i32>(region.extent.width);
+    result.height = static_cast<i32>(region.extent.height);
+    result.num_components = 3;
+
+    if (filename != nullptr && filename[0] != '\0' && !write_png(result, filename)) {
+        return fail(
+            RendererErrorCode::IO_FAILURE,
+            std::string("Vulkan: failed to write the screenshot to ") + filename
+        );
+    }
+    return ok<Image, RendererError>(std::move(result));
 }
 } // namespace JadeFrame

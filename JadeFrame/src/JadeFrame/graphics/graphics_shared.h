@@ -5,6 +5,7 @@
 #include <string>
 
 #include "camera.h"
+#include "JadeFrame/utils/result.h"
 
 namespace JadeFrame {
 
@@ -29,6 +30,42 @@ struct Image {
     i32             height = 0;
     i32             num_components = 0;
 };
+
+/// Writes `image` as an 8-bit PNG file.
+///
+/// `Image` rows are stored bottom-to-top (see `Image::load_from_path`), the written file
+/// has the usual top-to-bottom orientation. Returns false if the image is empty, has an
+/// unsupported component count, or the file could not be written.
+[[nodiscard]] auto write_png(const Image& image, const char* path) -> bool;
+
+enum class RendererErrorCode : u8 {
+    /// The backend does not provide the operation at all.
+    UNSUPPORTED,
+    /// The renderer or one of the involved resources is not in a usable state.
+    INVALID_STATE,
+    /// The operation needs a rendered, not yet presented frame and there is none.
+    FRAME_NOT_AVAILABLE,
+    /// The graphics API reported a failure.
+    BACKEND_FAILURE,
+    /// Reading or writing a file failed.
+    IO_FAILURE,
+};
+
+struct RendererError {
+    RendererErrorCode m_code;
+    std::string       m_message;
+};
+
+inline auto to_string(RendererErrorCode code) -> const char* {
+    switch (code) {
+        case RendererErrorCode::UNSUPPORTED: return "UNSUPPORTED";
+        case RendererErrorCode::INVALID_STATE: return "INVALID_STATE";
+        case RendererErrorCode::FRAME_NOT_AVAILABLE: return "FRAME_NOT_AVAILABLE";
+        case RendererErrorCode::BACKEND_FAILURE: return "BACKEND_FAILURE";
+        case RendererErrorCode::IO_FAILURE: return "IO_FAILURE";
+        default: assert(false); return "UNKNOWN";
+    }
+}
 
 enum class GRAPHICS_API : u8 {
     UNDEFINED,
@@ -274,7 +311,10 @@ public:
 
     explicit ShaderHandle(const Desc& desc);
 
-    auto set_uniform(const std::string& name, const void* data, size_t size) -> void;
+    /// Forwards to `IRenderer::set_shader_uniform`, see there for the contract. Fails
+    /// with `INVALID_STATE` if the shader is not registered with a renderer.
+    auto set_uniform(const std::string& name, const void* data, size_t size)
+        -> Result<void, RendererError>;
 
 public:
     ShadingCode m_code;
@@ -429,10 +469,21 @@ concept is_renderer = requires(T& t) {
     { t.render(std::declval<Camera>()) } -> std::same_as<void>;
     { t.set_clear_color(std::declval<RGBAColor>()) } -> std::same_as<void>;
     { t.set_viewport(u32{}, u32{}, u32{}, u32{}) } -> std::same_as<void>;
-    { t.take_screenshot(std::declval<char*>()) } -> std::same_as<Image>;
+    {
+        t.take_screenshot(std::declval<const char*>())
+    } -> std::same_as<Result<Image, RendererError>>;
     { t.wait_until_idle() } -> std::same_as<void>;
 };
 
+/// The common renderer contract.
+///
+/// Every operation declared here either behaves as documented on every backend or
+/// reports a `RendererError`. A backend must never accept a request it does not carry
+/// out.
+///
+/// Frame protocol, per frame and in this order:
+///   `clear_background()` -> `render()` -> `present()`
+/// A frame is "rendered" from the end of a successful `render()` until `present()`.
 class IRenderer {
 public:
     IRenderer() = default;
@@ -444,36 +495,86 @@ public:
 
     // Resource operations are deliberately expressed in terms of façade types. The
     // concrete backend owns the native casts and lifetime rules behind this interface.
+
+    /// Second construction phase, called once after the renderer is owned by its
+    /// `RenderSystem`. Backends that need the `RenderSystem` to register internal
+    /// resources do so here, the others have nothing left to do.
     virtual auto initialize() -> void = 0;
+
+    /// Returns nullptr on failure. A non-null handle must be released with
+    /// `destroy_buffer` while the renderer is alive.
     virtual auto create_buffer(
         GPUBuffer::TYPE type,
         const void*     data,
         size_t          size
     ) -> void* = 0;
+    /// Releases the GPU buffer behind `handle`. nullptr is ignored.
     virtual auto destroy_buffer(void* handle) -> void = 0;
+    /// Returns a null handle on failure.
     virtual auto create_texture(const Image& image) -> NativeHandle = 0;
+    /// Returns a null handle if the code cannot be turned into a usable shader.
     virtual auto create_shader(const ShadingCode& code) -> NativeHandle = 0;
+    /// Returns a null handle on failure.
     virtual auto create_material(
         const ShaderHandle&  shader,
         const TextureHandle* texture
     ) -> NativeHandle = 0;
-    virtual auto set_shader_uniform(
-        void*             shader,
+
+    /// Uploads the value of the uniform `name` of `shader`.
+    ///
+    /// No backend supports this at the moment and every call fails with
+    /// `UNSUPPORTED`: shaders are SPIR-V whose uniforms live in uniform blocks, and the
+    /// buffers backing those blocks are owned per material (and filled by `render()`),
+    /// not per shader. There is no per-shader storage a named value could be written
+    /// to. The operation is kept so that callers get an explicit answer.
+    [[nodiscard]] virtual auto set_shader_uniform(
+        void*              shader,
         const std::string& name,
         const void*        data,
         size_t             size
-    ) -> void = 0;
+    ) -> Result<void, RendererError> = 0;
 
     // client stuff
-    virtual auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void = 0;
 
-    virtual auto take_screenshot(const char* filename) -> Image = 0;
+    /// Sets the rectangle of the window's framebuffer that normalized device coordinates
+    /// are mapped to by the following `render()` calls.
+    ///
+    /// The rectangle is given in pixels with the origin in the lower-left corner and y
+    /// pointing up. The initial viewport is the full window as it was when the renderer
+    /// was created; it does not follow window resizes on its own. Nothing is drawn
+    /// outside of the viewport, the rest of the framebuffer shows the clear color. A
+    /// rectangle that reaches beyond the framebuffer is allowed and clipped, an empty
+    /// one draws nothing.
+    virtual auto set_viewport(u32 x, u32 y, u32 width, u32 height) -> void = 0;
+
+    /// Reads back the current viewport rectangle (clipped to the framebuffer) of the
+    /// rendered frame.
+    ///
+    /// Precondition: must be called after `render()` and before `present()`, anything
+    /// else fails with `FRAME_NOT_AVAILABLE`. On backends that draw directly into the
+    /// window's back buffer the result also contains what was drawn on top after
+    /// `render()`.
+    ///
+    /// The image is owned by the caller, tightly packed with 3 components (RGB, 8 bit
+    /// each) and its rows are ordered bottom-to-top like `Image::load_from_path`. The
+    /// values are the display-encoded ones stored in the framebuffer. The call blocks
+    /// until the frame is finished on the GPU.
+    ///
+    /// If `filename` is neither null nor empty the image is additionally written to that
+    /// path as PNG; a failed write is reported as `IO_FAILURE`.
+    [[nodiscard]] virtual auto take_screenshot(const char* filename)
+        -> Result<Image, RendererError> = 0;
 
 public: // more internal stuff
     virtual auto set_clear_color(const RGBAColor& color) -> void = 0;
+    /// Clears the currently bound framebuffer to the clear color. Backends that can only
+    /// clear as part of `render()` (Vulkan clears when its render pass begins) have
+    /// nothing to do here; either way the frame produced by `render()` starts cleared.
     virtual auto clear_background() -> void = 0;
+    /// Draws and consumes the render commands submitted to the `RenderSystem`.
     virtual auto render(const Camera& cam) -> void = 0;
     virtual auto present() -> void = 0;
+    /// Blocks until the GPU has finished all work submitted so far.
     virtual auto wait_until_idle() -> void = 0;
 };
 

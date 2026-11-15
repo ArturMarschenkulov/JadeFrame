@@ -16,9 +16,7 @@ Vulkan_Shader::Vulkan_Shader(
     : m_device(&device) {
 
     Logger::info("Creating Vulkan shader");
-    m_pipeline = vulkan::Pipeline(
-        device, renderer.m_swapchain.m_extent, renderer.m_render_pass, desc.code
-    );
+    m_pipeline = vulkan::Pipeline(device, renderer.m_render_pass, desc.code);
     Logger::info("Created Vulkan shader");
 }
 

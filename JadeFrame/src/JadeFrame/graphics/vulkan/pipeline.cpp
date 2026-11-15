@@ -377,17 +377,16 @@ shader_stage_create_info(VkShaderStageFlagBits stage, VkShaderModule shader_modu
     return info;
 }
 
-static auto
-viewport_state_create_info(const VkViewport& viewport, const VkRect2D& scissor)
-    -> VkPipelineViewportStateCreateInfo {
+// Viewport and scissor are dynamic state, only their count is part of the pipeline.
+static auto dynamic_viewport_state_create_info() -> VkPipelineViewportStateCreateInfo {
     const VkPipelineViewportStateCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .viewportCount = 1,
-        .pViewports = &viewport,
+        .pViewports = nullptr,
         .scissorCount = 1,
-        .pScissors = &scissor,
+        .pScissors = nullptr,
     };
     return info;
 }
@@ -768,7 +767,6 @@ static auto extract_descriptor_set_layouts(
 
 Pipeline::Pipeline(
     const LogicalDevice& device,
-    const VkExtent2D&    extent,
     const RenderPass&    render_pass,
     const ShadingCode&   code
 )
@@ -830,21 +828,18 @@ Pipeline::Pipeline(
         );
     }
 
-    // NOTE: For OpenGL compatibility. make .height *= -1 and .y += .height
-    constexpr bool   gl_compat = true;
-    const VkViewport viewport = {
-        .x = 0.0F,
-        .y = gl_compat ? static_cast<f32>(extent.height) : 0.0F,
-        .width = static_cast<f32>(extent.width),
-        .height = gl_compat ? -static_cast<f32>(extent.height)
-                            : static_cast<f32>(extent.height),
-        .minDepth = 0.0F,
-        .maxDepth = 1.0F,
+    // The renderer sets viewport and scissor while recording, see
+    // `vulkan::to_viewport_state`.
+    const std::array<VkDynamicState, 2> dynamic_states = {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR,
     };
-
-    const VkRect2D scissor = {
-        .offset = {0, 0},
-        .extent = extent,
+    const VkPipelineDynamicStateCreateInfo dynamic_state = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .dynamicStateCount = static_cast<u32>(dynamic_states.size()),
+        .pDynamicStates = dynamic_states.data(),
     };
 
     const VkPipelineInputAssemblyStateCreateInfo input_assembly =
@@ -856,7 +851,7 @@ Pipeline::Pipeline(
     const VkPipelineColorBlendAttachmentState color_blend_attachment =
         color_blend_attachment_state();
     const VkPipelineViewportStateCreateInfo viewport_state =
-        viewport_state_create_info(viewport, scissor);
+        dynamic_viewport_state_create_info();
     const VkPipelineColorBlendStateCreateInfo color_blending =
         color_blend_state_create_info(color_blend_attachment);
 
@@ -912,7 +907,7 @@ Pipeline::Pipeline(
         .pMultisampleState = &multisampling,
         .pDepthStencilState = &depth_stencil,
         .pColorBlendState = &color_blending,
-        .pDynamicState = nullptr,
+        .pDynamicState = &dynamic_state,
         .layout = m_layout.m_handle,
         .renderPass = render_pass.m_handle,
         .subpass = 0,

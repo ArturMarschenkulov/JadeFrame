@@ -226,6 +226,7 @@ Swapchain::Swapchain(Swapchain&& other) noexcept
     , m_image_format(std::exchange(other.m_image_format, {}))
     , m_extent(std::exchange(other.m_extent, {}))
     , m_is_recreated(std::exchange(other.m_is_recreated, false))
+    , m_supports_readback(std::exchange(other.m_supports_readback, false))
     , m_depth_image(std::move(other.m_depth_image))
     , m_depth_image_view(std::move(other.m_depth_image_view))
     , m_present_queue(std::move(other.m_present_queue)) {}
@@ -244,6 +245,7 @@ auto Swapchain::operator=(Swapchain&& other) noexcept -> Swapchain& {
     m_image_format = std::exchange(other.m_image_format, {});
     m_extent = std::exchange(other.m_extent, {});
     m_is_recreated = std::exchange(other.m_is_recreated, false);
+    m_supports_readback = std::exchange(other.m_supports_readback, false);
     m_depth_image = std::move(other.m_depth_image);
     m_depth_image_view = std::move(other.m_depth_image_view);
     m_present_queue = std::move(other.m_present_queue);
@@ -300,6 +302,9 @@ auto Swapchain::init(LogicalDevice& device, Window* window) -> void {
     info.imageExtent = extent;
     info.imageArrayLayers = 1;
     info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    m_supports_readback =
+        (caps.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) != 0;
+    if (m_supports_readback) { info.imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT; }
     info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     info.queueFamilyIndexCount = 0;
     info.pQueueFamilyIndices = nullptr;
@@ -373,6 +378,7 @@ auto Swapchain::deinit() -> void {
     m_image_format = {};
     m_extent = {};
     m_is_recreated = false;
+    m_supports_readback = false;
     m_device = nullptr;
     m_window = nullptr;
 }

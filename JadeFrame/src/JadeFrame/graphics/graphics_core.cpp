@@ -1,8 +1,39 @@
 #include "graphics_shared.h"
 
+#include "JadeFrame/macros.h"
 #include "JadeFrame/utils/logger.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+JF_PRAGMA_NO_WARNINGS_PUSH
+#include <stb/stb_image_write.h>
+JF_PRAGMA_NO_WARNINGS_POP
+
 namespace JadeFrame {
+
+auto write_png(const Image& image, const char* path) -> bool {
+    if (path == nullptr || image.width <= 0 || image.height <= 0 ||
+        image.num_components < 1 || image.num_components > 4) {
+        return false;
+    }
+    const size_t row_size =
+        static_cast<size_t>(image.width) * static_cast<size_t>(image.num_components);
+    if (image.data.size() < row_size * static_cast<size_t>(image.height)) {
+        return false;
+    }
+
+    // `Image` stores the bottom row first, PNG the top row. Walking the rows backwards
+    // with a negative stride avoids touching stb's global flip flag.
+    const u8* top_row =
+        image.data.data() + row_size * static_cast<size_t>(image.height - 1);
+    return stbi_write_png(
+               path,
+               image.width,
+               image.height,
+               image.num_components,
+               top_row,
+               -static_cast<int>(row_size)
+           ) != 0;
+}
 
 auto to_string(SHADER_TYPE type) -> const char* {
     switch (type) {

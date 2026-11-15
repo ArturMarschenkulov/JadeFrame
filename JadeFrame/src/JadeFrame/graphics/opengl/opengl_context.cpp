@@ -139,6 +139,22 @@ auto Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
     return &it->second;
 }
 
+auto Context::destroy_buffer(opengl::Buffer* buffer) -> void {
+    if (buffer == nullptr) { return; }
+
+    for (auto it = m_bufferss.begin(); it != m_bufferss.end(); ++it) {
+        if (&it->second != buffer) { continue; }
+
+        std::erase_if(m_bound_uniform_buffer_locations, [buffer](const auto& entry) {
+            return entry.second == buffer;
+        });
+        std::erase(m_buffers, buffer->m_id);
+        if (m_bound_buffer == buffer->m_id) { m_bound_buffer = 0; }
+        m_bufferss.erase(it);
+        return;
+    }
+}
+
 auto Context::create_framebuffer() -> opengl::Framebuffer* {
     m_framebuffers.emplace_back(*this);
     return &m_framebuffers.back();

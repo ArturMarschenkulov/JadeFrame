@@ -180,6 +180,8 @@ auto Application::start() -> void {
         renderer->render(m_camera);
         if (m_gui.m_is_initialized) { m_gui.render(); }
 
+        this->m_on_frame_rendered_fn();
+
         renderer->present();
         m_tick += 1;
         //}

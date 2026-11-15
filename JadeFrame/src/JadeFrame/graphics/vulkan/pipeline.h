@@ -29,9 +29,11 @@ public:
     auto operator=(Pipeline&& other) noexcept -> Pipeline&;
 
 public:
+    /// Viewport and scissor are dynamic state: a command buffer has to set both before
+    /// it draws with this pipeline. That keeps the pipeline independent of the size of
+    /// the swapchain it is used with.
     Pipeline(
         const LogicalDevice& device,
-        const VkExtent2D&    extend,
         const RenderPass&    render_pass,
         const ShadingCode&   code
     );

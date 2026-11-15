@@ -1,4 +1,7 @@
 #pragma once
+#include <span>
+#include <vector>
+
 #include "JadeFrame/types.h"
 #include "../mesh.h"
 #include "../graphics_shared.h"
@@ -11,6 +14,52 @@ class Windows_Window;
 class Object;
 class mat4x4;
 class RGBAColor;
+
+namespace vulkan {
+
+/// A viewport as the renderer interface describes it: pixels, origin in the lower-left
+/// corner of the framebuffer, y pointing up.
+struct ViewportRect {
+    u32 x = 0;
+    u32 y = 0;
+    u32 width = 0;
+    u32 height = 0;
+};
+
+struct ViewportState {
+    VkViewport viewport;
+    VkRect2D   scissor;
+};
+
+/// Translates `rect` into the dynamic viewport and scissor state for a framebuffer of
+/// size `framebuffer`.
+///
+/// The viewport is flipped (negative height) so that clip space y points up like in
+/// OpenGL. The scissor is the part of `rect` that lies inside the framebuffer; it keeps
+/// rendering inside both the viewport and the render area, and it is empty if `rect`
+/// is empty or completely outside. Vulkan requires a viewport of at least 1x1 and at
+/// most `max_dimensions` (VkPhysicalDeviceLimits::maxViewportDimensions), so the
+/// viewport itself is clamped to that range.
+[[nodiscard]] auto to_viewport_state(
+    const ViewportRect& rect,
+    VkExtent2D          framebuffer,
+    VkExtent2D          max_dimensions
+) -> ViewportState;
+
+/// Converts tightly packed 4 byte texels of `format`, stored top row first, into tightly
+/// packed RGB with the bottom row first (the layout of `JadeFrame::Image`).
+///
+/// Returns false and leaves `rgb` untouched if `format` is not one of the supported
+/// 8 bit BGRA/RGBA formats or if `texels` holds less than `width * height` texels.
+[[nodiscard]] auto readback_to_rgb(
+    std::span<const u8> texels,
+    u32                 width,
+    u32                 height,
+    VkFormat            format,
+    std::vector<u8>&    rgb
+) -> bool;
+
+} // namespace vulkan
 
 class Vulkan_Renderer : public IRenderer {
 public:
@@ -30,7 +79,7 @@ public:
         const std::string& name,
         const void*        data,
         size_t             size
-    ) -> void override;
+    ) -> Result<void, RendererError> override;
 
     auto set_clear_color(const RGBAColor& color) -> void override;
 
@@ -38,8 +87,8 @@ public:
     auto present() -> void override;
     auto wait_until_idle() -> void override;
     auto clear_background() -> void override;
-    auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void override;
-    auto take_screenshot(const char* filename) -> Image override;
+    auto set_viewport(u32 x, u32 y, u32 width, u32 height) -> void override;
+    auto take_screenshot(const char* filename) -> Result<Image, RendererError> override;
 
     // virtual auto main_loop() -> void override;
 
@@ -51,14 +100,18 @@ public:
 private: // NOTE: probably temporary
     RGBAColor m_clear_color;
 
+    // Applied as dynamic state at the start of every frame, see `to_viewport_state`.
+    vulkan::ViewportRect m_viewport;
+    // True from the end of a successful `render()` until `present()`. While it is set
+    // the swapchain image `m_frames[m_frame_index].m_index` holds the rendered frame.
+    bool                 m_frame_rendered = false;
+
 public:
     struct Sync {
         // Is signaled when the gpu has finished executing commands.
         vulkan::Fence     m_in_flight;
         // Is signaled when ready to be rendered, thus was acquired by the gpu.
         vulkan::Semaphore m_sem_available;
-        // Is signaled when ready to be presented, thus was rendered by the gpu.
-        vulkan::Semaphore m_sem_finished;
     };
 
     struct Frame {
@@ -74,7 +127,6 @@ public:
             m_index = 0;
             m_sync.m_in_flight = device->create_fence(true);
             m_sync.m_sem_available = device->create_semaphore();
-            m_sync.m_sem_finished = device->create_semaphore();
             m_cmd = device->m_command_pool.allocate_buffer();
         }
 
@@ -86,23 +138,29 @@ public:
             m_index = swapchain.acquire_image_index(&m_sync.m_sem_available, nullptr);
         }
 
-        auto submit(vulkan::Queue& queue) -> void {
+        // `rendered` is signaled once the frame can be presented.
+        auto submit(vulkan::Queue& queue, const vulkan::Semaphore& rendered) -> void {
             m_sync.m_in_flight.reset();
-            queue.submit(
-                m_cmd,
-                &m_sync.m_sem_available,
-                &m_sync.m_sem_finished,
-                &m_sync.m_in_flight
-            );
+            queue.submit(m_cmd, &m_sync.m_sem_available, &rendered, &m_sync.m_in_flight);
         }
 
-        auto present(vulkan::Queue& queue, vulkan::Swapchain& swapchain) -> VkResult {
-            return queue.present(m_index, swapchain, &m_sync.m_sem_finished);
+        auto present(
+            vulkan::Queue&           queue,
+            vulkan::Swapchain&       swapchain,
+            const vulkan::Semaphore& rendered
+        ) -> VkResult {
+            return queue.present(m_index, swapchain, &rendered);
         }
     };
 
     std::vector<Frame> m_frames;
     size_t             m_frame_index = 0;
+    // Signaled when the frame rendered into a swapchain image can be presented. There is
+    // one per swapchain image, indexed by image index: a semaphore handed to a present
+    // stays in use until that image is acquired again, which is unrelated to the order
+    // in which the entries of `m_frames` are reused. Declared before the swapchain so
+    // that they outlive it.
+    std::vector<vulkan::Semaphore> m_present_semaphores;
 
     vulkan::Swapchain                m_swapchain;
     vulkan::RenderPass               m_render_pass;
@@ -112,6 +170,9 @@ public:
 
 private:
     auto recreate_swapchain() -> void;
+    auto create_present_semaphores() -> void;
     auto render_mesh(const Mesh* vertex_data, const GPUMeshData* gpu_data) -> void;
 };
+
+static_assert(is_renderer<Vulkan_Renderer>);
 } // namespace JadeFrame

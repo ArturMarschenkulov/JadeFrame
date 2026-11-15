@@ -50,7 +50,7 @@ public:
         const std::string& name,
         const void*        data,
         size_t             size
-    ) -> void override;
+    ) -> Result<void, RendererError> override;
 
     auto present() -> void override;
     auto wait_until_idle() -> void override;
@@ -58,9 +58,9 @@ public:
     auto render(const Camera& camera) -> void override;
 
     auto set_clear_color(const RGBAColor& color) -> void override;
-    auto set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void override;
+    auto set_viewport(u32 x, u32 y, u32 width, u32 height) -> void override;
 
-    auto take_screenshot(const char* filename) -> Image override;
+    auto take_screenshot(const char* filename) -> Result<Image, RendererError> override;
 
 private:
     friend class RenderSystem;
@@ -74,6 +74,9 @@ private:
 public:
     opengl::Context m_context;
     RenderSystem*   m_system = nullptr;
+    Window*         m_window = nullptr;
+    // True from the end of `render()` until `present()`, see `take_screenshot`.
+    bool            m_frame_rendered = false;
 
     struct RenderTarget {
         Object                m_fb;
@@ -86,7 +89,10 @@ public:
         Mesh                  m_mesh;
         ShaderHandle*         m_shader = nullptr;
         opengl::Context*      m_context = nullptr;
+        // Size of the attachments. Kept equal to the size of the window's framebuffer.
+        v2u32                 m_size = {};
 
+        auto resize(v2u32 size) -> void;
         auto init(
             opengl::Context* context,
             const std::function<ShaderHandle*(const ShaderHandle::Desc&)>& register_shader

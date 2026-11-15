@@ -63,7 +63,8 @@ static auto does_use_staging_buffer(const Buffer::TYPE type) -> bool {
         case Buffer::TYPE::VERTEX:;
         case Buffer::TYPE::INDEX: result = true; break;
         case Buffer::TYPE::UNIFORM:;
-        case Buffer::TYPE::STAGING: result = false; break;
+        case Buffer::TYPE::STAGING:;
+        case Buffer::TYPE::READBACK: result = false; break;
         default: JF_ASSERT(false, ""); break;
     }
     return result;
@@ -76,6 +77,7 @@ static auto get_vma_usage(const Buffer::TYPE type) -> VmaMemoryUsage {
         case Buffer::TYPE::INDEX: result = VMA_MEMORY_USAGE_GPU_ONLY; break;
         case Buffer::TYPE::UNIFORM:
         case Buffer::TYPE::STAGING: result = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
+        case Buffer::TYPE::READBACK: result = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
         default: JF_ASSERT(false, ""); break;
     }
     return result;
@@ -93,6 +95,7 @@ static auto get_usage(const Buffer::TYPE type) -> VkBufferUsageFlags {
             break;
         case Buffer::TYPE::UNIFORM: result = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; break;
         case Buffer::TYPE::STAGING: result = VK_BUFFER_USAGE_TRANSFER_SRC_BIT; break;
+        case Buffer::TYPE::READBACK: result = VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
         default: JF_ASSERT(false, ""); break;
     }
     return result;
@@ -223,6 +226,30 @@ auto Buffer::write(const void* data, VkDeviceSize size, VkDeviceSize offset) con
         vkMapMemory(m_device->m_handle, m_memory, offset, size, 0, &mapped_data);
     JF_ASSERT(result == VK_SUCCESS, "");
     memcpy(mapped_data, data, static_cast<size_t>(size));
+    vkUnmapMemory(m_device->m_handle, m_memory);
+#endif
+}
+
+auto Buffer::read(void* data, VkDeviceSize size, VkDeviceSize offset) const -> void {
+    assert(offset + size <= m_size && "read exceeds the buffer");
+
+    void* mapped_data = nullptr;
+#if JF_USE_VMA
+    VkResult result = vmaMapMemory(m_device->m_vma_allocator, m_allocation, &mapped_data);
+    JF_ASSERT(result == VK_SUCCESS, "");
+    // The memory is not guaranteed to be host coherent, so make the GPU's writes
+    // visible. This requires the memory to be mapped.
+    result =
+        vmaInvalidateAllocation(m_device->m_vma_allocator, m_allocation, offset, size);
+    JF_ASSERT(result == VK_SUCCESS, "");
+    const u8* data_ptr = reinterpret_cast<const u8*>(mapped_data) + offset;
+    memcpy(data, data_ptr, static_cast<size_t>(size));
+    vmaUnmapMemory(m_device->m_vma_allocator, m_allocation);
+#else
+    VkResult result =
+        vkMapMemory(m_device->m_handle, m_memory, offset, size, 0, &mapped_data);
+    JF_ASSERT(result == VK_SUCCESS, "");
+    memcpy(data, mapped_data, static_cast<size_t>(size));
     vkUnmapMemory(m_device->m_handle, m_memory);
 #endif
 }

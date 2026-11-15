@@ -7,18 +7,13 @@
 
 #include "JadeFrame/macros.h"
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#undef __OPTIMIZE__
-JF_PRAGMA_NO_WARNINGS_PUSH
-#include <stb/stb_image_write.h>
-JF_PRAGMA_NO_WARNINGS_POP
-
 #include "opengl_renderer.h"
 #include "JadeFrame/utils/logger.h"
 #include "../graphics_language.h"
 #include "../shader_loader.h"
 #include "JadeFrame/graphics/mesh.h"
 
+#include <algorithm>
 #include <limits>
 
 #define JF_OPENGL_FB 1
@@ -87,14 +82,14 @@ auto OpenGL_Renderer::clear_background() -> void {
     glClear(bitfield);
 }
 
-auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) const -> void {
+auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) -> void {
     m_context.m_state.set_viewport(x, y, width, height);
 }
 
 OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, Window* window)
     : m_context(window)
-    , m_system(&system) {
-}
+    , m_system(&system)
+    , m_window(window) {}
 
 auto OpenGL_Renderer::initialize() -> void {
 #if JF_OPENGL_FB
@@ -119,8 +114,8 @@ auto OpenGL_Renderer::create_buffer(
     );
 }
 
-auto OpenGL_Renderer::destroy_buffer(void* /*handle*/) -> void {
-    // Context owns OpenGL buffers and destroys them with the GL context.
+auto OpenGL_Renderer::destroy_buffer(void* handle) -> void {
+    m_context.destroy_buffer(static_cast<opengl::Buffer*>(handle));
 }
 
 auto OpenGL_Renderer::create_texture(const Image& image) -> NativeHandle {
@@ -180,18 +175,36 @@ auto OpenGL_Renderer::set_shader_uniform(
     const std::string& /*name*/,
     const void*        /*data*/,
     size_t             /*size*/
-) -> void {
-    // Uniform uploads are still backend-specific work in progress. The operation is
-    // intentionally kept behind the renderer boundary so the façade remains backend-free.
+) -> Result<void, RendererError> {
+    // The shaders are SPIR-V, which has no loose (default block) uniforms that
+    // `glUniform*` could address by name. All uniform data lives in uniform blocks whose
+    // buffers are owned by `opengl::Material` and written by `render()`.
+    return err<void, RendererError>(RendererError{
+        RendererErrorCode::UNSUPPORTED,
+        "OpenGL: named shader uniforms are not supported, uniform data is provided "
+        "through the uniform buffers of a material",
+    });
 }
 
-auto OpenGL_Renderer::present() -> void { m_context.m_swapchain_context.swap_buffers(); }
+auto OpenGL_Renderer::present() -> void {
+    m_frame_rendered = false;
+    m_context.m_swapchain_context.swap_buffers();
+}
 
 auto OpenGL_Renderer::wait_until_idle() -> void { glFinish(); }
 
 auto OpenGL_Renderer::render(const Camera& camera) -> void {
 
 #if JF_OPENGL_FB
+    // The scene is drawn into an offscreen target with the client's viewport and then
+    // copied 1:1 onto the window. That only works if the target has the size of the
+    // window's framebuffer, so follow window resizes here.
+    const v2u32 window_size = m_window->get_size();
+    if (window_size.x > 0 && window_size.y > 0 &&
+        (window_size.x != m_render_target.m_size.x ||
+         window_size.y != m_render_target.m_size.y)) {
+        m_render_target.resize(window_size);
+    }
     m_context.bind_framebuffer(*m_render_target.m_framebuffer);
 #endif
 
@@ -241,11 +254,23 @@ auto OpenGL_Renderer::render(const Camera& camera) -> void {
 #if JF_OPENGL_FB
     m_context.unbind_framebuffer();
     m_context.m_state.set_depth_test(false);
+    // The client's viewport was already applied while drawing into the offscreen
+    // target. The copy onto the window has to cover the whole target, otherwise the
+    // viewport would be applied a second time.
+    const v2u32 viewport_pos = m_context.m_state.viewport[0];
+    const v2u32 viewport_size = m_context.m_state.viewport[1];
+    m_context.m_state.set_viewport(
+        0, 0, m_render_target.m_size.x, m_render_target.m_size.y
+    );
     m_render_target.render(m_system);
+    m_context.m_state.set_viewport(
+        viewport_pos.x, viewport_pos.y, viewport_size.x, viewport_size.y
+    );
     m_context.m_state.set_depth_test(true);
 #endif
 #undef JF_OPENGL_FB
     render_commands.clear();
+    m_frame_rendered = true;
 }
 
 auto OpenGL_Renderer::render_mesh(
@@ -307,26 +332,89 @@ auto OpenGL_Renderer::render_mesh(
     }
 }
 
-auto OpenGL_Renderer::take_screenshot(const char* /*filename*/) -> Image {
-    GLint vp[4];
-    glGetIntegerv(GL_VIEWPORT, vp);
+auto OpenGL_Renderer::take_screenshot(const char* filename)
+    -> Result<Image, RendererError> {
+    if (!m_frame_rendered) {
+        // After a buffer swap the content of the back buffer is undefined.
+        return err<Image, RendererError>(RendererError{
+            RendererErrorCode::FRAME_NOT_AVAILABLE,
+            "OpenGL: a screenshot can only be taken between render() and present()",
+        });
+    }
 
-    i32 x = vp[0];
-    i32 y = vp[1];
-    i32 width = vp[2];
-    i32 height = vp[3];
-
-    std::vector<u8> data_vec(width * height * 3);
-
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, data_vec.data());
+    // The viewport rectangle, clipped to the window's framebuffer. Reading outside of
+    // the framebuffer would yield undefined values.
+    const v2u32 window_size = m_window->get_size();
+    const v2u32 viewport_pos = m_context.m_state.viewport[0];
+    const v2u32 viewport_size = m_context.m_state.viewport[1];
+    const u64   x0 = std::min<u64>(viewport_pos.x, window_size.x);
+    const u64   y0 = std::min<u64>(viewport_pos.y, window_size.y);
+    const u64   x1 = std::min<u64>(u64{viewport_pos.x} + viewport_size.x, window_size.x);
+    const u64   y1 = std::min<u64>(u64{viewport_pos.y} + viewport_size.y, window_size.y);
+    const u64   width = x1 - x0;
+    const u64   height = y1 - y0;
+    const u64   max_dimension = static_cast<u64>(std::numeric_limits<GLsizei>::max());
+    if (width == 0 || height == 0 || width > max_dimension || height > max_dimension) {
+        return err<Image, RendererError>(RendererError{
+            RendererErrorCode::INVALID_STATE,
+            "OpenGL: the viewport does not cover any part of the framebuffer",
+        });
+    }
 
     Image image;
-    image.data = std::move(data_vec);
-    image.width = width;
-    image.height = height;
+    image.data.resize(width * height * 3);
+    image.width = static_cast<i32>(width);
+    image.height = static_cast<i32>(height);
     image.num_components = 3;
-    return image;
+
+    // `glReadPixels` implicitly finishes the commands of the frame. Rows are returned
+    // bottom-to-top, which is the row order of `Image`.
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glReadBuffer(GL_BACK);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadPixels(
+        static_cast<GLint>(x0),
+        static_cast<GLint>(y0),
+        static_cast<GLsizei>(width),
+        static_cast<GLsizei>(height),
+        GL_RGB,
+        GL_UNSIGNED_BYTE,
+        image.data.data()
+    );
+    if (m_context.m_bound_framebuffer != nullptr) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, m_context.m_bound_framebuffer->m_ID);
+    }
+
+    if (filename != nullptr && filename[0] != '\0' && !write_png(image, filename)) {
+        return err<Image, RendererError>(RendererError{
+            RendererErrorCode::IO_FAILURE,
+            std::string("OpenGL: failed to write the screenshot to ") + filename,
+        });
+    }
+    return ok<Image, RendererError>(std::move(image));
+}
+
+auto OpenGL_Renderer::RenderTarget::resize(v2u32 size) -> void {
+    // Textures have immutable storage, so the color attachment has to be replaced. The
+    // texture unit cache identifies textures by address and would not notice that.
+    m_context->m_texture_manager.unbind_texture_from_unit(0);
+    *m_texture = opengl::Texture(*m_context, nullptr, size, 3);
+    m_renderbuffer->store(
+        GL_DEPTH24_STENCIL8, static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y)
+    );
+    m_framebuffer->attach(opengl::ATTACHMENT::COLOR, 0, *m_texture);
+    m_framebuffer->attach(opengl::ATTACHMENT::DEPTH_STENCIL, 0, *m_renderbuffer);
+    m_size = size;
+
+    const GLenum res = m_framebuffer->check_status();
+    if (res != GL_FRAMEBUFFER_COMPLETE) {
+        Logger::err(
+            "OpenGL render target is not complete after resizing to {}x{}, status: {}",
+            size.x,
+            size.y,
+            framebuffer_res_to_str(res)
+        );
+    }
 }
 
 auto OpenGL_Renderer::RenderTarget::init(
@@ -338,6 +426,7 @@ auto OpenGL_Renderer::RenderTarget::init(
         // TODO: the use of `GL_RGB8`, `GL_RGB` and `GL_UNSIGNED_BYTE` is hardcoded. Find
         // a way to make it more flexible.
         const v2u32 size = context->m_state.viewport[1];
+        m_size = size;
 
         m_texture = context->create_texture(nullptr, size, 3);
         m_sampler = context->create_sampler();

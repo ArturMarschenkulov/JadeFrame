@@ -65,6 +65,25 @@ public: // copy methods
     auto copy_buffer(const Buffer& src, const Buffer& dst, u64 size) const -> void;
     auto copy_buffer_to_image(const Buffer& src, const Image& dst, v2u32 size) const
         -> void;
+    /// Copies `region` of the color image `src`, which must be in
+    /// `VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL`, tightly packed to the start of `dst`.
+    auto copy_image_to_buffer(const Image& src, const Buffer& dst, const VkRect2D& region)
+        const -> void;
+    /// Changes the layout of a color image. The access masks and pipeline stages
+    /// describe the work before (`src_*`) and after (`dst_*`) the transition.
+    auto transition_layout(
+        const Image&         image,
+        VkImageLayout        old_layout,
+        VkImageLayout        new_layout,
+        VkAccessFlags        src_access,
+        VkAccessFlags        dst_access,
+        VkPipelineStageFlags src_stage,
+        VkPipelineStageFlags dst_stage
+    ) const -> void;
+
+public: // dynamic state
+    auto set_viewport(const VkViewport& viewport) -> void;
+    auto set_scissor(const VkRect2D& scissor) -> void;
 
 public: // bind methods
     auto bind_pipeline(const VkPipelineBindPoint bind_point, const Pipeline& pipeline)

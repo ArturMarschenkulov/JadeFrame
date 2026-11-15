@@ -164,6 +164,9 @@ public:
 
     auto create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
         -> opengl::Buffer*;
+    /// Deletes a buffer created by `create_buffer` and forgets every cached binding of
+    /// it. nullptr and buffers of another context are ignored.
+    auto destroy_buffer(opengl::Buffer* buffer) -> void;
     auto bind_uniform_buffer_to_location(opengl::Buffer& buffer, u32 location) -> void;
 
     std::unordered_map<u32, opengl::Buffer*> m_bound_uniform_buffer_locations;

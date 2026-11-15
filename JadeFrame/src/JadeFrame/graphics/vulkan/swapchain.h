@@ -103,6 +103,9 @@ public:
     VkExtent2D m_extent;
 
     bool m_is_recreated = false;
+    // Whether the images were created with VK_IMAGE_USAGE_TRANSFER_SRC_BIT and can
+    // therefore be copied from (screenshots). The surface does not have to support it.
+    bool m_supports_readback = false;
 
     Image     m_depth_image;
     ImageView m_depth_image_view;
