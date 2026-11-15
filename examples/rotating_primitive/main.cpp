@@ -119,6 +119,14 @@ auto main() -> int {
     app->m_on_init_fn = [&]() -> void { example_app.on_init(*app); };
     app->m_on_update_fn = [&]() -> void { example_app.on_update(*app); };
     app->m_on_draw_fn = [&]() -> void { example_app.on_draw(*app); };
-    app->start();
+    auto started = app->start();
+    if (started.is_err()) {
+        // Initialization errors are not logged by the framework, this is the one
+        // place that reports them.
+        jf::Logger::err(
+            "Failed to start the application: {}", jf::to_string(started.error())
+        );
+        return 1;
+    }
     return 0;
 }

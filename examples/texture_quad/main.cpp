@@ -293,6 +293,14 @@ auto main() -> int {
     app->m_on_init_fn = [&]() -> void { Example_Texture_Quad::on_init(*app, state); };
     app->m_on_update_fn = [&]() -> void { Example_Texture_Quad::on_update(*app, state); };
     app->m_on_draw_fn = [&]() -> void { Example_Texture_Quad::on_draw(*app, state); };
-    app->start();
+    auto started = app->start();
+    if (started.is_err()) {
+        // Initialization errors are not logged by the framework, this is the one
+        // place that reports them.
+        jf::Logger::err(
+            "Failed to start the application: {}", jf::to_string(started.error())
+        );
+        return 1;
+    }
     return 0;
 }

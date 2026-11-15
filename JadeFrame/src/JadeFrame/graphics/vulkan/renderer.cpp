@@ -7,6 +7,7 @@
 
 #include "JadeFrame/utils/logger.h"
 #include "../graphics_shared.h"
+#include "../graphics_language.h"
 #include "buffer.h"
 #include "shader.h"
 
@@ -217,7 +218,11 @@ auto Vulkan_Renderer::create_buffer(
     const void*     data,
     size_t          size
 ) -> void* {
-    if (m_logical_device == nullptr) { return nullptr; }
+    if (!m_logical_device || !size || type > GPUBuffer::STAGING ||
+        ((type == GPUBuffer::VERTEX || type == GPUBuffer::INDEX) && !data) ||
+        (type == GPUBuffer::INDEX && size % sizeof(u32) != 0)) {
+        return nullptr;
+    }
     return m_logical_device->create_buffer(
         to_vulkan(type), const_cast<void*>(data), size
     );
@@ -229,6 +234,9 @@ auto Vulkan_Renderer::destroy_buffer(void* handle) -> void {
 }
 
 auto Vulkan_Renderer::create_texture(const Image& image) -> NativeHandle {
+    if (validate_texture_image(image).is_err()) {
+        return {nullptr, noop_native_handle_deleter};
+    }
     if (m_logical_device == nullptr) {
         return NativeHandle(nullptr, noop_native_handle_deleter);
     }
@@ -245,18 +253,17 @@ auto Vulkan_Renderer::create_texture(const Image& image) -> NativeHandle {
     const auto size = v2u32::create(
         static_cast<u32>(image.width), static_cast<u32>(image.height)
     );
-    return NativeHandle(
-        new vulkan::Vulkan_Texture(
-            *m_logical_device,
-            const_cast<u8*>(image.data.data()),
-            size,
-            format
-        ),
-        delete_vulkan_texture
+    auto texture = std::make_unique<vulkan::Vulkan_Texture>(
+        *m_logical_device, const_cast<u8*>(image.data.data()), size, format
     );
+    if (!texture->m_is_initialized) { return {nullptr, noop_native_handle_deleter}; }
+    return NativeHandle(texture.release(), delete_vulkan_texture);
 }
 
 auto Vulkan_Renderer::create_shader(const ShadingCode& code) -> NativeHandle {
+    if (validate_graphics_shader(code).is_err()) {
+        return {nullptr, noop_native_handle_deleter};
+    }
     if (m_logical_device == nullptr) {
         return NativeHandle(nullptr, noop_native_handle_deleter);
     }
@@ -280,6 +287,10 @@ auto Vulkan_Renderer::create_material(
         return NativeHandle(nullptr, noop_native_handle_deleter);
     }
 
+    if (shader.m_api != GRAPHICS_API::VULKAN ||
+        (texture && texture->m_api != GRAPHICS_API::VULKAN)) {
+        return {nullptr, noop_native_handle_deleter};
+    }
     auto* native_shader = static_cast<Vulkan_Shader*>(shader.m_handle.get());
     auto* native_texture = texture == nullptr
                                ? nullptr
@@ -291,10 +302,11 @@ auto Vulkan_Renderer::create_material(
         return NativeHandle(nullptr, noop_native_handle_deleter);
     }
 
-    return NativeHandle(
-        new Vulkan_Material(*m_logical_device, *native_shader, native_texture),
-        delete_vulkan_material
+    auto material = std::make_unique<Vulkan_Material>(
+        *m_logical_device, *native_shader, native_texture
     );
+    if (!material->m_is_initialized) { return {nullptr, noop_native_handle_deleter}; }
+    return NativeHandle(material.release(), delete_vulkan_material);
 }
 
 auto Vulkan_Renderer::set_shader_uniform(

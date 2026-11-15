@@ -57,10 +57,12 @@ Vulkan_Material::Vulkan_Material(
         return;
     }
 
+    if (!pipeline.m_reflected_interface.m_sampled_images.empty() && !texture) { return; }
     m_sets.resize(pipeline.m_set_layouts.size());
     for (size_t i = 0; i < pipeline.m_set_layouts.size(); i++) {
         const auto& set_layout = pipeline.m_set_layouts[i];
         m_sets[i] = device.m_set_pool.allocate_set(set_layout);
+        if (!m_sets[i].m_handle) { return; }
     }
 
     for (const auto& uniform_buffer : pipeline.m_reflected_interface.m_uniform_buffers) {
@@ -74,7 +76,7 @@ Vulkan_Material::Vulkan_Material(
                 uniform_buffer.name,
                 set
             );
-            continue;
+            return;
         }
         if (uniform_buffer.descriptor_count != 1) {
             Logger::err(
@@ -83,11 +85,11 @@ Vulkan_Material::Vulkan_Material(
                 uniform_buffer.name,
                 uniform_buffer.descriptor_count
             );
-            continue;
+            return;
         }
         if (size == 0) {
             Logger::err("Uniform buffer {} has an empty layout", uniform_buffer.name);
-            continue;
+            return;
         }
 
         const u64 alignment = device.m_physical_device->limits().minUniformBufferOffsetAlignment;
@@ -97,6 +99,7 @@ Vulkan_Material::Vulkan_Material(
                 : size;
         vulkan::Buffer* buf =
             device.create_buffer(vulkan::Buffer::TYPE::UNIFORM, nullptr, size);
+        if (!buf) { return; }
         this->bind_buffer(set, binding, *buf, 0, size);
         m_uniform_buffers[set][binding] = UniformBufferAllocation{
             .m_buffer = buf,
@@ -113,7 +116,7 @@ Vulkan_Material::Vulkan_Material(
                 sampled_image.name,
                 set_index
             );
-            continue;
+            return;
         }
         if (sampled_image.descriptor_count != 1) {
             Logger::err(
@@ -122,18 +125,20 @@ Vulkan_Material::Vulkan_Material(
                 sampled_image.name,
                 sampled_image.descriptor_count
             );
-            continue;
+            return;
         }
+        if (!m_texture) { return; }
         if (m_texture != nullptr) {
             vulkan::DescriptorSet& set = m_sets[set_index];
             if (set.m_descriptors.empty()) {
                 Logger::err("The shader does not support textures");
-                continue;
+                return;
             }
             set.bind_combined_image_sampler(binding_index, *m_texture);
             set.update();
         }
     }
+    m_is_initialized = true;
 }
 
 Vulkan_Material::~Vulkan_Material() {
@@ -150,6 +155,13 @@ Vulkan_Material::~Vulkan_Material() {
         }
     }
     m_uniform_buffers.clear();
+    for (auto& set : m_sets) {
+        if (set.m_handle) {
+            m_device->m_set_pool.free_set(set);
+            set.m_handle = VK_NULL_HANDLE;
+        }
+    }
+    m_sets.clear();
 }
 
 auto Vulkan_Material::bind_buffer(

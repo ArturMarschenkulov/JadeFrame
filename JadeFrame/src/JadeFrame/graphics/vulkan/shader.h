@@ -41,8 +41,8 @@ public:
     ~Vulkan_Material();
     Vulkan_Material(const Vulkan_Material&) = delete;
     auto operator=(const Vulkan_Material&) -> Vulkan_Material& = delete;
-    Vulkan_Material(Vulkan_Material&&) noexcept = default;
-    auto operator=(Vulkan_Material&&) -> Vulkan_Material& = default;
+    Vulkan_Material(Vulkan_Material&&) noexcept = delete;
+    auto operator=(Vulkan_Material&&) -> Vulkan_Material& = delete;
 
     Vulkan_Material(
         vulkan::LogicalDevice&  device,
@@ -73,6 +73,7 @@ public:
         -> VkDeviceSize;
 
 public:
+    bool                               m_is_initialized = false;
     vulkan::LogicalDevice*  m_device = nullptr;
     Vulkan_Shader*          m_shader = nullptr;
     vulkan::Vulkan_Texture* m_texture = nullptr;

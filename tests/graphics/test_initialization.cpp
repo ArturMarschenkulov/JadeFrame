@@ -402,8 +402,8 @@ TEST_F(RenderSystemInit, FailedRendererInitializationIsPropagatedAndCleanedUp) {
         Image image;
         EXPECT_EQ(system.register_texture(image), nullptr);
         ShaderHandle* shader = system.register_shader(ShaderHandle::Desc{});
-        ASSERT_NE(shader, nullptr);
-        EXPECT_EQ(shader->m_handle, nullptr);
+        EXPECT_EQ(shader, nullptr);
+        EXPECT_TRUE(system.m_registered_shaders.empty());
         EXPECT_EQ(system.register_material(shader, nullptr), nullptr);
 
         system.shutdown();

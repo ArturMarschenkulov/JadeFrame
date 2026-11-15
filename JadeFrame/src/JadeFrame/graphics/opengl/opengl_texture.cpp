@@ -17,6 +17,7 @@ Sampler::Sampler(opengl::Context& context)
     glCreateSamplers(1, &id);
     m_id = id;
 
+    if (!m_id) { return; }
     this->set_parameters(GL_TEXTURE_WRAP_S, GL_REPEAT);
     this->set_parameters(GL_TEXTURE_WRAP_T, GL_REPEAT);
     this->set_parameters(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -35,34 +36,26 @@ Texture::Texture(opengl::Context& context, void* data, v2u32 size, u32 component
     : m_size(size)
     , m_context(&context) {
 
-    GLenum internal_format = {};
-    switch (component_num) {
-        case 3: internal_format = GL_RGB8; break;
-        case 4: internal_format = GL_RGBA8; break;
-        default:
-            Logger::err(
-                "TextureHandle::init() - Unsupported number of components: {}",
-                component_num
-            );
-            assert(false);
-    }
-
-    GLenum format = {};
-    switch (component_num) {
-        case 3: format = GL_RGB; break;
-        case 4: format = GL_RGBA; break;
-        default:
-            Logger::err(
-                "TextureHandle::init() - Unsupported number of components: {}",
-                component_num
-            );
-            assert(false);
-    }
+    if (!size.x || !size.y || (component_num != 3 && component_num != 4)) { return; }
+    GLenum internal_format = component_num == 3 ? GL_RGB8 : GL_RGBA8;
+    GLenum format = component_num == 3 ? GL_RGB : GL_RGBA;
     m_internal_format = internal_format;
     m_format = format;
     m_type = GL_UNSIGNED_BYTE;
+    // Scope GL's sticky error flag to this creation operation.
+    while (glGetError() != GL_NO_ERROR) {}
     glCreateTextures(GL_TEXTURE_2D, 1, &m_id);
+    if (!m_id) { return; }
     this->set_image(internal_format, size, format, m_type, data);
+    GLint allocated_width = 0;
+    GLint allocated_height = 0;
+    glGetTextureLevelParameteriv(m_id, 0, GL_TEXTURE_WIDTH, &allocated_width);
+    glGetTextureLevelParameteriv(m_id, 0, GL_TEXTURE_HEIGHT, &allocated_height);
+    if (allocated_width != static_cast<GLint>(size.x) ||
+        allocated_height != static_cast<GLint>(size.y) || glGetError() != GL_NO_ERROR) {
+        glDeleteTextures(1, &m_id);
+        m_id = 0;
+    }
     // if (m_mipmapping) {
     //     this->generate_mipmap();
     // }
@@ -118,7 +111,14 @@ auto Texture::set_image(
     i32 size_x = static_cast<i32>(size.x);
     i32 size_y = static_cast<i32>(size.y);
     glTextureStorage2D(m_id, 1, internal_format, size_x, size_y);
-    glTextureSubImage2D(m_id, 0, 0, 0, size_x, size_y, format, type, pixels);
+    if (pixels) {
+        // Image uses tightly packed rows, including RGB widths not divisible by four.
+        GLint alignment = 4;
+        glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glTextureSubImage2D(m_id, 0, 0, 0, size_x, size_y, format, type, pixels);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
+    }
 }
 
 } // namespace opengl

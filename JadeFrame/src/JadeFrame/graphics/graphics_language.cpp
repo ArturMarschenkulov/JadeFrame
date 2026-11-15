@@ -25,6 +25,86 @@ auto shader_error(ShaderErrorCode code, std::string message) -> Result<T, Shader
 
 } // namespace
 
+auto validate_graphics_shader(const ShadingCode& code) -> Result<void, ShaderError> {
+    if (code.m_modules.size() != 2 ||
+        !((code.m_modules[0].m_stage == SHADER_STAGE::VERTEX &&
+           code.m_modules[1].m_stage == SHADER_STAGE::FRAGMENT) ||
+          (code.m_modules[1].m_stage == SHADER_STAGE::VERTEX &&
+           code.m_modules[0].m_stage == SHADER_STAGE::FRAGMENT))) {
+        return shader_error<void>(
+            ShaderErrorCode::UNSUPPORTED_STAGE,
+            "Graphics shaders require exactly one vertex module and one fragment module"
+        );
+    }
+    // SPIRV-Cross uses exceptions for parse errors; contain those at this boundary,
+    // as in remap_for_opengl. No native object has been allocated yet.
+    try {
+        for (const auto& module : code.m_modules) {
+            if (module.m_code.size() < 5 || module.m_code[0] != 0x07230203) {
+                return shader_error<void>(
+                    ShaderErrorCode::INVALID_SPIRV,
+                    "Shader module has an invalid SPIR-V header"
+                );
+            }
+            spirv_cross::Compiler compiler(module.m_code);
+            const auto            entries = compiler.get_entry_points_and_stages();
+            const auto            expected = module.m_stage == SHADER_STAGE::VERTEX
+                                               ? spv::ExecutionModelVertex
+                                               : spv::ExecutionModelFragment;
+            if (entries.size() != 1 || entries[0].name != "main" ||
+                entries[0].execution_model != expected) {
+                return shader_error<void>(
+                    ShaderErrorCode::INVALID_SPIRV,
+                    "Shader module entry point must be main and match its declared stage"
+                );
+            }
+            const auto resources = compiler.get_shader_resources();
+            const auto supported = [](const spirv_cross::SPIRType& type) {
+                return type.basetype == spirv_cross::SPIRType::Float &&
+                       type.width == 32 && type.vecsize >= 1 && type.vecsize <= 4 &&
+                       type.columns >= 1 && type.columns <= 4 &&
+                       (type.columns == 1 || type.columns == type.vecsize);
+            };
+            for (const auto& input : resources.stage_inputs) {
+                const auto& type = compiler.get_type(input.type_id);
+                if (!supported(type) ||
+                    (module.m_stage == SHADER_STAGE::VERTEX && type.columns != 1)) {
+                    return shader_error<void>(
+                        ShaderErrorCode::INVALID_SPIRV,
+                        "Shader input type is unsupported by the vertex/reflection "
+                        "interface"
+                    );
+                }
+            }
+            for (const auto& output : resources.stage_outputs) {
+                if (!supported(compiler.get_type(output.type_id))) {
+                    return shader_error<void>(
+                        ShaderErrorCode::INVALID_SPIRV,
+                        "Shader output type is unsupported by reflection"
+                    );
+                }
+            }
+            for (const auto& uniform : resources.uniform_buffers) {
+                const auto& type = compiler.get_type(uniform.base_type_id);
+                for (auto member : type.member_types) {
+                    if (!supported(compiler.get_type(member))) {
+                        return shader_error<void>(
+                            ShaderErrorCode::INVALID_SPIRV,
+                            "Uniform member type is unsupported by reflection"
+                        );
+                    }
+                }
+            }
+        }
+    } catch (const spirv_cross::CompilerError& e) {
+        return shader_error<void>(
+            ShaderErrorCode::INVALID_SPIRV,
+            std::string("Invalid graphics shader: ") + e.what()
+        );
+    }
+    return ok<void, ShaderError>();
+}
+
 enum class IMAGE_ADDRESS_MODE : u8 {
     REPEAT,
     MIRRORED_REPEAT,

@@ -55,6 +55,8 @@ public:
         this->write((void*)&data, sizeof(T), offset);
     }
 
+    [[nodiscard]] auto
+    try_write(const void* data, VkDeviceSize size, VkDeviceSize offset) const -> bool;
     auto write(const void* data, VkDeviceSize size, VkDeviceSize offset) const -> void;
     /// Copies `size` bytes starting at `offset` into `data`. The buffer must be host
     /// visible and the GPU work writing to it must have finished.
@@ -180,6 +182,7 @@ public:
     auto deinit() -> void;
 
 public:
+    bool                 m_is_initialized = false;
     Image                m_image;
     ImageView            m_image_view;
     const LogicalDevice* m_device = nullptr;

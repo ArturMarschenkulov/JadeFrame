@@ -1,3 +1,4 @@
+#include "JadeFrame/utils/logger.h"
 #include "JadeFrame/base_app.h"
 #include <JadeFrame.h>
 #include <JadeFrame/math/math.h>
@@ -24,6 +25,14 @@ auto main() -> int {
     app->m_on_init_fn = [&]() -> void { Example_Empty::on_init(*app); };
     app->m_on_update_fn = [&]() -> void { Example_Empty::on_update(*app); };
     app->m_on_draw_fn = [&]() -> void { Example_Empty::on_draw(*app); };
-    app->start();
+    auto started = app->start();
+    if (started.is_err()) {
+        // Initialization errors are not logged by the framework, this is the one
+        // place that reports them.
+        jf::Logger::err(
+            "Failed to start the application: {}", jf::to_string(started.error())
+        );
+        return 1;
+    }
     return 0;
 }

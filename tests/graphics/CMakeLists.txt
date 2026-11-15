@@ -87,3 +87,22 @@ foreach(renderer_test
         JADEFRAME_ENABLE_VULKAN=$<BOOL:${JADEFRAME_ENABLE_VULKAN}>
     )
 endforeach()
+
+jadeframe_add_project_test(test_resource_registration
+    SOURCES test_resource_registration.cpp
+    LIBRARIES JadeFrame
+)
+
+if(JADEFRAME_ENABLE_OPENGL)
+    jadeframe_add_project_test(test_resource_opengl
+        SOURCES test_resource_opengl.cpp
+        LIBRARIES JadeFrame jadeframe_backend_opengl
+    )
+endif()
+
+if(JADEFRAME_ENABLE_VULKAN)
+    jadeframe_add_project_test(test_resource_vulkan_upload
+        SOURCES test_resource_vulkan_upload.cpp
+        LIBRARIES JadeFrame jadeframe_backend_vulkan jadeframe_logger
+    )
+endif()

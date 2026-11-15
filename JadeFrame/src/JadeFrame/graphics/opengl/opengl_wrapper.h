@@ -232,6 +232,9 @@ public:
     GLuint m_ID = 0;
 };
 
+inline Framebuffer::Framebuffer(Framebuffer&& other) noexcept
+    : m_ID(std::exchange(other.m_ID, 0)) {}
+
 inline auto Framebuffer::operator=(Framebuffer&& other) noexcept -> Framebuffer& {
     if (this == &other) { return *this; }
     this->destroy();

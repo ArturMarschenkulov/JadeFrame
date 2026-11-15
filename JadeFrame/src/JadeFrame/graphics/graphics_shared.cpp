@@ -2,6 +2,8 @@
 #include "JadeFrame/utils/logger.h"
 
 #include "graphics_shared.h"
+#include <limits>
+#include <algorithm>
 #include "JadeFrame/platform/platform_shared.h"
 #include "renderer_factory.h"
 
@@ -58,6 +60,7 @@ auto Image::load_from_path(const std::string& path) -> Image {
     }
 
     if (num_components == 0) {
+        stbi_image_free(stb_data);
         Logger::err("Failed to load image: {}", path);
         return {};
     }
@@ -81,6 +84,7 @@ auto Image::load_from_path(const std::string& path) -> Image {
 
 GPUBuffer::GPUBuffer(GPUBuffer&& other) noexcept
     : m_renderer(other.m_renderer)
+    , m_renderer_lifetime(std::move(other.m_renderer_lifetime))
     , m_api(other.m_api)
     , m_handle(other.m_handle)
     , m_size(other.m_size)
@@ -98,6 +102,7 @@ auto GPUBuffer::operator=(GPUBuffer&& other) noexcept -> GPUBuffer& {
     this->release();
 
     m_renderer = other.m_renderer;
+    m_renderer_lifetime = std::move(other.m_renderer_lifetime);
     m_api = other.m_api;
     m_handle = other.m_handle;
     m_size = other.m_size;
@@ -115,7 +120,9 @@ GPUBuffer::~GPUBuffer() { this->release(); }
 auto GPUBuffer::release() -> void {
     if (m_handle == nullptr) { return; }
 
-    if (m_renderer != nullptr) { m_renderer->destroy_buffer(m_handle); }
+    if (m_renderer != nullptr && !m_renderer_lifetime.expired()) {
+        m_renderer->destroy_buffer(m_handle);
+    }
 
     m_handle = nullptr;
     m_renderer = nullptr;
@@ -131,8 +138,16 @@ GPUBuffer::GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage)
     , m_size(size)
     , m_type(usage) {
 
-    if (m_renderer != nullptr) {
+    if (m_renderer) { m_renderer_lifetime = m_renderer->resource_lifetime(); }
+    if (m_renderer && size > 0 && usage <= TYPE::STAGING &&
+        ((usage != TYPE::VERTEX && usage != TYPE::INDEX) || data != nullptr) &&
+        (usage != TYPE::INDEX || size % sizeof(u32) == 0)) {
         m_handle = m_renderer->create_buffer(usage, data, size);
+    }
+    if (!m_handle) {
+        m_renderer = nullptr;
+        m_api = GRAPHICS_API::UNDEFINED;
+        m_size = 0;
     }
 }
 
@@ -157,6 +172,10 @@ GPUMeshData::GPUMeshData(
     m_vertex_buffer =
         std::make_unique<GPUBuffer>(system, data, size, GPUBuffer::TYPE::VERTEX);
 
+    if (!m_vertex_buffer->m_handle) {
+        m_vertex_buffer.reset();
+        return;
+    }
     if (!vertex_data.m_indices.empty()) {
         const auto& indices = vertex_data.m_indices;
         void*       indices_data = (void*)indices.data();
@@ -164,6 +183,10 @@ GPUMeshData::GPUMeshData(
         m_index_buffer = std::make_unique<GPUBuffer>(
             system, indices_data, indices_size, GPUBuffer::TYPE::INDEX
         );
+        if (!m_index_buffer->m_handle) {
+            m_index_buffer.reset();
+            m_vertex_buffer.reset();
+        }
     }
 }
 
@@ -383,50 +406,149 @@ auto RenderSystem::init_with_renderer(
     return ok<void, InitError>();
 }
 
-auto RenderSystem::register_texture(Image& image) -> TextureHandle* {
-    if (m_renderer == nullptr) {
-        Logger::err("Cannot register a texture without an initialized renderer");
+namespace {
+template<class T>
+auto registration_error(
+    std::string       message,
+    RendererErrorCode code = RendererErrorCode::INVALID_STATE
+) -> Result<T*, RendererError> {
+    return err<T*, RendererError>(RendererError{code, std::move(message)});
+}
+
+template<class T>
+auto registered(const std::deque<T>& registry, const T* resource) -> bool {
+    return std::any_of(registry.begin(), registry.end(), [resource](const T& entry) {
+        return &entry == resource;
+    });
+}
+
+template<class T>
+auto legacy_registration(Result<T*, RendererError> result) -> T* {
+    if (result.is_err()) {
+        Logger::err("{}", result.error().m_message);
         return nullptr;
     }
+    return result.value();
+}
+} // namespace
 
-    m_registered_textures.emplace_back(image);
-    TextureHandle& tex = m_registered_textures.back();
-    tex.m_api = m_api;
-    tex.m_handle = m_renderer->create_texture(image);
-    return &tex;
+auto validate_texture_image(const Image& image) -> Result<void, RendererError> {
+    if (image.width <= 0 || image.height <= 0 ||
+        (image.num_components != 3 && image.num_components != 4)) {
+        return err<void, RendererError>(RendererError{
+            RendererErrorCode::INVALID_STATE,
+            "Texture upload requires positive dimensions and packed RGB8 or RGBA8 pixels",
+        });
+    }
+    const auto width = static_cast<size_t>(image.width);
+    const auto height = static_cast<size_t>(image.height);
+    const auto components = static_cast<size_t>(image.num_components);
+    if (width > std::numeric_limits<size_t>::max() / height / components ||
+        image.data.size() < width * height * components) {
+        return err<void, RendererError>(RendererError{
+            RendererErrorCode::INVALID_STATE,
+            "Texture pixel buffer is smaller than width * height * components",
+        });
+    }
+    return ok<void, RendererError>();
+}
+
+auto RenderSystem::try_register_texture(const Image& image)
+    -> Result<TextureHandle*, RendererError> {
+    if (!m_renderer) {
+        return registration_error<TextureHandle>(
+            "Texture registration requires an initialized renderer"
+        );
+    }
+    auto validation = validate_texture_image(image);
+    if (validation.is_err()) {
+        return err<TextureHandle*, RendererError>(validation.error());
+    }
+    TextureHandle texture(image);
+    texture.m_handle = m_renderer->create_texture(image);
+    if (!texture.m_handle) {
+        return registration_error<TextureHandle>(
+            "Backend failed to allocate or upload texture",
+            RendererErrorCode::BACKEND_FAILURE
+        );
+    }
+    texture.m_api = m_api;
+    m_registered_textures.push_back(std::move(texture));
+    return ok<TextureHandle*, RendererError>(&m_registered_textures.back());
+}
+
+auto RenderSystem::try_register_shader(const ShaderHandle::Desc& desc)
+    -> Result<ShaderHandle*, RendererError> {
+    if (!m_renderer) {
+        return registration_error<ShaderHandle>(
+            "Shader registration requires an initialized renderer"
+        );
+    }
+    ShaderHandle shader(desc);
+    auto         native = m_renderer->try_create_shader(shader.m_code);
+    if (native.is_err()) {
+        return err<ShaderHandle*, RendererError>(std::move(native).error());
+    }
+    shader.m_handle = std::move(native).value();
+    if (!shader.m_handle) {
+        return registration_error<ShaderHandle>(
+            "Backend returned an empty shader", RendererErrorCode::BACKEND_FAILURE
+        );
+    }
+    shader.m_api = m_api;
+    shader.m_renderer = m_renderer.get();
+    m_registered_shaders.push_back(std::move(shader));
+    return ok<ShaderHandle*, RendererError>(&m_registered_shaders.back());
+}
+
+auto RenderSystem::try_register_mesh(const Mesh& data)
+    -> Result<GPUMeshData*, RendererError> {
+    if (!m_renderer) {
+        return registration_error<GPUMeshData>(
+            "Mesh registration requires an initialized renderer"
+        );
+    }
+    auto flat = convert_into_data(data, true);
+    if (flat.is_err()) { return registration_error<GPUMeshData>(flat.error().m_message); }
+    GPUMeshData mesh;
+    auto&       vertices = flat.value();
+    mesh.m_vertex_buffer = std::make_unique<GPUBuffer>(
+        this, vertices.data(), vertices.size() * sizeof(f32), GPUBuffer::VERTEX
+    );
+    if (!mesh.m_vertex_buffer->m_handle) {
+        return registration_error<GPUMeshData>(
+            "Backend failed to allocate or upload vertex buffer",
+            RendererErrorCode::BACKEND_FAILURE
+        );
+    }
+    if (!data.m_indices.empty()) {
+        mesh.m_index_buffer = std::make_unique<GPUBuffer>(
+            this,
+            const_cast<u32*>(data.m_indices.data()),
+            data.m_indices.size() * sizeof(u32),
+            GPUBuffer::INDEX
+        );
+        if (!mesh.m_index_buffer->m_handle) {
+            return registration_error<GPUMeshData>(
+                "Backend failed to allocate or upload index buffer; vertex allocation "
+                "rolled back",
+                RendererErrorCode::BACKEND_FAILURE
+            );
+        }
+    }
+    m_registered_meshes.push_back(std::move(mesh));
+    return ok<GPUMeshData*, RendererError>(&m_registered_meshes.back());
+}
+
+auto RenderSystem::register_texture(Image& image) -> TextureHandle* {
+    return legacy_registration(try_register_texture(image));
 }
 
 auto RenderSystem::register_shader(const ShaderHandle::Desc& desc) -> ShaderHandle* {
-
-    m_registered_shaders.emplace_back();
-    ShaderHandle& shader = m_registered_shaders.back();
-    shader.m_code = desc.shading_code;
-    shader.m_api = m_api;
-    shader.m_renderer = m_renderer.get();
-    if (m_renderer != nullptr) {
-        shader.m_handle = m_renderer->create_shader(shader.m_code);
-    }
-    return &shader;
+    return legacy_registration(try_register_shader(desc));
 }
-
-/**
- * @brief Registers a mesh on the GPU and returns an id to it.
- *
- * @param format
- * @param data
- * @return u32
- */
 auto RenderSystem::register_mesh(const Mesh& data) -> GPUMeshData* {
-    auto validation = data.validate();
-    if (validation.is_err()) {
-        Logger::err(
-            "Cannot register invalid mesh: {}",
-            validation.error().m_message
-        );
-        return nullptr;
-    }
-    m_registered_meshes.emplace_back(this, data);
-    return &m_registered_meshes.back();
+    return legacy_registration(try_register_mesh(data));
 }
 
 auto RenderSystem::list_available_graphics_apis() -> std::vector<GRAPHICS_API> {
@@ -469,33 +591,49 @@ auto RenderSystem::list_available_graphics_apis() -> std::vector<GRAPHICS_API> {
     return result;
 }
 
-auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* texture)
-    -> MaterialHandle* {
-    if (m_renderer == nullptr || shader == nullptr || shader->m_handle == nullptr) {
-        Logger::err("Cannot register a material without a valid renderer and shader");
-        return nullptr;
+auto RenderSystem::try_register_material(ShaderHandle* shader, TextureHandle* texture)
+    -> Result<MaterialHandle*, RendererError> {
+    // Check membership before dereferencing dependencies, including foreign pointers.
+    if (!m_renderer || !registered(m_registered_shaders, shader) || !shader->m_handle ||
+        shader->m_renderer != m_renderer.get() || shader->m_api != m_api) {
+        return registration_error<MaterialHandle>(
+            "Material requires a usable shader registered with this render system"
+        );
     }
-
-    m_registered_materials.emplace_back();
-    auto& material = m_registered_materials.back();
-
+    if (texture && (!registered(m_registered_textures, texture) || !texture->m_handle ||
+                    texture->m_api != m_api)) {
+        return registration_error<MaterialHandle>(
+            "Material texture must be usable and registered with this render system"
+        );
+    }
+    MaterialHandle material;
     material.m_shader = shader;
     material.m_texture = texture;
-    material.m_api = m_api;
     material.m_info = MaterialInfo::default_0();
-
-    if (texture != nullptr && texture->m_handle == nullptr) {
-        Logger::err("Cannot register a material with an invalid texture");
-        m_registered_materials.pop_back();
-        return nullptr;
-    }
     material.m_handle = m_renderer->create_material(*shader, texture);
+    if (!material.m_handle) {
+        return registration_error<MaterialHandle>(
+            "Backend failed to create material bindings or uniform buffers",
+            RendererErrorCode::BACKEND_FAILURE
+        );
+    }
+    material.m_api = m_api;
+    m_registered_materials.push_back(std::move(material));
+    return ok<MaterialHandle*, RendererError>(&m_registered_materials.back());
+}
 
-    return &material;
+auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* texture)
+    -> MaterialHandle* {
+    return legacy_registration(try_register_material(shader, texture));
 }
 
 auto RenderSystem::submit(const Object& obj) -> void {
-    if (obj.m_vertex_data == nullptr || obj.m_mesh == nullptr || obj.m_material == nullptr) {
+    if (!m_renderer || obj.m_vertex_data == nullptr ||
+        !registered(m_registered_meshes, obj.m_mesh) ||
+        !registered(m_registered_materials, obj.m_material) ||
+        !obj.m_material->m_handle ||
+        !registered(m_registered_shaders, obj.m_material->m_shader) ||
+        !obj.m_material->m_shader->m_handle) {
         Logger::err("Cannot submit an object with an incomplete render resource set");
         return;
     }
@@ -514,6 +652,11 @@ auto RenderSystem::submit(const Object& obj) -> void {
         return;
     }
 
+    if (!obj.m_vertex_data->m_indices.empty() &&
+        (!obj.m_mesh->m_index_buffer || !obj.m_mesh->m_index_buffer->m_handle)) {
+        Logger::err("Cannot submit indexed geometry without a usable index buffer");
+        return;
+    }
     const RenderCommand command = {
         .transform = obj.m_transform.calculate(),
         .vertex_data = obj.m_vertex_data,

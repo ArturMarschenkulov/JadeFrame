@@ -41,10 +41,10 @@ static auto get_reflected_modules(const std::vector<OGLW_Shader>& modules)
 Shader::Shader(opengl::Context& context, const Desc& desc)
     : m_context(&context) {
 
-    JF_ASSERT(
-        desc.code.m_modules.size() == 2,
-        "OpenGL Shaders must have 2 modules for right now"
-    );
+    if (desc.code.m_modules.size() != 2 || !m_program.m_ID) {
+        m_error = "OpenGL graphics shader requires two stages and a program object";
+        return;
+    }
 
     m_shaders.resize(2);
 
@@ -53,6 +53,12 @@ Shader::Shader(opengl::Context& context, const Desc& desc)
         const ShadingCode::Module::SPIRV& spirv = module_.m_code;
         const GLenum&                     type = to_opengl(module_.m_stage);
         m_shaders[i] = OGLW_Shader(type, spirv);
+        if (!m_shaders[i].m_ID || !m_shaders[i].get_compile_status()) {
+            m_error = "OpenGL shader compilation failed: " +
+                      (m_shaders[i].m_ID ? m_shaders[i].get_info_log()
+                                         : "shader object allocation failed");
+            return;
+        }
         m_program.attach(m_shaders[i]);
     }
     std::vector<ReflectedModule> reflected_modules = get_reflected_modules(m_shaders);
@@ -60,28 +66,33 @@ Shader::Shader(opengl::Context& context, const Desc& desc)
     VertexFormat vf = m_reflected_interface.get_vertex_format();
     m_vertex_array = OGLW_VertexArray(&context, vf);
 
-    Logger::warn("OpenGL Shader compiled");
-
+    if (!m_vertex_array.m_ID) {
+        m_error = "OpenGL vertex array allocation failed";
+        return;
+    }
     if (!m_program.link()) {
-        std::string info_log = m_program.get_info_log();
-        Logger::warn("{}", info_log);
+        m_error = "OpenGL program linking failed: " + m_program.get_info_log();
+        return;
     }
+    for (auto& stage : m_shaders) { m_program.detach(stage); }
+    m_is_initialized = true;
+}
 
-    if (!m_program.validate()) {
-        std::string info_log = m_program.get_info_log();
-        Logger::warn("{}", info_log);
+Shader::~Shader() {
+    if (m_context) {
+        if (m_context->m_bound_shader == this) {
+            glUseProgram(0);
+            m_context->m_bound_shader = nullptr;
+        }
+        if (m_context->m_bound_vertex_array == &m_vertex_array) {
+            m_context->unbind_vertex_array();
+        }
     }
-
-    for (u32 i = 0; i < m_shaders.size(); i++) { m_program.detach(m_shaders[i]); }
-    Logger::debug("OpenGL Shader successfully compiled and linked");
-    // Now the shader is ready to be used
-
-    // Here we create the various graphics objects
 }
 
 Material::Material(opengl::Context& context, Shader& shader, Texture* texture)
     : m_context(&context) {
-    (void)texture;
+    if (!shader.m_reflected_interface.m_sampled_images.empty() && !texture) { return; }
 
     // NOTE: The binding points will be somehow abstracted, since the high level will
     // mimick the vulkan model and the vulkan combines sets and bindings points, while
@@ -94,13 +105,24 @@ Material::Material(opengl::Context& context, Shader& shader, Texture* texture)
         u32 binding = uniform_buffer.binding;
         u32 size = uniform_buffer.size;
 
-        JF_ASSERT(size == sizeof(mat4x4), "Uniform buffer size is not 64 bytes");
+        if (size != sizeof(mat4x4) || m_uniform_buffers.contains(binding)) { return; }
 
         using namespace opengl;
 
         Buffer* buffer = m_context->create_buffer(Buffer::TYPE::UNIFORM, nullptr, size);
-        context.bind_uniform_buffer_to_location(*buffer, binding);
+        if (!buffer) { return; }
+        // Binding is deferred until use, so failed construction cannot disturb another
+        // material.
         m_uniform_buffers[binding] = buffer;
+    }
+    m_is_initialized = true;
+}
+
+Material::~Material() {
+    if (!m_context) { return; }
+    for (auto& [binding, buffer] : m_uniform_buffers) {
+        (void)binding;
+        m_context->destroy_buffer(buffer);
     }
 }
 

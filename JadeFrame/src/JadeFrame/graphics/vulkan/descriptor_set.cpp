@@ -416,7 +416,7 @@ DescriptorPool::DescriptorPool(
     const VkDescriptorPoolCreateInfo info = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .pNext = nullptr,
-        .flags = 0 /* | VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT*/,
+        .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
         .maxSets = max_sets,
         .poolSizeCount = static_cast<u32>(m_pool_sizes.size()),
         .pPoolSizes = m_pool_sizes.data(),
@@ -475,10 +475,7 @@ auto DescriptorPool::allocate_sets(const DescriptorSetLayout& layout, u32 amount
     std::vector<VkDescriptorSet> handles(amount);
 
     VkResult result = vkAllocateDescriptorSets(m_device->m_handle, &info, handles.data());
-    if (result != VK_SUCCESS) {
-        Logger::err("Failed to allocate descriptor sets {}", to_string(result));
-        assert(false);
-    }
+    if (result != VK_SUCCESS) { return {}; }
     {
         Logger::trace(
             "Allocated {} descriptor sets from pool {} at {}",
@@ -521,7 +518,8 @@ auto DescriptorPool::allocate_sets(const DescriptorSetLayout& layout, u32 amount
 
 auto DescriptorPool::allocate_set(const DescriptorSetLayout& descriptor_set_layout) const
     -> DescriptorSet {
-    return std::move(this->allocate_sets(descriptor_set_layout, 1)[0]);
+    auto sets = allocate_sets(descriptor_set_layout, 1);
+    return sets.empty() ? DescriptorSet{} : std::move(sets[0]);
 }
 
 auto DescriptorPool::free_sets(const std::span<DescriptorSet>& /*descriptor_sets*/)

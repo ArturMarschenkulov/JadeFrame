@@ -43,6 +43,8 @@ public:
     auto destroy_buffer(void* handle) -> void override;
     auto create_texture(const Image& image) -> NativeHandle override;
     auto create_shader(const ShadingCode& code) -> NativeHandle override;
+    auto try_create_shader(const ShadingCode& code)
+        -> Result<NativeHandle, RendererError> override;
     auto create_material(const ShaderHandle& shader, const TextureHandle* texture)
         -> NativeHandle override;
     auto set_shader_uniform(

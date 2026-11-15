@@ -194,11 +194,35 @@ TEST_P(RendererContract, UnusableShaderCodeYieldsANullHandle) {
     ShaderHandle::Desc desc;
     desc.shading_code.m_shading_language = SHADING_LANGUAGE::SPIRV_VULKAN;
 
+    const auto count = m_system->m_registered_shaders.size();
     ShaderHandle* shader = m_system->register_shader(desc);
 
-    ASSERT_NE(shader, nullptr);
-    EXPECT_EQ(shader->m_handle, nullptr);
+    EXPECT_EQ(shader, nullptr);
+    EXPECT_EQ(m_system->m_registered_shaders.size(), count);
     EXPECT_EQ(m_system->register_material(shader, nullptr), nullptr);
+    EXPECT_NE(m_shader->m_handle, nullptr);
+    EXPECT_FALSE(render_and_capture().data.empty());
+}
+
+TEST_P(RendererContract, TextureUploadPreservesExistingResources) {
+    Image image;
+    image.width = 2;
+    image.height = 2;
+    image.num_components = 4;
+    image.data.assign(16, 255);
+    auto texture = m_system->try_register_texture(image);
+    ASSERT_TRUE(texture.is_ok()) << texture.error().m_message;
+    ASSERT_NE(texture.value()->m_handle, nullptr);
+
+    auto code = GLSLCodeLoader::get_by_name("with_texture_0");
+    ASSERT_TRUE(code.is_ok()) << code.error().m_message;
+    ShaderHandle::Desc desc{std::move(code).value()};
+    auto shader = m_system->try_register_shader(desc);
+    ASSERT_TRUE(shader.is_ok()) << shader.error().m_message;
+    auto material = m_system->try_register_material(shader.value(), texture.value());
+    ASSERT_TRUE(material.is_ok()) << material.error().m_message;
+    EXPECT_NE(material.value()->m_handle, nullptr);
+    EXPECT_FALSE(render_and_capture().data.empty());
 }
 
 TEST_P(RendererContract, ScreenshotNeedsARenderedUnpresentedFrame) {

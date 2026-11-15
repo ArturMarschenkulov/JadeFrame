@@ -111,11 +111,9 @@ auto OpenGL_Renderer::initialize() -> Result<void, InitError> {
             "): " + shading_code.error().m_message
         );
     }
-    NativeHandle shader = this->create_shader(shading_code.value());
-    if (shader == nullptr) {
-        return resource_error("cannot create the render target shader");
-    }
-    return m_render_target.init(&m_context, std::move(shader));
+    auto shader = this->try_create_shader(shading_code.value());
+    if (shader.is_err()) { return resource_error(shader.error().m_message); }
+    return m_render_target.init(&m_context, std::move(shader).value());
 #else
     return ok<void, InitError>();
 #endif
@@ -126,7 +124,9 @@ auto OpenGL_Renderer::create_buffer(
     const void*     data,
     size_t          size
 ) -> void* {
-    if (size > std::numeric_limits<u32>::max()) {
+    if (!size || size > std::numeric_limits<u32>::max() || type > GPUBuffer::STAGING ||
+        ((type == GPUBuffer::VERTEX || type == GPUBuffer::INDEX) && !data) ||
+        (type == GPUBuffer::INDEX && size % sizeof(u32) != 0)) {
         Logger::err("OpenGL buffer is too large: {} bytes", size);
         return nullptr;
     }
@@ -140,6 +140,9 @@ auto OpenGL_Renderer::destroy_buffer(void* handle) -> void {
 }
 
 auto OpenGL_Renderer::create_texture(const Image& image) -> NativeHandle {
+    if (validate_texture_image(image).is_err()) {
+        return {nullptr, noop_native_handle_deleter};
+    }
     const auto size = v2u32::create(
         static_cast<u32>(image.width), static_cast<u32>(image.height)
     );
@@ -150,11 +153,20 @@ auto OpenGL_Renderer::create_texture(const Image& image) -> NativeHandle {
 }
 
 auto OpenGL_Renderer::create_shader(const ShadingCode& code) -> NativeHandle {
-    if (code.m_modules.size() < 2) {
-        Logger::err("OpenGL shaders require vertex and fragment modules");
-        return NativeHandle(nullptr, noop_native_handle_deleter);
-    }
+    auto result = try_create_shader(code);
+    if (result.is_err()) { return {nullptr, noop_native_handle_deleter}; }
+    return std::move(result).value();
+}
 
+auto OpenGL_Renderer::try_create_shader(const ShadingCode& code)
+    -> Result<NativeHandle, RendererError> {
+    auto validation = validate_graphics_shader(code);
+    if (validation.is_err()) {
+        return err<NativeHandle, RendererError>(RendererError{
+            RendererErrorCode::INVALID_STATE,
+            validation.error().m_message,
+        });
+    }
     opengl::Shader::Desc shader_desc;
     shader_desc.shading_language = code.m_shading_language;
     shader_desc.code.m_shading_language = code.m_shading_language;
@@ -164,19 +176,24 @@ auto OpenGL_Renderer::create_shader(const ShadingCode& code) -> NativeHandle {
         const auto& module = code.m_modules[i];
         auto remapped = remap_for_opengl(module.m_code, module.m_stage, nullptr);
         if (remapped.is_err()) {
-            Logger::err(
-                "Cannot create the OpenGL shader ({}): {}",
-                to_string(remapped.error().m_code),
-                remapped.error().m_message
-            );
-            return NativeHandle(nullptr, noop_native_handle_deleter);
+            return err<NativeHandle, RendererError>(RendererError{
+                RendererErrorCode::BACKEND_FAILURE,
+                remapped.error().m_message,
+            });
         }
         shader_desc.code.m_modules[i].m_code = std::move(remapped).value();
         shader_desc.code.m_modules[i].m_stage = module.m_stage;
     }
 
-    return NativeHandle(
-        new opengl::Shader(m_context, shader_desc), delete_opengl_shader
+    auto shader = std::make_unique<opengl::Shader>(m_context, shader_desc);
+    if (!shader->m_is_initialized) {
+        return err<NativeHandle, RendererError>(RendererError{
+            RendererErrorCode::BACKEND_FAILURE,
+            shader->m_error,
+        });
+    }
+    return ok<NativeHandle, RendererError>(
+        NativeHandle(shader.release(), delete_opengl_shader)
     );
 }
 
@@ -184,19 +201,24 @@ auto OpenGL_Renderer::create_material(
     const ShaderHandle&  shader,
     const TextureHandle* texture
 ) -> NativeHandle {
+    if (shader.m_api != GRAPHICS_API::OPENGL ||
+        (texture && texture->m_api != GRAPHICS_API::OPENGL)) {
+        return {nullptr, noop_native_handle_deleter};
+    }
     auto* native_shader = static_cast<opengl::Shader*>(shader.m_handle.get());
     auto* native_texture = texture == nullptr
                                ? nullptr
                                : static_cast<opengl::Texture*>(texture->m_handle.get());
-    if (native_shader == nullptr || (texture != nullptr && native_texture == nullptr)) {
+    if (native_shader == nullptr || !native_shader->m_is_initialized ||
+        (texture != nullptr && native_texture == nullptr)) {
         Logger::err("Cannot create an OpenGL material from invalid resources");
         return NativeHandle(nullptr, noop_native_handle_deleter);
     }
 
-    return NativeHandle(
-        new opengl::Material(m_context, *native_shader, native_texture),
-        delete_opengl_material
-    );
+    auto material =
+        std::make_unique<opengl::Material>(m_context, *native_shader, native_texture);
+    if (!material->m_is_initialized) { return {nullptr, noop_native_handle_deleter}; }
+    return NativeHandle(material.release(), delete_opengl_material);
 }
 
 auto OpenGL_Renderer::set_shader_uniform(
@@ -457,16 +479,24 @@ auto OpenGL_Renderer::RenderTarget::init(opengl::Context* context, NativeHandle 
         m_size = size;
 
         m_texture = context->create_texture(nullptr, size, 3);
+        if (!m_texture) {
+            return resource_error("failed to allocate render target texture");
+        }
         m_sampler = context->create_sampler();
+        if (!m_sampler) {
+            return resource_error("failed to allocate render target sampler");
+        }
         m_sampler->set_parameters(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         m_sampler->set_parameters(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         m_sampler->set_parameters(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         m_sampler->set_parameters(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         m_renderbuffer = context->create_renderbuffer();
+        if (!m_renderbuffer) { return resource_error("failed to allocate render target depth buffer"); }
         m_renderbuffer->store(GL_DEPTH24_STENCIL8, size.x, size.y);
 
         m_framebuffer = context->create_framebuffer();
+        if (!m_framebuffer) { return resource_error("failed to allocate render target framebuffer"); }
         m_framebuffer->attach(opengl::ATTACHMENT::COLOR, 0, *m_texture);
         m_framebuffer->attach(opengl::ATTACHMENT::DEPTH_STENCIL, 0, *m_renderbuffer);
 

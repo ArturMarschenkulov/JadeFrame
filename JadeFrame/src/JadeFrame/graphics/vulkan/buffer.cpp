@@ -131,33 +131,15 @@ auto Buffer::operator=(Buffer&& other) noexcept -> Buffer& {
     return *this;
 }
 
-#define JF_USE_MANAGED_STAGING_BUFFER 0
-#if JF_USE_MANAGED_STAGING_BUFFER
-static Buffer* g_staging_buffer = nullptr;
-#endif
-
 static auto transfer_through_staging_buffer(
     const LogicalDevice& device,
     void*                data,
     size_t               size,
     Buffer*              buffer
-) -> void {
-#if JF_USE_MANAGED_STAGING_BUFFER
-
-    if (g_staging_buffer == nullptr) {
-        g_staging_buffer = device.create_buffer(Buffer::TYPE::STAGING, nullptr, size);
-    }
-
-    if (g_staging_buffer->m_size != size) { g_staging_buffer->resize(size); }
-
-    g_staging_buffer->write(data, size, 0);
-    device.m_command_pool.copy_buffer(*g_staging_buffer, *buffer, size);
-#else
-    Buffer* sb = device.create_buffer(Buffer::TYPE::STAGING, nullptr, size);
-    sb->write(data, size, 0);
-    device.m_command_pool.copy_buffer(*sb, *buffer, size);
-    device.destroy_buffer(sb);
-#endif
+) -> bool {
+    Buffer staging(device, Buffer::TYPE::STAGING, nullptr, size);
+    if (!staging.m_handle || !staging.try_write(data, size, 0)) { return false; }
+    return device.m_command_pool.copy_buffer(staging, *buffer, size);
 }
 
 Buffer::Buffer(
@@ -170,6 +152,9 @@ Buffer::Buffer(
     , m_size(size)
     , m_device(&device) {
 
+    if (!size || ((buffer_type == TYPE::VERTEX || buffer_type == TYPE::INDEX) && !data)) {
+        return;
+    }
     bool               b_with_staging_buffer = does_use_staging_buffer(buffer_type);
     VkBufferUsageFlags usage = get_usage(buffer_type);
 #if JF_USE_VMA
@@ -180,10 +165,13 @@ Buffer::Buffer(
     this->create_buffer(size, usage, properties, m_memory, m_handle);
 #endif
 
+    if (!m_handle) { return; }
     if (b_with_staging_buffer) {
-        transfer_through_staging_buffer(device, data, size, this);
-    } else {
-        assert(data == nullptr && "If staging buffer is not used, it cannot have data");
+        if (!transfer_through_staging_buffer(device, data, size, this)) {
+            this->destroy();
+        }
+    } else if (data && !try_write(data, size, 0)) {
+        this->destroy();
     }
 }
 
@@ -211,23 +199,37 @@ auto Buffer::destroy() -> void {
     Logger::trace("Destroyed Buffer {}", fmt::ptr(this));
 }
 
-auto Buffer::write(const void* data, VkDeviceSize size, VkDeviceSize offset) const
-    -> void {
-
+auto Buffer::try_write(const void* data, VkDeviceSize size, VkDeviceSize offset) const
+    -> bool {
+    if (!m_device || !m_handle || !data || !size || offset > m_size ||
+        size > m_size - offset) {
+        return false;
+    }
     void* mapped_data = nullptr;
 #if JF_USE_VMA
-    VkResult result = vmaMapMemory(m_device->m_vma_allocator, m_allocation, &mapped_data);
-    JF_ASSERT(result == VK_SUCCESS, "");
-    u8* data_ptr = reinterpret_cast<u8*>(mapped_data) + offset;
-    memcpy(data_ptr, data, static_cast<size_t>(size));
+    if (vmaMapMemory(m_device->m_vma_allocator, m_allocation, &mapped_data) !=
+        VK_SUCCESS) {
+        return false;
+    }
+    memcpy(static_cast<u8*>(mapped_data) + offset, data, static_cast<size_t>(size));
+    const auto flushed =
+        vmaFlushAllocation(m_device->m_vma_allocator, m_allocation, offset, size);
     vmaUnmapMemory(m_device->m_vma_allocator, m_allocation);
+    return flushed == VK_SUCCESS;
 #else
-    VkResult result =
-        vkMapMemory(m_device->m_handle, m_memory, offset, size, 0, &mapped_data);
-    JF_ASSERT(result == VK_SUCCESS, "");
+    if (vkMapMemory(m_device->m_handle, m_memory, offset, size, 0, &mapped_data) !=
+        VK_SUCCESS) {
+        return false;
+    }
     memcpy(mapped_data, data, static_cast<size_t>(size));
     vkUnmapMemory(m_device->m_handle, m_memory);
+    return true;
 #endif
+}
+
+auto Buffer::write(const void* data, VkDeviceSize size, VkDeviceSize offset) const
+    -> void {
+    if (!try_write(data, size, offset)) { Logger::err("Vulkan buffer upload failed"); }
 }
 
 auto Buffer::read(void* data, VkDeviceSize size, VkDeviceSize offset) const -> void {
@@ -260,7 +262,8 @@ auto Buffer::resize(size_t size) -> void {
 
     const LogicalDevice* device = m_device;
     const TYPE           type = m_type;
-    *this = Buffer(*device, type, nullptr, size);
+    Buffer               replacement(*device, type, nullptr, size);
+    if (replacement.m_handle) { *this = std::move(replacement); }
 }
 
 auto Buffer::create_buffer(
@@ -296,7 +299,10 @@ auto Buffer::create_buffer(
     VkResult result =
         vkCreateBuffer(m_device->m_handle, &buffer_info, Instance::allocator(), &buffer);
 #endif
-    JF_ASSERT(result == VK_SUCCESS, "");
+    if (result != VK_SUCCESS) {
+        buffer = VK_NULL_HANDLE;
+        return;
+    }
     m_handle = buffer;
 
     // g_memory.push_buffer(m_device, buffer);
@@ -397,6 +403,10 @@ Image::Image(
         &props
     );
 
+    if (result != VK_SUCCESS || !size.x || !size.y || size.x > props.maxExtent.width ||
+        size.y > props.maxExtent.height) {
+        return;
+    }
     const VkImageCreateInfo image_info = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = nullptr,
@@ -437,13 +447,25 @@ Image::Image(
     VkMemoryRequirements mem_requirements;
     vkGetImageMemoryRequirements(device.m_handle, m_handle, &mem_requirements);
 
+    // No matching memory type is an allocation failure, not an exception.
+    u32 memory_type = device.m_physical_device->m_memory_properties.memoryTypeCount;
+    const auto& memory = device.m_physical_device->m_memory_properties;
+    for (u32 i = 0; i < memory.memoryTypeCount; ++i) {
+        if ((mem_requirements.memoryTypeBits & (1U << i)) &&
+            (memory.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)) {
+            memory_type = i;
+            break;
+        }
+    }
+    if (memory_type == memory.memoryTypeCount) {
+        this->destroy();
+        return;
+    }
     VkMemoryAllocateInfo alloc_info = {
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
         .pNext = nullptr,
         .allocationSize = mem_requirements.size,
-        .memoryTypeIndex = device.m_physical_device->find_memory_type(
-            mem_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-        ),
+        .memoryTypeIndex = memory_type,
     };
 
     result =
@@ -566,7 +588,7 @@ auto Sampler::init(const LogicalDevice& device) -> void {
     };
     VkResult result =
         vkCreateSampler(device.m_handle, &samplerInfo, Instance::allocator(), &m_handle);
-    if (result != VK_SUCCESS) { assert(false); }
+    if (result != VK_SUCCESS) { m_handle = VK_NULL_HANDLE; }
 }
 
 Sampler::~Sampler() { this->deinit(); }
@@ -600,36 +622,54 @@ Vulkan_Texture::Vulkan_Texture(
 )
     : m_device(&device) {
 
+    if (!data || !size.x || !size.y ||
+        (format != VK_FORMAT_R8G8B8_SRGB && format != VK_FORMAT_R8G8B8A8_SRGB)) {
+        return;
+    }
     u32 comp_count = component_count(format);
 
     m_image = Image(
         device, size, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
     );
+    if (!m_image.m_handle) { return; }
     m_image_view = ImageView(device, m_image, format, VK_IMAGE_ASPECT_COLOR_BIT);
-
-    m_device->m_command_pool.transition_layout(
-        m_image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
-    );
+    if (!m_image_view.m_handle) { return; }
 
     auto   image_size = static_cast<VkDeviceSize>(size.x) *
                         static_cast<VkDeviceSize>(size.y) * comp_count;
     Buffer staging_buffer(device, Buffer::TYPE::STAGING, nullptr, image_size);
-    staging_buffer.write(data, image_size, 0);
-    m_device->m_command_pool.copy_buffer_to_image(staging_buffer, m_image, size);
+    if (!staging_buffer.m_handle || !staging_buffer.try_write(data, image_size, 0)) {
+        return;
+    }
+    if (!m_device->m_command_pool.transition_layout(
+            m_image,
+            format,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+        )) {
+        return;
+    }
+    if (!m_device->m_command_pool.copy_buffer_to_image(staging_buffer, m_image, size)) {
+        return;
+    }
 
-    m_device->m_command_pool.transition_layout(
-        m_image,
-        format,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-    );
+    if (!m_device->m_command_pool.transition_layout(
+            m_image,
+            format,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        )) {
+        return;
+    }
 
     m_sampler.init(device);
+    m_is_initialized = m_sampler.m_handle != VK_NULL_HANDLE;
 }
 
 Vulkan_Texture::~Vulkan_Texture() { this->deinit(); }
 
 auto Vulkan_Texture::deinit() -> void {
+    m_is_initialized = false;
     m_sampler.deinit();
     m_image_view = ImageView();
     m_image = Image();

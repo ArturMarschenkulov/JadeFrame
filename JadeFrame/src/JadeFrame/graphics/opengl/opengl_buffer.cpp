@@ -52,9 +52,13 @@ Buffer::Buffer(opengl::Context& context, TYPE type, const void* data, GLuint siz
     , m_size(size)
     , m_id(0) {
 
+    if (!size) { return; }
     glCreateBuffers(1, &m_id);
-
+    if (!m_id) { return; }
     this->alloc(data, size);
+    GLint64 allocated = 0;
+    glGetNamedBufferParameteri64v(m_id, GL_BUFFER_SIZE, &allocated);
+    if (allocated != static_cast<GLint64>(size)) { this->destroy(); }
 }
 
 auto Buffer::reserve(GLuint size) -> void {

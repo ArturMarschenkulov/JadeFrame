@@ -171,17 +171,17 @@ public:
         const Buffer& src_buffer,
         const Buffer& dst_buffer,
         VkDeviceSize  size
-    ) const -> void;
+    ) const -> bool;
 
     auto transition_layout(
         const Image& image,
         VkFormat /*format*/,
         VkImageLayout old_layout,
         VkImageLayout new_layout
-    ) const -> void;
+    ) const -> bool;
 
     auto copy_buffer_to_image(const Buffer& buffer, const Image& image, v2u32 size) const
-        -> void;
+        -> bool;
 
 public:
     const LogicalDevice*    m_device = nullptr;

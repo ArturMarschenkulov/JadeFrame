@@ -18,6 +18,10 @@ GLSL_to_SPIRV(const std::string& code, SHADER_STAGE stage, GRAPHICS_API api)
     std::string*                      out_source
 ) -> Result<ShadingCode::Module::SPIRV, ShaderError>;
 
+/// Preflight the stages and types supported by the current graphics resource path.
+[[nodiscard]] auto validate_graphics_shader(const ShadingCode& code)
+    -> Result<void, ShaderError>;
+
 auto convert_SPIRV_to_GLSL(const std::vector<u32>& spirv) -> std::string;
 
 } // namespace JadeFrame

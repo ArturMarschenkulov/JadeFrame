@@ -67,6 +67,10 @@ inline auto to_string(RendererErrorCode code) -> const char* {
     }
 }
 
+/// Validates the packed RGB8/RGBA8 upload contract without touching a GPU.
+[[nodiscard]] auto validate_texture_image(const Image& image)
+    -> Result<void, RendererError>;
+
 enum class GRAPHICS_API : u8 {
     UNDEFINED,
     OPENGL,
@@ -282,6 +286,7 @@ inline auto is_vector(SHADER_TYPE type) -> bool {
 
 auto to_string(SHADER_TYPE type) -> const char*;
 
+/// A no-op handle borrows a context-owned object; it must never delete it.
 inline auto noop_native_handle_deleter(void* /*unused*/) noexcept -> void {}
 
 using NativeHandle = std::unique_ptr<void, decltype(&noop_native_handle_deleter)>;
@@ -346,7 +351,7 @@ struct ShadingCode {
         SHADER_STAGE m_stage;
     };
 
-    SHADING_LANGUAGE    m_shading_language;
+    SHADING_LANGUAGE    m_shading_language = SHADING_LANGUAGE::SPIRV_VULKAN;
     std::vector<Module> m_modules;
 };
 
@@ -497,6 +502,8 @@ public:
 
 public:
     IRenderer*    m_renderer = nullptr;
+    // Native buffers are tracked by the context, which releases any survivors at shutdown.
+    std::weak_ptr<void> m_renderer_lifetime;
     GRAPHICS_API  m_api = GRAPHICS_API::UNDEFINED;
     void*         m_handle = nullptr;
     size_t        m_size = 0;
@@ -569,6 +576,14 @@ public:
     auto operator=(IRenderer&&) -> IRenderer& = delete;
     virtual ~IRenderer() = default;
 
+    [[nodiscard]] auto resource_lifetime() const -> std::weak_ptr<void> {
+        return m_resource_lifetime;
+    }
+
+private:
+    std::shared_ptr<void> m_resource_lifetime = std::make_shared<int>(0);
+
+public:
     // Resource operations are deliberately expressed in terms of façade types. The
     // concrete backend owns the native casts and lifetime rules behind this interface.
 
@@ -595,6 +610,20 @@ public:
     virtual auto create_texture(const Image& image) -> NativeHandle = 0;
     /// Returns a null handle if the code cannot be turned into a usable shader.
     virtual auto create_shader(const ShadingCode& code) -> NativeHandle = 0;
+
+    /// Backends can preserve compiler diagnostics while older implementations keep
+    /// the null-handle API. Registration uses this result-returning boundary.
+    virtual auto try_create_shader(const ShadingCode& code)
+        -> Result<NativeHandle, RendererError> {
+        auto handle = create_shader(code);
+        if (!handle) {
+            return err<NativeHandle, RendererError>(RendererError{
+                RendererErrorCode::BACKEND_FAILURE,
+                "Backend failed to compile or link shader",
+            });
+        }
+        return ok<NativeHandle, RendererError>(std::move(handle));
+    }
     /// Returns a null handle on failure.
     virtual auto create_material(
         const ShaderHandle&  shader,
@@ -751,6 +780,18 @@ public:
 
     [[nodiscard]] auto is_initialized() const -> bool { return m_renderer != nullptr; }
 
+    /// Transactional alternatives: on error no registry entry is added. Returned
+    /// pointers borrow registry storage and remain valid until shutdown().
+    [[nodiscard]] auto try_register_texture(const Image& image)
+        -> Result<TextureHandle*, RendererError>;
+    [[nodiscard]] auto try_register_shader(const ShaderHandle::Desc& desc)
+        -> Result<ShaderHandle*, RendererError>;
+    [[nodiscard]] auto try_register_mesh(const Mesh& data)
+        -> Result<GPUMeshData*, RendererError>;
+    [[nodiscard]] auto try_register_material(ShaderHandle* shader, TextureHandle* texture)
+        -> Result<MaterialHandle*, RendererError>;
+
+    /// Compatibility wrappers: log the error once and return nullptr on failure.
     auto register_texture(Image& image) -> TextureHandle*;
     auto register_shader(const ShaderHandle::Desc& desc) -> ShaderHandle*;
     auto register_mesh(const Mesh& data) -> GPUMeshData*;

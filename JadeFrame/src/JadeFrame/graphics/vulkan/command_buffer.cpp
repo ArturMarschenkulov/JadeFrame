@@ -495,22 +495,57 @@ auto CommandPool::free_buffer(const CommandBuffer& command_buffer) const -> void
     }
 }
 
+// Upload operations are synchronous. The local guard frees the command buffer on
+// every recording/submission failure, before its source allocations are released.
+template<class Record>
+static auto upload_once(const CommandPool& pool, Record&& record) -> bool {
+    auto cmd = pool.allocate_buffer();
+    if (!cmd.m_handle) { return false; }
+
+    struct Cleanup {
+        const CommandPool& pool;
+        CommandBuffer&     cmd;
+
+        ~Cleanup() { pool.free_buffer(cmd); }
+    } cleanup{pool, cmd};
+
+    const VkCommandBufferBeginInfo begin{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .pNext = nullptr,
+        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+        .pInheritanceInfo = nullptr,
+    };
+    if (vkBeginCommandBuffer(cmd.m_handle, &begin) != VK_SUCCESS) { return false; }
+    cmd.m_stage = CommandBuffer::STAGE::RECORDING;
+    record(cmd);
+    if (vkEndCommandBuffer(cmd.m_handle) != VK_SUCCESS) { return false; }
+    cmd.m_stage = CommandBuffer::STAGE::EXCECUTABLE;
+    const VkSubmitInfo submit{
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .pNext = nullptr,
+        .waitSemaphoreCount = 0,
+        .pWaitSemaphores = nullptr,
+        .pWaitDstStageMask = nullptr,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &cmd.m_handle,
+        .signalSemaphoreCount = 0,
+        .pSignalSemaphores = nullptr,
+    };
+    auto queue = pool.m_device->m_graphics_queue.m_handle;
+    if (vkQueueSubmit(queue, 1, &submit, VK_NULL_HANDLE) != VK_SUCCESS) { return false; }
+    cmd.m_stage = CommandBuffer::STAGE::PENDING;
+    const bool completed = vkQueueWaitIdle(queue) == VK_SUCCESS;
+    cmd.m_stage = completed ? CommandBuffer::STAGE::EXCECUTABLE
+                            : CommandBuffer::STAGE::INVALID;
+    return completed;
+}
+
 auto CommandPool::copy_buffer(
-    const Buffer& src_buffer,
-    const Buffer& dst_buffer,
+    const Buffer& src,
+    const Buffer& dst,
     VkDeviceSize  size
-) const -> void {
-
-    CommandBuffer cmd = this->allocate_buffer();
-
-    cmd.record([&] { cmd.copy_buffer(src_buffer, dst_buffer, size); });
-
-    // TODO: the queue should be provided by the user. It does not make sense for the
-    // command pool to decide which queue to use.
-    cmd.m_device->m_graphics_queue.submit(cmd);
-    cmd.m_device->m_graphics_queue.wait_idle();
-
-    this->free_buffer(cmd);
+) const -> bool {
+    return upload_once(*this, [&](auto& cmd) { cmd.copy_buffer(src, dst, size); });
 }
 
 auto CommandPool::transition_layout(
@@ -519,10 +554,8 @@ auto CommandPool::transition_layout(
     VkImageLayout old_layout,
     VkImageLayout new_layout
     // VkImageSubresourceRange subresource_range
-) const -> void {
-    auto cmd = this->allocate_buffer();
-
-    cmd.record([&] {
+) const -> bool {
+    return upload_once(*this, [&](auto& cmd) {
         VkImageMemoryBarrier barrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
@@ -576,28 +609,16 @@ auto CommandPool::transition_layout(
             &barrier
         );
     });
-    // cb[0].record_end();
-
-    cmd.m_device->m_graphics_queue.submit(cmd);
-    cmd.m_device->m_graphics_queue.wait_idle();
-
-    this->free_buffer(cmd);
 }
 
 auto CommandPool::copy_buffer_to_image(
     const Buffer& buffer,
     const Image&  image,
     v2u32         size
-) const -> void {
-
-    const CommandPool& cmd_pool = m_device->m_command_pool;
-    auto               cmd = cmd_pool.allocate_buffer();
-
-    cmd.record([&] { cmd.copy_buffer_to_image(buffer, image, size); });
-    cmd.m_device->m_graphics_queue.submit(cmd);
-    cmd.m_device->m_graphics_queue.wait_idle();
-
-    cmd_pool.free_buffer(cmd);
+) const -> bool {
+    return upload_once(*this, [&](auto& cmd) {
+        cmd.copy_buffer_to_image(buffer, image, size);
+    });
 }
 
 auto CommandBuffer::execute_command(const CommandBuffer& command_buffer) -> void {

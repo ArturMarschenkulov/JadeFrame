@@ -10,18 +10,36 @@
 #include "JadeFrame/utils/logger.h"
 #include "opengl_debug.h"
 #include "opengl_shader.h"
+#include <limits>
 
 namespace JadeFrame {
 namespace opengl {
 
 auto TextureManager::create_texture(void* data, v2u32 size, u32 component_num)
     -> Texture* {
-    m_textures.emplace_back(*m_context, data, size, component_num);
+    if (!m_context || size.x == 0 || size.y == 0 ||
+        size.x > static_cast<u32>(std::numeric_limits<GLsizei>::max()) ||
+        size.y > static_cast<u32>(std::numeric_limits<GLsizei>::max()) ||
+        (component_num != 3 && component_num != 4)) {
+        return nullptr;
+    }
+    GLint maximum = 0;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maximum);
+    if (size.x > static_cast<u32>(maximum) || size.y > static_cast<u32>(maximum)) {
+        return nullptr;
+    }
+    Texture texture(*m_context, data, size, component_num);
+    if (!texture.m_id) { return nullptr; }
+    m_textures.push_back(std::move(texture));
     return &m_textures.back();
 }
 
 auto TextureManager::create_sampler() -> Sampler* {
     m_samplers.emplace_back(*m_context);
+    if (!m_samplers.back().m_id) {
+        m_samplers.pop_back();
+        return nullptr;
+    }
     return &m_samplers.back();
 }
 
@@ -125,17 +143,19 @@ auto Context::create_sampler() -> Sampler* { return m_texture_manager.create_sam
 
 auto Context::create_buffer(opengl::Buffer::TYPE type, void* data, u32 size)
     -> opengl::Buffer* {
-    static u32 id = 0;
-    auto [it, inserted] =
-        m_bufferss.try_emplace(id, opengl::Buffer::create(*this, type, data, size));
+    if (!size ||
+        ((type == Buffer::TYPE::VERTEX || type == Buffer::TYPE::INDEX) && !data)) {
+        return nullptr;
+    }
+    auto buffer = opengl::Buffer::create(*this, type, data, size);
+    if (!buffer.m_id) { return nullptr; }
+    const auto id = buffer.m_id;
+    auto [it, inserted] = m_bufferss.try_emplace(id, std::move(buffer));
     if (!inserted) {
-        Logger::warn("Buffer with id {} already exists!", id);
-        assert(false);
         return nullptr;
     }
     m_buffers.push_back(it->second.m_id);
     m_bound_buffer = it->second.m_id;
-    id++;
     return &it->second;
 }
 
@@ -156,12 +176,16 @@ auto Context::destroy_buffer(opengl::Buffer* buffer) -> void {
 }
 
 auto Context::create_framebuffer() -> opengl::Framebuffer* {
-    m_framebuffers.emplace_back(*this);
+    opengl::Framebuffer framebuffer(*this);
+    if (!framebuffer.m_ID) { return nullptr; }
+    m_framebuffers.push_back(std::move(framebuffer));
     return &m_framebuffers.back();
 }
 
 auto Context::create_renderbuffer() -> opengl::Renderbuffer* {
-    m_renderbuffers.emplace_back();
+    opengl::Renderbuffer renderbuffer;
+    if (!renderbuffer.m_ID) { return nullptr; }
+    m_renderbuffers.push_back(std::move(renderbuffer));
     return &m_renderbuffers.back();
 }
 
@@ -308,11 +332,7 @@ auto Context::init(Window* window) -> Result<void, InitError> {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     m_default_sampler = this->create_sampler();
-    m_default_sampler->set_parameters(GL_TEXTURE_WRAP_S, GL_REPEAT);
-    m_default_sampler->set_parameters(GL_TEXTURE_WRAP_T, GL_REPEAT);
-    m_default_sampler->set_parameters(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    m_default_sampler->set_parameters(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    if (m_default_sampler->m_id == 0) {
+    if (!m_default_sampler) {
         return err<void, InitError>(InitError{
             InitErrorCode::RESOURCE_CREATION_FAILED,
             GRAPHICS_API::OPENGL,
