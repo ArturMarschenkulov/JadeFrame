@@ -16,7 +16,13 @@ struct InPlaceTag {
     explicit constexpr InPlaceTag() noexcept = default;
 };
 
-inline constexpr NoneTag    None{};
+// X11 defines an object-like None macro. Preserve it for platform code while
+// allowing this header to be included after Xlib/GLX/Vulkan headers.
+#pragma push_macro("None")
+#undef None
+inline constexpr NoneTag None{};
+#pragma pop_macro("None")
+
 inline constexpr InPlaceTag InPlace{};
 
 namespace option {

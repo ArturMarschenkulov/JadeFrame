@@ -16,7 +16,7 @@ auto make_error(const MeshErrorCode code, std::string message) -> MeshError {
 
 auto error_result(const MeshErrorCode code, std::string message)
     -> MeshValidationResult {
-    return Failure(make_error(code, std::move(message)));
+    return err<bool, MeshError>(make_error(code, std::move(message)));
 }
 
 auto supported_component_count(const SHADER_TYPE format) -> size_t {
@@ -50,8 +50,8 @@ auto add_attribute(
 
 auto finish_mesh(Mesh mesh) -> Result<Mesh, MeshError> {
     auto validation = mesh.validate();
-    if (validation.is_err()) { return Failure(validation.error()); }
-    return mesh;
+    if (validation.is_err()) { return err<Mesh, MeshError>(validation.error()); }
+    return ok<Mesh, MeshError>(std::move(mesh));
 }
 
 auto validate_rectangle_inputs(
@@ -71,7 +71,7 @@ auto validate_rectangle_inputs(
             "Rectangle position and size must contain finite values"
         );
     }
-    return true;
+    return ok<bool, MeshError>(true);
 }
 
 auto build_rectangle(
@@ -81,7 +81,7 @@ auto build_rectangle(
     const bool              opengl_winding
 ) -> Result<Mesh, MeshError> {
     auto inputs = validate_rectangle_inputs(pos, size, desc);
-    if (inputs.is_err()) { return Failure(inputs.error()); }
+    if (inputs.is_err()) { return err<Mesh, MeshError>(inputs.error()); }
 
     const v3 pos_o = pos;
     const v3 pos_x = pos_o + v3::create(size.x, 0.0F, 0.0F);
@@ -311,7 +311,7 @@ auto Mesh::validate() const -> MeshValidationResult {
         }
     }
 
-    return true;
+    return ok<bool, MeshError>(true);
 }
 
 auto Mesh::insert_attribute(
@@ -354,19 +354,19 @@ auto Mesh::insert_attribute(
         AttributeData{.m_attribute = attr, .m_data = std::move(values)}
     );
     auto validation = candidate.validate();
-    if (validation.is_err()) { return Failure(validation.error()); }
+    if (validation.is_err()) { return err<bool, MeshError>(validation.error()); }
 
     m_attributes = std::move(candidate.m_attributes);
-    return true;
+    return ok<bool, MeshError>(true);
 }
 
 auto Mesh::set_color(const RGBAColor& color) -> MeshValidationResult {
     auto validation = this->validate();
-    if (validation.is_err()) { return Failure(validation.error()); }
+    if (validation.is_err()) { return err<bool, MeshError>(validation.error()); }
 
     const auto* position_data = this->attribute_data(POSITION.m_id);
     // validate() above guarantees that POSITION exists and is well-formed.
-    if (position_data == nullptr) { return Failure(make_error(
+    if (position_data == nullptr) { return err<bool, MeshError>(make_error(
         MeshErrorCode::MissingPosition,
         "Cannot add COLOR to a mesh without POSITION"
     )); }
@@ -400,7 +400,7 @@ auto MeshBuilder::rectangle(
 
 auto MeshBuilder::line(const v3& pos1, const v3& pos2) -> Result<Mesh, MeshError> {
     if (!is_finite(pos1) || !is_finite(pos2)) {
-        return Failure(make_error(
+        return err<Mesh, MeshError>(make_error(
             MeshErrorCode::InvalidParameter,
             "Line endpoints must contain finite values"
         ));
@@ -419,7 +419,7 @@ auto MeshBuilder::triangle(
     const v3& pos3
 ) -> Result<Mesh, MeshError> {
     if (!is_finite(pos1) || !is_finite(pos2) || !is_finite(pos3)) {
-        return Failure(make_error(
+        return err<Mesh, MeshError>(make_error(
             MeshErrorCode::InvalidParameter,
             "Triangle vertices must contain finite values"
         ));
@@ -442,20 +442,20 @@ auto MeshBuilder::circle(
     const u32 numSegments
 ) -> Result<Mesh, MeshError> {
     if (numSegments < 3) {
-        return Failure(make_error(
+        return err<Mesh, MeshError>(make_error(
             MeshErrorCode::InvalidSegmentCount,
             "A circle requires at least three segments"
         ));
     }
     if (!is_finite(position) || !std::isfinite(radius) || radius < 0.0F) {
-        return Failure(make_error(
+        return err<Mesh, MeshError>(make_error(
             MeshErrorCode::InvalidParameter,
             "Circle position and radius must be finite and radius must be non-negative"
         ));
     }
     if (static_cast<size_t>(numSegments) >
         (std::numeric_limits<size_t>::max() - 1) / 3) {
-        return Failure(make_error(
+        return err<Mesh, MeshError>(make_error(
             MeshErrorCode::InvalidSegmentCount,
             "Circle segment count is too large"
         ));
@@ -501,7 +501,7 @@ auto MeshBuilder::circle(
 
 auto MeshBuilder::cube(const v3& pos, const v3& size) -> Result<Mesh, MeshError> {
     if (!is_finite(pos) || !is_finite(size)) {
-        return Failure(make_error(
+        return err<Mesh, MeshError>(make_error(
             MeshErrorCode::InvalidParameter,
             "Cube position and size must contain finite values"
         ));
@@ -558,11 +558,11 @@ auto MeshBuilder::cube(const v3& pos, const v3& size) -> Result<Mesh, MeshError>
 auto convert_into_data(const Mesh& mesh, const bool interleaved)
     -> Result<std::vector<f32>, MeshError> {
     auto validation = mesh.validate();
-    if (validation.is_err()) { return Failure(validation.error()); }
+    if (validation.is_err()) { return err<std::vector<f32>, MeshError>(validation.error()); }
 
     const auto* position_data = mesh.attribute_data(Mesh::POSITION.m_id);
     if (position_data == nullptr) {
-        return Failure(make_error(
+        return err<std::vector<f32>, MeshError>(make_error(
             MeshErrorCode::MissingPosition,
             "Mesh must contain a POSITION attribute"
         ));
@@ -574,7 +574,7 @@ auto convert_into_data(const Mesh& mesh, const bool interleaved)
         (void)id;
         const size_t components = attribute.m_attribute.count_components();
         if (components_per_vertex > std::numeric_limits<size_t>::max() - components) {
-            return Failure(make_error(
+            return err<std::vector<f32>, MeshError>(make_error(
                 MeshErrorCode::InvalidParameter,
                 "Mesh vertex stride is too large"
             ));
@@ -583,7 +583,7 @@ auto convert_into_data(const Mesh& mesh, const bool interleaved)
     }
     if (components_per_vertex == 0 ||
         vertex_count > std::numeric_limits<size_t>::max() / components_per_vertex) {
-        return Failure(make_error(
+        return err<std::vector<f32>, MeshError>(make_error(
             MeshErrorCode::InvalidParameter,
             "Mesh vertex data is too large to convert"
         ));
@@ -612,7 +612,7 @@ auto convert_into_data(const Mesh& mesh, const bool interleaved)
             data.insert(data.end(), attribute.m_data.begin(), attribute.m_data.end());
         }
     }
-    return data;
+    return ok<std::vector<f32>, MeshError>(std::move(data));
 }
 
 } // namespace JadeFrame

@@ -1,1279 +1,585 @@
 #pragma once
 
-#include "JadeFrame/utils/assert.h"
 #include "JadeFrame/utils/option.h"
 
-#include <concepts>
-#include <exception>
-#include <functional>
+#include <cassert>
+#include <cstdlib>
 #include <memory>
-#include <new>
 #include <type_traits>
 #include <utility>
 
 namespace JadeFrame {
+
+struct OkTag {
+    explicit constexpr OkTag() noexcept = default;
+};
+
+struct ErrTag {
+    explicit constexpr ErrTag() noexcept = default;
+};
+
+inline constexpr OkTag  Ok{};
+inline constexpr ErrTag Err{};
+
 namespace result {
-
-template<typename T, typename E>
-class Result;
-
 namespace details {
 
-struct unit {};
+[[noreturn]] inline auto fatal_bad_result_access() noexcept -> void { std::abort(); }
 
-template<typename T>
-struct stored_type {
-    using type = std::conditional_t<
-        std::is_lvalue_reference_v<T>,
-        std::reference_wrapper<std::remove_reference_t<T>>,
-        std::remove_cv_t<T>>;
+struct UnitStorage {};
+
+template<class T>
+inline constexpr bool is_tag = std::is_same_v<std::remove_cvref_t<T>, NoneTag> ||
+                               std::is_same_v<std::remove_cvref_t<T>, InPlaceTag> ||
+                               std::is_same_v<std::remove_cvref_t<T>, OkTag> ||
+                               std::is_same_v<std::remove_cvref_t<T>, ErrTag>;
+
+// Logical capabilities are separate from the mutable physical representation.
+template<class T, class S>
+struct PayloadCapabilities {
+    using storage_type = S;
+    static constexpr bool copy_constructible = std::is_copy_constructible_v<T>;
+    static constexpr bool move_constructible = std::is_move_constructible_v<T>;
+    static constexpr bool copy_assignable = std::is_copy_assignable_v<T>;
+    static constexpr bool move_assignable = std::is_move_assignable_v<T>;
+    static constexpr bool nothrow_copy = std::is_nothrow_copy_constructible_v<T>;
+    static constexpr bool nothrow_move = std::is_nothrow_move_constructible_v<T>;
+    static constexpr bool nothrow_copy_assignment = std::is_nothrow_copy_assignable_v<T>;
+    static constexpr bool nothrow_move_assignment = std::is_nothrow_move_assignable_v<T>;
+    static constexpr bool trivial_copy = std::is_trivially_copy_constructible_v<T> &&
+                                         std::is_trivially_copy_constructible_v<S>;
+    static constexpr bool trivial_move = std::is_trivially_move_constructible_v<T> &&
+                                         std::is_trivially_move_constructible_v<S>;
+    static constexpr bool trivial_destruction = std::is_trivially_destructible_v<S>;
+    static constexpr bool trivial_copy_assignment =
+        trivial_copy && std::is_trivially_copy_assignable_v<T> &&
+        std::is_trivially_copy_assignable_v<S> && trivial_destruction;
+    static constexpr bool trivial_move_assignment =
+        trivial_move && std::is_trivially_move_assignable_v<T> &&
+        std::is_trivially_move_assignable_v<S> && trivial_destruction;
 };
 
-template<>
-struct stored_type<void> {
-    using type = unit;
-};
+template<class T>
+struct PayloadTraits : PayloadCapabilities<T, std::remove_const_t<T>> {
+    static_assert(
+        std::is_object_v<T> && !std::is_array_v<T>,
+        "Result payloads must be non-array objects, lvalue references, or void"
+    );
+    static_assert(
+        std::is_nothrow_destructible_v<T>,
+        "Owned Result payloads require nonthrowing destruction"
+    );
+    static_assert(!is_tag<T>, "Result tag types cannot be payloads");
+    using storage_type = std::remove_const_t<T>;
 
-template<typename T>
-using stored_type_t = typename stored_type<T>::type;
+    template<class... Args>
+    static constexpr bool constructible = std::is_constructible_v<T, Args&&...>;
+    template<class... Args>
+    static constexpr bool nothrow_constructible =
+        std::is_nothrow_constructible_v<T, Args&&...>;
 
-template<typename T>
-struct const_reference_type {
-    using type = const std::remove_reference_t<T>&;
-};
-
-template<>
-struct const_reference_type<void> {
-    using type = unit;
-};
-
-template<typename T>
-using const_reference_t = typename const_reference_type<T>::type;
-
-template<typename T>
-struct mutable_reference_type {
-    using type = std::remove_reference_t<T>&;
-};
-
-template<>
-struct mutable_reference_type<void> {
-    using type = unit;
-};
-
-template<typename T>
-using mutable_reference_t = typename mutable_reference_type<T>::type;
-
-template<typename T>
-struct result_traits;
-
-template<typename T, typename E>
-struct result_traits<Result<T, E>> {
-    using value_type = T;
-    using error_type = E;
-};
-
-template<typename T>
-concept result_type = requires {
-    typename result_traits<std::remove_cvref_t<T>>::value_type;
-    typename result_traits<std::remove_cvref_t<T>>::error_type;
-};
-
-template<typename F, typename Arg, bool = std::invocable<F, Arg>>
-struct safe_invoke_result {
-    using type = void;
-};
-
-template<typename F, typename Arg>
-struct safe_invoke_result<F, Arg, true> {
-    using type = std::invoke_result_t<F, Arg>;
-};
-
-template<typename F, typename T, bool = std::is_void_v<T>>
-struct result_invoke;
-
-template<typename F, typename T>
-struct result_invoke<F, T, false> {
-    using result_type = typename safe_invoke_result<F, const T&>::type;
-    static constexpr bool invocable = std::invocable<F, const T&>;
-};
-
-template<typename F, typename T>
-struct result_invoke<F, T, true> {
-    using result_type = typename safe_invoke_result<F, void>::type;
-    static constexpr bool invocable = std::invocable<F>;
-};
-
-template<typename F, typename T>
-using result_invoke_result_t = typename result_invoke<F, T>::result_type;
-
-template<typename F, typename T>
-concept result_invocable = result_invoke<F, T>::invocable;
-
-template<typename F, typename T, bool = std::is_void_v<T>>
-struct result_rvalue_invoke;
-
-template<typename F, typename T>
-struct result_rvalue_invoke<F, T, false> {
-    using result_type = typename safe_invoke_result<F, T&&>::type;
-    static constexpr bool invocable = std::invocable<F, T&&>;
-};
-
-template<typename F, typename T>
-struct result_rvalue_invoke<F, T, true> {
-    using result_type = typename safe_invoke_result<F, void>::type;
-    static constexpr bool invocable = std::invocable<F>;
-};
-
-template<typename F, typename T>
-using result_rvalue_invoke_result_t = typename result_rvalue_invoke<F, T>::result_type;
-
-template<typename F, typename T>
-concept result_rvalue_invocable = result_rvalue_invoke<F, T>::invocable;
-
-template<typename T>
-concept equality_comparable = requires(const T& left, const T& right) { left == right; };
-
-template<typename T>
-struct is_failure : std::false_type {};
-
-template<typename T>
-struct is_success : std::false_type {};
-
-template<typename T>
-inline constexpr bool is_failure_v = is_failure<std::remove_cvref_t<T>>::value;
-
-template<typename T>
-inline constexpr bool is_success_v = is_success<std::remove_cvref_t<T>>::value;
-
-enum class state : unsigned char {
-    vacant,
-    ok,
-    err
-};
-
-struct ok_tag_t {
-    explicit constexpr ok_tag_t() noexcept = default;
-};
-
-struct err_tag_t {
-    explicit constexpr err_tag_t() noexcept = default;
-};
-
-inline constexpr ok_tag_t  ok_tag{};
-inline constexpr err_tag_t err_tag{};
-
-template<typename T, typename E>
-class Storage {
-public:
-    using stored_value_type = stored_type_t<T>;
-    using stored_error_type = stored_type_t<E>;
-
-    constexpr Storage() = delete;
-
-    template<typename... Args>
-        requires std::constructible_from<stored_value_type, Args&&...>
-    constexpr explicit Storage(ok_tag_t, Args&&... args) noexcept(
-        std::is_nothrow_constructible_v<stored_value_type, Args&&...>
-    )
-        : m_state(state::vacant) {
-        std::construct_at(std::addressof(m_value), std::forward<Args>(args)...);
-        m_state = state::ok;
-    }
-
-    template<typename... Args>
-        requires std::constructible_from<stored_error_type, Args&&...>
-    constexpr explicit Storage(err_tag_t, Args&&... args) noexcept(
-        std::is_nothrow_constructible_v<stored_error_type, Args&&...>
-    )
-        : m_state(state::vacant) {
-        std::construct_at(std::addressof(m_error), std::forward<Args>(args)...);
-        m_state = state::err;
-    }
-
-    constexpr Storage(const Storage& other) noexcept(
-        std::is_nothrow_copy_constructible_v<stored_value_type> &&
-        std::is_nothrow_copy_constructible_v<stored_error_type>
-    )
-        requires std::is_copy_constructible_v<stored_value_type> &&
-                 std::is_copy_constructible_v<stored_error_type>
-        : m_state(state::vacant) {
-        if (other.is_ok()) {
-            std::construct_at(std::addressof(m_value), other.m_value);
-            m_state = state::ok;
-        } else if (other.is_err()) {
-            std::construct_at(std::addressof(m_error), other.m_error);
-            m_state = state::err;
-        }
-    }
-
-    constexpr Storage(const Storage&)
-        requires(!std::is_copy_constructible_v<stored_value_type> ||
-                 !std::is_copy_constructible_v<stored_error_type>)
-    = delete;
-
-    constexpr Storage(Storage&& other) noexcept(
-        std::is_nothrow_move_constructible_v<stored_value_type> &&
-        std::is_nothrow_move_constructible_v<stored_error_type>
-    )
-        requires std::is_move_constructible_v<stored_value_type> &&
-                 std::is_move_constructible_v<stored_error_type>
-        : m_state(state::vacant) {
-        if (other.is_ok()) {
-            std::construct_at(std::addressof(m_value), std::move(other.m_value));
-            m_state = state::ok;
-        } else if (other.is_err()) {
-            std::construct_at(std::addressof(m_error), std::move(other.m_error));
-            m_state = state::err;
-        }
-    }
-
-    constexpr Storage(Storage&&)
-        requires(!std::is_move_constructible_v<stored_value_type> ||
-                 !std::is_move_constructible_v<stored_error_type>)
-    = delete;
-
-    constexpr ~Storage() noexcept(
-        std::is_nothrow_destructible_v<stored_value_type> &&
-        std::is_nothrow_destructible_v<stored_error_type>
-    ) {
-        destroy_active();
-    }
-
-    constexpr auto operator=(const Storage& other) noexcept(
-        std::is_nothrow_copy_constructible_v<stored_value_type> &&
-        std::is_nothrow_copy_constructible_v<stored_error_type> &&
-        std::is_nothrow_move_constructible_v<stored_value_type> &&
-        std::is_nothrow_move_constructible_v<stored_error_type>
-    ) -> Storage&
-        requires std::is_copy_constructible_v<stored_value_type> &&
-                 std::is_copy_constructible_v<stored_error_type> &&
-                 std::is_move_constructible_v<stored_value_type> &&
-                 std::is_move_constructible_v<stored_error_type>
-    {
-        if (this != std::addressof(other)) {
-            Storage replacement(other);
-            swap(*this, replacement);
-        }
-        return *this;
-    }
-
-    constexpr auto operator=(const Storage&) -> Storage&
-        requires(!std::is_copy_constructible_v<stored_value_type> ||
-                 !std::is_copy_constructible_v<stored_error_type> ||
-                 !std::is_move_constructible_v<stored_value_type> ||
-                 !std::is_move_constructible_v<stored_error_type>)
-    = delete;
-
-    constexpr auto operator=(Storage&& other) noexcept(
-        std::is_nothrow_move_constructible_v<stored_value_type> &&
-        std::is_nothrow_move_constructible_v<stored_error_type>
-    ) -> Storage&
-        requires std::is_move_constructible_v<stored_value_type> &&
-                 std::is_move_constructible_v<stored_error_type>
-    {
-        if (this != std::addressof(other)) {
-            Storage replacement(std::move(other));
-            swap(*this, replacement);
-        }
-        return *this;
-    }
-
-    constexpr auto operator=(Storage&&) -> Storage&
-        requires(!std::is_move_constructible_v<stored_value_type> ||
-                 !std::is_move_constructible_v<stored_error_type>)
-    = delete;
-
-    [[nodiscard]] constexpr auto is_ok() const noexcept -> bool {
-        return m_state == state::ok;
-    }
-
-    [[nodiscard]] constexpr auto is_err() const noexcept -> bool {
-        return m_state == state::err;
-    }
-
-    [[nodiscard]] constexpr auto is_valid() const noexcept -> bool {
-        return is_ok() || is_err();
-    }
-
-    constexpr auto destroy_active() noexcept(
-        std::is_nothrow_destructible_v<stored_value_type> &&
-        std::is_nothrow_destructible_v<stored_error_type>
+    template<class... Args>
+    static constexpr auto construct(storage_type* target, Args&&... args) noexcept(
+        nothrow_constructible<Args...>
     ) -> void {
-        if (is_ok()) {
-            m_state = state::vacant;
-            std::destroy_at(std::addressof(m_value));
-        } else if (is_err()) {
-            m_state = state::vacant;
-            std::destroy_at(std::addressof(m_error));
-        }
+        std::construct_at(target, std::forward<Args>(args)...);
     }
 
-    template<typename... Args>
-        requires std::constructible_from<stored_value_type, Args&&...>
-    constexpr auto emplace_ok(
-        Args&&... args
-    ) noexcept(std::is_nothrow_constructible_v<stored_value_type, Args&&...>) -> void {
-        destroy_active();
-        std::construct_at(std::addressof(m_value), std::forward<Args>(args)...);
-        m_state = state::ok;
+    static constexpr auto copy(const storage_type& source) noexcept -> const T& {
+        return source;
     }
 
-    template<typename... Args>
-        requires std::constructible_from<stored_error_type, Args&&...>
-    constexpr auto emplace_err(
-        Args&&... args
-    ) noexcept(std::is_nothrow_constructible_v<stored_error_type, Args&&...>) -> void {
-        destroy_active();
-        std::construct_at(std::addressof(m_error), std::forward<Args>(args)...);
-        m_state = state::err;
+    static constexpr auto move(storage_type& source) noexcept -> T&& {
+        return static_cast<T&&>(source);
     }
 
-    constexpr auto value() & -> decltype(auto) {
-        if constexpr (std::is_void_v<T>) {
-            return;
-        } else if constexpr (std::is_lvalue_reference_v<T>) {
-            return m_value.get();
+    template<class S>
+    static constexpr auto get(S&& source) noexcept -> decltype(auto) {
+        using qualified_type = std::conditional_t<
+            std::is_const_v<std::remove_reference_t<S>>,
+            std::add_const_t<T>,
+            T>;
+        if constexpr (std::is_lvalue_reference_v<S&&>) {
+            return static_cast<qualified_type&>(source);
         } else {
-            return (m_value);
+            return static_cast<qualified_type&&>(source);
         }
     }
-
-    constexpr auto value() const& -> decltype(auto) {
-        if constexpr (std::is_void_v<T>) {
-            return;
-        } else if constexpr (std::is_lvalue_reference_v<T>) {
-            return m_value.get();
-        } else {
-            return (m_value);
-        }
-    }
-
-    constexpr auto value() && -> decltype(auto) {
-        if constexpr (std::is_void_v<T>) {
-            return;
-        } else if constexpr (std::is_lvalue_reference_v<T>) {
-            return m_value.get();
-        } else {
-            return std::move(m_value);
-        }
-    }
-
-    constexpr auto value() const&& -> decltype(auto) {
-        if constexpr (std::is_void_v<T>) {
-            return;
-        } else if constexpr (std::is_lvalue_reference_v<T>) {
-            return m_value.get();
-        } else {
-            return std::move(m_value);
-        }
-    }
-
-    constexpr auto error() & -> decltype(auto) {
-        if constexpr (std::is_lvalue_reference_v<E>) {
-            return m_error.get();
-        } else {
-            return (m_error);
-        }
-    }
-
-    constexpr auto error() const& -> decltype(auto) {
-        if constexpr (std::is_lvalue_reference_v<E>) {
-            return m_error.get();
-        } else {
-            return (m_error);
-        }
-    }
-
-    constexpr auto error() && -> decltype(auto) {
-        if constexpr (std::is_lvalue_reference_v<E>) {
-            return m_error.get();
-        } else {
-            return std::move(m_error);
-        }
-    }
-
-    constexpr auto error() const&& -> decltype(auto) {
-        if constexpr (std::is_lvalue_reference_v<E>) {
-            return m_error.get();
-        } else {
-            return std::move(m_error);
-        }
-    }
-
-    friend constexpr auto swap(Storage& lhs, Storage& rhs) noexcept(
-        std::is_nothrow_move_constructible_v<stored_value_type> &&
-        std::is_nothrow_move_constructible_v<stored_error_type>
-    ) -> void
-        requires std::is_move_constructible_v<stored_value_type> &&
-                 std::is_move_constructible_v<stored_error_type>
-    {
-        if (std::addressof(lhs) == std::addressof(rhs)) { return; }
-
-        if (lhs.m_state == rhs.m_state) {
-            if (lhs.is_ok()) {
-                exchange(lhs.m_value, rhs.m_value);
-            } else if (lhs.is_err()) {
-                exchange(lhs.m_error, rhs.m_error);
-            }
-            return;
-        }
-
-        Storage temporary(std::move(lhs));
-        lhs.destroy_active();
-        if (rhs.is_ok()) {
-            std::construct_at(std::addressof(lhs.m_value), std::move(rhs.m_value));
-            lhs.m_state = state::ok;
-        } else if (rhs.is_err()) {
-            std::construct_at(std::addressof(lhs.m_error), std::move(rhs.m_error));
-            lhs.m_state = state::err;
-        }
-
-        rhs.destroy_active();
-        if (temporary.is_ok()) {
-            std::construct_at(std::addressof(rhs.m_value), std::move(temporary.m_value));
-            rhs.m_state = state::ok;
-        } else if (temporary.is_err()) {
-            std::construct_at(std::addressof(rhs.m_error), std::move(temporary.m_error));
-            rhs.m_state = state::err;
-        }
-    }
-
-private:
-    template<typename V>
-    static constexpr auto exchange(V& lhs, V& rhs) -> void
-        requires std::is_move_constructible_v<V>
-    {
-        if (std::addressof(lhs) == std::addressof(rhs)) { return; }
-        V temporary(std::move(lhs));
-        std::destroy_at(std::addressof(lhs));
-        std::construct_at(std::addressof(lhs), std::move(rhs));
-        std::destroy_at(std::addressof(rhs));
-        std::construct_at(std::addressof(rhs), std::move(temporary));
-    }
-
-    union {
-        stored_value_type m_value;
-        stored_error_type m_error;
-    };
-
-    state m_state = state::vacant;
 };
 
-} // namespace details
+template<class T>
+struct PayloadTraits<T&> : PayloadCapabilities<T*, T*> {
+    static_assert(std::is_object_v<T>, "Result references require object referents");
+    static_assert(!is_tag<T>, "Result tag types cannot be payloads");
+    using storage_type = T*;
 
-template<typename E>
-class Failure {
-public:
-    using value_type = E;
-    using stored_type = details::stored_type_t<E>;
+    template<class... Args>
+    static constexpr bool constructible = false;
+    template<class U>
+    static constexpr bool constructible<U> =
+        option::details::safe_reference_binding<T, U>;
+    template<class... Args>
+    static constexpr bool nothrow_constructible = constructible<Args...>;
 
-    template<typename U>
-        requires std::constructible_from<stored_type, U&&>
-    constexpr explicit Failure(
-        U&& error
-    ) noexcept(std::is_nothrow_constructible_v<stored_type, U&&>)
-        : m_error(std::forward<U>(error)) {}
-
-    constexpr Failure(const Failure&) = default;
-    constexpr Failure(Failure&&) = default;
-    constexpr auto operator=(const Failure&) -> Failure& = default;
-    constexpr auto operator=(Failure&&) -> Failure& = default;
-
-    constexpr auto get() & -> decltype(auto) {
-        if constexpr (std::is_lvalue_reference_v<E>) {
-            return m_error.get();
-        } else {
-            return (m_error);
-        }
+    template<class U>
+    static constexpr auto construct(T** target, U&& source) noexcept -> void {
+        std::construct_at(target, std::addressof(source));
     }
 
-    constexpr auto get() const& -> decltype(auto) {
-        if constexpr (std::is_lvalue_reference_v<E>) {
-            return m_error.get();
-        } else {
-            return (m_error);
-        }
-    }
+    static constexpr auto copy(T* const& source) noexcept -> T* { return source; }
 
-    constexpr auto get() && -> decltype(auto) {
-        if constexpr (std::is_lvalue_reference_v<E>) {
-            return m_error.get();
-        } else {
-            return std::move(m_error);
-        }
-    }
+    static constexpr auto move(T*& source) noexcept -> T* { return source; }
 
-    stored_type m_error;
+    template<class S>
+    static constexpr auto get(S&& source) noexcept -> T& {
+        return *source;
+    }
 };
 
-template<typename T>
-Failure(T&&) -> Failure<std::decay_t<T>>;
+template<>
+struct PayloadTraits<void> : PayloadCapabilities<UnitStorage, UnitStorage> {
+    template<class... Args>
+    static constexpr bool constructible = sizeof...(Args) == 0;
+    template<class... Args>
+    static constexpr bool nothrow_constructible = constructible<Args...>;
 
-template<typename T>
-Failure(std::reference_wrapper<T>) -> Failure<T&>;
+    static constexpr auto construct(UnitStorage* target) noexcept -> void {
+        std::construct_at(target);
+    }
 
-namespace details {
+    static constexpr auto copy(const UnitStorage& source) noexcept -> const UnitStorage& {
+        return source;
+    }
 
-template<typename E>
-struct is_failure<Failure<E>> : std::true_type {};
+    static constexpr auto move(UnitStorage& source) noexcept -> UnitStorage&& {
+        return std::move(source);
+    }
 
-} // namespace details
+    template<class S>
+    static constexpr auto get(S&&) noexcept -> void {}
+};
 
-template<typename T = void>
-class Success {
-public:
-    using value_type = T;
+template<class T, class E>
+union Storage {
+    unsigned char dummy;
+    T             ok;
+    E             err;
 
-    constexpr Success()
-        requires std::is_void_v<T>
+    constexpr Storage() noexcept
+        : dummy(0) {}
+
+    constexpr ~Storage()
+        requires(std::is_trivially_destructible_v<T> &&
+                 std::is_trivially_destructible_v<E>)
     = default;
 
-    template<typename U>
-        requires(!std::is_void_v<T>) &&
-                std::constructible_from<details::stored_type_t<T>, U&&>
-    constexpr explicit Success(U&& value)
-        : m_value(std::forward<U>(value)) {}
+    constexpr ~Storage()
+        requires(
+            !std::is_trivially_destructible_v<T> || !std::is_trivially_destructible_v<E>
+        )
+    {}
 
-    details::stored_type_t<T> m_value{};
+    Storage(const Storage&) = default;
+    Storage(Storage&&) = default;
+    auto operator=(const Storage&) -> Storage& = default;
+    auto operator=(Storage&&) -> Storage& = default;
 };
 
-namespace details {
+// Restores the old union member on unwinding; no exception syntax is needed.
+template<class Traits>
+struct RollbackGuard {
+    using S = typename Traits::storage_type;
+    S*   target;
+    S    backup;
+    bool armed = true;
 
-template<typename T>
-struct is_success<Success<T>> : std::true_type {};
+    explicit constexpr RollbackGuard(S& old) noexcept
+        : target(std::addressof(old))
+        , backup(Traits::move(old)) {
+        std::destroy_at(target);
+    }
+
+    RollbackGuard(const RollbackGuard&) = delete;
+
+    constexpr ~RollbackGuard() noexcept {
+        if (armed) { std::construct_at(target, Traits::move(backup)); }
+    }
+};
+
+template<class New, class Old, class Arg>
+constexpr auto transition(
+    typename New::storage_type& target,
+    typename Old::storage_type& old,
+    Arg&&                       argument
+) noexcept(std::is_nothrow_constructible_v<typename New::storage_type, Arg&&>) -> void {
+    using N = typename New::storage_type;
+    if constexpr (std::is_nothrow_constructible_v<N, Arg&&>) {
+        std::destroy_at(std::addressof(old));
+        std::construct_at(std::addressof(target), std::forward<Arg>(argument));
+    } else if constexpr (New::nothrow_move) {
+        N temporary(std::forward<Arg>(argument));
+        std::destroy_at(std::addressof(old));
+        std::construct_at(std::addressof(target), New::move(temporary));
+    } else {
+        static_assert(Old::nothrow_move);
+        RollbackGuard<Old> guard(old);
+        std::construct_at(std::addressof(target), std::forward<Arg>(argument));
+        guard.armed = false;
+    }
+}
 
 } // namespace details
 
-template<typename T>
-[[nodiscard]] constexpr auto Ok(T&& value) -> Success<std::decay_t<T>> {
-    return Success<std::decay_t<T>>(std::forward<T>(value));
-}
+template<class T, class E>
+class [[nodiscard("Result may contain an unhandled error")]] Result {
+    using O = details::PayloadTraits<T>;
+    using F = details::PayloadTraits<E>;
+    enum class State : unsigned char {
+        Ok,
+        Err
+    };
 
-[[nodiscard]] constexpr auto Ok() -> Success<void> { return Success<void>(); }
+    details::Storage<typename O::storage_type, typename F::storage_type> storage_;
+    State                                                                state_;
 
-template<typename E>
-[[nodiscard]] constexpr auto Err(E&& error) -> Failure<std::decay_t<E>> {
-    return Failure<std::decay_t<E>>(std::forward<E>(error));
-}
+    static constexpr bool copy_constructible =
+        O::copy_constructible && F::copy_constructible;
+    static constexpr bool move_constructible =
+        O::move_constructible && F::move_constructible;
+    static constexpr bool trivial_copy = O::trivial_copy && F::trivial_copy;
+    static constexpr bool trivial_move = O::trivial_move && F::trivial_move;
+    static constexpr bool trivial_destruction =
+        O::trivial_destruction && F::trivial_destruction;
+    static constexpr bool copy_assignable =
+        copy_constructible && O::copy_assignable && F::copy_assignable &&
+        (O::nothrow_copy || O::nothrow_move || F::nothrow_move) &&
+        (F::nothrow_copy || F::nothrow_move || O::nothrow_move);
+    static constexpr bool move_assignable = move_constructible && O::move_assignable &&
+                                            F::move_assignable &&
+                                            (O::nothrow_move || F::nothrow_move);
+    static constexpr bool trivial_copy_assignment =
+        copy_assignable && O::trivial_copy_assignment && F::trivial_copy_assignment;
+    static constexpr bool trivial_move_assignment =
+        move_assignable && O::trivial_move_assignment && F::trivial_move_assignment;
 
-template<typename T, typename E>
-class Result {
-    static_assert(!std::is_rvalue_reference_v<T>, "Result<T&&, E> is not supported");
-    static_assert(!std::is_rvalue_reference_v<E>, "Result<T, E&&> is not supported");
-    static_assert(
-        std::is_void_v<T> || std::is_lvalue_reference_v<T> || std::is_object_v<T>,
-        "Result's value must be void, an object, or an lvalue reference"
-    );
-    static_assert(
-        std::is_void_v<T> || std::is_lvalue_reference_v<T> || !std::is_abstract_v<T>,
-        "Result's value type cannot be abstract"
-    );
-    static_assert(
-        std::is_lvalue_reference_v<E> || std::is_object_v<E>,
-        "Result's error must be an object or an lvalue reference"
-    );
-    static_assert(
-        std::is_lvalue_reference_v<E> || !std::is_abstract_v<E>,
-        "Result's error type cannot be abstract"
-    );
-    static_assert(std::is_void_v<E> == false, "Result's error type cannot be void");
-
-    using storage_type = details::Storage<T, E>;
-    using value_storage_type = typename storage_type::stored_value_type;
-    using error_storage_type = typename storage_type::stored_error_type;
-
-    template<typename U>
-    static constexpr bool is_special_wrapper_v =
-        details::is_failure_v<U> || details::is_success_v<U> ||
-        std::same_as<std::remove_cvref_t<U>, Result>;
-
-    [[noreturn]] static auto panic(const char* message) -> void {
-        JF_PANIC(message);
-        std::terminate();
-    }
-
-    storage_type m_storage;
-
-    template<typename R>
-    static constexpr auto make_error(R&& error) -> Failure<E> {
-        return Failure<E>(std::forward<R>(error));
-    }
-
-    template<typename R>
-    static constexpr auto make_success(R&& value) -> Success<T> {
-        return Success<T>(std::forward<R>(value));
+    constexpr auto destroy_active() noexcept -> void {
+        if (is_ok()) {
+            std::destroy_at(std::addressof(storage_.ok));
+        } else {
+            std::destroy_at(std::addressof(storage_.err));
+        }
     }
 
 public:
     using value_type = T;
     using error_type = E;
 
-    constexpr Result()
-        requires(std::is_void_v<T> || std::default_initializable<value_storage_type>)
-        : m_storage(details::ok_tag) {}
+    Result() = delete;
 
-    template<typename U>
-        requires(!is_special_wrapper_v<U>) && (!std::is_void_v<T>) &&
-                std::constructible_from<value_storage_type, U&&>
-    constexpr Result(
-        U&& value
-    ) noexcept(std::is_nothrow_constructible_v<value_storage_type, U&&>)
-        : m_storage(details::ok_tag, std::forward<U>(value)) {}
+    template<class... Args>
+        requires(O::template constructible<Args...>)
+    explicit constexpr Result(OkTag, Args&&... args) noexcept(
+        O::template nothrow_constructible<Args...>
+    )
+        : state_(State::Ok) {
+        O::construct(std::addressof(storage_.ok), std::forward<Args>(args)...);
+    }
 
-    template<typename U>
-        requires details::is_success_v<U> && std::constructible_from<
-                                                 value_storage_type,
-                                                 decltype(std::declval<U&&>().m_value)>
-    constexpr Result(U&& success)
-        : m_storage(details::ok_tag, std::forward<U>(success).m_value) {}
-
-    template<typename U>
-        requires details::is_failure_v<U> && std::constructible_from<
-                                                 error_storage_type,
-                                                 decltype(std::declval<U&&>().get())>
-    constexpr Result(U&& failure)
-        : m_storage(details::err_tag, std::forward<U>(failure).get()) {}
-
-    constexpr Result(
-        const Result& other
-    ) noexcept(std::is_nothrow_copy_constructible_v<storage_type>)
-        requires std::is_copy_constructible_v<storage_type>
-        : m_storage(other.m_storage) {}
+    template<class... Args>
+        requires(F::template constructible<Args...>)
+    explicit constexpr Result(ErrTag, Args&&... args) noexcept(
+        F::template nothrow_constructible<Args...>
+    )
+        : state_(State::Err) {
+        F::construct(std::addressof(storage_.err), std::forward<Args>(args)...);
+    }
 
     constexpr Result(const Result&)
-        requires(!std::is_copy_constructible_v<storage_type>)
-    = delete;
+        requires trivial_copy
+    = default;
 
-    constexpr Result(
-        Result&& other
-    ) noexcept(std::is_nothrow_move_constructible_v<storage_type>)
-        requires std::is_move_constructible_v<storage_type>
-        : m_storage(std::move(other.m_storage)) {}
+    constexpr Result(const Result& other) noexcept(O::nothrow_copy && F::nothrow_copy)
+        requires(copy_constructible && !trivial_copy)
+        : state_(other.state_) {
+        if (is_ok()) {
+            std::construct_at(std::addressof(storage_.ok), O::copy(other.storage_.ok));
+        } else {
+            std::construct_at(std::addressof(storage_.err), F::copy(other.storage_.err));
+        }
+    }
+
+    Result(const Result&)
+        requires(!copy_constructible)
+    = delete;
 
     constexpr Result(Result&&)
-        requires(!std::is_move_constructible_v<storage_type>)
+        requires trivial_move
+    = default;
+
+    constexpr Result(Result&& other) noexcept(O::nothrow_move && F::nothrow_move)
+        requires(move_constructible && !trivial_move)
+        : state_(other.state_) {
+        if (is_ok()) {
+            std::construct_at(std::addressof(storage_.ok), O::move(other.storage_.ok));
+        } else {
+            std::construct_at(std::addressof(storage_.err), F::move(other.storage_.err));
+        }
+    }
+
+    Result(Result&&)
+        requires(!move_constructible)
     = delete;
 
-    constexpr ~Result() = default;
+    constexpr ~Result()
+        requires trivial_destruction
+    = default;
 
-    constexpr auto
-    operator=(const Result& other) noexcept(noexcept(m_storage = other.m_storage))
-        -> Result&
-        requires requires(storage_type& lhs, const storage_type& rhs) { lhs = rhs; }
+    constexpr ~Result() noexcept
+        requires(!trivial_destruction)
     {
-        if (this != std::addressof(other)) { m_storage = other.m_storage; }
-        return *this;
+        this->destroy_active();
     }
 
     constexpr auto operator=(const Result&) -> Result&
-        requires(!requires(storage_type& lhs, const storage_type& rhs) { lhs = rhs; })
-    = delete;
+        requires trivial_copy_assignment
+    = default;
 
-    constexpr auto
-    operator=(Result&& other) noexcept(noexcept(m_storage = std::move(other.m_storage)))
-        -> Result&
-        requires requires(storage_type& lhs, storage_type&& rhs) { lhs = std::move(rhs); }
+    constexpr auto operator=(const Result& other) noexcept(
+        O::nothrow_copy && F::nothrow_copy && O::nothrow_copy_assignment &&
+        F::nothrow_copy_assignment
+    ) -> Result&
+        requires(copy_assignable && !trivial_copy_assignment)
     {
-        if (this != std::addressof(other)) { m_storage = std::move(other.m_storage); }
+        if (this == std::addressof(other)) { return *this; }
+        if (is_ok() && other.is_ok()) {
+            storage_.ok = O::copy(other.storage_.ok);
+        } else if (is_err() && other.is_err()) {
+            storage_.err = F::copy(other.storage_.err);
+        } else if (other.is_ok()) {
+            details::transition<O, F>(
+                storage_.ok, storage_.err, O::copy(other.storage_.ok)
+            );
+            state_ = State::Ok;
+        } else {
+            details::transition<F, O>(
+                storage_.err, storage_.ok, F::copy(other.storage_.err)
+            );
+            state_ = State::Err;
+        }
         return *this;
     }
 
+    auto operator=(const Result&) -> Result&
+        requires(!copy_assignable)
+    = delete;
+
     constexpr auto operator=(Result&&) -> Result&
-        requires(!requires(storage_type& lhs, storage_type&& rhs) {
-                    lhs = std::move(rhs);
-                })
+        requires trivial_move_assignment
+    = default;
+
+    constexpr auto operator=(Result&& other) noexcept(
+        O::nothrow_move && F::nothrow_move && O::nothrow_move_assignment &&
+        F::nothrow_move_assignment
+    ) -> Result&
+        requires(move_assignable && !trivial_move_assignment)
+    {
+        if (this == std::addressof(other)) { return *this; }
+        if (is_ok() && other.is_ok()) {
+            storage_.ok = O::move(other.storage_.ok);
+        } else if (is_err() && other.is_err()) {
+            storage_.err = F::move(other.storage_.err);
+        } else if (other.is_ok()) {
+            details::transition<O, F>(
+                storage_.ok, storage_.err, O::move(other.storage_.ok)
+            );
+            state_ = State::Ok;
+        } else {
+            details::transition<F, O>(
+                storage_.err, storage_.ok, F::move(other.storage_.err)
+            );
+            state_ = State::Err;
+        }
+        return *this;
+    }
+
+    auto operator=(Result&&) -> Result&
+        requires(!move_assignable)
     = delete;
 
     [[nodiscard]] constexpr auto is_ok() const noexcept -> bool {
-        return m_storage.is_ok();
+        return state_ == State::Ok;
     }
 
     [[nodiscard]] constexpr auto is_err() const noexcept -> bool {
-        return m_storage.is_err();
+        return state_ == State::Err;
     }
 
-    [[nodiscard]] constexpr auto is_valid() const noexcept -> bool {
-        return m_storage.is_valid();
+    [[nodiscard]] constexpr auto has_value() const noexcept -> bool { return is_ok(); }
+
+    constexpr auto value() & noexcept -> decltype(auto) {
+        if (!is_ok()) { details::fatal_bad_result_access(); }
+        return O::get(storage_.ok);
     }
 
-    constexpr explicit operator bool() const noexcept { return is_ok(); }
-
-    constexpr decltype(auto) value() & {
-        if (is_err() || !is_valid()) {
-            panic("called `Result::value()` on an `Err` value");
-        }
-        if constexpr (std::is_void_v<T>) {
-            return;
-        } else {
-            return static_cast<T&>(m_storage.value());
-        }
+    constexpr auto value() const& noexcept -> decltype(auto) {
+        if (!is_ok()) { details::fatal_bad_result_access(); }
+        return O::get(storage_.ok);
     }
 
-    [[nodiscard]] constexpr decltype(auto) value() const& {
-        if (is_err() || !is_valid()) {
-            panic("called `Result::value()` on an `Err` value");
-        }
-        if constexpr (std::is_void_v<T>) {
-            return;
-        } else {
-            return static_cast<const T&>(m_storage.value());
-        }
+    constexpr auto value() && noexcept -> decltype(auto) {
+        if (!is_ok()) { details::fatal_bad_result_access(); }
+        return O::get(std::move(storage_.ok));
     }
 
-    constexpr decltype(auto) value() && {
-        if (is_err() || !is_valid()) {
-            panic("called `Result::value()` on an `Err` value");
-        }
-        if constexpr (std::is_void_v<T>) {
-            return;
-        } else if constexpr (std::is_lvalue_reference_v<T>) {
-            return m_storage.value();
-        } else {
-            return static_cast<T>(std::move(m_storage).value());
-        }
+    constexpr auto value() const&& noexcept -> decltype(auto) {
+        if (!is_ok()) { details::fatal_bad_result_access(); }
+        return O::get(std::move(storage_.ok));
     }
 
-    [[nodiscard]] constexpr decltype(auto) value() const&& {
-        if (is_err() || !is_valid()) {
-            panic("called `Result::value()` on an `Err` value");
-        }
-        if constexpr (std::is_void_v<T>) {
-            return;
-        } else if constexpr (std::is_lvalue_reference_v<T>) {
-            return m_storage.value();
-        } else {
-            return static_cast<const T&&>(std::move(m_storage).value());
-        }
+    constexpr auto error() & noexcept -> decltype(auto) {
+        if (!is_err()) { details::fatal_bad_result_access(); }
+        return F::get(storage_.err);
     }
 
-    constexpr decltype(auto) unwrap() & { return value(); }
-
-    [[nodiscard]] constexpr decltype(auto) unwrap() const& { return value(); }
-
-    constexpr decltype(auto) unwrap() && { return std::move(*this).value(); }
-
-    constexpr decltype(auto) expect(const char* message) & {
-        if (is_err() || !is_valid()) { panic(message); }
-        if constexpr (std::is_void_v<T>) {
-            return;
-        } else {
-            return static_cast<T&>(m_storage.value());
-        }
+    constexpr auto error() const& noexcept -> decltype(auto) {
+        if (!is_err()) { details::fatal_bad_result_access(); }
+        return F::get(storage_.err);
     }
 
-    [[nodiscard]] constexpr decltype(auto) expect(const char* message) const& {
-        if (is_err() || !is_valid()) { panic(message); }
-        if constexpr (std::is_void_v<T>) {
-            return;
-        } else {
-            return static_cast<const T&>(m_storage.value());
-        }
+    constexpr auto error() && noexcept -> decltype(auto) {
+        if (!is_err()) { details::fatal_bad_result_access(); }
+        return F::get(std::move(storage_.err));
     }
 
-    constexpr decltype(auto) expect(const char* message) && {
-        if (is_err() || !is_valid()) { panic(message); }
-        if constexpr (std::is_void_v<T>) {
-            return;
-        } else if constexpr (std::is_lvalue_reference_v<T>) {
-            return m_storage.value();
-        } else {
-            return static_cast<T>(std::move(m_storage).value());
-        }
+    constexpr auto error() const&& noexcept -> decltype(auto) {
+        if (!is_err()) { details::fatal_bad_result_access(); }
+        return F::get(std::move(storage_.err));
     }
 
-    constexpr decltype(auto) unwrap_unchecked() & {
-        if constexpr (std::is_void_v<T>) {
-            return;
-        } else {
-            return static_cast<T&>(m_storage.value());
-        }
-    }
-
-    [[nodiscard]] constexpr decltype(auto) unwrap_unchecked() const& {
-        if constexpr (std::is_void_v<T>) {
-            return;
-        } else {
-            return static_cast<const T&>(m_storage.value());
-        }
-    }
-
-    constexpr decltype(auto) unwrap_unchecked() && {
-        if constexpr (std::is_void_v<T>) {
-            return;
-        } else if constexpr (std::is_lvalue_reference_v<T>) {
-            return m_storage.value();
-        } else {
-            return static_cast<T>(std::move(m_storage).value());
-        }
-    }
-
-    constexpr auto error() & -> E& {
-        if (is_ok() || !is_valid()) {
-            panic("called `Result::error()` on an `Ok` value");
-        }
-        return m_storage.error();
-    }
-
-    [[nodiscard]] constexpr auto error() const& -> const E& {
-        if (is_ok() || !is_valid()) {
-            panic("called `Result::error()` on an `Ok` value");
-        }
-        return m_storage.error();
-    }
-
-    constexpr auto error() && -> E {
-        if (is_ok() || !is_valid()) {
-            panic("called `Result::error()` on an `Ok` value");
-        }
-        return std::move(m_storage).error();
-    }
-
-    constexpr auto unwrap_err() & -> E& { return error(); }
-
-    [[nodiscard]] constexpr auto unwrap_err() const& -> const E& { return error(); }
-
-    constexpr auto unwrap_err() && -> E { return std::move(*this).error(); }
-
-    constexpr auto expect_err(const char* message) & -> E& {
-        if (is_ok() || !is_valid()) { panic(message); }
-        return m_storage.error();
-    }
-
-    [[nodiscard]] constexpr auto expect_err(const char* message) const& -> const E& {
-        if (is_ok() || !is_valid()) { panic(message); }
-        return m_storage.error();
-    }
-
-    constexpr auto expect_err(const char* message) && -> E {
-        if (is_ok() || !is_valid()) { panic(message); }
-        return std::move(m_storage).error();
-    }
-
-    template<typename U>
-    [[nodiscard]] constexpr auto contains(const U& expected) const -> bool
-        requires(!std::is_void_v<T>) &&
-                std::same_as<std::remove_cvref_t<U>, std::remove_cvref_t<T>> &&
-                requires(const T& left, const U& right) { left == right; }
-    {
-        return is_ok() && (value() == expected);
-    }
-
-    [[nodiscard]] constexpr auto contains_err(const E& expected) const -> bool
-        requires requires(const E& left, const E& right) { left == right; }
-    {
-        return is_err() && (error() == expected);
-    }
-
-    [[nodiscard]] constexpr auto
-    ok() const& -> Option<std::conditional_t<std::is_void_v<T>, details::unit, T>> {
-        using U = std::conditional_t<std::is_void_v<T>, details::unit, T>;
-        if (is_ok()) {
-            if constexpr (std::is_void_v<T>) {
-                return Option<U>(details::unit{});
-            } else {
-                return Option<U>(value());
-            }
-        }
-        return Option<U>();
-    }
-
-    [[nodiscard]] constexpr auto
-    ok() && -> Option<std::conditional_t<std::is_void_v<T>, details::unit, T>> {
-        using U = std::conditional_t<std::is_void_v<T>, details::unit, T>;
-        if (is_ok()) {
-            if constexpr (std::is_void_v<T>) {
-                return Option<U>(details::unit{});
-            } else {
-                return Option<U>(std::move(m_storage).value());
-            }
-        }
-        return Option<U>();
-    }
-
-    [[nodiscard]] constexpr auto err() const& -> Option<E> {
-        if (is_err()) { return Option<E>(error()); }
-        return Option<E>();
-    }
-
-    [[nodiscard]] constexpr auto err() && -> Option<E> {
-        if (is_err()) { return Option<E>(std::move(m_storage).error()); }
-        return Option<E>();
-    }
-
-    [[nodiscard]] constexpr auto as_ref() const& -> Result<
-        details::const_reference_t<T>,
-        const std::remove_reference_t<E>&>
+    constexpr auto operator*() & noexcept -> decltype(auto)
         requires(!std::is_void_v<T>)
     {
-        using ValueReference = details::const_reference_t<T>;
-        using ErrorReference = const std::remove_reference_t<E>&;
-        if (is_ok()) { return Result<ValueReference, ErrorReference>(value()); }
-        return Result<ValueReference, ErrorReference>(Failure<ErrorReference>(error()));
+        assert(is_ok());
+        return O::get(storage_.ok);
     }
 
-    [[nodiscard]] constexpr auto
-    as_mut() & -> Result<details::mutable_reference_t<T>, std::remove_reference_t<E>&>
+    constexpr auto operator*() const& noexcept -> decltype(auto)
         requires(!std::is_void_v<T>)
     {
-        using ValueReference = details::mutable_reference_t<T>;
-        using ErrorReference = std::remove_reference_t<E>&;
-        if (is_ok()) { return Result<ValueReference, ErrorReference>(value()); }
-        return Result<ValueReference, ErrorReference>(Failure<ErrorReference>(error()));
+        assert(is_ok());
+        return O::get(storage_.ok);
     }
 
-    template<typename U = T>
-        requires(!std::is_void_v<T>) && std::constructible_from<T, U&&>
-    [[nodiscard]] constexpr auto unwrap_or(U&& fallback) const& -> T {
-        if (is_ok()) { return value(); }
-        return std::forward<U>(fallback);
-    }
-
-    template<typename U = T>
-        requires(!std::is_void_v<T>) && std::constructible_from<T, U&&>
-    constexpr auto unwrap_or(U&& fallback) && -> T {
-        if (is_ok()) { return std::move(m_storage).value(); }
-        return std::forward<U>(fallback);
-    }
-
-    template<typename F>
-        requires(!std::is_void_v<T>) && std::invocable<F> &&
-                std::constructible_from<T, std::invoke_result_t<F>>
-    [[nodiscard]] constexpr auto unwrap_or_else(F&& function) const& -> T {
-        if (is_ok()) { return value(); }
-        return std::invoke(std::forward<F>(function));
-    }
-
-    template<typename F>
-        requires(!std::is_void_v<T>) && std::invocable<F> &&
-                std::constructible_from<T, std::invoke_result_t<F>>
-    constexpr auto unwrap_or_else(F&& function) && -> T {
-        if (is_ok()) { return std::move(m_storage).value(); }
-        return std::invoke(std::forward<F>(function));
-    }
-
-    constexpr auto unwrap_or_default() const& -> T
-        requires(!std::is_void_v<T>) && std::default_initializable<T>
+    constexpr auto operator*() && noexcept -> decltype(auto)
+        requires(!std::is_void_v<T>)
     {
-        return unwrap_or(T{});
+        assert(is_ok());
+        return O::get(std::move(storage_.ok));
     }
 
-    constexpr auto unwrap_or_default() && -> T
-        requires(!std::is_void_v<T>) && std::default_initializable<T>
+    constexpr auto operator*() const&& noexcept -> decltype(auto)
+        requires(!std::is_void_v<T>)
     {
-        return std::move(*this).unwrap_or(T{});
+        assert(is_ok());
+        return O::get(std::move(storage_.ok));
     }
 
-    template<typename F>
-        requires details::result_invocable<F&&, T>
-    [[nodiscard]] constexpr auto map(
-        F&& function
-    ) const& -> Result<std::remove_cvref_t<details::result_invoke_result_t<F&&, T>>, E> {
-        using U = std::remove_cvref_t<details::result_invoke_result_t<F&&, T>>;
-        if (is_ok()) {
-            if constexpr (std::is_void_v<T>) {
-                if constexpr (std::is_void_v<U>) {
-                    std::invoke(std::forward<F>(function));
-                    return Result<U, E>();
-                } else {
-                    return Result<U, E>(std::invoke(std::forward<F>(function)));
-                }
-            } else {
-                if constexpr (std::is_void_v<U>) {
-                    std::invoke(std::forward<F>(function), value());
-                    return Result<U, E>();
-                } else {
-                    return Result<U, E>(std::invoke(std::forward<F>(function), value()));
-                }
-            }
-        }
-        return Result<U, E>(Failure<E>(error()));
+    constexpr auto operator->() noexcept
+        requires(!std::is_void_v<T>)
+    {
+        assert(is_ok());
+        return std::addressof(O::get(storage_.ok));
     }
 
-    template<typename F>
-        requires details::result_rvalue_invocable<F&&, T>
-    [[nodiscard]] constexpr auto map(F&& function) && -> Result<
-        std::remove_cvref_t<details::result_rvalue_invoke_result_t<F&&, T>>,
-        E> {
-        using U = std::remove_cvref_t<details::result_rvalue_invoke_result_t<F&&, T>>;
-        if (is_ok()) {
-            if constexpr (std::is_void_v<T>) {
-                if constexpr (std::is_void_v<U>) {
-                    std::invoke(std::forward<F>(function));
-                    return Result<U, E>();
-                } else {
-                    return Result<U, E>(std::invoke(std::forward<F>(function)));
-                }
-            } else {
-                if constexpr (std::is_void_v<U>) {
-                    std::invoke(std::forward<F>(function), std::move(m_storage).value());
-                    return Result<U, E>();
-                } else {
-                    return Result<U, E>(std::invoke(
-                        std::forward<F>(function), std::move(m_storage).value()
-                    ));
-                }
-            }
-        }
-        return Result<U, E>(Failure<E>(std::move(m_storage).error()));
+    constexpr auto operator->() const noexcept
+        requires(!std::is_void_v<T>)
+    {
+        assert(is_ok());
+        return std::addressof(O::get(storage_.ok));
     }
 
-    template<typename F>
-        requires details::result_invocable<F&&, E> &&
-                 (!std::is_void_v<details::result_invoke_result_t<F &&, E>>)
-    [[nodiscard]] constexpr auto map_err(
-        F&& function
-    ) const& -> Result<T, std::remove_cvref_t<details::result_invoke_result_t<F&&, E>>> {
-        using U = std::remove_cvref_t<details::result_invoke_result_t<F&&, E>>;
-        if (is_err()) {
-            return Result<T, U>(
-                Failure<U>(std::invoke(std::forward<F>(function), error()))
-            );
-        }
+    // Arguments must not depend on the lifetime of the payload being replaced.
+    template<class... Args>
+        requires(O::template nothrow_constructible<Args...>)
+    constexpr auto emplace_ok(Args&&... args) noexcept -> decltype(auto) {
+        this->destroy_active();
+        O::construct(std::addressof(storage_.ok), std::forward<Args>(args)...);
+        state_ = State::Ok;
+        return O::get(storage_.ok);
+    }
+
+    template<class... Args>
+        requires(F::template nothrow_constructible<Args...>)
+    constexpr auto emplace_err(Args&&... args) noexcept -> decltype(auto) {
+        this->destroy_active();
+        F::construct(std::addressof(storage_.err), std::forward<Args>(args)...);
+        state_ = State::Err;
+        return F::get(storage_.err);
+    }
+
+    [[nodiscard]] constexpr auto ok() const& noexcept(O::nothrow_copy) -> Option<T>
+        requires O::copy_constructible
+    {
+        if (!is_ok()) { return Option<T>{}; }
         if constexpr (std::is_void_v<T>) {
-            return Result<T, U>();
+            return Option<T>{InPlace};
         } else {
-            return Result<T, U>(value());
+            return Option<T>{InPlace, value()};
         }
     }
 
-    template<typename F>
-        requires std::invocable<F&&, E&&> &&
-                 (!std::is_void_v<std::invoke_result_t<F &&, E &&>>)
-    [[nodiscard]] constexpr auto map_err(
-        F&& function
-    ) && -> Result<T, std::remove_cvref_t<std::invoke_result_t<F&&, E&&>>> {
-        using U = std::remove_cvref_t<std::invoke_result_t<F&&, E&&>>;
-        if (is_err()) {
-            return Result<T, U>(Failure<U>(
-                std::invoke(std::forward<F>(function), std::move(m_storage).error())
-            ));
-        }
+    [[nodiscard]] constexpr auto ok() && noexcept(O::nothrow_move) -> Option<T>
+        requires O::move_constructible
+    {
+        if (!is_ok()) { return Option<T>{}; }
         if constexpr (std::is_void_v<T>) {
-            return Result<T, U>();
+            return Option<T>{InPlace};
         } else {
-            return Result<T, U>(std::move(m_storage).value());
+            return Option<T>{InPlace, std::move(*this).value()};
         }
     }
 
-    template<typename D, typename F>
-        requires details::result_invocable<F&&, T> &&
-                 (!std::is_void_v<details::result_invoke_result_t<F &&, T>>) &&
-                 std::constructible_from<
-                     std::remove_cvref_t<details::result_invoke_result_t<F&&, T>>,
-                     D&&>
-    [[nodiscard]] constexpr auto map_or(
-        D&& default_value,
-        F&& function
-    ) const& -> std::remove_cvref_t<details::result_invoke_result_t<F&&, T>> {
-        using R = std::remove_cvref_t<details::result_invoke_result_t<F&&, T>>;
-        if (is_ok()) {
-            if constexpr (std::is_void_v<T>) {
-                return R(std::invoke(std::forward<F>(function)));
-            } else {
-                return R(std::invoke(std::forward<F>(function), value()));
-            }
-        }
-        return R(std::forward<D>(default_value));
-    }
-
-    template<typename DefaultF, typename F>
-        requires std::invocable<DefaultF&&> && details::result_invocable<F&&, T> &&
-                 (!std::is_void_v<details::result_invoke_result_t<F &&, T>>) &&
-                 std::constructible_from<
-                     std::remove_cvref_t<details::result_invoke_result_t<F&&, T>>,
-                     std::invoke_result_t<DefaultF&&>>
-    [[nodiscard]] constexpr auto map_or_else(
-        DefaultF&& default_function,
-        F&&        function
-    ) const& -> std::remove_cvref_t<details::result_invoke_result_t<F&&, T>> {
-        using R = std::remove_cvref_t<details::result_invoke_result_t<F&&, T>>;
-        if (is_ok()) {
-            if constexpr (std::is_void_v<T>) {
-                return R(std::invoke(std::forward<F>(function)));
-            } else {
-                return R(std::invoke(std::forward<F>(function), value()));
-            }
-        }
-        return R(std::invoke(std::forward<DefaultF>(default_function)));
-    }
-
-    template<typename F>
-        requires details::result_invocable<F&&, T> &&
-                 details::result_type<details::result_invoke_result_t<F&&, T>>
-    [[nodiscard]] constexpr auto and_then(
-        F&& function
-    ) const& -> std::remove_cvref_t<details::result_invoke_result_t<F&&, T>> {
-        using R = std::remove_cvref_t<details::result_invoke_result_t<F&&, T>>;
-        using output_error = typename details::result_traits<R>::error_type;
-        if (is_ok()) {
-            if constexpr (std::is_void_v<T>) {
-                return std::invoke(std::forward<F>(function));
-            } else {
-                return std::invoke(std::forward<F>(function), value());
-            }
-        }
-        return R(Failure<output_error>(error()));
-    }
-
-    template<typename F>
-        requires details::result_rvalue_invocable<F&&, T> &&
-                 details::result_type<details::result_rvalue_invoke_result_t<F&&, T>>
-    constexpr auto and_then(
-        F&& function
-    ) && -> std::remove_cvref_t<details::result_rvalue_invoke_result_t<F&&, T>> {
-        using R = std::remove_cvref_t<details::result_rvalue_invoke_result_t<F&&, T>>;
-        using output_error = typename details::result_traits<R>::error_type;
-        if (is_ok()) {
-            if constexpr (std::is_void_v<T>) {
-                return std::invoke(std::forward<F>(function));
-            } else {
-                return std::invoke(
-                    std::forward<F>(function), std::move(m_storage).value()
-                );
-            }
-        }
-        return R(Failure<output_error>(std::move(m_storage).error()));
-    }
-
-    template<typename U>
-        requires std::is_copy_constructible_v<storage_type> &&
-                 std::is_copy_constructible_v<details::Storage<U, E>>
-    [[nodiscard]] constexpr auto and_(const Result<U, E>& other) const& -> Result<U, E> {
-        if (is_ok()) { return other; }
-        return Result<U, E>(Failure<E>(error()));
-    }
-
-    template<typename U>
-    [[nodiscard]] constexpr auto and_(Result<U, E>&& other) const& -> Result<U, E> {
-        if (is_ok()) { return std::move(other); }
-        return Result<U, E>(Failure<E>(error()));
-    }
-
-    template<typename U>
-    [[nodiscard]] constexpr auto and_(Result<U, E>&& other) && -> Result<U, E> {
-        if (is_ok()) { return std::move(other); }
-        return Result<U, E>(Failure<E>(std::move(m_storage).error()));
-    }
-
-    template<typename F>
-        requires std::invocable<F&&, const E&> &&
-                 details::result_type<std::invoke_result_t<F&&, const E&>>
-    [[nodiscard]] constexpr auto or_else(
-        F&& function
-    ) const& -> std::remove_cvref_t<std::invoke_result_t<F&&, const E&>> {
-        using R = std::remove_cvref_t<std::invoke_result_t<F&&, const E&>>;
-        if (is_ok()) {
-            if constexpr (std::is_void_v<T>) {
-                return R(Ok());
-            } else {
-                return R(value());
-            }
-        }
-        return std::invoke(std::forward<F>(function), error());
-    }
-
-    template<typename F>
-        requires details::result_type<std::invoke_result_t<F&&, E&&>>
-    constexpr auto
-    or_else(F&& function) && -> std::remove_cvref_t<std::invoke_result_t<F&&, E&&>> {
-        using R = std::remove_cvref_t<std::invoke_result_t<F&&, E&&>>;
-        if (is_ok()) {
-            if constexpr (std::is_void_v<T>) {
-                return R(Ok());
-            } else {
-                return R(std::move(m_storage).value());
-            }
-        }
-        return std::invoke(std::forward<F>(function), std::move(m_storage).error());
-    }
-
-    template<typename U>
-        requires std::is_copy_constructible_v<storage_type> &&
-                 std::is_copy_constructible_v<details::Storage<T, U>>
-    [[nodiscard]] constexpr auto or_(const Result<T, U>& other) const& -> Result<T, U> {
-        if (is_ok()) {
-            if constexpr (std::is_void_v<T>) {
-                return Result<T, U>();
-            } else {
-                return Result<T, U>(value());
-            }
-        }
-        return other;
-    }
-
-    template<typename U>
-    [[nodiscard]] constexpr auto or_(Result<T, U>&& other) const& -> Result<T, U> {
-        if (is_ok()) {
-            if constexpr (std::is_void_v<T>) {
-                return Result<T, U>();
-            } else {
-                return Result<T, U>(value());
-            }
-        }
-        return std::move(other);
-    }
-
-    template<typename F>
-        requires details::result_invocable<F&&, T>
-    [[nodiscard]] constexpr auto inspect(F&& function) const& -> const Result& {
-        if (is_ok()) {
-            if constexpr (std::is_void_v<T>) {
-                std::invoke(std::forward<F>(function));
-            } else {
-                std::invoke(std::forward<F>(function), value());
-            }
-        }
-        return *this;
-    }
-
-    template<typename F>
-        requires std::invocable<F&&, const E&>
-    [[nodiscard]] constexpr auto inspect_err(F&& function) const& -> const Result& {
-        if (is_err()) { std::invoke(std::forward<F>(function), error()); }
-        return *this;
-    }
-
-    friend constexpr auto
-    swap(Result& lhs, Result& rhs) noexcept(noexcept(swap(lhs.m_storage, rhs.m_storage)))
-        -> void
-        requires requires { swap(lhs.m_storage, rhs.m_storage); }
+    [[nodiscard]] constexpr auto err() const& noexcept(F::nothrow_copy) -> Option<E>
+        requires F::copy_constructible
     {
-        swap(lhs.m_storage, rhs.m_storage);
+        if (!is_err()) { return Option<E>{}; }
+        if constexpr (std::is_void_v<E>) {
+            return Option<E>{InPlace};
+        } else {
+            return Option<E>{InPlace, error()};
+        }
     }
 
-    friend constexpr auto operator==(const Result& lhs, const Result& rhs) -> bool
-        requires(
-            (std::is_void_v<T> || details::equality_comparable<T>) &&
-            details::equality_comparable<E>
-        )
+    [[nodiscard]] constexpr auto err() && noexcept(F::nothrow_move) -> Option<E>
+        requires F::move_constructible
     {
-        if (lhs.is_ok() != rhs.is_ok()) { return false; }
-        if (!lhs.is_valid() || !rhs.is_valid()) {
-            return lhs.is_valid() == rhs.is_valid();
+        if (!is_err()) { return Option<E>{}; }
+        if constexpr (std::is_void_v<E>) {
+            return Option<E>{InPlace};
+        } else {
+            return Option<E>{InPlace, std::move(*this).error()};
         }
-        if (lhs.is_ok()) {
-            if constexpr (std::is_void_v<T>) {
-                return true;
-            } else {
-                return lhs.value() == rhs.value();
-            }
-        }
-        return lhs.error() == rhs.error();
-    }
-
-    friend constexpr auto operator!=(const Result& lhs, const Result& rhs)
-        requires requires { lhs == rhs; }
-    {
-        return !(lhs == rhs);
     }
 };
 
 } // namespace result
 
-using result::Err;
-using result::Failure;
-using result::Ok;
 using result::Result;
-using result::Success;
+
+template<class T, class E, class... Args>
+    requires requires(Args&&... args) { Result<T, E>{Ok, std::forward<Args>(args)...}; }
+[[nodiscard]] constexpr auto
+ok(Args&&... args) noexcept(noexcept(Result<T, E>{Ok, std::forward<Args>(args)...}))
+    -> Result<T, E> {
+    return Result<T, E>{Ok, std::forward<Args>(args)...};
+}
+
+template<class T, class E, class... Args>
+    requires requires(Args&&... args) { Result<T, E>{Err, std::forward<Args>(args)...}; }
+[[nodiscard]] constexpr auto
+err(Args&&... args) noexcept(noexcept(Result<T, E>{Err, std::forward<Args>(args)...}))
+    -> Result<T, E> {
+    return Result<T, E>{Err, std::forward<Args>(args)...};
+}
 
 } // namespace JadeFrame

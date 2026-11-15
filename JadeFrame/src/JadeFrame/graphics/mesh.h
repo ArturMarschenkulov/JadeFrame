@@ -112,8 +112,8 @@ public:
         -> Result<Mesh, MeshError> {
         Mesh copy = *this;
         auto insertion = copy.insert_attribute(attr, std::move(values));
-        if (insertion.is_err()) { return Failure(insertion.error()); }
-        return copy;
+        if (insertion.is_err()) { return err<Mesh, MeshError>(insertion.error()); }
+        return ok<Mesh, MeshError>(std::move(copy));
     }
 
     [[nodiscard]] auto attribute_values(VertexAttributeId id) const
