@@ -104,7 +104,7 @@ class Option {
 
     // A prvalue return avoids a second move even when NRVO is disabled. Delegation
     // ensures this completed object is destroyed if source.reset() throws.
-    constexpr Option(TakeTag, Option& source) noexcept(
+    constexpr Option(TakeTag /*unused*/, Option& source) noexcept(
         std::is_nothrow_move_constructible_v<T> && std::is_nothrow_destructible_v<T>
     )
         : Option(InPlace, std::move(source).value()) {
@@ -116,7 +116,7 @@ public:
 
     constexpr Option() noexcept = default;
 
-    explicit constexpr Option(NoneTag) noexcept {}
+    explicit constexpr Option(NoneTag /*unused*/) noexcept {}
 
     explicit constexpr Option(
         const T& value
@@ -134,7 +134,7 @@ public:
 
     template<class... Args>
         requires std::is_constructible_v<T, Args&&...>
-    explicit constexpr Option(InPlaceTag, Args&&... args) noexcept(
+    explicit constexpr Option(InPlaceTag /*unused*/, Args&&... args) noexcept(
         std::is_nothrow_constructible_v<T, Args&&...>
     ) {
         this->construct(std::forward<Args>(args)...);
@@ -240,7 +240,7 @@ public:
         requires(!std::is_move_constructible_v<T> || !std::is_move_assignable_v<T>)
     = delete;
 
-    constexpr auto operator=(NoneTag) noexcept(std::is_nothrow_destructible_v<T>)
+    constexpr auto operator=(NoneTag /*unused*/) noexcept(std::is_nothrow_destructible_v<T>)
         -> Option& {
         this->reset();
         return *this;
@@ -335,7 +335,7 @@ public:
     using value_type = T&;
     constexpr Option() noexcept = default;
 
-    explicit constexpr Option(NoneTag) noexcept {}
+    explicit constexpr Option(NoneTag /*unused*/) noexcept {}
 
     template<class U>
         requires details::safe_reference_binding<T, U>
@@ -344,10 +344,10 @@ public:
 
     template<class U>
         requires details::safe_reference_binding<T, U>
-    explicit constexpr Option(InPlaceTag, U&& value) noexcept
+    explicit constexpr Option(InPlaceTag /*unused*/, U&& value) noexcept
         : pointer_(std::addressof(value)) {}
 
-    constexpr auto operator=(NoneTag) noexcept -> Option& {
+    constexpr auto operator=(NoneTag /*unused*/) noexcept -> Option& {
         this->reset();
         return *this;
     }
@@ -365,7 +365,7 @@ public:
     }
 
     constexpr auto value() const noexcept -> T& {
-        if (!pointer_) { details::fatal_bad_option_access(); }
+        if (pointer_ == nullptr) { details::fatal_bad_option_access(); }
         return *pointer_;
     }
 
@@ -394,12 +394,12 @@ public:
     using value_type = void;
     constexpr Option() noexcept = default;
 
-    explicit constexpr Option(NoneTag) noexcept {}
+    explicit constexpr Option(NoneTag /*unused*/) noexcept {}
 
-    explicit constexpr Option(InPlaceTag) noexcept
+    explicit constexpr Option(InPlaceTag /*unused*/) noexcept
         : engaged_(true) {}
 
-    constexpr auto operator=(NoneTag) noexcept -> Option& {
+    constexpr auto operator=(NoneTag /*unused*/) noexcept -> Option& {
         this->reset();
         return *this;
     }
