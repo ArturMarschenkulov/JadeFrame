@@ -69,12 +69,24 @@ static auto init_vma(
     vma_info.pVulkanFunctions = &vma_vk_fns;
 
     VmaAllocator vma_allocator = nullptr;
-    vmaCreateAllocator(&vma_info, &vma_allocator);
+    if (vmaCreateAllocator(&vma_info, &vma_allocator) != VK_SUCCESS) { return nullptr; }
     return vma_allocator;
 }
 
 auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physical_device)
-    -> void {
+    -> Result<void, InitError> {
+    // Releases what was created so far. `deinit` needs `m_handle` to be accurate.
+    const auto fail = [this](std::string message) {
+        this->deinit();
+        m_instance = nullptr;
+        m_physical_device = nullptr;
+        return err<void, InitError>(InitError{
+            InitErrorCode::CONTEXT_CREATION_FAILED,
+            GRAPHICS_API::VULKAN,
+            std::move(message),
+        });
+    };
+
     m_physical_device = &physical_device;
     m_instance = &instance;
 
@@ -82,8 +94,15 @@ auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physica
 
     const QueueFamilyPointers& pointers = physical_device.m_chosen_queue_family_pointers;
     if (!pointers.is_complete()) {
-        throw std::runtime_error(
-            "physical device does not provide graphics, present, and transfer queues"
+        return fail(
+            "the physical device does not provide graphics, present and transfer queues"
+        );
+    }
+    if (physical_device.m_properties.limits.maxBoundDescriptorSets < 4) {
+        return fail(
+            "the physical device supports only " +
+            std::to_string(physical_device.m_properties.limits.maxBoundDescriptorSets) +
+            " bound descriptor sets, the renderer needs 4"
         );
     }
 
@@ -126,25 +145,30 @@ auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physica
     result = vkCreateDevice(
         physical_device.m_handle, &create_info, Instance::allocator(), &m_handle
     );
-    if (result != VK_SUCCESS) { assert(false); }
+    if (result != VK_SUCCESS) {
+        m_handle = VK_NULL_HANDLE;
+        return fail(std::string("vkCreateDevice failed: ") + to_string(result));
+    }
 
     // TODO: Maybe the VMA allocator should be created somewhere else, but for now it is
     // here.
     m_vma_allocator = init_vma(instance, physical_device, *this);
+    if (m_vma_allocator == VK_NULL_HANDLE) {
+        return fail("failed to create the Vulkan memory allocator");
+    }
 
     Logger::debug(
         "maxBoundDescriptorSets: {}",
         m_physical_device->m_properties.limits.maxBoundDescriptorSets
-    );
-    JF_ASSERT(
-        m_physical_device->m_properties.limits.maxBoundDescriptorSets >= 4,
-        "maxBoundDescriptorSets too low, it must be at least 4"
     );
     m_graphics_queue = pointers.m_graphics_family->query_queues(*this, 0);
 
     m_command_pool = this->create_command_pool(
         *m_physical_device->m_chosen_queue_family_pointers.m_graphics_family
     );
+    if (m_command_pool.m_handle == VK_NULL_HANDLE) {
+        return fail("failed to create the Vulkan command pool");
+    }
     const u32                         descriptor_count = 1000;
     std::vector<VkDescriptorPoolSize> pool_sizes = {
         {        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptor_count},
@@ -159,6 +183,10 @@ auto LogicalDevice::init(const Instance& instance, const PhysicalDevice& physica
         {         VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, descriptor_count},
     };
     m_set_pool = this->create_descriptor_pool(descriptor_count, pool_sizes);
+    if (m_set_pool.m_handle == VK_NULL_HANDLE) {
+        return fail("failed to create the Vulkan descriptor pool");
+    }
+    return ok<void, InitError>();
 }
 
 auto LogicalDevice::wait_until_idle() const -> void {
@@ -273,12 +301,6 @@ auto LogicalDevice::create_fence(bool signaled) -> Fence {
 auto LogicalDevice::create_command_pool(QueueFamily& queue_family) -> CommandPool {
     CommandPool cp(*this, queue_family);
     return cp;
-}
-
-auto LogicalDevice::create_swapchain(Window* window) -> Swapchain {
-    Swapchain sc;
-    sc.init(*this, window);
-    return sc;
 }
 
 auto LogicalDevice::create_image_view(

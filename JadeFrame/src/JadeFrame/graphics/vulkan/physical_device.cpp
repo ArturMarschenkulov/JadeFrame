@@ -62,13 +62,13 @@ auto PhysicalDevice::query_surface_formats(const Surface& surface
     u32      count = 0;
     VkResult result =
         vkGetPhysicalDeviceSurfaceFormatsKHR(m_handle, surface.m_handle, &count, nullptr);
-    if (VK_SUCCESS != result || (count == 0)) { assert(false); }
+    if (VK_SUCCESS != result || (count == 0)) { return {}; }
 
     std::vector<VkSurfaceFormatKHR> formats(count);
     result = vkGetPhysicalDeviceSurfaceFormatsKHR(
         m_handle, surface.m_handle, &count, formats.data()
     );
-    if (VK_SUCCESS != result) { assert(false); }
+    if (VK_SUCCESS != result) { return {}; }
     return formats;
 }
 
@@ -78,13 +78,13 @@ auto PhysicalDevice::query_surface_present_modes(const Surface& surface
     VkResult result = vkGetPhysicalDeviceSurfacePresentModesKHR(
         m_handle, surface.m_handle, &count, nullptr
     );
-    if (VK_SUCCESS != result || (count == 0)) { assert(false); }
+    if (VK_SUCCESS != result || (count == 0)) { return {}; }
 
     std::vector<VkPresentModeKHR> present_modes(count);
     result = vkGetPhysicalDeviceSurfacePresentModesKHR(
         m_handle, surface.m_handle, &count, present_modes.data()
     );
-    if (VK_SUCCESS != result) { assert(false); }
+    if (VK_SUCCESS != result) { return {}; }
     return present_modes;
 }
 
@@ -372,12 +372,6 @@ auto PhysicalDevice::query_queue_families() const -> std::vector<QueueFamily> {
 
 auto PhysicalDevice::limits() const -> VkPhysicalDeviceLimits {
     return m_properties.limits;
-}
-
-auto PhysicalDevice::create_logical_device() -> LogicalDevice {
-    LogicalDevice ld;
-    ld.init(*m_instance_p, *this);
-    return ld;
 }
 
 auto PhysicalDevice::find_depth_format() const -> VkFormat {

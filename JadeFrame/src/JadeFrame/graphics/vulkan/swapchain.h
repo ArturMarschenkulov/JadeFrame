@@ -32,6 +32,7 @@ public:
     RenderPass(RenderPass&& other) noexcept;
     auto operator=(RenderPass&& other) noexcept -> RenderPass&;
 
+    /// `m_handle` is `VK_NULL_HANDLE` if the render pass could not be created.
     RenderPass(const LogicalDevice& device, VkFormat image_format);
 
 public:
@@ -49,6 +50,7 @@ public:
     auto operator=(Framebuffer&& other) noexcept -> Framebuffer&;
 
 public:
+    /// `m_handle` is `VK_NULL_HANDLE` if the framebuffer could not be created.
     Framebuffer(
         const LogicalDevice& device,
         const ImageView&     image_view,
@@ -95,9 +97,18 @@ public:
     auto operator=(Swapchain&& other) noexcept -> Swapchain&;
 
 public:
-    auto init(LogicalDevice& device, Window* window) -> void;
+    /// Creates the surface of `window` and, if the surface has a drawable area, the
+    /// swapchain with its images, image views and depth buffer.
+    ///
+    /// Not having a drawable area is not an error, see above. On failure the swapchain
+    /// is completely released again, as after `deinit()`.
+    [[nodiscard]] auto init(LogicalDevice& device, Window* window)
+        -> Result<void, InitError>;
+    /// Safe to call in any state, also repeatedly.
     auto deinit() -> void;
-    auto recreate() -> void;
+    /// Does nothing on a swapchain that was never initialized or was deinitialized.
+    /// Fails like `init()`.
+    [[nodiscard]] auto recreate() -> Result<void, InitError>;
 
     /// Acquires the next image index from the swapchain.
     /// If a semaphore is provided, it will be signaled when the image is ready to be

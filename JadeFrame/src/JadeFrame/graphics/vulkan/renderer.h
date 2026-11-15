@@ -66,7 +66,7 @@ public:
     Vulkan_Renderer(RenderSystem& system, Window* window);
     ~Vulkan_Renderer() override;
 
-    auto initialize() -> void override;
+    [[nodiscard]] auto initialize() -> Result<void, InitError> override;
     auto create_buffer(GPUBuffer::TYPE type, const void* data, size_t size)
         -> void* override;
     auto destroy_buffer(void* handle) -> void override;
@@ -93,9 +93,11 @@ public:
     // virtual auto main_loop() -> void override;
 
 public:
+    // Declared first, so that the instance and the device outlive everything below.
     Vulkan_Context         m_context;
     vulkan::LogicalDevice* m_logical_device;
     RenderSystem*          m_system = nullptr;
+    Window*                m_window = nullptr;
 
 private: // NOTE: probably temporary
     RGBAColor m_clear_color;
@@ -122,12 +124,16 @@ public:
 
         Sync m_sync;
 
-        auto init(vulkan::LogicalDevice* device) -> void {
+        /// Returns false if one of the frame's Vulkan objects could not be created.
+        [[nodiscard]] auto init(vulkan::LogicalDevice* device) -> bool {
             m_device = device;
             m_index = 0;
             m_sync.m_in_flight = device->create_fence(true);
             m_sync.m_sem_available = device->create_semaphore();
             m_cmd = device->m_command_pool.allocate_buffer();
+            return m_sync.m_in_flight.m_handle != VK_NULL_HANDLE &&
+                   m_sync.m_sem_available.m_handle != VK_NULL_HANDLE &&
+                   m_cmd.m_handle != VK_NULL_HANDLE;
         }
 
         auto acquire_image(vulkan::Swapchain& swapchain) -> void {
@@ -167,9 +173,17 @@ public:
     std::vector<vulkan::Framebuffer> m_framebuffers;
     bool                             m_framebuffer_resized = false;
     bool                             m_skip_present = false;
+    // Set while the swapchain could not be recreated, see `recreate_swapchain`.
+    bool                             m_swapchain_recreation_failed = false;
 
 private:
+    /// Rebuilds the swapchain and what depends on it. If that fails there is no
+    /// swapchain afterwards and `render()` drops frames while retrying.
     auto recreate_swapchain() -> void;
+    /// Creates what is derived from the swapchain: render pass, framebuffers and
+    /// present semaphores. Without a swapchain (no drawable area) only the render pass
+    /// is created.
+    [[nodiscard]] auto create_swapchain_dependents() -> Result<void, InitError>;
     auto create_present_semaphores() -> void;
     auto render_mesh(const Mesh* vertex_data, const GPUMeshData* gpu_data) -> void;
 };

@@ -37,7 +37,7 @@ class OpenGL_Renderer : public IRenderer {
 public:
     OpenGL_Renderer(RenderSystem& system, Window* window);
 
-    auto initialize() -> void override;
+    [[nodiscard]] auto initialize() -> Result<void, InitError> override;
     auto create_buffer(GPUBuffer::TYPE type, const void* data, size_t size)
         -> void* override;
     auto destroy_buffer(void* handle) -> void override;
@@ -72,6 +72,8 @@ private:
     ) -> void;
 
 public:
+    // Declared before everything that holds OpenGL objects, so that it is destroyed
+    // last.
     opengl::Context m_context;
     RenderSystem*   m_system = nullptr;
     Window*         m_window = nullptr;
@@ -87,16 +89,20 @@ public:
         opengl::Buffer*       m_vertex_buffer = nullptr;
         opengl::Buffer*       m_index_buffer = nullptr;
         Mesh                  m_mesh;
-        ShaderHandle*         m_shader = nullptr;
+        // Owned by the render target. It is an internal resource of the renderer and
+        // therefore not registered with the `RenderSystem`.
+        NativeHandle          m_shader = {nullptr, noop_native_handle_deleter};
         opengl::Context*      m_context = nullptr;
         // Size of the attachments. Kept equal to the size of the window's framebuffer.
         v2u32                 m_size = {};
 
         auto resize(v2u32 size) -> void;
-        auto init(
-            opengl::Context* context,
-            const std::function<ShaderHandle*(const ShaderHandle::Desc&)>& register_shader
-        ) -> void;
+        /// Creates the offscreen framebuffer and what is needed to copy it onto the
+        /// window. `shader` is the compiled "framebuffer_test" shader. Everything
+        /// created here is owned by `context` or by this object, so a failure needs
+        /// no cleanup beyond their destruction.
+        [[nodiscard]] auto init(opengl::Context* context, NativeHandle shader)
+            -> Result<void, InitError>;
         auto render(RenderSystem* system) -> void;
     } m_render_target;
 };

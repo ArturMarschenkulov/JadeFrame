@@ -92,6 +92,52 @@ inline auto to_string(GRAPHICS_API api) -> const char* {
     }
 }
 
+/// Why bringing up a window, a graphics backend or the application failed.
+enum class InitErrorCode : u8 {
+    /// The caller passed something initialization cannot work with, e.g. no window.
+    INVALID_ARGUMENT,
+    /// An operation that needs a successful initialization was called without one.
+    NOT_INITIALIZED,
+    /// The platform window could not be created.
+    WINDOW_CREATION_FAILED,
+    /// JadeFrame has no renderer for the requested graphics API.
+    BACKEND_UNSUPPORTED,
+    /// The renderer for the requested graphics API was disabled at build time.
+    BACKEND_DISABLED,
+    /// The graphics context (OpenGL context; Vulkan instance, surface or device) could
+    /// not be created or does not meet the requirements of the renderer.
+    CONTEXT_CREATION_FAILED,
+    /// The context exists, but a resource the renderer cannot work without
+    /// (framebuffer, swapchain, internal shader, ...) could not be created.
+    RESOURCE_CREATION_FAILED,
+};
+
+/// An initialization failure. Initialization never falls back to another backend, so
+/// `m_api` is always the API that was explicitly requested (or `UNDEFINED` if the
+/// failure is not related to a graphics API).
+struct InitError {
+    InitErrorCode m_code;
+    GRAPHICS_API  m_api = GRAPHICS_API::UNDEFINED;
+    /// What failed and, where the platform or graphics API reported one, why.
+    std::string m_message;
+};
+
+inline auto to_string(InitErrorCode code) -> const char* {
+    switch (code) {
+        case InitErrorCode::INVALID_ARGUMENT: return "INVALID_ARGUMENT";
+        case InitErrorCode::NOT_INITIALIZED: return "NOT_INITIALIZED";
+        case InitErrorCode::WINDOW_CREATION_FAILED: return "WINDOW_CREATION_FAILED";
+        case InitErrorCode::BACKEND_UNSUPPORTED: return "BACKEND_UNSUPPORTED";
+        case InitErrorCode::BACKEND_DISABLED: return "BACKEND_DISABLED";
+        case InitErrorCode::CONTEXT_CREATION_FAILED: return "CONTEXT_CREATION_FAILED";
+        case InitErrorCode::RESOURCE_CREATION_FAILED: return "RESOURCE_CREATION_FAILED";
+    }
+    return "UNKNOWN";
+}
+
+/// One line for logs and error output: "<CODE> [<api>]: <message>".
+auto to_string(const InitError& error) -> std::string;
+
 // NOTE: Since GLSL and SPIRV are slightly different for both opengl and vulkan, they are
 // treated like different shading languages here.
 enum class SHADING_LANGUAGE : u8 {
@@ -526,10 +572,15 @@ public:
     // Resource operations are deliberately expressed in terms of façade types. The
     // concrete backend owns the native casts and lifetime rules behind this interface.
 
-    /// Second construction phase, called once after the renderer is owned by its
-    /// `RenderSystem`. Backends that need the `RenderSystem` to register internal
-    /// resources do so here, the others have nothing left to do.
-    virtual auto initialize() -> void = 0;
+    /// Second construction phase: creates the graphics context and every resource
+    /// rendering needs. Constructors only store their arguments; they cannot fail and
+    /// do not touch the graphics API.
+    ///
+    /// Called exactly once, by `RenderSystem`, before anything else. On success every
+    /// other operation of this interface may be used. On failure the renderer is not
+    /// usable: the only valid operation left is its destruction, which releases
+    /// whatever `initialize()` had created up to the failing step.
+    [[nodiscard]] virtual auto initialize() -> Result<void, InitError> = 0;
 
     /// Returns nullptr on failure. A non-null handle must be released with
     /// `destroy_buffer` while the renderer is alive.
@@ -673,9 +724,32 @@ public:
     RenderSystem(RenderSystem&&) = delete;
     auto operator=(RenderSystem&&) -> RenderSystem& = delete;
 
-    RenderSystem(GRAPHICS_API api, Window* window);
+    /// Creates and initializes the renderer for `api` on `window`.
+    ///
+    /// Invariant: `m_renderer` is non-null if and only if the last `init*()` call
+    /// succeeded; a renderer that failed to initialize is destroyed before the call
+    /// returns and is never observable. `m_api` is `UNDEFINED` while there is no
+    /// renderer.
+    ///
+    /// A system that is already initialized is shut down first (see `shutdown()`),
+    /// also if the new initialization then fails. The backend is the requested one or
+    /// none: there is no fallback to another graphics API.
+    [[nodiscard]] auto init(GRAPHICS_API api, Window* window) -> Result<void, InitError>;
 
-    auto init(GRAPHICS_API api, Window* window) -> void;
+    /// Like `init()`, but with a renderer supplied by the caller instead of one of the
+    /// built-in backends. `renderer` must be constructed and not yet initialized; this
+    /// calls `IRenderer::initialize()` on it.
+    [[nodiscard]] auto init_with_renderer(
+        GRAPHICS_API               api,
+        std::unique_ptr<IRenderer> renderer
+    ) -> Result<void, InitError>;
+
+    /// Releases all registered resources and then the renderer. Safe to call in any
+    /// state, including after a failed `init()` and repeatedly. The destructor does
+    /// the same.
+    auto shutdown() -> void;
+
+    [[nodiscard]] auto is_initialized() const -> bool { return m_renderer != nullptr; }
 
     auto register_texture(Image& image) -> TextureHandle*;
     auto register_shader(const ShaderHandle::Desc& desc) -> ShaderHandle*;
@@ -687,6 +761,11 @@ public:
 
 public:
     [[nodiscard]] static auto list_available_graphics_apis() -> std::vector<GRAPHICS_API>;
+    /// Whether this build of JadeFrame has a renderer for `api`. Fails with
+    /// `BACKEND_UNSUPPORTED` or `BACKEND_DISABLED`. Needs neither a window nor the
+    /// graphics API itself, so it does not tell whether initialization will succeed.
+    [[nodiscard]] static auto check_graphics_api(GRAPHICS_API api)
+        -> Result<void, InitError>;
 
 public:
     GRAPHICS_API               m_api = GRAPHICS_API::UNDEFINED;

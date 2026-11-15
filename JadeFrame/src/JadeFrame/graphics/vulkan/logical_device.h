@@ -42,7 +42,13 @@ public:
     LogicalDevice(LogicalDevice&& other) noexcept;
     auto operator=(LogicalDevice&& other) noexcept -> LogicalDevice&;
 
-    auto init(const Instance& instance, const PhysicalDevice& physical_device) -> void;
+    /// Creates the device, its allocator, the graphics queue and the command and
+    /// descriptor pools. On failure everything created up to the failing step is
+    /// released again and the device is back in its default constructed state.
+    [[nodiscard]] auto
+    init(const Instance& instance, const PhysicalDevice& physical_device)
+        -> Result<void, InitError>;
+    /// Safe to call in any state, also repeatedly.
     auto deinit() -> void;
 
     auto wait_until_idle() const -> void;
@@ -70,7 +76,6 @@ public:
     DescriptorPool m_set_pool;
 
 public: // Swapchain stuff
-    auto create_swapchain(Window* window) -> Swapchain;
     auto create_render_pass(VkFormat image_format) -> RenderPass;
     auto create_framebuffer(
         const ImageView&  image_view,

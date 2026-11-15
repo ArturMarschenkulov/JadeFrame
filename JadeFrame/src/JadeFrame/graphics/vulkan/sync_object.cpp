@@ -35,7 +35,7 @@ Fence::Fence(LogicalDevice& device, bool signaled)
 
     VkResult result =
         vkCreateFence(device.m_handle, &info, Instance::allocator(), &m_handle);
-    JF_ASSERT(result == VK_SUCCESS, "");
+    if (result != VK_SUCCESS) { m_handle = VK_NULL_HANDLE; }
 }
 
 Fence::~Fence() {
@@ -100,7 +100,7 @@ Semaphore::Semaphore(LogicalDevice& device)
 
     VkResult result =
         vkCreateSemaphore(device.m_handle, &info, Instance::allocator(), &m_handle);
-    JF_ASSERT(result == VK_SUCCESS, "");
+    if (result != VK_SUCCESS) { m_handle = VK_NULL_HANDLE; }
 }
 
 } // namespace vulkan

@@ -134,17 +134,66 @@ static auto delete_vulkan_material(void* handle) noexcept -> void {
 }
 static const i32 MAX_FRAMES_IN_FLIGHT = 4;
 
-Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, Window* window)
-    : m_context(window)
-    , m_logical_device(&m_context.m_instance.m_logical_device)
-    , m_system(&system) {
+static auto resource_error(std::string message) -> Result<void, InitError> {
+    return err<void, InitError>(InitError{
+        InitErrorCode::RESOURCE_CREATION_FAILED,
+        GRAPHICS_API::VULKAN,
+        std::move(message),
+    });
+}
 
-    // Swapchain stuff
-    m_swapchain = m_logical_device->create_swapchain(window);
-    const u32 swapchain_image_amount = static_cast<u32>(m_swapchain.m_images.size());
+Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, Window* window)
+    : m_logical_device(&m_context.m_instance.m_logical_device)
+    , m_system(&system)
+    , m_window(window) {}
+
+auto Vulkan_Renderer::initialize() -> Result<void, InitError> {
+    // Every step stores what it creates in a member. If a later step fails, the
+    // destructor releases them in reverse declaration order, the context last.
+    auto context = m_context.init(m_window);
+    if (context.is_err()) { return context; }
+
+    auto swapchain = m_swapchain.init(*m_logical_device, m_window);
+    if (swapchain.is_err()) { return swapchain; }
+
+    m_frames.resize(MAX_FRAMES_IN_FLIGHT);
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        if (!m_frames[i].init(m_logical_device)) {
+            return resource_error(
+                "failed to create the synchronization objects and command buffer of a "
+                "frame"
+            );
+        }
+    }
+
+    auto dependents = this->create_swapchain_dependents();
+    if (dependents.is_err()) { return dependents; }
+
+    m_viewport = vulkan::ViewportRect{
+        .x = 0,
+        .y = 0,
+        .width = m_swapchain.m_extent.width,
+        .height = m_swapchain.m_extent.height,
+    };
+    return ok<void, InitError>();
+}
+
+auto Vulkan_Renderer::create_swapchain_dependents() -> Result<void, InitError> {
+    m_framebuffers.clear();
 
     m_render_pass = m_logical_device->create_render_pass(m_swapchain.m_image_format);
+    if (m_render_pass.m_handle == VK_NULL_HANDLE) {
+        return resource_error("failed to create the render pass");
+    }
 
+    this->create_present_semaphores();
+    for (const vulkan::Semaphore& semaphore : m_present_semaphores) {
+        if (semaphore.m_handle == VK_NULL_HANDLE) {
+            return resource_error("failed to create a present semaphore");
+        }
+    }
+
+    const u32 swapchain_image_amount = static_cast<u32>(m_swapchain.m_images.size());
     m_framebuffers.resize(swapchain_image_amount);
     for (size_t i = 0; i < swapchain_image_amount; i++) {
         m_framebuffers[i] = m_logical_device->create_framebuffer(
@@ -153,23 +202,15 @@ Vulkan_Renderer::Vulkan_Renderer(RenderSystem& system, Window* window)
             m_render_pass,
             m_swapchain.m_extent
         );
+        if (m_framebuffers[i].m_handle == VK_NULL_HANDLE) {
+            return resource_error(
+                "failed to create the framebuffer of swapchain image " +
+                std::to_string(i)
+            );
+        }
     }
-
-    m_frames.resize(MAX_FRAMES_IN_FLIGHT);
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        m_frames[i].init(m_logical_device);
-    }
-    this->create_present_semaphores();
-
-    m_viewport = vulkan::ViewportRect{
-        .x = 0,
-        .y = 0,
-        .width = m_swapchain.m_extent.width,
-        .height = m_swapchain.m_extent.height,
-    };
+    return ok<void, InitError>();
 }
-
-auto Vulkan_Renderer::initialize() -> void {}
 
 auto Vulkan_Renderer::create_buffer(
     GPUBuffer::TYPE type,
@@ -293,25 +334,36 @@ auto Vulkan_Renderer::recreate_swapchain() -> void {
     m_logical_device->wait_until_idle();
 
     m_framebuffers.clear();
-    m_swapchain.recreate();
-    if (m_swapchain.m_handle == VK_NULL_HANDLE) {
+    // After a failed attempt the swapchain is deinitialized and has to be initialized
+    // from scratch.
+    auto result = m_swapchain.m_device == nullptr
+                      ? m_swapchain.init(*m_logical_device, m_window)
+                      : m_swapchain.recreate();
+    if (result.is_ok() && m_swapchain.m_handle == VK_NULL_HANDLE) {
         // No drawable area (minimized window). `render()` retries every frame.
         m_present_semaphores.clear();
+        m_swapchain_recreation_failed = false;
         return;
     }
-    m_render_pass = m_logical_device->create_render_pass(m_swapchain.m_image_format);
-    this->create_present_semaphores();
+    if (result.is_ok()) { result = this->create_swapchain_dependents(); }
 
-    const u32 swapchain_image_amount = static_cast<u32>(m_swapchain.m_images.size());
-    m_framebuffers.resize(swapchain_image_amount);
-    for (size_t i = 0; i < swapchain_image_amount; i++) {
-        m_framebuffers[i] = m_logical_device->create_framebuffer(
-            m_swapchain.m_image_views[i],
-            m_swapchain.m_depth_image_view,
-            m_render_pass,
-            m_swapchain.m_extent
-        );
+    if (result.is_err()) {
+        // Without a swapchain `render()` drops the frame and tries again with the next
+        // one. Report the first failure of a streak only.
+        if (!m_swapchain_recreation_failed) {
+            Logger::err(
+                "Failed to recreate the Vulkan swapchain, frames are dropped until it "
+                "succeeds: {}",
+                to_string(result.error())
+            );
+        }
+        m_swapchain_recreation_failed = true;
+        m_framebuffers.clear();
+        m_present_semaphores.clear();
+        m_swapchain.deinit();
+        return;
     }
+    m_swapchain_recreation_failed = false;
 }
 
 auto Vulkan_Renderer::set_clear_color(const RGBAColor& color) -> void {

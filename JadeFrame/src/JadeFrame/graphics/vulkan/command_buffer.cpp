@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "command_buffer.h"
 #include "JadeFrame/utils/logger.h"
 
@@ -391,7 +392,11 @@ CommandPool::CommandPool(const LogicalDevice& device, QueueFamily& queue_family)
 
     VkResult result =
         vkCreateCommandPool(device.m_handle, &info, Instance::allocator(), &m_handle);
-    JF_ASSERT(result == VK_SUCCESS, "");
+    if (result != VK_SUCCESS) {
+        // Reported by the caller, which checks the handle.
+        m_handle = VK_NULL_HANDLE;
+        return;
+    }
     {
         Logger::trace(
             "Created Command Pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)
@@ -433,7 +438,10 @@ auto CommandPool::allocate_buffers(u32 amount, CommandBuffer::LEVEL level) const
         .commandBufferCount = static_cast<u32>(handles.size()),
     };
     VkResult result = vkAllocateCommandBuffers(m_device->m_handle, &info, handles.data());
-    JF_ASSERT(result == VK_SUCCESS, "");
+    if (result != VK_SUCCESS) {
+        // The returned buffers then have null handles, which the caller has to check.
+        std::fill(handles.begin(), handles.end(), VkCommandBuffer{VK_NULL_HANDLE});
+    }
     {
         Logger::trace(
             "Allocated {} Command Buffers to {} from pool {}",

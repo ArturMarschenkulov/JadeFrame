@@ -16,6 +16,7 @@ public:
     Fence(Fence&&) noexcept;
     auto operator=(Fence&&) noexcept -> Fence&;
 
+    /// `m_handle` is `VK_NULL_HANDLE` if the fence could not be created.
     Fence(LogicalDevice& device, bool signaled);
 
     auto               wait_for_fences() -> void;
@@ -36,6 +37,7 @@ public:
     Semaphore(Semaphore&&) noexcept;
     auto operator=(Semaphore&&) noexcept -> Semaphore&;
 
+    /// `m_handle` is `VK_NULL_HANDLE` if the semaphore could not be created.
     explicit Semaphore(LogicalDevice& device);
 
     VkSemaphore    m_handle = VK_NULL_HANDLE;

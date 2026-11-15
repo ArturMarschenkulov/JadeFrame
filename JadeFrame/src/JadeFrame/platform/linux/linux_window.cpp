@@ -26,14 +26,14 @@ auto X11_NativeWindow::create(const Window::Desc& desc) -> X11_NativeWindow {
 X11_NativeWindow::X11_NativeWindow(const Window::Desc& desc) {
     const char* x11_display_env = std::getenv("DISPLAY");
     if (x11_display_env == nullptr) {
-        Logger::err("The DISPLAY environment variable is not set. X11 is unavailable.");
-        throw std::runtime_error("DISPLAY is not set");
+        throw std::runtime_error(
+            "the DISPLAY environment variable is not set, X11 is unavailable"
+        );
     }
 
     m_display = XOpenDisplay(nullptr);
     if (m_display == nullptr) {
-        Logger::err("Cannot connect to the X server.");
-        throw std::runtime_error("Cannot connect to the X server");
+        throw std::runtime_error("cannot connect to the X server");
     }
 
     int     screen = DefaultScreen(m_display);

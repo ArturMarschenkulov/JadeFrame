@@ -426,7 +426,11 @@ DescriptorPool::DescriptorPool(
 
     VkResult result =
         vkCreateDescriptorPool(device.m_handle, &info, Instance::allocator(), &m_handle);
-    if (result != VK_SUCCESS) { assert(false); }
+    if (result != VK_SUCCESS) {
+        // Reported by the caller, which checks the handle.
+        m_handle = VK_NULL_HANDLE;
+        return;
+    }
     {
         Logger::trace(
             "Created descriptor pool {} at {}", fmt::ptr(this), fmt::ptr(m_handle)

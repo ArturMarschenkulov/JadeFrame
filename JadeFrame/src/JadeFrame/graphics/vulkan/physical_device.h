@@ -51,8 +51,10 @@ public:
     [[nodiscard]] auto query_queue_families() const -> std::vector<QueueFamily>;
     [[nodiscard]] auto query_surface_capabilities(const Surface& surface
     ) const -> VkSurfaceCapabilitiesKHR;
+    /// Empty if the query fails or the surface supports no format.
     [[nodiscard]] auto query_surface_formats(const Surface& surface
     ) const -> std::vector<VkSurfaceFormatKHR>;
+    /// Empty if the query fails or the surface supports no present mode.
     [[nodiscard]] auto query_surface_present_modes(const Surface& surface
     ) const -> std::vector<VkPresentModeKHR>;
 
@@ -62,8 +64,6 @@ public:
     [[nodiscard]] auto limits() const -> VkPhysicalDeviceLimits;
 
     [[nodiscard]] auto find_depth_format() const -> VkFormat;
-
-    auto create_logical_device() -> LogicalDevice;
 
 public:
     VkPhysicalDevice m_handle;

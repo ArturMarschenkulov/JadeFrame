@@ -29,19 +29,26 @@ auto Surface::operator=(Surface&& other) noexcept -> Surface& {
     return *this;
 }
 
-Surface::Surface(VkInstance instance, Window* window_handle)
-    : m_window_handle(window_handle)
-    , m_instance(instance) {
-    Logger::trace("Surface::init start");
-
+auto Surface::create(VkInstance instance, Window* window_handle)
+    -> Result<Surface, InitError> {
 #if _WIN32
-    m_handle = win32::create_surface(instance, window_handle);
+    auto handle = win32::create_surface(instance, window_handle);
 #elif __linux__
-    m_handle = x11::create_surface(instance, window_handle);
+    auto handle = x11::create_surface(instance, window_handle);
 #else
-    assert(false && "not implemented yet");
+    auto handle = err<VkSurfaceKHR, InitError>(InitError{
+        InitErrorCode::BACKEND_UNSUPPORTED,
+        GRAPHICS_API::VULKAN,
+        "the Vulkan renderer cannot create a surface on this platform",
+    });
 #endif
-    Logger::trace("Surface::init end");
+    if (handle.is_err()) { return err<Surface, InitError>(std::move(handle).error()); }
+
+    Surface surface;
+    surface.m_handle = handle.value();
+    surface.m_window_handle = window_handle;
+    surface.m_instance = instance;
+    return ok<Surface, InitError>(std::move(surface));
 }
 
 Surface::~Surface() {

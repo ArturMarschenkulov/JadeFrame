@@ -113,14 +113,44 @@ Instance::Instance()
 
 Application::Application(const Desc& desc)
     : m_gui() {
+    m_init_result = this->init(desc);
+}
+
+auto Application::init(const Desc& desc) -> Result<void, InitError> {
+    Instance* i = Instance::get_singleton();
+    if (i == nullptr) {
+        return err<void, InitError>(InitError{
+            InitErrorCode::NOT_INITIALIZED,
+            desc.api,
+            "an Application needs a JadeFrame::Instance to exist",
+        });
+    }
+
+    // Checked first, so that an API this build has no renderer for does not open a
+    // window.
+    auto backend = RenderSystem::check_graphics_api(desc.api);
+    if (backend.is_err()) { return backend; }
+
     Logger::info("Creating Window....");
-    Instance*    i = Instance::get_singleton();
     Window::Desc win_desc = {
         .title = desc.title,
         .size = desc.size,
         .position = desc.position,
     };
-    Window*            requested_window = i->m_system_manager.request_window(win_desc);
+    // The platform layer reports a window it cannot create with an exception. This is
+    // the boundary at which it becomes an initialization error.
+    Window*     requested_window = nullptr;
+    std::string window_failure = "the platform returned no window";
+    try {
+        requested_window = i->m_system_manager.request_window(win_desc);
+    } catch (const std::exception& e) { window_failure = e.what(); }
+    if (requested_window == nullptr) {
+        return err<void, InitError>(InitError{
+            InitErrorCode::WINDOW_CREATION_FAILED,
+            desc.api,
+            "cannot create the window '" + desc.title + "': " + window_failure,
+        });
+    }
     const std::string& title = requested_window->get_title();
     std::string        new_title = title + " - " + to_string(desc.api);
     requested_window->set_title(new_title);
@@ -128,25 +158,51 @@ Application::Application(const Desc& desc)
     std::vector<GRAPHICS_API> apis = RenderSystem::list_available_graphics_apis();
     for (GRAPHICS_API& api : apis) { Logger::info("API: '{}'", to_string(api)); }
     Logger::info("Creating Renderer with API '{}'", to_string(desc.api));
-    m_render_system.init(desc.api, requested_window);
-    // m_render_system = m_system_manager.request_render_system(api, requested_window);
-    requested_window->add_event_callback([this](const WindowEvent& event) -> void {
-        if (event.type != WindowEvent::TYPE::RESIZE) { return; }
-        if (m_render_system.m_renderer == nullptr) { return; }
+    // On failure the render system has already released the renderer. The window stays
+    // with the system manager, which owns all windows until the `Instance` is
+    // destroyed; nothing of this application refers to it.
+    auto renderer = m_render_system.init(desc.api, requested_window);
+    if (renderer.is_err()) { return renderer; }
 
-        const WindowResizeEvent resize_event = event.resize_event;
-        m_render_system.m_renderer->set_viewport(
-            0, 0, resize_event.width, resize_event.height
-        );
-    });
+    // m_render_system = m_system_manager.request_render_system(api, requested_window);
+    m_resize_callback_id =
+        requested_window->add_event_callback([this](const WindowEvent& event) -> void {
+            if (event.type != WindowEvent::TYPE::RESIZE) { return; }
+            if (m_render_system.m_renderer == nullptr) { return; }
+
+            const WindowResizeEvent resize_event = event.resize_event;
+            m_render_system.m_renderer->set_viewport(
+                0, 0, resize_event.width, resize_event.height
+            );
+        });
 
     m_gui.init(requested_window, desc.api);
 
     m_windows[0] = requested_window;
     m_current_window_p = m_windows[0];
+    return ok<void, InitError>();
 }
 
-auto Application::start() -> void {
+Application::~Application() {
+    if (m_resize_callback_id == 0) { return; }
+    auto window = m_windows.find(0);
+    if (window != m_windows.end() && window->second != nullptr) {
+        window->second->remove_event_callback(m_resize_callback_id);
+    }
+}
+
+auto Application::start() -> Result<void, InitError> {
+    // Nothing below may run without a window and an initialized renderer.
+    if (m_init_result.is_err()) { return m_init_result; }
+    IRenderer* renderer = m_render_system.m_renderer.get();
+    if (renderer == nullptr || m_windows.find(0) == m_windows.end()) {
+        return err<void, InitError>(InitError{
+            InitErrorCode::NOT_INITIALIZED,
+            m_render_system.m_api,
+            "the application's renderer or window was removed after initialization",
+        });
+    }
+
     // Before `this->m_on_init_fn();` come all the default stuff
     // The client can later override those in `this->m_on_init_fn();`
 
@@ -159,7 +215,6 @@ auto Application::start() -> void {
     platform.set_target_FPS(60);
     this->m_on_init_fn();
 
-    IRenderer* renderer = m_render_system.m_renderer.get();
     f64        previous_frame_time = platform.get_time();
     while (m_is_running) {
         auto      frame_time_start = platform.get_time();
@@ -190,6 +245,7 @@ auto Application::start() -> void {
         const auto frame_work_time = frame_time_end - frame_time_start;
         platform.frame_control(frame_work_time);
     }
+    return ok<void, InitError>();
 }
 
 auto Application::poll_events() -> void {

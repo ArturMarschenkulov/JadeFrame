@@ -212,7 +212,7 @@ RenderPass::RenderPass(const LogicalDevice& device, VkFormat image_format)
 
     VkResult result =
         vkCreateRenderPass(device.m_handle, &info, Instance::allocator(), &m_handle);
-    JF_ASSERT(result == VK_SUCCESS, "");
+    if (result != VK_SUCCESS) { m_handle = VK_NULL_HANDLE; }
 }
 
 /*---------------------------
@@ -254,19 +254,41 @@ auto Swapchain::operator=(Swapchain&& other) noexcept -> Swapchain& {
     return *this;
 }
 
-auto Swapchain::init(LogicalDevice& device, Window* window) -> void {
+auto Swapchain::init(LogicalDevice& device, Window* window) -> Result<void, InitError> {
     this->deinit();
+
+    const auto fail = [this](std::string message) {
+        this->deinit();
+        return err<void, InitError>(InitError{
+            InitErrorCode::RESOURCE_CREATION_FAILED,
+            GRAPHICS_API::VULKAN,
+            std::move(message),
+        });
+    };
+
+    const PhysicalDevice* gpu = device.m_physical_device;
+    if (device.m_handle == VK_NULL_HANDLE || gpu == nullptr ||
+        gpu->m_instance_p == nullptr) {
+        return fail("a swapchain cannot be created without an initialized device");
+    }
 
     m_device = &device;
     m_window = window;
 
-    const PhysicalDevice* gpu = device.m_physical_device;
-
-    m_surface = gpu->m_instance_p->create_surface(window);
+    auto surface = gpu->m_instance_p->create_surface(window);
+    if (surface.is_err()) {
+        this->deinit();
+        return err<void, InitError>(std::move(surface).error());
+    }
+    m_surface = std::move(surface).value();
 
     auto formats = gpu->query_surface_formats(m_surface);
     auto present_modes = gpu->query_surface_present_modes(m_surface);
     auto caps = gpu->query_surface_capabilities(m_surface);
+    if (formats.empty()) { return fail("the surface does not report any format"); }
+    if (present_modes.empty()) {
+        return fail("the surface does not report any present mode");
+    }
 
     u32 image_count = caps.minImageCount + 1;
     if (caps.maxImageCount > 0 && image_count > caps.maxImageCount) {
@@ -283,15 +305,16 @@ auto Swapchain::init(LogicalDevice& device, Window* window) -> void {
         // created with an empty extent, so stay without one until `recreate()` finds a
         // drawable surface again.
         Logger::debug("no swapchain created, the surface has no drawable area");
-        return;
+        return ok<void, InitError>();
     }
     m_extent = extent;
 
     const QueueFamilyPointers& pointers = gpu->m_chosen_queue_family_pointers;
-    assert(pointers.m_graphics_family != nullptr && "graphics family is nullptr");
-    assert(pointers.m_present_family != nullptr && "present family is nullptr");
+    if (pointers.m_graphics_family == nullptr || pointers.m_present_family == nullptr) {
+        return fail("the physical device has no graphics or no present queue family");
+    }
     if (!pointers.m_present_family->supports_present(m_surface)) {
-        throw std::runtime_error("selected queue family does not support present");
+        return fail("the selected queue family cannot present to the surface");
     }
     m_present_queue = pointers.m_present_family->query_queues(device, 0);
 
@@ -332,15 +355,27 @@ auto Swapchain::init(LogicalDevice& device, Window* window) -> void {
     }
     VkResult result =
         vkCreateSwapchainKHR(device.m_handle, &info, Instance::allocator(), &m_handle);
-    JF_ASSERT(result == VK_SUCCESS, "");
+    if (result != VK_SUCCESS) {
+        m_handle = VK_NULL_HANDLE;
+        return fail(
+            "vkCreateSwapchainKHR failed for a " + std::to_string(extent.width) + "x" +
+            std::to_string(extent.height) + " swapchain: " + to_string(result)
+        );
+    }
 
+    // The implementation may create more images than were asked for.
     m_images = this->query_images();
-    assert(m_images.size() == image_count);
+    if (m_images.size() < image_count) {
+        return fail("failed to get the images of the swapchain");
+    }
     m_image_views.resize(m_images.size());
     for (u32 i = 0; i < m_images.size(); i++) {
         m_image_views[i] = device.create_image_view(
             m_images[i], surface_format.format, VK_IMAGE_ASPECT_COLOR_BIT
         );
+        if (m_image_views[i].m_handle == VK_NULL_HANDLE) {
+            return fail("failed to create a swapchain image view");
+        }
     }
 
     auto depth_format = VK_FORMAT_D32_SFLOAT;
@@ -351,8 +386,16 @@ auto Swapchain::init(LogicalDevice& device, Window* window) -> void {
         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
     );
 
+    if (m_depth_image.m_handle == VK_NULL_HANDLE) {
+        return fail("failed to create the depth buffer of the swapchain");
+    }
+
     m_depth_image_view =
         ImageView(device, m_depth_image, depth_format, VK_IMAGE_ASPECT_DEPTH_BIT);
+    if (m_depth_image_view.m_handle == VK_NULL_HANDLE) {
+        return fail("failed to create the depth buffer view of the swapchain");
+    }
+    return ok<void, InitError>();
 }
 
 auto Swapchain::query_images() const -> std::vector<Image> {
@@ -393,8 +436,8 @@ auto Swapchain::deinit() -> void {
     m_window = nullptr;
 }
 
-auto Swapchain::recreate() -> void {
-    if (m_device == nullptr || m_window == nullptr) { return; }
+auto Swapchain::recreate() -> Result<void, InitError> {
+    if (m_device == nullptr || m_window == nullptr) { return ok<void, InitError>(); }
 
     LogicalDevice* device = m_device;
     Window*        window = m_window;
@@ -404,12 +447,11 @@ auto Swapchain::recreate() -> void {
         const auto caps = device->m_physical_device->query_surface_capabilities(m_surface);
         const VkExtent2D extent =
             choose_swapchain_extent(caps, query_framebuffer_extent(m_surface));
-        if (!is_valid_swapchain_extent(extent)) { return; }
+        if (!is_valid_swapchain_extent(extent)) { return ok<void, InitError>(); }
     }
 
     device->wait_until_idle();
-    this->deinit();
-    this->init(*device, window);
+    return this->init(*device, window);
 }
 
 auto Swapchain::acquire_image_index(
@@ -518,7 +560,7 @@ Framebuffer::Framebuffer(
 
     VkResult result =
         vkCreateFramebuffer(device.m_handle, &info, Instance::allocator(), &m_handle);
-    JF_ASSERT(result == VK_SUCCESS, "");
+    if (result != VK_SUCCESS) { m_handle = VK_NULL_HANDLE; }
 }
 
 } // namespace vulkan

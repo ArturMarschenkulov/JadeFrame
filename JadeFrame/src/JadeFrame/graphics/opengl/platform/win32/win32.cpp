@@ -80,9 +80,8 @@ auto load_opengl_funcs(/*HDC device_context, HGLRC render_context*/) -> bool {
     // }
 
     // Load OpenGL functions with GLAD
-    i32 result = gladLoadGL();
-    if (result != 1) { Logger::err("gladLoadGL() failed.", ::GetLastError()); }
-    return true;
+    // The caller reports the failure, see `opengl::Context::init`.
+    return gladLoadGL() == 1;
 }
 
 auto init_render_context(HDC device_context) -> HGLRC {

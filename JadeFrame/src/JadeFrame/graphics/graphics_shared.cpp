@@ -313,33 +313,74 @@ auto MaterialHandle::release() -> void {
     RenderSystem
 ---------------------------*/
 
-RenderSystem::RenderSystem(GRAPHICS_API api, Window* window)
-    : m_api(api) {
-    m_renderer = create_renderer(api, *this, window);
-    if (m_renderer != nullptr) { m_renderer->initialize(); }
+auto to_string(const InitError& error) -> std::string {
+    std::string result = to_string(error.m_code);
+    if (error.m_api != GRAPHICS_API::UNDEFINED) {
+        result += " [";
+        result += to_string(error.m_api);
+        result += "]";
+    }
+    result += ": ";
+    result += error.m_message;
+    return result;
 }
 
-RenderSystem::~RenderSystem() {
-    if (m_renderer != nullptr) { m_renderer->wait_until_idle(); }
-}
+RenderSystem::~RenderSystem() { this->shutdown(); }
 
-auto RenderSystem::init(GRAPHICS_API api, Window* window) -> void {
+auto RenderSystem::shutdown() -> void {
+    // `m_renderer` is only ever set to a successfully initialized renderer, so it is
+    // valid to use here.
     if (m_renderer != nullptr) { m_renderer->wait_until_idle(); }
 
+    // The registered resources hold native handles that are released through the
+    // renderer's graphics context: they have to go first.
+    m_render_commands.clear();
     m_registered_meshes.clear();
     m_registered_materials.clear();
     m_registered_shaders.clear();
     m_registered_textures.clear();
-    m_render_commands.clear();
-    m_renderer.reset();
 
-    m_api = api;
-    m_renderer = create_renderer(api, *this, window);
-    if (m_renderer == nullptr) {
-        Logger::err("Unsupported graphics api: {}", to_string(api));
-        return;
+    m_renderer.reset();
+    m_api = GRAPHICS_API::UNDEFINED;
+}
+
+auto RenderSystem::check_graphics_api(GRAPHICS_API api) -> Result<void, InitError> {
+    return check_renderer_support(api);
+}
+
+auto RenderSystem::init(GRAPHICS_API api, Window* window) -> Result<void, InitError> {
+    this->shutdown();
+
+    auto renderer = create_renderer(api, *this, window);
+    if (renderer.is_err()) {
+        return err<void, InitError>(std::move(renderer).error());
     }
-    m_renderer->initialize();
+    return this->init_with_renderer(api, std::move(renderer).value());
+}
+
+auto RenderSystem::init_with_renderer(
+    GRAPHICS_API               api,
+    std::unique_ptr<IRenderer> renderer
+) -> Result<void, InitError> {
+    this->shutdown();
+
+    if (renderer == nullptr) {
+        return err<void, InitError>(InitError{
+            InitErrorCode::INVALID_ARGUMENT,
+            api,
+            "the render system cannot be initialized without a renderer",
+        });
+    }
+
+    // The renderer stays local until it is fully initialized, so a partially
+    // initialized one cannot be reached through the render system. If it fails, it
+    // goes out of scope here and its destructor releases what was created so far.
+    auto initialized = renderer->initialize();
+    if (initialized.is_err()) { return initialized; }
+
+    m_renderer = std::move(renderer);
+    m_api = api;
+    return ok<void, InitError>();
 }
 
 auto RenderSystem::register_texture(Image& image) -> TextureHandle* {

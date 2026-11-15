@@ -24,10 +24,17 @@ public:
     Instance(Instance&& other) = delete;
     auto operator=(Instance&& other) -> Instance& = delete;
 
-    auto init(Window* window_handle) -> void;
+    /// Creates the Vulkan instance, selects a physical device that can render and
+    /// present to `window_handle` and creates the logical device.
+    ///
+    /// On failure everything created up to the failing step is released again before
+    /// the call returns; the instance is then in its default constructed state.
+    [[nodiscard]] auto init(Window* window_handle) -> Result<void, InitError>;
+    /// Safe to call in any state, also repeatedly.
     auto deinit() -> void;
 
 private:
+    auto create(Window* window_handle) -> Result<void, InitError>;
     auto query_layers() -> std::vector<VkLayerProperties>;
     auto query_extensions() -> std::vector<VkExtensionProperties>;
     auto query_physical_devices() -> std::vector<vulkan::PhysicalDevice>;
@@ -37,7 +44,8 @@ private:
         -> bool;
 
 public:
-    auto create_surface(Window* window_handle) -> vulkan::Surface;
+    [[nodiscard]] auto create_surface(Window* window_handle) const
+        -> Result<vulkan::Surface, InitError>;
 
 public:
     VkInstance m_instance = VK_NULL_HANDLE;
@@ -76,7 +84,8 @@ struct Vulkan_Context {
     Vulkan_Context(Vulkan_Context&&) = delete;
     auto operator=(Vulkan_Context&&) -> Vulkan_Context& = delete;
 
-    Vulkan_Context(Window* window);
+    /// See `vulkan::Instance::init`.
+    [[nodiscard]] auto init(Window* window) -> Result<void, InitError>;
 
 public:
     vulkan::Instance m_instance;

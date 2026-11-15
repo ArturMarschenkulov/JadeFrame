@@ -84,13 +84,18 @@ protected:
 
         try {
             m_window = shared_window(api);
-            m_system = std::make_unique<RenderSystem>();
-            m_system->init(api, m_window);
         } catch (const std::exception& e) {
-            m_system.reset();
-            GTEST_SKIP() << "Cannot create a " << to_string(api) << " renderer: "
+            GTEST_SKIP() << "Cannot create a window for " << to_string(api) << ": "
                          << e.what();
         }
+        m_system = std::make_unique<RenderSystem>();
+        auto initialized = m_system->init(api, m_window);
+        if (initialized.is_err()) {
+            m_system.reset();
+            GTEST_SKIP() << "Cannot create a " << to_string(api) << " renderer: "
+                         << to_string(initialized.error());
+        }
+        ASSERT_TRUE(m_system->is_initialized());
         ASSERT_NE(m_system->m_renderer, nullptr);
         m_renderer = m_system->m_renderer.get();
         m_renderer->set_clear_color(RGBAColor::from_rgba(0.0F, 0.0F, 1.0F, 1.0F));

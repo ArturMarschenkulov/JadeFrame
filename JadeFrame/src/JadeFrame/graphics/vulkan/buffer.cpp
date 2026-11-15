@@ -417,7 +417,11 @@ Image::Image(
 
     result =
         vkCreateImage(device.m_handle, &image_info, Instance::allocator(), &m_handle);
-    JF_ASSERT(result == VK_SUCCESS, "");
+    if (result != VK_SUCCESS) {
+        // A failure leaves the image without a handle, which the caller has to check.
+        m_handle = VK_NULL_HANDLE;
+        return;
+    }
     {
         Logger::trace("Created image {} at {}", fmt::ptr(this), fmt::ptr(m_handle));
         Logger::trace(
@@ -444,10 +448,14 @@ Image::Image(
 
     result =
         vkAllocateMemory(device.m_handle, &alloc_info, Instance::allocator(), &m_memory);
-    JF_ASSERT(result == VK_SUCCESS, "");
+    if (result != VK_SUCCESS) {
+        m_memory = VK_NULL_HANDLE;
+        this->destroy();
+        return;
+    }
 
     result = vkBindImageMemory(device.m_handle, m_handle, m_memory, 0);
-    JF_ASSERT(result == VK_SUCCESS, "");
+    if (result != VK_SUCCESS) { this->destroy(); }
 }
 
 Image::Image(const LogicalDevice& device, VkImage image)
@@ -509,7 +517,8 @@ ImageView::ImageView(
     VkResult result = vkCreateImageView(
         device.m_handle, &create_info, Instance::allocator(), &m_handle
     );
-    if (result != VK_SUCCESS) { assert(false); }
+    // A failure leaves the view without a handle, which the caller has to check.
+    if (result != VK_SUCCESS) { m_handle = VK_NULL_HANDLE; }
 }
 
 ImageView::~ImageView() { this->destroy(); }

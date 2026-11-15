@@ -129,8 +129,20 @@ public:
 class Context {
 public:
     Context() = default;
-    explicit Context(Window* window);
     ~Context();
+    // The texture manager and the wrapper objects keep pointers to their context.
+    Context(const Context&) = delete;
+    auto operator=(const Context&) -> Context& = delete;
+    Context(Context&&) = delete;
+    auto operator=(Context&&) -> Context& = delete;
+
+    /// Creates the OpenGL context for `window`, makes it current and sets up the
+    /// default state. Must be called once, on a default constructed context.
+    ///
+    /// On failure no OpenGL function may be called through this context. Whatever was
+    /// created before the failing step (the platform's render context) is owned by
+    /// this object and released by its destructor.
+    [[nodiscard]] auto init(Window* window) -> Result<void, InitError>;
 
 public:
     SwapchainContext m_swapchain_context;

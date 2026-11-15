@@ -45,12 +45,22 @@ public:
     };
 
     Application() = default;
+    /// Creates the window, the renderer and the GUI. A constructor cannot return an
+    /// error, so the outcome is kept in `m_init_result` and returned by `start()`.
+    ///
+    /// The backend is exactly `desc.api`. If the window or the renderer cannot be
+    /// created the application stays uninitialized: it has no renderer
+    /// (`m_render_system.m_renderer` is null), no GUI and no entry in `m_windows`.
+    /// Destroying it is safe in either state.
     explicit Application(const Desc& desc);
     Application(const Application&) = delete;
     auto operator=(const Application&) -> Application& = delete;
     Application(Application&&) = delete;
     auto operator=(Application&&) -> Application& = delete;
-    ~Application() = default;
+    /// Safe after a failed, partial or successful initialization. Members are
+    /// destroyed in reverse order: the GUI first, the render system (which releases
+    /// the registered resources and then the renderer) after it.
+    ~Application();
 
 public:
     std::function<void()> m_on_init_fn = []() -> void {};
@@ -61,10 +71,22 @@ public:
     /// `IRenderer::take_screenshot` can be used.
     std::function<void()> m_on_frame_rendered_fn = []() -> void {};
 
-    auto start() -> void;
-    auto poll_events() -> void;
+    /// Runs the application until `m_is_running` is cleared.
+    ///
+    /// If initialization failed this returns that error (`m_init_result`) right away:
+    /// no callback is invoked, the main loop is not entered and the renderer is not
+    /// touched. A default constructed application fails with `NOT_INITIALIZED`.
+    [[nodiscard]] auto start() -> Result<void, InitError>;
+    auto               poll_events() -> void;
 
 public:
+    /// Outcome of the initialization done by the constructor.
+    Result<void, InitError> m_init_result = err<void, InitError>(InitError{
+        InitErrorCode::NOT_INITIALIZED,
+        GRAPHICS_API::UNDEFINED,
+        "the application was not created from an Application::Desc",
+    });
+
     bool m_is_running = true;
 
     // Window stuff
@@ -78,6 +100,12 @@ public:
 
     GUI m_gui;
     u64 m_tick = 0;
+
+private:
+    // The window outlives the application, so the callback has to be unregistered.
+    u64 m_resize_callback_id = 0;
+
+    auto init(const Desc& desc) -> Result<void, InitError>;
 };
 
 /*

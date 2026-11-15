@@ -165,55 +165,111 @@ auto Context::create_renderbuffer() -> opengl::Renderbuffer* {
     return &m_renderbuffers.back();
 }
 
-Context::Context(Window* window) {
+static auto context_error(std::string message) -> Result<void, InitError> {
+    return err<void, InitError>(InitError{
+        InitErrorCode::CONTEXT_CREATION_FAILED,
+        GRAPHICS_API::OPENGL,
+        std::move(message),
+    });
+}
+
+static auto gl_string(GLenum name) -> std::string {
+    const GLubyte* value = glGetString(name);
+    return value == nullptr ? std::string() : reinterpret_cast<char const*>(value);
+}
+
+auto Context::init(Window* window) -> Result<void, InitError> {
+    if (window == nullptr) {
+        return err<void, InitError>(InitError{
+            InitErrorCode::INVALID_ARGUMENT,
+            GRAPHICS_API::OPENGL,
+            "an OpenGL context cannot be created without a window",
+        });
+    }
 #ifdef _WIN32
     auto* win = dynamic_cast<const JadeFrame::win32::NativeWindow*>(
         window->m_native_window.get()
     );
+    if (win == nullptr) { return context_error("the window has no Win32 native window"); }
 
     // NOTE: This function might have to be moved, as in theory one could have
     // multiple contexts. NOTE: Think about removing the parameter from this function
     // then just using the global instance handle. loading wgl functions for render
     // context creation
-    opengl::win32::load_wgl_funcs(win->m_instance_handle);
+    if (!opengl::win32::load_wgl_funcs(win->m_instance_handle)) {
+        return context_error("failed to load the WGL functions");
+    }
 
     m_swapchain_context.m_device_context = ::GetDC(win->m_window_handle);
+    if (m_swapchain_context.m_device_context == nullptr) {
+        return context_error("failed to get the device context of the window");
+    }
+    // Stored right away: from here on the destructor releases the render context.
     m_swapchain_context.m_render_context =
         opengl::win32::init_render_context(m_swapchain_context.m_device_context);
-    wglMakeCurrent(
-        m_swapchain_context.m_device_context, m_swapchain_context.m_render_context
-    );
-    opengl::win32::load_opengl_funcs(/*m_device_context, render_context*/);
+    if (m_swapchain_context.m_render_context == nullptr) {
+        return context_error(
+            "failed to create the WGL render context (error " +
+            std::to_string(::GetLastError()) + ")"
+        );
+    }
+    if (::wglMakeCurrent(
+            m_swapchain_context.m_device_context, m_swapchain_context.m_render_context
+        ) == FALSE) {
+        return context_error(
+            "failed to make the OpenGL context current on the window (error " +
+            std::to_string(::GetLastError()) + ")"
+        );
+    }
+    if (!opengl::win32::load_opengl_funcs(/*m_device_context, render_context*/)) {
+        return context_error("failed to load the OpenGL functions");
+    }
 
 #elif __linux__
 
     // NOTE: This is weird. Somehwere the macro `linux` got defined.
     #undef linux
-    #if !defined(linux)
     auto* win = dynamic_cast<JadeFrame::X11_NativeWindow*>(window->m_native_window.get());
-    m_swapchain_context.m_render_context = opengl::linux::load_glx_funcs(win);
-    opengl::linux::load_opengl_funcs();
+    if (win == nullptr) { return context_error("the window has no X11 native window"); }
+
+    auto render_context = opengl::linux::create_glx_context(win);
+    if (render_context.is_err()) {
+        return err<void, InitError>(std::move(render_context).error());
+    }
+    // Stored right away: from here on the destructor releases the render context.
     m_swapchain_context.m_display = win->m_display;
     m_swapchain_context.m_window = win->m_window;
-    #endif
+    m_swapchain_context.m_render_context = render_context.value();
+
+    if (!opengl::linux::load_opengl_funcs()) {
+        return context_error("failed to load the OpenGL functions");
+    }
 #else
-    {
+    return err<void, InitError>(InitError{
+        InitErrorCode::BACKEND_UNSUPPORTED,
+        GRAPHICS_API::OPENGL,
+        "the OpenGL renderer does not support this platform",
+    });
 #endif
+
+    // The version is checked before anything else is done with the context: the rest
+    // of the renderer uses OpenGL 4.5 functions (direct state access) unconditionally.
+    glGetIntegerv(GL_MAJOR_VERSION, &major_version);
+    glGetIntegerv(GL_MINOR_VERSION, &minor_version);
+    if (major_version < 4 || (major_version == 4 && minor_version < 5)) {
+        return context_error(
+            "OpenGL 4.5 or higher is required, the context provides " +
+            std::to_string(major_version) + "." + std::to_string(minor_version)
+        );
+    }
 
     opengl::set_debug_mode(true);
     m_state.set_default();
 
-    vendor = reinterpret_cast<char const*>(glGetString(GL_VENDOR));
-    renderer = reinterpret_cast<char const*>(glGetString(GL_RENDERER));
-    version = reinterpret_cast<char const*>(glGetString(GL_VERSION));
-    shading_language_version =
-        reinterpret_cast<char const*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
-    glGetIntegerv(GL_MAJOR_VERSION, &major_version);
-    glGetIntegerv(GL_MINOR_VERSION, &minor_version);
-    if (major_version < 4 || (major_version == 4 && minor_version < 5)) {
-        Logger::err("OpenGL version 4.5 or higher is required!");
-        exit(EXIT_FAILURE);
-    }
+    vendor = gl_string(GL_VENDOR);
+    renderer = gl_string(GL_RENDERER);
+    version = gl_string(GL_VERSION);
+    shading_language_version = gl_string(GL_SHADING_LANGUAGE_VERSION);
 
     // At this point OpenGL is initialized
     m_texture_manager.m_context = this;
@@ -227,11 +283,9 @@ Context::Context(Window* window) {
     // gather extentions
     glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
     for (i32 i = 0; i < num_extensions; i++) {
-        extentenions.emplace_back(
-            reinterpret_cast<char const*>(
-                glGetStringi(GL_EXTENSIONS, static_cast<u32>(i))
-            )
-        );
+        const GLubyte* extension = glGetStringi(GL_EXTENSIONS, static_cast<u32>(i));
+        if (extension == nullptr) { continue; }
+        extentenions.emplace_back(reinterpret_cast<char const*>(extension));
     }
 
     glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &m_max_uniform_buffer_binding_points);
@@ -258,6 +312,14 @@ Context::Context(Window* window) {
     m_default_sampler->set_parameters(GL_TEXTURE_WRAP_T, GL_REPEAT);
     m_default_sampler->set_parameters(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     m_default_sampler->set_parameters(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    if (m_default_sampler->m_id == 0) {
+        return err<void, InitError>(InitError{
+            InitErrorCode::RESOURCE_CREATION_FAILED,
+            GRAPHICS_API::OPENGL,
+            "failed to create the default texture sampler",
+        });
+    }
+    return ok<void, InitError>();
 }
 
 Context::~Context() {

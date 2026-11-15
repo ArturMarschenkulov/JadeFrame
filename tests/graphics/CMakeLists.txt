@@ -54,7 +54,34 @@ jadeframe_add_project_test(test_renderer_backends
 )
 set_tests_properties(test_renderer_backends PROPERTIES LABELS "jadeframe;project;gpu")
 
-foreach(renderer_test test_renderer_contract test_renderer_backends)
+# Initialization failures and their cleanup: backend selection, the render system with
+# a fake renderer and application startup. Needs no display and no GPU.
+jadeframe_add_project_test(test_initialization
+    SOURCES
+        test_initialization.cpp
+    LIBRARIES
+        JadeFrame
+)
+
+# Successful initialization and shutdown of every compiled-in backend, through the
+# render system and through the application. Opens windows, so it skips itself where no
+# display or no usable graphics API is available.
+jadeframe_add_project_test(test_initialization_backends
+    SOURCES
+        test_initialization_backends.cpp
+    LIBRARIES
+        JadeFrame
+)
+set_tests_properties(test_initialization_backends PROPERTIES
+    LABELS "jadeframe;project;gpu"
+)
+
+foreach(renderer_test
+    test_renderer_contract
+    test_renderer_backends
+    test_initialization
+    test_initialization_backends
+)
     target_compile_definitions(${renderer_test} PRIVATE
         JADEFRAME_ENABLE_OPENGL=$<BOOL:${JADEFRAME_ENABLE_OPENGL}>
         JADEFRAME_ENABLE_VULKAN=$<BOOL:${JADEFRAME_ENABLE_VULKAN}>

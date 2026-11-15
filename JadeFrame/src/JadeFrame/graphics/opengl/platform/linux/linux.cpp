@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <string>
 
 using PFN_glXCreateContextAttribsARBProc =
     GLXContext (*)(Display*, GLXFBConfig, GLXContext, int, const int*);
@@ -23,9 +24,15 @@ namespace JadeFrame {
 namespace opengl {
 namespace linux {
 static auto get_proc(const char* name) -> void* {
-    void* proc = (void*)glXGetProcAddressARB((const GLubyte*)name);
-    if (proc == nullptr) { Logger::err("Failed to load function: {}", name); }
-    return proc;
+    return (void*)glXGetProcAddressARB((const GLubyte*)name);
+}
+
+static auto context_error(std::string message) -> Result<GLXContext, InitError> {
+    return err<GLXContext, InitError>(InitError{
+        InitErrorCode::CONTEXT_CREATION_FAILED,
+        GRAPHICS_API::OPENGL,
+        std::move(message),
+    });
 }
 
 static auto get_proc_address_glx_funcs() -> void {
@@ -82,8 +89,9 @@ static auto get_best_fb_config(Display* display, const std::vector<int>& visual_
     GLXFBConfig* fb_configs = glXChooseFBConfig(
         display, DefaultScreen(display), visual_attribs.data(), &fb_count
     );
-    if (fb_configs == nullptr) {
-        Logger::err("Failed to retrieve framebuffer configurations");
+    if (fb_configs == nullptr || fb_count <= 0) {
+        if (fb_configs != nullptr) { XFree(fb_configs); }
+        return nullptr;
     }
 
     int best_index = -1;
@@ -153,16 +161,19 @@ static auto map_to_array(const std::map<int, int>& map) -> std::vector<int> {
     return array;
 }
 
-auto load_glx_funcs(const X11_NativeWindow* window) -> GLXContext {
+auto create_glx_context(const X11_NativeWindow* window)
+    -> Result<GLXContext, InitError> {
+    if (window == nullptr || window->m_display == nullptr || window->m_window == 0) {
+        return context_error("the window has no X11 display connection or window");
+    }
+    ::Display* display = window->m_display;
 
     int glx_major = 0;
     int glx_minor = 0;
-    if (glXQueryVersion(window->m_display, &glx_major, &glx_minor) == 0) {
-        Logger::err("Failed to query GLX version.");
+    if (glXQueryVersion(display, &glx_major, &glx_minor) == 0) {
+        return context_error("GLX is not available on the X display");
     }
     Logger::info("GLX version: {}.{}", glx_major, glx_minor);
-
-    ::Display* display = window->m_display;
 
     std::map<int, int> visual_attrib_map = {
         { GLX_X_RENDERABLE,           True},
@@ -178,85 +189,65 @@ auto load_glx_funcs(const X11_NativeWindow* window) -> GLXContext {
         { GLX_STENCIL_SIZE,              8},
         { GLX_DOUBLEBUFFER,           True}
     };
-    // convert this to a vector
     std::vector<int> visual_attribs = map_to_array(visual_attrib_map);
 
     GLXFBConfig best_fbc = get_best_fb_config(display, visual_attribs);
+    if (best_fbc == nullptr) {
+        return context_error(
+            "no GLX framebuffer configuration with RGBA8, a 24 bit depth buffer, an 8 "
+            "bit stencil buffer and double buffering is available"
+        );
+    }
 
-    // XVisualInfo* vi = glXGetVisualFromFBConfig(display, best_fbc);
-    // Logger::debug("Chosen visual ID = {}", vi->visualid);
-    // XSetWindowAttributes swa;
-    // swa.colormap =
-    //     XCreateColormap(display, RootWindow(display, vi->screen), vi->visual,
-    //     AllocNone);
-    // swa.background_pixmap = None;
-    // swa.border_pixel = 0;
-    // swa.event_mask = ExposureMask | KeyPressMask | StructureNotifyMask;
-
-    // ::Window win = XCreateWindow(
-    //     display,
-    //     RootWindow(display, vi->screen),
-    //     0,
-    //     0,
-    //     1,
-    //     1,
-    //     0,
-    //     vi->depth,
-    //     InputOutput,
-    //     vi->visual,
-    //     CWBorderPixel | CWColormap | CWEventMask,
-    //     &swa
-    // );
-
-    // if (win == 0U) {
-    //     Logger::err("Failed to create window.");
-    //     std::exit(1);
-    // }
-    // XFree(vi);
-
-    const char* glxExts = glXQueryExtensionsString(display, DefaultScreen(display));
-    bool        is_glx_arb_create_context_supported =
-        is_extension_supported(glxExts, "GLX_ARB_create_context");
-    if (!is_glx_arb_create_context_supported) {
-        Logger::err("GLX_ARB_create_context not supported.");
-        std::exit(1);
+    const char* glx_extensions =
+        glXQueryExtensionsString(display, DefaultScreen(display));
+    if (glx_extensions == nullptr ||
+        !is_extension_supported(glx_extensions, "GLX_ARB_create_context")) {
+        return context_error("the GLX extension GLX_ARB_create_context is not supported");
     }
     get_proc_address_glx_funcs();
-    g_ctx_error_occurred = false;
-    (void)XSetErrorHandler(&ctx_error_handler);
+    if (gl.glXCreateContextAttribsARB == nullptr) {
+        return context_error("failed to load glXCreateContextAttribsARB");
+    }
 
-    auto create_context = [](Display* display, GLXFBConfig best_fbc) -> GLXContext {
-        const int          major_min = 4;
-        const int          minor_min = 6;
-        std::map<int, int> context_attribs_map = {
-            {GLX_CONTEXT_MAJOR_VERSION_ARB,major_min                                           },
-            {GLX_CONTEXT_MINOR_VERSION_ARB,                           minor_min},
-            {        GLX_CONTEXT_FLAGS_ARB,
-             GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | GLX_CONTEXT_DEBUG_BIT_ARB},
-            { GLX_CONTEXT_PROFILE_MASK_ARB,    GLX_CONTEXT_CORE_PROFILE_BIT_ARB},
-        };
-        std::vector<int> context_attribs = map_to_array(context_attribs_map);
-
-        GLXContext ctx = gl.glXCreateContextAttribsARB(
-            display, best_fbc, nullptr, True, context_attribs.data()
-        );
-        XSync(display, False);
-        if (ctx == nullptr) { Logger::err("Failed to create GL context."); }
-        return ctx;
+    const int          major_min = 4;
+    const int          minor_min = 6;
+    std::map<int, int> context_attribs_map = {
+        {GLX_CONTEXT_MAJOR_VERSION_ARB,                           major_min},
+        {GLX_CONTEXT_MINOR_VERSION_ARB,                           minor_min},
+        {        GLX_CONTEXT_FLAGS_ARB,
+         GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | GLX_CONTEXT_DEBUG_BIT_ARB},
+        { GLX_CONTEXT_PROFILE_MASK_ARB,    GLX_CONTEXT_CORE_PROFILE_BIT_ARB},
     };
+    std::vector<int> context_attribs = map_to_array(context_attribs_map);
 
-    GLXContext ctx = create_context(display, best_fbc);
-    glXMakeCurrent(display, window->m_window, ctx);
-    return ctx;
+    // A context request the server rejects is reported as an X protocol error, which
+    // would terminate the process with the default handler. Catch it for the duration
+    // of the request only.
+    g_ctx_error_occurred = false;
+    XErrorHandler previous_handler = XSetErrorHandler(&ctx_error_handler);
+    GLXContext    ctx = gl.glXCreateContextAttribsARB(
+        display, best_fbc, nullptr, True, context_attribs.data()
+    );
+    XSync(display, False);
+    (void)XSetErrorHandler(previous_handler);
 
-    // if (win != 0) { XDestroyWindow(display, win); }
+    if (ctx == nullptr || g_ctx_error_occurred) {
+        if (ctx != nullptr) { glXDestroyContext(display, ctx); }
+        return context_error(
+            "failed to create an OpenGL " + std::to_string(major_min) + "." +
+            std::to_string(minor_min) + " core profile context"
+        );
+    }
+
+    if (glXMakeCurrent(display, window->m_window, ctx) == 0) {
+        glXDestroyContext(display, ctx);
+        return context_error("failed to make the OpenGL context current on the window");
+    }
+    return ok<GLXContext, InitError>(ctx);
 }
 
-auto load_opengl_funcs() -> bool {
-    i32 result = gladLoadGL();
-    if (result != 1) { Logger::err("gladLoadGL() failed."); }
-    return true;
-}
+auto load_opengl_funcs() -> bool { return gladLoadGL() == 1; }
 
 } // namespace linux
 } // namespace opengl

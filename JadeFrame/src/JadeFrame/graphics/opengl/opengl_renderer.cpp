@@ -86,17 +86,38 @@ auto OpenGL_Renderer::set_viewport(u32 x, u32 y, u32 width, u32 height) -> void 
     m_context.m_state.set_viewport(x, y, width, height);
 }
 
+static auto resource_error(std::string message) -> Result<void, InitError> {
+    return err<void, InitError>(InitError{
+        InitErrorCode::RESOURCE_CREATION_FAILED,
+        GRAPHICS_API::OPENGL,
+        std::move(message),
+    });
+}
+
 OpenGL_Renderer::OpenGL_Renderer(RenderSystem& system, Window* window)
-    : m_context(window)
-    , m_system(&system)
+    : m_system(&system)
     , m_window(window) {}
 
-auto OpenGL_Renderer::initialize() -> void {
+auto OpenGL_Renderer::initialize() -> Result<void, InitError> {
+    auto context = m_context.init(m_window);
+    if (context.is_err()) { return context; }
+
 #if JF_OPENGL_FB
-    m_render_target.init(
-        &m_context,
-        [this](const ShaderHandle::Desc& desc) { return m_system->register_shader(desc); }
-    );
+    auto shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
+    if (shading_code.is_err()) {
+        return resource_error(
+            std::string("cannot load the render target shader (") +
+            to_string(shading_code.error().m_code) +
+            "): " + shading_code.error().m_message
+        );
+    }
+    NativeHandle shader = this->create_shader(shading_code.value());
+    if (shader == nullptr) {
+        return resource_error("cannot create the render target shader");
+    }
+    return m_render_target.init(&m_context, std::move(shader));
+#else
+    return ok<void, InitError>();
 #endif
 }
 
@@ -425,11 +446,10 @@ auto OpenGL_Renderer::RenderTarget::resize(v2u32 size) -> void {
     }
 }
 
-auto OpenGL_Renderer::RenderTarget::init(
-    opengl::Context* context,
-    const std::function<ShaderHandle*(const ShaderHandle::Desc&)>& register_shader
-) -> void {
+auto OpenGL_Renderer::RenderTarget::init(opengl::Context* context, NativeHandle shader)
+    -> Result<void, InitError> {
     m_context = context;
+    m_shader = std::move(shader);
     {
         // TODO: the use of `GL_RGB8`, `GL_RGB` and `GL_UNSIGNED_BYTE` is hardcoded. Find
         // a way to make it more flexible.
@@ -452,12 +472,11 @@ auto OpenGL_Renderer::RenderTarget::init(
 
         const GLenum res = m_framebuffer->check_status();
         if (res != GL_FRAMEBUFFER_COMPLETE) {
-            Logger::err(
-                "OpenGL_Renderer::OpenGL_Renderer: Framebuffer is not complete, status: "
-                "{}",
+            return resource_error(
+                "the " + std::to_string(size.x) + "x" + std::to_string(size.y) +
+                " render target framebuffer is not complete, status: " +
                 framebuffer_res_to_str(res)
             );
-            // assert(false);
         }
     }
 
@@ -473,39 +492,26 @@ auto OpenGL_Renderer::RenderTarget::init(
         vdf_desc
     );
     if (mesh_result.is_err()) {
-        Logger::err(
-            "Failed to create the OpenGL render-target mesh: {}",
-            mesh_result.error().m_message
+        return resource_error(
+            "failed to create the render target mesh: " + mesh_result.error().m_message
         );
-        return;
     }
     m_mesh = std::move(mesh_result).value();
 
     auto data_result = convert_into_data(m_mesh, true);
     if (data_result.is_err()) {
-        Logger::err(
-            "Failed to convert the OpenGL render-target mesh: {}",
-            data_result.error().m_message
+        return resource_error(
+            "failed to convert the render target mesh: " + data_result.error().m_message
         );
-        return;
     }
     std::vector<f32> data = std::move(data_result).value();
     u32              size = static_cast<u32>(data.size() * sizeof(f32));
     m_vertex_buffer =
         context->create_buffer(opengl::Buffer::TYPE::VERTEX, data.data(), size);
-    // m_index_buffer = context->create_buffer(opengl::Buffer::TYPE::INDEX, nullptr, 0);
-    ShaderHandle::Desc shader_handle_desc;
-    auto shading_code = GLSLCodeLoader::get_by_name("framebuffer_test");
-    if (shading_code.is_err()) {
-        Logger::err(
-            "Cannot load the OpenGL render target shader ({}): {}",
-            to_string(shading_code.error().m_code),
-            shading_code.error().m_message
-        );
-        return;
+    if (m_vertex_buffer == nullptr || m_vertex_buffer->m_id == 0) {
+        return resource_error("failed to create the render target vertex buffer");
     }
-    shader_handle_desc.shading_code = std::move(shading_code).value();
-    m_shader = register_shader(shader_handle_desc);
+    return ok<void, InitError>();
 }
 
 auto OpenGL_Renderer::RenderTarget::render(RenderSystem* /*system*/) -> void {
@@ -519,8 +525,7 @@ auto OpenGL_Renderer::RenderTarget::render(RenderSystem* /*system*/) -> void {
         return;
     }
 
-    ShaderHandle& sh_ = *m_shader;
-    auto*         sh = static_cast<opengl::Shader*>(sh_.m_handle.get());
+    auto* sh = static_cast<opengl::Shader*>(m_shader.get());
     m_context->bind_shader(*sh);
     m_context->m_texture_manager.bind_texture_and_sampler_to_unit(
         *m_texture, m_sampler, 0

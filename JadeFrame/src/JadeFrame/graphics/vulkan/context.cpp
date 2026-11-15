@@ -76,7 +76,6 @@ static auto choose_physical_device(std::span<vulkan::PhysicalDevice> devices)
     for (u32 i = 0; i < devices.size(); i++) {
         if (is_device_suitable(devices[i])) { return &devices[i]; }
     }
-    assert(false && "No suitable Vulkan physical device");
     return nullptr;
 }
 
@@ -86,7 +85,6 @@ auto Instance::query_layers() -> std::vector<VkLayerProperties> {
     std::vector<VkLayerProperties> available_layers;
     available_layers.resize(layer_count);
     vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
-    if (!this->check_validation_layer_support(available_layers)) { assert(false); }
     return available_layers;
 }
 
@@ -95,12 +93,15 @@ auto Instance::query_extensions() -> std::vector<VkExtensionProperties> {
 
     u32 extension_count = 0;
     result = vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
-    if (result != VK_SUCCESS) { assert(false); }
+    if (result != VK_SUCCESS) { return {}; }
 
     std::vector<VkExtensionProperties> extensions;
     extensions.resize(extension_count);
-    vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data());
-    if (result != VK_SUCCESS) { assert(false); }
+    result = vkEnumerateInstanceExtensionProperties(
+        nullptr, &extension_count, extensions.data()
+    );
+    if (result != VK_SUCCESS) { return {}; }
+    extensions.resize(extension_count);
 
     return extensions;
 }
@@ -108,11 +109,12 @@ auto Instance::query_extensions() -> std::vector<VkExtensionProperties> {
 auto Instance::query_physical_devices() -> std::vector<vulkan::PhysicalDevice> {
     u32 device_count = 0;
     vkEnumeratePhysicalDevices(m_instance, &device_count, nullptr);
-    if (device_count == 0) { assert(false); }
+    if (device_count == 0) { return {}; }
 
     std::vector<VkPhysicalDevice> phys_devices;
     phys_devices.resize(device_count);
     vkEnumeratePhysicalDevices(m_instance, &device_count, phys_devices.data());
+    phys_devices.resize(device_count);
 
     std::vector<vulkan::PhysicalDevice> physical_devices;
     physical_devices.resize(device_count);
@@ -134,11 +136,31 @@ auto Instance::setup_debug() -> void {
     if (result != VK_SUCCESS) { assert(false); }
 }
 
-auto Instance::init(Window* window_handle) -> void {
-    Logger::trace("Instance::init start");
+static auto context_error(std::string message) -> Result<void, InitError> {
+    return err<void, InitError>(InitError{
+        InitErrorCode::CONTEXT_CREATION_FAILED,
+        GRAPHICS_API::VULKAN,
+        std::move(message),
+    });
+}
 
+auto Instance::init(Window* window_handle) -> Result<void, InitError> {
+    Logger::trace("Instance::init start");
+    auto result = this->create(window_handle);
+    // `create` has returned, so the surface it used for the device selection is gone
+    // and the instance can be destroyed.
+    if (result.is_err()) { this->deinit(); }
+    Logger::trace("Instance::init end");
+    return result;
+}
+
+auto Instance::create(Window* window_handle) -> Result<void, InitError> {
     if (window_handle == nullptr) {
-        throw std::runtime_error("cannot initialize Vulkan without a window");
+        return err<void, InitError>(InitError{
+            InitErrorCode::INVALID_ARGUMENT,
+            GRAPHICS_API::VULKAN,
+            "Vulkan cannot be initialized without a window",
+        });
     }
 
     VkResult result;
@@ -156,7 +178,10 @@ auto Instance::init(Window* window_handle) -> void {
     // layers
     m_layers = this->query_layers();
     if (m_enable_validation_layers && !this->check_validation_layer_support(m_layers)) {
-        throw std::runtime_error("validation layers requested, but not available!");
+        return context_error(
+            "this build requests the Vulkan validation layer "
+            "VK_LAYER_KHRONOS_validation, which is not installed"
+        );
     }
     std::vector<const char*> layer_names;
     layer_names.resize(m_layers.size());
@@ -204,7 +229,10 @@ auto Instance::init(Window* window_handle) -> void {
     }
 
     result = vkCreateInstance(&create_info, Instance::allocator(), &m_instance);
-    if (result != VK_SUCCESS) { assert(false); }
+    if (result != VK_SUCCESS) {
+        m_instance = VK_NULL_HANDLE;
+        return context_error(std::string("vkCreateInstance failed: ") + to_string(result));
+    }
 
     {
         Logger::info(
@@ -218,26 +246,43 @@ auto Instance::init(Window* window_handle) -> void {
         result = vkCreateDebugUtilsMessengerEXT_(
             m_instance, &info, Instance::allocator(), &m_debug_messenger
         );
-        if (result != VK_SUCCESS) { assert(false); }
+        if (result != VK_SUCCESS) {
+            m_debug_messenger = VK_NULL_HANDLE;
+            return context_error(
+                std::string("failed to create the Vulkan debug messenger: ") +
+                to_string(result)
+            );
+        }
     }
 
     // Present support is a property of a queue family and a surface. Create the
     // surface before selecting a physical device so the selected present family
     // can be included in vkCreateDevice's queue-create-info list.
-    vulkan::Surface selection_surface = this->create_surface(window_handle);
+    auto selection_surface = this->create_surface(window_handle);
+    if (selection_surface.is_err()) {
+        return err<void, InitError>(std::move(selection_surface).error());
+    }
 
     Logger::debug("Querying Physical Devices");
-    Logger::debug("There are {} physical devices", m_physical_devices.size());
     m_physical_devices = this->query_physical_devices();
+    Logger::debug("There are {} physical devices", m_physical_devices.size());
+    if (m_physical_devices.empty()) {
+        return context_error("no Vulkan physical device was found");
+    }
     for (u32 i = 0; i < m_physical_devices.size(); i++) {
-        m_physical_devices[i].init(*this, selection_surface);
+        m_physical_devices[i].init(*this, selection_surface.value());
     }
 
     m_physical_device = choose_physical_device(m_physical_devices);
+    if (m_physical_device == nullptr) {
+        return context_error(
+            "none of the " + std::to_string(m_physical_devices.size()) +
+            " Vulkan physical devices provides graphics, present and transfer queues "
+            "for the window together with the VK_KHR_swapchain extension"
+        );
+    }
 
-    m_logical_device.init(*this, *m_physical_device);
-    // m_logical_device = m_physical_device.create_logical_device();
-    Logger::trace("Instance::init end");
+    return m_logical_device.init(*this, *m_physical_device);
 }
 
 auto Instance::deinit() -> void {
@@ -254,17 +299,18 @@ auto Instance::deinit() -> void {
     vkDestroyInstance(m_instance, Instance::allocator());
     m_instance = VK_NULL_HANDLE;
     m_physical_device = nullptr;
+    m_physical_devices.clear();
 }
 
-auto Instance::create_surface(Window* window_handle) -> vulkan::Surface {
-    vulkan::Surface surface(m_instance, window_handle);
-    return surface;
+auto Instance::create_surface(Window* window_handle) const
+    -> Result<vulkan::Surface, InitError> {
+    return vulkan::Surface::create(m_instance, window_handle);
 }
 } // namespace vulkan
 
-Vulkan_Context::Vulkan_Context(Window* window)
-    : m_window_handle(window) {
-    m_instance.init(window);
+auto Vulkan_Context::init(Window* window) -> Result<void, InitError> {
+    m_window_handle = window;
+    return m_instance.init(window);
 }
 
 Vulkan_Context::~Vulkan_Context() = default;
