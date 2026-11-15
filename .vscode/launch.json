@@ -27,6 +27,14 @@
             "program": "${workspaceFolder}/build/examples/rotating_primitive/Example_rotating_primitive",
             "args": [],
             "cwd": "${workspaceFolder}/build/examples/rotating_primitive"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug Moving Quad",
+            "program": "${workspaceFolder}/build/examples/moving_quad/Example_moving_quad",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/examples/moving_quad"
         }
     ]
 }
