@@ -218,6 +218,7 @@ static auto process_event(
                 break;
             }
             BUTTON      button = translate_button(x11_button);
+            if (!is_valid(button)) { break; } // unsupported button
             INPUT_STATE button_event_type = from_x11_button_to_input_state(event->type);
 
             WindowEvent we = WindowEvent::make_button_event(button, button_event_type);
@@ -246,6 +247,7 @@ static auto process_event(
             }
 
             KEY         key = translate_key(keysym);
+            if (!is_valid(key)) { break; } // unsupported key
             INPUT_STATE keyevent_type = from_x11_key_to_input_state(event->type);
 
             WindowEvent we = WindowEvent::make_key_event(key, keyevent_type);

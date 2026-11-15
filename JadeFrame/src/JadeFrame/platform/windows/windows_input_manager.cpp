@@ -12,7 +12,7 @@ namespace win32 {
 */
 
 auto translate_button_code(const u64 button_code) -> BUTTON {
-    BUTTON result;
+    BUTTON result = BUTTON::MAX;
     switch (button_code) {
         case VK_LBUTTON: result = BUTTON::LEFT; break;
         case VK_RBUTTON: result = BUTTON::RIGHT; break;
@@ -24,7 +24,7 @@ auto translate_button_code(const u64 button_code) -> BUTTON {
 }
 
 auto translate_key_code(const u64 key_code) -> KEY {
-    KEY result;
+    KEY result = KEY::MAX;
     switch (key_code) {
         case VK_SPACE: result = KEY::SPACE; break;
         case VK_ESCAPE: result = KEY::ESCAPE; break;
@@ -121,7 +121,8 @@ auto translate_key_code(const u64 key_code) -> KEY {
         case 88: result = KEY::X; break;
         case 89: result = KEY::Y; break;
         case 90: result = KEY::Z; break;
-        default: Logger::err("Unknown key code: {}", key_code); assert(false);
+        // Key codes come from the OS, an unknown one is not a programming error.
+        default: Logger::warn("Unsupported key code: {}", key_code); break;
     }
     return result;
 }
@@ -207,6 +208,7 @@ auto key_callback(const EventMessage& wm,  WindowEventQueue* event_queue) -> voi
             break;
     }
     KEY jf_keycode = translate_key_code(virtual_key);
+    if (!is_valid(jf_keycode)) { return; } // unsupported key
 
     KeyEvent key_event = {
         .type = static_cast<INPUT_STATE>(!is_released),

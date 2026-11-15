@@ -9,6 +9,7 @@ class NativeWindow;
 
 class InputState {
 public:
+    // NOTE: All queries return false for an invalid key or button (see `is_valid`).
     [[nodiscard]] auto is_key_down(const KEY key) const -> bool;
     [[nodiscard]] auto is_key_up(const KEY key) const -> bool;
     [[nodiscard]] auto is_key_pressed(const KEY key) const -> bool;
@@ -32,6 +33,10 @@ public:
 
 public:
     auto update() -> void;
+
+    /// Applies a window event to the input state. Returns false, leaving the state
+    /// untouched, if the event carries an invalid key or button (see `is_valid`).
+    auto process_event(const WindowEvent& event) -> bool;
 };
 
 class Window {

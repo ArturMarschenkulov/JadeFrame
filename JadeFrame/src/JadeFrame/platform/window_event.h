@@ -124,6 +124,17 @@ enum class KEY : u8 {
     MAX
 };
 
+// KEY::MAX and BUTTON::MAX denote the number of enumerators and double as the
+// "unknown/unsupported" value. Neither they nor any other out-of-range value (e.g. one
+// produced by a cast) identify a real input, so they must never index input state.
+[[nodiscard]] constexpr auto is_valid(const KEY key) -> bool {
+    return static_cast<u32>(key) < static_cast<u32>(KEY::MAX);
+}
+
+[[nodiscard]] constexpr auto is_valid(const BUTTON button) -> bool {
+    return static_cast<u32>(button) < static_cast<u32>(BUTTON::MAX);
+}
+
 struct KeyEvent {
     INPUT_STATE type;
     KEY         key;

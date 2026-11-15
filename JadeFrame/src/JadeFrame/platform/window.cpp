@@ -67,21 +67,14 @@ auto Window::handle_events(bool& is_running) -> void {
 
     while (!m_queue.is_empty()) {
         WindowEvent event = m_queue.pop();
+        // Events with an unknown key or button are dropped here, so neither the input
+        // state nor the event callbacks ever see them.
+        if (!m_input_state.process_event(event)) { continue; }
+
         switch (event.type) {
-            case WindowEvent::TYPE::KEY: {
-                KeyEvent key_event = event.key_event;
-                u32      key_index = static_cast<u32>(key_event.key);
-                m_input_state.m_curr_key_state[key_index] = key_event.type;
-            } break;
-            case WindowEvent::TYPE::BUTTON: {
-                ButtonEvent button_event = event.button_event;
-                u32         button_index = static_cast<u32>(button_event.button);
-                m_input_state.m_curr_button_state[button_index] = button_event.type;
-            } break;
-            case WindowEvent::TYPE::MOUSE: {
-                MouseEvent mouse_event = event.mouse_event;
-                m_input_state.m_mouse_pos = v2::create(mouse_event.m_x, mouse_event.m_y);
-            } break;
+            case WindowEvent::TYPE::KEY:
+            case WindowEvent::TYPE::BUTTON:
+            case WindowEvent::TYPE::MOUSE: break;
             case WindowEvent::TYPE::RESIZE: {
                 const WindowResizeEvent resize_event = event.resize_event;
                 (void)resize_event;
@@ -108,6 +101,7 @@ auto Window::get_title() const -> std::string { return m_native_window->get_titl
 auto Window::get_size() const -> const v2u32& { return m_native_window->get_size(); }
 
 auto InputState::is_key_down(const KEY key) const -> bool {
+    if (!is_valid(key)) { return false; }
     u32         key_0 = static_cast<u32>(key);
     INPUT_STATE curr = m_curr_key_state[key_0];
 
@@ -116,6 +110,7 @@ auto InputState::is_key_down(const KEY key) const -> bool {
 }
 
 auto InputState::is_key_up(const KEY key) const -> bool {
+    if (!is_valid(key)) { return false; }
     u32         key_0 = static_cast<u32>(key);
     INPUT_STATE curr = m_curr_key_state[key_0];
 
@@ -124,6 +119,7 @@ auto InputState::is_key_up(const KEY key) const -> bool {
 }
 
 auto InputState::is_key_pressed(const KEY key) const -> bool {
+    if (!is_valid(key)) { return false; }
     u32         key_0 = static_cast<u32>(key);
     INPUT_STATE curr = m_curr_key_state[key_0];
     INPUT_STATE prev = m_prev_key_state[key_0];
@@ -134,6 +130,7 @@ auto InputState::is_key_pressed(const KEY key) const -> bool {
 }
 
 auto InputState::is_key_released(const KEY key) const -> bool {
+    if (!is_valid(key)) { return false; }
     u32         key_0 = static_cast<u32>(key);
     INPUT_STATE curr = m_curr_key_state[key_0];
     INPUT_STATE prev = m_prev_key_state[key_0];
@@ -144,7 +141,8 @@ auto InputState::is_key_released(const KEY key) const -> bool {
 }
 
 auto InputState::is_button_down(const BUTTON button) const -> bool {
-    i32 button_0 = static_cast<i32>(button);
+    if (!is_valid(button)) { return false; }
+    u32 button_0 = static_cast<u32>(button);
 
     INPUT_STATE curr = m_curr_button_state[button_0];
 
@@ -153,7 +151,8 @@ auto InputState::is_button_down(const BUTTON button) const -> bool {
 }
 
 auto InputState::is_button_up(const BUTTON button) const -> bool {
-    i32 button_0 = static_cast<i32>(button);
+    if (!is_valid(button)) { return false; }
+    u32 button_0 = static_cast<u32>(button);
 
     INPUT_STATE curr = m_curr_button_state[button_0];
 
@@ -162,7 +161,8 @@ auto InputState::is_button_up(const BUTTON button) const -> bool {
 }
 
 auto InputState::is_button_pressed(const BUTTON button) const -> bool {
-    i32 button_0 = static_cast<i32>(button);
+    if (!is_valid(button)) { return false; }
+    u32 button_0 = static_cast<u32>(button);
 
     INPUT_STATE curr = m_curr_button_state[button_0];
     INPUT_STATE prev = m_prev_button_state[button_0];
@@ -173,7 +173,8 @@ auto InputState::is_button_pressed(const BUTTON button) const -> bool {
 }
 
 auto InputState::is_button_released(const BUTTON button) const -> bool {
-    i32 button_0 = static_cast<i32>(button);
+    if (!is_valid(button)) { return false; }
+    u32 button_0 = static_cast<u32>(button);
 
     INPUT_STATE curr = m_curr_button_state[button_0];
     INPUT_STATE prev = m_prev_button_state[button_0];
@@ -184,6 +185,29 @@ auto InputState::is_button_released(const BUTTON button) const -> bool {
 }
 
 auto InputState::get_mouse_position() const -> v2 { return m_mouse_pos; }
+
+auto InputState::process_event(const WindowEvent& event) -> bool {
+    switch (event.type) {
+        case WindowEvent::TYPE::KEY: {
+            const KeyEvent key_event = event.key_event;
+            if (!is_valid(key_event.key)) { return false; }
+            m_curr_key_state[static_cast<u32>(key_event.key)] = key_event.type;
+        } break;
+        case WindowEvent::TYPE::BUTTON: {
+            const ButtonEvent button_event = event.button_event;
+            if (!is_valid(button_event.button)) { return false; }
+            m_curr_button_state[static_cast<u32>(button_event.button)] =
+                button_event.type;
+        } break;
+        case WindowEvent::TYPE::MOUSE: {
+            const MouseEvent mouse_event = event.mouse_event;
+            m_mouse_pos = v2::create(mouse_event.m_x, mouse_event.m_y);
+        } break;
+        case WindowEvent::TYPE::RESIZE:
+        case WindowEvent::TYPE::CLOSE: break;
+    }
+    return true;
+}
 
 auto InputState::update() -> void {
     m_prev_key_state = m_curr_key_state;
