@@ -10,6 +10,9 @@
     #include "JadeFrame/platform/linux/linux_window.h"
 #endif
 
+#include <algorithm>
+#include <limits>
+
 #include "JadeFrame/utils/assert.h"
 #include "logical_device.h"
 #include "context.h"
@@ -55,51 +58,50 @@ choose_present_mode(const std::span<VkPresentModeKHR>& available_surface_formats
     return {};
 }
 
-static auto choose_extent(
-    const VkSurfaceCapabilitiesKHR& available_capabilities,
-    const Surface&                  surface
-) -> VkExtent2D {
-    // vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_handle, surface.m_surface,
-    // &m_surface_capabilities);
-    if (false /*m_surface_capabilities.currentExtent.width != UINT32_MAX*/) {
-        return available_capabilities.currentExtent;
-    } else {
+// The size of the window's drawable area in physical pixels, asked from the window
+// system at the time of the call. Only needed where the surface does not dictate the
+// extent, see `choose_swapchain_extent`.
+static auto query_framebuffer_extent(const Surface& surface) -> VkExtent2D {
 #ifdef _WIN32
-        RECT  area;
-        auto& native_window = surface.m_window_handle->m_native_window;
-        auto  win32_native_window =
-            dynamic_cast<win32::NativeWindow*>(native_window.get());
-        auto       window_handle = win32_native_window->m_window_handle;
-        const HWND wh = window_handle;
-        GetClientRect(wh, &area);
-        i32 width = area.right;
-        i32 height = area.bottom;
-        // glfwGetFramebufferSize(window, &width, &height);
-
-        VkExtent2D actual_extent = {static_cast<u32>(width), static_cast<u32>(height)};
-
-        // actual_extent.width = std::max(m_surface_capabilities.minImageExtent.width,
-        // std::min(m_surface_capabilities.maxImageExtent.width, actual_extent.width));
-        // actual_extent.height = std::max(m_surface_capabilities.minImageExtent.height,
-        // std::min(m_surface_capabilities.maxImageExtent.height, actual_extent.height));
-
-        // actual_extent.width = std::clamp(actual_extent.width,
-        // m_surface_capabilities.minImageExtent.width,
-        // m_surface_capabilities.maxImageExtent.width); actual_extent.height =
-        // std::clamp(actual_extent.height, m_surface_capabilities.minImageExtent.height,
-        // m_surface_capabilities.maxImageExtent.height);
-
-        return actual_extent;
+    RECT  area = {};
+    auto& native_window = surface.m_window_handle->m_native_window;
+    auto* win32_native_window = dynamic_cast<win32::NativeWindow*>(native_window.get());
+    GetClientRect(win32_native_window->m_window_handle, &area);
+    return VkExtent2D{
+        static_cast<u32>(std::max<LONG>(area.right - area.left, 0)),
+        static_cast<u32>(std::max<LONG>(area.bottom - area.top, 0))
+    };
 #elif __linux__
-        const auto* win = static_cast<const JadeFrame::X11_NativeWindow*>(
-            surface.m_window_handle->m_native_window.get()
-        );
-        return VkExtent2D{win->m_size.x, win->m_size.y};
+    const auto* win = static_cast<const JadeFrame::X11_NativeWindow*>(
+        surface.m_window_handle->m_native_window.get()
+    );
+    return VkExtent2D{win->m_size.x, win->m_size.y};
 #else
-        assert(false && "not implemented yet");
-        return {};
+    assert(false && "not implemented yet");
+    return {};
 #endif
+}
+
+auto choose_swapchain_extent(
+    const VkSurfaceCapabilitiesKHR& capabilities,
+    VkExtent2D                      framebuffer_extent
+) -> VkExtent2D {
+    // Only the width is checked, like the specification words it: the special value
+    // is (0xFFFFFFFF, 0xFFFFFFFF).
+    if (capabilities.currentExtent.width != std::numeric_limits<u32>::max()) {
+        return capabilities.currentExtent;
     }
+    const VkExtent2D& min = capabilities.minImageExtent;
+    const VkExtent2D& max = capabilities.maxImageExtent;
+    // Not std::clamp, which is undefined should a surface report max < min.
+    return VkExtent2D{
+        .width = std::max(min.width, std::min(max.width, framebuffer_extent.width)),
+        .height = std::max(min.height, std::min(max.height, framebuffer_extent.height)),
+    };
+}
+
+auto is_valid_swapchain_extent(VkExtent2D extent) -> bool {
+    return extent.width != 0 && extent.height != 0;
 }
 
 /*---------------------------
@@ -273,8 +275,16 @@ auto Swapchain::init(LogicalDevice& device, Window* window) -> void {
 
     const VkSurfaceFormatKHR surface_format = choose_surface_format(formats);
     const VkPresentModeKHR   present_mode = choose_present_mode(present_modes);
-    const VkExtent2D         extent = choose_extent(caps, m_surface);
+    const VkExtent2D         extent =
+        choose_swapchain_extent(caps, query_framebuffer_extent(m_surface));
     m_image_format = surface_format.format;
+    if (!is_valid_swapchain_extent(extent)) {
+        // Nothing to draw to, e.g. the window is minimized. A swapchain must not be
+        // created with an empty extent, so stay without one until `recreate()` finds a
+        // drawable surface again.
+        Logger::debug("no swapchain created, the surface has no drawable area");
+        return;
+    }
     m_extent = extent;
 
     const QueueFamilyPointers& pointers = gpu->m_chosen_queue_family_pointers;
@@ -388,6 +398,15 @@ auto Swapchain::recreate() -> void {
 
     LogicalDevice* device = m_device;
     Window*        window = m_window;
+
+    if (m_handle == VK_NULL_HANDLE && m_surface.m_handle != VK_NULL_HANDLE) {
+        // Waiting for a drawable area (see `init`): only rebuild once there is one.
+        const auto caps = device->m_physical_device->query_surface_capabilities(m_surface);
+        const VkExtent2D extent =
+            choose_swapchain_extent(caps, query_framebuffer_extent(m_surface));
+        if (!is_valid_swapchain_extent(extent)) { return; }
+    }
+
     device->wait_until_idle();
     this->deinit();
     this->init(*device, window);

@@ -11,6 +11,7 @@
 
 #if JADEFRAME_ENABLE_VULKAN
     #include "JadeFrame/graphics/vulkan/renderer.h"
+    #include "JadeFrame/graphics/vulkan/swapchain.h"
 #endif
 
 using namespace JadeFrame;
@@ -242,6 +243,125 @@ TEST(VulkanReadback, RejectsUnsupportedFormatsAndShortInput) {
     EXPECT_FALSE(vulkan::readback_to_rgb(texels, 4, 4, VK_FORMAT_B8G8R8A8_SRGB, rgb));
 
     EXPECT_EQ(rgb, std::vector<u8>{42});
+}
+
+namespace {
+
+constexpr u32 UNDEFINED_EXTENT = 0xFFFFFFFF;
+
+// Surface capabilities reduced to the fields the extent selection reads.
+auto surface_capabilities(VkExtent2D current, VkExtent2D min, VkExtent2D max)
+    -> VkSurfaceCapabilitiesKHR {
+    VkSurfaceCapabilitiesKHR caps = {};
+    caps.currentExtent = current;
+    caps.minImageExtent = min;
+    caps.maxImageExtent = max;
+    return caps;
+}
+
+// A surface whose size is determined by the swapchain (e.g. Wayland).
+auto undefined_extent_capabilities(VkExtent2D min, VkExtent2D max)
+    -> VkSurfaceCapabilitiesKHR {
+    return surface_capabilities({UNDEFINED_EXTENT, UNDEFINED_EXTENT}, min, max);
+}
+
+} // namespace
+
+TEST(VulkanSwapchainExtent, FixedCurrentExtentIsReturnedUnchanged) {
+    const auto caps = surface_capabilities({800, 600}, {800, 600}, {800, 600});
+
+    // The framebuffer size is stale or simply different: the surface wins.
+    const VkExtent2D extent = vulkan::choose_swapchain_extent(caps, {1024, 768});
+
+    EXPECT_EQ(extent.width, 800U);
+    EXPECT_EQ(extent.height, 600U);
+    EXPECT_TRUE(vulkan::is_valid_swapchain_extent(extent));
+}
+
+TEST(VulkanSwapchainExtent, FixedCurrentExtentIsNotClampedToTheImageExtentRange) {
+    // Not a combination a conforming surface reports, but the current extent must be
+    // passed through untouched in any case.
+    const auto caps = surface_capabilities({800, 600}, {1, 1}, {640, 480});
+
+    const VkExtent2D extent = vulkan::choose_swapchain_extent(caps, {320, 240});
+
+    EXPECT_EQ(extent.width, 800U);
+    EXPECT_EQ(extent.height, 600U);
+}
+
+TEST(VulkanSwapchainExtent, UndefinedCurrentExtentUsesTheFramebufferSize) {
+    const auto caps = undefined_extent_capabilities({1, 1}, {4096, 4096});
+
+    const VkExtent2D extent = vulkan::choose_swapchain_extent(caps, {1280, 720});
+
+    EXPECT_EQ(extent.width, 1280U);
+    EXPECT_EQ(extent.height, 720U);
+    EXPECT_TRUE(vulkan::is_valid_swapchain_extent(extent));
+}
+
+TEST(VulkanSwapchainExtent, FramebufferBelowTheMinimumIsClampedUpwards) {
+    const auto caps = undefined_extent_capabilities({200, 100}, {4096, 4096});
+
+    const VkExtent2D extent = vulkan::choose_swapchain_extent(caps, {50, 20});
+
+    EXPECT_EQ(extent.width, 200U);
+    EXPECT_EQ(extent.height, 100U);
+}
+
+TEST(VulkanSwapchainExtent, FramebufferAboveTheMaximumIsClampedDownwards) {
+    const auto caps = undefined_extent_capabilities({1, 1}, {1920, 1080});
+
+    const VkExtent2D extent = vulkan::choose_swapchain_extent(caps, {5000, 3000});
+
+    EXPECT_EQ(extent.width, 1920U);
+    EXPECT_EQ(extent.height, 1080U);
+}
+
+TEST(VulkanSwapchainExtent, WidthAndHeightAreClampedIndependently) {
+    const auto caps = undefined_extent_capabilities({100, 100}, {1000, 1000});
+
+    const VkExtent2D wide = vulkan::choose_swapchain_extent(caps, {5000, 10});
+    EXPECT_EQ(wide.width, 1000U);
+    EXPECT_EQ(wide.height, 100U);
+
+    const VkExtent2D tall = vulkan::choose_swapchain_extent(caps, {10, 5000});
+    EXPECT_EQ(tall.width, 100U);
+    EXPECT_EQ(tall.height, 1000U);
+
+    const VkExtent2D mixed = vulkan::choose_swapchain_extent(caps, {500, 5000});
+    EXPECT_EQ(mixed.width, 500U);
+    EXPECT_EQ(mixed.height, 1000U);
+}
+
+TEST(VulkanSwapchainExtent, MinimizedWindowYieldsNoValidExtent) {
+    // Win32 reports a minimized window as a fixed, empty extent.
+    const auto minimized = surface_capabilities({0, 0}, {0, 0}, {0, 0});
+    const VkExtent2D fixed = vulkan::choose_swapchain_extent(minimized, {800, 600});
+    EXPECT_EQ(fixed.width, 0U);
+    EXPECT_EQ(fixed.height, 0U);
+    EXPECT_FALSE(vulkan::is_valid_swapchain_extent(fixed));
+
+    // A surface without a fixed extent that allows empty images.
+    const auto       free_caps = undefined_extent_capabilities({0, 0}, {4096, 4096});
+    const VkExtent2D empty = vulkan::choose_swapchain_extent(free_caps, {0, 0});
+    EXPECT_FALSE(vulkan::is_valid_swapchain_extent(empty));
+
+    // One empty dimension is enough to make the extent unusable.
+    EXPECT_FALSE(vulkan::is_valid_swapchain_extent({0, 600}));
+    EXPECT_FALSE(vulkan::is_valid_swapchain_extent({800, 0}));
+    EXPECT_TRUE(vulkan::is_valid_swapchain_extent({1, 1}));
+}
+
+TEST(VulkanSwapchainExtent, EmptyFramebufferIsRaisedToASupportedMinimum) {
+    // If the surface demands at least 1x1, an empty request is clamped up to something
+    // a swapchain can be created with.
+    const auto caps = undefined_extent_capabilities({1, 1}, {4096, 4096});
+
+    const VkExtent2D extent = vulkan::choose_swapchain_extent(caps, {0, 0});
+
+    EXPECT_EQ(extent.width, 1U);
+    EXPECT_EQ(extent.height, 1U);
+    EXPECT_TRUE(vulkan::is_valid_swapchain_extent(extent));
 }
 
 #endif // JADEFRAME_ENABLE_VULKAN

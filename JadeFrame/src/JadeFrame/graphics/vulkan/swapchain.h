@@ -65,6 +65,26 @@ public:
     // const Swapchain* m_swapchain = nullptr;
 };
 
+/// Chooses the extent of the swapchain images for a surface with `capabilities`.
+///
+/// A surface that dictates its size reports it as `currentExtent`, which then has to be
+/// used as is. Otherwise `currentExtent` is (0xFFFFFFFF, 0xFFFFFFFF) and the swapchain
+/// determines the size: `framebuffer_extent`, the drawable area of the window in
+/// physical pixels, with width and height each clamped to what the surface supports.
+///
+/// The result can be empty, most notably for a minimized window. Check it with
+/// `is_valid_swapchain_extent` before creating a swapchain.
+[[nodiscard]] auto choose_swapchain_extent(
+    const VkSurfaceCapabilitiesKHR& capabilities,
+    VkExtent2D                      framebuffer_extent
+) -> VkExtent2D;
+
+/// Whether a swapchain may be created with `extent`: both dimensions must be non-zero.
+[[nodiscard]] auto is_valid_swapchain_extent(VkExtent2D extent) -> bool;
+
+/// While the surface has no drawable area (minimized window) there is no swapchain:
+/// `m_handle` is `VK_NULL_HANDLE`, `m_extent` is empty and there are no images.
+/// `recreate()` creates it once the surface is drawable again.
 class Swapchain {
 public:
     Swapchain() = default;
@@ -99,8 +119,8 @@ public:
     std::vector<Image>     m_images;
     std::vector<ImageView> m_image_views;
 
-    VkFormat   m_image_format;
-    VkExtent2D m_extent;
+    VkFormat   m_image_format = VK_FORMAT_UNDEFINED;
+    VkExtent2D m_extent = {};
 
     bool m_is_recreated = false;
     // Whether the images were created with VK_IMAGE_USAGE_TRANSFER_SRC_BIT and can

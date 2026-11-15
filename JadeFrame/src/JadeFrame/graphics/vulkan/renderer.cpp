@@ -294,6 +294,11 @@ auto Vulkan_Renderer::recreate_swapchain() -> void {
 
     m_framebuffers.clear();
     m_swapchain.recreate();
+    if (m_swapchain.m_handle == VK_NULL_HANDLE) {
+        // No drawable area (minimized window). `render()` retries every frame.
+        m_present_semaphores.clear();
+        return;
+    }
     m_render_pass = m_logical_device->create_render_pass(m_swapchain.m_image_format);
     this->create_present_semaphores();
 
@@ -317,6 +322,17 @@ auto Vulkan_Renderer::clear_background() -> void {}
 
 auto Vulkan_Renderer::render(const Camera& camera) -> void {
     vulkan::LogicalDevice&        d = *m_logical_device;
+
+    if (m_swapchain.m_handle == VK_NULL_HANDLE) {
+        // The window had no drawable area when the swapchain was last (re)created.
+        this->recreate_swapchain();
+        if (m_swapchain.m_handle == VK_NULL_HANDLE) {
+            // Still nothing to draw to, drop this frame.
+            m_system->m_render_commands.clear();
+            m_skip_present = true;
+            return;
+        }
+    }
 
     auto& curr_frame = m_frames[m_frame_index];
     curr_frame.acquire_image(m_swapchain);
