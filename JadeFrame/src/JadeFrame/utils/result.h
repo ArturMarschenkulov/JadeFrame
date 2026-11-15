@@ -156,7 +156,7 @@ struct PayloadTraits<void> : PayloadCapabilities<UnitStorage, UnitStorage> {
     }
 
     template<class S>
-    static constexpr auto get(S&&) noexcept -> void {}
+    static constexpr auto get(S&& /*unused*/) noexcept -> void {}
 };
 
 template<class T, class E>
@@ -188,7 +188,7 @@ union Storage {
 // Restores the old union member on unwinding; no exception syntax is needed.
 template<class Traits>
 struct RollbackGuard {
-    using S = typename Traits::storage_type;
+    using S = Traits::storage_type;
     S*   target;
     S    backup;
     bool armed = true;
@@ -212,7 +212,7 @@ constexpr auto transition(
     typename Old::storage_type& old,
     Arg&&                       argument
 ) noexcept(std::is_nothrow_constructible_v<typename New::storage_type, Arg&&>) -> void {
-    using N = typename New::storage_type;
+    using N = New::storage_type;
     if constexpr (std::is_nothrow_constructible_v<N, Arg&&>) {
         std::destroy_at(std::addressof(old));
         std::construct_at(std::addressof(target), std::forward<Arg>(argument));
@@ -236,7 +236,7 @@ class [[nodiscard("Result may contain an unhandled error")]] Result {
     using F = details::PayloadTraits<E>;
     enum class State : unsigned char {
         Ok,
-        Err
+        Err,
     };
 
     details::Storage<typename O::storage_type, typename F::storage_type> storage_;
@@ -278,7 +278,7 @@ public:
 
     template<class... Args>
         requires(O::template constructible<Args...>)
-    explicit constexpr Result(OkTag, Args&&... args) noexcept(
+    explicit constexpr Result(OkTag /*unused*/, Args&&... args) noexcept(
         O::template nothrow_constructible<Args...>
     )
         : state_(State::Ok) {
@@ -287,7 +287,7 @@ public:
 
     template<class... Args>
         requires(F::template constructible<Args...>)
-    explicit constexpr Result(ErrTag, Args&&... args) noexcept(
+    explicit constexpr Result(ErrTag /*unused*/, Args&&... args) noexcept(
         F::template nothrow_constructible<Args...>
     )
         : state_(State::Err) {
