@@ -256,41 +256,11 @@ public: // static methods for matrices
 
     constexpr static auto rotation_rh(f32 angle, const v3& axis) noexcept -> mat4x4;
 
-    static auto rotation_x_rh(f32 angle) noexcept -> mat4x4 {
-        // return mat4x4::rotation_rh(angle, v3::X());
-        auto sina = static_cast<f32>(math::sin(angle));
-        auto cosa = static_cast<f32>(math::cos(angle));
-        return mat4x4::from_cols(
-            v4::X(),
-            v4::create(0.0F, cosa, sina, 0.0F),
-            v4::create(0.0F, -sina, cosa, 0.0F),
-            v4::W()
-        );
-    }
+    constexpr static auto rotation_x_rh(f32 angle) noexcept -> mat4x4;
 
-    static auto rotation_y_rh(f32 angle) noexcept -> mat4x4 {
-        // return mat4x4::rotation_rh(angle, v3::Y());
-        auto sina = static_cast<f32>(math::sin(angle));
-        auto cosa = static_cast<f32>(math::cos(angle));
-        return mat4x4::from_cols(
-            v4::create(cosa, 0.0F, -sina, 0.0F),
-            v4::Y(),
-            v4::create(sina, 0.0F, cosa, 0.0F),
-            v4::W()
-        );
-    }
+    constexpr static auto rotation_y_rh(f32 angle) noexcept -> mat4x4;
 
-    static auto rotation_z_rh(f32 angle) noexcept -> mat4x4 {
-        // return mat4x4::rotation_rh(angle, v3::Z());
-        auto sina = static_cast<f32>(math::sin(angle));
-        auto cosa = static_cast<f32>(math::cos(angle));
-        return mat4x4::from_cols(
-            v4::create(cosa, sina, 0.0F, 0.0F),
-            v4::create(-sina, cosa, 0.0F, 0.0F),
-            v4::Z(),
-            v4::W()
-        );
-    }
+    constexpr static auto rotation_z_rh(f32 angle) noexcept -> mat4x4;
 
     constexpr static auto scale(const v3& scale) noexcept -> mat4x4 {
         return mat4x4::from_cols(
@@ -758,11 +728,13 @@ constexpr auto mat4x4::diagonal(const v4& diag) noexcept -> mat4x4 {
     return m;
 }
 
-constexpr auto mat4x4::rotation_rh(f32 angle, const v3& axis) noexcept -> mat4x4 {
+constexpr auto
+rotation_extended(f32 angle, const v3& axis, HANDEDNESS handedness) noexcept -> mat4x4 {
     const f32 c = static_cast<f32>(math::cos(angle));
-    const f32 s = static_cast<f32>(math::sin(angle));
+    const f32 s = static_cast<f32>(math::sin(angle)) *
+                  (handedness == HANDEDNESS::RIGHT ? 1.0F : -1.0F);
 
-    const f32 omc = 1 - c;
+    const f32 omc = 1.0F - c;
 
     const v3 axis_sin = axis * s;
     const v3 axis_sq = axis * axis;
@@ -771,28 +743,28 @@ constexpr auto mat4x4::rotation_rh(f32 angle, const v3& axis) noexcept -> mat4x4
     const f32 xz_omc = axis.x * axis.z * omc;
     const f32 yz_omc = axis.y * axis.z * omc;
 
-    mat4x4 result = mat4x4::identity();
-    result[0][0] = (axis_sq.x * omc) + c;
-    result[0][1] = xy_omc + axis_sin.z;
-    result[0][2] = xz_omc - axis_sin.y;
-    result[0][3] = 0.0F;
+    return mat4x4::from_cols(
+        v4::create((axis_sq.x * omc) + c, xy_omc + axis_sin.z, xz_omc - axis_sin.y, 0.0F),
+        v4::create(xy_omc - axis_sin.z, (axis_sq.y * omc) + c, yz_omc + axis_sin.x, 0.0F),
+        v4::create(xz_omc + axis_sin.y, yz_omc - axis_sin.x, (axis_sq.z * omc) + c, 0.0F),
+        v4::W()
+    );
+}
 
-    result[1][0] = xy_omc - axis_sin.z;
-    result[1][1] = (axis_sq.y * omc) + c;
-    result[1][2] = yz_omc + axis_sin.x;
-    result[1][3] = 0.0F;
+constexpr auto mat4x4::rotation_rh(f32 angle, const v3& axis) noexcept -> mat4x4 {
+    return rotation_extended(angle, axis, HANDEDNESS::RIGHT);
+}
 
-    result[2][0] = xz_omc + axis_sin.y;
-    result[2][1] = yz_omc - axis_sin.x;
-    result[2][2] = (axis_sq.z * omc) + c;
-    result[2][3] = 0.0F;
+constexpr auto mat4x4::rotation_x_rh(f32 angle) noexcept -> mat4x4 {
+    return rotation_extended(angle, v3::X(), HANDEDNESS::RIGHT);
+}
 
-    result[3][0] = 0.0F;
-    result[3][1] = 0.0F;
-    result[3][2] = 0.0F;
-    result[3][3] = 1.0F;
+constexpr auto mat4x4::rotation_y_rh(f32 angle) noexcept -> mat4x4 {
+    return rotation_extended(angle, v3::Y(), HANDEDNESS::RIGHT);
+}
 
-    return result;
+constexpr auto mat4x4::rotation_z_rh(f32 angle) noexcept -> mat4x4 {
+    return rotation_extended(angle, v3::Z(), HANDEDNESS::RIGHT);
 }
 
 constexpr auto mat4x4::determinant() const -> f32 {
