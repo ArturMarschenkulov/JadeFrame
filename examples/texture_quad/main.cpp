@@ -119,15 +119,21 @@ struct Example_Texture_Quad {
         // m_camera = jf::Camera::orthographic(0, win_size.x, win_size.y, 0, -10000,
         // 10000);
         app.m_camera = jf::Camera::perspective(
-            jf::v3::zero(), 1.0F, win_size.x / win_size.y, 0.1F, 10000.0F
+            jf::v3::create(150.0F, -350.0F, 450.0F),
+            60.0F,
+            static_cast<jf::f32>(win_size.x) / static_cast<jf::f32>(win_size.y),
+            0.1F,
+            10000.0F
         );
-        app.m_camera.m_position = jf::v3::create(55.0F, -20.0F, 70.0F);
-        app.m_camera.m_orientation.set_pitch_yaw(45.0F, 150.0F);
+        // Look toward the center of the textured quads on the XY plane.
+        app.m_camera.m_orientation.set_pitch_yaw(42.0F, 90.0F);
 
         jf::ShaderHandle::Desc shader_handle_desc;
         auto code_with_texture_0 = jf::GLSLCodeLoader::get_by_name("with_texture_0");
         if (code_with_texture_0.is_err()) {
-            jf::Logger::err("Failed to load shader: {}", code_with_texture_0.error().m_message);
+            jf::Logger::err(
+                "Failed to load shader: {}", code_with_texture_0.error().m_message
+            );
             return;
         }
         shader_handle_desc.shading_code = std::move(code_with_texture_0).value();
@@ -136,7 +142,9 @@ struct Example_Texture_Quad {
 
         auto code_spirv_test_1 = jf::GLSLCodeLoader::get_by_name("spirv_test_1");
         if (code_spirv_test_1.is_err()) {
-            jf::Logger::err("Failed to load shader: {}", code_spirv_test_1.error().m_message);
+            jf::Logger::err(
+                "Failed to load shader: {}", code_spirv_test_1.error().m_message
+            );
             return;
         }
         shader_handle_desc.shading_code = std::move(code_spirv_test_1).value();
@@ -198,7 +206,9 @@ struct Example_Texture_Quad {
             jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_
         );
         if (gizmo_x_result.is_err()) {
-            jf::Logger::err("Failed to build X gizmo: {}", gizmo_x_result.error().m_message);
+            jf::Logger::err(
+                "Failed to build X gizmo: {}", gizmo_x_result.error().m_message
+            );
             return;
         }
         jf::Mesh vd_gizmo_x = std::move(gizmo_x_result).value();
@@ -208,7 +218,9 @@ struct Example_Texture_Quad {
             jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_
         );
         if (gizmo_y_result.is_err()) {
-            jf::Logger::err("Failed to build Y gizmo: {}", gizmo_y_result.error().m_message);
+            jf::Logger::err(
+                "Failed to build Y gizmo: {}", gizmo_y_result.error().m_message
+            );
             return;
         }
         jf::Mesh vd_gizmo_y = std::move(gizmo_y_result).value();
@@ -217,7 +229,9 @@ struct Example_Texture_Quad {
             jf::v3::zero(), jf::v3::create(1.0F, 1.0F, 0.0F), vdf_desc_
         );
         if (gizmo_z_result.is_err()) {
-            jf::Logger::err("Failed to build Z gizmo: {}", gizmo_z_result.error().m_message);
+            jf::Logger::err(
+                "Failed to build Z gizmo: {}", gizmo_z_result.error().m_message
+            );
             return;
         }
         jf::Mesh vd_gizmo_z = std::move(gizmo_z_result).value();
@@ -228,7 +242,7 @@ struct Example_Texture_Quad {
         jf::GPUMeshData* mesh_gizmo_z = app.m_render_system.register_mesh(vd_gizmo_z);
 
         fs::path path_teapot = fs::path("resource") / "default_blender_cube_1.obj";
-        auto teapot_result = jf::AssetLoader::load_obj(path_teapot.string());
+        auto     teapot_result = jf::AssetLoader::load_obj(path_teapot.string());
         if (teapot_result.is_err()) {
             jf::Logger::err(
                 "Failed to load mesh ({}): {}",

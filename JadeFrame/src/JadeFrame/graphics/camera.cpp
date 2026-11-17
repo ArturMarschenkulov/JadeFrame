@@ -207,14 +207,15 @@ auto Camera::get_view_projection(GRAPHICS_API api) const -> mat4x4 {
 auto Camera::calc_projection(GRAPHICS_API api) const -> mat4x4 {
     mat4x4 proj = mat4x4::identity();
 
-    auto [fov, aspect] = m_volume.calc_fovy_aspect();
+    auto [fov_degrees, aspect] = m_volume.calc_fovy_aspect();
+    const f32 fov_radians = to_radians(fov_degrees);
     if (m_mode == PROJECTION_TYPE::PERSPECTIVE) {
         if (api == GRAPHICS_API::OPENGL) {
             proj =
-                mat4x4::perspective_rh_no(fov, aspect, m_volume.m_near, m_volume.m_far);
+                mat4x4::perspective_rh_no(fov_radians, aspect, m_volume.m_near, m_volume.m_far);
         } else if (api == GRAPHICS_API::VULKAN) {
             proj =
-                mat4x4::perspective_rh_zo(fov, aspect, m_volume.m_near, m_volume.m_far);
+                mat4x4::perspective_rh_zo(fov_radians, aspect, m_volume.m_near, m_volume.m_far);
             // proj[1][1] *= -1;
         } else {
             Logger::err("Invalid graphics API: {}", to_string(api));
