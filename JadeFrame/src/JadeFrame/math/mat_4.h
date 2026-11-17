@@ -148,7 +148,7 @@ public: // static methods for matrices
         );
 
         v3     inv_scale = scale.reciprocal();
-        mat4x4 rotation = mat4x4::from_rows(
+        mat4x4 rotation = mat4x4::from_cols(
             x_axis * inv_scale.x, y_axis * inv_scale.y, z_axis * inv_scale.z, v4::W()
         );
 
