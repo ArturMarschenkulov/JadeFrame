@@ -2,7 +2,7 @@ jadeframe_add_project_test(test_camera
     SOURCES
         test_camera.cpp
     LIBRARIES
-        jadeframe_core
+        JadeFrame
 )
 
 jadeframe_add_project_test(test_reflection

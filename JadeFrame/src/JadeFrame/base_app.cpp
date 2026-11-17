@@ -6,6 +6,8 @@
 
 #include "gui.h"
 
+#include <cmath>
+
 namespace JadeFrame {
 
 auto control_camera(Camera& self, const InputState& i, f64 delta_seconds_) -> void {
@@ -35,15 +37,27 @@ auto control_camera(Camera& self, const InputState& i, f64 delta_seconds_) -> vo
     if (i.is_key_down(KEY::W)) {
         self.m_position += orient.m_forward * velocity * delta_seconds;
     }
-    {
-        auto [pitch, yaw] = orient.get_pitch_yaw();
-        if (i.is_key_down(KEY::LEFT)) { yaw += velocity * sensitivity * delta_seconds; }
-        if (i.is_key_down(KEY::RIGHT)) { yaw -= velocity * sensitivity * delta_seconds; }
-        if (i.is_key_down(KEY::UP)) { pitch -= velocity * sensitivity * delta_seconds; }
-        if (i.is_key_down(KEY::DOWN)) { pitch += velocity * sensitivity * delta_seconds; }
+    const f32 yaw_input = static_cast<f32>(i.is_key_down(KEY::LEFT)) -
+                          static_cast<f32>(i.is_key_down(KEY::RIGHT));
+    const f32 pitch_input = static_cast<f32>(i.is_key_down(KEY::UP)) -
+                            static_cast<f32>(i.is_key_down(KEY::DOWN));
+    if (yaw_input != 0.0F || pitch_input != 0.0F) {
+        const f32 step = to_radians(velocity * sensitivity * delta_seconds);
+        // Rotate in the camera's own basis, preserving its choice of up axis.
+        // Rebuild the perpendicular axes to prevent drift over repeated updates.
+        orient.m_forward = orient.m_forward.normalize();
+        orient.m_right = orient.m_forward.cross(orient.m_up).normalize();
+        orient.m_up = orient.m_right.cross(orient.m_forward).normalize();
 
-        pitch = std::clamp(pitch, -89.0F, 89.0F);
-        orient.set_pitch_yaw(pitch, yaw);
+        const f32 yaw = yaw_input * step;
+        orient.m_forward = (orient.m_forward * std::cos(yaw) -
+                            orient.m_right * std::sin(yaw)).normalize();
+        orient.m_right = orient.m_forward.cross(orient.m_up).normalize();
+
+        const f32 pitch = pitch_input * step;
+        orient.m_forward = (orient.m_forward * std::cos(pitch) +
+                            orient.m_up * std::sin(pitch)).normalize();
+        orient.m_up = orient.m_right.cross(orient.m_forward).normalize();
     }
 
     // ImGui::Text(
