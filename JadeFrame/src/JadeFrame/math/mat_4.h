@@ -183,28 +183,7 @@ public: // static methods for matrices
         f32 top,
         f32 z_near,
         f32 z_far
-    ) noexcept -> mat4x4 {
-        const f32 frustum_width = right - left;
-        const f32 frustum_height = top - bottom;
-        const f32 frustum_depth = z_far - z_near;
-
-        const f32 range = 2.0F;
-
-        f32 a = range / frustum_width;
-        f32 b = range / frustum_height;
-        f32 c = range / frustum_depth;
-
-        f32 tx = -(right + left) / frustum_width;
-        f32 ty = -(top + bottom) / frustum_height;
-        f32 tz = -(z_far + z_near) / frustum_depth;
-
-        return mat4x4::from_cols(
-            v4::create(a, 0.0F, 0.0F, 0.0F),
-            v4::create(0.0F, b, 0.0F, 0.0F),
-            v4::create(0.0F, 0.0F, c, 0.0F),
-            v4::create(tx, ty, tz, 1.0F)
-        );
-    }
+    ) noexcept -> mat4x4;
 
     constexpr static auto orthographic_lh_zo(
         f32 left,
@@ -213,29 +192,7 @@ public: // static methods for matrices
         f32 top,
         f32 z_near,
         f32 z_far
-    ) noexcept -> mat4x4 {
-
-        const f32 frustum_width = right - left;
-        const f32 frustum_height = top - bottom;
-        const f32 frustum_depth = z_far - z_near;
-
-        const f32 range = 2.0F;
-
-        f32 a = range / frustum_width;
-        f32 b = range / frustum_height;
-        f32 c = 1.0F / frustum_depth;
-
-        f32 tx = -(right + left) / frustum_width;
-        f32 ty = -(top + bottom) / frustum_height;
-        f32 tz = -(z_near) / frustum_depth;
-
-        return mat4x4::from_cols(
-            v4::create(a, 0.0F, 0.0F, 0.0F),
-            v4::create(0.0F, b, 0.0F, 0.0F),
-            v4::create(0.0F, 0.0F, c, 0.0F),
-            v4::create(tx, ty, tz, 1.0F)
-        );
-    }
+    ) noexcept -> mat4x4;
 
     constexpr static auto orthographic_rh_zo(
         f32 left,
@@ -244,28 +201,7 @@ public: // static methods for matrices
         f32 top,
         f32 z_near,
         f32 z_far
-    ) noexcept -> mat4x4 {
-        const f32 frustum_width = right - left;
-        const f32 frustum_height = top - bottom;
-        const f32 frustum_depth = z_far - z_near;
-
-        const f32 range = 2.0F;
-
-        f32 a = range / frustum_width;
-        f32 b = range / frustum_height;
-        f32 z = -1.0F / frustum_depth;
-
-        f32 tx = -(right + left) / frustum_width;
-        f32 ty = -(top + bottom) / frustum_height;
-        f32 tz = -(z_near) / frustum_depth;
-
-        return mat4x4::from_cols(
-            v4::create(a, 0.0F, 0.0F, 0.0F),
-            v4::create(0.0F, b, 0.0F, 0.0F),
-            v4::create(0.0F, 0.0F, z, 0.0F),
-            v4::create(tx, ty, tz, 1.0F)
-        );
-    }
+    ) noexcept -> mat4x4;
 
     constexpr static auto
     frustum(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) -> mat4x4 {
@@ -605,6 +541,97 @@ inline constexpr auto mat4x4::orthographic_rh_no(
         v4::create(a, 0.0F, 0.0F, 0.0F),
         v4::create(0.0F, b, 0.0F, 0.0F),
         v4::create(0.0F, 0.0F, c, 0.0F),
+        v4::create(tx, ty, tz, 1.0F)
+    );
+}
+
+inline constexpr auto mat4x4::orthographic_lh_no(
+    f32 left,
+    f32 right,
+    f32 bottom,
+    f32 top,
+    f32 z_near,
+    f32 z_far
+) noexcept -> mat4x4 {
+    const f32 frustum_width = right - left;
+    const f32 frustum_height = top - bottom;
+    const f32 frustum_depth = z_far - z_near;
+
+    const f32 range = 2.0F;
+
+    f32 a = range / frustum_width;
+    f32 b = range / frustum_height;
+    f32 c = range / frustum_depth;
+
+    f32 tx = -(right + left) / frustum_width;
+    f32 ty = -(top + bottom) / frustum_height;
+    f32 tz = -(z_far + z_near) / frustum_depth;
+
+    return mat4x4::from_cols(
+        v4::create(a, 0.0F, 0.0F, 0.0F),
+        v4::create(0.0F, b, 0.0F, 0.0F),
+        v4::create(0.0F, 0.0F, c, 0.0F),
+        v4::create(tx, ty, tz, 1.0F)
+    );
+}
+
+inline constexpr auto mat4x4::orthographic_lh_zo(
+    f32 left,
+    f32 right,
+    f32 bottom,
+    f32 top,
+    f32 z_near,
+    f32 z_far
+) noexcept -> mat4x4 {
+
+    const f32 frustum_width = right - left;
+    const f32 frustum_height = top - bottom;
+    const f32 frustum_depth = z_far - z_near;
+
+    const f32 range = 2.0F;
+
+    f32 a = range / frustum_width;
+    f32 b = range / frustum_height;
+    f32 c = 1.0F / frustum_depth;
+
+    f32 tx = -(right + left) / frustum_width;
+    f32 ty = -(top + bottom) / frustum_height;
+    f32 tz = -(z_near) / frustum_depth;
+
+    return mat4x4::from_cols(
+        v4::create(a, 0.0F, 0.0F, 0.0F),
+        v4::create(0.0F, b, 0.0F, 0.0F),
+        v4::create(0.0F, 0.0F, c, 0.0F),
+        v4::create(tx, ty, tz, 1.0F)
+    );
+}
+
+inline constexpr auto mat4x4::orthographic_rh_zo(
+    f32 left,
+    f32 right,
+    f32 bottom,
+    f32 top,
+    f32 z_near,
+    f32 z_far
+) noexcept -> mat4x4 {
+    const f32 frustum_width = right - left;
+    const f32 frustum_height = top - bottom;
+    const f32 frustum_depth = z_far - z_near;
+
+    const f32 range = 2.0F;
+
+    f32 a = range / frustum_width;
+    f32 b = range / frustum_height;
+    f32 z = -1.0F / frustum_depth;
+
+    f32 tx = -(right + left) / frustum_width;
+    f32 ty = -(top + bottom) / frustum_height;
+    f32 tz = -(z_near) / frustum_depth;
+
+    return mat4x4::from_cols(
+        v4::create(a, 0.0F, 0.0F, 0.0F),
+        v4::create(0.0F, b, 0.0F, 0.0F),
+        v4::create(0.0F, 0.0F, z, 0.0F),
         v4::create(tx, ty, tz, 1.0F)
     );
 }
