@@ -3,6 +3,7 @@
 // #include <concepts>
 // #include <cmath>
 #include <cstring>
+#include <cstdlib>
 #include <type_traits>
 
 #include "JadeFrame/prelude.h"
@@ -343,6 +344,26 @@ public:
     constexpr auto xyz() const -> _v3<T> { return _v3<T>::create(x, y, z); }
 
 public:
+    constexpr auto operator[](const u32 index) noexcept -> T& {
+        switch (index) {
+            case 0: return x;
+            case 1: return y;
+            case 2: return z;
+            case 3: return w;
+            default: std::abort();
+        }
+    }
+
+    constexpr auto operator[](const u32 index) const noexcept -> const T& {
+        switch (index) {
+            case 0: return x;
+            case 1: return y;
+            case 2: return z;
+            case 3: return w;
+            default: std::abort();
+        }
+    }
+
     constexpr auto operator-() const -> _v4 { return _v4(-x, -y, -z, -w); }
 
     constexpr auto operator+(const _v4& other) const -> _v4 {

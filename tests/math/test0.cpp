@@ -1,5 +1,8 @@
 
+#include <cstddef>
 #include <cstdlib>
+#include <cstring>
+#include <type_traits>
 #include <gtest/gtest.h>
 
 #include <iostream>
@@ -11,6 +14,84 @@
 
 #include "JadeFrame/math/mat_4.h"
 using namespace JadeFrame;
+
+// The graphics backends upload the complete matrix object as column-major bytes.
+static_assert(sizeof(mat4x4) == 64);
+static_assert(sizeof(v4) == 16);
+static_assert(alignof(mat4x4) == alignof(f32));
+static_assert(alignof(v4) == alignof(f32));
+static_assert(std::is_trivially_copyable_v<mat4x4>);
+static_assert(std::is_standard_layout_v<mat4x4>);
+static_assert(std::is_trivially_copyable_v<v4>);
+static_assert(std::is_standard_layout_v<v4>);
+static_assert(offsetof(mat4x4, x_axis) == 0);
+static_assert(offsetof(mat4x4, y_axis) == 16);
+static_assert(offsetof(mat4x4, z_axis) == 32);
+static_assert(offsetof(mat4x4, w_axis) == 48);
+static_assert(offsetof(v4, x) == 0);
+static_assert(offsetof(v4, y) == 4);
+static_assert(offsetof(v4, z) == 8);
+static_assert(offsetof(v4, w) == 12);
+static_assert(std::is_same_v<decltype(std::declval<mat4x4&>()[0]), v4&>);
+static_assert(std::is_same_v<decltype(std::declval<const mat4x4&>()[0]), const v4&>);
+static_assert(std::is_same_v<decltype(std::declval<v4&>()[0]), f32&>);
+static_assert(std::is_same_v<decltype(std::declval<const v4&>()[0]), const f32&>);
+
+static constexpr auto storage_test_matrix() -> mat4x4 {
+    return mat4x4::from_cols(
+        v4::create(1, 2, 3, 4), v4::create(5, 6, 7, 8),
+        v4::create(9, 10, 11, 12), v4::create(13, 14, 15, 16)
+    );
+}
+
+static constexpr auto check_matrix_storage() -> bool {
+    const mat4x4 original = storage_test_matrix();
+    mat4x4 matrix = original;
+    const v4* columns[] = {&matrix.x_axis, &matrix.y_axis, &matrix.z_axis, &matrix.w_axis};
+    const v4* const_columns[] = {
+        &original.x_axis, &original.y_axis, &original.z_axis, &original.w_axis
+    };
+    for (u32 col = 0; col < 4; ++col) {
+        if (&matrix[col] != columns[col] || &original[col] != const_columns[col]) {
+            return false;
+        }
+        for (u32 row = 0; row < 4; ++row) {
+            const f32 expected = static_cast<f32>(col * 4 + row + 1);
+            if (original[col][row] != expected) { return false; }
+            matrix[col][row] = -expected;
+        }
+        // Check writes through indexing against the actual named components.
+        const v4& axis = *columns[col];
+        if (axis.x != -original[col][0] || axis.y != -original[col][1] ||
+            axis.z != -original[col][2] || axis.w != -original[col][3]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static_assert(check_matrix_storage());
+static_assert(mat4x4::identity()[2][2] == 1.0F);
+static_assert((mat4x4::identity() * storage_test_matrix())[3][2] == 15.0F);
+static_assert(storage_test_matrix().get_transpose()[1][2] == 10.0F);
+
+TEST(Mat4x4_Storage, NamedColumnsAndIndexing) {
+    EXPECT_TRUE(check_matrix_storage());
+    const mat4x4 matrix = storage_test_matrix();
+    for (u8 i = 0; i < 4; ++i) {
+        EXPECT_EQ(matrix.get_column(i), matrix[i]);
+        EXPECT_EQ(matrix.get_row(i), v4::create(i + 1, i + 5, i + 9, i + 13));
+    }
+}
+
+TEST(Mat4x4_Storage, ColumnMajorObjectBytes) {
+    const mat4x4 matrix = storage_test_matrix();
+    std::array<f32, 16> scalars = {};
+    std::memcpy(scalars.data(), &matrix, sizeof(matrix));
+    for (u32 i = 0; i < scalars.size(); ++i) {
+        EXPECT_FLOAT_EQ(scalars[i], static_cast<f32>(i + 1));
+    }
+}
 
 [[maybe_unused]] static auto generate_random_mat4x4() -> mat4x4 {
     mat4x4 matrix = {};

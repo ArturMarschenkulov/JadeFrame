@@ -5,6 +5,7 @@
 #include "JadeFrame/math/math.h"
 
 #include <cassert>
+#include <cstdlib>
 
 JF_PRAGMA_PUSH
 
@@ -66,9 +67,9 @@ public:
 public:
     using Col = std::array<f32, 4>;
 
-    constexpr auto operator[](const u32 index) noexcept -> Col&; // for writing
+    constexpr auto operator[](const u32 index) noexcept -> v4&; // for writing
     constexpr auto operator[](const u32 index) const noexcept
-        -> const Col&; // for reading
+        -> const v4&; // for reading
 
     constexpr auto operator*(const f32& scalar) const noexcept -> mat4x4 {
         mat4x4 result = {};
@@ -120,10 +121,10 @@ public: // static methods for matrices
     from_cols(const v4& col1, const v4& col2, const v4& col3, const v4& col4) noexcept
         -> mat4x4 {
         mat4x4 result = {};
-        result.col_vec[0] = col1;
-        result.col_vec[1] = col2;
-        result.col_vec[2] = col3;
-        result.col_vec[3] = col4;
+        result.x_axis = col1;
+        result.y_axis = col2;
+        result.z_axis = col3;
+        result.w_axis = col4;
         return result;
     }
 
@@ -518,29 +519,29 @@ public:
         f32 det = this->determinant();
         if (det == 0.0F) { return mat4x4::zero(); }
 
-        f32 coeff00 = el[2][2] * el[3][3] - el[3][2] * el[2][3];
-        f32 coeff02 = el[1][2] * el[3][3] - el[3][2] * el[1][3];
-        f32 coeff03 = el[1][2] * el[2][3] - el[2][2] * el[1][3];
+        f32 coeff00 = (*this)[2][2] * (*this)[3][3] - (*this)[3][2] * (*this)[2][3];
+        f32 coeff02 = (*this)[1][2] * (*this)[3][3] - (*this)[3][2] * (*this)[1][3];
+        f32 coeff03 = (*this)[1][2] * (*this)[2][3] - (*this)[2][2] * (*this)[1][3];
 
-        f32 coeff04 = el[2][1] * el[3][3] - el[3][1] * el[2][3];
-        f32 coeff06 = el[1][1] * el[3][3] - el[3][1] * el[1][3];
-        f32 coeff07 = el[1][1] * el[2][3] - el[2][1] * el[1][3];
+        f32 coeff04 = (*this)[2][1] * (*this)[3][3] - (*this)[3][1] * (*this)[2][3];
+        f32 coeff06 = (*this)[1][1] * (*this)[3][3] - (*this)[3][1] * (*this)[1][3];
+        f32 coeff07 = (*this)[1][1] * (*this)[2][3] - (*this)[2][1] * (*this)[1][3];
 
-        f32 coeff08 = el[2][1] * el[3][2] - el[3][1] * el[2][2];
-        f32 coeff10 = el[1][1] * el[3][2] - el[3][1] * el[1][2];
-        f32 coeff11 = el[1][1] * el[2][2] - el[2][1] * el[1][2];
+        f32 coeff08 = (*this)[2][1] * (*this)[3][2] - (*this)[3][1] * (*this)[2][2];
+        f32 coeff10 = (*this)[1][1] * (*this)[3][2] - (*this)[3][1] * (*this)[1][2];
+        f32 coeff11 = (*this)[1][1] * (*this)[2][2] - (*this)[2][1] * (*this)[1][2];
 
-        f32 coeff12 = el[2][0] * el[3][3] - el[3][0] * el[2][3];
-        f32 coeff14 = el[1][0] * el[3][3] - el[3][0] * el[1][3];
-        f32 coeff15 = el[1][0] * el[2][3] - el[2][0] * el[1][3];
+        f32 coeff12 = (*this)[2][0] * (*this)[3][3] - (*this)[3][0] * (*this)[2][3];
+        f32 coeff14 = (*this)[1][0] * (*this)[3][3] - (*this)[3][0] * (*this)[1][3];
+        f32 coeff15 = (*this)[1][0] * (*this)[2][3] - (*this)[2][0] * (*this)[1][3];
 
-        f32 coeff16 = el[2][0] * el[3][2] - el[3][0] * el[2][2];
-        f32 coeff18 = el[1][0] * el[3][2] - el[3][0] * el[1][2];
-        f32 coeff19 = el[1][0] * el[2][2] - el[2][0] * el[1][2];
+        f32 coeff16 = (*this)[2][0] * (*this)[3][2] - (*this)[3][0] * (*this)[2][2];
+        f32 coeff18 = (*this)[1][0] * (*this)[3][2] - (*this)[3][0] * (*this)[1][2];
+        f32 coeff19 = (*this)[1][0] * (*this)[2][2] - (*this)[2][0] * (*this)[1][2];
 
-        f32 coeff20 = el[2][0] * el[3][1] - el[3][0] * el[2][1];
-        f32 coeff22 = el[1][0] * el[3][1] - el[3][0] * el[1][1];
-        f32 coeff23 = el[1][0] * el[2][1] - el[2][0] * el[1][1];
+        f32 coeff20 = (*this)[2][0] * (*this)[3][1] - (*this)[3][0] * (*this)[2][1];
+        f32 coeff22 = (*this)[1][0] * (*this)[3][1] - (*this)[3][0] * (*this)[1][1];
+        f32 coeff23 = (*this)[1][0] * (*this)[2][1] - (*this)[2][0] * (*this)[1][1];
 
         v4 fac0 = v4::create(coeff00, coeff00, coeff02, coeff03);
         v4 fac1 = v4::create(coeff04, coeff04, coeff06, coeff07);
@@ -549,10 +550,10 @@ public:
         v4 fac4 = v4::create(coeff16, coeff16, coeff18, coeff19);
         v4 fac5 = v4::create(coeff20, coeff20, coeff22, coeff23);
 
-        v4 vec0 = v4::create(el[1][0], el[0][0], el[0][0], el[0][0]);
-        v4 vec1 = v4::create(el[1][1], el[0][1], el[0][1], el[0][1]);
-        v4 vec2 = v4::create(el[1][2], el[0][2], el[0][2], el[0][2]);
-        v4 vec3 = v4::create(el[1][3], el[0][3], el[0][3], el[0][3]);
+        v4 vec0 = v4::create((*this)[1][0], (*this)[0][0], (*this)[0][0], (*this)[0][0]);
+        v4 vec1 = v4::create((*this)[1][1], (*this)[0][1], (*this)[0][1], (*this)[0][1]);
+        v4 vec2 = v4::create((*this)[1][2], (*this)[0][2], (*this)[0][2], (*this)[0][2]);
+        v4 vec3 = v4::create((*this)[1][3], (*this)[0][3], (*this)[0][3], (*this)[0][3]);
 
         v4 inv0 = vec1 * fac0 - vec2 * fac1 + vec3 * fac2;
         v4 inv1 = vec0 * fac0 - vec2 * fac3 + vec3 * fac4;
@@ -578,29 +579,21 @@ public:
 public:
     [[nodiscard]] auto get_column(u8 col) const noexcept -> v4 {
         assert(col < 4 && "Index out of bounds");
-        return this->col_vec[col];
+        return (*this)[col];
     }
 
     [[nodiscard]] auto get_row(u8 row) const noexcept -> v4 {
         assert(row < 4 && "Index out of bounds");
         return v4::create(
-            this->el[0][row], this->el[1][row], this->el[2][row], this->el[3][row]
+            (*this)[0][row], (*this)[1][row], (*this)[2][row], (*this)[3][row]
         );
     }
 
 public:
-    // TODO(artur): remove union usage, as it is UB in C++
-    union {
-        std::array<Col, 4> el;
-        std::array<v4, 4>  col_vec;
-
-        struct {
-            v4 x_axis;
-            v4 y_axis;
-            v4 z_axis;
-            v4 w_axis;
-        };
-    };
+    v4 x_axis;
+    v4 y_axis;
+    v4 z_axis;
+    v4 w_axis;
 };
 
 // IMPLEMENTATION
@@ -617,23 +610,33 @@ inline auto operator<<(std::ostream& os, const mat4x4& v) -> std::ostream& {
     return os;
 }
 
-inline constexpr auto mat4x4::operator[](const u32 index) noexcept
-    -> std::array<f32, 4>& {
-    return this->el[index];
+inline constexpr auto mat4x4::operator[](const u32 index) noexcept -> v4& {
+    switch (index) {
+        case 0: return x_axis;
+        case 1: return y_axis;
+        case 2: return z_axis;
+        case 3: return w_axis;
+        default: std::abort();
+    }
 }
 
-inline constexpr auto mat4x4::operator[](const u32 index) const noexcept
-    -> const std::array<f32, 4>& {
-    return this->el[index];
+inline constexpr auto mat4x4::operator[](const u32 index) const noexcept -> const v4& {
+    switch (index) {
+        case 0: return x_axis;
+        case 1: return y_axis;
+        case 2: return z_axis;
+        case 3: return w_axis;
+        default: std::abort();
+    }
 }
 
 inline constexpr auto mat4x4::operator*(const v4& vector) const noexcept -> v4 {
     v4          result;
     const auto& v = vector;
-    result.x = el[0][0] * v.x + el[1][0] * v.y + el[2][0] * v.z + el[3][0] * v.w;
-    result.y = el[0][1] * v.x + el[1][1] * v.y + el[2][1] * v.z + el[3][1] * v.w;
-    result.z = el[0][2] * v.x + el[1][2] * v.y + el[2][2] * v.z + el[3][2] * v.w;
-    result.w = el[0][3] * v.x + el[1][3] * v.y + el[2][3] * v.z + el[3][3] * v.w;
+    result.x = x_axis.x * v.x + y_axis.x * v.y + z_axis.x * v.z + w_axis.x * v.w;
+    result.y = x_axis.y * v.x + y_axis.y * v.y + z_axis.y * v.z + w_axis.y * v.w;
+    result.z = x_axis.z * v.x + y_axis.z * v.y + z_axis.z * v.z + w_axis.z * v.w;
+    result.w = x_axis.w * v.x + y_axis.w * v.y + z_axis.w * v.z + w_axis.w * v.w;
     return result;
 }
 
@@ -642,9 +645,9 @@ inline constexpr auto mat4x4::operator*(const mat4x4& other) const noexcept -> m
     for (u32 row = 0; row < 4; ++row) {
         for (u32 col = 0; col < 4; ++col) {
             for (u32 k = 0; k < 4; ++k) {
-                // result.el[col][row] += el[k][row] * other.el[col][k];
-                // result.el[col][row] += el[col][k] * other.el[k][row];
-                result.el[col][row] += el[k][row] * other.el[col][k];
+                // result[col][row] += (*this)[k][row] * other[col][k];
+                // result[col][row] += (*this)[col][k] * other[k][row];
+                result[col][row] += (*this)[k][row] * other[col][k];
             }
         }
     }
@@ -721,10 +724,10 @@ inline constexpr auto mat4x4::diagonal(f32 diag) noexcept -> mat4x4 {
 
 inline constexpr auto mat4x4::diagonal(const v4& diag) noexcept -> mat4x4 {
     mat4x4 m = mat4x4::zero();
-    m.el[0][0] = diag.x;
-    m.el[1][1] = diag.y;
-    m.el[2][2] = diag.z;
-    m.el[3][3] = diag.w;
+    m[0][0] = diag.x;
+    m[1][1] = diag.y;
+    m[2][2] = diag.z;
+    m[3][3] = diag.w;
     return m;
 }
 
@@ -742,25 +745,25 @@ inline constexpr auto mat4x4::rotation_rh(f32 angle, const v3& axis) noexcept ->
     const f32 yz_omc = axis.y * axis.z * omc;
 
     mat4x4 result = mat4x4::identity();
-    result.el[0][0] = axis_sq.x * omc + c;
-    result.el[0][1] = xy_omc + axis_sin.z;
-    result.el[0][2] = xz_omc - axis_sin.y;
-    result.el[0][3] = 0.0F;
+    result[0][0] = axis_sq.x * omc + c;
+    result[0][1] = xy_omc + axis_sin.z;
+    result[0][2] = xz_omc - axis_sin.y;
+    result[0][3] = 0.0F;
 
-    result.el[1][0] = xy_omc - axis_sin.z;
-    result.el[1][1] = axis_sq.y * omc + c;
-    result.el[1][2] = yz_omc + axis_sin.x;
-    result.el[1][3] = 0.0F;
+    result[1][0] = xy_omc - axis_sin.z;
+    result[1][1] = axis_sq.y * omc + c;
+    result[1][2] = yz_omc + axis_sin.x;
+    result[1][3] = 0.0F;
 
-    result.el[2][0] = xz_omc + axis_sin.y;
-    result.el[2][1] = yz_omc - axis_sin.x;
-    result.el[2][2] = axis_sq.z * omc + c;
-    result.el[2][3] = 0.0F;
+    result[2][0] = xz_omc + axis_sin.y;
+    result[2][1] = yz_omc - axis_sin.x;
+    result[2][2] = axis_sq.z * omc + c;
+    result[2][3] = 0.0F;
 
-    result.el[3][0] = 0.0F;
-    result.el[3][1] = 0.0F;
-    result.el[3][2] = 0.0F;
-    result.el[3][3] = 1.0F;
+    result[3][0] = 0.0F;
+    result[3][1] = 0.0F;
+    result[3][2] = 0.0F;
+    result[3][3] = 1.0F;
 
     return result;
 }
@@ -813,7 +816,7 @@ inline constexpr auto mat4x4::is_invertible() const -> bool {
 inline constexpr auto mat4x4::get_transpose() const -> mat4x4 {
     mat4x4 result = mat4x4::zero();
     for (u32 col = 0; col < 4; col++) {
-        for (u32 row = 0; row < 4; row++) { result[col][row] = el[row][col]; }
+        for (u32 row = 0; row < 4; row++) { result[col][row] = (*this)[row][col]; }
     }
     return result;
 }
