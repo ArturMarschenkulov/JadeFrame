@@ -792,19 +792,19 @@ constexpr auto mat4x4::rotation_rh(f32 angle, const v3& axis) noexcept -> mat4x4
     const f32 yz_omc = axis.y * axis.z * omc;
 
     mat4x4 result = mat4x4::identity();
-    result[0][0] = axis_sq.x * omc + c;
+    result[0][0] = (axis_sq.x * omc) + c;
     result[0][1] = xy_omc + axis_sin.z;
     result[0][2] = xz_omc - axis_sin.y;
     result[0][3] = 0.0F;
 
     result[1][0] = xy_omc - axis_sin.z;
-    result[1][1] = axis_sq.y * omc + c;
+    result[1][1] = (axis_sq.y * omc) + c;
     result[1][2] = yz_omc + axis_sin.x;
     result[1][3] = 0.0F;
 
     result[2][0] = xz_omc + axis_sin.y;
     result[2][1] = yz_omc - axis_sin.x;
-    result[2][2] = axis_sq.z * omc + c;
+    result[2][2] = (axis_sq.z * omc) + c;
     result[2][3] = 0.0F;
 
     result[3][0] = 0.0F;
