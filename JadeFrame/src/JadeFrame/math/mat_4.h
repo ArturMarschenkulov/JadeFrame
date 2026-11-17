@@ -884,46 +884,26 @@ public: // Creation / named constructors
 
     /// Converts a (normalized) quaternion to a 4x4 rotation matrix (RH).
     static inline auto to_mat4x4(const Quaternion& q_in) noexcept -> mat4x4 {
-        Quaternion q = q_in.normalize();
+        const Quaternion q = q_in.normalize();
 
         const f32 xx = q.x * q.x;
         const f32 yy = q.y * q.y;
         const f32 zz = q.z * q.z;
+
         const f32 xy = q.x * q.y;
         const f32 xz = q.x * q.z;
         const f32 yz = q.y * q.z;
+
         const f32 wx = q.w * q.x;
         const f32 wy = q.w * q.y;
         const f32 wz = q.w * q.z;
 
-        mat4x4 m = mat4x4::identity();
-        // Row-major (if you store row-wise). But recall mat4x4 is column-major:
-        //   so each `m[i][0..3]` is the i-th column. Adjust carefully.
-        // We'll fill it out in a column-major way:
-
-        m[0][0] = 1.0F - 2.0F * (yy + zz);
-        m[1][0] = 2.0F * (xy + wz);
-        m[2][0] = 2.0F * (xz - wy);
-
-        m[0][1] = 2.0F * (xy - wz);
-        m[1][1] = 1.0F - 2.0F * (xx + zz);
-        m[2][1] = 2.0F * (yz + wx);
-
-        m[0][2] = 2.0F * (xz + wy);
-        m[1][2] = 2.0F * (yz - wx);
-        m[2][2] = 1.0F - 2.0F * (xx + yy);
-
-        // translation row
-        m[3][0] = 0.0F;
-        m[3][1] = 0.0F;
-        m[3][2] = 0.0F;
-        // last column
-        m[0][3] = 0.0F;
-        m[1][3] = 0.0F;
-        m[2][3] = 0.0F;
-        m[3][3] = 1.0F;
-
-        return m;
+        return mat4x4::from_cols(
+            v4::create(1.0F - (2.0F * (yy + zz)), 2.0F * (xy + wz), 2.0F * (xz - wy), 0.0F),
+            v4::create(2.0F * (xy - wz), 1.0F - (2.0F * (xx + zz)), 2.0F * (yz + wx), 0.0F),
+            v4::create(2.0F * (xz + wy), 2.0F * (yz - wx), 1.0F - (2.0F * (xx + yy)), 0.0F),
+            v4::W()
+        );
     }
 
 public: // Basic quaternion operations
