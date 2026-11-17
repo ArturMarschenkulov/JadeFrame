@@ -38,6 +38,11 @@ m2	|__|__|__|
 */
 class mat4x4;
 
+enum class HANDEDNESS : u8 {
+    RIGHT,
+    LEFT,
+};
+
 constexpr static auto get_fovy_aspect(f32 left, f32 right, f32 top, f32 bottom, f32 near)
     -> std::tuple<f32, f32> {
     assert((left != right) && "left and right cannot be the same");
@@ -67,9 +72,8 @@ public:
 public:
     using Col = std::array<f32, 4>;
 
-    constexpr auto operator[](const u32 index) noexcept -> v4&; // for writing
-    constexpr auto operator[](const u32 index) const noexcept
-        -> const v4&; // for reading
+    constexpr auto operator[](const u32 index) noexcept -> v4&;             // for writing
+    constexpr auto operator[](const u32 index) const noexcept -> const v4&; // for reading
 
     constexpr auto operator*(const f32& scalar) const noexcept -> mat4x4 {
         mat4x4 result = {};
@@ -293,26 +297,7 @@ public: // static methods for matrices
         f32 bottom,
         f32 z_near,
         f32 z_far
-    ) noexcept -> mat4x4 {
-        const f32 frustum_width = right - left;
-        const f32 frustum_height = top - bottom;
-        const f32 frustum_depth = z_far - z_near;
-
-        const f32 a = (2.0F * z_near) / frustum_width;
-        const f32 b = (2.0F * z_near) / frustum_height;
-        const f32 d = -(2.0F * z_far * z_near) / frustum_depth;
-
-        const f32 tx = (right + left) / frustum_width;
-        const f32 ty = (top + bottom) / frustum_height;
-        const f32 tz = -(z_far + z_near) / frustum_depth;
-
-        return mat4x4::from_cols(
-            v4::create(a, 0.0F, 0.0F, 0.0F),
-            v4::create(0.0F, b, 0.0F, 0.0F),
-            v4::create(tx, ty, tz, -1.0F),
-            v4::create(0.0F, 0.0F, d, 0.0F)
-        );
-    }
+    ) noexcept -> mat4x4;
 
     /// Creates a right-handed perspective projection matrix with depth range of [-1, 1].
     ///
@@ -325,73 +310,13 @@ public: // static methods for matrices
     /// Mainly used in Direct3D. In case of Vulkan, one has to do proj[1][1] *= -1;, aka
     /// flip the y-axis.
     constexpr static auto
-    perspective_rh_zo(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4 {
-
-        const f32 frustum_depth = z_far - z_near;
-        const f32 focal_length = 1.0F / math::tan(fovy / 2.0F);
-        const f32 z_factor = -1.0F;
-
-        f32 _1 = focal_length / aspect;
-        f32 _2 = focal_length;
-        f32 _3 = z_factor * (z_far / frustum_depth);
-        f32 _4 = (-1.0F * z_near * z_far) / frustum_depth;
-        f32 _5 = z_factor;
-
-        return mat4x4::from_cols(
-            v4::create(_1, 0.0F, 0.0F, 0.0F),
-            v4::create(0.0F, _2, 0.0F, 0.0F),
-            v4::create(0.0F, 0.0F, _3, _5),
-            v4::create(0.0F, 0.0F, _4, 0.0F)
-        );
-    }
+    perspective_rh_zo(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4;
 
     constexpr static auto
-    perspective_lh_no(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4 {
-        const f32 frustum_depth = z_far - z_near;
-        const f32 focal_length = 1.0F / math::tan(fovy / 2.0F);
-        // const f32 focal_length = math::cos(fovy / 2.0F) / math::sin(fovy / 2.0F);
-        const f32 z_factor = 1.0F;
-
-        f32 _1 = focal_length / aspect;
-        f32 _2 = focal_length;
-        f32 _3 = z_factor * ((z_far + z_near) / frustum_depth);
-        f32 _4 = (-2.0F * z_near * z_far) / frustum_depth;
-        f32 _5 = z_factor;
-
-        return mat4x4::from_cols(
-            v4::create(_1, 0.0F, 0.0F, 0.0F),
-            v4::create(0.0F, _2, 0.0F, 0.0F),
-            v4::create(0.0F, 0.0F, _3, _5),
-            v4::create(0.0F, 0.0F, _4, 0.0F)
-        );
-    }
+    perspective_lh_no(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4;
 
     constexpr static auto
-    perspective_lh_zo(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4 {
-        const f32 frustum_depth = z_far - z_near;
-        const f32 focal_length = 1.0F / math::tan(fovy / 2.0F);
-        // const auto focal_length = math::cos(fovy / 2.0F) / math::sin(fovy / 2.0F);
-
-        const f32 z_factor = 1.0F;
-
-        const f32 z_range_min = 0.0F;
-        const f32 z_range_max = 1.0F;
-        const f32 c_0 = (z_range_max * z_far) - (z_range_min * z_near);
-        const f32 c_1 = (z_range_min - z_range_max) * z_near * z_far;
-
-        const f32 _1 = focal_length / aspect;
-        const f32 _2 = focal_length;
-        const f32 _3 = z_factor * (c_0 / frustum_depth);
-        const f32 _4 = c_1 / frustum_depth;
-        const f32 _5 = z_factor;
-
-        return mat4x4::from_cols(
-            v4::create(_1, 0.0F, 0.0F, 0.0F),
-            v4::create(0.0F, _2, 0.0F, 0.0F),
-            v4::create(0.0F, 0.0F, _3, _5),
-            v4::create(0.0F, 0.0F, _4, 0.0F)
-        );
-    }
+    perspective_lh_zo(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept -> mat4x4;
 
     constexpr static auto identity() noexcept -> mat4x4;
     constexpr static auto zero() noexcept -> mat4x4;
@@ -684,28 +609,100 @@ inline constexpr auto mat4x4::orthographic_rh_no(
     );
 }
 
-inline constexpr auto
-mat4x4::perspective_rh_no(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
-    -> mat4x4 {
+constexpr static auto perspective_extended(
+    f32        fovy,
+    f32        aspect,
+    f32        z_near,
+    f32        z_far,
+    HANDEDNESS handedness,
+    f32        ndc_near,
+    f32        ndc_far
+) noexcept -> mat4x4 {
+    assert(fovy > 0.0F && fovy < math::pi());
+    assert(aspect > 0.0F);
+    assert(z_near > 0.0F);
+    assert(z_far > z_near);
+    assert(ndc_near != ndc_far);
 
     const f32 frustum_depth = z_far - z_near;
-    const f32 focal_length = 1.0F / math::tan(fovy / 2.0F);
-    const f32 z_factor = -1.0F;
+    const f32 focal_length = 1.0F / math::tan(fovy * 0.5F);
+    const f32 s = handedness == HANDEDNESS::RIGHT ? -1.0F : 1.0F;
 
-    f32 _1 = focal_length / aspect;
-    f32 _2 = focal_length;
-    f32 _3 = z_factor * ((z_far + z_near) / frustum_depth);
-    f32 _4 = (-2.0F * z_far * z_near) / frustum_depth;
-    f32 _5 = z_factor;
+    const f32 _1 = focal_length / aspect;
+    const f32 _2 = focal_length;
+    const f32 _3 = s * ((z_far * ndc_far) - (z_near * ndc_near)) / frustum_depth;
+    const f32 _4 = z_near * z_far * (ndc_near - ndc_far) / frustum_depth;
+    const f32 _5 = s;
 
-    mat4x4 result = mat4x4::from_cols(
+    return mat4x4::from_cols(
         v4::create(_1, 0.0F, 0.0F, 0.0F),
         v4::create(0.0F, _2, 0.0F, 0.0F),
         v4::create(0.0F, 0.0F, _3, _5),
         v4::create(0.0F, 0.0F, _4, 0.0F)
     );
+}
 
-    return result;
+inline constexpr auto mat4x4::perspective_rh_no(
+    f32 left,
+    f32 right,
+    f32 top,
+    f32 bottom,
+    f32 z_near,
+    f32 z_far
+) noexcept -> mat4x4 {
+    const f32 frustum_width = right - left;
+    const f32 frustum_height = top - bottom;
+    const f32 frustum_depth = z_far - z_near;
+
+    const f32 handedness = -1.0F;
+
+    const f32 a = (2.0F * z_near) / frustum_width;
+    const f32 b = (2.0F * z_near) / frustum_height;
+    const f32 d = -(2.0F * z_far * z_near) / frustum_depth;
+
+    const f32 tx = (right + left) / frustum_width;
+    const f32 ty = (top + bottom) / frustum_height;
+    const f32 tz = -(z_far + z_near) / frustum_depth;
+
+    return mat4x4::from_cols(
+        v4::create(a, 0.0F, 0.0F, 0.0F),
+        v4::create(0.0F, b, 0.0F, 0.0F),
+        v4::create(tx, ty, tz, handedness),
+        v4::create(0.0F, 0.0F, d, 0.0F)
+    );
+}
+
+inline constexpr auto
+mat4x4::perspective_rh_no(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
+    -> mat4x4 {
+    return perspective_extended(
+        fovy, aspect, z_near, z_far, HANDEDNESS::RIGHT, -1.0F, 1.0F
+    );
+}
+
+inline constexpr auto
+mat4x4::perspective_rh_zo(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
+    -> mat4x4 {
+    return perspective_extended(
+        fovy, aspect, z_near, z_far, HANDEDNESS::RIGHT, 0.0F, 1.0F
+    );
+}
+
+inline constexpr auto
+mat4x4::perspective_lh_no(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
+    -> mat4x4 {
+
+    return perspective_extended(
+        fovy, aspect, z_near, z_far, HANDEDNESS::LEFT, -1.0F, 1.0F
+    );
+}
+
+inline constexpr auto
+mat4x4::perspective_lh_zo(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
+    -> mat4x4 {
+    return perspective_extended(
+        fovy, aspect, z_near, z_far, HANDEDNESS::LEFT, 0.0F, 1.0F
+    );
 }
 
 inline constexpr auto mat4x4::identity() noexcept -> mat4x4 {
@@ -902,9 +899,15 @@ public: // Creation / named constructors
         const f32 wz = q.w * q.z;
 
         return mat4x4::from_cols(
-            v4::create(1.0F - (2.0F * (yy + zz)), 2.0F * (xy + wz), 2.0F * (xz - wy), 0.0F),
-            v4::create(2.0F * (xy - wz), 1.0F - (2.0F * (xx + zz)), 2.0F * (yz + wx), 0.0F),
-            v4::create(2.0F * (xz + wy), 2.0F * (yz - wx), 1.0F - (2.0F * (xx + yy)), 0.0F),
+            v4::create(
+                1.0F - (2.0F * (yy + zz)), 2.0F * (xy + wz), 2.0F * (xz - wy), 0.0F
+            ),
+            v4::create(
+                2.0F * (xy - wz), 1.0F - (2.0F * (xx + zz)), 2.0F * (yz + wx), 0.0F
+            ),
+            v4::create(
+                2.0F * (xz + wy), 2.0F * (yz - wx), 1.0F - (2.0F * (xx + yy)), 0.0F
+            ),
             v4::W()
         );
     }

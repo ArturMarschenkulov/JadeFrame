@@ -34,11 +34,6 @@ namespace JadeFrame {
 //     f32 m_inner;
 // };
 
-enum class HANDEDNESS : u8 {
-    LEFT,
-    RIGHT,
-};
-
 class Projection {
 public:
     static auto from_box(

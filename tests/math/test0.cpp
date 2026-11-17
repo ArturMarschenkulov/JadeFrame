@@ -39,15 +39,19 @@ static_assert(std::is_same_v<decltype(std::declval<const v4&>()[0]), const f32&>
 
 static constexpr auto storage_test_matrix() -> mat4x4 {
     return mat4x4::from_cols(
-        v4::create(1, 2, 3, 4), v4::create(5, 6, 7, 8),
-        v4::create(9, 10, 11, 12), v4::create(13, 14, 15, 16)
+        v4::create(1, 2, 3, 4),
+        v4::create(5, 6, 7, 8),
+        v4::create(9, 10, 11, 12),
+        v4::create(13, 14, 15, 16)
     );
 }
 
 static constexpr auto check_matrix_storage() -> bool {
     const mat4x4 original = storage_test_matrix();
-    mat4x4 matrix = original;
-    const v4* columns[] = {&matrix.x_axis, &matrix.y_axis, &matrix.z_axis, &matrix.w_axis};
+    mat4x4       matrix = original;
+    const v4*    columns[] = {
+        &matrix.x_axis, &matrix.y_axis, &matrix.z_axis, &matrix.w_axis
+    };
     const v4* const_columns[] = {
         &original.x_axis, &original.y_axis, &original.z_axis, &original.w_axis
     };
@@ -85,7 +89,7 @@ TEST(Mat4x4_Storage, NamedColumnsAndIndexing) {
 }
 
 TEST(Mat4x4_Storage, ColumnMajorObjectBytes) {
-    const mat4x4 matrix = storage_test_matrix();
+    const mat4x4        matrix = storage_test_matrix();
     std::array<f32, 16> scalars = {};
     std::memcpy(scalars.data(), &matrix, sizeof(matrix));
     for (u32 i = 0; i < scalars.size(); ++i) {
@@ -745,11 +749,6 @@ perspective_1(f32 left, f32 right, f32 top, f32 bottom, f32 far, f32 near) noexc
     );
 }
 
-enum class HANDEDNESS {
-    LEFT,
-    RIGHT
-};
-
 struct ViewVolume {
 public:
     [[nodiscard]] static auto zero() noexcept -> ViewVolume {
@@ -1202,8 +1201,8 @@ TEST(Mat4x4_Projection_Perspective, CustomCompositePerspectiveMatrix) {
     f32 z_near = 0.1F;
     f32 z_far = 100.0F;
 
-    const f32 width = right - left;
-    const f32 height = top - bottom;
+    const f32                  width = right - left;
+    const f32                  height = top - bottom;
     [[maybe_unused]] const f32 aspect = width / height;
     [[maybe_unused]] const f32 fovy = 2.0F * std::atan(top / z_near);
 
