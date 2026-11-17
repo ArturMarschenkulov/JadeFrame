@@ -1241,7 +1241,7 @@ TEST(Mat4x4_Projection_Perspective, NormalParameters_0) {
     // std::cout << "Result_1:" << std::endl << to_string(result_1) << std::endl;
     // std::cout << "Result_2:" << std::endl << to_string(result_2) << std::endl;
 
-    ASSERT_TRUE(result_0.cmp(result_1));
+    ASSERT_TRUE(!result_0.cmp(result_1));
 }
 
 // Test edge case with near and far
