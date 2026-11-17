@@ -82,8 +82,12 @@ struct SponzaExample {
     }
 
     auto on_init(jf::Application& app) -> void {
-        auto& renderer = static_cast<jf::OpenGL_Renderer&>(*app.m_render_system.m_renderer);
-        renderer.m_context.m_state.set_depth_test(true);
+        auto& renderer = *app.m_render_system.m_renderer;
+        if (app.m_render_system.m_api == jf::GRAPHICS_API::OPENGL) {
+            auto& opengl = static_cast<jf::OpenGL_Renderer&>(renderer);
+            opengl.m_context.m_state.set_depth_test(true);
+        }
+        // Vulkan enables depth testing in its graphics pipeline.
         renderer.set_clear_color(jf::RGBAColor::from_rgb(0.06F, 0.08F, 0.12F));
         const auto size = app.m_current_window_p->get_size();
         const auto eye = jf::v3::create(7, -11, 7);
