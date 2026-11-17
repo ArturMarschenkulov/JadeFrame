@@ -49,20 +49,6 @@ enum class PROJECTION_TYPE : u8 {
     PERSPECTIVE,
 };
 
-constexpr static auto get_fovy_aspect(f32 left, f32 right, f32 top, f32 bottom, f32 near)
-    -> std::tuple<f32, f32> {
-    assert((left != right) && "left and right cannot be the same");
-    assert((top != bottom) && "top and bottom cannot be the same");
-    assert((left < right) && "left must be less than right");
-    assert((bottom < top) && "bottom must be less than top");
-
-    const f64 width = right - left;
-    const f64 height = top - bottom;
-    const f64 aspect = width / height;
-    const f64 fovy = 2.0 * std::atan((f64)top / (f64)near);
-    return {fovy, aspect};
-}
-
 class mat4x4 {
 private:
 
@@ -112,7 +98,9 @@ public:
     cmp(const mat4x4& other, f32 epsilon = 1e-6F) const noexcept -> bool {
         for (int i = 0; i < 4; ++i) {
             for (int j = 0; j < 4; ++j) {
-                if (!(std::fabs((*this)[i][j] - other[i][j]) <= epsilon)) { return false; }
+                if (!(std::fabs((*this)[i][j] - other[i][j]) <= epsilon)) {
+                    return false;
+                }
             }
         }
         return true;
@@ -212,6 +200,15 @@ public: // static methods for matrices
     ) noexcept -> mat4x4;
 
     constexpr static auto perspective_rh_no(
+        f32 left,
+        f32 right,
+        f32 top,
+        f32 bottom,
+        f32 z_near,
+        f32 z_far
+    ) noexcept -> mat4x4;
+
+    constexpr static auto perspective_lh_no(
         f32 left,
         f32 right,
         f32 top,
@@ -671,6 +668,19 @@ constexpr auto mat4x4::perspective_rh_no(
 ) noexcept -> mat4x4 {
     return perspective_extended(
         left, right, top, bottom, z_near, z_far, HANDEDNESS::RIGHT, -1.0F, 1.0F
+    );
+}
+
+constexpr auto mat4x4::perspective_lh_no(
+    f32 left,
+    f32 right,
+    f32 top,
+    f32 bottom,
+    f32 z_near,
+    f32 z_far
+) noexcept -> mat4x4 {
+    return perspective_extended(
+        left, right, top, bottom, z_near, z_far, HANDEDNESS::LEFT, -1.0F, 1.0F
     );
 }
 

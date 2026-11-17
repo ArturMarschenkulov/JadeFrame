@@ -76,11 +76,14 @@ public:
                     box.m_far
                 );
             } else if (handedness == HANDEDNESS::LEFT) {
-                auto [fovy, aspect] = get_fovy_aspect(
-                    box.m_left, box.m_right, box.m_top, box.m_bottom, box.m_near
+                proj.m_proj = mat4x4::perspective_lh_no(
+                    box.m_left,
+                    box.m_right,
+                    box.m_top,
+                    box.m_bottom,
+                    box.m_near,
+                    box.m_far
                 );
-                proj.m_proj =
-                    mat4x4::perspective_lh_no(fovy, aspect, box.m_near, box.m_far);
             }
         }
         return proj;

@@ -1,7 +1,10 @@
 
+#include <cassert>
+#include <cmath>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <tuple>
 #include <type_traits>
 #include <limits>
 #include <gtest/gtest.h>
@@ -1117,6 +1120,20 @@ TEST(Mat4x4_Projection_Orthographic, TestingComposition) {
             EXPECT_EQ(m, ortho);
         }
     }
+}
+
+constexpr static auto get_fovy_aspect(f32 left, f32 right, f32 top, f32 bottom, f32 near)
+    -> std::tuple<f32, f32> {
+    assert((left != right) && "left and right cannot be the same");
+    assert((top != bottom) && "top and bottom cannot be the same");
+    assert((left < right) && "left must be less than right");
+    assert((bottom < top) && "bottom must be less than top");
+
+    const f64 width = right - left;
+    const f64 height = top - bottom;
+    const f64 aspect = width / height;
+    const f64 fovy = 2.0 * std::atan((f64)top / (f64)near);
+    return {fovy, aspect};
 }
 
 TEST(Mat4x4_Projection_Perspective, TestingComposition) {
