@@ -82,7 +82,7 @@ public:
                 );
             } else if (handedness == HANDEDNESS::LEFT) {
                 auto [fovy, aspect] = get_fovy_aspect(
-                    box.m_left, box.m_right, box.m_bottom, box.m_top, box.m_near
+                    box.m_left, box.m_right, box.m_top, box.m_bottom, box.m_near
                 );
                 proj.m_proj =
                     mat4x4::perspective_lh_no(fovy, aspect, box.m_near, box.m_far);
@@ -211,11 +211,13 @@ auto Camera::calc_projection(GRAPHICS_API api) const -> mat4x4 {
     const f32 fov_radians = to_radians(fov_degrees);
     if (m_mode == PROJECTION_TYPE::PERSPECTIVE) {
         if (api == GRAPHICS_API::OPENGL) {
-            proj =
-                mat4x4::perspective_rh_no(fov_radians, aspect, m_volume.m_near, m_volume.m_far);
+            proj = mat4x4::perspective_rh_no(
+                fov_radians, aspect, m_volume.m_near, m_volume.m_far
+            );
         } else if (api == GRAPHICS_API::VULKAN) {
-            proj =
-                mat4x4::perspective_rh_zo(fov_radians, aspect, m_volume.m_near, m_volume.m_far);
+            proj = mat4x4::perspective_rh_zo(
+                fov_radians, aspect, m_volume.m_near, m_volume.m_far
+            );
             // proj[1][1] *= -1;
         } else {
             Logger::err("Invalid graphics API: {}", to_string(api));
