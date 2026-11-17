@@ -7,3 +7,7 @@ add_subdirectory(moving_primitive)
 add_subdirectory(rotating_primitive)
 add_subdirectory(texture_quad)
 add_subdirectory(moving_quad)
+
+if(JADEFRAME_ENABLE_OPENGL)
+    add_subdirectory(sponza)
+endif()

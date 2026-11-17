@@ -299,7 +299,7 @@ auto OpenGL_Renderer::render(const Camera& camera) -> void {
         }
 
         OpenGL_Renderer::render_mesh(
-            cmd.vertex_data, cmd.m_mesh, &shader->m_vertex_array
+            cmd.m_mesh, &shader->m_vertex_array
         );
     }
 #if JF_OPENGL_FB
@@ -325,20 +325,14 @@ auto OpenGL_Renderer::render(const Camera& camera) -> void {
 }
 
 auto OpenGL_Renderer::render_mesh(
-    const Mesh*        vertex_data,
     const GPUMeshData* gpu_data,
     OGLW_VertexArray*  vao
 ) -> void {
     // TODO: Considering we are replicating Vulkan's way of doing things, the primitive
     // type should be defined in the pipeline or shader, and here it should be simply
     // queried.
-    if (vao == nullptr || gpu_data == nullptr || vertex_data == nullptr) {
+    if (vao == nullptr || gpu_data == nullptr) {
         Logger::err("Cannot render a mesh with incomplete render data");
-        return;
-    }
-    auto validation = vertex_data->validate();
-    if (validation.is_err()) {
-        Logger::err("Cannot render an invalid mesh: {}", validation.error().m_message);
         return;
     }
     if (gpu_data->m_vertex_buffer == nullptr ||
@@ -353,32 +347,20 @@ auto OpenGL_Renderer::render_mesh(
     vao->bind_buffer(*vertex_buffer);
 
     auto prim_type = static_cast<GLenum>(PRIMITIVE_TYPE::TRIANGLES);
-    if (!vertex_data->m_indices.empty()) {
+    if (gpu_data->index_count() != 0) {
         if (gpu_data->m_index_buffer == nullptr ||
             gpu_data->m_index_buffer->m_handle == nullptr) {
             Logger::err("Cannot render indexed mesh without an index buffer");
             return;
         }
-        if (vertex_data->m_indices.size() >
-            static_cast<size_t>(std::numeric_limits<GLsizei>::max())) {
-            Logger::err("Mesh contains too many indices for OpenGL");
-            return;
-        }
-        auto  num_indices = static_cast<GLsizei>(vertex_data->m_indices.size());
+        auto  num_indices = static_cast<GLsizei>(gpu_data->index_count());
         auto  gl_type = GL_UNSIGNED_INT;
         auto* index_buffer =
             static_cast<opengl::Buffer*>(gpu_data->m_index_buffer->m_handle);
         glVertexArrayElementBuffer(vao->m_ID, index_buffer->m_id);
         glDrawElements(prim_type, num_indices, gl_type, nullptr);
     } else {
-        const auto* position_attribute = vertex_data->attribute_data(Mesh::POSITION.m_id);
-        if (position_attribute == nullptr ||
-            position_attribute->count() >
-                static_cast<size_t>(std::numeric_limits<GLsizei>::max())) {
-            Logger::err("Mesh contains an invalid vertex count for OpenGL");
-            return;
-        }
-        auto num_vertices = static_cast<GLsizei>(position_attribute->count());
+        auto num_vertices = static_cast<GLsizei>(gpu_data->vertex_count());
         glDrawArrays(prim_type, 0, num_vertices);
     }
 }

@@ -68,7 +68,6 @@ private:
     friend class RenderSystem;
 
     auto render_mesh(
-        const Mesh*        vertex_data,
         const GPUMeshData* gpu_data,
         OGLW_VertexArray*  vao
     ) -> void;

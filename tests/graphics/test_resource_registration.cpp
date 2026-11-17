@@ -333,3 +333,103 @@ TEST_F(Registration, ForeignLiveDependenciesAreRejectedBeforeNativeCreation) {
     other.shutdown();
     EXPECT_EQ(other_state.allocations, other_state.releases);
 }
+
+TEST_F(Registration, SubmissionUsesUploadedSnapshotAfterCpuGeometryIsDestroyed) {
+    auto shader = system.try_register_shader({});
+    ASSERT_TRUE(shader.is_ok());
+    auto material = system.try_register_material(shader.value(), nullptr);
+    ASSERT_TRUE(material.is_ok());
+    Object object;
+    object.m_material = material.value();
+    {
+        auto source = mesh();
+        auto uploaded = system.try_register_mesh(source);
+        ASSERT_TRUE(uploaded.is_ok());
+        object.m_mesh = uploaded.value();
+        EXPECT_EQ(object.m_mesh->vertex_count(), 3U);
+        EXPECT_EQ(object.m_mesh->index_count(), 3U);
+        const auto& format = object.m_mesh->vertex_format();
+        ASSERT_EQ(format.m_attributes.size(), 1U);
+        EXPECT_EQ(format.m_stride, 3U * sizeof(f32));
+        EXPECT_EQ(format.m_attributes[0].type, SHADER_TYPE::V_3_F32);
+        EXPECT_EQ(format.m_attributes[0].location, 0U);
+
+        // The legacy CPU pointer must never influence the uploaded draw.
+        object.m_vertex_data = &source;
+        source.m_indices = {999};
+        source.m_attributes.clear();
+        system.submit(object);
+        ASSERT_EQ(system.m_render_commands.size(), 1U);
+    }
+    // Even a retained legacy pointer is ignored after the source is destroyed.
+    system.submit(object);
+    ASSERT_EQ(system.m_render_commands.size(), 2U);
+    object.m_vertex_data = nullptr;
+    system.submit(object);
+    ASSERT_EQ(system.m_render_commands.size(), 3U);
+    EXPECT_EQ(system.m_render_commands.back().m_mesh, object.m_mesh);
+    EXPECT_EQ(system.m_render_commands.back().material, object.m_material);
+    EXPECT_EQ(object.m_mesh->index_count(), 3U);
+    system.shutdown();
+    EXPECT_TRUE(system.m_render_commands.empty());
+    EXPECT_EQ(state.allocations, state.releases);
+}
+
+TEST_F(Registration, NonIndexedMeshCachesPackedLayoutAndSubmitsWithoutCpuData) {
+    auto source = mesh();
+    source.m_indices.clear();
+    source.m_attributes[Mesh::UV.m_id] = {Mesh::UV, {0, 0, 1, 0, 0, 1}};
+    auto uploaded = system.try_register_mesh(source);
+    ASSERT_TRUE(uploaded.is_ok());
+    const auto& gpu = *uploaded.value();
+    EXPECT_EQ(gpu.vertex_count(), 3U);
+    EXPECT_EQ(gpu.index_count(), 0U);
+    EXPECT_EQ(gpu.m_index_buffer, nullptr);
+    EXPECT_TRUE(gpu.is_interleaved());
+    const auto& format = gpu.vertex_format();
+    EXPECT_EQ(format.m_stride, 5U * sizeof(f32));
+    ASSERT_EQ(format.m_attributes.size(), 2U);
+    EXPECT_EQ(format.m_attributes[1].type, SHADER_TYPE::V_2_F32);
+    // Locations describe packed upload order, not Mesh semantic attribute IDs.
+    EXPECT_EQ(format.m_attributes[1].location, 1U);
+    auto shader = system.try_register_shader({});
+    ASSERT_TRUE(shader.is_ok());
+    auto material = system.try_register_material(shader.value(), nullptr);
+    ASSERT_TRUE(material.is_ok());
+    Object object;
+    object.m_mesh = uploaded.value();
+    object.m_material = material.value();
+    source = Mesh{};
+    system.submit(object);
+    EXPECT_EQ(system.m_render_commands.size(), 1U);
+}
+
+TEST_F(Registration, SubmissionRejectsMissingIndexBufferAndForeignMeshes) {
+    auto uploaded = system.try_register_mesh(mesh());
+    auto shader = system.try_register_shader({});
+    ASSERT_TRUE(uploaded.is_ok());
+    ASSERT_TRUE(shader.is_ok());
+    auto material = system.try_register_material(shader.value(), nullptr);
+    ASSERT_TRUE(material.is_ok());
+    Object object;
+    object.m_mesh = uploaded.value();
+    object.m_material = material.value();
+    auto index_buffer = std::move(object.m_mesh->m_index_buffer);
+    system.submit(object);
+    EXPECT_TRUE(system.m_render_commands.empty());
+    object.m_mesh->m_index_buffer = std::move(index_buffer);
+    system.submit(object);
+    ASSERT_EQ(system.m_render_commands.size(), 1U);
+    GPUMeshData unregistered(&system, mesh());
+    object.m_mesh = &unregistered;
+    system.submit(object);
+    EXPECT_EQ(system.m_render_commands.size(), 1U);
+}
+
+TEST_F(Registration, InvalidIndicesAreRejectedBeforeUpload) {
+    auto source = mesh();
+    source.m_indices[2] = 999;
+    EXPECT_TRUE(system.try_register_mesh(source).is_err());
+    EXPECT_TRUE(system.m_registered_meshes.empty());
+    EXPECT_EQ(state.calls, 0);
+}

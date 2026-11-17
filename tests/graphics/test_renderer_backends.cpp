@@ -117,15 +117,17 @@ protected:
             v3::create(0.0F, 0.0F, 0.0F),   v3::create(-1.0F, 0.0F, 0.0F),
         };
         const std::vector<RGBAColor> colors(positions.size(), RGBAColor::solid_red());
-        m_mesh.m_attributes[Mesh::POSITION.m_id] = Mesh::AttributeData{
+        Mesh mesh;
+        mesh.m_attributes[Mesh::POSITION.m_id] = Mesh::AttributeData{
             .m_attribute = Mesh::POSITION, .m_data = to_list(positions)
         };
-        m_mesh.m_attributes[Mesh::COLOR.m_id] =
+        mesh.m_attributes[Mesh::COLOR.m_id] =
             Mesh::AttributeData{.m_attribute = Mesh::COLOR, .m_data = to_list(colors)};
 
-        m_object.m_mesh = m_system->register_mesh(m_mesh);
+        m_object.m_mesh = m_system->register_mesh(mesh);
         ASSERT_NE(m_object.m_mesh, nullptr);
-        m_object.m_vertex_data = &m_mesh;
+        // Release all CPU geometry before the first draw on either backend.
+        mesh = Mesh{};
         m_object.m_material = material;
 
         // Let the window settle (a window manager may resize it) before the tests look
@@ -171,7 +173,6 @@ protected:
     std::unique_ptr<RenderSystem> m_system;
     IRenderer*                    m_renderer = nullptr;
     ShaderHandle*                 m_shader = nullptr;
-    Mesh                          m_mesh;
     Object                        m_object;
     Camera m_camera = Camera::orthographic(-1.0F, 1.0F, -1.0F, 1.0F, -1.0F, 1.0F);
 };
@@ -223,6 +224,51 @@ TEST_P(RendererContract, TextureUploadPreservesExistingResources) {
     ASSERT_TRUE(material.is_ok()) << material.error().m_message;
     EXPECT_NE(material.value()->m_handle, nullptr);
     EXPECT_FALSE(render_and_capture().data.empty());
+}
+
+TEST_P(RendererContract, IndexedGpuMeshesRenderWithPerspectiveAndDepthAfterCpuRelease) {
+    Object near;
+    Object far;
+    near.m_material = m_object.m_material;
+    far.m_material = m_object.m_material;
+    {
+        Mesh mesh;
+        mesh.m_attributes[Mesh::POSITION.m_id] = {
+            Mesh::POSITION, {-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0}};
+        mesh.m_indices = {0, 1, 2, 0, 2, 3};
+        ASSERT_TRUE(mesh.set_color(RGBAColor::solid_red()).is_ok());
+        near.m_mesh = m_system->register_mesh(mesh);
+        ASSERT_NE(near.m_mesh, nullptr);
+        ASSERT_TRUE(mesh.set_color(RGBAColor::solid_green()).is_ok());
+        far.m_mesh = m_system->register_mesh(mesh);
+        ASSERT_NE(far.m_mesh, nullptr);
+    }
+    far.m_transform.m_translation = mat4x4::translation(v3::create(0, 0, -1));
+    const auto size = m_window->get_size();
+    auto camera = Camera::perspective(v3::create(0, 0, 5), 60.0F,
+        static_cast<f32>(size.x) / static_cast<f32>(size.y), 0.1F, 100.0F);
+    camera.m_orientation = Camera::Orientation::create(v3::NEG_Z(), v3::Y());
+    for (int attempt = 0; attempt < 5; ++attempt) {
+        m_renderer->clear_background();
+        m_system->submit(near);
+        // Drawing the green mesh last must not overwrite the nearer red mesh.
+        m_system->submit(far);
+        m_renderer->render(camera);
+        auto captured = m_renderer->take_screenshot(nullptr);
+        m_renderer->present();
+        poll_events();
+        if (captured.is_err()) {
+            EXPECT_EQ(captured.error().m_code, RendererErrorCode::FRAME_NOT_AVAILABLE);
+            continue;
+        }
+        const auto& image = captured.value();
+        ASSERT_FALSE(image.data.empty());
+        expect_color(image, image.width / 2, image.height / 2, QUAD,
+                     "near red mesh occludes later green mesh");
+        expect_color(image, 1, 1, CLEAR, "perspective scene background");
+        return;
+    }
+    FAIL() << "No frame could be captured";
 }
 
 TEST_P(RendererContract, ScreenshotNeedsARenderedUnpresentedFrame) {

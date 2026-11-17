@@ -185,7 +185,7 @@ private:
     /// is created.
     [[nodiscard]] auto create_swapchain_dependents() -> Result<void, InitError>;
     auto create_present_semaphores() -> void;
-    auto render_mesh(const Mesh* vertex_data, const GPUMeshData* gpu_data) -> void;
+    auto render_mesh(const GPUMeshData* gpu_data) -> void;
 };
 
 static_assert(is_renderer<Vulkan_Renderer>);

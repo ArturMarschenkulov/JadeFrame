@@ -515,6 +515,9 @@ private:
 class RenderSystem;
 class Mesh;
 
+/// Owns uploaded buffers and a snapshot of their layout and draw counts. No CPU
+/// geometry is retained. Registered meshes belong to RenderSystem until shutdown;
+/// do not move them or replace their buffers while objects/commands borrow them.
 class GPUMeshData {
 public:
     GPUMeshData() = default;
@@ -526,17 +529,34 @@ public:
 
     GPUMeshData(RenderSystem* system, const Mesh& vertex_data, bool interleaved = true);
 
+    [[nodiscard]] auto vertex_count() const -> u32 { return m_vertex_count; }
+    [[nodiscard]] auto index_count() const -> u32 { return m_index_count; }
+    /// Attributes are packed in Mesh attribute order at consecutive shader locations.
+    /// The shader/pipeline must use the same format, as with the existing upload API.
+    [[nodiscard]] auto vertex_format() const -> const VertexFormat& { return m_vertex_format; }
+    [[nodiscard]] auto is_interleaved() const -> bool { return m_interleaved; }
+
 public:
     std::unique_ptr<GPUBuffer> m_vertex_buffer;
     std::unique_ptr<GPUBuffer> m_index_buffer;
+
+private:
+    friend class RenderSystem;
+    /// Called only after convert_into_data has validated the CPU geometry.
+    auto cache_draw_data(const Mesh& mesh, bool interleaved) -> Result<void, RendererError>;
+    VertexFormat m_vertex_format;
+    u32 m_vertex_count = 0;
+    u32 m_index_count = 0;
+    bool m_interleaved = true;
 };
 class Mesh;
 
 struct RenderCommand {
     mat4x4          transform = {};
-    Mesh*           vertex_data = nullptr;
     MaterialHandle* material = nullptr;
-    GPUMeshData*    m_mesh = nullptr;
+    /// Borrows registry resources through render(); shutdown clears commands before
+    /// releasing resources and waits for in-flight GPU work before destroying them.
+    const GPUMeshData* m_mesh = nullptr;
 };
 
 /*
@@ -739,6 +759,8 @@ public:
 class Object {
 public:
     GPUMeshData*    m_mesh = nullptr;
+    /// Legacy optional CPU geometry reference; ignored by submission and rendering.
+    /// CPU geometry may be changed or destroyed immediately after registration.
     Mesh*           m_vertex_data = nullptr;
     MaterialHandle* m_material = nullptr;
     Transform       m_transform;
@@ -781,7 +803,9 @@ public:
     [[nodiscard]] auto is_initialized() const -> bool { return m_renderer != nullptr; }
 
     /// Transactional alternatives: on error no registry entry is added. Returned
-    /// pointers borrow registry storage and remain valid until shutdown().
+    /// pointers borrow registry storage and remain valid until shutdown(). Do not
+    /// move/erase registered resources. Mesh upload copies data synchronously; the
+    /// source Mesh need not survive registration.
     [[nodiscard]] auto try_register_texture(const Image& image)
         -> Result<TextureHandle*, RendererError>;
     [[nodiscard]] auto try_register_shader(const ShaderHandle::Desc& desc)

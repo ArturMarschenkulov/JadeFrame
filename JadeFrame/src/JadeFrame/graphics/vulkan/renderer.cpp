@@ -518,7 +518,7 @@ auto Vulkan_Renderer::render(const Camera& camera) -> void {
             cb.bind_descriptor_set(bp, pl, set_index, sets[set_index], dynamic_offsets);
         }
 
-        this->render_mesh(cmd.vertex_data, cmd.m_mesh);
+        this->render_mesh(cmd.m_mesh);
     }
     //});
     cb.render_pass_end();
@@ -531,15 +531,10 @@ auto Vulkan_Renderer::render(const Camera& camera) -> void {
     m_frame_rendered = true;
 }
 
-auto Vulkan_Renderer::render_mesh(const Mesh* vertex_data, const GPUMeshData* gpu_data)
+auto Vulkan_Renderer::render_mesh(const GPUMeshData* gpu_data)
     -> void {
-    if (vertex_data == nullptr || gpu_data == nullptr) {
+    if (gpu_data == nullptr) {
         Logger::err("Cannot render a mesh with incomplete render data");
-        return;
-    }
-    auto validation = vertex_data->validate();
-    if (validation.is_err()) {
-        Logger::err("Cannot render an invalid mesh: {}", validation.error().m_message);
         return;
     }
     if (gpu_data->m_vertex_buffer == nullptr ||
@@ -548,22 +543,13 @@ auto Vulkan_Renderer::render_mesh(const Mesh* vertex_data, const GPUMeshData* gp
         return;
     }
 
-    const auto* position_attribute = vertex_data->attribute_data(Mesh::POSITION.m_id);
-    if (position_attribute == nullptr ||
-        position_attribute->count() > std::numeric_limits<u32>::max()) {
-        Logger::err("Mesh contains an invalid vertex count for Vulkan");
-        return;
-    }
-    const u32 num_vertices = static_cast<u32>(position_attribute->count());
-    const auto& num_indices = static_cast<u32>(vertex_data->m_indices.size());
-
     const vulkan::Buffer* vertex_buffer =
         static_cast<vulkan::Buffer*>(gpu_data->m_vertex_buffer->m_handle);
 
     vulkan::CommandBuffer& cb = m_frames[m_frame_index].m_cmd;
     cb.bind_vertex_buffer(0, *vertex_buffer, 0);
 
-    if (!vertex_data->m_indices.empty()) {
+    if (gpu_data->index_count() != 0) {
         if (gpu_data->m_index_buffer == nullptr ||
             gpu_data->m_index_buffer->m_handle == nullptr) {
             Logger::err("Cannot render indexed mesh without an index buffer");
@@ -572,9 +558,9 @@ auto Vulkan_Renderer::render_mesh(const Mesh* vertex_data, const GPUMeshData* gp
         const vulkan::Buffer* index_buffer =
             static_cast<vulkan::Buffer*>(gpu_data->m_index_buffer->m_handle);
         cb.bind_index_buffer(*index_buffer, 0);
-        cb.draw_indexed(num_indices, 1, 0, 0, 0);
+        cb.draw_indexed(gpu_data->index_count(), 1, 0, 0, 0);
     } else {
-        cb.draw(num_vertices, 1, 0, 0);
+        cb.draw(gpu_data->vertex_count(), 1, 0, 0);
     }
 }
 

@@ -151,6 +151,30 @@ GPUBuffer::GPUBuffer(RenderSystem* system, void* data, size_t size, TYPE usage)
     }
 }
 
+auto GPUMeshData::cache_draw_data(const Mesh& mesh, bool interleaved)
+    -> Result<void, RendererError> {
+    const size_t vertices = mesh.attribute_data(Mesh::POSITION.m_id)->count();
+    // Both backends share this upload path; OpenGL draw counts are signed 32-bit.
+    constexpr auto max_count = static_cast<size_t>(std::numeric_limits<i32>::max());
+    if (vertices > max_count || mesh.m_indices.size() > max_count) {
+        return err<void, RendererError>(RendererError{
+            RendererErrorCode::INVALID_STATE, "Mesh draw count exceeds supported limits"
+        });
+    }
+    std::vector<VertexAttribute> attributes;
+    attributes.reserve(mesh.m_attributes.size());
+    for (const auto& [id, attribute] : mesh.m_attributes) {
+        (void)id;
+        attributes.push_back({attribute.m_attribute.m_format,
+                              static_cast<u32>(attributes.size())});
+    }
+    m_vertex_format = VertexFormat(attributes);
+    m_vertex_count = static_cast<u32>(vertices);
+    m_index_count = static_cast<u32>(mesh.m_indices.size());
+    m_interleaved = interleaved;
+    return ok<void, RendererError>();
+}
+
 GPUMeshData::GPUMeshData(
     RenderSystem* system,
     const Mesh&   vertex_data,
@@ -163,6 +187,11 @@ GPUMeshData::GPUMeshData(
             "Cannot create GPU mesh from invalid mesh: {}",
             flat_data_result.error().m_message
         );
+        return;
+    }
+    auto cached = cache_draw_data(vertex_data, interleaved);
+    if (cached.is_err()) {
+        Logger::err("Cannot create GPU mesh: {}", cached.error().m_message);
         return;
     }
     std::vector<f32> flat_data = std::move(flat_data_result).value();
@@ -511,6 +540,8 @@ auto RenderSystem::try_register_mesh(const Mesh& data)
     auto flat = convert_into_data(data, true);
     if (flat.is_err()) { return registration_error<GPUMeshData>(flat.error().m_message); }
     GPUMeshData mesh;
+    auto cached = mesh.cache_draw_data(data, true);
+    if (cached.is_err()) { return err<GPUMeshData*, RendererError>(cached.error()); }
     auto&       vertices = flat.value();
     mesh.m_vertex_buffer = std::make_unique<GPUBuffer>(
         this, vertices.data(), vertices.size() * sizeof(f32), GPUBuffer::VERTEX
@@ -628,7 +659,7 @@ auto RenderSystem::register_material(ShaderHandle* shader, TextureHandle* textur
 }
 
 auto RenderSystem::submit(const Object& obj) -> void {
-    if (!m_renderer || obj.m_vertex_data == nullptr ||
+    if (!m_renderer ||
         !registered(m_registered_meshes, obj.m_mesh) ||
         !registered(m_registered_materials, obj.m_material) ||
         !obj.m_material->m_handle ||
@@ -638,28 +669,24 @@ auto RenderSystem::submit(const Object& obj) -> void {
         return;
     }
 
-    auto validation = obj.m_vertex_data->validate();
-    if (validation.is_err()) {
-        Logger::err(
-            "Cannot submit an invalid mesh: {}",
-            validation.error().m_message
-        );
-        return;
-    }
-    if (obj.m_mesh->m_vertex_buffer == nullptr ||
-        obj.m_mesh->m_vertex_buffer->m_handle == nullptr) {
+    const auto usable_buffer = [&](const std::unique_ptr<GPUBuffer>& buffer,
+                                   GPUBuffer::TYPE type) {
+        return buffer && buffer->m_handle && buffer->m_type == type &&
+               buffer->m_renderer == m_renderer.get() &&
+               !buffer->m_renderer_lifetime.expired();
+    };
+    if (!usable_buffer(obj.m_mesh->m_vertex_buffer, GPUBuffer::VERTEX) ||
+        obj.m_mesh->vertex_count() == 0 || !obj.m_mesh->is_interleaved()) {
         Logger::err("Cannot submit an object without a valid vertex buffer");
         return;
     }
-
-    if (!obj.m_vertex_data->m_indices.empty() &&
-        (!obj.m_mesh->m_index_buffer || !obj.m_mesh->m_index_buffer->m_handle)) {
+    if (obj.m_mesh->index_count() != 0 &&
+        !usable_buffer(obj.m_mesh->m_index_buffer, GPUBuffer::INDEX)) {
         Logger::err("Cannot submit indexed geometry without a usable index buffer");
         return;
     }
     const RenderCommand command = {
         .transform = obj.m_transform.calculate(),
-        .vertex_data = obj.m_vertex_data,
         .material = obj.m_material,
         .m_mesh = obj.m_mesh,
     };
