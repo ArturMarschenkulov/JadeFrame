@@ -290,11 +290,27 @@ public: // static methods for matrices
         f32 right,
         f32 top,
         f32 bottom,
-        f32 near,
-        f32 far
+        f32 z_near,
+        f32 z_far
     ) noexcept -> mat4x4 {
-        auto [fovy, aspect] = get_fovy_aspect(left, right, top, bottom, near);
-        return mat4x4::perspective_rh_no(fovy, aspect, near, far);
+        const f32 frustum_width = right - left;
+        const f32 frustum_height = top - bottom;
+        const f32 frustum_depth = z_far - z_near;
+
+        const f32 a = (2.0F * z_near) / frustum_width;
+        const f32 b = (2.0F * z_near) / frustum_height;
+        const f32 d = -(2.0F * z_far * z_near) / frustum_depth;
+
+        const f32 tx = (right + left) / frustum_width;
+        const f32 ty = (top + bottom) / frustum_height;
+        const f32 tz = -(z_far + z_near) / frustum_depth;
+
+        return mat4x4::from_cols(
+            v4::create(a, 0.0F, 0.0F, 0.0F),
+            v4::create(0.0F, b, 0.0F, 0.0F),
+            v4::create(tx, ty, tz, -1.0F),
+            v4::create(0.0F, 0.0F, d, 0.0F)
+        );
     }
 
     /// Creates a right-handed perspective projection matrix with depth range of [-1, 1].
