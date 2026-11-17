@@ -4,6 +4,7 @@
 #include "vec.h"
 #include "JadeFrame/math/math.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 
@@ -148,7 +149,9 @@ public: // static methods for matrices
         f32 det = this->determinant();
 
         v3 scale = v3::create(
-            x_axis.length() * (det < 0 ? -1 : 1), y_axis.length(), z_axis.length()
+            x_axis.length() * (det < 0.0F ? -1.0F : 1.0F),
+            y_axis.length(),
+            z_axis.length()
 
         );
 
@@ -494,10 +497,10 @@ constexpr auto mat4x4::operator[](const u32 index) const noexcept -> const v4& {
 constexpr auto mat4x4::operator*(const v4& vector) const noexcept -> v4 {
     v4          result;
     const auto& v = vector;
-    result.x = x_axis.x * v.x + y_axis.x * v.y + z_axis.x * v.z + w_axis.x * v.w;
-    result.y = x_axis.y * v.x + y_axis.y * v.y + z_axis.y * v.z + w_axis.y * v.w;
-    result.z = x_axis.z * v.x + y_axis.z * v.y + z_axis.z * v.z + w_axis.z * v.w;
-    result.w = x_axis.w * v.x + y_axis.w * v.y + z_axis.w * v.z + w_axis.w * v.w;
+    result.x = (x_axis.x * v.x) + (y_axis.x * v.y) + (z_axis.x * v.z) + (w_axis.x * v.w);
+    result.y = (x_axis.y * v.x) + (y_axis.y * v.y) + (z_axis.y * v.z) + (w_axis.y * v.w);
+    result.z = (x_axis.z * v.x) + (y_axis.z * v.y) + (z_axis.z * v.z) + (w_axis.z * v.w);
+    result.w = (x_axis.w * v.x) + (y_axis.w * v.y) + (z_axis.w * v.z) + (w_axis.w * v.w);
     return result;
 }
 
@@ -506,8 +509,6 @@ constexpr auto mat4x4::operator*(const mat4x4& other) const noexcept -> mat4x4 {
     for (u32 row = 0; row < 4; ++row) {
         for (u32 col = 0; col < 4; ++col) {
             for (u32 k = 0; k < 4; ++k) {
-                // result[col][row] += (*this)[k][row] * other[col][k];
-                // result[col][row] += (*this)[col][k] * other[k][row];
                 result[col][row] += (*this)[k][row] * other[col][k];
             }
         }
@@ -596,7 +597,7 @@ constexpr auto mat4x4::orthographic_lh_zo(
 
     f32 tx = -(right + left) / frustum_width;
     f32 ty = -(top + bottom) / frustum_height;
-    f32 tz = -(z_near) / frustum_depth;
+    f32 tz = -z_near / frustum_depth;
 
     return mat4x4::from_cols(
         v4::create(a, 0.0F, 0.0F, 0.0F),
@@ -626,7 +627,7 @@ constexpr auto mat4x4::orthographic_rh_zo(
 
     f32 tx = -(right + left) / frustum_width;
     f32 ty = -(top + bottom) / frustum_height;
-    f32 tz = -(z_near) / frustum_depth;
+    f32 tz = -z_near / frustum_depth;
 
     return mat4x4::from_cols(
         v4::create(a, 0.0F, 0.0F, 0.0F),
@@ -921,15 +922,15 @@ public: // Creation / named constructors
         // This matches a common Z-Y-X convention for Euler angles
         // (roll around Z, yaw around Y, pitch around X).
         Quaternion q;
-        q.x = sx * cy * cz + cx * sy * sz;
-        q.y = cx * sy * cz - sx * cy * sz;
-        q.z = cx * cy * sz - sx * sy * cz;
-        q.w = cx * cy * cz + sx * sy * sz;
+        q.x = (sx * cy * cz) + (cx * sy * sz);
+        q.y = (cx * sy * cz) - (sx * cy * sz);
+        q.z = (cx * cy * sz) - (sx * sy * cz);
+        q.w = (cx * cy * cz) + (sx * sy * sz);
         return q;
     }
 
     /// Converts a (normalized) quaternion to a 4x4 rotation matrix (RH).
-    static inline auto to_mat4x4(const Quaternion& q_in) noexcept -> mat4x4 {
+    static auto to_mat4x4(const Quaternion& q_in) noexcept -> mat4x4 {
         const Quaternion q = q_in.normalize();
 
         const f32 xx = q.x * q.x;
@@ -991,17 +992,16 @@ public: // Basic quaternion operations
         //      w1*z2 + x1*y2 - y1*x2 + z1*w2,
         //      w1*w2 - x1*x2 - y1*y2 - z1*z2)
         Quaternion result;
-        result.x = w * other.x + x * other.w + y * other.z - z * other.y;
-        result.y = w * other.y - x * other.z + y * other.w + z * other.x;
-        result.z = w * other.z + x * other.y - y * other.x + z * other.w;
-        result.w = w * other.w - x * other.x - y * other.y - z * other.z;
+        result.x = (w * other.x) + (x * other.w) + (y * other.z) - (z * other.y);
+        result.y = (w * other.y) - (x * other.z) + (y * other.w) + (z * other.x);
+        result.z = (w * other.z) + (x * other.y) - (y * other.x) + (z * other.w);
+        result.w = (w * other.w) - (x * other.x) - (y * other.y) - (z * other.z);
         return result;
     }
 
     /// Dot product of two quaternions.
-    inline constexpr static auto dot(const Quaternion& a, const Quaternion& b) noexcept
-        -> f32 {
-        return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+    constexpr static auto dot(const Quaternion& a, const Quaternion& b) noexcept -> f32 {
+        return (a.x * b.x) + (a.y * b.y) + (a.z * b.z) + (a.w * b.w);
     }
 
     /// Equality operator with small tolerance for floating-point comparisons.
@@ -1019,23 +1019,23 @@ public: // Basic quaternion operations
 
 public: // Quaternion-specific operations
     /// Conjugate of the quaternion: ( -x, -y, -z, w ).
-    constexpr auto conjugate() const noexcept -> Quaternion {
+    [[nodiscard]] constexpr auto conjugate() const noexcept -> Quaternion {
         return Quaternion::create(-x, -y, -z, w);
     }
 
     /// Length (norm) of the quaternion.
-    constexpr auto length() const noexcept -> f32 {
+    [[nodiscard]] constexpr auto length() const noexcept -> f32 {
         auto d = Quaternion::dot(*this, *this);
         return static_cast<f32>(std::sqrt(d));
     }
 
     /// Returns whether this quaternion is a unit quaternion (within some tolerance).
-    constexpr auto is_normalized(f32 eps = 1e-6F) const noexcept -> bool {
+    [[nodiscard]] constexpr auto is_normalized(f32 eps = 1e-6F) const noexcept -> bool {
         return std::abs(Quaternion::dot(*this, *this) - 1.0F) < eps;
     }
 
     /// Returns a normalized version of this quaternion (does not modify the original).
-    constexpr auto normalize() const noexcept -> Quaternion {
+    [[nodiscard]] constexpr auto normalize() const noexcept -> Quaternion {
         f32 len = this->length();
         if (len <= 1e-8F) {
             // Degenerate quaternion, fallback to identity or zero?
@@ -1065,7 +1065,7 @@ public: // Quaternion-specific operations
     }
 
     /// Inverse of the quaternion = conjugate / (length^2).
-    constexpr auto inverse() const noexcept -> Quaternion {
+    [[nodiscard]] constexpr auto inverse() const noexcept -> Quaternion {
         f32 len_sq = Quaternion::dot(*this, *this);
         ;
         if (len_sq <= 1e-8F) {
@@ -1096,11 +1096,11 @@ public: // Spherical Linear Interpolation
     ///
     /// Both quaternions should be normalized. If not, slerp might still work, but
     /// typically they're expected to be unit quaternions.
-    static inline auto slerp(const Quaternion& a, const Quaternion& b, f32 t) noexcept
+    static auto slerp(const Quaternion& a, const Quaternion& b, f32 t) noexcept
         -> Quaternion {
         // Clamp t
-        if (t < 0.0F) { t = 0.0F; }
-        if (t > 1.0F) { t = 1.0F; }
+        t = std::max(t, 0.0F);
+        t = std::min(t, 1.0F);
 
         // Compute the cosine of the angle between the two quaternions
         f32 cos_theta = Quaternion::dot(a, b);
