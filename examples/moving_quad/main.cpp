@@ -25,7 +25,9 @@ struct Example_Moving_Quad {
         jf::ShaderHandle::Desc shader_handle_desc;
         auto code_spirv_test_1 = jf::GLSLCodeLoader::get_by_name("spirv_test_1");
         if (code_spirv_test_1.is_err()) {
-            jf::Logger::err("Failed to load shader: {}", code_spirv_test_1.error().m_message);
+            jf::Logger::err(
+                "Failed to load shader: {}", code_spirv_test_1.error().m_message
+            );
             return;
         }
         shader_handle_desc.shading_code = std::move(code_spirv_test_1).value();
@@ -36,7 +38,8 @@ struct Example_Moving_Quad {
             app.m_render_system.register_material(shader, nullptr);
 
         jf::MeshBuilder::Desc vdf_desc;
-        vdf_desc.has_normals = true;
+        vdf_desc.has_normals = false;
+        vdf_desc.has_texture_coordinates = false;
 
         auto mesh_builder = jf::Mesh::builder();
         auto mesh_result = mesh_builder.rectangle(
@@ -45,7 +48,9 @@ struct Example_Moving_Quad {
             vdf_desc
         );
         if (mesh_result.is_err()) {
-            jf::Logger::err("Failed to build moving quad: {}", mesh_result.error().m_message);
+            jf::Logger::err(
+                "Failed to build moving quad: {}", mesh_result.error().m_message
+            );
             return;
         }
         m_quad_mesh = std::move(mesh_result).value();
@@ -58,9 +63,7 @@ struct Example_Moving_Quad {
         m_quad.m_transform = {};
     }
 
-    auto on_update(jf::Application& app) -> void {
-        (void)app;
-    }
+    auto on_update(jf::Application& app) -> void { (void)app; }
 
     auto on_draw(jf::Application& app) -> void { app.m_render_system.submit(m_quad); }
 
