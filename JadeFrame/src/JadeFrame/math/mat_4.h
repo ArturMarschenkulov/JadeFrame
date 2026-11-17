@@ -669,6 +669,47 @@ constexpr static auto perspective_extended(
     );
 }
 
+constexpr static auto perspective_extended(
+    f32        left,
+    f32        right,
+    f32        top,
+    f32        bottom,
+    f32        z_near,
+    f32        z_far,
+    HANDEDNESS handedness,
+    f32        ndc_near,
+    f32        ndc_far
+) noexcept -> mat4x4 {
+    assert(right > left);
+    assert(top > bottom);
+    assert(z_near > 0.0F);
+    assert(z_far > z_near);
+    assert(ndc_near != ndc_far);
+
+    const f32 frustum_width = right - left;
+    const f32 frustum_height = top - bottom;
+    const f32 frustum_depth = z_far - z_near;
+
+    const f32 s = handedness == HANDEDNESS::RIGHT ? -1.0F : 1.0F;
+
+    const f32 a = (2.0F * z_near) / frustum_width;
+    const f32 b = (2.0F * z_near) / frustum_height;
+
+    const f32 tx = -s * (right + left) / frustum_width;
+    const f32 ty = -s * (top + bottom) / frustum_height;
+
+    const f32 tz = s * ((z_far * ndc_far) - (z_near * ndc_near)) / frustum_depth;
+
+    const f32 d = (z_near * z_far) * (ndc_near - ndc_far) / frustum_depth;
+
+    return mat4x4::from_cols(
+        v4::create(a, 0.0F, 0.0F, 0.0F),
+        v4::create(0.0F, b, 0.0F, 0.0F),
+        v4::create(tx, ty, tz, s),
+        v4::create(0.0F, 0.0F, d, 0.0F)
+    );
+}
+
 inline constexpr auto mat4x4::perspective_rh_no(
     f32 left,
     f32 right,
@@ -677,25 +718,8 @@ inline constexpr auto mat4x4::perspective_rh_no(
     f32 z_near,
     f32 z_far
 ) noexcept -> mat4x4 {
-    const f32 frustum_width = right - left;
-    const f32 frustum_height = top - bottom;
-    const f32 frustum_depth = z_far - z_near;
-
-    const f32 handedness = -1.0F;
-
-    const f32 a = (2.0F * z_near) / frustum_width;
-    const f32 b = (2.0F * z_near) / frustum_height;
-    const f32 d = -(2.0F * z_far * z_near) / frustum_depth;
-
-    const f32 tx = (right + left) / frustum_width;
-    const f32 ty = (top + bottom) / frustum_height;
-    const f32 tz = -(z_far + z_near) / frustum_depth;
-
-    return mat4x4::from_cols(
-        v4::create(a, 0.0F, 0.0F, 0.0F),
-        v4::create(0.0F, b, 0.0F, 0.0F),
-        v4::create(tx, ty, tz, handedness),
-        v4::create(0.0F, 0.0F, d, 0.0F)
+    return perspective_extended(
+        left, right, top, bottom, z_near, z_far, HANDEDNESS::RIGHT, -1.0F, 1.0F
     );
 }
 
