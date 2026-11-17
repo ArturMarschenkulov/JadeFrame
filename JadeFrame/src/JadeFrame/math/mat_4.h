@@ -112,7 +112,7 @@ public:
     cmp(const mat4x4& other, f32 epsilon = 1e-6F) const noexcept -> bool {
         for (int i = 0; i < 4; ++i) {
             for (int j = 0; j < 4; ++j) {
-                if (std::fabs((*this)[i][j] - other[i][j]) > epsilon) { return false; }
+                if (!(std::fabs((*this)[i][j] - other[i][j]) <= epsilon)) { return false; }
             }
         }
         return true;
@@ -857,9 +857,10 @@ public: // Creation / named constructors
         return Quaternion::create(axis.x * s, axis.y * s, axis.z * s, c);
     }
 
+    /// Right-handed Euler angles in radians: R_z(roll) * R_y(yaw) * R_x(pitch).
+    /// Applies pitch about X, then yaw about Y, then roll about Z.
     static constexpr auto from_euler(f32 pitch, f32 yaw, f32 roll) noexcept
         -> Quaternion {
-        // For a standard Y-up, R_z(roll)*R_y(yaw)*R_x(pitch) approach:
         f32 half_x = pitch * 0.5F;
         f32 half_y = yaw * 0.5F;
         f32 half_z = roll * 0.5F;
@@ -874,8 +875,8 @@ public: // Creation / named constructors
         // This matches a common Z-Y-X convention for Euler angles
         // (roll around Z, yaw around Y, pitch around X).
         Quaternion q;
-        q.x = (sx * cy * cz) + (cx * sy * sz);
-        q.y = (cx * sy * cz) - (sx * cy * sz);
+        q.x = (sx * cy * cz) - (cx * sy * sz);
+        q.y = (cx * sy * cz) + (sx * cy * sz);
         q.z = (cx * cy * sz) - (sx * sy * cz);
         q.w = (cx * cy * cz) + (sx * sy * sz);
         return q;

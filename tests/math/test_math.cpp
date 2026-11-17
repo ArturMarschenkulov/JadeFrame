@@ -1,6 +1,7 @@
 
 
 #include <gtest/gtest.h>
+#include <array>
 #include <iostream>
 #include <sstream>
 
@@ -106,4 +107,32 @@ TEST(Math_Constexpr_Angles, General) {
     //         EXPECT_NEAR(atan, atan_std, 1e-3);
     //     }
     // }
+}
+
+TEST(Math_Constexpr_Angles, MultipleRevolutions) {
+    constexpr f32 angles[] = {
+        0.0F, static_cast<f32>(math::pi() / 2), static_cast<f32>(math::pi()),
+        static_cast<f32>(3 * math::pi() / 2), static_cast<f32>(2 * math::pi()),
+        static_cast<f32>(4 * math::pi()), static_cast<f32>(-4 * math::pi()),
+        -0.7F, static_cast<f32>(6 * math::pi() + 0.37),
+        static_cast<f32>(-8 * math::pi() - 1.2),
+        static_cast<f32>(100 * math::pi()), static_cast<f32>(-100 * math::pi())
+    };
+    constexpr auto results = [&] {
+        std::array<std::array<f64, 4>, std::size(angles)> values{};
+        for (u32 i = 0; i < values.size(); ++i) {
+            values[i] = {math::sin(angles[i]), math::cos(angles[i]),
+                         math::sin_constexpr(angles[i]), math::cos_constexpr(angles[i])};
+        }
+        return values;
+    }();
+    // Float wrappers allow one float epsilon; the default ten-term double
+    // series on [-pi, pi] has truncation error below 4e-9.
+    for (u32 i = 0; i < results.size(); ++i) {
+        SCOPED_TRACE(angles[i]);
+        EXPECT_NEAR(results[i][0], std::sin(angles[i]), 1.2e-7);
+        EXPECT_NEAR(results[i][1], std::cos(angles[i]), 1.2e-7);
+        EXPECT_NEAR(results[i][2], std::sin(static_cast<f64>(angles[i])), 4e-9);
+        EXPECT_NEAR(results[i][3], std::cos(static_cast<f64>(angles[i])), 4e-9);
+    }
 }

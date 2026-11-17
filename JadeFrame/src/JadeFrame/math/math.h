@@ -2,6 +2,7 @@
 #include <bit>
 #include <type_traits>
 #include <concepts>
+#include <limits>
 #undef min
 #undef max
 #include "JadeFrame/prelude.h"
@@ -99,16 +100,42 @@ constexpr auto power(f64 base, u32 exp) -> f64 {
     return (exp == 0) ? 1.0 : base * power(base, exp - 1);
 }
 
+namespace detail {
+// Reduce to [-pi, pi] in double precision before evaluating the Taylor series.
+// Intended for graphics angles (tested through +/-100*pi), not full-range
+// trigonometric accuracy. Scaled subtraction bounds the work for large inputs.
+constexpr auto reduce_angle(f64 x) -> f64 {
+    if (x != x) { return x; }
+    if (x > std::numeric_limits<f64>::max() ||
+        x < -std::numeric_limits<f64>::max()) {
+        return std::numeric_limits<f64>::quiet_NaN();
+    }
+    const bool negative = x < 0.0;
+    f64 reduced = negative ? -x : x;
+    const f64 period = 2.0 * pi();
+    f64 step = period;
+    while (step <= reduced / 2.0) { step *= 2.0; }
+    while (step >= period) {
+        if (reduced >= step) { reduced -= step; }
+        step *= 0.5;
+    }
+    if (reduced > pi()) { reduced -= period; }
+    return negative ? -reduced : reduced;
+}
+} // namespace detail
+
 constexpr auto sin_constexpr(f32 x, u32 terms = 10) -> f64 {
+    const f64 reduced = detail::reduce_angle(x);
     f64 result = 0.0;
     for (u32 n = 0; n < terms; ++n) {
-        f64 term = power(-1.0, n) * power(x, 2 * n + 1) / factorial(2 * n + 1);
+        f64 term = power(-1.0, n) * power(reduced, 2 * n + 1) / factorial(2 * n + 1);
         result += term;
     }
     return result;
 }
 
 constexpr auto cos_constexpr(f64 x, u32 terms = 10) -> f64 {
+    x = detail::reduce_angle(x);
     f64 result = 0.0;
     for (u32 n = 0; n < terms; ++n) {
         f64 term = power(-1.0, n) * power(x, 2 * n) / factorial(2 * n);

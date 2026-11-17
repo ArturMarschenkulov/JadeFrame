@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <type_traits>
+#include <limits>
 #include <gtest/gtest.h>
 
 #include <iostream>
@@ -1461,5 +1462,96 @@ TEST(Mat4x4_LookAt, Basics) {
 
         v3 result = look_at.transform_point3(point);
         EXPECT_EQ(result, v3::create(0.0F, 0.0F, -5.0F));
+    }
+}
+
+TEST(Mat4x4_Comparison, FiniteToleranceAndNaN) {
+    const mat4x4 identity = mat4x4::identity();
+    EXPECT_TRUE(identity.cmp(identity));
+    mat4x4 other = identity;
+    other[0][1] = 0.5e-6F;
+    EXPECT_TRUE(identity.cmp(other));
+    other[0][1] = 2e-6F;
+    EXPECT_FALSE(identity.cmp(other));
+    EXPECT_TRUE(identity.cmp(other, 2e-6F));
+
+    for (u32 col = 0; col < 4; ++col) {
+        for (u32 row = 0; row < 4; ++row) {
+            other = identity;
+            other[col][row] = std::numeric_limits<f32>::quiet_NaN();
+            EXPECT_FALSE(identity.cmp(other));
+            EXPECT_FALSE(other.cmp(identity));
+            EXPECT_FALSE(other.cmp(other));
+            EXPECT_FALSE(identity == other);
+            EXPECT_TRUE(other != identity);
+        }
+    }
+}
+
+TEST(Quaternion_Euler, MatchesZYXMatrixComposition) {
+    const v3 angles[] = {
+        v3::create(0.3F, -0.7F, 1.1F),
+        v3::create(-1.2F, 0.4F, -0.6F),
+        v3::create(0.8F, 1.3F, 0.5F),
+    };
+    for (const v3& a : angles) {
+        const mat4x4 expected = mat4x4::rotation_z_rh(a.z) *
+                                mat4x4::rotation_y_rh(a.y) *
+                                mat4x4::rotation_x_rh(a.x);
+        const Quaternion q = Quaternion::from_euler(a.x, a.y, a.z);
+        EXPECT_TRUE(Quaternion::to_mat4x4(q).cmp(expected));
+        const Quaternion composed = Quaternion::from_axis_angle(v3::Z(), a.z) *
+                                    Quaternion::from_axis_angle(v3::Y(), a.y) *
+                                    Quaternion::from_axis_angle(v3::X(), a.x);
+        EXPECT_TRUE(Quaternion::to_mat4x4(composed).cmp(expected));
+    }
+}
+
+TEST(Mat4x4_Rotation, ConstexprMultipleRevolutions) {
+    constexpr f32 angle = static_cast<f32>(4.0 * math::pi());
+    constexpr mat4x4 rotations[] = {
+        mat4x4::rotation_x_rh(angle),
+        mat4x4::rotation_y_rh(-angle),
+        mat4x4::rotation_z_rh(angle),
+    };
+    for (const mat4x4& rotation : rotations) {
+        EXPECT_TRUE(rotation.cmp(mat4x4::identity()));
+    }
+    constexpr f32 mixed_angle = static_cast<f32>(-6.0 * math::pi() + 0.7);
+    constexpr mat4x4 mixed = mat4x4::rotation_z_rh(mixed_angle);
+    const f32 c = std::cos(mixed_angle);
+    const f32 s = std::sin(mixed_angle);
+    const mat4x4 expected = mat4x4::from_cols(
+        v4::create(c, s, 0, 0), v4::create(-s, c, 0, 0), v4::Z(), v4::W()
+    );
+    EXPECT_TRUE(mixed.cmp(expected));
+}
+
+TEST(Mat4x4_Projection_Perspective, EquivalentSymmetricFrustum) {
+    const f32 fovy = to_radians(67.0F);
+    const f32 aspect = 16.0F / 9.0F;
+    const f32 near = 0.3F;
+    const f32 far = 120.0F;
+    const f32 top = near * std::tan(fovy / 2.0F);
+    const f32 right = top * aspect;
+    EXPECT_EQ(mat4x4::perspective_rh_no(fovy, aspect, near, far),
+              mat4x4::perspective_rh_no(-right, right, top, -top, near, far));
+}
+
+TEST(Mat4x4_Projection_Perspective, AsymmetricFrustumCorners) {
+    const f32 near = 2.0F;
+    const f32 far = 10.0F;
+    const mat4x4 projection = mat4x4::perspective_rh_no(-1, 3, 4, -2, near, far);
+    for (f32 depth : {near, far}) {
+        for (f32 x : {-1.0F, 3.0F}) {
+            for (f32 y : {-2.0F, 4.0F}) {
+                v4 point = projection * v4::create(x * depth / near, y * depth / near,
+                                                 -depth, 1.0F);
+                point /= point.w;
+                EXPECT_NEAR(point.x, x == -1.0F ? -1.0F : 1.0F, 1e-6F);
+                EXPECT_NEAR(point.y, y == -2.0F ? -1.0F : 1.0F, 1e-6F);
+                EXPECT_NEAR(point.z, depth == near ? -1.0F : 1.0F, 1e-6F);
+            }
+        }
     }
 }
