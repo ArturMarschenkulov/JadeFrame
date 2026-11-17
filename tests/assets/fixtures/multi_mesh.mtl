@@ -1,0 +1,8 @@
+newmtl red
+Kd 1 0.2 0.3
+d 0.5
+map_Kd textures/../textures/red.png
+
+newmtl blue
+Kd 0.1 0.2 1
+d 1

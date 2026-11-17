@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <string>
 #include <string_view>
 
@@ -158,4 +160,207 @@ TEST(AssetError, CodesHaveNames) {
     EXPECT_STREQ(to_string(AssetErrorCode::IMPORT_FAILED), "IMPORT_FAILED");
     EXPECT_STREQ(to_string(AssetErrorCode::EMPTY_SCENE), "EMPTY_SCENE");
     EXPECT_STREQ(to_string(AssetErrorCode::INVALID_GEOMETRY), "INVALID_GEOMETRY");
+}
+
+namespace {
+
+auto fixture(const char* name) -> std::string {
+    return (std::filesystem::path(JADEFRAME_ASSET_FIXTURE_DIR) / name).string();
+}
+
+auto read_fixture(const char* name) -> std::string {
+    std::ifstream file(fixture(name), std::ios::binary);
+    return {std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
+}
+
+} // namespace
+
+TEST(AssetLoaderScene, ImportsEveryMeshAndMaterial) {
+    const auto result = AssetLoader::load_scene(fixture("multi_mesh.obj"));
+    ASSERT_TRUE(result.is_ok()) << result.error().m_message;
+    const auto& scene = result.value();
+    ASSERT_EQ(scene.m_meshes.size(), 2U);
+    ASSERT_EQ(scene.m_instances.size(), 2U);
+    for (u32 i = 0; i < 2; ++i) {
+        const auto& mesh = scene.m_meshes[i];
+        EXPECT_TRUE(mesh.m_mesh.validate().is_ok());
+        EXPECT_EQ(mesh.m_mesh.m_indices.size(), 3U);
+        ASSERT_TRUE(mesh.m_material_index.has_value());
+        ASSERT_LT(mesh.m_material_index.value(), scene.m_materials.size());
+        EXPECT_EQ(scene.m_instances[i].m_mesh_index, i);
+        EXPECT_TRUE(scene.m_instances[i].m_transform.cmp(mat4x4::identity()));
+    }
+    EXPECT_NE(scene.m_meshes[0].m_material_index.value(),
+              scene.m_meshes[1].m_material_index.value());
+    const auto& red = scene.m_materials[scene.m_meshes[0].m_material_index.value()];
+    EXPECT_EQ(red.m_name, "red");
+    EXPECT_FLOAT_EQ(red.m_base_color.r, 1.0F);
+    EXPECT_FLOAT_EQ(red.m_base_color.g, 0.2F);
+    EXPECT_FLOAT_EQ(red.m_base_color.b, 0.3F);
+    EXPECT_FLOAT_EQ(red.m_opacity, 0.5F);
+    EXPECT_EQ(red.m_diffuse_texture_path,
+              (std::filesystem::path(JADEFRAME_ASSET_FIXTURE_DIR) / "textures/red.png")
+                  .generic_string());
+    const auto& blue = scene.m_materials[scene.m_meshes[1].m_material_index.value()];
+    EXPECT_EQ(blue.m_name, "blue");
+    EXPECT_FLOAT_EQ(blue.m_base_color.r, 0.1F);
+    EXPECT_FLOAT_EQ(blue.m_base_color.b, 1.0F);
+    EXPECT_FLOAT_EQ(blue.m_opacity, 1.0F);
+    EXPECT_TRUE(blue.m_diffuse_texture_path.empty());
+    EXPECT_EQ(scene.m_meshes[0].m_mesh.attribute_values(Mesh::POSITION.m_id)->front(), 0.0F);
+    EXPECT_EQ(scene.m_meshes[1].m_mesh.attribute_values(Mesh::POSITION.m_id)->front(), 2.0F);
+}
+
+TEST(AssetLoaderScene, PreservesInstancesAndComposesNodeTransforms) {
+    const auto result = AssetLoader::load_scene(fixture("instances.gltf"));
+    ASSERT_TRUE(result.is_ok()) << result.error().m_message;
+    const auto& scene = result.value();
+    ASSERT_EQ(scene.m_meshes.size(), 2U);
+    ASSERT_EQ(scene.m_instances.size(), 3U);
+    EXPECT_EQ(scene.m_instances[0].m_node_name, "first");
+    EXPECT_EQ(scene.m_instances[1].m_node_name, "second");
+    EXPECT_EQ(scene.m_instances[2].m_node_name, "repeated");
+    EXPECT_EQ(scene.m_instances[0].m_mesh_index, scene.m_instances[2].m_mesh_index);
+    EXPECT_NE(scene.m_instances[0].m_mesh_index, scene.m_instances[1].m_mesh_index);
+
+    // Parent translates by (10,0,0), rotates +90 around Z, and scales (2,3,1).
+    // Its child translations must be scaled and rotated before being translated.
+    const auto parent = mat4x4::from_rows(
+        v4::create(0, -3, 0, 10), v4::create(2, 0, 0, 0),
+        v4::create(0, 0, 1, 0), v4::create(0, 0, 0, 1));
+    auto expected_first = parent;
+    expected_first[3] = v4::create(10, 2, 0, 1);
+    auto expected_second = parent;
+    expected_second[3] = v4::create(4, 0, 0, 1);
+    auto expected_repeated = parent;
+    expected_repeated[3] = v4::create(10, 0, 3, 1);
+    EXPECT_TRUE(scene.m_instances[0].m_transform.cmp(expected_first));
+    EXPECT_TRUE(scene.m_instances[1].m_transform.cmp(expected_second));
+    EXPECT_TRUE(scene.m_instances[2].m_transform.cmp(expected_repeated));
+    // Shared geometry remains local, regardless of its instance transforms.
+    const auto* positions = scene.m_meshes[0].m_mesh.attribute_values(Mesh::POSITION.m_id);
+    ASSERT_NE(positions, nullptr);
+    EXPECT_EQ(*positions, (std::vector<f32>{0, 0, 0, 1, 0, 0, 0, 1, 0}));
+}
+
+TEST(AssetLoaderScene, PreservesBaseColorAndTexture) {
+    const auto result = AssetLoader::load_scene(fixture("instances.gltf"));
+    ASSERT_TRUE(result.is_ok()) << result.error().m_message;
+    const auto& scene = result.value();
+    ASSERT_TRUE(scene.m_meshes[0].m_material_index.has_value());
+    const auto& material = scene.m_materials[scene.m_meshes[0].m_material_index.value()];
+    EXPECT_EQ(material.m_name, "base_red");
+    EXPECT_FLOAT_EQ(material.m_base_color.r, 1.0F);
+    EXPECT_FLOAT_EQ(material.m_base_color.g, 0.25F);
+    EXPECT_FLOAT_EQ(material.m_base_color.b, 0.5F);
+    EXPECT_FLOAT_EQ(material.m_base_color.a, 0.6F);
+    EXPECT_FLOAT_EQ(material.m_opacity, 0.6F);
+    EXPECT_EQ(material.m_diffuse_texture_path,
+              (std::filesystem::path(JADEFRAME_ASSET_FIXTURE_DIR) / "textures/red.png")
+                  .generic_string());
+}
+
+TEST(AssetLoaderScene, LegacyHelperReturnsFirstMesh) {
+    const auto scene = AssetLoader::load_scene(fixture("multi_mesh.obj"));
+    const auto legacy = AssetLoader::load_obj(fixture("multi_mesh.obj"));
+    ASSERT_TRUE(scene.is_ok()) << scene.error().m_message;
+    ASSERT_TRUE(legacy.is_ok()) << legacy.error().m_message;
+    EXPECT_EQ(legacy.value().m_indices, scene.value().m_meshes[0].m_mesh.m_indices);
+    EXPECT_EQ(*legacy.value().attribute_values(Mesh::POSITION.m_id),
+              *scene.value().m_meshes[0].m_mesh.attribute_values(Mesh::POSITION.m_id));
+}
+
+TEST_F(AssetLoaderObj, SceneWithoutExplicitMaterialsLoads) {
+    const auto result = AssetLoader::load_scene(write(
+        "no_material.obj", "v 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3\n"));
+    ASSERT_TRUE(result.is_ok()) << result.error().m_message;
+    ASSERT_EQ(result.value().m_meshes.size(), 1U);
+    ASSERT_EQ(result.value().m_instances.size(), 1U);
+    // Assimp may synthesize a default material for formats without materials.
+    const auto& index = result.value().m_meshes[0].m_material_index;
+    if (index.has_value()) {
+        ASSERT_LT(index.value(), result.value().m_materials.size());
+        const auto& material = result.value().m_materials[index.value()];
+        EXPECT_FLOAT_EQ(material.m_opacity, 1.0F);
+        EXPECT_TRUE(material.m_diffuse_texture_path.empty());
+    }
+}
+
+TEST_F(AssetLoaderObj, ResolvesAbsoluteAndWindowsTexturePaths) {
+    const auto texture = (m_dir / "absolute.png").generic_string();
+    write("paths.mtl", "newmtl absolute\nmap_Kd " + texture +
+          "\nnewmtl windows\nmap_Kd textures\\red.png\n");
+    const auto result = AssetLoader::load_scene(write(
+        "paths.obj", "mtllib paths.mtl\nv 0 0 0\nv 1 0 0\nv 0 1 0\n"
+        "usemtl absolute\nf 1 2 3\nusemtl windows\nf 1 3 2\n"));
+    ASSERT_TRUE(result.is_ok()) << result.error().m_message;
+    const auto& materials = result.value().m_materials;
+    const auto absolute = std::find_if(materials.begin(), materials.end(),
+        [](const auto& material) { return material.m_name == "absolute"; });
+    const auto windows = std::find_if(materials.begin(), materials.end(),
+        [](const auto& material) { return material.m_name == "windows"; });
+    ASSERT_NE(absolute, materials.end());
+    ASSERT_NE(windows, materials.end());
+    EXPECT_EQ(absolute->m_diffuse_texture_path, texture);
+    EXPECT_EQ(windows->m_diffuse_texture_path, (m_dir / "textures/red.png").generic_string());
+}
+
+TEST_F(AssetLoaderObj, InvalidLaterMeshIsRejected) {
+    const auto path = write("invalid_later.obj",
+        "o triangle\nv 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3\n"
+        "o line\nl 1 2\n");
+    const auto result = AssetLoader::load_scene(path);
+    ASSERT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().m_code, AssetErrorCode::INVALID_GEOMETRY);
+    // The compatibility helper also validates the complete scene.
+    expect_error(path, AssetErrorCode::INVALID_GEOMETRY);
+}
+
+TEST_F(AssetLoaderObj, InvalidMaterialReferenceIsRejected) {
+    auto content = read_fixture("instances.gltf");
+    const auto offset = content.find("\"material\": 0");
+    ASSERT_NE(offset, std::string::npos);
+    content.replace(offset, std::string("\"material\": 0").size(), "\"material\": 999");
+    const auto result = AssetLoader::load_scene(write("bad_material.gltf", content));
+    // Assimp rejects this invalid index before scene conversion.
+    ASSERT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().m_code, AssetErrorCode::IMPORT_FAILED);
+}
+
+TEST_F(AssetLoaderObj, InvalidNodeMeshReferenceIsRejected) {
+    auto content = read_fixture("instances.gltf");
+    const auto offset = content.find("\"mesh\": 0");
+    ASSERT_NE(offset, std::string::npos);
+    content.replace(offset, std::string("\"mesh\": 0").size(), "\"mesh\": 999");
+    const auto result = AssetLoader::load_scene(write("bad_node.gltf", content));
+    ASSERT_TRUE(result.is_err());
+    EXPECT_EQ(result.error().m_code, AssetErrorCode::IMPORT_FAILED);
+}
+
+TEST_F(AssetLoaderObj, EmbeddedTextureReferenceIsNotAFilePath) {
+    auto content = read_fixture("instances.gltf");
+    const auto offset = content.find("textures/red.png");
+    ASSERT_NE(offset, std::string::npos);
+    content.replace(offset, std::string("textures/red.png").size(),
+        "data:image/png;base64,"
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a9YQAAAAASUVORK5CYII=");
+    const auto result = AssetLoader::load_scene(write("embedded.gltf", content));
+    ASSERT_TRUE(result.is_ok()) << result.error().m_message;
+    const auto& scene = result.value();
+    ASSERT_TRUE(scene.m_meshes[0].m_material_index.has_value());
+    EXPECT_EQ(scene.m_materials[scene.m_meshes[0].m_material_index.value()]
+                  .m_diffuse_texture_path, "*0");
+}
+
+TEST_F(AssetLoaderObj, ResolvesTextureAgainstRelativeSourceDirectory) {
+    const auto path = write("relative.gltf", read_fixture("instances.gltf"));
+    const auto relative = std::filesystem::relative(path).generic_string();
+    const auto result = AssetLoader::load_scene(relative);
+    ASSERT_TRUE(result.is_ok()) << result.error().m_message;
+    const auto& scene = result.value();
+    ASSERT_TRUE(scene.m_meshes[0].m_material_index.has_value());
+    EXPECT_EQ(scene.m_materials[scene.m_meshes[0].m_material_index.value()]
+                  .m_diffuse_texture_path,
+              (std::filesystem::path(relative).parent_path() / "textures/red.png")
+                  .lexically_normal().generic_string());
 }

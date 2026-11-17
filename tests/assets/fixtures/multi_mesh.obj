@@ -1,0 +1,13 @@
+mtllib multi_mesh.mtl
+o red_triangle
+v 0 0 0
+v 1 0 0
+v 0 1 0
+usemtl red
+f 1 2 3
+o blue_triangle
+v 2 0 0
+v 3 0 0
+v 2 1 0
+usemtl blue
+f 4 5 6
