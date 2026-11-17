@@ -79,3 +79,36 @@ TEST(Reflection, MergesPipelineInterfaceAndPreservesLocations) {
     ASSERT_EQ(interface.m_sampled_images.size(), 1);
     EXPECT_EQ(interface.m_sampled_images[0].set, 2);
 }
+
+TEST(Reflection, PipelineOutputsComeOnlyFromFragmentStage) {
+    ReflectedModule vertex = {};
+    vertex.m_stage = SHADER_STAGE::VERTEX;
+    vertex.m_outputs = {
+        {.name = "uv", .location = 0, .size = 8, .type = SHADER_TYPE::V_2_F32},
+        {.name = "normal", .location = 3, .size = 12, .type = SHADER_TYPE::V_3_F32},
+    };
+
+    ReflectedModule fragment = {};
+    fragment.m_stage = SHADER_STAGE::FRAGMENT;
+    fragment.m_inputs = {
+        {.name = "uv", .location = 0, .size = 8, .type = SHADER_TYPE::V_2_F32},
+    };
+    fragment.m_outputs = {
+        {.name = "color", .location = 0, .size = 16, .type = SHADER_TYPE::V_4_F32},
+    };
+
+    // Module order must not decide whether location 0 means UV or color.
+    for (const auto& modules : {
+             std::array<ReflectedModule, 2>{vertex, fragment},
+             std::array<ReflectedModule, 2>{fragment, vertex}}) {
+        const auto interface = ReflectedModule::into_interface(modules);
+        ASSERT_EQ(interface.m_outputs.size(), 1);
+        EXPECT_EQ(interface.m_outputs[0].name, "color");
+        EXPECT_EQ(interface.m_outputs[0].location, 0);
+        EXPECT_EQ(interface.m_outputs[0].size, 16);
+        EXPECT_EQ(interface.m_outputs[0].type, SHADER_TYPE::V_4_F32);
+    }
+
+    const std::array<ReflectedModule, 1> vertex_only = {vertex};
+    EXPECT_TRUE(ReflectedModule::into_interface(vertex_only).m_outputs.empty());
+}

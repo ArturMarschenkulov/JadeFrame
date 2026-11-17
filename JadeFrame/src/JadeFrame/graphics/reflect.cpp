@@ -350,6 +350,9 @@ auto ReflectedModule::into_interface(const std::span<const ReflectedModule>& mod
 
     std::map<u32, Output> outputs;
     for (const auto& module : modules) {
+        // Vertex outputs feed the next stage; only fragment outputs describe
+        // the pipeline's framebuffer interface. Their locations are independent.
+        if (module.m_stage != SHADER_STAGE::FRAGMENT) { continue; }
         for (const auto& output : module.m_outputs) {
             const auto [it, inserted] = outputs.emplace(output.location, output);
             if (!inserted &&
