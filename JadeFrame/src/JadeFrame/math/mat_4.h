@@ -607,39 +607,6 @@ constexpr auto mat4x4::orthographic_rh_zo(
 }
 
 constexpr static auto perspective_extended(
-    f32        fovy,
-    f32        aspect,
-    f32        z_near,
-    f32        z_far,
-    HANDEDNESS handedness,
-    f32        ndc_near,
-    f32        ndc_far
-) noexcept -> mat4x4 {
-    assert(fovy > 0.0F && fovy < math::pi());
-    assert(aspect > 0.0F);
-    assert(z_near > 0.0F);
-    assert(z_far > z_near);
-    assert(ndc_near != ndc_far);
-
-    const f32 frustum_depth = z_far - z_near;
-    const f32 focal_length = 1.0F / math::tan(fovy * 0.5F);
-    const f32 s = handedness == HANDEDNESS::RIGHT ? -1.0F : 1.0F;
-
-    const f32 _1 = focal_length / aspect;
-    const f32 _2 = focal_length;
-    const f32 _3 = s * ((z_far * ndc_far) - (z_near * ndc_near)) / frustum_depth;
-    const f32 _4 = z_near * z_far * (ndc_near - ndc_far) / frustum_depth;
-    const f32 _5 = s;
-
-    return mat4x4::from_cols(
-        v4::create(_1, 0.0F, 0.0F, 0.0F),
-        v4::create(0.0F, _2, 0.0F, 0.0F),
-        v4::create(0.0F, 0.0F, _3, _5),
-        v4::create(0.0F, 0.0F, _4, 0.0F)
-    );
-}
-
-constexpr static auto perspective_extended(
     f32        left,
     f32        right,
     f32        top,
@@ -677,6 +644,37 @@ constexpr static auto perspective_extended(
         v4::create(0.0F, b, 0.0F, 0.0F),
         v4::create(tx, ty, tz, s),
         v4::create(0.0F, 0.0F, d, 0.0F)
+    );
+}
+
+constexpr static auto perspective_extended(
+    f32        fovy,
+    f32        aspect,
+    f32        z_near,
+    f32        z_far,
+    HANDEDNESS handedness,
+    f32        ndc_near,
+    f32        ndc_far
+) noexcept -> mat4x4 {
+    assert(fovy > 0.0F && fovy < math::pi());
+    assert(aspect > 0.0F);
+    assert(z_near > 0.0F);
+    assert(z_far > z_near);
+    assert(ndc_near != ndc_far);
+
+    const f32 half_height = z_near * math::tan(fovy * 0.5F);
+    const f32 half_width = half_height * aspect;
+
+    return perspective_extended(
+        -half_width,
+        half_width,
+        half_height,
+        -half_height,
+        z_near,
+        z_far,
+        handedness,
+        ndc_near,
+        ndc_far
     );
 }
 
