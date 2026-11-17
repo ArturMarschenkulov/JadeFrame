@@ -211,29 +211,6 @@ public: // static methods for matrices
         f32 z_far
     ) noexcept -> mat4x4;
 
-    constexpr static auto
-    frustum(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) -> mat4x4 {
-        const f32 frustum_width = right - left;
-        const f32 frustum_height = top - bottom;
-        const f32 frustum_depth = far - near;
-
-        f32 a = (2.0F * near) / frustum_width;
-        f32 b = (2.0F * near) / frustum_height;
-
-        f32 tx = (right + left) / frustum_width;
-        f32 ty = (top + bottom) / frustum_height;
-        f32 tz = -(far + near) / frustum_depth;
-
-        f32 d = -(2.0F * far * near) / frustum_depth;
-
-        return mat4x4::from_cols(
-            v4::create(a, 0.0F, 0.0F, 0.0F),
-            v4::create(0.0F, b, 0.0F, 0.0F),
-            v4::create(tx, ty, tz, -1.0F),
-            v4::create(0.0F, 0.0F, d, 0.0F)
-        );
-    }
-
     constexpr static auto perspective_rh_no(
         f32 left,
         f32 right,
