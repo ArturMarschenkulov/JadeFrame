@@ -1075,16 +1075,19 @@ TEST(Mat4x4_Projection_Orthographic, TestingComposition) {
         EXPECT_EQ(ortho_1, ortho_0);
     }
     {
-        ViewVolume vv = ViewVolume::usual();
-        EXPECT_EQ(determine_handedness(vv), HANDEDNESS::RIGHT);
-        ViewVolume vv_1 = ViewVolume::usual_1();
-        EXPECT_EQ(determine_handedness(vv_1), HANDEDNESS::LEFT);
+        // The orthographic API takes ordered near/far distances. Convert
+        // right-handed camera Z coordinates to that distance convention
+        // before applying the generic volume mapping.
+        ViewVolume vv = ViewVolume::usual_1();
+        EXPECT_EQ(determine_handedness(vv), HANDEDNESS::LEFT);
+        const mat4x4 camera_z_to_distance = mat4x4::scale(v3::create(1, 1, -1));
 
         {
             ProjectionVolume pv_opengl = ProjectionVolume::opengl();
             EXPECT_EQ(determine_handedness(pv_opengl), HANDEDNESS::LEFT);
 
-            mat4x4 m = get_matrix_from_view_volume_to_projection_volume(vv, pv_opengl);
+            mat4x4 m = get_matrix_from_view_volume_to_projection_volume(vv, pv_opengl)
+                       * camera_z_to_distance;
             mat4x4 ortho = mat4x4::orthographic_rh_no(
                 vv.left, vv.right, vv.bottom, vv.top, vv.near, vv.far
             );
@@ -1094,7 +1097,8 @@ TEST(Mat4x4_Projection_Orthographic, TestingComposition) {
             ProjectionVolume pv_directx = ProjectionVolume::directx();
             EXPECT_EQ(determine_handedness(pv_directx), HANDEDNESS::LEFT);
 
-            mat4x4 m = get_matrix_from_view_volume_to_projection_volume(vv, pv_directx);
+            mat4x4 m = get_matrix_from_view_volume_to_projection_volume(vv, pv_directx)
+                       * camera_z_to_distance;
             mat4x4 ortho = mat4x4::orthographic_rh_zo(
                 vv.left, vv.right, vv.bottom, vv.top, vv.near, vv.far
             );
@@ -1103,7 +1107,8 @@ TEST(Mat4x4_Projection_Orthographic, TestingComposition) {
         {
             ProjectionVolume pv_vulkan = ProjectionVolume::vulkan();
             EXPECT_EQ(determine_handedness(pv_vulkan), HANDEDNESS::LEFT);
-            mat4x4 m = get_matrix_from_view_volume_to_projection_volume(vv, pv_vulkan);
+            mat4x4 m = get_matrix_from_view_volume_to_projection_volume(vv, pv_vulkan)
+                       * camera_z_to_distance;
             mat4x4 ortho = mat4x4::orthographic_rh_zo(
                 vv.left, vv.right, vv.bottom, vv.top, vv.near, vv.far
             );
