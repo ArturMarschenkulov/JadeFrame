@@ -75,8 +75,8 @@ public:
                 proj.m_proj = mat4x4::perspective_rh_no(
                     box.m_left,
                     box.m_right,
-                    box.m_bottom,
                     box.m_top,
+                    box.m_bottom,
                     box.m_near,
                     box.m_far
                 );
