@@ -5,11 +5,6 @@
 namespace JadeFrame {
 enum class GRAPHICS_API : u8;
 
-enum class PROJECTION_TYPE : u8 {
-    ORTHOGRAPHIC,
-    PERSPECTIVE,
-};
-
 class Camera {
 public:
     struct Volume {

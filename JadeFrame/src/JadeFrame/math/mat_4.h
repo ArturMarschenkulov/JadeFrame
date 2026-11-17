@@ -44,6 +44,11 @@ enum class HANDEDNESS : u8 {
     LEFT,
 };
 
+enum class PROJECTION_TYPE : u8 {
+    ORTHOGRAPHIC,
+    PERSPECTIVE,
+};
+
 constexpr static auto get_fovy_aspect(f32 left, f32 right, f32 top, f32 bottom, f32 near)
     -> std::tuple<f32, f32> {
     assert((left != right) && "left and right cannot be the same");
@@ -516,6 +521,69 @@ constexpr auto mat4x4::operator*(const mat4x4& other) const noexcept -> mat4x4 {
     return result;
 }
 
+constexpr static auto projection_extended(
+    PROJECTION_TYPE kind,
+    f32             left,
+    f32             right,
+    f32             top,
+    f32             bottom,
+    f32             z_near,
+    f32             z_far,
+    HANDEDNESS      handedness,
+    f32             ndc_near,
+    f32             ndc_far
+) noexcept -> mat4x4 {
+    assert(kind == PROJECTION_TYPE::PERSPECTIVE || kind == PROJECTION_TYPE::ORTHOGRAPHIC);
+
+    assert(right != left);
+    assert(top != bottom);
+    assert(z_far != z_near);
+    assert(ndc_near != ndc_far);
+
+    const bool is_perspective = kind == PROJECTION_TYPE::PERSPECTIVE;
+
+    if (is_perspective) {
+        assert(right > left);
+        assert(top > bottom);
+        assert(z_near > 0.0F);
+        assert(z_far > z_near);
+    }
+
+    const f32 frustum_width = right - left;
+    const f32 frustum_height = top - bottom;
+    const f32 frustum_depth = z_far - z_near;
+
+    const f32 s = handedness == HANDEDNESS::RIGHT ? -1.0F : 1.0F;
+
+    // Homogeneous W coefficients:
+    // Perspective:  w = s * z
+    // Orthographic: w = 1
+    const f32 wz = is_perspective ? s : 0.0F;
+    const f32 ww = is_perspective ? 0.0F : 1.0F;
+
+    // W evaluated at the near and far planes.
+    const f32 w_near = is_perspective ? z_near : 1.0F;
+    const f32 w_far = is_perspective ? z_far : 1.0F;
+
+    const f32 a = 2.0F * w_near / frustum_width;
+    const f32 b = 2.0F * w_near / frustum_height;
+
+    const f32 tx = -(right + left) / frustum_width;
+    const f32 ty = -(top + bottom) / frustum_height;
+
+    const f32 c = s * ((ndc_far * w_far) - (ndc_near * w_near)) / frustum_depth;
+
+    const f32 d =
+        ((z_far * ndc_near * w_near) - (z_near * ndc_far * w_far)) / frustum_depth;
+
+    return mat4x4::from_cols(
+        v4::create(a, 0.0F, 0.0F, 0.0F),
+        v4::create(0.0F, b, 0.0F, 0.0F),
+        v4::create(tx * wz, ty * wz, c, wz),
+        v4::create(tx * ww, ty * ww, d, ww)
+    );
+}
+
 constexpr static auto orthographic_extended(
     f32        left,
     f32        right,
@@ -527,30 +595,17 @@ constexpr static auto orthographic_extended(
     f32        ndc_near,
     f32        ndc_far
 ) noexcept -> mat4x4 {
-    assert(right > left);
-    assert(top > bottom);
-    assert(z_far > z_near);
-    assert(ndc_near != ndc_far);
-
-    const f32 frustum_width = right - left;
-    const f32 frustum_height = top - bottom;
-    const f32 frustum_depth = z_far - z_near;
-
-    const f32 s = handedness == HANDEDNESS::RIGHT ? -1.0F : 1.0F;
-
-    const f32 a = 2.0F / frustum_width;
-    const f32 b = 2.0F / frustum_height;
-    const f32 c = s * (ndc_far - ndc_near) / frustum_depth;
-
-    const f32 tx = -(right + left) / frustum_width;
-    const f32 ty = -(top + bottom) / frustum_height;
-    const f32 tz = ((z_far * ndc_near) - (z_near * ndc_far)) / frustum_depth;
-
-    return mat4x4::from_cols(
-        v4::create(a, 0.0F, 0.0F, 0.0F),
-        v4::create(0.0F, b, 0.0F, 0.0F),
-        v4::create(0.0F, 0.0F, c, 0.0F),
-        v4::create(tx, ty, tz, 1.0F)
+    return projection_extended(
+        PROJECTION_TYPE::ORTHOGRAPHIC,
+        left,
+        right,
+        top,
+        bottom,
+        z_near,
+        z_far,
+        handedness,
+        ndc_near,
+        ndc_far
     );
 }
 
@@ -617,33 +672,17 @@ constexpr static auto perspective_extended(
     f32        ndc_near,
     f32        ndc_far
 ) noexcept -> mat4x4 {
-    assert(right > left);
-    assert(top > bottom);
-    assert(z_near > 0.0F);
-    assert(z_far > z_near);
-    assert(ndc_near != ndc_far);
-
-    const f32 frustum_width = right - left;
-    const f32 frustum_height = top - bottom;
-    const f32 frustum_depth = z_far - z_near;
-
-    const f32 s = handedness == HANDEDNESS::RIGHT ? -1.0F : 1.0F;
-
-    const f32 a = (2.0F * z_near) / frustum_width;
-    const f32 b = (2.0F * z_near) / frustum_height;
-
-    const f32 tx = -s * (right + left) / frustum_width;
-    const f32 ty = -s * (top + bottom) / frustum_height;
-
-    const f32 tz = s * ((z_far * ndc_far) - (z_near * ndc_near)) / frustum_depth;
-
-    const f32 d = (z_near * z_far) * (ndc_near - ndc_far) / frustum_depth;
-
-    return mat4x4::from_cols(
-        v4::create(a, 0.0F, 0.0F, 0.0F),
-        v4::create(0.0F, b, 0.0F, 0.0F),
-        v4::create(tx, ty, tz, s),
-        v4::create(0.0F, 0.0F, d, 0.0F)
+    return projection_extended(
+        PROJECTION_TYPE::PERSPECTIVE,
+        left,
+        right,
+        top,
+        bottom,
+        z_near,
+        z_far,
+        handedness,
+        ndc_near,
+        ndc_far
     );
 }
 
@@ -658,9 +697,6 @@ constexpr static auto perspective_extended(
 ) noexcept -> mat4x4 {
     assert(fovy > 0.0F && fovy < math::pi());
     assert(aspect > 0.0F);
-    assert(z_near > 0.0F);
-    assert(z_far > z_near);
-    assert(ndc_near != ndc_far);
 
     const f32 half_height = z_near * math::tan(fovy * 0.5F);
     const f32 half_width = half_height * aspect;
