@@ -471,7 +471,7 @@ inline auto operator<<(std::ostream& os, const mat4x4& v) -> std::ostream& {
     return os;
 }
 
-inline constexpr auto mat4x4::operator[](const u32 index) noexcept -> v4& {
+constexpr auto mat4x4::operator[](const u32 index) noexcept -> v4& {
     switch (index) {
         case 0: return x_axis;
         case 1: return y_axis;
@@ -481,7 +481,7 @@ inline constexpr auto mat4x4::operator[](const u32 index) noexcept -> v4& {
     }
 }
 
-inline constexpr auto mat4x4::operator[](const u32 index) const noexcept -> const v4& {
+constexpr auto mat4x4::operator[](const u32 index) const noexcept -> const v4& {
     switch (index) {
         case 0: return x_axis;
         case 1: return y_axis;
@@ -491,7 +491,7 @@ inline constexpr auto mat4x4::operator[](const u32 index) const noexcept -> cons
     }
 }
 
-inline constexpr auto mat4x4::operator*(const v4& vector) const noexcept -> v4 {
+constexpr auto mat4x4::operator*(const v4& vector) const noexcept -> v4 {
     v4          result;
     const auto& v = vector;
     result.x = x_axis.x * v.x + y_axis.x * v.y + z_axis.x * v.z + w_axis.x * v.w;
@@ -501,7 +501,7 @@ inline constexpr auto mat4x4::operator*(const v4& vector) const noexcept -> v4 {
     return result;
 }
 
-inline constexpr auto mat4x4::operator*(const mat4x4& other) const noexcept -> mat4x4 {
+constexpr auto mat4x4::operator*(const mat4x4& other) const noexcept -> mat4x4 {
     mat4x4 result = mat4x4::zero();
     for (u32 row = 0; row < 4; ++row) {
         for (u32 col = 0; col < 4; ++col) {
@@ -515,7 +515,7 @@ inline constexpr auto mat4x4::operator*(const mat4x4& other) const noexcept -> m
     return result;
 }
 
-inline constexpr auto mat4x4::orthographic_rh_no(
+constexpr auto mat4x4::orthographic_rh_no(
     f32 left,
     f32 right,
     f32 bottom,
@@ -545,7 +545,7 @@ inline constexpr auto mat4x4::orthographic_rh_no(
     );
 }
 
-inline constexpr auto mat4x4::orthographic_lh_no(
+constexpr auto mat4x4::orthographic_lh_no(
     f32 left,
     f32 right,
     f32 bottom,
@@ -575,7 +575,7 @@ inline constexpr auto mat4x4::orthographic_lh_no(
     );
 }
 
-inline constexpr auto mat4x4::orthographic_lh_zo(
+constexpr auto mat4x4::orthographic_lh_zo(
     f32 left,
     f32 right,
     f32 bottom,
@@ -606,7 +606,7 @@ inline constexpr auto mat4x4::orthographic_lh_zo(
     );
 }
 
-inline constexpr auto mat4x4::orthographic_rh_zo(
+constexpr auto mat4x4::orthographic_rh_zo(
     f32 left,
     f32 right,
     f32 bottom,
@@ -710,7 +710,7 @@ constexpr static auto perspective_extended(
     );
 }
 
-inline constexpr auto mat4x4::perspective_rh_no(
+constexpr auto mat4x4::perspective_rh_no(
     f32 left,
     f32 right,
     f32 top,
@@ -723,7 +723,7 @@ inline constexpr auto mat4x4::perspective_rh_no(
     );
 }
 
-inline constexpr auto
+constexpr auto
 mat4x4::perspective_rh_no(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
     -> mat4x4 {
     return perspective_extended(
@@ -731,7 +731,7 @@ mat4x4::perspective_rh_no(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
     );
 }
 
-inline constexpr auto
+constexpr auto
 mat4x4::perspective_rh_zo(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
     -> mat4x4 {
     return perspective_extended(
@@ -739,7 +739,7 @@ mat4x4::perspective_rh_zo(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
     );
 }
 
-inline constexpr auto
+constexpr auto
 mat4x4::perspective_lh_no(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
     -> mat4x4 {
 
@@ -748,7 +748,7 @@ mat4x4::perspective_lh_no(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
     );
 }
 
-inline constexpr auto
+constexpr auto
 mat4x4::perspective_lh_zo(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
     -> mat4x4 {
     return perspective_extended(
@@ -756,21 +756,19 @@ mat4x4::perspective_lh_zo(f32 fovy, f32 aspect, f32 z_near, f32 z_far) noexcept
     );
 }
 
-inline constexpr auto mat4x4::identity() noexcept -> mat4x4 {
-    return mat4x4::diagonal(1.0F);
-}
+constexpr auto mat4x4::identity() noexcept -> mat4x4 { return mat4x4::diagonal(1.0F); }
 
-inline constexpr auto mat4x4::zero() noexcept -> mat4x4 {
+constexpr auto mat4x4::zero() noexcept -> mat4x4 {
     return mat4x4::from_cols(v4::zero(), v4::zero(), v4::zero(), v4::zero());
 }
 
-inline constexpr auto mat4x4::one() noexcept -> mat4x4 { return mat4x4::diagonal(1.0F); }
+constexpr auto mat4x4::one() noexcept -> mat4x4 { return mat4x4::diagonal(1.0F); }
 
-inline constexpr auto mat4x4::diagonal(f32 diag) noexcept -> mat4x4 {
+constexpr auto mat4x4::diagonal(f32 diag) noexcept -> mat4x4 {
     return mat4x4::diagonal(v4::splat(diag));
 }
 
-inline constexpr auto mat4x4::diagonal(const v4& diag) noexcept -> mat4x4 {
+constexpr auto mat4x4::diagonal(const v4& diag) noexcept -> mat4x4 {
     mat4x4 m = mat4x4::zero();
     m[0][0] = diag.x;
     m[1][1] = diag.y;
@@ -779,7 +777,7 @@ inline constexpr auto mat4x4::diagonal(const v4& diag) noexcept -> mat4x4 {
     return m;
 }
 
-inline constexpr auto mat4x4::rotation_rh(f32 angle, const v3& axis) noexcept -> mat4x4 {
+constexpr auto mat4x4::rotation_rh(f32 angle, const v3& axis) noexcept -> mat4x4 {
     const f32 c = static_cast<f32>(math::cos(angle));
     const f32 s = static_cast<f32>(math::sin(angle));
 
@@ -816,7 +814,7 @@ inline constexpr auto mat4x4::rotation_rh(f32 angle, const v3& axis) noexcept ->
     return result;
 }
 
-inline constexpr auto mat4x4::determinant() const -> f32 {
+constexpr auto mat4x4::determinant() const -> f32 {
     const mat4x4& m = *this;
 
     f32 t00 = m[0][0] * m[1][1] * m[2][2] * m[3][3];
@@ -857,11 +855,9 @@ inline constexpr auto mat4x4::determinant() const -> f32 {
     return t;
 }
 
-inline constexpr auto mat4x4::is_invertible() const -> bool {
-    return this->determinant() != 0;
-}
+constexpr auto mat4x4::is_invertible() const -> bool { return this->determinant() != 0; }
 
-inline constexpr auto mat4x4::get_transpose() const -> mat4x4 {
+constexpr auto mat4x4::get_transpose() const -> mat4x4 {
     mat4x4 result = mat4x4::zero();
     for (u32 col = 0; col < 4; col++) {
         for (u32 row = 0; row < 4; row++) { result[col][row] = (*this)[row][col]; }
@@ -881,8 +877,7 @@ public:
 
 public: // Creation / named constructors
     /// Creates a new quaternion from raw components.
-    static inline constexpr auto create(f32 x, f32 y, f32 z, f32 w) noexcept
-        -> Quaternion {
+    static constexpr auto create(f32 x, f32 y, f32 z, f32 w) noexcept -> Quaternion {
         Quaternion quat = {};
         quat.x = x;
         quat.y = y;
@@ -892,7 +887,7 @@ public: // Creation / named constructors
     }
 
     /// Returns the identity quaternion.
-    static inline constexpr auto identity() noexcept -> Quaternion {
+    static constexpr auto identity() noexcept -> Quaternion {
         return Quaternion::create(0.0F, 0.0F, 0.0F, 1.0F);
     }
 
@@ -900,7 +895,7 @@ public: // Creation / named constructors
     ///
     /// \param axis Must be normalized (or will be normalized internally).
     /// \param angle Rotation in radians.
-    static inline constexpr auto from_axis_angle(const v3& axis_in, f32 angle) noexcept
+    static constexpr auto from_axis_angle(const v3& axis_in, f32 angle) noexcept
         -> Quaternion {
         v3  axis = axis_in.normalize(); // or do your own normalization
         f32 half_angle = angle * 0.5F;
@@ -909,7 +904,7 @@ public: // Creation / named constructors
         return Quaternion::create(axis.x * s, axis.y * s, axis.z * s, c);
     }
 
-    static inline constexpr auto from_euler(f32 pitch, f32 yaw, f32 roll) noexcept
+    static constexpr auto from_euler(f32 pitch, f32 yaw, f32 roll) noexcept
         -> Quaternion {
         // For a standard Y-up, R_z(roll)*R_y(yaw)*R_x(pitch) approach:
         f32 half_x = pitch * 0.5F;
@@ -965,32 +960,29 @@ public: // Creation / named constructors
 
 public: // Basic quaternion operations
     /// Quaternion addition.
-    inline constexpr auto operator+(const Quaternion& other) const noexcept
-        -> Quaternion {
+    constexpr auto operator+(const Quaternion& other) const noexcept -> Quaternion {
         return Quaternion::create(x + other.x, y + other.y, z + other.z, w + other.w);
     }
 
     /// Quaternion subtraction.
-    inline constexpr auto operator-(const Quaternion& other) const noexcept
-        -> Quaternion {
+    constexpr auto operator-(const Quaternion& other) const noexcept -> Quaternion {
         return Quaternion::create(x - other.x, y - other.y, z - other.z, w - other.w);
     }
 
     /// Negate the quaternion (unary minus).
-    inline constexpr auto operator-() const noexcept -> Quaternion {
+    constexpr auto operator-() const noexcept -> Quaternion {
         return Quaternion::create(-x, -y, -z, -w);
     }
 
     /// Scalar multiplication.
-    inline constexpr auto operator*(f32 scalar) const noexcept -> Quaternion {
+    constexpr auto operator*(f32 scalar) const noexcept -> Quaternion {
         return Quaternion::create(x * scalar, y * scalar, z * scalar, w * scalar);
     }
 
     /// Quaternion multiplication (combines rotations).
     ///
     /// \note Order matters: q1 * q2 means "apply q2, then q1".
-    inline constexpr auto operator*(const Quaternion& other) const noexcept
-        -> Quaternion {
+    constexpr auto operator*(const Quaternion& other) const noexcept -> Quaternion {
         // Hamilton product:
         // (w1*x2 + x1*w2 + y1*z2 - z1*y2, ...)
         // A common reference formula:
@@ -1013,7 +1005,7 @@ public: // Basic quaternion operations
     }
 
     /// Equality operator with small tolerance for floating-point comparisons.
-    inline constexpr auto operator==(const Quaternion& rhs) const noexcept -> bool {
+    constexpr auto operator==(const Quaternion& rhs) const noexcept -> bool {
         f32 tolerance = 1e-6F;
         return (
             std::abs(x - rhs.x) < tolerance && std::abs(y - rhs.y) < tolerance &&
@@ -1021,29 +1013,29 @@ public: // Basic quaternion operations
         );
     }
 
-    inline constexpr auto operator!=(const Quaternion& rhs) const noexcept -> bool {
+    constexpr auto operator!=(const Quaternion& rhs) const noexcept -> bool {
         return !(*this == rhs);
     }
 
 public: // Quaternion-specific operations
     /// Conjugate of the quaternion: ( -x, -y, -z, w ).
-    inline constexpr auto conjugate() const noexcept -> Quaternion {
+    constexpr auto conjugate() const noexcept -> Quaternion {
         return Quaternion::create(-x, -y, -z, w);
     }
 
     /// Length (norm) of the quaternion.
-    inline constexpr auto length() const noexcept -> f32 {
+    constexpr auto length() const noexcept -> f32 {
         auto d = Quaternion::dot(*this, *this);
         return static_cast<f32>(std::sqrt(d));
     }
 
     /// Returns whether this quaternion is a unit quaternion (within some tolerance).
-    inline constexpr auto is_normalized(f32 eps = 1e-6F) const noexcept -> bool {
+    constexpr auto is_normalized(f32 eps = 1e-6F) const noexcept -> bool {
         return std::abs(Quaternion::dot(*this, *this) - 1.0F) < eps;
     }
 
     /// Returns a normalized version of this quaternion (does not modify the original).
-    inline constexpr auto normalize() const noexcept -> Quaternion {
+    constexpr auto normalize() const noexcept -> Quaternion {
         f32 len = this->length();
         if (len <= 1e-8F) {
             // Degenerate quaternion, fallback to identity or zero?
@@ -1054,7 +1046,7 @@ public: // Quaternion-specific operations
     }
 
     /// Normalizes this quaternion in-place.
-    inline constexpr auto normalize() noexcept -> Quaternion& {
+    constexpr auto normalize() noexcept -> Quaternion& {
         f32 len = this->length();
         if (len > 1e-8F) {
             f32 inv_len = 1.0F / len;
@@ -1073,7 +1065,7 @@ public: // Quaternion-specific operations
     }
 
     /// Inverse of the quaternion = conjugate / (length^2).
-    inline constexpr auto inverse() const noexcept -> Quaternion {
+    constexpr auto inverse() const noexcept -> Quaternion {
         f32 len_sq = Quaternion::dot(*this, *this);
         ;
         if (len_sq <= 1e-8F) {
@@ -1090,7 +1082,7 @@ public: // 3D vector transform
     ///
     /// Note: This can be done in multiple ways; this is a straightforward approach:
     ///   v' = q * (0, x, y, z) * q^-1
-    [[nodiscard]] inline constexpr auto rotate_vector(const v3& v) const noexcept -> v3 {
+    [[nodiscard]] constexpr auto rotate_vector(const v3& v) const noexcept -> v3 {
         // Convert to quaternion
         Quaternion vec_q = Quaternion::create(v.x, v.y, v.z, 0.0F);
         Quaternion inv_q = this->inverse();
